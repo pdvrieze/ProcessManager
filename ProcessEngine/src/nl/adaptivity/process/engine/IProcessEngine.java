@@ -1,13 +1,9 @@
 package nl.adaptivity.process.engine;
 
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-
-
-public interface IProcessEngine extends Remote{
+public interface IProcessEngine{
   
-  public ProcessInstance startProcess(ProcessModel pModel) throws RemoteException;
+  public ProcessInstance startProcess(ProcessModel pModel);
   
-  public void quit() throws RemoteException;
+  public void quit();
 
 }

@@ -6,12 +6,15 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.server.Unreferenced;
 import java.util.Arrays;
 
-import static nl.adaptivity.process.engine.ProcessEngineConstants.*;
+import nl.adaptivity.process.engine.rmi.IRMIProcessEngine;
+import nl.adaptivity.process.engine.rmi.RMIProcessEngine;
+import static nl.adaptivity.process.engine.rmi.RMIProcessEngineConstants.*;
 
 public class ProcessEngine implements IProcessEngine {
+
+  private static RMIProcessEngine engine;
 
   /**
    * @param args
@@ -22,8 +25,8 @@ public class ProcessEngine implements IProcessEngine {
     System.out.println("Args: "+Arrays.asList(args).toString());
     
     try {
-      ProcessEngine engine = new ProcessEngine();
-      IProcessEngine stub = (IProcessEngine) UnicastRemoteObject.exportObject(engine, _PORT);
+      engine = new RMIProcessEngine();
+      IRMIProcessEngine stub = (IRMIProcessEngine) UnicastRemoteObject.exportObject(engine, _PORT);
       
       Registry registry = LocateRegistry.getRegistry();
       registry.bind(_SERVICENAME, stub);
@@ -40,29 +43,19 @@ public class ProcessEngine implements IProcessEngine {
   }
 
   @Override
-  public void quit() throws RemoteException {
-    System.out.println("quit");
-    Registry registry = LocateRegistry.getRegistry();
-    try {
-      registry.unbind(_SERVICENAME);
-      UnicastRemoteObject.unexportObject(this, false);
-    } catch (NotBoundException e) {
-      throw new RemoteException("Could not unregister service, quiting anyway", e);
-    }
-    new Thread() {
-      @Override
-      public void run() {
-        System.out.print("Shutting down...");
-        try {
-          sleep(2000);
-        } catch (InterruptedException e) {
-          // I don't care
-        }
-        System.out.println("done");
-        System.exit(0);
+  public void quit() {
+    try{
+      System.out.println("quit() called");
+      Registry registry = LocateRegistry.getRegistry();
+      try {
+        registry.unbind(_SERVICENAME);
+        UnicastRemoteObject.unexportObject(engine, true);
+      } catch (NotBoundException e) {
+        throw new RemoteException("Could not unregister service, quiting anyway", e);
       }
-      
-    }.start();
+    } catch (RemoteException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override

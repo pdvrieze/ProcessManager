@@ -1,11 +1,10 @@
-package nl.adaptivity.process.engine.client.basic;
+package nl.adaptivity.process.engine.rmi.client.basic;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
-import nl.adaptivity.process.engine.IProcessEngine;
-
-import static nl.adaptivity.process.engine.ProcessEngineConstants.*;
+import nl.adaptivity.process.engine.rmi.IRMIProcessEngine;
+import static nl.adaptivity.process.engine.rmi.RMIProcessEngineConstants.*;
 
 
 public class QuitClient {
@@ -16,8 +15,10 @@ public class QuitClient {
   public static void main(String[] args) {
     try {
       Registry registry = LocateRegistry.getRegistry();
-      IProcessEngine stub = (IProcessEngine) registry.lookup(_SERVICENAME);
+      IRMIProcessEngine stub = (IRMIProcessEngine) registry.lookup(_SERVICENAME);
       stub.quit();
+      stub=null;
+      System.gc();
       
     } catch (Exception e) {
         System.err.println("Client exception: " + e.toString());
