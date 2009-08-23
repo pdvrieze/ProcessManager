@@ -6,5 +6,5 @@ public interface IProcessEngine{
   
   public ProcessInstance startProcess(ProcessModel pModel);
 
-  public void postMessage(ProcessInstance pProcesInstance, Serializable pMessage);
+  public void postMessage(MessageHandle pMessageHandle, Serializable pMessage);
 }

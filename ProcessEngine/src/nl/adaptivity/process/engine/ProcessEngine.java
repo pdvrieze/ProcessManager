@@ -13,9 +13,18 @@ public class ProcessEngine implements IProcessEngine {
   }
 
   @Override
-  public void postMessage(ProcessInstance pProcesInstance, Serializable pMessage) {
+  public void postMessage(MessageHandle pHOrigMessage, Serializable pMessage) {
+    IMessage repliedMessage = retrieveMessage(pHOrigMessage);
+    
     // TODO Auto-generated method stub
     // 
+    throw new UnsupportedOperationException("Not yet implemented");
+    
+  }
+
+  private IMessage retrieveMessage(MessageHandle pOrigMessage) {
+    // TODO Auto-generated method stub
+    // return null;
     throw new UnsupportedOperationException("Not yet implemented");
     
   }

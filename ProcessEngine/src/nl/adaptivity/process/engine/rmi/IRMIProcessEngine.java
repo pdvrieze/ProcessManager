@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import nl.adaptivity.process.engine.MessageHandle;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessModel;
 
@@ -13,5 +14,5 @@ public interface IRMIProcessEngine extends Remote{
   
   public void quit() throws RemoteException;
   
-  public void postMessage(ProcessInstance pProcesInstance, Serializable pMessage) throws RemoteException;
+  public void postMessage(MessageHandle pHOrigMessage, Serializable pMessage) throws RemoteException;
 }

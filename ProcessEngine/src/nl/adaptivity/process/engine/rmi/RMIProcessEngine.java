@@ -10,12 +10,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.Arrays;
 
+import nl.adaptivity.process.engine.*;
 import static nl.adaptivity.process.engine.rmi.RMIProcessEngineConstants.*;
-
-import nl.adaptivity.process.engine.IProcessEngine;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.engine.ProcessModel;
 
 public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced {
 
@@ -53,9 +49,9 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced {
   }
 
   @Override
-  public void postMessage(ProcessInstance pProcesInstance, Serializable pMessage) throws RemoteException {
+  public void postMessage(MessageHandle pHOrigMessage, Serializable pMessage) throws RemoteException {
     try {
-      aEngine.postMessage(pProcesInstance, pMessage);
+      aEngine.postMessage(pHOrigMessage, pMessage);
     } catch (Exception e) {
       throw new RemoteException(e.getMessage(), e);
     }
