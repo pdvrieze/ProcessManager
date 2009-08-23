@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.rmi;
 
+import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
@@ -11,5 +12,6 @@ public interface IRMIProcessEngine extends Remote{
   public ProcessInstance startProcess(ProcessModel pModel) throws RemoteException;
   
   public void quit() throws RemoteException;
-
+  
+  public void postMessage(ProcessInstance pProcesInstance, Serializable pMessage) throws RemoteException;
 }
