@@ -6,6 +6,7 @@ public final class RMIProcessEngineConstants {
   private RMIProcessEngineConstants() {}
 
   public static final String _SERVICENAME = "ProcessEngine";
-  public static final int _PORT = 6543;
+  public static final String _USERMSGSERVICENAME = "ProcessEngine_UserMsg";
+  public static final int _PORT = 0;
 
 }

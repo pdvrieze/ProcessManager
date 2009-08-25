@@ -1,10 +1,18 @@
 package nl.adaptivity.process.engine;
 
-import java.io.Serializable;
-
 public interface IProcessEngine{
   
-  public ProcessInstance startProcess(ProcessModel pModel);
+  public HProcessInstance startProcess(ProcessModel pModel);
 
-  public void postMessage(MessageHandle pMessageHandle, Serializable pMessage);
+  public void postMessage(MessageHandle pMessageHandle, IMessage pMessage) throws InvalidMessageException;
+
+  public void fireMessage(Message pMessage);
+
+  public void setMessageListener(ProcessMessageListener pProcessEngine);
+
+  public void finishInstance(ProcessInstance pProcessInstance);
+
+  public void cancelAll();
+
+  public long ensureMessageHandle(Message pMessage);
 }
