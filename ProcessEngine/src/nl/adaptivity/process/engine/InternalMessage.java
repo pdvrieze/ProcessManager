@@ -34,11 +34,6 @@ public class InternalMessage implements HandleAware {
   public boolean isValidReply(ExtMessage pMessage) {
     return pMessage.getReplyTo()==aHandle;
   }
-
-  @Deprecated
-  public static InternalMessage complete(ProcessInstance pProcessInstance, Payload pPayload) {
-    return new InternalMessage(pProcessInstance, pPayload);
-  }
   
   @Override
   public String toString() {

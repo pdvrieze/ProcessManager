@@ -15,8 +15,8 @@ public class StartNode extends ProcessNode {
   private static final long serialVersionUID = 7779338146413772452L;
 
   @Override
-  public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
-    startSuccessors(pThreads, pProcessInstance);
+  public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance, ProcessNodeInstance pPredecessor) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -1,8 +1,10 @@
 package nl.adaptivity.process.engine;
 
+import java.io.Serializable;
 
 
-public class ExtMessage {
+
+public class ExtMessage implements Serializable{
 
   private static final long serialVersionUID = 3875411205581115538L;
   private final long aHandle;

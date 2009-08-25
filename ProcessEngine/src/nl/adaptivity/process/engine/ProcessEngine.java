@@ -14,8 +14,8 @@ public class ProcessEngine implements IProcessEngine {
   private ProcessMessageListener aMessageListener;
 
   @Override
-  public HProcessInstance startProcess(ProcessModel pModel) {
-    ProcessInstance instance = pModel.createInstance(this);
+  public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload) {
+    ProcessInstance instance = pModel.createInstance(this, pPayload);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start();
     return result;
@@ -52,7 +52,6 @@ public class ProcessEngine implements IProcessEngine {
 
   @Override
   public void fireMessage(InternalMessage pMessage) {
-    // TODO check that this is actually unneeded
     ensureMessageHandle(pMessage);
     
     ExtMessage extVersion = pMessage.externalize();
@@ -82,8 +81,7 @@ public class ProcessEngine implements IProcessEngine {
     }
   }
 
-  @Override
-  public long ensureMessageHandle(InternalMessage pMessage) {
+  private long ensureMessageHandle(InternalMessage pMessage) {
     if (pMessage.hasHandle()) {
       return pMessage.getHandle();
     }

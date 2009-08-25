@@ -57,24 +57,12 @@ public abstract class ProcessNode implements Serializable {
 
   public abstract boolean condition();
 
-  public abstract void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance);
+  public abstract void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance, ProcessNodeInstance pPredecessor);
 
-  public void skip(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
+  public void skip(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance, ProcessNodeInstance pPredecessor) {
     for(ProcessNode successor: aSuccessors) {
-      successor.skip(pThreads, pProcessInstance);
+      successor.skip(pThreads, pProcessInstance, pPredecessor);
     }
-  }
-
-  protected Collection<ProcessNodeInstance> startSuccessors(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
-    Collection<ProcessNodeInstance> result = new ArrayList<ProcessNodeInstance>();
-    for (ProcessNode node:getSuccessors()) {
-      if (node.condition()) {
-        node.start(pThreads, pProcessInstance);
-      } else {
-        node.skip(pThreads, pProcessInstance);
-      }
-    }
-    return result;
   }
 
 }

@@ -59,8 +59,8 @@ public class ProcessModel implements Serializable{
     return aStartNodes;
   }
 
-  public ProcessInstance createInstance(IProcessEngine pEngine) {
-    return new ProcessInstance(this, pEngine);
+  public ProcessInstance createInstance(IProcessEngine pEngine, Payload pPayload) {
+    return new ProcessInstance(this, pEngine, pPayload);
   }
 
   public int getEndNodeCount() {

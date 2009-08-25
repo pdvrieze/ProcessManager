@@ -1,10 +1,12 @@
 package nl.adaptivity.process.engine.processModel;
 
+import java.util.Collection;
+
 
 public class JoinInstance extends ProcessNodeInstance {
 
-  public JoinInstance(Join pNode) {
-    super(pNode, null);
+  public JoinInstance(Join pNode, Collection<ProcessNodeInstance> pPredecessors) {
+    super(pNode, null, pPredecessors);
   }
 
   private int aComplete = 0;
@@ -29,6 +31,10 @@ public class JoinInstance extends ProcessNodeInstance {
   @Override
   public Join getNode() {
     return (Join) super.getNode();
+  }
+
+  public void addPredecessor(ProcessNodeInstance pPredecessor) {
+    super.getPredecessors().add(pPredecessor);
   }
 
 }

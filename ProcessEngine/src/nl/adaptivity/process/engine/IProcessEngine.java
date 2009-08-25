@@ -2,7 +2,7 @@ package nl.adaptivity.process.engine;
 
 public interface IProcessEngine{
   
-  public HProcessInstance startProcess(ProcessModel pModel);
+  public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload);
 
   public void postMessage(MessageHandle pMessageHandle, ExtMessage pMessage) throws InvalidMessageException;
 
@@ -13,7 +13,4 @@ public interface IProcessEngine{
   public void finishInstance(ProcessInstance pProcessInstance);
 
   public void cancelAll();
-
-  @Deprecated
-  public long ensureMessageHandle(InternalMessage pMessage);
 }

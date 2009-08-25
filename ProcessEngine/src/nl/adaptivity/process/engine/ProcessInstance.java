@@ -1,6 +1,7 @@
 package nl.adaptivity.process.engine;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,18 +27,25 @@ public class ProcessInstance implements Serializable, HandleAware{
 
   private final IProcessEngine aEngine;
 
-  public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine) {
+  private final Payload aPayload;
+
+  public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine, Payload pPayload) {
     aProcessModel = pProcessModel;
     aEngine = pEngine;
+    aPayload = pPayload;
     aThreads = new LinkedList<ProcessNodeInstance>();
+    for (StartNode node: aProcessModel.getStartNodes()) {
+      ProcessNodeInstance instance = new ProcessNodeInstance(node, null, null);
+      aThreads.add(instance);
+    }
     aJoins = new HashMap<Join, JoinInstance>();
   }
 
-  private void fireNode(Collection<ProcessNodeInstance> pThreads, ProcessNode node) {
+  private void fireNode(Collection<ProcessNodeInstance> pThreads, ProcessNode node, ProcessNodeInstance pPredecessor) {
     if (node.condition()) {
-      node.start(pThreads, this);
+      node.start(pThreads, this, pPredecessor);
     } else {
-      node.skip(pThreads, this);
+      node.skip(pThreads, this, pPredecessor);
     }
   }
 
@@ -48,11 +56,15 @@ public class ProcessInstance implements Serializable, HandleAware{
     }
   }
 
-  public JoinInstance getInstance(Join pJoin) {
+  public JoinInstance getJoinInstance(Join pJoin, ProcessNodeInstance pPredecessor) {
     JoinInstance result = aJoins.get(pJoin);
     if (result == null) {
-      result = new JoinInstance(pJoin);
+      Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pJoin.getPrevious().size());
+      predecessors.add(pPredecessor);
+      result = new JoinInstance(pJoin, predecessors);
       aJoins.put(pJoin, result);
+    } else {
+      result.addPredecessor(pPredecessor);
     }
     return result;
   }
@@ -88,13 +100,15 @@ public class ProcessInstance implements Serializable, HandleAware{
   public void finishThread(ProcessNodeInstance pOldInstance) {
     aThreads.remove(pOldInstance);
     for (ProcessNode successor: pOldInstance.getNode().getSuccessors()) {
-      successor.start(aThreads, this);
+      successor.start(aThreads, this, pOldInstance);
     }
   }
 
   public void start() {
-    for (ProcessNode node: aProcessModel.getStartNodes()) {
-      fireNode(aThreads, node);
+    ArrayList<ProcessNodeInstance> copy = new ArrayList<ProcessNodeInstance>(aThreads.size());
+    copy.addAll(aThreads);
+    for (ProcessNodeInstance node : copy) {
+      node.finish(aPayload, this);
     }
   }
 

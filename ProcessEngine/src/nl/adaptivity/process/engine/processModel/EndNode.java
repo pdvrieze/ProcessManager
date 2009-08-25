@@ -20,7 +20,7 @@ public class EndNode extends ProcessNode{
   }
 
   @Override
-  public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
+  public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance, ProcessNodeInstance pPredecessor) {
     pProcessInstance.finish();
   }
 

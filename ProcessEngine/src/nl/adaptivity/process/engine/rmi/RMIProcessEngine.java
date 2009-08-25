@@ -46,7 +46,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   @Override
   public HProcessInstance startProcess(ProcessModel pModel) throws RemoteException {
     try {
-      return aEngine.startProcess(pModel);
+      return aEngine.startProcess(pModel, null);
     } catch (Exception e) {
       throw new RemoteException(e.getMessage(), e);
     }

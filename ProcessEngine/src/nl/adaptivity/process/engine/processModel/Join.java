@@ -42,29 +42,28 @@ public class Join extends ProcessNode{
   }
 
   @Override
-  public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
+  public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance, ProcessNodeInstance pPredecessor) {
     if (aFinished) {
       return;
     }
-    JoinInstance j = pProcessInstance.getInstance(this);
+    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
     j.incComplete();
     if (j.getComplete()>=aMin || j.getTotal()>=aMax) {
       cancelPredecessors(pProcessInstance);
       aFinished = true;
-      pThreads.remove(j);
       pProcessInstance.removeJoin(j);
-      startSuccessors(pThreads, pProcessInstance);
+      pProcessInstance.finishThread(j);
     } else {
       pThreads.add(j);
     }
   }
 
   @Override
-  public void skip(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
+  public void skip(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance, ProcessNodeInstance pPredecessor) {
     if (aFinished) {
       return;
     }
-    JoinInstance j = pProcessInstance.getInstance(this);
+    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
     j.incSkipped();
     throw new UnsupportedOperationException("Not yet correct");
 //    if(j.getTotal()>=aMax) {
