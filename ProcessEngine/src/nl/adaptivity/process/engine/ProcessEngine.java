@@ -32,7 +32,7 @@ public class ProcessEngine implements IProcessEngine {
     ProcessNodeInstance pos = processInstance.getProcesNodeInstanceFor(repliedMessage);
     
     pos.finish(pMessage, processInstance);
-    
+    aMessageMap.remove(pHOrigMessage.getHandle());
   }
 
   private void verifyMessage(IMessage pRepliedMessage, IMessage pMessage) throws InvalidMessageException {
@@ -69,12 +69,14 @@ public class ProcessEngine implements IProcessEngine {
   @Override
   public void finishInstance(ProcessInstance pProcessInstance) {
     aMessageListener.fireFinishedInstance(pProcessInstance.getHandle());
+    aInstanceMap.remove(pProcessInstance);
   }
 
   @Override
   public void cancelAll() {
     for(ProcessInstance instance: aInstanceMap) {
       aMessageListener.cancelInstance(instance.getHandle());
+      aInstanceMap.remove(instance);
     }
   }
 

@@ -140,12 +140,12 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
         stub.postFinishedInstance(pHandle);
         stub = null;
       } else {
-        System.out.println("Process instance ("+pHandle+") finished");
+        System.err.println("Process instance ("+pHandle+") finished");
       }
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (NotBoundException e) {
-      System.out.println("Process instance ("+pHandle+") finished");
+      System.err.println("Process instance ("+pHandle+") finished");
     }
   }
 
@@ -159,12 +159,12 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
         stub.postCancelledInstance(pHandle);
         stub = null;
       } else {
-        System.out.println("Process instance ("+pHandle+") finished");
+        System.err.println("Process instance ("+pHandle+") finished");
       }
     } catch (RemoteException e) {
       e.printStackTrace();
     } catch (NotBoundException e) {
-      System.out.println("Process instance ("+pHandle+") finished");
+      System.err.println("Process instance ("+pHandle+") finished");
     }
   }
 

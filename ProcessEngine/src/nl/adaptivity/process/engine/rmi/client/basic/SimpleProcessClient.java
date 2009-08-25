@@ -44,7 +44,7 @@ public class SimpleProcessClient implements IRMIMessageHandler{
 
   private static void startProcessInstance(IRMIProcessEngine pEngine) throws RemoteException {
     
-    ProcessModel processModel = getProcessModel();
+    ProcessModel processModel = getProcessModel2();
     pEngine.startProcess(processModel);
     
   }
@@ -71,14 +71,21 @@ public class SimpleProcessClient implements IRMIMessageHandler{
   }
 
   @Override
-  public void postMessage(IRMIProcessEngine pEngine, IMessage pMessage) throws RemoteException {
+  public void postMessage(final IRMIProcessEngine pEngine, final IMessage pMessage) throws RemoteException {
     System.out.println("Message: "+pMessage);
-    try {
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-    }
-    pEngine.postMessage(new MessageHandle(pMessage.getHandle()), Message.complete(new HProcessInstance(pMessage.getProcessInstanceHandle()), pMessage.getHandle()));
-    
+    new Thread() {
+      public void run() {
+        try {
+          Thread.sleep(2000);
+        } catch (InterruptedException e) {
+        }
+        try {
+          pEngine.postMessage(new MessageHandle(pMessage.getHandle()), Message.complete(new HProcessInstance(pMessage.getProcessInstanceHandle()), pMessage.getHandle()));
+        } catch (RemoteException e) {
+          e.printStackTrace();
+        }
+      }
+    }.start();
   }
 
   @Override
