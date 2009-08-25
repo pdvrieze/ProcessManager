@@ -4,9 +4,9 @@ public interface IProcessEngine{
   
   public HProcessInstance startProcess(ProcessModel pModel);
 
-  public void postMessage(MessageHandle pMessageHandle, IMessage pMessage) throws InvalidMessageException;
+  public void postMessage(MessageHandle pMessageHandle, IExtMessage pMessage) throws InvalidMessageException;
 
-  public void fireMessage(Message pMessage);
+  public void fireMessage(InternalMessage pMessage);
 
   public void setMessageListener(ProcessMessageListener pProcessEngine);
 
@@ -14,5 +14,6 @@ public interface IProcessEngine{
 
   public void cancelAll();
 
-  public long ensureMessageHandle(Message pMessage);
+  @Deprecated
+  public long ensureMessageHandle(InternalMessage pMessage);
 }

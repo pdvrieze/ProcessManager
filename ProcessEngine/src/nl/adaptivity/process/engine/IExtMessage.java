@@ -3,16 +3,16 @@ package nl.adaptivity.process.engine;
 import java.io.Serializable;
 
 
-public interface IMessage extends Serializable {
+public interface IExtMessage extends Serializable {
 
-  boolean isValidReply(IMessage pMessage);
-
-  IProcessCursor getCursor();
+  boolean isValidReply(IExtMessage pMessage);
 
   long getHandle();
 
   long getReplyTo();
 
   long getProcessInstanceHandle();
+
+  Payload getPayload();
 
 }

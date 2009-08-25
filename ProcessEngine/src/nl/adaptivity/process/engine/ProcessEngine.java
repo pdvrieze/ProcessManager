@@ -9,7 +9,7 @@ public class ProcessEngine implements IProcessEngine {
 
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
   
-  private final HandleMap<IMessage> aMessageMap = new HandleMap<IMessage>();
+  private final HandleMap<InternalMessage> aMessageMap = new HandleMap<InternalMessage>();
 
   private ProcessMessageListener aMessageListener;
 
@@ -22,20 +22,20 @@ public class ProcessEngine implements IProcessEngine {
   }
 
   @Override
-  public void postMessage(MessageHandle pHOrigMessage, IMessage pMessage) throws InvalidMessageException {
+  public void postMessage(MessageHandle pHOrigMessage, IExtMessage pMessage) throws InvalidMessageException {
     // Get the (outgoing) message this is a reply to
-    IMessage repliedMessage = retrieveMessage(pHOrigMessage);
+    InternalMessage repliedMessage = retrieveMessage(pHOrigMessage);
     verifyMessage(repliedMessage, pMessage);
 
-    final ProcessInstance processInstance = aInstanceMap.get(repliedMessage.getProcessInstanceHandle());
+    final ProcessInstance processInstance = repliedMessage.getProcessInstance();
 
     ProcessNodeInstance pos = processInstance.getProcesNodeInstanceFor(repliedMessage);
     
-    pos.finish(pMessage, processInstance);
+    pos.finish(pMessage.getPayload(), processInstance);
     aMessageMap.remove(pHOrigMessage.getHandle());
   }
 
-  private void verifyMessage(IMessage pRepliedMessage, IMessage pMessage) throws InvalidMessageException {
+  private void verifyMessage(InternalMessage pRepliedMessage, IExtMessage pMessage) throws InvalidMessageException {
     if (pRepliedMessage==null) {
       throw new InvalidMessageException("The message replied to can not be found", pMessage);
     }
@@ -46,16 +46,18 @@ public class ProcessEngine implements IProcessEngine {
     // TODO further validation
   }
 
-  private IMessage retrieveMessage(MessageHandle pHandle) {
+  private InternalMessage retrieveMessage(MessageHandle pHandle) {
     return aMessageMap.get(pHandle.getHandle());
   }
 
   @Override
-  public void fireMessage(Message pMessage) {
+  public void fireMessage(InternalMessage pMessage) {
     // TODO check that this is actually unneeded
     ensureMessageHandle(pMessage);
     
-    getMessageListener().fireMessage(pMessage);
+    ExtMessage extVersion = pMessage.externalize();
+    
+    getMessageListener().fireMessage(extVersion);
   }
 
   public void setMessageListener(ProcessMessageListener messageListener) {
@@ -81,7 +83,7 @@ public class ProcessEngine implements IProcessEngine {
   }
 
   @Override
-  public long ensureMessageHandle(Message pMessage) {
+  public long ensureMessageHandle(InternalMessage pMessage) {
     if (pMessage.hasHandle()) {
       return pMessage.getHandle();
     }

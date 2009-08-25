@@ -61,7 +61,7 @@ public class ProcessInstance implements Serializable, HandleAware{
     aJoins.remove(pJ.getNode());
   }
 
-  public void fireMessage(Message pMessage) {
+  public void fireMessage(InternalMessage pMessage) {
     aEngine.fireMessage(pMessage);
   }
 
@@ -76,10 +76,9 @@ public class ProcessInstance implements Serializable, HandleAware{
     aHandle = pHandle;
   }
 
-  public ProcessNodeInstance getProcesNodeInstanceFor(IMessage pRepliedMessage) {
-    long handle = pRepliedMessage.getHandle();
+  public ProcessNodeInstance getProcesNodeInstanceFor(InternalMessage pRepliedMessage) {
     for(ProcessNodeInstance thread:aThreads) {
-      if (thread.getMessageHandle()==handle) {
+      if (thread.getMessage()==pRepliedMessage) {
         return thread;
       }
     }

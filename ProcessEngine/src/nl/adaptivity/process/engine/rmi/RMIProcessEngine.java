@@ -53,7 +53,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   }
 
   @Override
-  public void postMessage(MessageHandle pHOrigMessage, IMessage pMessage) throws RemoteException {
+  public void postMessage(MessageHandle pHOrigMessage, IExtMessage pMessage) throws RemoteException {
     try {
       aEngine.postMessage(pHOrigMessage, pMessage);
     } catch (Exception e) {
@@ -94,7 +94,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   }
 
   @Override
-  public void fireMessage(final Message pMessage) {
+  public void fireMessage(final IExtMessage pMessage) {
     Registry registry;
     try {
       registry = LocateRegistry.getRegistry();
@@ -113,7 +113,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
     }
   }
 
-  private void debugReply(final Message pMessage) {
+  private void debugReply(final IExtMessage pMessage) {
     new Thread() {
       @Override
       public void run() {
@@ -122,7 +122,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
             sleep(1000);
           } catch (InterruptedException e1) {
           }
-          postMessage(new MessageHandle(pMessage.getHandle()), Message.complete(new HProcessInstance(pMessage.getProcessInstanceHandle()), pMessage.getHandle()));
+          postMessage(new MessageHandle(pMessage.getHandle()), ExtMessage.complete(new HProcessInstance(pMessage.getProcessInstanceHandle()), pMessage.getHandle()));
         } catch (RemoteException e1) {
           e1.printStackTrace();
         }

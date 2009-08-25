@@ -4,7 +4,7 @@ package nl.adaptivity.process.engine.processModel;
 public class JoinInstance extends ProcessNodeInstance {
 
   public JoinInstance(Join pNode) {
-    super(pNode, -1);
+    super(pNode, null);
   }
 
   private int aComplete = 0;

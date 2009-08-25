@@ -3,36 +3,30 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.HandleMap.HandleAware;
 
 
-public class Message implements IMessage, HandleAware {
+public class ExtMessage implements IExtMessage {
 
   private static final long serialVersionUID = 3875411205581115538L;
-  private long aHandle = -1;
-  private final String aPayload;
+  private final long aHandle;
+  private final Payload aPayload;
   private final long aReplyTo;
   private final long aProcessInstanceHandle;
 
-  public Message(ProcessInstance pProcessInstance, String pPayload) {
-    this(pProcessInstance, pPayload, -1);
+  public ExtMessage(ProcessInstance pProcessInstance, long pHandle, Payload pPayload) {
+    this(pProcessInstance, pHandle, pPayload, -1);
   }
   
-  public Message(ProcessInstance pProcessInstance, String pPayload, long pReplyTo) {
+  public ExtMessage(ProcessInstance pProcessInstance, long pHandle, Payload pPayload, long pReplyTo) {
+    aHandle = pHandle;
     aPayload = pPayload;
     aReplyTo = pReplyTo;
     aProcessInstanceHandle = pProcessInstance.getHandle();
   }
   
-  public Message(HProcessInstance pProcessInstance, String pPayload, long pReplyTo) {
+  public ExtMessage(HProcessInstance pProcessInstance, long pHandle, Payload pPayload, long pReplyTo) {
+    aHandle = pHandle;
     aPayload = pPayload;
     aReplyTo = pReplyTo;
     aProcessInstanceHandle = pProcessInstance.getHandle();
-  }
-
-  @Override
-  public IProcessCursor getCursor() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
-
   }
 
   @Override
@@ -43,22 +37,18 @@ public class Message implements IMessage, HandleAware {
     return aHandle;
   }
   
-  public void setHandle(long pHandle) {
-    aHandle = pHandle;
-  }
-
   @Override
   public long getProcessInstanceHandle() {
     return aProcessInstanceHandle;
   }
 
   @Override
-  public boolean isValidReply(IMessage pMessage) {
+  public boolean isValidReply(IExtMessage pMessage) {
     return pMessage.getReplyTo()==aHandle;
   }
 
-  public static IMessage complete(ProcessInstance pProcessInstance, long pHandle) {
-    return new Message(pProcessInstance, null, pHandle);
+  public static IExtMessage complete(ProcessInstance pProcessInstance, long pHandle) {
+    return new ExtMessage(pProcessInstance, -1, null, pHandle);
   }
   
   @Override
@@ -71,12 +61,17 @@ public class Message implements IMessage, HandleAware {
     return aReplyTo;
   }
 
-  public static IMessage complete(HProcessInstance pProcessInstance, long pHandle) {
-    return new Message(pProcessInstance, null, pHandle);
+  public static IExtMessage complete(HProcessInstance pProcessInstance, long pHandle) {
+    return new ExtMessage(pProcessInstance, -1, null, pHandle);
   }
 
   public boolean hasHandle() {
     return aHandle>=0;
+  }
+
+  @Override
+  public Payload getPayload() {
+    return aPayload;
   }
 
 }

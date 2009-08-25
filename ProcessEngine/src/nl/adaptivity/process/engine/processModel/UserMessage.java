@@ -2,7 +2,8 @@ package nl.adaptivity.process.engine.processModel;
 
 import java.util.Collection;
 
-import nl.adaptivity.process.engine.Message;
+import nl.adaptivity.process.engine.InternalMessage;
+import nl.adaptivity.process.engine.Payload;
 import nl.adaptivity.process.engine.ProcessInstance;
 
 
@@ -30,9 +31,8 @@ public class UserMessage extends Activity {
 
   @Override
   public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
-    final Message message = new Message(pProcessInstance, aMessage);
-    long msgHandle = pProcessInstance.getEngine().ensureMessageHandle(message);
-    pThreads.add(new ProcessNodeInstance(this, msgHandle));
+    final InternalMessage message = new InternalMessage(pProcessInstance, Payload.create(aMessage));
+    pThreads.add(new ProcessNodeInstance(this, message));
     pProcessInstance.fireMessage(message);
   }
 

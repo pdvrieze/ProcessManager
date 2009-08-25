@@ -5,29 +5,29 @@ public class InvalidMessageException extends Exception {
 
   private static final long serialVersionUID = -2375058242935530666L;
   
-  private final IMessage aMessage;
+  private final IExtMessage aMessage;
 
-  public InvalidMessageException(IMessage pMessage) {
+  public InvalidMessageException(IExtMessage pMessage) {
     super();
     aMessage = pMessage;
   }
 
-  public InvalidMessageException(String pErrorMessage, IMessage pMessage, Throwable pCause) {
+  public InvalidMessageException(String pErrorMessage, IExtMessage pMessage, Throwable pCause) {
     super(pErrorMessage, pCause);
     aMessage = pMessage;
   }
 
-  public InvalidMessageException(String pErrorMessage, IMessage pMessage) {
+  public InvalidMessageException(String pErrorMessage, IExtMessage pMessage) {
     super(pErrorMessage);
     aMessage = pMessage;
   }
 
-  public InvalidMessageException(IMessage pMessage, Throwable pCause) {
+  public InvalidMessageException(IExtMessage pMessage, Throwable pCause) {
     super(pCause);
     aMessage = pMessage;
   }
   
-  public IMessage getMsgCause() {
+  public IExtMessage getMsgCause() {
     return aMessage;
   }
 

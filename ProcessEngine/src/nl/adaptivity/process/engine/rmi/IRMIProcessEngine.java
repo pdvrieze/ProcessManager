@@ -11,5 +11,5 @@ public interface IRMIProcessEngine extends Remote{
   
   public void quit() throws RemoteException;
   
-  public void postMessage(MessageHandle pHOrigMessage, IMessage pMessage) throws RemoteException;
+  public void postMessage(MessageHandle pHOrigMessage, IExtMessage pMessage) throws RemoteException;
 }
