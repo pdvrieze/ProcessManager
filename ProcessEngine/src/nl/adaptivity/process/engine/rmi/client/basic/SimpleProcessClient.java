@@ -71,9 +71,10 @@ public class SimpleProcessClient implements IRMIMessageHandler{
   }
 
   @Override
-  public void postMessage(final IRMIProcessEngine pEngine, final IExtMessage pMessage) throws RemoteException {
+  public void postMessage(final IRMIProcessEngine pEngine, final ExtMessage pMessage) throws RemoteException {
     System.out.println("Message: "+pMessage);
     new Thread() {
+      @Override
       public void run() {
         try {
           Thread.sleep(2000);

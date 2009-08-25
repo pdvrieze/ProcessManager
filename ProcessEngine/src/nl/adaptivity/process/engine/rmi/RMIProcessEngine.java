@@ -53,7 +53,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   }
 
   @Override
-  public void postMessage(MessageHandle pHOrigMessage, IExtMessage pMessage) throws RemoteException {
+  public void postMessage(MessageHandle pHOrigMessage, ExtMessage pMessage) throws RemoteException {
     try {
       aEngine.postMessage(pHOrigMessage, pMessage);
     } catch (Exception e) {
@@ -94,7 +94,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   }
 
   @Override
-  public void fireMessage(final IExtMessage pMessage) {
+  public void fireMessage(final ExtMessage pMessage) {
     Registry registry;
     try {
       registry = LocateRegistry.getRegistry();
@@ -113,7 +113,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
     }
   }
 
-  private void debugReply(final IExtMessage pMessage) {
+  private void debugReply(final ExtMessage pMessage) {
     new Thread() {
       @Override
       public void run() {

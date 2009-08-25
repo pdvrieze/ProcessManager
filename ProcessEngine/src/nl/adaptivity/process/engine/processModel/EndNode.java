@@ -21,7 +21,7 @@ public class EndNode extends ProcessNode{
 
   @Override
   public void start(Collection<ProcessNodeInstance> pThreads, ProcessInstance pProcessInstance) {
-    pProcessInstance.finish(this);
+    pProcessInstance.finish();
   }
 
 }

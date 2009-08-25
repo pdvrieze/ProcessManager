@@ -4,7 +4,7 @@ public interface IProcessEngine{
   
   public HProcessInstance startProcess(ProcessModel pModel);
 
-  public void postMessage(MessageHandle pMessageHandle, IExtMessage pMessage) throws InvalidMessageException;
+  public void postMessage(MessageHandle pMessageHandle, ExtMessage pMessage) throws InvalidMessageException;
 
   public void fireMessage(InternalMessage pMessage);
 

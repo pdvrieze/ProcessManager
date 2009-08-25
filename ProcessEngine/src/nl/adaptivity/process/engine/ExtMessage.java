@@ -1,9 +1,8 @@
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.HandleMap.HandleAware;
 
 
-public class ExtMessage implements IExtMessage {
+public class ExtMessage {
 
   private static final long serialVersionUID = 3875411205581115538L;
   private final long aHandle;
@@ -29,7 +28,6 @@ public class ExtMessage implements IExtMessage {
     aProcessInstanceHandle = pProcessInstance.getHandle();
   }
 
-  @Override
   public long getHandle() {
     if (aHandle<0) {
       throw new IllegalStateException("Handle unset");
@@ -37,18 +35,8 @@ public class ExtMessage implements IExtMessage {
     return aHandle;
   }
   
-  @Override
   public long getProcessInstanceHandle() {
     return aProcessInstanceHandle;
-  }
-
-  @Override
-  public boolean isValidReply(IExtMessage pMessage) {
-    return pMessage.getReplyTo()==aHandle;
-  }
-
-  public static IExtMessage complete(ProcessInstance pProcessInstance, long pHandle) {
-    return new ExtMessage(pProcessInstance, -1, null, pHandle);
   }
   
   @Override
@@ -56,12 +44,11 @@ public class ExtMessage implements IExtMessage {
     return aHandle+": "+aPayload;
   }
 
-  @Override
   public long getReplyTo() {
     return aReplyTo;
   }
 
-  public static IExtMessage complete(HProcessInstance pProcessInstance, long pHandle) {
+  public static ExtMessage complete(HProcessInstance pProcessInstance, long pHandle) {
     return new ExtMessage(pProcessInstance, -1, null, pHandle);
   }
 
@@ -69,7 +56,6 @@ public class ExtMessage implements IExtMessage {
     return aHandle>=0;
   }
 
-  @Override
   public Payload getPayload() {
     return aPayload;
   }

@@ -1,6 +1,5 @@
 package nl.adaptivity.process.engine.processModel;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -11,7 +10,6 @@ public class Join extends ProcessNode{
 
   private static final long serialVersionUID = -8598245023280025173L;
 
-  private final Collection<ProcessNode> aNodes;
   private final int aMin;
   private final int aMax;
 
@@ -19,7 +17,6 @@ public class Join extends ProcessNode{
 
   private Join(Collection<ProcessNode> pNodes, int pMin, int pMax) {
     super(pNodes);
-    aNodes = pNodes;
     aMin = pMin;
     aMax = Math.min(pNodes.size(), pMax);
     if (getMin() < 1 || getMin() > pNodes.size() || pMax < pMin) {

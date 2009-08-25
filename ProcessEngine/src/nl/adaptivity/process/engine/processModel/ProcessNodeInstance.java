@@ -30,4 +30,8 @@ public class ProcessNodeInstance {
     pProcessInstance.finishThread(this);
   }
 
+  public Payload getPayload() {
+    return aPayload;
+  }
+  
 }

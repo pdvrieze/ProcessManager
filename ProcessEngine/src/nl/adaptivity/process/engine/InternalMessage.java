@@ -9,12 +9,8 @@ public class InternalMessage implements HandleAware {
   private long aHandle = -1;
   private final Payload aPayload;
   private final ProcessInstance aProcessInstance;
-
-  public InternalMessage(ProcessInstance pProcessInstance, Payload pPayload) {
-    this(pProcessInstance, pPayload, -1);
-  }
   
-  public InternalMessage(ProcessInstance pProcessInstance, Payload pPayload, long pReplyTo) {
+  public InternalMessage(ProcessInstance pProcessInstance, Payload pPayload) {
     aPayload = pPayload;
     aProcessInstance = pProcessInstance;
   }
@@ -31,18 +27,17 @@ public class InternalMessage implements HandleAware {
     aHandle = pHandle;
   }
 
-  @Deprecated
   public ProcessInstance getProcessInstance() {
     return aProcessInstance;
   }
 
-  public boolean isValidReply(IExtMessage pMessage) {
+  public boolean isValidReply(ExtMessage pMessage) {
     return pMessage.getReplyTo()==aHandle;
   }
 
   @Deprecated
-  public static InternalMessage complete(ProcessInstance pProcessInstance, long pHandle) {
-    return new InternalMessage(pProcessInstance, null, pHandle);
+  public static InternalMessage complete(ProcessInstance pProcessInstance, Payload pPayload) {
+    return new InternalMessage(pProcessInstance, pPayload);
   }
   
   @Override
@@ -50,7 +45,6 @@ public class InternalMessage implements HandleAware {
     return aHandle+": "+aPayload;
   }
 
-  @Deprecated
   public boolean hasHandle() {
     return aHandle>=0;
   }

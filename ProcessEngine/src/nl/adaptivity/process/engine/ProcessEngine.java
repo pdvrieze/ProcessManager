@@ -22,7 +22,7 @@ public class ProcessEngine implements IProcessEngine {
   }
 
   @Override
-  public void postMessage(MessageHandle pHOrigMessage, IExtMessage pMessage) throws InvalidMessageException {
+  public void postMessage(MessageHandle pHOrigMessage, ExtMessage pMessage) throws InvalidMessageException {
     // Get the (outgoing) message this is a reply to
     InternalMessage repliedMessage = retrieveMessage(pHOrigMessage);
     verifyMessage(repliedMessage, pMessage);
@@ -35,7 +35,7 @@ public class ProcessEngine implements IProcessEngine {
     aMessageMap.remove(pHOrigMessage.getHandle());
   }
 
-  private void verifyMessage(InternalMessage pRepliedMessage, IExtMessage pMessage) throws InvalidMessageException {
+  private void verifyMessage(InternalMessage pRepliedMessage, ExtMessage pMessage) throws InvalidMessageException {
     if (pRepliedMessage==null) {
       throw new InvalidMessageException("The message replied to can not be found", pMessage);
     }

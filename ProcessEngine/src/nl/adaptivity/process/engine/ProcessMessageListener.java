@@ -3,7 +3,7 @@ package nl.adaptivity.process.engine;
 
 public interface ProcessMessageListener {
 
-  void fireMessage(IExtMessage pMessage);
+  void fireMessage(ExtMessage pMessage);
 
   void fireFinishedInstance(long pHandle);
 

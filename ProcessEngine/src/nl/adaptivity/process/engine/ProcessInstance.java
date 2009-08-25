@@ -41,7 +41,7 @@ public class ProcessInstance implements Serializable, HandleAware{
     }
   }
 
-  public void finish(EndNode pEndNode) {
+  public void finish() {
     aFinished++;
     if (aFinished>=aProcessModel.getEndNodeCount()) {
       aEngine.finishInstance(this);
