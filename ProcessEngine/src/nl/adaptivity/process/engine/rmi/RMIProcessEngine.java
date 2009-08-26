@@ -17,6 +17,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   
   private static RMIProcessEngine aRmiEngine;
   private IProcessEngine aEngine;
+  private boolean aHasQuit;
 
   public RMIProcessEngine() {
     aEngine = new ProcessEngine();
@@ -24,7 +25,14 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   }
 
   @Override
-  public void quit() throws RemoteException {
+  public void quit()
+  {
+    synchronized(this) {
+      if (aHasQuit) {
+        return;
+      }
+      aHasQuit = true;
+    }
     try{
       System.out.println("quit() called");
       try {
@@ -83,6 +91,15 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
       registry.bind(_SERVICENAME, stub);
       
       System.out.println("Server started");
+      
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        @Override
+        public void run() {
+          aRmiEngine.quit();
+        }
+      });
+      
+      
       
     } catch (RemoteException e) {
       e.printStackTrace();

@@ -28,8 +28,18 @@ public class SimpleProcessClient implements IRMIMessageHandler{
       aClient = new SimpleProcessClient();
       IRMIMessageHandler stub = (IRMIMessageHandler) UnicastRemoteObject.exportObject(aClient);
       registry.bind(_USERMSGSERVICENAME, stub);
+
+      
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        @Override
+        public void run() {
+          aClient.quit();
+        }
+      });
+      
       
       startProcessInstance(engine);
+
       
             
       engine=null;
@@ -70,6 +80,8 @@ public class SimpleProcessClient implements IRMIMessageHandler{
     return result;
   }
 
+  private boolean aHasQuit;
+
   @Override
   public void postMessage(final IRMIProcessEngine pEngine, final ExtMessage pMessage) throws RemoteException {
     System.out.println("Message: "+pMessage);
@@ -98,6 +110,12 @@ public class SimpleProcessClient implements IRMIMessageHandler{
 
   private void quit() {
     try {
+      synchronized(this) {
+        if (aHasQuit) {
+          return;
+        }
+        aHasQuit = true;
+      }
       Registry registry = LocateRegistry.getRegistry();
       try {
         registry.unbind(_USERMSGSERVICENAME);
