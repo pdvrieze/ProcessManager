@@ -12,7 +12,7 @@
     <wsdl:part name="processModel" type="tns:TProcessModel" />
   </wsdl:message>
   <wsdl:message name="startProcessResponse">
-    <wsdl:part name="instanceHandle" type="xsd:int"/>
+    <wsdl:part name="instanceHandle" type="xsd:long" />
   </wsdl:message>
   <wsdl:message name="postMessageRequest">
   	<wsdl:part name="message" type="tns:MessageType"></wsdl:part>
