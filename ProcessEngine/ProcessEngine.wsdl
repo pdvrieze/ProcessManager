@@ -17,9 +17,6 @@
   <wsdl:message name="postMessageRequest">
   	<wsdl:part name="message" type="tns:MessageType"></wsdl:part>
   </wsdl:message>
-  <wsdl:message name="postMessageResponse">
-  	<wsdl:part name="postMessageResponse" type="xsd:string"></wsdl:part>
-  </wsdl:message>
   <wsdl:portType name="SOAPProcessEngine">
     <wsdl:operation name="startProcess">
       <wsdl:input message="tns:startProcessRequest"/>
