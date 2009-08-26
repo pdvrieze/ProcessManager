@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.adaptivity.nl/ProcessEngine/" xmlns:tns="http://www.adaptivity.nl/ProcessEngine/"
+	elementFormDefault="qualified">
+	<xsd:element name="processModel" type="tns:TProcessModel"></xsd:element>
+	<xsd:element name="long" type="xsd:int"></xsd:element>
+
+	<xsd:complexType name="TProcessModel">
+		<xsd:choice minOccurs="2" maxOccurs="unbounded">
+			<xsd:element name="start" type="tns:StartNode"></xsd:element>
+			<xsd:element name="activity" type="tns:Activity"></xsd:element>
+			<xsd:element name="join" type="tns:Join"></xsd:element>
+			<xsd:element name="end" type="tns:EndNode"></xsd:element>
+		</xsd:choice>
+	</xsd:complexType>
+
+	<xsd:complexType name="StartNode">
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProcessModelNode">
+
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="Activity">
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProcessModelNode">
+				<xsd:attribute name="predecessor" type="xsd:IDREF">
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="EndNode">
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProcessModelNode">
+				<xsd:attribute name="predecessor" type="xsd:IDREF">
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="Join">
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProcessModelNode">
+				<xsd:sequence>
+					<xsd:element name="predecessor" type="xsd:IDREF">
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="ProcessModelNode">
+		<xsd:attribute name="id" type="xsd:ID"></xsd:attribute>
+	</xsd:complexType>
+
+    <xsd:complexType name="MessageType">
+    	<xsd:sequence>
+    		<xsd:any minOccurs="0" maxOccurs="unbounded"></xsd:any>
+    	</xsd:sequence></xsd:complexType>
+</xsd:schema>
