@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
+      xmlns="http://adaptivity.nl/ProcessEngine/">
+      <start id="start"/>
+      <activity id="ac1" predecessor="start" name="ac1">
+        <message service="foo"/>
+      </activity>
+      <activity id="ac2" predecessor="start" name="ac2">
+        <message service="bar"/>
+      </activity>
+      <join id="j1">
+        <predecessor>ac1</predecessor>
+        <predecessor>ac2</predecessor>
+      </join>
+      <end predecessor="j1"/>
+</processModel>

@@ -38,6 +38,7 @@
 			  	<xsd:element name="message" type="tns:Message"
 			  		minOccurs="1" maxOccurs="1">
 			  	</xsd:element>
+			  	<xsd:element name="condition" type="xsd:string" maxOccurs="1" minOccurs="0"></xsd:element>
 			  </xsd:sequence>
 			  <xsd:attribute name="predecessor" type="xsd:IDREF" use="required">
 				</xsd:attribute>
