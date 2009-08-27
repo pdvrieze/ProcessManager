@@ -2,10 +2,10 @@
 <wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
 	xmlns:pe="http://www.adaptivity.nl/ProcessEngine2/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ProcessEngine"
-	xmlns:tns="http://www.adaptivity.nl/ProcessEngine/"
-	targetNamespace="http://www.adaptivity.nl/ProcessEngine/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
-	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xsd1="http://www.adaptivity.nl/ProcessEngine/">
-    <wsdl:import namespace="http://www.adaptivity.nl/ProcessEngine/" location="ProcessEngine.xsd"></wsdl:import>
+	xmlns:tns="http://adaptivity.nl/ProcessEngine/"
+	targetNamespace="http://adaptivity.nl/ProcessEngine/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xsd1="http://adaptivity.nl/ProcessEngine/">
+    <wsdl:import namespace="http://adaptivity.nl/ProcessEngine/" location="ProcessEngine.xsd"></wsdl:import>
     <wsdl:types>
 		</wsdl:types>
   <wsdl:message name="startProcessRequest">
@@ -39,8 +39,5 @@
     </wsdl:operation>
   </wsdl:binding>
   <wsdl:service name="ProcessEngine">
-    <wsdl:port binding="tns:ProcessEngineSOAP" name="ProcessEngineSOAP">
-            <http:address location="http://www.adaptivity.nl/ProcessEngine" required="true"/>
-        </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Aug 27, 2009 4:35:32 PM                                                        
+
+     ProcessEngine    
+     A system that provides a process engine for usage in process mashups
+                   
+     paul                                                                
+     ====================================================================== -->
+<project name="ProcessEngine" default="default">
+    <description>
+            A system that provides a process engine for usage in process mashups
+    </description>
+
+	  <target name="jaxb">
+	  	<delete dir="gensrc"></delete>
+	  	<mkdir dir="gensrc"/>
+	  	<exec executable="xjc">
+	  	  <arg value="-d"/>
+	  		<arg value="gensrc"/>
+	  		<arg value="-p"/>
+	  		<arg value="nl.adaptivity.process.processmodel.jaxb"/>
+	  		<arg value="ProcessEngine.xsd"/>
+	  	</exec>
+  	</target>
+	
+    <!-- ================================= 
+          target: default              
+         ================================= -->
+    <target name="default" description="A system that provides a process engine for usage in process mashups">
+        
+    </target>
+
+
+</project>
