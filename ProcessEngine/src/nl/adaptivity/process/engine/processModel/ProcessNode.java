@@ -5,40 +5,64 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import net.devrieze.util.IdFactory;
+
 import nl.adaptivity.process.engine.ProcessInstance;
 
-
+@XmlAccessorType(XmlAccessType.NONE)
+@XmlType(name="ProcesNode")
+@XmlSeeAlso({Join.class, Activity.class, EndNode.class, StartNode.class})
 public abstract class ProcessNode implements Serializable {
 
   private static final long serialVersionUID = -7745019972129682199L;
   
-  private final Collection<ProcessNode> aPrevious;
+  private Collection<ProcessNode> aPredecessors;
 
   private Collection<ProcessNode> aSuccessors = null;
+
+  private String aId;
+  
+  protected ProcessNode() {
+    
+  }
   
   protected ProcessNode(ProcessNode pPrevious) {
     if (pPrevious == null) {
       if (! (this instanceof StartNode || this instanceof Join)) {
         throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
       }
-      aPrevious = Arrays.asList(new ProcessNode[0]);
+      setPredecessors(Arrays.asList(new ProcessNode[0]));
     } else {
-      aPrevious = Arrays.asList(pPrevious);
+      setPredecessors(Arrays.asList(pPrevious));
     }
   }
   
-  public ProcessNode(Collection<ProcessNode> pPrevious) {
-    if (pPrevious.size()<1 && (! (this instanceof StartNode))) {
+  public ProcessNode(Collection<ProcessNode> pPredecessors) {
+    if (pPredecessors.size()<1 && (! (this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
     }
-    if (pPrevious.size()>1 && (! (this instanceof Join))) {
+    if (pPredecessors.size()>1 && (! (this instanceof Join))) {
       throw new IllegalProcessModelException("Only join nodes may have multiple predecessors");
     }
-    aPrevious = pPrevious;
+    setPredecessors(pPredecessors);
   }
 
-  public final Collection<ProcessNode> getPrevious() {
-    return aPrevious;
+  public Collection<ProcessNode> getPredecessors() {
+    if (aPredecessors==null) {
+      aPredecessors = new ArrayList<ProcessNode>();
+    }
+    return aPredecessors;
+  }
+
+  public void setPredecessors(Collection<ProcessNode> predecessors) {
+    if (aPredecessors!=null) {
+      throw new UnsupportedOperationException("Not allowed to change predecessors");
+    }
+    aPredecessors = predecessors;
   }
 
   public void addSuccessor(ProcessNode pNode) {
@@ -63,6 +87,21 @@ public abstract class ProcessNode implements Serializable {
     for(ProcessNode successor: aSuccessors) {
       successor.skip(pThreads, pProcessInstance, pPredecessor);
     }
+  }
+  
+  @XmlAttribute
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  @XmlID
+  @XmlSchemaType(name = "ID")
+  public String getId(){
+    if (aId==null) {
+      aId=IdFactory.create();
+    }
+    return aId;
+  }
+
+  public void setId(String id) {
+    aId = id;
   }
 
 }

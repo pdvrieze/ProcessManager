@@ -20,7 +20,7 @@ public class UserMessage extends Activity {
     aMessage = pMessage;
   }
 
-  public String getMessage() {
+  public String getUserMessage() {
     return aMessage;
   }
 

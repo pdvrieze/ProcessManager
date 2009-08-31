@@ -69,6 +69,10 @@
 					<xsd:element name="predecessor" type="xsd:IDREF">
 					</xsd:element>
 				</xsd:sequence>
+				<xsd:attribute name="min" type="xsd:int"
+					use="required">
+				</xsd:attribute>
+				<xsd:attribute name="max" type="xsd:int" use="required"></xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

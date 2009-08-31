@@ -27,17 +27,32 @@
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="ProcessEngineSOAP" type="tns:SOAPProcessEngine">
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-    <wsdl:operation name="startProcess">
-      <soap:operation soapAction="http://www.adaptivity.nl/ProcessEngine/startProcess"/>
-      <wsdl:input>
-        <soap:body use="literal"/>
-      </wsdl:input>
-      <wsdl:output>
-        <soap:body use="literal"/>
-      </wsdl:output>
-    </wsdl:operation>
+  	<soap:binding style="document"
+  		transport="http://schemas.xmlsoap.org/soap/http" />
+  	<wsdl:operation name="startProcess">
+  		<soap:operation
+  			soapAction="http://adaptivity.nl/ProcessEngine/startProcess" />
+  		<wsdl:input>
+  			<soap:body use="literal" />
+  		</wsdl:input>
+  		<wsdl:output>
+  			<soap:body use="literal" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="postMessage">
+  		<soap:operation
+  			soapAction="http://adaptivity.nl/ProcessEngine/postMessage" />
+  		<wsdl:input>
+  			<soap:body use="literal" />
+  		</wsdl:input>
+  	</wsdl:operation>
   </wsdl:binding>
+  
   <wsdl:service name="ProcessEngine">
+    
+        <wsdl:port name="soap" binding="tns:ProcessEngineSOAP">
+        	<soap:address
+        		location="http://localhost:8192/ProcessEngine/" />
+        </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

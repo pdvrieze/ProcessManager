@@ -11,6 +11,7 @@ public class JoinInstance extends ProcessNodeInstance {
 
   private int aComplete = 0;
   private int aSkipped = 0;
+  private boolean aFinished = false;
 
   public void incComplete() {
     aComplete++;
@@ -36,5 +37,14 @@ public class JoinInstance extends ProcessNodeInstance {
   public void addPredecessor(ProcessNodeInstance pPredecessor) {
     super.getPredecessors().add(pPredecessor);
   }
+
+  public boolean isFinished() {
+    return aFinished;
+  }
+  
+  public void setFinished() {
+    aFinished=true;
+  }
+  
 
 }

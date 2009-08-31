@@ -14,6 +14,8 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
+import nl.adaptivity.process.engine.processModel.*;
+
 
 /**
  * This object contains factory methods for each 
@@ -58,16 +60,16 @@ public class XmlObjectFactory {
      * Create an instance of {@link XmlActivity }
      * 
      */
-    public XmlActivity createXmlActivity() {
-        return new XmlActivity();
+    public Activity createActivity() {
+        return new Activity();
     }
 
     /**
      * Create an instance of {@link XmlJoin }
      * 
      */
-    public XmlJoin createXmlJoin() {
-        return new XmlJoin();
+    public Join createJoin() {
+        return new Join();
     }
 
     /**
@@ -98,8 +100,8 @@ public class XmlObjectFactory {
      * Create an instance of {@link XmlEndNode }
      * 
      */
-    public XmlEndNode createXmlEndNode() {
-        return new XmlEndNode();
+    public EndNode createEndNode() {
+        return new EndNode();
     }
 
     /**
@@ -114,8 +116,8 @@ public class XmlObjectFactory {
      * Create an instance of {@link XmlStartNode }
      * 
      */
-    public XmlStartNode createXmlStartNode() {
-        return new XmlStartNode();
+    public StartNode createStartNode() {
+        return new StartNode();
     }
 
     /**
@@ -123,8 +125,8 @@ public class XmlObjectFactory {
      * 
      */
     @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "activity")
-    public JAXBElement<XmlActivity> createXmlActivity(XmlActivity value) {
-        return new JAXBElement<XmlActivity>(_Activity_QNAME, XmlActivity.class, null, value);
+    public JAXBElement<Activity> createActivity(Activity value) {
+        return new JAXBElement<Activity>(_Activity_QNAME, Activity.class, null, value);
     }
 
     /**
@@ -132,8 +134,8 @@ public class XmlObjectFactory {
      * 
      */
     @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "end")
-    public JAXBElement<XmlEndNode> createEnd(XmlEndNode value) {
-        return new JAXBElement<XmlEndNode>(_End_QNAME, XmlEndNode.class, null, value);
+    public JAXBElement<EndNode> createEnd(EndNode value) {
+        return new JAXBElement<EndNode>(_End_QNAME, EndNode.class, null, value);
     }
 
     /**
@@ -141,8 +143,8 @@ public class XmlObjectFactory {
      * 
      */
     @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "join")
-    public JAXBElement<XmlJoin> createXmlJoin(XmlJoin value) {
-        return new JAXBElement<XmlJoin>(_Join_QNAME, XmlJoin.class, null, value);
+    public JAXBElement<Join> createJoin(Join value) {
+        return new JAXBElement<Join>(_Join_QNAME, Join.class, null, value);
     }
 
     /**
@@ -150,8 +152,8 @@ public class XmlObjectFactory {
      * 
      */
     @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "start")
-    public JAXBElement<XmlStartNode> createStart(XmlStartNode value) {
-        return new JAXBElement<XmlStartNode>(_Start_QNAME, XmlStartNode.class, null, value);
+    public JAXBElement<StartNode> createStart(StartNode value) {
+        return new JAXBElement<StartNode>(_Start_QNAME, StartNode.class, null, value);
     }
 
     /**
@@ -167,10 +169,10 @@ public class XmlObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Object }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "predecessor", scope = XmlJoin.class)
+    @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "predecessor", scope = Join.class)
     @XmlIDREF
-    public JAXBElement<Object> createJoinPredecessor(Object value) {
-        return new JAXBElement<Object>(_JoinPredecessor_QNAME, Object.class, XmlJoin.class, value);
+    public JAXBElement<ProcessNode> createJoinPredecessor(ProcessNode value) {
+        return new JAXBElement<ProcessNode>(_JoinPredecessor_QNAME, ProcessNode.class, Join.class, value);
     }
 
 }

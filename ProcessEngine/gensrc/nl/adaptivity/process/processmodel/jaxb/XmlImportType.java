@@ -32,14 +32,12 @@ import javax.xml.bind.annotation.XmlType;
  * 
  * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ImportType")
 public class XmlImportType {
 
-    @XmlAttribute(required = true)
-    protected String name;
-    @XmlAttribute
-    protected String path;
+    private String name;
+    private String path;
 
     /**
      * Gets the value of the name property.
@@ -49,6 +47,7 @@ public class XmlImportType {
      *     {@link String }
      *     
      */
+    @XmlAttribute(required = true)
     public String getName() {
         return name;
     }
@@ -73,6 +72,7 @@ public class XmlImportType {
      *     {@link String }
      *     
      */
+    @XmlAttribute
     public String getPath() {
         return path;
     }

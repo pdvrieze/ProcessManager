@@ -9,7 +9,7 @@
       <activity id="ac2" predecessor="start" name="ac2">
         <message service="bar"/>
       </activity>
-      <join id="j1">
+      <join id="j1" min="2" max="2">
         <predecessor>ac1</predecessor>
         <predecessor>ac2</predecessor>
       </join>

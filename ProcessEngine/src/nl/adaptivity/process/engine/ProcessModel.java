@@ -1,16 +1,20 @@
 package nl.adaptivity.process.engine;
 
-import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 
-import javax.xml.bind.JAXB;
+import javax.xml.bind.*;
 
 import nl.adaptivity.process.engine.processModel.*;
-import nl.adaptivity.process.processmodel.jaxb.*;
+import nl.adaptivity.process.processmodel.jaxb.XmlProcessModel;
 
-
+//@XmlRootElement(name="processModel")
+//@XmlType(name="ProcessModel")
+//@XmlAccessorType(XmlAccessType.NONE)
 public class ProcessModel implements Serializable{
 
   private static final long serialVersionUID = -4199223546188994559L;
@@ -22,72 +26,22 @@ public class ProcessModel implements Serializable{
     aEndNodeCount = pEndNodes.size();
   }
 
-  public ProcessModel() {
-    
-  }
-  
   public ProcessModel(EndNode... pEndNodes) {
     this(Arrays.asList(pEndNodes));
   }
   
   public ProcessModel(XmlProcessModel pXmlModel) {
-    Map<String, ProcessNode> seenNodes = new HashMap<String, ProcessNode>();
-    Map<String,XmlProcessModelNode> unseenNodes = new HashMap<String, XmlProcessModelNode>();
-    Collection<XmlEndNode> endNodes = new ArrayList<XmlEndNode>();
+    Collection<EndNode> endNodes = new ArrayList<EndNode>();
     
-    for(XmlProcessModelNode node:pXmlModel.getNodes()) {
-      unseenNodes.put(node.getId(), node);
-      if (node instanceof XmlEndNode) {
-        endNodes.add((XmlEndNode) node);
+    for(ProcessNode node:pXmlModel.getNodes()) {
+      if (node instanceof EndNode) {
+        endNodes.add((EndNode) node);
       }
     }
 
-    Collection<EndNode> result = new ArrayList<EndNode>(endNodes.size());
     aEndNodeCount = endNodes.size();
     
-    for(XmlEndNode endNode:endNodes) {
-      XmlProcessModelNode pred = endNode.getPredecessor();
-      ProcessNode predNode = toProcessNode(seenNodes, pred);
-      result.add(new EndNode(predNode));
-    }
-    
-    aStartNodes = reverseGraph(result);
-  }
-
-  private static ProcessNode toProcessNode(Map<String, ProcessNode> pSeenNodes, XmlProcessModelNode node) {
-    ProcessNode result = pSeenNodes.get(node.getId());
-    if (result != null) { return result; }
-    if (node instanceof XmlStartNode) {
-      result = new StartNode();
-    } else if (node instanceof XmlActivity) {
-      result = toProcessNode2(pSeenNodes, (XmlActivity) node);
-    } else if (node instanceof XmlJoin) {
-      result = toProcessNode2(pSeenNodes, (XmlJoin) node);
-    }
-    pSeenNodes.put(node.getId(), result);
-    return result;
-  }
-
-  private static Join toProcessNode2(Map<String, ProcessNode> pSeenNodes, XmlJoin pNode) {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
-    
-  }
-
-  private static Activity toProcessNode2(Map<String, ProcessNode> pSeenNodes, XmlActivity pNode) {
-    ProcessNode predecessor = toProcessNode(pSeenNodes, pNode.getPredecessor());
-    String name = pNode.getName();
-    String condition = pNode.getCondition();
-    List<XmlImportType> imports = pNode.getImports();
-    List<XmlExportType> exports = pNode.getExports();
-    
-    final Activity result = new Activity(predecessor);
-    result.setName(name);
-    result.setCondition(condition);
-    result.setImports(imports);
-    result.setExports(exports);
-    return result;
+    aStartNodes = reverseGraph(endNodes);
   }
 
   private static Collection<StartNode> reverseGraph(Collection<EndNode> pEndNodes) {
@@ -100,14 +54,14 @@ public class ProcessModel implements Serializable{
   }
 
   private static void reverseGraph(Collection<StartNode> pResultList, ProcessNode pNode) {
-    Collection<ProcessNode> previous = pNode.getPrevious();
+    Collection<ProcessNode> previous = pNode.getPredecessors();
     for(ProcessNode prev: previous) {
       if (prev instanceof StartNode) {
         if (prev.getSuccessors()==null) {
           pResultList.add((StartNode) prev);
         }
         prev.addSuccessor(pNode);
-      } else if (prev.getSuccessors()==null){
+      } else if (prev.getSuccessors()==null || prev.getSuccessors().size()==0){
         prev.addSuccessor(pNode);
         reverseGraph(pResultList, prev);
       } else {
@@ -116,6 +70,45 @@ public class ProcessModel implements Serializable{
     }
   }
 
+//  @XmlElementRefs({
+//    @XmlElementRef(name = "end", type = EndNode.class),
+//    @XmlElementRef(name = "activity", type = Activity.class),
+//    @XmlElementRef(name = "start", type = StartNode.class),
+//    @XmlElementRef(name = "join", type = Join.class)
+//  })
+  public ProcessNode[] getModelNodes() {
+    Collection<ProcessNode> list = new ArrayList<ProcessNode>();
+    HashSet<String> seen = new HashSet<String>();
+    if (aStartNodes!=null) {
+      for(StartNode node: aStartNodes) {
+        extractElements(list, seen, node);
+      }
+    }
+    return list.toArray(new ProcessNode[list.size()]);
+  }
+  
+  public void setModelNodes(ProcessNode[] pProcessNodes) {
+    ArrayList<EndNode> endNodes = new ArrayList<EndNode>();
+    for(ProcessNode n:pProcessNodes) {
+      if (n instanceof EndNode) {
+        endNodes.add((EndNode) n);
+      }
+    }
+    aStartNodes = reverseGraph(endNodes);
+    aEndNodeCount = endNodes.size();
+  }
+
+  private static void extractElements(Collection<ProcessNode> pTo, HashSet<String> pSeen, ProcessNode pNode) {
+    if (pSeen.contains(pNode.getId())) {
+      return;
+    }
+    pTo.add(pNode);
+    pSeen.add(pNode.getId());
+    for(ProcessNode node:pNode.getSuccessors()) {
+      extractElements(pTo, pSeen, node);
+    }
+  }
+  
   public Collection<StartNode> getStartNodes() {
     return aStartNodes;
   }
@@ -128,16 +121,34 @@ public class ProcessModel implements Serializable{
     return aEndNodeCount;
   }
   
-  public static void main(String[] pArgs) {
+  public static void main(String[] pArgs) throws JAXBException {
     if (pArgs.length!=1) {
       System.out.println("Give process model file as parameter");
       System.exit(1);
     }
-    XmlProcessModel pm = JAXB.unmarshal(new File(pArgs[0]), XmlProcessModel.class);
-    CharArrayWriter out = new CharArrayWriter();
-    JAXB.marshal(pm, out);
-    System.out.println(out.toString());
-    System.out.println(pm.toString());
+    
+    JAXBContext jc = JAXBContext.newInstance(ProcessModel.class);
+    Unmarshaller u = jc.createUnmarshaller();
+    Marshaller m = jc.createMarshaller();
+//    System.out.println("Marshaller for ProcessModel: ");
+    
+    
+    ProcessModel pm = JAXB.unmarshal(new File(pArgs[0]), ProcessModel.class);
+    JAXB.marshal(pm, System.out);
+
+    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+    m.marshal(getProcessModel2(), System.out);
+  }
+
+  private static ProcessModel getProcessModel2() {
+    ProcessNode startNode = new StartNode();
+    Activity sayHello1 = new Activity(startNode);
+    Activity sayHello2 = new Activity(startNode);
+    
+    EndNode endNode = new EndNode(Join.andJoin(sayHello1, sayHello2));
+    
+    ProcessModel result = new ProcessModel(endNode);
+    return result;
   }
 
 }

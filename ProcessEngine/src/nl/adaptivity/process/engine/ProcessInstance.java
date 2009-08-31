@@ -59,7 +59,7 @@ public class ProcessInstance implements Serializable, HandleAware{
   public JoinInstance getJoinInstance(Join pJoin, ProcessNodeInstance pPredecessor) {
     JoinInstance result = aJoins.get(pJoin);
     if (result == null) {
-      Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pJoin.getPrevious().size());
+      Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pJoin.getPredecessors().size());
       predecessors.add(pPredecessor);
       result = new JoinInstance(pJoin, predecessors);
       aJoins.put(pJoin, result);
