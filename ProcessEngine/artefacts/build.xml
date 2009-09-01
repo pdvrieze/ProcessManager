@@ -1,0 +1,74 @@
+<project name="artefacts" default="processEngine-WS-sa.zip">
+
+	<property name="HOMEDIR" location="."/>
+	<property name="sm-home" location="/home/paul/.bins/apache-servicemix-3.3.1"/>
+	
+	<taskdef file="${sm-home}/ant/servicemix_ant_taskdef.properties">
+		<classpath id="servicemix.classpath">
+			<fileset dir="${sm-home}">
+				<include name="*.jar"/>
+			</fileset>
+      <fileset dir="${sm-home}/lib">
+        <include name="*.jar"/>
+      </fileset>
+		</classpath>
+	</taskdef>
+
+	<target name="compile">
+		<mkdir dir="build"/>
+		<javac srcdir="../src" 
+         destdir="build"
+         classpath="../lib/org.apache.servicemix.specs.jbi-api-1.0-1.1.0.jar"
+         debug="on"
+		     verbose="true"
+			   source="1.6">
+			<src path="../src/"></src>
+      <include name="nl/adaptivity/process/engine/jbi/Bootstrap.java"/>
+      <include name="nl/adaptivity/process/engine/jbi/JBIProcessEngine.java"/>
+	  </javac>
+	</target>
+	
+	<target name="install-component" depends="processEngine-se-installer.zip">
+		<jbi-install-component username="smx" password="smx" file="${HOMEDIR}/processEngine-se-installer.zip"></jbi-install-component>
+	</target>
+  
+  <target name="uninstall-component" depends="processEngine-se-installer.zip">
+  	<jbi-shut-down-component username="smx" password="smx" name="ProcessEngine"/>
+    <jbi-uninstall-component username="smx" password="smx" name="ProcessEngine"></jbi-uninstall-component>
+  </target>
+	
+	<target name="deploy-sa" depends="processEngine-WS-sa.zip">
+		<jbi-install-component username="smx" password="smx" file="${HOMEDIR}/processEngine-se-installer.zip" failonerror="false" deferexceptions="true"/>
+		<jbi-deploy-service-assembly username="smx" password="smx" file="${HOMEDIR}/processEngine-WS-sa.zip"/>
+	</target>
+	
+	<target name="install" depends="install-component">
+	</target>
+  
+  <target name="uninstall" depends="uninstall-component">
+  </target>
+	
+  <target name="processEngine-se.jar" depends="compile">
+  	
+    <jar destfile="processEngine-se.jar">
+    	<fileset dir="build" includes="**" />
+    </jar>
+  </target>
+	<target name="processEngine-se-installer.zip" depends="processEngine-se.jar">
+		<zip destfile="processEngine-se-installer.zip">
+      <fileset file="processEngine-se.jar"/>
+			<fileset dir="processEngine-se" includes="**"/>
+		</zip>
+	</target>
+	<target name="processEngine-WS-su.zip">
+		<zip destfile="processEngine-WS-su.zip">
+			<fileset dir="processEngine-WS-su" includes="**" />
+		</zip>
+	</target>
+	<target name="processEngine-WS-sa.zip" depends="processEngine-WS-su.zip">
+		<zip destfile="processEngine-WS-sa.zip">
+			<fileset dir="processEngine-WS-sa" includes="**" />
+			<fileset file="processEngine-WS-su.zip"/>
+		</zip>
+	</target>
+</project>

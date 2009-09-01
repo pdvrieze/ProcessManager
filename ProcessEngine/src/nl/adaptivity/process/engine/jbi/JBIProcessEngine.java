@@ -156,7 +156,7 @@ public class JBIProcessEngine implements Component, Runnable {
     pLogger.entering(JBIProcessEngine.class.getName(), "initStartProcess");
     
     try {
-      NormalizedMessage msg = pEx.getMessage("msg");
+      NormalizedMessage msg = pEx.getMessage("in");
       Source content = msg.getContent();
       
       

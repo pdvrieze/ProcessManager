@@ -12,7 +12,7 @@
       </identification>
       <target>
         <artifacts-zip>processEngine-WS-su.zip</artifacts-zip>
-        <component-name>processEngine-WS-su</component-name>
+        <component-name>servicemix-http</component-name>
       </target>
     </service-unit>
   </service-assembly>

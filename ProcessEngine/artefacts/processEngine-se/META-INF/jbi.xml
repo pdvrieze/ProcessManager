@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jbi xmlns="http://java.sun.com/xml/ns/jbi" version="1.0">
+  <component type="service-engine"
+             component-class-loader-delegation="parent-first" 
+             bootstrap-class-loader-delegation="parent-first">
+    <identification>
+      <name>ProcessEngine</name>
+      <description>ProcessEngine :: SE</description>
+    </identification>
+    <component-class-name>nl.adaptivity.process.engine.jbi.JBIProcessEngine</component-class-name>
+    <component-class-path>
+      <path-element>processEngine-se.jar</path-element>
+    </component-class-path>
+    <bootstrap-class-name>nl.adaptivity.process.engine.jbi.Bootstrap</bootstrap-class-name>
+    <bootstrap-class-path>
+      <path-element>processEngine-se.jar</path-element>
+    </bootstrap-class-path>
+  </component>
+</jbi>
