@@ -141,16 +141,32 @@
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:complexType>
+		
+			<xsd:complexType name="StartProcessMessage">
+			  <xsd:sequence>
+			    <xsd:element ref="tns:processModel"></xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+        
+			<xsd:simpleType name="StartProcessReply">
+			  <xsd:restriction base="xsd:long"></xsd:restriction>
+			</xsd:simpleType>
+		
+			<xsd:complexType name="PostMessageMessage">
+			  <xsd:sequence>
+			    <xsd:element name="message" type="tns:MessageType"></xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
 		</xsd:schema>
 	</wsdl:types>
 	<wsdl:message name="startProcessRequest">
-		<wsdl:part name="processModel" type="tns:TProcessModel" />
+		<wsdl:part name="processModel" type="tns:StartProcessMessage" />
 	</wsdl:message>
 	<wsdl:message name="startProcessResponse">
-		<wsdl:part name="instanceHandle" type="xsd:long" />
+		<wsdl:part name="instanceHandle" type="tns:StartProcessReply" />
 	</wsdl:message>
 	<wsdl:message name="postMessageRequest">
-		<wsdl:part name="postMessage" type="tns:MessageType"></wsdl:part>
+		<wsdl:part name="postMessage" type="tns:PostMessageMessage"></wsdl:part>
 	</wsdl:message>
 	<wsdl:portType name="ProcessEnginePortType">
 		<wsdl:operation name="startProcess">
