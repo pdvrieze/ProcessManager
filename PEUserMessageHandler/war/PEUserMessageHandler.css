@@ -1,0 +1,54 @@
+/** Add css rules here for your application. */
+
+
+/** Example rules used by the template application (remove for your app) */
+h1 {
+  font-size: 2em;
+  font-weight: bold;
+  color: #777777;
+  margin: 40px 0px 70px;
+  text-align: center;
+}
+
+.sendButton {
+  display: block;
+  font-size: 16pt;
+}
+
+/** Most GWT widgets already have a style name defined */
+.gwt-DialogBox {
+  width: 400px;
+}
+
+.inTabButton {
+  width: 115px; 
+}
+
+.tabPanel {
+  padding: 2px;
+}
+
+#gwt {
+  margin: 10px;
+}
+
+.tabContent {
+  margin: 3px;
+}
+
+.mhList {
+  width:150px;
+  height:225px;
+}
+
+.fileForm {
+  border: 1px solid black;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding: 4px;
+}
+
+.fileForm .gwt-Button {
+  margin-top: 5px;
+  float: right;
+}
