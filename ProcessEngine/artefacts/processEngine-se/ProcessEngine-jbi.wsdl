@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:pe="http://www.adaptivity.nl/ProcessEngine2/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ProcessEngine"
+	xmlns:tns="http://adaptivity.nl/ProcessEngine/" targetNamespace="http://adaptivity.nl/ProcessEngine/"
+	xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+	xmlns:xsd1="http://adaptivity.nl/ProcessEngine/">
+	<!--<wsdl:import namespace="http://adaptivity.nl/ProcessEngine/"
+		location="ProcessEngine.xsd"></wsdl:import>-->
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://adaptivity.nl/ProcessEngine/"
+			elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:tns="http://adaptivity.nl/ProcessEngine/">
+			<xsd:element name="processModel" type="tns:TProcessModel"></xsd:element>
+
+			<xsd:complexType name="TProcessModel">
+				<xsd:choice minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="start" type="tns:StartNode"></xsd:element>
+					<xsd:element name="activity" type="tns:Activity"></xsd:element>
+					<xsd:element name="join" type="tns:Join"></xsd:element>
+					<xsd:element name="end" type="tns:EndNode"></xsd:element>
+				</xsd:choice>
+
+
+			</xsd:complexType>
+
+			<xsd:complexType name="StartNode">
+				<xsd:complexContent>
+					<xsd:extension base="tns:ProcessModelNode">
+
+						<xsd:choice minOccurs="0" maxOccurs="unbounded">
+							<xsd:element name="import" type="tns:ImportType"
+								minOccurs="0" maxOccurs="unbounded"></xsd:element>
+						</xsd:choice>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="Activity">
+				<xsd:complexContent>
+					<xsd:extension base="tns:ProcessModelNode">
+						<xsd:sequence>
+							<xsd:choice minOccurs="0" maxOccurs="unbounded">
+								<xsd:element name="import" type="tns:ImportType">
+								</xsd:element>
+								<xsd:element name="export" type="tns:ExportType">
+								</xsd:element>
+							</xsd:choice>
+							<xsd:element name="message" type="tns:Message"
+								minOccurs="1" maxOccurs="1">
+							</xsd:element>
+							<xsd:element name="condition" type="xsd:string"
+								maxOccurs="1" minOccurs="0"></xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="predecessor" type="xsd:IDREF"
+							use="required">
+						</xsd:attribute>
+						<xsd:attribute name="name" type="xsd:string" use="optional">
+						</xsd:attribute>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="EndNode">
+				<xsd:complexContent>
+					<xsd:extension base="tns:ProcessModelNode">
+						<xsd:sequence>
+							<xsd:element name="export" type="tns:ExportType"
+								minOccurs="0" maxOccurs="unbounded"></xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="predecessor" type="xsd:IDREF"
+							use="required">
+						</xsd:attribute>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="Join">
+				<xsd:complexContent>
+					<xsd:extension base="tns:ProcessModelNode">
+						<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+							<xsd:element name="predecessor" type="xsd:IDREF">
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="min" type="xsd:int" use="required">
+						</xsd:attribute>
+						<xsd:attribute name="max" type="xsd:int" use="required"></xsd:attribute>
+					</xsd:extension>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="ProcessModelNode" abstract="true">
+				<xsd:attribute name="id" type="xsd:ID"></xsd:attribute>
+			</xsd:complexType>
+
+			<xsd:complexType name="MessageType" mixed="true">
+				<xsd:sequence>
+					<xsd:any minOccurs="0" maxOccurs="unbounded"></xsd:any>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="Message">
+				<xsd:attribute name="service" type="xsd:QName" use="required"></xsd:attribute>
+				<xsd:attribute name="endpoint" type="xsd:string" use="optional">
+				</xsd:attribute>
+				<xsd:attribute name="operation" type="xsd:string" use="optional"></xsd:attribute>
+			</xsd:complexType>
+
+			<xsd:complexType name="ExportType" mixed="true">
+				<xsd:annotation>
+					<xsd:documentation>May contain literal elements as content. In
+						that case only the paramName attribute is used.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:any maxOccurs="unbounded" minOccurs="0"></xsd:any>
+				</xsd:sequence>
+				<xsd:attribute name="node" type="xsd:string" use="optional"></xsd:attribute>
+				<xsd:attribute name="name" type="xsd:string" use="optional"></xsd:attribute>
+				<xsd:attribute name="paramName" type="xsd:string" use="required">
+				</xsd:attribute>
+				<xsd:attribute name="path" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>XPath query within the data to use as
+							parameter</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:complexType>
+
+			<xsd:complexType name="ImportType">
+				<xsd:attribute name="name" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:documentation>Name to store the result as
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="path" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>XPath query within the data to use for
+							result</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="startProcessRequest">
+		<wsdl:part name="processModel" type="tns:TProcessModel" />
+	</wsdl:message>
+	<wsdl:message name="startProcessResponse">
+		<wsdl:part name="instanceHandle" type="xsd:long" />
+	</wsdl:message>
+	<wsdl:message name="postMessageRequest">
+		<wsdl:part name="postMessage" type="tns:MessageType"></wsdl:part>
+	</wsdl:message>
+	<wsdl:portType name="ProcessEnginePortType">
+		<wsdl:operation name="startProcess">
+			<wsdl:input message="tns:startProcessRequest" />
+			<wsdl:output message="tns:startProcessResponse" />
+		</wsdl:operation>
+		<wsdl:operation name="postMessage">
+			<wsdl:input message="tns:postMessageRequest"></wsdl:input>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="endpoint" type="tns:ProcessEnginePortType">
+		<soap:binding style="document"
+			transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="startProcess">
+			<soap:operation soapAction="http://adaptivity.nl/ProcessEngine/startProcess" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="postMessage">
+			<soap:operation soapAction="http://adaptivity.nl/ProcessEngine/postMessage" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+		</wsdl:operation>
+	</wsdl:binding>
+
+	<wsdl:service name="ProcessEngine">
+
+		<wsdl:port name="soap" binding="tns:endpoint">
+			<soap:address location="http://localhost:8192/ProcessEngine/" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

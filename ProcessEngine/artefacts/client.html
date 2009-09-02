@@ -112,21 +112,22 @@ function send() {
 <env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
               xmlns:pe="http://adaptivity.nl/ProcessEngine/">
   <env:Body>
-
-    <pe:processModel xmlns="http://adaptivity.nl/ProcessEngine/">
-      <pe:start id="start" />
-      <pe:activity id="ac1" predecessor="start" name="ac1">
-        <pe:message service="foo" />
-      </pe:activity>
-      <pe:activity id="ac2" predecessor="start" name="ac2">
-        <pe:message service="bar" />
-      </pe:activity>
-      <pe:join id="j1" min="2" max="2">
-        <pe:predecessor>ac1</pe:predecessor>
-        <pe:predecessor>ac2</pe:predecessor>
-      </pe:join>
-      <pe:end predecessor="j1" />
-    </pe:processModel>
+    <pe:startProcess xmlns="http://adaptivity.nl/ProcessEngine/">
+      <pe:processModel>
+        <pe:start id="start" />
+        <pe:activity id="ac1" predecessor="start" name="ac1">
+          <pe:message service="foo" />
+        </pe:activity>
+        <pe:activity id="ac2" predecessor="start" name="ac2">
+          <pe:message service="bar" />
+        </pe:activity>
+        <pe:join id="j1" min="2" max="2">
+          <pe:predecessor>ac1</pe:predecessor>
+          <pe:predecessor>ac2</pe:predecessor>
+        </pe:join>
+        <pe:end predecessor="j1" />
+      </pe:processModel>
+    </pe:startProcess>
   </env:Body>
 </env:Envelope>
 

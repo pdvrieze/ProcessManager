@@ -2,7 +2,7 @@
 <jbi xmlns="http://java.sun.com/xml/ns/jbi" version="1.0">
   <service-assembly>
     <identification>
-      <name>ProcessEngine-wsdl</name>
+      <name>ProcessEngine-wsdl-sa</name>
       <description>ProcessEngine :: Support :: SA</description>
     </identification>
     <service-unit>

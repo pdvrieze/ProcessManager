@@ -20,9 +20,10 @@
          destdir="build"
          classpath="../lib/org.apache.servicemix.specs.jbi-api-1.0-1.1.0.jar"
          debug="on"
-		     verbose="true"
 			   source="1.6">
 			<src path="../src/"></src>
+      <src path="../gensrc/"></src>
+			<src path="../../java-common/src"></src>
       <include name="nl/adaptivity/process/engine/jbi/Bootstrap.java"/>
       <include name="nl/adaptivity/process/engine/jbi/JBIProcessEngine.java"/>
 	  </javac>
@@ -30,9 +31,10 @@
 	
 	<target name="install-component" depends="processEngine-se-installer.zip">
 		<jbi-install-component username="smx" password="smx" file="${HOMEDIR}/processEngine-se-installer.zip"></jbi-install-component>
+		<jbi-start-component username="smx" password="smx" name="ProcessEngine"/>
 	</target>
   
-  <target name="uninstall-component" depends="processEngine-se-installer.zip">
+  <target name="uninstall-component">
   	<jbi-shut-down-component username="smx" password="smx" name="ProcessEngine"/>
     <jbi-uninstall-component username="smx" password="smx" name="ProcessEngine"></jbi-uninstall-component>
   </target>
@@ -40,6 +42,12 @@
 	<target name="deploy-sa" depends="processEngine-WS-sa.zip">
 		<jbi-install-component username="smx" password="smx" file="${HOMEDIR}/processEngine-se-installer.zip" failonerror="false" deferexceptions="true"/>
 		<jbi-deploy-service-assembly username="smx" password="smx" file="${HOMEDIR}/processEngine-WS-sa.zip"/>
+		<jbi-start-service-assembly username="smx" password="smx" name="ProcessEngine-wsdl-sa"/>
+	</target>
+	
+	<target name="undeploy-sa">
+		<jbi-shut-down-service-assembly username="smx" password="smx" name="ProcessEngine-wsdl-sa"/>
+		<jbi-undeploy-service-assembly username="smx" password="smx" name="ProcessEngine-wsdl-sa"/>
 	</target>
 	
 	<target name="install" depends="install-component">
@@ -48,16 +56,22 @@
   <target name="uninstall" depends="uninstall-component">
   </target>
 	
+	<target name="reinstall">
+		<antcall target="uninstall"></antcall>
+		<antcall target="install"></antcall>
+	</target>
+	
   <target name="processEngine-se.jar" depends="compile">
   	
     <jar destfile="processEngine-se.jar">
-    	<fileset dir="build" includes="**" />
+      <fileset dir="build" includes="**" />
+    	<fileset dir="processEngine-se" includes="**" />
     </jar>
   </target>
 	<target name="processEngine-se-installer.zip" depends="processEngine-se.jar">
 		<zip destfile="processEngine-se-installer.zip">
       <fileset file="processEngine-se.jar"/>
-			<fileset dir="processEngine-se" includes="**"/>
+			<fileset dir="processEngine-se-installer" includes="**"/>
 		</zip>
 	</target>
 	<target name="processEngine-WS-su.zip">

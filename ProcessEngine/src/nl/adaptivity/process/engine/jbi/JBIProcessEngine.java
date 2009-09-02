@@ -1,7 +1,10 @@
 package nl.adaptivity.process.engine.jbi;
 
+import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.MissingResourceException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.jbi.JBIException;
@@ -11,6 +14,9 @@ import javax.jbi.component.ComponentLifeCycle;
 import javax.jbi.component.ServiceUnitManager;
 import javax.jbi.messaging.*;
 import javax.jbi.servicedesc.ServiceEndpoint;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,16 +27,24 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.xml.sax.SAXException;
 
+import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessModel;
+import nl.adaptivity.process.processmodel.jaxb.XmlProcessModel;
+
 
 public class JBIProcessEngine implements Component, Runnable {
 
   private static final String OP_POST_MESSAGE = "postMessage";
   private static final String OP_START_PROCESS = "startProcess";
   public static final QName SERVICE_QNAME = new QName("http://adaptivity.nl/ProcessEngine/","ProcessEngine");
+  private static final String LOGSUFFIX = null;
   private ComponentContext aContext;
   private ServiceEndpoint aEndPoint;
   private Thread aThread;
   private boolean aKeepRunning = true;
+  private Logger aLogger;
+  private ProcessEngine aProcessEngine;
 
   @Override
   public ComponentLifeCycle getLifeCycle() {
@@ -39,21 +53,70 @@ public class JBIProcessEngine implements Component, Runnable {
 
   @Override
   public Document getServiceDescription(ServiceEndpoint pEndpoint) {
+    logError("getServiceDescription");
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder builder = builderFactory.newDocumentBuilder();
       Document result = builder.parse(getClass().getClassLoader().getResourceAsStream("ProcessEngine-jbi.wsdl"));
       return result;
     } catch (ParserConfigurationException e) {
-      e.printStackTrace();
-      return null;
+      logError(e);
     } catch (SAXException e) {
-      e.printStackTrace();
-      return null;
+      logError(e);
     } catch (IOException e) {
-      e.printStackTrace();
-      return null;
+      logError(e);
     }
+    return null;
+  }
+
+  private void logError(Throwable pE) {
+    Logger logger = getLogger();
+    if (logger==null) {
+      pE.printStackTrace();
+      return;
+    }
+
+    
+    StackTraceElement[] stackTrace = pE.getStackTrace();
+    
+    String className = null;
+    String methodName = null;
+    if (stackTrace.length>=1) {
+      className=stackTrace[0].getClassName();
+      methodName=stackTrace[0].getMethodName();
+    }
+    logger.throwing(className, methodName, pE);
+    
+    CharArrayWriter writer = new CharArrayWriter();
+    pE.printStackTrace(new PrintWriter(writer));
+    logger.warning(writer.toString());
+
+  }
+
+  private void logError(String pMessage) {
+    Logger logger = getLogger();
+    if (logger==null) {
+      System.err.print(pMessage);
+      return;
+    }
+    
+    logger.log(Level.WARNING, pMessage);
+  }
+
+  private Logger getLogger() {
+    if (aLogger != null) {
+      return aLogger;
+    }
+    try {
+      aLogger = aContext.getLogger(LOGSUFFIX, null);
+      aLogger.setLevel(Level.ALL);
+      return aLogger;
+    } catch (MissingResourceException e1) {
+      e1.printStackTrace();
+    } catch (JBIException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   @Override
@@ -64,9 +127,11 @@ public class JBIProcessEngine implements Component, Runnable {
 
   @Override
   public boolean isExchangeWithConsumerOkay(ServiceEndpoint pEndpoint, MessageExchange pExchange) {
+    logError("isExchangeWithConsumerOkay");
     if (pEndpoint.getEndpointName()=="endpoint" && pEndpoint.getServiceName().equals(SERVICE_QNAME)) {
       final String operationName = pExchange.getOperation().getLocalPart();
-      return operationName.equals(OP_START_PROCESS) || operationName.equals(OP_POST_MESSAGE);  
+      logError("isExchangeWithConsumerOkay("+operationName+")");
+      return operationName.equals(OP_START_PROCESS) || operationName.equals(OP_POST_MESSAGE);
       
     } else {
       return false;
@@ -75,12 +140,14 @@ public class JBIProcessEngine implements Component, Runnable {
 
   @Override
   public boolean isExchangeWithProviderOkay(ServiceEndpoint pEndpoint, MessageExchange pExchange) {
+    logError("isExchangeWithProviderOkay");
     // TODO Auto-generated method stub
     return true;
   }
 
   @Override
   public ServiceEndpoint resolveEndpointReference(DocumentFragment pEpr) {
+    logError("resolveEndpointReference");
     return null;
   }
 
@@ -100,27 +167,17 @@ public class JBIProcessEngine implements Component, Runnable {
   }
   
   void activateEndPoint() {
+    logError("activateEndPoint");
   }
   
   public void run() {
-    Logger logger = null;
-    try {
-      logger = aContext.getLogger(null, null);
-    } catch (MissingResourceException e1) {
-      e1.printStackTrace();
-    } catch (JBIException e) {
-      e.printStackTrace();
-    }
+    Logger logger = getLogger();
 
     DeliveryChannel deliveryChannel;
     try {
       deliveryChannel = aContext.getDeliveryChannel();
     } catch (MessagingException e) {
-      if (logger != null) {
-        logger.throwing(JBIProcessEngine.class.getCanonicalName(), "run", e);
-      } else {
-        e.printStackTrace();
-      }
+      logger.throwing(JBIProcessEngine.class.getCanonicalName(), "run", e);
       return;
     }
     
@@ -129,12 +186,7 @@ public class JBIProcessEngine implements Component, Runnable {
       try {
         MessageExchange ex = deliveryChannel.accept(1000);
         if (ex!=null) {
-          final String localPart = ex.getOperation().getLocalPart();
-          if (localPart.equals(OP_POST_MESSAGE)) {
-            initPostMessage(logger, ex);
-          } else if (localPart.equals(OP_START_PROCESS)) {
-            initStartProcess(logger, ex);
-          }
+          processMessage(deliveryChannel, ex);
         }
       } catch (MessagingException e) {
         if (logger != null) {
@@ -143,43 +195,64 @@ public class JBIProcessEngine implements Component, Runnable {
           e.printStackTrace();
         }
       }
-      try {
-        
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+    }
+  }
+
+  private void processMessage(DeliveryChannel pDeliveryChannel, MessageExchange ex) {
+    getLogger().entering(JBIProcessEngine.class.getName(), "processMessage");
+    if (ex.getStatus()==ExchangeStatus.ACTIVE) {
+      final String localPart = ex.getOperation().getLocalPart();
+      if (localPart.equals(OP_POST_MESSAGE)) {
+        initPostMessage(pDeliveryChannel, ex);
+      } else if (localPart.equals(OP_START_PROCESS)) {
+        initStartProcess(pDeliveryChannel, (InOut) ex);
       }
     }
   }
 
-  private void initStartProcess(Logger pLogger, MessageExchange pEx) {
-    pLogger.entering(JBIProcessEngine.class.getName(), "initStartProcess");
+  private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {
+    getLogger().entering(JBIProcessEngine.class.getName(), "initStartProcess");
     
     try {
-      NormalizedMessage msg = pEx.getMessage("in");
+      NormalizedMessage msg = pEx.getInMessage();
       Source content = msg.getContent();
+      ProcessModel processModel = JAXB.unmarshal(content, XmlProcessModel.class).toProcessModel();
       
-      
+      HProcessInstance result = aProcessEngine.startProcess(processModel, null);
+      NormalizedMessage reply = pEx.createMessage();
+      reply.setContent(new JAXBSource(JAXBContext.newInstance(HProcessInstance.class), result));
+      pEx.setOutMessage(reply);
+      pDeliveryChannel.send(pEx);
     } catch (Exception e) {
-      pLogger.throwing(JBIProcessEngine.class.getName(), "initStartProcess", e);
+      logError(e);
       try {
-        Fault f = pEx.createFault();
-        pEx.setFault(f);
+        pEx.setError(e);
+        pDeliveryChannel.send(pEx);
       } catch (MessagingException e2) {
-        pLogger.throwing(JBIProcessEngine.class.getName(), "initStartProcess", e2);
+        logError(e2);
       }
-//      pEx.setError(e);
     }
   }
 
-  private void initPostMessage(Logger pLogger, MessageExchange pEx) {
-    pLogger.entering(JBIProcessEngine.class.getName(), "initPostMessage");
+  private void initPostMessage(DeliveryChannel pDeliveryChannel, MessageExchange pEx) {
+    getLogger().entering(JBIProcessEngine.class.getName(), "initPostMessage");
+    try {
+      pEx.setStatus(ExchangeStatus.DONE);
+      pDeliveryChannel.send(pEx);
+    } catch (MessagingException e) {
+      logError(e);
+    }
 
   }
 
-  public void stop() {
+  public void stop() throws JBIException {
     aKeepRunning = false;
+    aContext.deactivateEndpoint(aEndPoint);
     aThread.interrupt();
+  }
+
+  public void startEngine() {
+    aProcessEngine = new ProcessEngine();
   }
   
 }
