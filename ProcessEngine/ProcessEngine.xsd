@@ -2,15 +2,17 @@
 <xsd:schema targetNamespace="http://adaptivity.nl/ProcessEngine/" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://adaptivity.nl/ProcessEngine/">
 	<xsd:element name="processModel" type="tns:TProcessModel"></xsd:element>
 
-	<xsd:complexType name="TProcessModel"><xsd:choice minOccurs="0" maxOccurs="unbounded">
-			<xsd:element name="start" type="tns:StartNode"></xsd:element>
-			<xsd:element name="activity" type="tns:Activity"></xsd:element>
-			<xsd:element name="join" type="tns:Join"></xsd:element>
-			<xsd:element name="end" type="tns:EndNode"></xsd:element>
-		</xsd:choice>
-        	
-                    
-    </xsd:complexType>
+	<xsd:complexType name="TProcessModel">
+	  <xsd:choice minOccurs="0" maxOccurs="unbounded">
+	    <xsd:element name="start" type="tns:StartNode"></xsd:element>
+	    <xsd:element name="activity" type="tns:Activity"></xsd:element>
+	    <xsd:element name="join" type="tns:Join"></xsd:element>
+	    <xsd:element name="end" type="tns:EndNode"></xsd:element>
+	  </xsd:choice>
+
+
+	  <xsd:attribute name="name" type="xsd:string" use="required"></xsd:attribute>
+	</xsd:complexType>
 
 	<xsd:complexType name="StartNode">
 		<xsd:complexContent>

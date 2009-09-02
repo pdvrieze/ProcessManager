@@ -14,14 +14,15 @@
 			<xsd:element name="processModel" type="tns:TProcessModel"></xsd:element>
 
 			<xsd:complexType name="TProcessModel">
-				<xsd:choice minOccurs="0" maxOccurs="unbounded">
-					<xsd:element name="start" type="tns:StartNode"></xsd:element>
-					<xsd:element name="activity" type="tns:Activity"></xsd:element>
-					<xsd:element name="join" type="tns:Join"></xsd:element>
-					<xsd:element name="end" type="tns:EndNode"></xsd:element>
-				</xsd:choice>
+			  <xsd:choice minOccurs="0" maxOccurs="unbounded">
+			    <xsd:element name="start" type="tns:StartNode"></xsd:element>
+			    <xsd:element name="activity" type="tns:Activity"></xsd:element>
+			    <xsd:element name="join" type="tns:Join"></xsd:element>
+			    <xsd:element name="end" type="tns:EndNode"></xsd:element>
+			  </xsd:choice>
 
 
+			  <xsd:attribute name="name" type="xsd:string" use="required"></xsd:attribute>
 			</xsd:complexType>
 
 			<xsd:complexType name="StartNode">
@@ -157,16 +158,34 @@
 			    <xsd:element name="message" type="tns:MessageType"></xsd:element>
 			  </xsd:sequence>
 			</xsd:complexType>
-		</xsd:schema>
+			<xsd:complexType name="ProcessModelList">
+			  <xsd:sequence>
+			    <xsd:element name="processModel" type="tns:ProcessModelRef" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+			  </xsd:sequence>
+			</xsd:complexType>
+		
+			<xsd:complexType name="ProcessModelRef">
+			  <xsd:attribute name="name" type="xsd:string" use="required"></xsd:attribute>
+			  <xsd:attribute name="handle" type="xsd:long" use="required"></xsd:attribute>
+			</xsd:complexType>
+            <xsd:element name="instanceHandle" type="xsd:long"></xsd:element>
+            <xsd:element name="postMessage" type="tns:PostMessageMessage"></xsd:element>
+            <xsd:element name="processModelList" type="tns:ProcessModelList"></xsd:element>
+        </xsd:schema>
 	</wsdl:types>
 	<wsdl:message name="startProcessRequest">
-		<wsdl:part name="processModel" type="tns:StartProcessMessage" />
+		<wsdl:part name="processModel" element="tns:processModel" />
 	</wsdl:message>
 	<wsdl:message name="startProcessResponse">
-		<wsdl:part name="instanceHandle" type="tns:StartProcessReply" />
+		<wsdl:part name="instanceHandle" element="tns:instanceHandle" />
 	</wsdl:message>
 	<wsdl:message name="postMessageRequest">
-		<wsdl:part name="postMessage" type="tns:PostMessageMessage"></wsdl:part>
+		<wsdl:part name="postMessage" element="tns:postMessage"></wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="getProcessModelListRequest">
+	</wsdl:message>
+	<wsdl:message name="getProcessModelListResponse">
+	  <wsdl:part name="processModelList" element="tns:processModelList"></wsdl:part>
 	</wsdl:message>
 	<wsdl:portType name="ProcessEnginePortType">
 		<wsdl:operation name="startProcess">
@@ -176,25 +195,37 @@
 		<wsdl:operation name="postMessage">
 			<wsdl:input message="tns:postMessageRequest"></wsdl:input>
 		</wsdl:operation>
+		<wsdl:operation name="getProcessModelList">
+		  <wsdl:output message="tns:getProcessModelListResponse"></wsdl:output>
+		</wsdl:operation>
 	</wsdl:portType>
 	<wsdl:binding name="endpoint" type="tns:ProcessEnginePortType">
-		<soap:binding style="document"
-			transport="http://schemas.xmlsoap.org/soap/http" />
-		<wsdl:operation name="startProcess">
-			<soap:operation soapAction="http://adaptivity.nl/ProcessEngine/startProcess" />
-			<wsdl:input>
-				<soap:body use="literal" />
-			</wsdl:input>
-			<wsdl:output>
-				<soap:body use="literal" />
-			</wsdl:output>
-		</wsdl:operation>
-		<wsdl:operation name="postMessage">
-			<soap:operation soapAction="http://adaptivity.nl/ProcessEngine/postMessage" />
-			<wsdl:input>
-				<soap:body use="literal" />
-			</wsdl:input>
-		</wsdl:operation>
+	  <soap:binding style="document"
+	    transport="http://schemas.xmlsoap.org/soap/http" />
+	  <wsdl:operation name="startProcess">
+	    <soap:operation
+	      soapAction="http://adaptivity.nl/ProcessEngine/startProcess" />
+	    <wsdl:input>
+	      <soap:body use="literal" />
+	    </wsdl:input>
+	    <wsdl:output>
+	      <soap:body use="literal" />
+	    </wsdl:output>
+	  </wsdl:operation>
+	  <wsdl:operation name="postMessage">
+	    <soap:operation
+	      soapAction="http://adaptivity.nl/ProcessEngine/postMessage" />
+	    <wsdl:input>
+	      <soap:body use="literal" />
+	    </wsdl:input>
+	  </wsdl:operation>
+	  <wsdl:operation name="getProcessModelList">
+	    <soap:operation
+	      soapAction="http://adaptivity.nl/ProcessEngine/getProcessModelList" />
+	    <wsdl:output>
+	      <soap:body use="literal" />
+	    </wsdl:output>
+	  </wsdl:operation>
 	</wsdl:binding>
 
 	<wsdl:service name="ProcessEngine">

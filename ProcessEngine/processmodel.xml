@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
-      xmlns="http://adaptivity.nl/ProcessEngine/">
+      xmlns="http://adaptivity.nl/ProcessEngine/"
+      name="testProcessModel">
       <start id="start"/>
       <activity id="ac1" predecessor="start" name="ac1">
         <message service="foo"/>

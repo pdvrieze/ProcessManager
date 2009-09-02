@@ -19,6 +19,7 @@ public class ProcessModel implements Serializable{
   private static final long serialVersionUID = -4199223546188994559L;
   private Collection<StartNode> aStartNodes;
   private int aEndNodeCount;
+  private String aName;
 
   public ProcessModel(Collection<EndNode> pEndNodes) {
     aStartNodes = reverseGraph(pEndNodes);
@@ -41,6 +42,7 @@ public class ProcessModel implements Serializable{
     aEndNodeCount = endNodes.size();
     
     aStartNodes = reverseGraph(endNodes);
+    aName = pXmlModel.getName();
   }
 
   private static Collection<StartNode> reverseGraph(Collection<EndNode> pEndNodes) {
@@ -118,6 +120,10 @@ public class ProcessModel implements Serializable{
 
   public int getEndNodeCount() {
     return aEndNodeCount;
+  }
+  
+  public String getName() {
+    return aName;
   }
   
   public static void main(String[] pArgs) throws JAXBException {

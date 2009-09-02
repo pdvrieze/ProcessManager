@@ -50,12 +50,16 @@ public class XmlProcessModel {
   
   public XmlProcessModel(ProcessModel m) {
     nodes = Arrays.asList(m.getModelNodes());
+    name = m.getName();
   }
 
   @XmlElementRefs( { @XmlElementRef(name = "end", type = EndNode.class), @XmlElementRef(name = "activity", type = Activity.class),
                     @XmlElementRef(name = "start", type = StartNode.class), @XmlElementRef(name = "join", type = Join.class) })
-  protected List<ProcessNode> nodes;
+  private List<ProcessNode> nodes;
 
+  @XmlAttribute(name="name")
+  private String name;
+  
   /**
    * Gets the value of the startOrActivityOrJoin property.
    * <p>
@@ -82,6 +86,14 @@ public class XmlProcessModel {
 
   public ProcessModel toProcessModel() {
     return new ProcessModel(this);
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return name;
   }
   
 }
