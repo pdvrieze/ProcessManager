@@ -1,16 +1,14 @@
 package nl.adaptivity.process.engine.processModel;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 import nl.adaptivity.process.engine.ProcessModel;
-import nl.adaptivity.process.processmodel.jaxb.XmlProcessModel;
 
-
+@Deprecated
 public class ProcessModelXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModel> {
 
   @Override

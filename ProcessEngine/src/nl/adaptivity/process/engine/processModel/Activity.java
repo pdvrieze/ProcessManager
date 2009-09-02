@@ -8,9 +8,6 @@ import java.util.List;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.processmodel.jaxb.XmlExportType;
-import nl.adaptivity.process.processmodel.jaxb.XmlImportType;
-import nl.adaptivity.process.processmodel.jaxb.XmlMessage;
 
 @XmlRootElement(name = "activity")
 @XmlAccessorType(XmlAccessType.NONE)

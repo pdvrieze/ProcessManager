@@ -30,7 +30,7 @@ import org.xml.sax.SAXException;
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessModel;
-import nl.adaptivity.process.processmodel.jaxb.XmlProcessModel;
+import nl.adaptivity.process.engine.processModel.XmlProcessModel;
 
 
 public class JBIProcessEngine implements Component, Runnable {

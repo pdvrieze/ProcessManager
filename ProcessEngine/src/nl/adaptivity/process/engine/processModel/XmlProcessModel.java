@@ -6,7 +6,7 @@
 //
 
 
-package nl.adaptivity.process.processmodel.jaxb;
+package nl.adaptivity.process.engine.processModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +15,6 @@ import java.util.List;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.engine.ProcessModel;
-import nl.adaptivity.process.engine.processModel.*;
 
 
 /**

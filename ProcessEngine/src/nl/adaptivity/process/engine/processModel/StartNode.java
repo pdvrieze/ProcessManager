@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.processmodel.jaxb.XmlImportType;
 
 
 @XmlRootElement(name="start")

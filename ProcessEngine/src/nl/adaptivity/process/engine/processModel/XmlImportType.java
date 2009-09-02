@@ -6,7 +6,7 @@
 //
 
 
-package nl.adaptivity.process.processmodel.jaxb;
+package nl.adaptivity.process.engine.processModel;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

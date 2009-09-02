@@ -10,7 +10,6 @@ import java.util.HashSet;
 import javax.xml.bind.*;
 
 import nl.adaptivity.process.engine.processModel.*;
-import nl.adaptivity.process.processmodel.jaxb.XmlProcessModel;
 
 //@XmlRootElement(name="processModel")
 //@XmlType(name="ProcessModel")
