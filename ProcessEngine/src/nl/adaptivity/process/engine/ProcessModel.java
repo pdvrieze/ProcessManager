@@ -1,25 +1,29 @@
 package nl.adaptivity.process.engine;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
-import javax.xml.bind.*;
+import net.devrieze.util.HandleMap.HandleAware;
 
-import nl.adaptivity.process.engine.processModel.*;
+import nl.adaptivity.process.engine.processModel.EndNode;
+import nl.adaptivity.process.engine.processModel.ProcessNode;
+import nl.adaptivity.process.engine.processModel.StartNode;
+import nl.adaptivity.process.engine.processModel.XmlProcessModel;
+import nl.adaptivity.process.processModel.ProcessModelRef;
 
 //@XmlRootElement(name="processModel")
 //@XmlType(name="ProcessModel")
 //@XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModel implements Serializable{
+public class ProcessModel implements HandleAware, Serializable{
 
   private static final long serialVersionUID = -4199223546188994559L;
   private Collection<StartNode> aStartNodes;
   private int aEndNodeCount;
   private String aName;
+  private long aHandle;
 
   public ProcessModel(Collection<EndNode> pEndNodes) {
     aStartNodes = reverseGraph(pEndNodes);
@@ -42,7 +46,7 @@ public class ProcessModel implements Serializable{
     aEndNodeCount = endNodes.size();
     
     aStartNodes = reverseGraph(endNodes);
-    aName = pXmlModel.getName();
+    setName(pXmlModel.getName());
   }
 
   private static Collection<StartNode> reverseGraph(Collection<EndNode> pEndNodes) {
@@ -126,34 +130,22 @@ public class ProcessModel implements Serializable{
     return aName;
   }
   
-  public static void main(String[] pArgs) throws JAXBException {
-    if (pArgs.length!=1) {
-      System.out.println("Give process model file as parameter");
-      System.exit(1);
-    }
-    
-    JAXBContext jc = JAXBContext.newInstance(ProcessModel.class);
-    Unmarshaller u = jc.createUnmarshaller();
-    Marshaller m = jc.createMarshaller();
-//    System.out.println("Marshaller for ProcessModel: ");
-    
-    
-    ProcessModel pm = JAXB.unmarshal(new File(pArgs[0]), ProcessModel.class);
-    JAXB.marshal(pm, System.out);
-
-    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-    m.marshal(getProcessModel2(), System.out);
+  public void setName(String name) {
+    aName = name;
   }
 
-  private static ProcessModel getProcessModel2() {
-    ProcessNode startNode = new StartNode();
-    Activity sayHello1 = new Activity(startNode);
-    Activity sayHello2 = new Activity(startNode);
-    
-    EndNode endNode = new EndNode(Join.andJoin(sayHello1, sayHello2));
-    
-    ProcessModel result = new ProcessModel(endNode);
-    return result;
+  @Override
+  public long getHandle() {
+    return aHandle;
+  }
+
+  @Override
+  public void setHandle(long pHandle) {
+    aHandle = pHandle;
+  }
+
+  public ProcessModelRef getRef() {
+    return new ProcessModelRef(getName(), aHandle);
   }
 
 }

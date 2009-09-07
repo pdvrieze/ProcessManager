@@ -25,7 +25,7 @@ public class PELifeCycle implements ComponentLifeCycle {
   public void init(ComponentContext pContext) throws JBIException {
     aProcessEngine.setContext(pContext);
     Logger logger = pContext.getLogger(null, null);
-    logger.info("ProcessEngine inited");
+    logger.info("ProcessEngine initialized");
   }
 
   @Override
@@ -35,13 +35,14 @@ public class PELifeCycle implements ComponentLifeCycle {
 
   @Override
   public void start() throws JBIException {
+    aProcessEngine.getLogger().info("ProcessEngine starting");
     aProcessEngine.startEngine();
     aProcessEngine.startEndPoint();
-    // TODO Auto-generated method stub
   }
 
   @Override
   public void stop() throws JBIException {
+    aProcessEngine.getLogger().info("ProcessEngine stopping");
     aProcessEngine.stop();
   }
 

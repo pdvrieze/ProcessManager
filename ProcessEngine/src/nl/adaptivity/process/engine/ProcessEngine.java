@@ -10,6 +10,8 @@ public class ProcessEngine implements IProcessEngine {
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
   
   private final HandleMap<InternalMessage> aMessageMap = new HandleMap<InternalMessage>();
+  
+  private final HandleMap<ProcessModel> aProcessModels = new HandleMap<ProcessModel>();
 
   private ProcessMessageListener aMessageListener;
 
@@ -86,6 +88,15 @@ public class ProcessEngine implements IProcessEngine {
       return pMessage.getHandle();
     }
     return aMessageMap.put(pMessage);
+  }
+
+  public Iterable<ProcessModel> getProcessModels() {
+    return aProcessModels;
+    
+  }
+
+  public long addProcessModel(ProcessModel pPm) {
+    return aProcessModels.put(pPm);
   }
 
 }
