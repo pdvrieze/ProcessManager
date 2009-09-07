@@ -25,7 +25,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private static final String SERVER_ERROR = "An error occurred while " + "attempting to contact the server. Please check your network "
       + "connection and try again.";
 
-  private static final String BASEURL = "/peusermessagehandler/rest/"/*"http://localhost:8192/ProcessEngine/"*/;
+  private static final String BASEURL = "/ProcessEngine/"/*"http://localhost:8192/ProcessEngine/"*/;
 
   private static final String PROCESSLISTURL = BASEURL+"processModels";
 
