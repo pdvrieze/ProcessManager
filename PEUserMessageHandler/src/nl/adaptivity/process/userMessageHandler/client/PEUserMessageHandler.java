@@ -29,11 +29,6 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private static final String PROCESSLISTURL = BASEURL+"processModels";
 
-  /**
-   * Create a remote service proxy to talk to the server-side Greeting service.
-   */
-  private final GreetingServiceAsync greetingService = GWT.create(GreetingService.class);
-
   private Button aStartTaskButton;
 
   private Button aShowInstanceStatusButton;
