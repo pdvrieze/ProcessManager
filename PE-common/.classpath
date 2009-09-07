@@ -3,9 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/FileServerComponent"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/ProcessEngine"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/servicemix-http-2009.01"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/geronimo/specs/geronimo-servlet_2.5_spec/1.1.2/geronimo-servlet_2.5_spec-1.1.2.jar" sourcepath="M2_REPO/org/apache/geronimo/specs/geronimo-servlet_2.5_spec/1.1.2/geronimo-servlet_2.5_spec-1.1.2-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
