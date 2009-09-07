@@ -8,7 +8,12 @@ import java.util.LinkedList;
 
 import net.devrieze.util.HandleMap.HandleAware;
 
-import nl.adaptivity.process.engine.processModel.*;
+import nl.adaptivity.process.engine.processModel.JoinInstance;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
 
 
 public class ProcessInstance implements Serializable, HandleAware{
@@ -43,9 +48,9 @@ public class ProcessInstance implements Serializable, HandleAware{
 
   private void fireNode(Collection<ProcessNodeInstance> pThreads, ProcessNode node, ProcessNodeInstance pPredecessor) {
     if (node.condition()) {
-      node.start(pThreads, this, pPredecessor);
+      node.start();
     } else {
-      node.skip(pThreads, this, pPredecessor);
+      node.skip();
     }
   }
 
@@ -100,7 +105,7 @@ public class ProcessInstance implements Serializable, HandleAware{
   public void finishThread(ProcessNodeInstance pOldInstance) {
     aThreads.remove(pOldInstance);
     for (ProcessNode successor: pOldInstance.getNode().getSuccessors()) {
-      successor.start(aThreads, this, pOldInstance);
+      successor.start();
     }
   }
 

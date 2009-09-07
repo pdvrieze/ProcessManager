@@ -5,6 +5,8 @@ import java.util.Collection;
 import nl.adaptivity.process.engine.InternalMessage;
 import nl.adaptivity.process.engine.Payload;
 import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
 
 
 public class ProcessNodeInstance {

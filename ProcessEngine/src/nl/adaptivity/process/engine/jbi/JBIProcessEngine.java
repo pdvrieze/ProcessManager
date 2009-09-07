@@ -31,10 +31,9 @@ import org.xml.sax.SAXException;
 
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessModel;
-import nl.adaptivity.process.engine.processModel.XmlProcessModel;
-import nl.adaptivity.process.processModel.ProcessModelRef;
+import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
+import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.util.HttpMessage;
 
 
@@ -58,7 +57,7 @@ public class JBIProcessEngine implements Component, Runnable {
 
   @Override
   public Document getServiceDescription(ServiceEndpoint pEndpoint) {
-    logError("getServiceDescription");
+    logEntry();
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -188,7 +187,7 @@ public class JBIProcessEngine implements Component, Runnable {
   }
   
   void activateEndPoint() {
-    logError("activateEndPoint");
+    logEntry();
   }
   
   public void run() {

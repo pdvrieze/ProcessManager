@@ -10,6 +10,7 @@ import java.rmi.server.Unreferenced;
 import java.util.Arrays;
 
 import nl.adaptivity.process.engine.*;
+import nl.adaptivity.process.processModel.ProcessModel;
 import static nl.adaptivity.process.engine.rmi.RMIProcessEngineConstants.*;
 
 public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, ProcessMessageListener {

@@ -2,6 +2,8 @@ package nl.adaptivity.process.engine.processModel;
 
 import java.util.Collection;
 
+import nl.adaptivity.process.processModel.Join;
+
 
 public class JoinInstance extends ProcessNodeInstance {
 

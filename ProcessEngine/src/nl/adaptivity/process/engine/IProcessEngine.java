@@ -1,5 +1,7 @@
 package nl.adaptivity.process.engine;
 
+import nl.adaptivity.process.processModel.ProcessModel;
+
 public interface IProcessEngine{
   
   public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload);

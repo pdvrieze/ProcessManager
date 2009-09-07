@@ -6,10 +6,12 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import nl.adaptivity.process.engine.*;
-import nl.adaptivity.process.engine.processModel.*;
+import nl.adaptivity.process.engine.ExtMessage;
+import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.process.engine.MessageHandle;
 import nl.adaptivity.process.engine.rmi.IRMIMessageHandler;
 import nl.adaptivity.process.engine.rmi.IRMIProcessEngine;
+import nl.adaptivity.process.processModel.*;
 import static nl.adaptivity.process.engine.rmi.RMIProcessEngineConstants.*;
 
 

@@ -3,6 +3,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.HandleMap;
 
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.processModel.ProcessModel;
 
 
 public class ProcessEngine implements IProcessEngine {
@@ -17,7 +18,7 @@ public class ProcessEngine implements IProcessEngine {
 
   @Override
   public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload) {
-    ProcessInstance instance = pModel.createInstance(this, pPayload);
+    ProcessInstance instance = new ProcessInstance(pModel, this, pPayload);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start();
     return result;
