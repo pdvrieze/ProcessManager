@@ -176,7 +176,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     vp1.add(aStartProcessButton);
     
     aProcessFileForm = new FormPanel();
-    aProcessFileForm.setAction("uploadProcess");
+    aProcessFileForm.setAction(PROCESSLISTURL);
     aProcessFileForm.setEncoding(FormPanel.ENCODING_MULTIPART);
     aProcessFileForm.setMethod(FormPanel.METHOD_POST);
     aProcessFileForm.addStyleName("fileForm");
@@ -265,15 +265,9 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   }
 
   private void submitProcessFile(ClickEvent pEvent) {
-    // aProcessFileForm.submit();
+    aProcessFileForm.submit();
     
     aProcessFileForm.reset();
-    
-    
-    // TODO Auto-generated method stub
-    // 
-    throw new UnsupportedOperationException("Not yet implemented");
-    
   }
 
   private void startProcess(ClickEvent pEvent) {
