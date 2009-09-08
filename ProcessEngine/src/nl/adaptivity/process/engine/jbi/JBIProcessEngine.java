@@ -4,6 +4,8 @@ import java.io.CharArrayWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.Set;
 import java.util.logging.Level;
@@ -36,6 +38,7 @@ import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlProcessModel;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.HttpMessage;
 
 
@@ -293,16 +296,25 @@ public class JBIProcessEngine implements Component, Runnable {
     return getProcessModels();
   }
 
+  @SuppressWarnings("null")
   private void processPost(DeliveryChannel pDeliveryChannel, InOut pEx) throws Exception {
     HttpMessage message = JAXB.unmarshal(pEx.getInMessage().getContent(), HttpMessage.class);
     String pathInfo = message.getPathInfo();
     final Source result;
+    String contentType = null;
     if ("/processModels".equals(pathInfo)) {
       result = postProcessModel(pEx.getInMessage());
+      contentType = "text/html";
     } else {
       throw new FileNotFoundException();
     }
     NormalizedMessage reply = pEx.createMessage();
+    if (contentType!=null) {
+      Map<String, String> headers = new HashMap<String, String>();
+      headers.put("Content-Type", contentType);
+      
+      reply.setProperty(Constants.PROTOCOL_HEADERS, headers);
+    }
     reply.setContent(result);
     pEx.setMessage(reply, "out");
     pDeliveryChannel.send(pEx);
