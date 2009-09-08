@@ -5,9 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.MissingResourceException;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.activation.DataHandler;
 import javax.jbi.JBIException;
 import javax.jbi.component.Component;
 import javax.jbi.component.ComponentContext;
@@ -268,13 +270,42 @@ public class JBIProcessEngine implements Component, Runnable {
     return new JAXBSource(JAXBContext.newInstance(ProcessModelRefs.class), list);
   }
 
-  private void processPost(DeliveryChannel pDeliveryChannel, InOut pEx) {
+  
+  private Source postProcessModel(NormalizedMessage pNormalizedMessage) throws IOException, JAXBException {
+    IOException error = null;
+    @SuppressWarnings("unchecked") final Set<String> attachmentNames = pNormalizedMessage.getAttachmentNames();
+    for(String attachmentName: attachmentNames) {
+      DataHandler attachment = pNormalizedMessage.getAttachment(attachmentName);
+      XmlProcessModel pm;
+      try {
+        pm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
+      } catch (IOException e) {
+        error = e;
+        break;
+      }
+      if (pm!=null) {
+        aProcessEngine.addProcessModel(pm.toProcessModel());
+      }
+    }
+    if (error !=null) {
+      throw error;
+    }
+    return getProcessModels();
+  }
+
+  private void processPost(DeliveryChannel pDeliveryChannel, InOut pEx) throws Exception {
     HttpMessage message = JAXB.unmarshal(pEx.getInMessage().getContent(), HttpMessage.class);
-    
-    // TODO Auto-generated method stub
-    // 
-    throw new UnsupportedOperationException("Not yet implemented");
-    
+    String pathInfo = message.getPathInfo();
+    final Source result;
+    if ("/processModels".equals(pathInfo)) {
+      result = postProcessModel(pEx.getInMessage());
+    } else {
+      throw new FileNotFoundException();
+    }
+    NormalizedMessage reply = pEx.createMessage();
+    reply.setContent(result);
+    pEx.setMessage(reply, "out");
+    pDeliveryChannel.send(pEx);
   }
 
   private void processDelete(DeliveryChannel pDeliveryChannel, InOut pEx) {
