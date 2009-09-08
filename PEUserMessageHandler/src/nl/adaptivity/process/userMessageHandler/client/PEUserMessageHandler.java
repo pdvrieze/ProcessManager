@@ -7,6 +7,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.http.client.*;
 import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteEvent;
+import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteHandler;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
@@ -17,6 +19,39 @@ import com.google.gwt.xml.client.XMLParser;
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHandler {
+
+  private final class FileSubmitHandler implements SubmitCompleteHandler {
+
+    @Override
+    public void onSubmitComplete(SubmitCompleteEvent pEvent) {
+      aStatusLabel.setText("File submit complete!!");
+      String results = pEvent.getResults();
+      if (results != null) {
+        GWT.log("Actually got a response: \""+results+"\"", null);
+        updateProcessList(asProcessList(results));
+      } else {
+        requestProcessesUpdate();
+      }
+    }
+  }
+
+  private final class ProcessListCallback implements RequestCallback {
+
+    @Override
+    public void onError(Request pRequest, Throwable pException) {
+      aStatusLabel.setText("Error: "+pException.getMessage());
+    }
+
+    @Override
+    public void onResponseReceived(Request pRequest, Response pResponse) {
+      if (200 == pResponse.getStatusCode()) {
+        updateProcessList(asProcessList(pResponse.getText()));
+        aStatusLabel.setText("Ok");
+      } else {
+        aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
+      }
+    }
+  }
 
   /**
    * The message displayed to the user when the server cannot be reached or
@@ -49,8 +84,40 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private MyFileUpload aProcessUpload;
 
+  private final ProcessListCallback aProcessListCallback = new ProcessListCallback();
+
+  /**
+   * @category helper
+   */
+  private static ProcessModelRef[] asProcessList(final String pText) {
+    GWT.log("asProcessList(\""+pText+"\")", null);
+    Document myResponse = XMLParser.parse(pText);
+    ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
+    
+    Node root = myResponse.getFirstChild();
+    GWT.log("  root: "+root.getNodeName(), null);
+    if (root.getNodeName().equals("processModels")) {
+      Node child = root.getFirstChild();
+      while(child!=null) {
+        GWT.log("    child: "+child.getNodeName(), null);
+        if ("processModel".equals(child.getNodeName()) ){
+          final NamedNodeMap attributes = child.getAttributes();
+          String name = attributes.getNamedItem("name").getNodeValue();
+          long handle = Long.parseLong(attributes.getNamedItem("handle").getNodeValue());
+          result.add(new ProcessModelRef(handle, name));
+        }
+        child = child.getNextSibling();
+      }
+      GWT.log("  return "+result.toString(), null);
+      return result.toArray(new ProcessModelRef[result.size()]);
+    }
+    
+    return new ProcessModelRef[0];
+  }
+
   /**
    * This is the entry point method.
+   * @category UI
    */
   public void onModuleLoad() {
     final RootPanel rootPanel = RootPanel.get("gwt");
@@ -80,77 +147,9 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     requestProcessesUpdate();
   }
 
-  private void requestProcessesUpdate() {
-    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSLISTURL);
-    
-    try {
-      Request request = rBuilder.sendRequest(null, new RequestCallback() {
-
-        @Override
-        public void onError(Request pRequest, Throwable pException) {
-          aStatusLabel.setText("Error: "+pException.getMessage());
-        }
-
-        @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
-          if (200 == pResponse.getStatusCode()) {
-            updateProcessList(asProcessList(pResponse));
-            aStatusLabel.setText("Ok");
-          } else {
-            aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
-          }
-        }
-        
-      });
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error: "+e.getMessage());
-    }
-
-    
-  }
-
-  private void updateProcessList(ProcessModelRef[] pProcessModels) {
-    GWT.log("updateProcessList", null);
-//    int selectedIndex = aProcessListBox.getSelectedIndex();
-//    String selected = aProcessListBox.getItemText(selectedIndex);
-    aProcessListBox.clear();
-    
-//    int newSelected = -1;
-//    int i=0;
-    for(ProcessModelRef ref:pProcessModels) {
-      aProcessListBox.addItem(ref.name, Long.toString(ref.handle));
-//      if (Long.toString(ref.handle).equals(selected)) {
-//        newSelected = i;
-//      }
-//      ++i;
-    }
-//    if (newSelected>=0) {
-//      aProcessListBox.setSelectedIndex(newSelected);
-//    }
-  }
-
-  private ProcessModelRef[] asProcessList(Response pResponse) {
-    Document myResponse = XMLParser.parse(pResponse.getText());
-    ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
-    
-    Node root = myResponse.getFirstChild();
-    if (root.getNodeName().equals("processModels")) {
-      Node child = root.getFirstChild();
-      while(child!=null) {
-        if ("processModel".equals(child.getNodeName()) ){
-          final NamedNodeMap attributes = child.getAttributes();
-          String name = attributes.getNamedItem("name").getNodeValue();
-          long handle = Long.parseLong(attributes.getNamedItem("handle").getNodeValue());
-          result.add(new ProcessModelRef(handle, name));
-        }
-        child = child.getNextSibling();
-      }
-      return result.toArray(new ProcessModelRef[result.size()]);
-    }
-    
-    return new ProcessModelRef[0];
-  }
-
+  /**
+   * @category UI
+   */
   private HorizontalPanel createProcessesPanel() {
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
@@ -183,7 +182,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     
     VerticalPanel vp2 = new VerticalPanel();
     aProcessFileForm.setWidget(vp2);
-
+  
     Label label = new Label();
     label.setText("Upload new model");
     vp2.add(label);
@@ -203,6 +202,9 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     return hp1;
   }
 
+  /**
+   * @category UI
+   */
   private HorizontalPanel createInstancesPanel() {
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
@@ -226,7 +228,9 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     return hp1;
   }
 
-
+  /**
+   * @category UI
+   */
   private HorizontalPanel createTaskPanel() {
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
@@ -251,6 +255,45 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     return hp1;
   }
 
+  /**
+     * @category UI 
+     */
+    private void updateProcessList(ProcessModelRef[] pProcessModels) {
+      GWT.log("updateProcessList", null);
+  //    int selectedIndex = aProcessListBox.getSelectedIndex();
+  //    String selected = aProcessListBox.getItemText(selectedIndex);
+      aProcessListBox.clear();
+      
+  //    int newSelected = -1;
+  //    int i=0;
+      for(ProcessModelRef ref:pProcessModels) {
+        aProcessListBox.addItem(ref.name, Long.toString(ref.handle));
+  //      if (Long.toString(ref.handle).equals(selected)) {
+  //        newSelected = i;
+  //      }
+  //      ++i;
+      }
+  //    if (newSelected>=0) {
+  //      aProcessListBox.setSelectedIndex(newSelected);
+  //    }
+    }
+
+  /**
+   * @category method
+   */
+  private void requestProcessesUpdate() {
+    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSLISTURL);
+    
+    try {
+      rBuilder.sendRequest(null, aProcessListCallback);
+    } catch (RequestException e) {
+      aStatusLabel.setText("Error: "+e.getMessage());
+    }
+  }
+
+  /**
+   * @category event handler
+   */
   @Override
   public void onClick(ClickEvent pEvent) {
     if (pEvent.getSource()==aStartTaskButton) {
@@ -264,24 +307,40 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     }
   }
 
+  /**
+   * @category event handler
+   */
   private void submitProcessFile(ClickEvent pEvent) {
+    aProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
     aProcessFileForm.submit();
     
     aProcessFileForm.reset();
   }
 
+  /**
+   * @category event handler
+   */
   private void startProcess(ClickEvent pEvent) {
     aStatusLabel.setText("startProcess");
   }
 
+  /**
+   * @category event handler
+   */
   private void showInstance(DomEvent<?> pEvent) {
     aStatusLabel.setText("showInstance");
   }
 
+  /**
+   * @category event handler
+   */
   private void startTask(DomEvent<?> pEvent) {
     aStatusLabel.setText("startTask");
   }
 
+  /**
+   * @category event handler
+   */
   @Override
   public void onChange(ChangeEvent pEvent) {
     if (pEvent.getSource()==aProcessListBox) {
@@ -295,19 +354,31 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     }
   }
 
+  /**
+   * @category event handler
+   */
   private void changeProcessUpload(ChangeEvent pEvent) {
     aProcessFileSubmitButton.setEnabled(aProcessUpload.getFilename().length()>0);
     aStatusLabel.setText("upload file changed");
   }
 
+  /**
+   * @category event handler
+   */
   private void changeTaskList(ChangeEvent pEvent) {
     aStartTaskButton.setEnabled(aTaskListBox.getSelectedIndex()>=0);
   }
 
+  /**
+   * @category event handler
+   */
   private void changeInstanceList(ChangeEvent pEvent) {
     aShowInstanceStatusButton.setEnabled(aInstanceListBox.getSelectedIndex()>=0);
   }
 
+  /**
+   * @category event handler
+   */
   private void changeProcessList(ChangeEvent pEvent) {
     aStartProcessButton.setEnabled(aProcessListBox.getSelectedIndex()>=0);
   }
