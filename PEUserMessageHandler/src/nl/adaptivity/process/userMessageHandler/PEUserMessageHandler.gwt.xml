@@ -13,6 +13,8 @@
   <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
 
   <!-- Other module inherits                                      -->
+  <inherits name="nl.adaptivity.gwt.base.Base"/>
+  <inherits name="nl.adaptivity.gwt.ext.Ext"/>
 
   <!-- Specify the app entry point class.                         -->
   <entry-point class='nl.adaptivity.process.userMessageHandler.client.PEUserMessageHandler'/>

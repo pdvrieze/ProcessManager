@@ -2,8 +2,11 @@ package nl.adaptivity.process.userMessageHandler.client;
 
 import java.util.ArrayList;
 
-import nl.adaptivity.process.userMessageHandler.client.MyFormPanel.SubmitCompleteEvent;
-import nl.adaptivity.process.userMessageHandler.client.MyFormPanel.SubmitCompleteHandler;
+import nl.adaptivity.gwt.base.client.MyFileUpload;
+import nl.adaptivity.gwt.base.client.MyFormPanel;
+import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteEvent;
+import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteHandler;
+import nl.adaptivity.gwt.ext.client.ControllingListBox;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -12,7 +15,6 @@ import com.google.gwt.event.dom.client.*;
 import com.google.gwt.http.client.*;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.*;
-import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
@@ -122,11 +124,11 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private Label aStatusLabel;
 
-  private ListBox aProcessListBox;
+  private ControllingListBox aProcessListBox;
 
-  private ListBox aInstanceListBox;
+  private ControllingListBox aInstanceListBox;
 
-  private ListBox aTaskListBox;
+  private ControllingListBox aTaskListBox;
 
   private MyFormPanel aProcessFileForm;
 
@@ -178,11 +180,9 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
     
     Element root = Element.as(pDocument.getFirstChild());
-    GWT.log("  root: "+root.getNodeName(), null);
     if (root.getNodeName().equals("processModels")) {
       Element child = root.getFirstChildElement();
       while(child!=null) {
-        GWT.log("    child: "+child.getNodeName(), null);
         if ("processModel".equals(child.getNodeName()) ){
           String name = child.getAttribute("name");
           String handle = child.getAttribute("handle");
@@ -250,22 +250,20 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
     
-    aProcessListBox = new ListBox();
-    aProcessListBox.setVisibleItemCount(10);
+    aProcessListBox = new ControllingListBox();
     hp1.add(aProcessListBox);
     
     aProcessListBox.addItem("Process1");
     aProcessListBox.addItem("Process2");
     aProcessListBox.addStyleName("mhList");
     aProcessListBox.addStyleName("tabContent");
-    aProcessListBox.addChangeHandler(this);
     
     VerticalPanel vp1 = new VerticalPanel();
     vp1.addStyleName("tabContent");
     hp1.add(vp1);
     
     aStartProcessButton = new Button("Start process");
-    aStartProcessButton.setEnabled(false);
+    aProcessListBox.addControlledWidget(aStartProcessButton);
     aStartProcessButton.addStyleName("inTabButton");
     aStartProcessButton.addClickHandler(this);
     vp1.add(aStartProcessButton);
@@ -285,13 +283,13 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     
     aProcessUpload = new MyFileUpload();
     aProcessUpload.setName("processUpload");
-    aProcessUpload.addChangeHandler(this);
+    aProcessUpload.registerChangeHandler(this);
     vp2.add(aProcessUpload);
     
     
     aProcessFileSubmitButton = new Button("Submit");
     aProcessFileSubmitButton.addClickHandler(this);
-    aProcessFileSubmitButton.setEnabled(false);
+    aProcessUpload.addControlledWidget(aProcessFileSubmitButton);
     vp2.add(aProcessFileSubmitButton);
     
     vp1.add(aProcessFileForm);
@@ -305,8 +303,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
     
-    aInstanceListBox = new ListBox();
-    aInstanceListBox.setVisibleItemCount(10);
+    aInstanceListBox = new ControllingListBox();
     hp1.add(aInstanceListBox);
     aInstanceListBox.addStyleName("mhList");
     aInstanceListBox.addStyleName("tabContent");
@@ -317,7 +314,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     vp1.addStyleName("tabContent");
     
     aShowInstanceStatusButton = new Button("Show status");
-    aShowInstanceStatusButton.setEnabled(false);
+    aInstanceListBox.addControlledWidget(aShowInstanceStatusButton);
     aShowInstanceStatusButton.addStyleName("inTabButton");
     vp1.add(aShowInstanceStatusButton);
     aShowInstanceStatusButton.addClickHandler(this);
@@ -332,8 +329,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     hp1.addStyleName("tabPanel");
     
     
-    aTaskListBox = new ListBox();
-    aTaskListBox.setVisibleItemCount(10);
+    aTaskListBox = new ControllingListBox();
     aTaskListBox.addStyleName("mhList");
     aTaskListBox.addStyleName("tabContent");
     hp1.add(aTaskListBox);
@@ -344,7 +340,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     vp1.addStyleName("tabContent");
     
     aStartTaskButton = new Button("Start task");
-    aStartTaskButton.setEnabled(false);
+    aTaskListBox.addControlledWidget(aStartTaskButton);
     aStartTaskButton.addStyleName("inTabButton");
     vp1.add(aStartTaskButton);
     aStartTaskButton.addClickHandler(this);
@@ -448,13 +444,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   @Override
   public void onChange(ChangeEvent pEvent) {
-    if (pEvent.getSource()==aProcessListBox) {
-      changeProcessList(pEvent);
-    } else if (pEvent.getSource()==aInstanceListBox) {
-      changeInstanceList(pEvent);
-    } else if (pEvent.getSource()==aTaskListBox) {
-      changeTaskList(pEvent);
-    } else if (pEvent.getSource()==aProcessUpload) {
+    if (pEvent.getSource()==aProcessUpload) {
       changeProcessUpload(pEvent);
     }
   }
@@ -465,27 +455,6 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private void changeProcessUpload(ChangeEvent pEvent) {
     aProcessFileSubmitButton.setEnabled(aProcessUpload.getFilename().length()>0);
     aStatusLabel.setText("upload file changed");
-  }
-
-  /**
-   * @category event handler
-   */
-  private void changeTaskList(ChangeEvent pEvent) {
-    aStartTaskButton.setEnabled(aTaskListBox.getSelectedIndex()>=0);
-  }
-
-  /**
-   * @category event handler
-   */
-  private void changeInstanceList(ChangeEvent pEvent) {
-    aShowInstanceStatusButton.setEnabled(aInstanceListBox.getSelectedIndex()>=0);
-  }
-
-  /**
-   * @category event handler
-   */
-  private void changeProcessList(ChangeEvent pEvent) {
-    aStartProcessButton.setEnabled(aProcessListBox.getSelectedIndex()>=0);
   }
 
   /**

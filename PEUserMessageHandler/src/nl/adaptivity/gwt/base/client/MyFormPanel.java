@@ -1,4 +1,6 @@
-package nl.adaptivity.process.userMessageHandler.client;
+package nl.adaptivity.gwt.base.client;
+
+import nl.adaptivity.gwt.base.client.impl.MyFormPanelImpl;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.GWT.UncaughtExceptionHandler;
@@ -16,6 +18,35 @@ import com.google.gwt.user.client.ui.impl.FormPanelImplHost;
 
 
 public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
+
+  public static class ResetEvent extends GwtEvent<ResetHandler> {
+    
+    private static Type<ResetHandler> TYPE;
+    
+    static Type<ResetHandler> getType() {
+      if (TYPE == null) {
+        TYPE= new Type<ResetHandler>();
+      }
+      return TYPE;
+    }
+
+    @Override
+    protected void dispatch(ResetHandler pHandler) {
+      pHandler.onReset(this);
+    }
+
+    @Override
+    public com.google.gwt.event.shared.GwtEvent.Type<ResetHandler> getAssociatedType() {
+      return getType();
+    }
+    
+  }
+  
+  public interface ResetHandler extends EventHandler {
+
+    void onReset(ResetEvent pResetEvent);
+
+  }
 
   /**
    * Fired when a form has been submitted successfully.
@@ -378,6 +409,10 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     return addHandler(handler, SubmitEvent.getType());
   }
 
+  public HandlerRegistration addResetHandler(ResetHandler pHandler) {
+    return addHandler(pHandler, ResetEvent.getType());
+  }
+
   /**
    * Gets the 'action' associated with this form. This is the URL to which it
    * will be submitted.
@@ -447,6 +482,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    */
   public void reset() {
     impl.reset(getElement());
+    fireResetEvent();
   }
 
   /**
@@ -556,6 +592,11 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     MyFormPanel.SubmitEvent event = new MyFormPanel.SubmitEvent();
     fireEvent(event);
     return !event.isCanceled();
+  }
+
+  private void fireResetEvent() {
+    MyFormPanel.ResetEvent event = new MyFormPanel.ResetEvent();
+    fireEvent(event);
   }
 
   private FormElement getFormElement() {

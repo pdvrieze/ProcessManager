@@ -1,4 +1,4 @@
-package nl.adaptivity.process.userMessageHandler.client;
+package nl.adaptivity.gwt.base.client.impl;
 
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
