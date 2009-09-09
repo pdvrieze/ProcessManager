@@ -219,8 +219,18 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
       while(child!=null) {
         if (aListElement.equals(child.getNodeName()) ){
           final NamedNodeMap attributes = child.getAttributes();
-          String text = attributes.getNamedItem(aTextElement).getNodeValue();
-          String value = attributes.getNamedItem(aValueElement).getNodeValue();
+          String text;
+          if (aTextElement.startsWith("@")) {
+            text = attributes.getNamedItem(aTextElement.substring(1)).getNodeValue();
+          } else {
+            text = attributes.getNamedItem(aTextElement).getNodeValue();
+          }
+          String value;
+          if (aValueElement.startsWith("@")) {
+            value = attributes.getNamedItem(aValueElement).getNodeValue();
+          } else {
+            value = attributes.getNamedItem(aValueElement).getNodeValue();
+          }
           result.add(new ListElement(value, text));
         }
         child = child.getNextSibling();
