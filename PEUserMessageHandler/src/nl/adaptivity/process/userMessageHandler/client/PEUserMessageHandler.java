@@ -2,13 +2,16 @@ package nl.adaptivity.process.userMessageHandler.client;
 
 import java.util.ArrayList;
 
+import nl.adaptivity.process.userMessageHandler.client.MyFormPanel.SubmitCompleteEvent;
+import nl.adaptivity.process.userMessageHandler.client.MyFormPanel.SubmitCompleteHandler;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.http.client.*;
 import com.google.gwt.user.client.ui.*;
-import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteEvent;
-import com.google.gwt.user.client.ui.FormPanel.SubmitCompleteHandler;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
@@ -25,7 +28,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     @Override
     public void onSubmitComplete(SubmitCompleteEvent pEvent) {
       aStatusLabel.setText("File submit complete!!");
-      String results = pEvent.getResults();
+      com.google.gwt.dom.client.Document results = pEvent.getResults();
       if (results != null) {
         GWT.log("Actually got a response: \""+results+"\"", null);
         updateProcessList(asProcessList(results));
@@ -78,7 +81,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private ListBox aTaskListBox;
 
-  private FormPanel aProcessFileForm;
+  private MyFormPanel aProcessFileForm;
 
   private Button aProcessFileSubmitButton;
 
@@ -91,15 +94,15 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   private static ProcessModelRef[] asProcessList(final String pText) {
     GWT.log("asProcessList(\""+pText+"\")", null);
-    Document myResponse = XMLParser.parse(pText);
+    final Document myResponse;
+    
+    myResponse = XMLParser.parse(pText);
     ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
     
     Node root = myResponse.getFirstChild();
-    GWT.log("  root: "+root.getNodeName(), null);
     if (root.getNodeName().equals("processModels")) {
       Node child = root.getFirstChild();
       while(child!=null) {
-        GWT.log("    child: "+child.getNodeName(), null);
         if ("processModel".equals(child.getNodeName()) ){
           final NamedNodeMap attributes = child.getAttributes();
           String name = attributes.getNamedItem("name").getNodeValue();
@@ -107,6 +110,32 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
           result.add(new ProcessModelRef(handle, name));
         }
         child = child.getNextSibling();
+      }
+      return result.toArray(new ProcessModelRef[result.size()]);
+    }
+    
+    return new ProcessModelRef[0];
+  }
+
+  /**
+   * @category helper
+   */
+  private static ProcessModelRef[] asProcessList(final com.google.gwt.dom.client.Document pDocument) {
+    GWT.log("asProcessList(\""+pDocument+"\")", null);
+    ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
+    
+    Element root = Element.as(pDocument.getFirstChild());
+    GWT.log("  root: "+root.getNodeName(), null);
+    if (root.getNodeName().equals("processModels")) {
+      Element child = root.getFirstChildElement();
+      while(child!=null) {
+        GWT.log("    child: "+child.getNodeName(), null);
+        if ("processModel".equals(child.getNodeName()) ){
+          String name = child.getAttribute("name");
+          long handle = Long.parseLong(child.getAttribute("handle"));
+          result.add(new ProcessModelRef(handle, name));
+        }
+        child = child.getNextSiblingElement();
       }
       GWT.log("  return "+result.toString(), null);
       return result.toArray(new ProcessModelRef[result.size()]);
@@ -174,7 +203,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     aStartProcessButton.addClickHandler(this);
     vp1.add(aStartProcessButton);
     
-    aProcessFileForm = new FormPanel();
+    aProcessFileForm = new MyFormPanel();
     aProcessFileForm.setAction(PROCESSLISTURL);
     aProcessFileForm.setEncoding(FormPanel.ENCODING_MULTIPART);
     aProcessFileForm.setMethod(FormPanel.METHOD_POST);
@@ -282,6 +311,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    * @category method
    */
   private void requestProcessesUpdate() {
+    GWT.log("requestProcessesUpdate called",null);
     RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSLISTURL);
     
     try {
