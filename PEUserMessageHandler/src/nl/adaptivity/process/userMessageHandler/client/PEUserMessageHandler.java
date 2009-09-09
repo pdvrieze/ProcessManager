@@ -8,10 +8,11 @@ import nl.adaptivity.process.userMessageHandler.client.MyFormPanel.SubmitComplet
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.http.client.*;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.DockPanel.DockLayoutConstant;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
@@ -56,6 +57,44 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     }
   }
 
+  private final class TaskListCallback implements RequestCallback {
+
+    @Override
+    public void onError(Request pRequest, Throwable pException) {
+      aStatusLabel.setText("Error: "+pException.getMessage());
+    }
+
+    @Override
+    public void onResponseReceived(Request pRequest, Response pResponse) {
+      // TODO implement
+//      if (200 == pResponse.getStatusCode()) {
+//        updateProcessList(asProcessList(pResponse.getText()));
+//        aStatusLabel.setText("Ok");
+//      } else {
+//        aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
+//      }
+    }
+  }
+
+  private final class InstanceListCallback implements RequestCallback {
+
+    @Override
+    public void onError(Request pRequest, Throwable pException) {
+      aStatusLabel.setText("Error: "+pException.getMessage());
+    }
+
+    @Override
+    public void onResponseReceived(Request pRequest, Response pResponse) {
+      // TODO implement
+//      if (200 == pResponse.getStatusCode()) {
+//        updateProcessList(asProcessList(pResponse.getText()));
+//        aStatusLabel.setText("Ok");
+//      } else {
+//        aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
+//      }
+    }
+  }
+
   /**
    * The message displayed to the user when the server cannot be reached or
    * returns an error.
@@ -66,6 +105,14 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private static final String BASEURL = "/ProcessEngine/"/*"http://localhost:8192/ProcessEngine/"*/;
 
   private static final String PROCESSLISTURL = BASEURL+"processModels";
+
+  private static final String PROCESSINSTANCELISTURL = BASEURL+"processInstances";
+
+  private static final String TASKLISTURL = BASEURL+"tasks";
+
+  private static final int REFRESH_INTERVAL = 2000;
+
+  private static final Boolean DEFAULT_REFRESH = false;
 
   private Button aStartTaskButton;
 
@@ -89,11 +136,18 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private final ProcessListCallback aProcessListCallback = new ProcessListCallback();
 
+  private final InstanceListCallback aInstanceListCallback = new InstanceListCallback();
+
+  private final TaskListCallback aTaskListCallback = new TaskListCallback();
+
+  private CheckBox aRefreshCheckbox;
+
+  private TabPanel aTabPanel;
+
   /**
    * @category helper
    */
   private static ProcessModelRef[] asProcessList(final String pText) {
-    GWT.log("asProcessList(\""+pText+"\")", null);
     final Document myResponse;
     
     myResponse = XMLParser.parse(pText);
@@ -106,7 +160,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
         if ("processModel".equals(child.getNodeName()) ){
           final NamedNodeMap attributes = child.getAttributes();
           String name = attributes.getNamedItem("name").getNodeValue();
-          long handle = Long.parseLong(attributes.getNamedItem("handle").getNodeValue());
+          String handle = attributes.getNamedItem("handle").getNodeValue();
           result.add(new ProcessModelRef(handle, name));
         }
         child = child.getNextSibling();
@@ -121,7 +175,6 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    * @category helper
    */
   private static ProcessModelRef[] asProcessList(final com.google.gwt.dom.client.Document pDocument) {
-    GWT.log("asProcessList(\""+pDocument+"\")", null);
     ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
     
     Element root = Element.as(pDocument.getFirstChild());
@@ -132,7 +185,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
         GWT.log("    child: "+child.getNodeName(), null);
         if ("processModel".equals(child.getNodeName()) ){
           String name = child.getAttribute("name");
-          long handle = Long.parseLong(child.getAttribute("handle"));
+          String handle = child.getAttribute("handle");
           result.add(new ProcessModelRef(handle, name));
         }
         child = child.getNextSiblingElement();
@@ -154,8 +207,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     DockPanel dockPanel = new DockPanel();
     rootPanel.add(dockPanel);
     
-    TabPanel tabPanel = new TabPanel();
-    dockPanel.add(tabPanel, DockPanel.CENTER);
+    aTabPanel = new TabPanel();
+    dockPanel.add(aTabPanel, DockPanel.CENTER);
     
     HorizontalPanel hp1 = createProcessesPanel();
     
@@ -163,17 +216,31 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     
     HorizontalPanel hp3 = createTaskPanel();
     
-    tabPanel.add(hp1, "Processes");
-    tabPanel.add(hp2, "Instances");
-    tabPanel.add(hp3, "Tasks");
-    tabPanel.selectTab(0);
+    aTabPanel.add(hp1, "Processes");
+    aTabPanel.add(hp2, "Instances");
+    aTabPanel.add(hp3, "Tasks");
+    aTabPanel.selectTab(0);
     
-    
+    DockPanel statusPanel = new DockPanel();
     aStatusLabel = new Label();
     aStatusLabel.setText("Initializing...");
-    dockPanel.add(aStatusLabel, DockPanel.SOUTH);
+    statusPanel.add(aStatusLabel, DockPanel.WEST);
+    
+    aRefreshCheckbox = new CheckBox("refresh");
+    aRefreshCheckbox.setValue(DEFAULT_REFRESH);
+    statusPanel.add(aRefreshCheckbox, DockPanel.EAST);
+    statusPanel.addStyleName("fullWidth");
+    dockPanel.add(statusPanel, DockPanel.SOUTH);
     
     requestProcessesUpdate();
+    
+    Timer refreshTimer = new Timer() {
+      @Override
+      public void run() {
+        refreshState();
+      }
+    };
+    refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
   }
 
   /**
@@ -288,30 +355,28 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
      * @category UI 
      */
     private void updateProcessList(ProcessModelRef[] pProcessModels) {
-      GWT.log("updateProcessList", null);
-  //    int selectedIndex = aProcessListBox.getSelectedIndex();
-  //    String selected = aProcessListBox.getItemText(selectedIndex);
+      int selectedIndex = aProcessListBox.getSelectedIndex();
+      String selected = selectedIndex>=0 ? aProcessListBox.getValue(selectedIndex) : null;
       aProcessListBox.clear();
       
-  //    int newSelected = -1;
-  //    int i=0;
+      int newSelected = -1;
+      int i=0;
       for(ProcessModelRef ref:pProcessModels) {
-        aProcessListBox.addItem(ref.name, Long.toString(ref.handle));
-  //      if (Long.toString(ref.handle).equals(selected)) {
-  //        newSelected = i;
-  //      }
-  //      ++i;
+        aProcessListBox.addItem(ref.name, ref.handle);
+        if (ref.handle.equals(selected)) {
+          newSelected = i;
+        }
+        ++i;
       }
-  //    if (newSelected>=0) {
-  //      aProcessListBox.setSelectedIndex(newSelected);
-  //    }
+      if (newSelected>=0) {
+        aProcessListBox.setSelectedIndex(newSelected);
+      }
     }
 
   /**
    * @category method
    */
   private void requestProcessesUpdate() {
-    GWT.log("requestProcessesUpdate called",null);
     RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSLISTURL);
     
     try {
@@ -319,6 +384,47 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     } catch (RequestException e) {
       aStatusLabel.setText("Error: "+e.getMessage());
     }
+  }
+
+  /**
+   * @category method
+   */
+  private void requestInstancesUpdate() {
+    GWT.log("requestInstancesUpdate called",null);
+    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSINSTANCELISTURL);
+    
+    try {
+      rBuilder.sendRequest(null, aInstanceListCallback);
+    } catch (RequestException e) {
+      aStatusLabel.setText("Error: "+e.getMessage());
+    }
+  }
+
+  /**
+   * @category method
+   */
+  private void requestTaskUpdate() {
+    GWT.log("requestProcessesUpdate called",null);
+    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, TASKLISTURL);
+    
+    try {
+      rBuilder.sendRequest(null, aTaskListCallback);
+    } catch (RequestException e) {
+      aStatusLabel.setText("Error: "+e.getMessage());
+    }
+  }
+  
+  /**
+   * @category method
+   */
+  protected void refreshState() {
+    
+    if (aRefreshCheckbox.getValue()) {
+      
+      requestProcessesUpdate();
+    }
+//    requestInstancesUpdate();
+//    requestTaskUpdate();
   }
 
   /**
@@ -335,37 +441,6 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     } else if (pEvent.getSource()==aProcessFileSubmitButton) {
       submitProcessFile(pEvent);
     }
-  }
-
-  /**
-   * @category event handler
-   */
-  private void submitProcessFile(ClickEvent pEvent) {
-    aProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
-    aProcessFileForm.submit();
-    
-    aProcessFileForm.reset();
-  }
-
-  /**
-   * @category event handler
-   */
-  private void startProcess(ClickEvent pEvent) {
-    aStatusLabel.setText("startProcess");
-  }
-
-  /**
-   * @category event handler
-   */
-  private void showInstance(DomEvent<?> pEvent) {
-    aStatusLabel.setText("showInstance");
-  }
-
-  /**
-   * @category event handler
-   */
-  private void startTask(DomEvent<?> pEvent) {
-    aStatusLabel.setText("startTask");
   }
 
   /**
@@ -411,6 +486,37 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   private void changeProcessList(ChangeEvent pEvent) {
     aStartProcessButton.setEnabled(aProcessListBox.getSelectedIndex()>=0);
+  }
+
+  /**
+   * @category action
+   */
+  private void submitProcessFile(ClickEvent pEvent) {
+    aProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
+    aProcessFileForm.submit();
+    
+    aProcessFileForm.reset();
+  }
+
+  /**
+   * @category action
+   */
+  private void startProcess(ClickEvent pEvent) {
+    aStatusLabel.setText("startProcess");
+  }
+
+  /**
+   * @category action
+   */
+  private void showInstance(DomEvent<?> pEvent) {
+    aStatusLabel.setText("showInstance");
+  }
+
+  /**
+   * @category action
+   */
+  private void startTask(DomEvent<?> pEvent) {
+    aStatusLabel.setText("startTask");
   }
 
 }

@@ -2,12 +2,12 @@ package nl.adaptivity.process.userMessageHandler.client;
 
 public class ProcessModelRef {
   
-  public ProcessModelRef(long pHandle, String pName){
+  public ProcessModelRef(String pHandle, String pName){
     handle = pHandle;
     name = pName;
   }
   
-  public final long handle;
+  public final String handle;
   
   public final String name;
 

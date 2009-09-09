@@ -48,6 +48,14 @@ h1 {
   padding: 4px;
 }
 
+.fullWidth {
+  width: 100%;
+}
+
+.fullWidth .gwt-CheckBox {
+  float: right;
+}
+
 .fileForm .gwt-Button {
   margin-top: 5px;
   float: right;
