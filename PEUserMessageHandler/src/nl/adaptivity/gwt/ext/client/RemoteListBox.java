@@ -3,8 +3,6 @@ package nl.adaptivity.gwt.ext.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.adaptivity.process.userMessageHandler.client.ProcessModelRef;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -182,10 +180,6 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     } else if (pResponse.getStatusCode()>=400){
       fireUpdateError(new RemoteListException(pResponse.getStatusCode(), pResponse.getStatusText()));
     }
-    // TODO Auto-generated method stub
-    // 
-    throw new UnsupportedOperationException("Not yet implemented");
-    
   }
 
   private void updateList(List<ListElement> pListElements) {
@@ -219,19 +213,31 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
       while(child!=null) {
         if (aListElement.equals(child.getNodeName()) ){
           final NamedNodeMap attributes = child.getAttributes();
-          String text;
+          final String text;
+          final String value;
           if (aTextElement.startsWith("@")) {
-            text = attributes.getNamedItem(aTextElement.substring(1)).getNodeValue();
+            Node elem = attributes.getNamedItem(aTextElement.substring(1));
+            text = elem == null ? null : elem.getNodeValue();
           } else {
-            text = attributes.getNamedItem(aTextElement).getNodeValue();
+            Node candidate = child.getFirstChild();
+            while (candidate!= null && (!aTextElement.equals(candidate.getNodeName()))) {
+              candidate = candidate.getNextSibling();
+            }
+            text = candidate == null ? null : candidate.getNodeValue();
           }
-          String value;
           if (aValueElement.startsWith("@")) {
-            value = attributes.getNamedItem(aValueElement).getNodeValue();
+            Node elem = attributes.getNamedItem(aValueElement.substring(1));
+            value = elem == null ? null : elem.getNodeValue();
           } else {
-            value = attributes.getNamedItem(aValueElement).getNodeValue();
+            Node candidate = child.getFirstChild();
+            while (candidate!= null && (!aValueElement.equals(candidate.getNodeName()))) {
+              candidate = candidate.getNextSibling();
+            }
+            value = candidate == null ? null : candidate.getNodeValue();
           }
-          result.add(new ListElement(value, text));
+          if (text!=null && value!=null) {
+            result.add(new ListElement(value, text));
+          }
         }
         child = child.getNextSibling();
       }

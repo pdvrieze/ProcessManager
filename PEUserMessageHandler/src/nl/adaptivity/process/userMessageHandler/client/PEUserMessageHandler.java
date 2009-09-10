@@ -7,6 +7,7 @@ import nl.adaptivity.gwt.base.client.MyFormPanel;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteEvent;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteHandler;
 import nl.adaptivity.gwt.ext.client.ControllingListBox;
+import nl.adaptivity.gwt.ext.client.RemoteListBox;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
@@ -124,7 +125,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private Label aStatusLabel;
 
-  private ControllingListBox aProcessListBox;
+  private RemoteListBox aProcessListBox;
 
   private ControllingListBox aInstanceListBox;
 
@@ -232,7 +233,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     statusPanel.addStyleName("fullWidth");
     dockPanel.add(statusPanel, DockPanel.SOUTH);
     
-    requestProcessesUpdate();
+    refreshState();
     
     Timer refreshTimer = new Timer() {
       @Override
@@ -250,7 +251,11 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
     
-    aProcessListBox = new ControllingListBox();
+    aProcessListBox = new RemoteListBox(PROCESSLISTURL);
+    aProcessListBox.setRootElement("processModels");
+    aProcessListBox.setListElement("processModel");
+    aProcessListBox.setValueElement("@handle");
+    aProcessListBox.setTextElement("@name");
     hp1.add(aProcessListBox);
     
     aProcessListBox.addItem("Process1");
@@ -416,8 +421,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   protected void refreshState() {
     
     if (aRefreshCheckbox.getValue()) {
-      
-      requestProcessesUpdate();
+      aProcessListBox.update();
+//      requestProcessesUpdate();
     }
 //    requestInstancesUpdate();
 //    requestTaskUpdate();
