@@ -228,10 +228,4 @@
 	  </wsdl:operation>
 	</wsdl:binding>
 
-	<wsdl:service name="ProcessEngine">
-
-		<wsdl:port name="soap" binding="tns:endpoint">
-			<soap:address location="http://localhost:8192/ProcessEngine/" />
-		</wsdl:port>
-	</wsdl:service>
 </wsdl:definitions>
