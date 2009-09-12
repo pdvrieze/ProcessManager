@@ -64,6 +64,7 @@ public class JBIProcessEngine implements Component, Runnable {
   public Document getServiceDescription(ServiceEndpoint pEndpoint) {
     logEntry();
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+    builderFactory.setNamespaceAware(true);
     try {
       DocumentBuilder builder = builderFactory.newDocumentBuilder();
       Document result = builder.parse(getClass().getClassLoader().getResourceAsStream("ProcessEngine-jbi.wsdl"));
