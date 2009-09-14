@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:umh="http://adaptivity.nl/userMessageHandler/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="userMessageHandler" targetNamespace="http://adaptivity.nl/userMessageHandler/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://adaptivity.nl/userMessageHandler/">
+      <xsd:element name="tasks" type="umh:Tasks"></xsd:element>
+
+      <xsd:complexType name="Tasks">
+        <xsd:sequence>
+          <xsd:element ref="umh:task"></xsd:element>
+        </xsd:sequence>
+      </xsd:complexType>
+    
+      <xsd:complexType name="Task">
+        <xsd:sequence>
+          <xsd:element ref="umh:taskState" minOccurs="1" maxOccurs="1"></xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="handle" type="xsd:long"></xsd:attribute>
+      </xsd:complexType>
+      
+      
+            <xsd:element name="taskState" type="umh:TaskState"></xsd:element>
+            
+            <xsd:complexType name="TaskState"></xsd:complexType>
+            <xsd:element name="finishTaskResponse">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="out" type="xsd:string"></xsd:element>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="postTaskResponse">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="out" type="xsd:string"></xsd:element>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="task" type="umh:Task"></xsd:element>
+            <xsd:complexType name="GetPendingTasksRequest">
+              <xsd:simpleContent>
+                <xsd:extension base="xsd:string"></xsd:extension>
+              </xsd:simpleContent>
+            </xsd:complexType>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="getPendingMessagesRequest">
+  </wsdl:message>
+  <wsdl:message name="getPendingTasksResponse">
+    <wsdl:part element="umh:tasks" name="tasks" />
+  </wsdl:message>
+  <wsdl:message name="takeTaskRequest">
+    <wsdl:part name="taskHandle" type="xsd:long"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="takeTaskResponse">
+    <wsdl:part name="taskState" element="umh:taskState"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="finishTaskRequest">
+    <wsdl:part name="taskHandle" type="xsd:long"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="finishTaskResponse">
+    <wsdl:part name="parameters" element="umh:taskState"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="postTaskRequest">
+    <wsdl:part name="task" element="umh:task"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="postTaskResponse">
+    <wsdl:part name="parameters" element="umh:postTaskResponse"></wsdl:part>
+  </wsdl:message>
+  <wsdl:message name="getPendingTasksRequest">
+    <wsdl:part name="getPendintTasksRequest" type="umh:GetPendingTasksRequest"></wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="userMessageHandlerExt">
+    <wsdl:operation name="getPendingTasks">
+            <wsdl:input message="umh:getPendingTasksRequest"></wsdl:input>
+            <wsdl:output message="umh:getPendingTasksResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="takeTask">
+      <wsdl:input message="umh:takeTaskRequest"></wsdl:input>
+      <wsdl:output message="umh:takeTaskResponse"></wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="finishTask">
+      <wsdl:input message="umh:finishTaskRequest"></wsdl:input>
+      <wsdl:output message="umh:finishTaskResponse"></wsdl:output>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:portType name="userMessageHandlerInt">
+    <wsdl:operation name="postTask">
+      <wsdl:input message="umh:postTaskRequest"></wsdl:input>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="userMessageHandlerSOAP"
+    type="umh:userMessageHandlerExt">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="getPendingTasks">
+      <soap:operation
+        soapAction="http://adaptivity.nl/userMessageHandler/getPendingTasks" />
+      <wsdl:input>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="takeTask">
+      <soap:operation
+        soapAction="http://adaptivity.nl/userMessageHandler/takeTask" />
+      <wsdl:input>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="finishTask">
+      <soap:operation
+        soapAction="http://adaptivity.nl/userMessageHandler/finishTask" />
+      <wsdl:input>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="internalBinding" type="umh:userMessageHandlerInt">
+    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="postTask">
+      <soap:operation
+        soapAction="http://adaptivity.nl/userMessageHandler/postTask" />
+      <wsdl:input>
+        <soap:body use="literal"
+          namespace="http://adaptivity.nl/userMessageHandler/" />
+      </wsdl:input>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="external">
+    <wsdl:port name="NewPort" binding="umh:userMessageHandlerSOAP">
+      <soap:address location="http://www.example.org/external" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="internal">
+    <wsdl:port name="NewPort" binding="umh:internalBinding">
+      <soap:address location="http://www.example.org/internal" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
