@@ -11,6 +11,8 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.xml.bind.annotation.*;
 
+import org.w3c.dom.Node;
+
 @XmlRootElement(name = "httpMessage", namespace=HttpMessage.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name="HttpMessage", namespace=HttpMessage.NAMESPACE)
@@ -20,10 +22,15 @@ public class HttpMessage {
     
     
     @XmlType(name="Body", namespace=HttpMessage.NAMESPACE)
+    @XmlAccessorType(XmlAccessType.NONE)
     public static class Body {
         @XmlAnyElement(lax=false)
         List<Object> elements;
 
+        public List<Node> getElements() {
+          @SuppressWarnings("unchecked") List<Node> result = (List<Node>) ((List<?>) elements);
+          return result;
+        }
     }
 
     @XmlAccessorType(XmlAccessType.NONE)
