@@ -1,21 +1,15 @@
 package nl.adaptivity.util;
 
-import java.io.*;
-import java.net.URLDecoder;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
 @XmlRootElement(name = "httpMessage", namespace=HttpMessage.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
