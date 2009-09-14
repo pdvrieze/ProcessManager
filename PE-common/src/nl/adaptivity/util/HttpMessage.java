@@ -268,11 +268,11 @@ public class HttpMessage {
     }
     
     public String getQuery(String pName) {
-        return aQueries.get(pName);
+        return aQueries == null ? null : aQueries.get(pName);
     }
     
     public String getPost(String pName) {
-        return aPost.get(pName);
+        return aPost ==null ? null : aPost.get(pName);
     }
     
     public String getParam(String pName) {
@@ -285,11 +285,17 @@ public class HttpMessage {
     
     @XmlElement(name="query", namespace=HttpMessage.NAMESPACE)
     public Collection<Query> getQueries() {
+        if (aQueries == null) {
+          aQueries = new HashMap<String, String>();
+        }
         return new QueryMapCollection(aQueries);
     }
     
     @XmlElement(name="post", namespace=HttpMessage.NAMESPACE)
     public Collection<Query> getPost() {
+        if (aPost == null) {
+          aPost = new HashMap<String, String>();
+        }
         return new QueryMapCollection(aPost);
     }
 
