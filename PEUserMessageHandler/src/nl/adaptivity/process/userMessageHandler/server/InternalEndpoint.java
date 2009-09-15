@@ -11,16 +11,22 @@ import nl.adaptivity.process.exec.Task;
 
 public class InternalEndpoint implements GenericEndpoint {
 
+  private static final String ENDPOINT = "internal";
+  public static final QName SERVICENAME = new QName("http:://adaptivity.nl/userMessageHandler", "userMessageHandler");
   private UserMessageService aService;
+
+  public InternalEndpoint(UserMessageService pService) {
+    aService = pService;
+  }
 
   @Override
   public QName getService() {
-    return new QName("http:://adaptivity.nl/userMessageHandler", "userMessageHandler");
+    return SERVICENAME;
   }
 
   @Override
   public String getEndpoint() {
-    return "internal";
+    return ENDPOINT;
   }
 
   @WebMethod
