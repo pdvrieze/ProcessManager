@@ -2,7 +2,6 @@ package nl.adaptivity.process.exec;
 
 import net.devrieze.util.HandleMap.HandleAware;
 
-
 public interface Task extends HandleAware{
   
   
