@@ -520,6 +520,16 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private void handleTabSelection(SelectionEvent<Integer> pEvent) {
     String tabText = aTabPanel.getTabBar().getTabHTML(pEvent.getSelectedItem());
     History.newItem(tabText, false);
+    if ("Processes".equals(tabText)) {
+      aProcessListBox.start();
+    } else {
+      aProcessListBox.stop();
+    }
+    if ("Tasks".equals(tabText)) {
+      aTaskListBox.start();
+    } else {
+      aTaskListBox.stop();
+    }
   }
 
 }
