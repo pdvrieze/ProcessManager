@@ -8,6 +8,7 @@ public interface Task extends HandleAware{
   public enum TaskState {
     Available,
     Taken,
+    Started,
     Complete;
   }
 
