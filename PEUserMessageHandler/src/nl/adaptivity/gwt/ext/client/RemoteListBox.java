@@ -216,39 +216,9 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
       Node child = root.getFirstChild();
       while(child!=null) {
         if (aListElement.equals(child.getNodeName()) ){
-          final NamedNodeMap attributes = child.getAttributes();
-          final String text;
-          final String value;
-          if (aTextElement.startsWith("@")) {
-            Node elem = attributes.getNamedItem(aTextElement.substring(1));
-            text = elem == null ? null : elem.getNodeValue();
-          } else if (aTextElement.startsWith("=")) {
-            try {
-              text=parseParam(child, aTextElement.substring(1));
-            } catch (RuntimeException e) {
-              GWT.log("Error", e);
-              throw e;
-            }
-          } else {
-            Node candidate = child.getFirstChild();
-            while (candidate!= null && (!aTextElement.equals(candidate.getNodeName()))) {
-              candidate = candidate.getNextSibling();
-            }
-            text = candidate == null ? null : candidate.getNodeValue();
-          }
-          if (aValueElement.startsWith("@")) {
-            Node elem = attributes.getNamedItem(aValueElement.substring(1));
-            value = elem == null ? null : elem.getNodeValue();
-          } else if (aValueElement.startsWith("=")) {
-            try {
-              value=parseParam(child, aValueElement.substring(1));
-            } catch (RuntimeException e) {
-              GWT.log("Error", e);
-              throw e;
-            }
-          } else {
-            value = getSubNodeValue(child, aValueElement);
-          }
+          final String text = XMLUtil.getParamText(child, aTextElement);
+          final String value = XMLUtil.getParamText(child, aValueElement);
+          
           if (text!=null && value!=null) {
             result.add(new ListElement(value, text));
           }
@@ -259,89 +229,6 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
     
     return new ArrayList<ListElement>(0);
-  }
-
-  private String parseParam(Node pNode, String pSpec) {
-    StringBuilder result = new StringBuilder(pSpec.length()*2);
-    int i =0;
-    int j = 0;
-    while (j<pSpec.length()) {
-      final char c = pSpec.charAt(j);
-      if (c=='\\' && (j+1<pSpec.length())) {
-        result.append(pSpec.substring(i, j));
-        ++j;
-        i=j;
-      } else if (c=='$') {
-        result.append(pSpec.substring(i, j));
-        if (j+3<pSpec.length() && pSpec.charAt(j+1)=='{') {
-          j+=2;
-          i=j;
-          while (j<pSpec.length() && pSpec.charAt(j)!='}') {
-            ++j;
-          }
-          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
-          ++j;
-        } else {
-          ++j;
-          i=j;
-          while (j<pSpec.length() && isChar(pSpec.charAt(j))) {
-            ++j;
-          }
-          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
-        }
-        
-        i=j;
-      } else if (c=='@') {
-        result.append(pSpec.substring(i, j));
-        if (j+3<pSpec.length() && pSpec.charAt(j+1)=='{') {
-          j+=2;
-          i=j;
-          while (j<pSpec.length() && pSpec.charAt(j)!='}') {
-            ++j;
-          }
-          result.append(getAttributeValue(pNode, pSpec.substring(i, j)));
-          ++j;
-        } else {
-          ++j;
-          i=j;
-          while (j<pSpec.length() && isChar(pSpec.charAt(j))) {
-            ++j;
-          }
-          result.append(getAttributeValue(pNode, pSpec.substring(i, j)));
-        }
-        
-        i=j;
-      } else {
-        ++j;
-      }
-    }
-    result.append(pSpec.substring(i,j));
-    return result.toString();
-  }
-
-  private String getSubNodeValue(Node pNode, String pName) {
-    final String value;
-    Node candidate = pNode.getFirstChild();
-    while (candidate!= null && (!pName.equals(candidate.getNodeName()))) {
-      candidate = candidate.getNextSibling();
-    }
-    value = candidate == null ? null : candidate.getNodeValue();
-    if (value==null) {
-      GWT.log("subnode "+pName+" could not be resolved", null);
-    }
-    return value;
-  }
-
-  private Object getAttributeValue(Node pNode, String pName) {
-    final Node val = pNode.getAttributes().getNamedItem(pName);
-    if (val==null) {
-      GWT.log("Attribute "+pName+" could not be resolved", null);
-    }
-    return val;
-  }
-
-  private boolean isChar(char c) {
-    return Character.isLetterOrDigit(c);
   }
   
 }
