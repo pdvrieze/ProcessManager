@@ -5,7 +5,7 @@ import net.devrieze.util.HandleMap.HandleAware;
 public interface Task extends HandleAware{
   
   
-  public enum TaskState {
+  public static enum TaskState {
     Available,
     Taken,
     Started,
