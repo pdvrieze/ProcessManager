@@ -78,9 +78,10 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   private Method aMethod = RequestBuilder.GET;
   private String aUrl;
   private String aRootElement;
-  private Object aListElement;
+  private String aListElement;
   private String aTextElement;
   private String aValueElement;
+  private boolean aStarted = false;
   
   public RemoteListBox(String pUrl) {
     aUrl = pUrl;
@@ -91,14 +92,17 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
       throw new IllegalStateException("Can not start updating from a remote system when the proper properties for parsing the result are not set");
     }
     requestUpdate();
+    aStarted  = true;
   }
   
   public void update() {
-    requestUpdate();
+    if (aStarted) {
+      requestUpdate();
+    }
   }
   
   public void stop() {
-    
+    aStarted = false;
   }
 
   private void requestUpdate() {
@@ -140,11 +144,11 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     aRootElement = pRootElement;
   }
   
-  public Object getListElement() {
+  public String getListElement() {
     return aListElement;
   }
   
-  public void setListElement(Object pListElement) {
+  public void setListElement(String pListElement) {
     aListElement = pListElement;
   }
   
@@ -218,6 +222,13 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
           if (aTextElement.startsWith("@")) {
             Node elem = attributes.getNamedItem(aTextElement.substring(1));
             text = elem == null ? null : elem.getNodeValue();
+          } else if (aTextElement.startsWith("=")) {
+            try {
+              text=parseParam(child, aTextElement.substring(1));
+            } catch (RuntimeException e) {
+              GWT.log("Error", e);
+              throw e;
+            }
           } else {
             Node candidate = child.getFirstChild();
             while (candidate!= null && (!aTextElement.equals(candidate.getNodeName()))) {
@@ -228,12 +239,15 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
           if (aValueElement.startsWith("@")) {
             Node elem = attributes.getNamedItem(aValueElement.substring(1));
             value = elem == null ? null : elem.getNodeValue();
-          } else {
-            Node candidate = child.getFirstChild();
-            while (candidate!= null && (!aValueElement.equals(candidate.getNodeName()))) {
-              candidate = candidate.getNextSibling();
+          } else if (aValueElement.startsWith("=")) {
+            try {
+              value=parseParam(child, aValueElement.substring(1));
+            } catch (RuntimeException e) {
+              GWT.log("Error", e);
+              throw e;
             }
-            value = candidate == null ? null : candidate.getNodeValue();
+          } else {
+            value = getSubNodeValue(child, aValueElement);
           }
           if (text!=null && value!=null) {
             result.add(new ListElement(value, text));
@@ -245,6 +259,89 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
     
     return new ArrayList<ListElement>(0);
+  }
+
+  private String parseParam(Node pNode, String pSpec) {
+    StringBuilder result = new StringBuilder(pSpec.length()*2);
+    int i =0;
+    int j = 0;
+    while (j<pSpec.length()) {
+      final char c = pSpec.charAt(j);
+      if (c=='\\' && (j+1<pSpec.length())) {
+        result.append(pSpec.substring(i, j));
+        ++j;
+        i=j;
+      } else if (c=='$') {
+        result.append(pSpec.substring(i, j));
+        if (j+3<pSpec.length() && pSpec.charAt(j+1)=='{') {
+          j+=2;
+          i=j;
+          while (j<pSpec.length() && pSpec.charAt(j)!='}') {
+            ++j;
+          }
+          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
+          ++j;
+        } else {
+          ++j;
+          i=j;
+          while (j<pSpec.length() && isChar(pSpec.charAt(j))) {
+            ++j;
+          }
+          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
+        }
+        
+        i=j;
+      } else if (c=='@') {
+        result.append(pSpec.substring(i, j));
+        if (j+3<pSpec.length() && pSpec.charAt(j+1)=='{') {
+          j+=2;
+          i=j;
+          while (j<pSpec.length() && pSpec.charAt(j)!='}') {
+            ++j;
+          }
+          result.append(getAttributeValue(pNode, pSpec.substring(i, j)));
+          ++j;
+        } else {
+          ++j;
+          i=j;
+          while (j<pSpec.length() && isChar(pSpec.charAt(j))) {
+            ++j;
+          }
+          result.append(getAttributeValue(pNode, pSpec.substring(i, j)));
+        }
+        
+        i=j;
+      } else {
+        ++j;
+      }
+    }
+    result.append(pSpec.substring(i,j));
+    return result.toString();
+  }
+
+  private String getSubNodeValue(Node pNode, String pName) {
+    final String value;
+    Node candidate = pNode.getFirstChild();
+    while (candidate!= null && (!pName.equals(candidate.getNodeName()))) {
+      candidate = candidate.getNextSibling();
+    }
+    value = candidate == null ? null : candidate.getNodeValue();
+    if (value==null) {
+      GWT.log("subnode "+pName+" could not be resolved", null);
+    }
+    return value;
+  }
+
+  private Object getAttributeValue(Node pNode, String pName) {
+    final Node val = pNode.getAttributes().getNamedItem(pName);
+    if (val==null) {
+      GWT.log("Attribute "+pName+" could not be resolved", null);
+    }
+    return val;
+  }
+
+  private boolean isChar(char c) {
+    return Character.isLetterOrDigit(c);
   }
   
 }
