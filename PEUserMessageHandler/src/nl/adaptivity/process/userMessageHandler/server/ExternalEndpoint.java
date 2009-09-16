@@ -7,13 +7,13 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
-import nl.adaptivity.jbi.rest.annotations.RestMethod;
-import nl.adaptivity.jbi.rest.annotations.RestParam;
 import nl.adaptivity.jbi.rest.annotations.RestService;
-import nl.adaptivity.jbi.rest.annotations.RestMethod.HttpMethod;
-import nl.adaptivity.jbi.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.userMessageHandler.server.UserMessageService.DummyTask;
+import nl.adaptivity.rest.annotations.RestMethod;
+import nl.adaptivity.rest.annotations.RestParam;
+import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
 @RestService
