@@ -300,7 +300,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     aTaskListBox.addStyleName("mhList");
     aTaskListBox.addStyleName("tabContent");
     aTaskListBox.setRootElement("tasks");
-    aTaskListBox.setTextElement("@summary");
+    aTaskListBox.setTextElement("=@summary (@{state})");
     aTaskListBox.setValueElement("@handle");
     aTaskListBox.setListElement("dummyTask");
     

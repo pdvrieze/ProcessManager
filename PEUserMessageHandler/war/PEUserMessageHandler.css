@@ -21,7 +21,11 @@ h1 {
 }
 
 .inTabButton {
-  width: 115px; 
+  width: 175px;
+}
+
+.gwt-Button.inTabButton {
+  margin-bottom: 5px;
 }
 
 .tabPanel {
@@ -30,9 +34,11 @@ h1 {
 
 #gwt {
   margin: 10px;
+  text-align: center;
 }
 
 .tabContent {
+  width: 400px;
   margin: 3px;
 }
 

@@ -54,7 +54,7 @@ public class UserMessageService implements EndpointProvider {
 
     @XmlAttribute(name="summary")
     public String getSummary() {
-      return aSummary+" ("+getState().name()+")";
+      return aSummary;
     }
 
     public void setSummary(String summary) {
