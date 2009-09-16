@@ -5,10 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Queue;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.jbi.components.genericSE.EndpointProvider;
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
@@ -55,8 +52,9 @@ public class UserMessageService implements EndpointProvider {
       aHandle = pHandle;
     }
 
+    @XmlAttribute(name="summary")
     public String getSummary() {
-      return aSummary;
+      return aSummary+" ("+getState().name()+")";
     }
 
     public void setSummary(String summary) {
@@ -108,6 +106,11 @@ public class UserMessageService implements EndpointProvider {
 
   public TaskState takeTask(long pHandle) {
     getTask(pHandle).setState(TaskState.Taken);
+    return TaskState.Taken;
+  }
+
+  public TaskState startTask(long pHandle) {
+    getTask(pHandle).setState(TaskState.Started);
     return TaskState.Taken;
   }
 

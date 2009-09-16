@@ -13,9 +13,16 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.http.client.*;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.TabBar.Tab;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
@@ -25,7 +32,7 @@ import com.google.gwt.xml.client.XMLParser;
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHandler {
+public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHandler, ValueChangeHandler<String>, SelectionHandler<Integer> {
 
   private final class FileSubmitHandler implements SubmitCompleteHandler {
 
@@ -37,64 +44,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
         GWT.log("Actually got a response: \""+results+"\"", null);
         updateProcessList(asProcessList(results));
       } else {
-        requestProcessesUpdate();
+        aProcessListBox.update();
       }
-    }
-  }
-
-  private final class ProcessListCallback implements RequestCallback {
-
-    @Override
-    public void onError(Request pRequest, Throwable pException) {
-      aStatusLabel.setText("Error: "+pException.getMessage());
-    }
-
-    @Override
-    public void onResponseReceived(Request pRequest, Response pResponse) {
-      if (200 == pResponse.getStatusCode()) {
-        updateProcessList(asProcessList(pResponse.getText()));
-        aStatusLabel.setText("Ok");
-      } else {
-        aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
-      }
-    }
-  }
-
-  private final class TaskListCallback implements RequestCallback {
-
-    @Override
-    public void onError(Request pRequest, Throwable pException) {
-      aStatusLabel.setText("Error: "+pException.getMessage());
-    }
-
-    @Override
-    public void onResponseReceived(Request pRequest, Response pResponse) {
-      // TODO implement
-//      if (200 == pResponse.getStatusCode()) {
-//        updateProcessList(asProcessList(pResponse.getText()));
-//        aStatusLabel.setText("Ok");
-//      } else {
-//        aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
-//      }
-    }
-  }
-
-  private final class InstanceListCallback implements RequestCallback {
-
-    @Override
-    public void onError(Request pRequest, Throwable pException) {
-      aStatusLabel.setText("Error: "+pException.getMessage());
-    }
-
-    @Override
-    public void onResponseReceived(Request pRequest, Response pResponse) {
-      // TODO implement
-//      if (200 == pResponse.getStatusCode()) {
-//        updateProcessList(asProcessList(pResponse.getText()));
-//        aStatusLabel.setText("Ok");
-//      } else {
-//        aStatusLabel.setText("Error("+pResponse.getStatusCode()+"): "+pResponse.getStatusText());
-//      }
     }
   }
 
@@ -102,22 +53,25 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    * The message displayed to the user when the server cannot be reached or
    * returns an error.
    */
-  private static final String SERVER_ERROR = "An error occurred while " + "attempting to contact the server. Please check your network "
-      + "connection and try again.";
+  private static final String SERVER_ERROR = "An error occurred while " + 
+      "attempting to contact the server. Please check your network " + 
+      "connection and try again.";
 
-  private static final String BASEURL = "/ProcessEngine/"/*"http://localhost:8192/ProcessEngine/"*/;
+  private static final String BASEURL = ""/*"http://localhost:8192/ProcessEngine/"*/;
 
-  private static final String PROCESSLISTURL = BASEURL+"processModels";
+  private static final String PROCESSLISTURL = BASEURL+"/ProcessEngine/processModels";
 
   private static final String PROCESSINSTANCELISTURL = BASEURL+"processInstances";
 
-  private static final String TASKLISTURL = BASEURL+"tasks";
+  private static final String TASKLISTURL = BASEURL+"/UserMessageService/pendingTasks";
 
   private static final int REFRESH_INTERVAL = 2000;
 
   private static final Boolean DEFAULT_REFRESH = false;
 
   private Button aStartTaskButton;
+  private Button aTakeTaskButton;
+  private Button aCompleteTaskButton;
 
   private Button aShowInstanceStatusButton;
 
@@ -129,7 +83,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private ControllingListBox aInstanceListBox;
 
-  private ControllingListBox aTaskListBox;
+  private RemoteListBox aTaskListBox;
 
   private MyFormPanel aProcessFileForm;
 
@@ -137,15 +91,11 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private MyFileUpload aProcessUpload;
 
-  private final ProcessListCallback aProcessListCallback = new ProcessListCallback();
-
-  private final InstanceListCallback aInstanceListCallback = new InstanceListCallback();
-
-  private final TaskListCallback aTaskListCallback = new TaskListCallback();
-
   private CheckBox aRefreshCheckbox;
 
   private TabPanel aTabPanel;
+
+  private HandlerRegistration aHistoryHandler;
 
   /**
    * @category helper
@@ -203,6 +153,11 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    * @category UI
    */
   public void onModuleLoad() {
+    String initToken = History.getToken();
+    if (initToken.length() == 0) {
+      History.newItem("Processes");
+    }
+    
     final RootPanel rootPanel = RootPanel.get("gwt");
     
     DockPanel dockPanel = new DockPanel();
@@ -222,6 +177,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     aTabPanel.add(hp3, "Tasks");
     aTabPanel.selectTab(0);
     
+    aTabPanel.getTabBar().addSelectionHandler(this);
+    
     DockPanel statusPanel = new DockPanel();
     aStatusLabel = new Label();
     aStatusLabel.setText("Initializing...");
@@ -233,7 +190,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     statusPanel.addStyleName("fullWidth");
     dockPanel.add(statusPanel, DockPanel.SOUTH);
     
-    refreshState();
+    aProcessListBox.start();
+    aTaskListBox.start();
     
     Timer refreshTimer = new Timer() {
       @Override
@@ -242,6 +200,10 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
       }
     };
     refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
+    
+    aHistoryHandler = History.addValueChangeHandler(this);
+    
+    History.fireCurrentHistoryState();
   }
 
   /**
@@ -334,21 +296,41 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     hp1.addStyleName("tabPanel");
     
     
-    aTaskListBox = new ControllingListBox();
+    aTaskListBox = new RemoteListBox(TASKLISTURL);
     aTaskListBox.addStyleName("mhList");
     aTaskListBox.addStyleName("tabContent");
+    aTaskListBox.setRootElement("tasks");
+    aTaskListBox.setTextElement("@summary");
+    aTaskListBox.setValueElement("@handle");
+    aTaskListBox.setListElement("dummyTask");
+    
     hp1.add(aTaskListBox);
-    aTaskListBox.addChangeHandler(this);
+//    aTaskListBox.addChangeHandler(this);
     
     VerticalPanel vp1 = new VerticalPanel();
     hp1.add(vp1);
     vp1.addStyleName("tabContent");
+    
+    
+    aTakeTaskButton = new Button("Take task");
+    aTaskListBox.addControlledWidget(aTakeTaskButton);
+    aTakeTaskButton.addStyleName("inTabButton");
+    vp1.add(aTakeTaskButton);
+    aTakeTaskButton.addClickHandler(this);
     
     aStartTaskButton = new Button("Start task");
     aTaskListBox.addControlledWidget(aStartTaskButton);
     aStartTaskButton.addStyleName("inTabButton");
     vp1.add(aStartTaskButton);
     aStartTaskButton.addClickHandler(this);
+    
+    aCompleteTaskButton = new Button("Complete task");
+    aTaskListBox.addControlledWidget(aCompleteTaskButton);
+    aCompleteTaskButton.addStyleName("inTabButton");
+    vp1.add(aCompleteTaskButton);
+    aCompleteTaskButton.addClickHandler(this);
+    
+    
     return hp1;
   }
 
@@ -377,51 +359,11 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   /**
    * @category method
    */
-  private void requestProcessesUpdate() {
-    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSLISTURL);
-    
-    try {
-      rBuilder.sendRequest(null, aProcessListCallback);
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error: "+e.getMessage());
-    }
-  }
-
-  /**
-   * @category method
-   */
-  private void requestInstancesUpdate() {
-    GWT.log("requestInstancesUpdate called",null);
-    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, PROCESSINSTANCELISTURL);
-    
-    try {
-      rBuilder.sendRequest(null, aInstanceListCallback);
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error: "+e.getMessage());
-    }
-  }
-
-  /**
-   * @category method
-   */
-  private void requestTaskUpdate() {
-    GWT.log("requestProcessesUpdate called",null);
-    RequestBuilder rBuilder = new RequestBuilder(RequestBuilder.GET, TASKLISTURL);
-    
-    try {
-      rBuilder.sendRequest(null, aTaskListCallback);
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error: "+e.getMessage());
-    }
-  }
-  
-  /**
-   * @category method
-   */
   protected void refreshState() {
     
     if (aRefreshCheckbox.getValue()) {
       aProcessListBox.update();
+      aTaskListBox.update();
 //      requestProcessesUpdate();
     }
 //    requestInstancesUpdate();
@@ -435,6 +377,10 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   public void onClick(ClickEvent pEvent) {
     if (pEvent.getSource()==aStartTaskButton) {
       startTask(pEvent);
+    } else if (pEvent.getSource()==aTakeTaskButton){
+      takeTask(pEvent);
+    } else if (pEvent.getSource()==aCompleteTaskButton){
+      completeTask(pEvent);
     } else if (pEvent.getSource()==aShowInstanceStatusButton) {
       showInstance(pEvent);
     } else if (pEvent.getSource()==aStartProcessButton) {
@@ -491,6 +437,89 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   private void startTask(DomEvent<?> pEvent) {
     aStatusLabel.setText("startTask");
+    String newState = "Started";
+    updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
+  }
+
+  /**
+   * @category action
+   */
+  private void takeTask(DomEvent<?> pEvent) {
+    aStatusLabel.setText("takeTask");
+    String newState = "Taken";
+    updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
+  }
+
+  /**
+   * @category action
+   */
+  private void completeTask(DomEvent<?> pEvent) {
+    aStatusLabel.setText("completeTask");
+    String newState = "Finished";
+    updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
+  }
+
+  /**
+   * @category action
+   */
+  private void updateTaskState(String newState, String handle) {
+    String URL=TASKLISTURL+"/"+handle;
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, URL);
+    rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
+    String postData = "state="+newState;
+
+    try {
+      rb.sendRequest(postData, new RequestCallback() {
+
+        @Override
+        public void onError(Request pRequest, Throwable pException) {
+          aStatusLabel.setText("Error ("+pException.getMessage()+")");
+        }
+
+        @Override
+        public void onResponseReceived(Request pRequest, Response pResponse) {
+          aTaskListBox.update();
+        }
+        
+      });
+    } catch (RequestException e) {
+      aStatusLabel.setText("Error ("+e.getMessage()+")");
+    }
+  }
+
+  /** Handle history 
+   * @category action
+   */
+  @Override
+  public void onValueChange(ValueChangeEvent<String> pEvent) {
+    final String value = pEvent.getValue();
+    
+    int c = aTabPanel.getTabBar().getTabCount();
+    for(int i = 0; i<c; ++i) {
+      if (value.equals(aTabPanel.getTabBar().getTabHTML(i))) {
+        aTabPanel.selectTab(i);
+        break;
+      }
+    }
+    
+  }
+
+  /**
+   * @category action
+   */
+  @Override
+  public void onSelection(SelectionEvent<Integer> pEvent) {
+    if (pEvent.getSource()==aTabPanel.getTabBar()) {
+      handleTabSelection(pEvent);
+    }
+  }
+
+  /**
+   * @category action
+   */
+  private void handleTabSelection(SelectionEvent<Integer> pEvent) {
+    String tabText = aTabPanel.getTabBar().getTabHTML(pEvent.getSelectedItem());
+    History.newItem(tabText, false);
   }
 
 }

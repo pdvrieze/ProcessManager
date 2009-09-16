@@ -1,9 +1,9 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
@@ -19,30 +19,6 @@ import nl.adaptivity.process.userMessageHandler.server.UserMessageService.DummyT
 @RestService
 @XmlSeeAlso(DummyTask.class)
 public class ExternalEndpoint implements GenericEndpoint {
-
-
-  @XmlRootElement(name="tasks", namespace="http:://adaptivity.nl/userMessageHandler")
-  @XmlAccessorType(XmlAccessType.NONE)
-  private static class PendingTaskCollection {
-
-    private final Collection<Task> aPendingTasks;
-
-    public PendingTaskCollection() {
-      aPendingTasks = new ArrayList<Task>();
-    }
-    
-    public PendingTaskCollection(Collection<Task> pPendingTasks) {
-      aPendingTasks = pPendingTasks;
-    }
-
-    @XmlElementRefs(@XmlElementRef(name="task", type=DummyTask.class, namespace="http:://adaptivity.nl/userMessageHandler"))
-    public Collection<Task> getPendingTasks() {
-      return aPendingTasks;
-    }
-    
-    
-
-  }
 
   public static final String ENDPOINT = "external";
   public static final QName SERVICENAME = new QName("http:://adaptivity.nl/userMessageHandler", "userMessageHandler");
@@ -62,10 +38,15 @@ public class ExternalEndpoint implements GenericEndpoint {
     return ENDPOINT;
   }
 
-//  @XmlElementWrapper(name="tasks", namespace="http:://adaptivity.nl/userMessageHandler")
+  @XmlElementWrapper(name="tasks", namespace="http:://adaptivity.nl/userMessageHandler")
   @RestMethod(method=HttpMethod.GET, path="/pendingTasks")
-  public PendingTaskCollection getPendingTasks() {
-    return new PendingTaskCollection(aService.getPendingTasks());
+  public Collection<Task> getPendingTasks() {
+    return aService.getPendingTasks();
+  }
+  
+  @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Started"})
+  public Task.TaskState startTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle) {
+    return aService.startTask(Long.parseLong(pHandle));
   }
   
   @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Taken"})
