@@ -4,10 +4,7 @@ import java.io.CharArrayWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.MissingResourceException;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,7 +18,6 @@ import javax.jbi.messaging.*;
 import javax.jbi.servicedesc.ServiceEndpoint;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -33,13 +29,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.xml.sax.SAXException;
 
+import nl.adaptivity.jbi.rest.RestMessageHandler;
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlProcessModel;
-import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.rest.annotations.RestMethod;
+import nl.adaptivity.rest.annotations.RestParam;
+import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
 public class JBIProcessEngine implements Component, Runnable {
@@ -54,6 +53,7 @@ public class JBIProcessEngine implements Component, Runnable {
   private boolean aKeepRunning = true;
   private Logger aLogger;
   private ProcessEngine aProcessEngine;
+  private RestMessageHandler aRestMessageHandler;
 
   @Override
   public ComponentLifeCycle getLifeCycle() {
@@ -233,14 +233,8 @@ public class JBIProcessEngine implements Component, Runnable {
           initPostMessage(pDeliveryChannel, ex);
         } else if (localPart.equals(OP_START_PROCESS)) {
           initStartProcess(pDeliveryChannel, (InOut) ex);
-        } else if ("GET".equals(localPart)) {
-          processGet(pDeliveryChannel, (InOut) ex);
-        } else if ("POST".equals(localPart)) {
-          processPost(pDeliveryChannel, (InOut) ex);
-        } else if ("PUT".equals(localPart)) {
-          processPut(pDeliveryChannel, (InOut) ex);
-        } else if ("DELETE".equals(localPart)) {
-          processDelete(pDeliveryChannel, (InOut) ex);
+        } else if ("GET".equals(localPart) || "POST".equals(localPart) || "PUT".equals(localPart) || "DELETE".equals(localPart)) {
+          processRest(pDeliveryChannel, ex);
         }
       }
     } catch (Exception e) {
@@ -250,83 +244,50 @@ public class JBIProcessEngine implements Component, Runnable {
     }
   }
 
-  private void processGet(DeliveryChannel pDeliveryChannel, InOut pEx) throws Exception {
-    HttpMessage message = JAXB.unmarshal(pEx.getInMessage().getContent(), HttpMessage.class);
-    String pathInfo = message.getPathInfo();
-    final Source result;
-    if ("/processModels".equals(pathInfo)) {
-      result = getProcessModels();
-    } else {
-      throw new FileNotFoundException();
+  private RestMessageHandler getRestMessageHandler() {
+    if (aRestMessageHandler == null) {
+      aRestMessageHandler = RestMessageHandler.newInstance();
     }
-    NormalizedMessage reply = pEx.createMessage();
-    reply.setContent(result);
-    pEx.setMessage(reply, "out");
-    pDeliveryChannel.send(pEx);
+    return aRestMessageHandler;
   }
 
-  private Source getProcessModels() throws JAXBException {
+  private void processRest(DeliveryChannel pDeliveryChannel, MessageExchange pEx) throws MessagingException{
+    HttpMethod operation = HttpMethod.valueOf(pEx.getOperation().getLocalPart());
+    NormalizedMessage inMessage = pEx.getMessage("in");
+    NormalizedMessage reply = pEx.createMessage();
+    if (getRestMessageHandler().processRequest(operation, inMessage, reply, this)) {
+      pEx.setMessage(reply, "out");
+      pDeliveryChannel.send(pEx);
+    } else {
+      pEx.setError(new FileNotFoundException());
+      pDeliveryChannel.send(pEx);
+    }
+  }
+
+  @RestMethod(method=HttpMethod.GET, path="/processModels")
+  public ProcessModelRefs getProcesModelRefs() {
     Iterable<ProcessModel> processModels = aProcessEngine.getProcessModels();
     ProcessModelRefs list = new ProcessModelRefs();
     for (ProcessModel pm: processModels) {
       list.add(pm.getRef());
     }
-    return new JAXBSource(JAXBContext.newInstance(ProcessModelRefs.class), list);
+    return list;
   }
-
   
-  private Source postProcessModel(NormalizedMessage pNormalizedMessage) throws IOException, JAXBException {
-    IOException error = null;
-    @SuppressWarnings("unchecked") final Set<String> attachmentNames = pNormalizedMessage.getAttachmentNames();
-    for(String attachmentName: attachmentNames) {
-      DataHandler attachment = pNormalizedMessage.getAttachment(attachmentName);
-      XmlProcessModel pm;
-      try {
-        pm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
-      } catch (IOException e) {
-        error = e;
-        break;
-      }
-      if (pm!=null) {
-        aProcessEngine.addProcessModel(pm.toProcessModel());
-      }
-    }
-    if (error !=null) {
-      throw error;
-    }
-    return getProcessModels();
-  }
+  @RestMethod(method=HttpMethod.POST, path="/processModels")
+  public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment) throws IOException {
 
-  @SuppressWarnings("null")
-  private void processPost(DeliveryChannel pDeliveryChannel, InOut pEx) throws Exception {
-    HttpMessage message = JAXB.unmarshal(pEx.getInMessage().getContent(), HttpMessage.class);
-    String pathInfo = message.getPathInfo();
-    final Source result;
-    String contentType = null;
-    if ("/processModels".equals(pathInfo)) {
-      result = postProcessModel(pEx.getInMessage());
-      contentType = "text/html";
-    } else {
-      throw new FileNotFoundException();
+    XmlProcessModel pm;
+    try {
+      pm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
+    } catch (IOException e) {
+      throw e;
     }
-    NormalizedMessage reply = pEx.createMessage();
-    if (contentType!=null) {
-      Map<String, String> headers = new HashMap<String, String>();
-      headers.put("Content-Type", contentType);
-      
-      reply.setProperty(Constants.PROTOCOL_HEADERS, headers);
+    if (pm!=null) {
+      aProcessEngine.addProcessModel(pm.toProcessModel());
     }
-    reply.setContent(result);
-    pEx.setMessage(reply, "out");
-    pDeliveryChannel.send(pEx);
-  }
 
-  private void processDelete(DeliveryChannel pDeliveryChannel, InOut pEx) {
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  private void processPut(DeliveryChannel pDeliveryChannel, InOut pEx) {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return getProcesModelRefs();
   }
 
   private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {
