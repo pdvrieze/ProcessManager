@@ -9,6 +9,7 @@ import javax.xml.bind.JAXB;
 
 import net.devrieze.util.PrefixMap;
 
+import nl.adaptivity.jbi.util.AttachmentMap;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
@@ -36,7 +37,7 @@ public class RestMessageHandler {
     MethodWrapper method = getMethodFor(operation, httpMessage, target);
     
     if (method !=null) {
-      method.unmarshalParams(httpMessage);
+      method.unmarshalParams(httpMessage, new AttachmentMap(message));
       method.exec();
       if (reply!=null) {
         method.marshalResult(reply);

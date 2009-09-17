@@ -1,13 +1,15 @@
 package nl.adaptivity.jbi.rest;
 
 import java.io.CharArrayReader;
-import java.io.OutputStreamWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Collection;
 import java.util.Map;
 
 import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.jbi.messaging.MessagingException;
 import javax.jbi.messaging.NormalizedMessage;
 import javax.xml.XMLConstants;
@@ -29,7 +31,10 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import net.devrieze.util.*;
+import net.devrieze.util.Annotations;
+import net.devrieze.util.JAXBCollectionWrapper;
+import net.devrieze.util.StringDataSource;
+import net.devrieze.util.Types;
 
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
@@ -54,7 +59,7 @@ public class MethodWrapper {
     aPathParams = pPathParams;
   }
 
-  public void unmarshalParams(HttpMessage pHttpMessage) {
+  public void unmarshalParams(HttpMessage pHttpMessage, Map<String, DataHandler> pAttachments) throws MessagingException {
     if (aParams!=null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
@@ -78,12 +83,12 @@ public class MethodWrapper {
         xpath = annotation.xpath();
       }
 
-      aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage);
+      aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage, pAttachments);
       
     }
   }
 
-  private Object getParam(Class<?> pClass, String pName, ParamType pType, String pXpath, HttpMessage pMessage) {
+  private Object getParam(Class<?> pClass, String pName, ParamType pType, String pXpath, HttpMessage pMessage, Map<String, DataHandler> pAttachments) throws MessagingException {
     Object result = null;
     switch (pType) {
       case GET:
@@ -104,12 +109,40 @@ public class MethodWrapper {
       case XPATH:
         result = getParamXPath(pClass, pXpath, pMessage.getBody());
         break;
+      case ATTACHMENT:
+        result = getAttachment(pClass, pName, pAttachments);
     }
     if (result != null && (! pClass.isInstance(result))) {
       result = JAXB.unmarshal(new CharArrayReader(result.toString().toCharArray()), pClass);
     }
     
     return result;
+  }
+
+  private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) throws MessagingException {
+    DataHandler handler = pAttachments.get(pName);
+    if (handler != null) {
+      if (DataHandler.class.isAssignableFrom(pClass)) {
+        return handler;
+      }
+      if (InputStream.class.isAssignableFrom(pClass)) {
+        try {
+          return handler.getInputStream();
+        } catch (IOException e) {
+          throw new MessagingException(e);
+        }
+      }
+      if (DataSource.class.isAssignableFrom(pClass)) {
+        return handler.getDataSource();
+      }
+      try {
+        return handler.getContent();
+      } catch (IOException e) {
+        throw new MessagingException(e);
+      }
+        
+    }
+    return null;
   }
 
   private Object getParamGet(String pName, HttpMessage pMessage) {
