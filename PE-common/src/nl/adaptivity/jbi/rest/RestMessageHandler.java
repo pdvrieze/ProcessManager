@@ -78,7 +78,7 @@ public class RestMessageHandler {
     PrefixMap<Method> w = v.get(pHttpMethod);
     if (w == null) { return Collections.emptyList(); }
     
-    return w.getValues(pPathInfo);
+    return w.getPrefixValues(pPathInfo);
   }
 
   private EnumMap<HttpMethod, PrefixMap<Method>> createCacheElem(Class<? extends Object> pClass) {
