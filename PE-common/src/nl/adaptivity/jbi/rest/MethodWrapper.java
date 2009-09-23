@@ -113,7 +113,11 @@ public class MethodWrapper {
         result = getAttachment(pClass, pName, pAttachments);
     }
     if (result != null && (! pClass.isInstance(result))) {
-      result = JAXB.unmarshal(new CharArrayReader(result.toString().toCharArray()), pClass);
+      if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass)) && result instanceof String) {
+        result = Types.parsePrimitive(pClass, ((String) result));
+      } else {
+        result = JAXB.unmarshal(new CharArrayReader(result.toString().toCharArray()), pClass);
+      }
     }
     
     return result;
@@ -207,7 +211,8 @@ public class MethodWrapper {
     } catch (IllegalAccessException e) {
       throw new MessagingException(e);
     } catch (InvocationTargetException e) {
-      throw new MessagingException(e);
+      Throwable cause = e.getCause();
+      throw new MessagingException(cause!=null ? cause : e);
     }
   }
 
@@ -292,7 +297,7 @@ public class MethodWrapper {
     Class<?> elementType = null;
     if (Collection.class.isAssignableFrom(rawType)) {
       Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pReturnType);
-      elementType = (Class<?>) paramTypes[0];
+      elementType = Types.toRawType(paramTypes[0]);
       if (elementType.isInterface()) {
         // interfaces not supported by jaxb
         elementType = Types.commonAncestor(pResult);
