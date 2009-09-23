@@ -422,6 +422,32 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   private void startProcess(ClickEvent pEvent) {
     aStatusLabel.setText("startProcess");
+    String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    String URL=PROCESSLISTURL+"/"+handle;
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, URL);
+    rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
+    String postData = "op=newInstance";
+
+    try {
+      rb.sendRequest(postData, new RequestCallback() {
+
+        @Override
+        public void onError(Request pRequest, Throwable pException) {
+          aStatusLabel.setText("Error ("+pException.getMessage()+")");
+        }
+
+        @Override
+        public void onResponseReceived(Request pRequest, Response pResponse) {
+          aStatusLabel.setText("Process instantiated");
+          // TODO perhaps do something with this, but the instances are not visible from the tab
+//          aInstanceListBox.update();
+        }
+        
+      });
+    } catch (RequestException e) {
+      aStatusLabel.setText("Error ("+e.getMessage()+")");
+    }
+    
   }
 
   /**
