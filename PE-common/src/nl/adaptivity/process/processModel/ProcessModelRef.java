@@ -4,8 +4,10 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
+import net.devrieze.util.HandleMap.Handle;
+
 @XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModelRef {
+public class ProcessModelRef implements Handle<ProcessModel>{
 
   private String aName;
   private long aHandle;
