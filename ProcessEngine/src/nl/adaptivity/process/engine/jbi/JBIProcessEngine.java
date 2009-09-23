@@ -4,6 +4,8 @@ import java.io.CharArrayWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.MissingResourceException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +20,7 @@ import javax.jbi.messaging.*;
 import javax.jbi.servicedesc.ServiceEndpoint;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -29,10 +32,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.xml.sax.SAXException;
 
+import net.devrieze.util.HandleMap;
+import net.devrieze.util.HandleMap.Handle;
+
 import nl.adaptivity.jbi.rest.RestMessageHandler;
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.ProcessModelRef;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.rest.annotations.RestMethod;
@@ -273,6 +282,17 @@ public class JBIProcessEngine implements Component, Runnable {
     }
     return list;
   }
+
+  @RestMethod(method=HttpMethod.GET, path="/processInstances")
+  @XmlElementWrapper(name="processInstances", namespace="http://adaptivity.nl/ProcessEngine/")
+  public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs() {
+    Iterable<ProcessInstance> processInstances = aProcessEngine.getInstances();
+    Collection<ProcessInstanceRef> list = new ArrayList<ProcessInstanceRef>();
+    for (ProcessInstance pi: processInstances) {
+      list.add(pi.getRef());
+    }
+    return list;
+  }
   
   @RestMethod(method=HttpMethod.POST, path="/processModels")
   public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment) throws IOException {
@@ -288,6 +308,11 @@ public class JBIProcessEngine implements Component, Runnable {
     }
 
     return getProcesModelRefs();
+  }
+  
+  @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", query={"op=newInstance"})
+  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle) {
+    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), null);
   }
 
   private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {

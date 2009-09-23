@@ -6,17 +6,56 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.*;
 
 
-public class ProcessInstance implements Serializable, HandleAware{
+public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>{
+
+  @XmlRootElement(name="processInstance", namespace="http://adaptivity.nl/ProcessEngine/")
+  @XmlAccessorType(XmlAccessType.NONE)
+  public static class ProcessInstanceRef implements Handle<ProcessInstance> {
+    
+    @XmlAttribute(name="handle")
+    private long aHandle;
+    @XmlAttribute(name="processModel")
+    private long aProcessModel;
+
+    public ProcessInstanceRef() {
+      // empty constructor;
+    }
+    
+    public ProcessInstanceRef(ProcessInstance pProcessInstance) {
+      setHandle(pProcessInstance.aHandle);
+      setProcessModel(pProcessInstance.aProcessModel.getHandle());
+    }
+
+    public void setHandle(long handle) {
+      aHandle = handle;
+    }
+
+    public long getHandle() {
+      return aHandle;
+    }
+
+    public void setProcessModel(long processModel) {
+      aProcessModel = processModel;
+    }
+
+    public long getProcessModel() {
+      return aProcessModel;
+    }
+
+  }
 
   private static final long serialVersionUID = 1145452195455018306L;
 
@@ -44,14 +83,6 @@ public class ProcessInstance implements Serializable, HandleAware{
       aThreads.add(instance);
     }
     aJoins = new HashMap<Join, JoinInstance>();
-  }
-
-  private void fireNode(Collection<ProcessNodeInstance> pThreads, ProcessNode node, ProcessNodeInstance pPredecessor) {
-    if (node.condition()) {
-      node.start();
-    } else {
-      node.skip();
-    }
   }
 
   public void finish() {
@@ -119,6 +150,10 @@ public class ProcessInstance implements Serializable, HandleAware{
 
   public IProcessEngine getEngine() {
     return aEngine;
+  }
+
+  public ProcessInstanceRef getRef() {
+    return new ProcessInstanceRef(this);
   }
 
 }

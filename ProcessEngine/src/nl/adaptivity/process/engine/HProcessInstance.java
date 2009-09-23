@@ -4,9 +4,11 @@ import java.io.Serializable;
 
 import javax.xml.bind.annotation.*;
 
+import net.devrieze.util.HandleMap.Handle;
+
 @XmlRootElement(name="instanceHandle")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class HProcessInstance implements Serializable {
+public final class HProcessInstance implements Handle<ProcessInstance>, Serializable {
 
   
   private static final long serialVersionUID = 8151525146116141232L;
