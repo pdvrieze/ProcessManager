@@ -6,6 +6,9 @@ import java.util.Collection;
 
 import javax.xml.bind.annotation.*;
 
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.Task;
+
 @XmlRootElement(name = "join")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
@@ -58,23 +61,6 @@ public class Join extends ProcessNode{
   }
 
   @Override
-  public void start() {
-//    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
-//    if (j.isFinished()) {
-//      return;
-//    }
-//    j.incComplete();
-//    if (j.getComplete()>=getMin() || j.getTotal()>=getMax()) {
-//      cancelPredecessors(pProcessInstance);
-//      j.setFinished();
-//      pProcessInstance.removeJoin(j);
-//      pProcessInstance.finishThread(j);
-//    } else {
-//      pThreads.add(j);
-//    }
-  }
-
-  @Override
   public void skip() {
 //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
 //    if (j.isFinished()) {
@@ -99,5 +85,39 @@ public class Join extends ProcessNode{
   public Collection<ProcessNode> getPredecessors() {
     return super.getPredecessors();
   }
+
+  @Override
+  public boolean provideTask(Object pInstance) {
+    // TODO Auto-generated method stub
+    // return false;
+    throw new UnsupportedOperationException("Not yet implemented");
+    
+  }
+
+  @Override
+  public boolean takeTask(Object pInstance) {
+    // TODO Auto-generated method stub
+    // return false;
+    throw new UnsupportedOperationException("Not yet implemented");
+    
+  }
+
+  @Override
+    public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
+  //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
+  //    if (j.isFinished()) {
+  //      return;
+  //    }
+  //    j.incComplete();
+  //    if (j.getComplete()>=getMin() || j.getTotal()>=getMax()) {
+  //      cancelPredecessors(pProcessInstance);
+  //      j.setFinished();
+  //      pProcessInstance.removeJoin(j);
+  //      pProcessInstance.finishThread(j);
+  //    } else {
+  //      pThreads.add(j);
+  //    }
+      throw new UnsupportedOperationException("Not yet implemented");
+    }
 
 }

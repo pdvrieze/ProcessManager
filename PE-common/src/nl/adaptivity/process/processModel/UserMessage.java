@@ -1,7 +1,10 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.Task;
 
 
+@Deprecated
 public class UserMessage extends Activity {
 
   private static final long serialVersionUID = -8184388617635747688L;
@@ -25,7 +28,7 @@ public class UserMessage extends Activity {
   }
 
   @Override
-  public void start() {
+  public boolean startTask(IMessageService pMessageService, Task pInstance) {
     // TODO reevaluate this method
     throw new UnsupportedOperationException("not yet implemented");
 //    final InternalMessage message = new InternalMessage(pProcessInstance, Payload.create(aMessage));

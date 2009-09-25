@@ -11,6 +11,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import net.devrieze.util.IdFactory;
 
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.Task;
+
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name="ProcesNode")
 @XmlSeeAlso({Join.class, Activity.class, EndNode.class, StartNode.class})
@@ -80,9 +83,6 @@ public abstract class ProcessNode implements Serializable {
   public abstract boolean condition();
 
   @Deprecated
-  public abstract void start();
-
-  @Deprecated
   public void skip() {
 //    for(ProcessNode successor: aSuccessors) {
 //      successor.skip(pThreads, pProcessInstance, pPredecessor);
@@ -103,5 +103,21 @@ public abstract class ProcessNode implements Serializable {
   public void setId(String id) {
     aId = id;
   }
+
+  /**
+   * Take action to make task available
+   * @param pInstance The processnode instance involved.
+   * @return <code>true</code> if the task can/must be automatically taken
+   */
+  public abstract boolean provideTask(Object pInstance);
+
+  /**
+   * Take action to accept the task (but not start it yet)
+   * @param pInstance The processnode instance involved.
+   * @return <code>true</code> if the task can/must be automatically started
+   */
+  public abstract boolean takeTask(Object pInstance);
+
+  public abstract <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance);
 
 }

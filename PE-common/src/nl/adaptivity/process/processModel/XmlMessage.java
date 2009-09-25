@@ -8,11 +8,15 @@
 
 package nl.adaptivity.process.processModel;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+
+import org.w3c.dom.Node;
 
 
 /**
@@ -34,7 +38,7 @@ import javax.xml.namespace.QName;
  * 
  * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Message")
 public class XmlMessage {
 
@@ -43,7 +47,8 @@ public class XmlMessage {
     @XmlAttribute
     protected String endpoint;
     @XmlAttribute
-    protected String operation;
+    protected QName operation;
+    private Node aBody;
 
     /**
      * Gets the value of the service property.
@@ -101,10 +106,21 @@ public class XmlMessage {
      *     {@link String }
      *     
      */
-    public String getOperation() {
+    public QName getOperation() {
         return operation;
     }
 
+    @XmlAnyElement(lax=false)
+    public Node getMessageBody() {
+      return aBody;
+    }
+    
+    public void setMessageBody(Object o) {
+      if (o instanceof Node) {
+        aBody = (Node) o;
+      }
+    }
+    
     /**
      * Sets the value of the operation property.
      * 
@@ -113,8 +129,12 @@ public class XmlMessage {
      *     {@link String }
      *     
      */
-    public void setOperation(String value) {
+    public void setOperation(QName value) {
         this.operation = value;
+    }
+
+    public Source getBodySource() {
+      return new DOMSource(aBody);
     }
 
 }

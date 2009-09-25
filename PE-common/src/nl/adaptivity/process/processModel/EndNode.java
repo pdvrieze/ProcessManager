@@ -7,6 +7,9 @@ import java.util.List;
 
 import javax.xml.bind.annotation.*;
 
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.Task;
+
 
 @XmlRootElement(name="end")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -29,11 +32,6 @@ public class EndNode extends ProcessNode{
     return true;
   }
 
-  @Override
-  public void start() {
-//    pProcessInstance.finish();
-  }
-  
   @XmlAttribute(name="predecessor", required=true)
   @XmlIDREF
   public ProcessNode getPredecessor() {
@@ -60,5 +58,21 @@ public class EndNode extends ProcessNode{
   public Collection<ProcessNode> getSuccessors() {
     return new ArrayList<ProcessNode>(0);
   }
+
+  @Override
+  public boolean provideTask(Object pInstance) {
+    return true;
+  }
+
+  @Override
+  public boolean takeTask(Object pInstance) {
+    return true;
+  }
+
+  @Override
+    public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
+  //    pProcessInstance.finish();
+      return true;
+    }
 
 }

@@ -7,6 +7,9 @@ import java.util.List;
 
 import javax.xml.bind.annotation.*;
 
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.Task;
+
 @XmlRootElement(name = "activity")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Activity", propOrder = { "imports", "exports", "message", "condition" })
@@ -33,14 +36,6 @@ public class Activity extends ProcessNode{
   public boolean condition() {
     // TODO Auto-generated method stub
     // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
-    
-  }
-
-  @Override
-  public void start() {
-    // TODO Auto-generated method stub
-    // 
     throw new UnsupportedOperationException("Not yet implemented");
     
   }
@@ -107,6 +102,27 @@ public class Activity extends ProcessNode{
   @XmlElement(required=true)
   public XmlMessage getMessage() {
     return aMessage;
+  }
+
+  @Override
+  public boolean provideTask(Object pInstance) {
+    return false;
+  }
+
+  @Override
+  public boolean takeTask(Object pInstance) {
+    return false;
+  }
+
+  @Override
+  public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
+    // TODO handle imports
+    T message = pMessageService.createMessage(aMessage);
+    if (! pMessageService.sendMessage(message)) {
+      pInstance.failTask();
+    }
+    
+    return false;
   }
   
   

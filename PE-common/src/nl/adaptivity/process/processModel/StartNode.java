@@ -8,6 +8,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.Task;
+
 
 @XmlRootElement(name="start")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -22,11 +25,6 @@ public class StartNode extends ProcessNode {
   private List<XmlImportType> aImports;
 
   @Override
-  public void start() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public boolean condition() {
     return true;
   }
@@ -37,5 +35,20 @@ public class StartNode extends ProcessNode {
       aImports = new ArrayList<XmlImportType>();
     }
     return this.aImports;
+  }
+
+  @Override
+  public boolean provideTask(Object pInstance) {
+    return true;
+  }
+
+  @Override
+  public boolean takeTask(Object pInstance) {
+    return true;
+  }
+
+  @Override
+  public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
+    throw new UnsupportedOperationException();
   }
 }
