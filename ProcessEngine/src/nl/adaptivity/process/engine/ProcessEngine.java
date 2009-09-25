@@ -3,6 +3,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 
+import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessModel;
 
@@ -17,11 +18,17 @@ public class ProcessEngine implements IProcessEngine {
 
   private ProcessMessageListener aMessageListener;
 
+  private final IMessageService<?> aMessageService;
+
+  public ProcessEngine(IMessageService<?> pMessageService) {
+    aMessageService = pMessageService;
+  }
+  
   @Override
   public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload) {
     ProcessInstance instance = new ProcessInstance(pModel, this, pPayload);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
-    instance.start();
+    instance.start(aMessageService);
     return result;
   }
 
@@ -39,7 +46,7 @@ public class ProcessEngine implements IProcessEngine {
 
     ProcessNodeInstance pos = processInstance.getProcesNodeInstanceFor(repliedMessage);
     
-    pos.finish(pMessage.getPayload(), processInstance);
+    pos.finishTask(pMessage.getPayload());
     aMessageMap.remove(pHOrigMessage.getHandle());
   }
 

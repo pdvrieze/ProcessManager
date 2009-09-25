@@ -13,6 +13,10 @@ public class Payload implements Serializable {
     aPayload = pPayload;
   }
 
+  public Payload(Object pPayload) {
+    aPayload = pPayload.toString();
+  }
+
   public static Payload create(String pPayload) {
     return new Payload(pPayload);
   }

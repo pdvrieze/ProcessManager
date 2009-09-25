@@ -1,10 +1,7 @@
 package nl.adaptivity.process.engine;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -14,6 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 
+import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
@@ -72,6 +70,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   private final IProcessEngine aEngine;
 
   private final Payload aPayload;
+  
+  private Payload aResult;
 
   public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine, Payload pPayload) {
     aProcessModel = pProcessModel;
@@ -133,27 +133,51 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return null;
   }
 
-  public void finishThread(ProcessNodeInstance pOldInstance) {
-    aThreads.remove(pOldInstance);
-    for (ProcessNode successor: pOldInstance.getNode().getSuccessors()) {
-      successor.start();
-    }
-  }
-
-  public void start() {
-    ArrayList<ProcessNodeInstance> copy = new ArrayList<ProcessNodeInstance>(aThreads.size());
-    copy.addAll(aThreads);
-    for (ProcessNodeInstance node : copy) {
-      node.finish(aPayload, this);
-    }
-  }
-
   public IProcessEngine getEngine() {
     return aEngine;
   }
 
   public ProcessInstanceRef getRef() {
     return new ProcessInstanceRef(this);
+  }
+
+  public void start(IMessageService pMessageService) {
+    for(ProcessNodeInstance node:aThreads) {
+      provideTask(pMessageService, node);
+    }
+  }
+
+  private void provideTask(IMessageService pMessageService, ProcessNodeInstance pNode) {
+    if (pNode.provideTask()) {
+      takeTask(pMessageService, pNode);
+    }
+  }
+
+  private void takeTask(IMessageService pMessageService, ProcessNodeInstance pNode) {
+    if (pNode.takeTask()) {
+      startTask(pMessageService, pNode);
+    }
+  }
+
+  private void startTask(IMessageService pMessageService, ProcessNodeInstance pNode) {
+    if (pNode.startTask(pMessageService)) {
+      finishTask(pMessageService, pNode, null);
+    }
+  }
+
+  private void finishTask(IMessageService pMessageService, ProcessNodeInstance pNode, Payload pPayload) {
+    pNode.finishTask(pPayload);
+    aThreads.remove(pNode);
+    List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
+    final List<ProcessNodeInstance> nodelist = Arrays.asList(pNode);
+    for (ProcessNode successorNode: pNode.getNode().getSuccessors()) {
+      ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, null, nodelist);
+      aThreads.add(instance);
+      startedTasks.add(instance);
+    }
+    for (ProcessNodeInstance task:startedTasks) {
+      provideTask(pMessageService, task);
+    }
   }
 
 }

@@ -21,7 +21,7 @@ public class RMIProcessEngine implements IRMIProcessEngine, Unreferenced, Proces
   private boolean aHasQuit;
 
   public RMIProcessEngine() {
-    aEngine = new ProcessEngine();
+    aEngine = new ProcessEngine(null);
     aEngine.setMessageListener(this);
   }
 

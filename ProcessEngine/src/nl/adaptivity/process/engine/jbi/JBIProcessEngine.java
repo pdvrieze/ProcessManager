@@ -33,16 +33,16 @@ import org.w3c.dom.DocumentFragment;
 import org.xml.sax.SAXException;
 
 import net.devrieze.util.HandleMap;
-import net.devrieze.util.HandleMap.Handle;
 
 import nl.adaptivity.jbi.rest.RestMessageHandler;
+import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessModelRef;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
+import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -50,8 +50,45 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
-public class JBIProcessEngine implements Component, Runnable {
+public class JBIProcessEngine implements Component, Runnable, IMessageService<JBIProcessEngine.JBIMessage> {
 
+  private static class JBIMessage {
+
+    private final QName aService;
+    private final String aEndpoint;
+    private final QName aOperation;
+
+    public JBIMessage(QName pService, String pEndpoint, QName pOperation, Object pBody) {
+      aService = pService;
+      aEndpoint = pEndpoint;
+      aOperation = pOperation;
+      
+      // TODO Do something to get a body
+    }
+
+    
+    public QName getService() {
+      return aService;
+    }
+
+    
+    public String getEndpoint() {
+      return aEndpoint;
+    }
+
+    
+    public QName getOperation() {
+      return aOperation;
+    }
+
+
+    public Source getContent() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+    
+  }
+  
   private static final String OP_POST_MESSAGE = "postMessage";
   private static final String OP_START_PROCESS = "startProcess";
   public static final QName SERVICE_QNAME = new QName("http://adaptivity.nl/ProcessEngine/","ProcessEngine");
@@ -357,11 +394,34 @@ public class JBIProcessEngine implements Component, Runnable {
   }
 
   public void startEngine() {
-    aProcessEngine = new ProcessEngine();
+    aProcessEngine = new ProcessEngine(this);
   }
 
   public ProcessEngine getProcessEngine() {
     return aProcessEngine;
+  }
+
+  @Override
+  public JBIMessage createMessage(XmlMessage pMessage) {
+    return new JBIMessage(pMessage.getService(), pMessage.getEndpoint(), pMessage.getOperation(), pMessage.getBodySource());
+  }
+
+  @Override
+  public boolean sendMessage(JBIMessage pMessage) {
+    try {
+      DeliveryChannel deliveryChannel = aContext.getDeliveryChannel();
+      ServiceEndpoint se = aContext.getEndpoint(pMessage.getService(), pMessage.getEndpoint());
+      MessageExchangeFactory exchangeFactory = deliveryChannel.createExchangeFactory(se);
+      RobustInOnly ex = exchangeFactory.createRobustInOnlyExchange();
+      ex.setOperation(pMessage.getOperation());
+      NormalizedMessage msg = ex.createMessage();
+      msg.setContent(pMessage.getContent());
+      ex.setInMessage(msg);
+      return deliveryChannel.sendSync(ex);
+      
+    } catch (MessagingException e) {
+      throw new RuntimeException(e);
+    }
   }
   
 }
