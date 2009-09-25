@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import nl.adaptivity.jbi.components.genericSE.EndpointProvider;
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
+import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.exec.Task.TaskState;
 
@@ -62,6 +63,39 @@ public class UserMessageService implements EndpointProvider {
 
     public void setSummary(String summary) {
       aSummary = summary;
+    }
+
+    @Override
+    public void failTask() {
+      // TODO Auto-generated method stub
+      // 
+      throw new UnsupportedOperationException("Not yet implemented");
+      
+    }
+
+    @Override
+    public void finishTask(Object pPayload) {
+      setState(TaskState.Complete);
+    }
+
+    @Override
+    public boolean provideTask() {
+      setState(TaskState.Available);
+      return false;
+    }
+
+    @Override
+    public <T> boolean startTask(IMessageService<T> pMessageService) {
+      setState(TaskState.Started);
+      return false;
+    }
+
+    @Override
+    public boolean takeTask() {
+      // TODO Auto-generated method stub
+      // return false;
+      throw new UnsupportedOperationException("Not yet implemented");
+      
     }
 
   }
