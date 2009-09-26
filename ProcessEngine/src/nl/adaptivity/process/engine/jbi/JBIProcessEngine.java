@@ -57,38 +57,37 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     private final QName aService;
     private final String aEndpoint;
     private final QName aOperation;
+    private final Source aBody;
 
-    public JBIMessage(QName pService, String pEndpoint, QName pOperation, Object pBody) {
+    public JBIMessage(QName pService, String pEndpoint, QName pOperation, Source pBody) {
       aService = pService;
       aEndpoint = pEndpoint;
       aOperation = pOperation;
-      
-      // TODO Do something to get a body
+      aBody = pBody;
     }
 
-    
+
     public QName getService() {
       return aService;
     }
 
-    
+
     public String getEndpoint() {
       return aEndpoint;
     }
 
-    
+
     public QName getOperation() {
       return aOperation;
     }
 
 
     public Source getContent() {
-      // TODO Auto-generated method stub
-      return null;
+      return aBody;
     }
-    
+
   }
-  
+
   private static final String OP_POST_MESSAGE = "postMessage";
   private static final String OP_START_PROCESS = "startProcess";
   public static final QName SERVICE_QNAME = new QName("http://adaptivity.nl/ProcessEngine/","ProcessEngine");
@@ -132,9 +131,9 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       return;
     }
 
-    
+
     StackTraceElement[] stackTrace = pE.getStackTrace();
-    
+
     String className = null;
     String methodName = null;
     if (stackTrace.length>=1) {
@@ -142,7 +141,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       methodName=stackTrace[0].getMethodName();
     }
     logger.throwing(className, methodName, pE);
-    
+
     CharArrayWriter writer = new CharArrayWriter();
     pE.printStackTrace(new PrintWriter(writer));
     logger.warning(writer.toString());
@@ -155,10 +154,10 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       System.err.print(pMessage);
       return;
     }
-    
+
     logger.log(Level.WARNING, pMessage);
   }
-  
+
   private void logEntry() {
     Logger logger = getLogger();
     if (logger==null) {
@@ -199,13 +198,13 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     logEntry();
     if (pEndpoint.getEndpointName()=="endpoint" && pEndpoint.getServiceName().equals(SERVICE_QNAME)) {
       final String operationName = pExchange.getOperation().getLocalPart();
-      return OP_START_PROCESS.equals(operationName) || 
+      return OP_START_PROCESS.equals(operationName) ||
              OP_POST_MESSAGE.equals(operationName) ||
              "GET".equals(operationName) ||
              "POST".equals(operationName) ||
              "PUT".equals(operationName) ||
              "DELETE".equals(operationName);
-      
+
     } else {
       return false;
     }
@@ -227,7 +226,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   public void setContext(ComponentContext pContext) {
     aContext = pContext;
   }
-  
+
   ComponentContext getContext() {
     return aContext;
   }
@@ -237,11 +236,11 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     aThread.start();
     aEndPoint = aContext.activateEndpoint(SERVICE_QNAME, "endpoint");
   }
-  
+
   void activateEndPoint() {
     logEntry();
   }
-  
+
   public void run() {
     Logger logger = getLogger();
 
@@ -252,7 +251,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       logger.throwing(JBIProcessEngine.class.getCanonicalName(), "run", e);
       return;
     }
-    
+
     while (aKeepRunning) {
 
       try {
@@ -330,7 +329,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     }
     return list;
   }
-  
+
   @RestMethod(method=HttpMethod.POST, path="/processModels")
   public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment) throws IOException {
 
@@ -346,7 +345,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
     return getProcesModelRefs();
   }
-  
+
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", query={"op=newInstance"})
   public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle) {
     return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), null);
@@ -354,12 +353,12 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
   private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {
     logEntry();
-    
+
     try {
       NormalizedMessage msg = pEx.getInMessage();
       Source content = msg.getContent();
       ProcessModel processModel = JAXB.unmarshal(content, XmlProcessModel.class).toProcessModel();
-      
+
       HProcessInstance result = aProcessEngine.startProcess(processModel, null);
       NormalizedMessage reply = pEx.createMessage();
       reply.setContent(new JAXBSource(JAXBContext.newInstance(HProcessInstance.class), result));
@@ -417,11 +416,11 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       NormalizedMessage msg = ex.createMessage();
       msg.setContent(pMessage.getContent());
       ex.setInMessage(msg);
-      return deliveryChannel.sendSync(ex);
-      
+      deliveryChannel.send(ex);
+      return true;
     } catch (MessagingException e) {
       throw new RuntimeException(e);
     }
   }
-  
+
 }

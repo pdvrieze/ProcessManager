@@ -14,7 +14,10 @@ import net.devrieze.util.HandleMap.HandleAware;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>{
@@ -22,7 +25,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   @XmlRootElement(name="processInstance", namespace="http://adaptivity.nl/ProcessEngine/")
   @XmlAccessorType(XmlAccessType.NONE)
   public static class ProcessInstanceRef implements Handle<ProcessInstance> {
-    
+
     @XmlAttribute(name="handle")
     private long aHandle;
     @XmlAttribute(name="processModel")
@@ -31,7 +34,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     public ProcessInstanceRef() {
       // empty constructor;
     }
-    
+
     public ProcessInstanceRef(ProcessInstance pProcessInstance) {
       setHandle(pProcessInstance.aHandle);
       setProcessModel(pProcessInstance.aProcessModel.getHandle());
@@ -70,7 +73,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   private final IProcessEngine aEngine;
 
   private final Payload aPayload;
-  
+
   private Payload aResult;
 
   public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine, Payload pPayload) {
@@ -120,7 +123,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   @Override
   public void setHandle(long pHandle) {
-    
+
     aHandle = pHandle;
   }
 
@@ -147,25 +150,25 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private void provideTask(IMessageService pMessageService, ProcessNodeInstance pNode) {
-    if (pNode.provideTask()) {
+  private void provideTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode) {
+    if (pNode.provideTask(pMessageService)) {
       takeTask(pMessageService, pNode);
     }
   }
 
-  private void takeTask(IMessageService pMessageService, ProcessNodeInstance pNode) {
-    if (pNode.takeTask()) {
+  private void takeTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode) {
+    if (pNode.takeTask(pMessageService)) {
       startTask(pMessageService, pNode);
     }
   }
 
-  private void startTask(IMessageService pMessageService, ProcessNodeInstance pNode) {
+  private void startTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.startTask(pMessageService)) {
       finishTask(pMessageService, pNode, null);
     }
   }
 
-  private void finishTask(IMessageService pMessageService, ProcessNodeInstance pNode, Payload pPayload) {
+  private void finishTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode, Payload pPayload) {
     pNode.finishTask(pPayload);
     aThreads.remove(pNode);
     List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());

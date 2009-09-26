@@ -11,13 +11,13 @@ import nl.adaptivity.process.processModel.StartNode;
 
 
 public class ProcessNodeInstance implements Task{
-  
+
   private final ProcessNode aNode;
   private final InternalMessage aMessage;
   private Payload aPayload;
   private final Collection<ProcessNodeInstance> aPredecessors;
-  
-  private TaskState aState=TaskState.Unassigned;
+
+  private TaskState aState=null;
 
   public ProcessNodeInstance(ProcessNode pNode, InternalMessage pMessage, Collection<ProcessNodeInstance> pPredecessor) {
     super();
@@ -52,8 +52,8 @@ public class ProcessNodeInstance implements Task{
 
   @Override
   public void setState(TaskState pNewState) {
-    if (aState.compareTo(pNewState)<0) {
-      throw new IllegalArgumentException("State can only be increased");
+    if (aState != null && aState.compareTo(pNewState)>0) {
+      throw new IllegalArgumentException("State can only be increased (was:"+aState+" new:"+pNewState);
     }
     aState = pNewState;
   }
@@ -61,9 +61,9 @@ public class ProcessNodeInstance implements Task{
   @Override
   public void setHandle(long pHandle) {
     // TODO Auto-generated method stub
-    // 
+    //
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
 
   @Override
@@ -71,20 +71,20 @@ public class ProcessNodeInstance implements Task{
     // TODO Auto-generated method stub
     // return 0;
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
 
-  public boolean provideTask() {
+  public <T> boolean provideTask(IMessageService<T> pMessageService) {
     setState(TaskState.Available);
-    return aNode.provideTask(this);
+    return aNode.provideTask(pMessageService, this);
   }
 
-  public boolean takeTask() {
+  public <T> boolean takeTask(IMessageService<T> pMessageService) {
     setState(TaskState.Taken);
-    return aNode.takeTask(this);
+    return aNode.takeTask(pMessageService, this);
   }
 
-  public boolean startTask(IMessageService pMessageService) {
+  public <T> boolean startTask(IMessageService<T> pMessageService) {
     setState(TaskState.Started);
     return aNode.startTask(pMessageService, this);
   }
@@ -96,9 +96,14 @@ public class ProcessNodeInstance implements Task{
   @Override
   public void failTask() {
     // TODO Auto-generated method stub
-    // 
+    //
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
-  
+
+  @Override
+  public String toString() {
+    return aNode.getClass().getSimpleName()+" ("+aState+")";
+  }
+
 }
