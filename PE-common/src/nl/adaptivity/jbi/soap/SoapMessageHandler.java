@@ -54,8 +54,8 @@ public class SoapMessageHandler {
     for(Method candidate:candidates) {
       WebMethod annotation = candidate.getAnnotation(WebMethod.class);
 
-      if (annotation !=null &&
-          annotation.operationName()==pOperation.getLocalPart()) {
+      if (annotation !=null && ((annotation.operationName().length()==0 && candidate.getName().equals(pOperation.getLocalPart())) ||
+          annotation.operationName()==pOperation.getLocalPart())) {
         SoapMethodWrapper result = new SoapMethodWrapper(target, candidate);
         return result;
       }
@@ -86,10 +86,21 @@ public class SoapMessageHandler {
       WebMethod annotation = m.getAnnotation(WebMethod.class);
       if (annotation != null) {
         String operation = annotation.operationName();
+        if (operation.length()==0) {
+          operation = m.getName();
+        }
         result.put(operation, m);
       }
     }
     return result;
+  }
+
+  public static boolean canHandle(Class<?> pClass) {
+    for (Method m: pClass.getMethods()) {
+      WebMethod an = m.getAnnotation(WebMethod.class);
+      if (an!=null) { return true; }
+    }
+    return false;
   }
 
 

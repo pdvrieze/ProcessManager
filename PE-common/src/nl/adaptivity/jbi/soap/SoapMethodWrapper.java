@@ -5,9 +5,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.net.URI;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
@@ -24,30 +22,25 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.StringDataSource;
 import net.devrieze.util.Types;
 
-import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.util.HttpMessage.Body;
-
 
 public class SoapMethodWrapper {
 
-  private static final String SOAP_ENCODING = "http://www.w3.org/2003/05/soap-encoding";
+  public static final URI SOAP_ENCODING = URI.create("http://www.w3.org/2003/05/soap-encoding");
   private final Object aOwner;
   private final Method aMethod;
   private Object[] aParams;
@@ -148,18 +141,33 @@ public class SoapMethodWrapper {
   }
 
   private Object getParam(Class<?> pClass, Node pValue) throws MessagingException {
-    final Object result;
+    Object result;
     if (pValue != null && (! pClass.isInstance(pValue))) {
       if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass))) {
         result = Types.parsePrimitive(pClass, pValue.getTextContent());
       } else {
         try {
-          JAXBContext context = JAXBContext.newInstance(pClass);
+          JAXBContext context;
+
+          if (pClass.isInterface()) {
+            context = newJAXBContext(Collections.<Class<?>>emptyList());
+          } else {
+            context = newJAXBContext(Collections.<Class<?>>singletonList(pClass));
+          }
           Unmarshaller um = context.createUnmarshaller();
-          final JAXBElement<?> umresult = um.unmarshal(pValue, pClass);
-          result = umresult.getValue();
+          if (pClass.isInterface()) {
+            result = um.unmarshal(pValue);
+            if (result instanceof JAXBElement) {
+              result = ((JAXBElement<?>)result).getValue();
+            }
+          } else {
+            final JAXBElement<?> umresult;
+            umresult = um.unmarshal(pValue, pClass);
+            result = umresult.getValue();
+          }
+
         } catch (JAXBException e) {
-          return null;
+          throw new MessagingException(e);
         }
       }
     } else {
@@ -195,57 +203,6 @@ public class SoapMethodWrapper {
     return null;
   }
 
-  private Object getParamGet(String pName, HttpMessage pMessage) {
-    return pMessage.getQuery(pName);
-  }
-
-  private Object getParamPost(String pName, HttpMessage pMessage) {
-    return pMessage.getPost(pName);
-  }
-
-  private <T> T getParamXPath(Class<T> pClass, String pXpath, Body pBody) {
-    boolean jaxb;
-    if (CharSequence.class.isAssignableFrom(pClass)) {
-      jaxb = false;
-    } else {
-      jaxb = true;
-    }
-    Node match;
-    for (Node n: pBody.getElements()) {
-      match = xpathMatch(n, pXpath);
-      if (match !=null) {
-        if (jaxb) {
-          return JAXB.unmarshal(new DOMSource(match), pClass);
-        } else {
-          return pClass.cast(nodeToString(match));
-        }
-      }
-    }
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
-
-  }
-
-  private String nodeToString(Node pNode) {
-    return pNode.getTextContent();
-  }
-
-  private Node xpathMatch(Node pN, String pXpath) {
-    XPathFactory factory = XPathFactory.newInstance();
-    XPath xpath = factory.newXPath();
-    NodeList result;
-    try {
-      result = (NodeList) xpath.evaluate(pXpath, new DOMSource(pN), XPathConstants.NODESET);
-    } catch (XPathExpressionException e) {
-      return null;
-    }
-    if (result==null || result.getLength()==0) {
-      return null;
-    }
-    return result.item(0);
-  }
-
   public void exec() throws MessagingException {
     if (aParams==null) {
       throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
@@ -263,8 +220,17 @@ public class SoapMethodWrapper {
   }
 
   public void marshalResult(NormalizedMessage pReply) throws MessagingException {
+    Envelope envelope = new Envelope();
+    org.w3.soapEnvelope.Body body = new org.w3.soapEnvelope.Body();
+    envelope.setBody(body);
+    List<Class<?>> contextList = new ArrayList<Class<?>>();
+    contextList.add(Envelope.class);
+
+    boolean contentSet = false;
     XmlRootElement xmlRootElement = aResult==null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
     if (xmlRootElement!=null) {
+      body.getAny().add(aResult);
+      contextList.add(aResult.getClass());
       try {
         JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
         pReply.setContent(new JAXBSource(jaxbContext, aResult));
@@ -273,103 +239,103 @@ public class SoapMethodWrapper {
       }
     } else if (aResult instanceof Source) {
       pReply.setContent((Source) aResult);
+      contentSet = true;
     } else if (aResult instanceof Node){
-      pReply.setContent(new DOMSource((Node) aResult));
+      body.getAny().add(aResult);
     } else if (aResult instanceof Collection) {
       XmlElementWrapper annotation = aMethod.getAnnotation(XmlElementWrapper.class);
       if (annotation!=null) {
-        pReply.setContent(collectionToSource(aMethod.getGenericReturnType(),(Collection<?>) aResult, getQName(annotation)));
-//
-//
-//        Collection<?> value = (Collection<?>) aResult;
-//        Collection<JAXBElement<String>> value2 = new ArrayDeque<JAXBElement<String>>();
-//        value2.add(new JAXBElement<String>(new QName("test"), String.class, "value1"));
-//        value2.add(new JAXBElement<String>(new QName("test"), String.class, "value2"));
-//        @SuppressWarnings("unchecked") Class<Collection<?>> declaredType = ((Class) aResult.getClass());
-//        QName name = getQName(annotation);
-//
-//
-//        JAXBElement<?> element = new JAXBElement<Collection<?>>(name, declaredType, value2);
-//
-//        element = (new JAXBCollectionWrapper((Collection<?>) aResult)).getJAXBElement(name);
-//
-//        try {
-//          JAXBContext jaxbContext = newJAXBContext(JAXBCollectionWrapper.class, aResult.getClass());
-////          jaxbContext.createMarshaller().marshal(element, System.err);
-//          pReply.setContent(new JAXBSource(jaxbContext, element));
-//        } catch (JAXBException e) {
-//          throw new MessagingException(e);
-//        }
-
+        JAXBCollectionWrapper collectionWrapper = wrapCollection(aMethod.getGenericReturnType(), (Collection<?>) aResult);
+        JAXBElement<JAXBCollectionWrapper> jaxbElement = collectionWrapper.getJAXBElement(getQName(annotation));
+        contextList.add(JAXBCollectionWrapper.class);
+        final Class<?> elementType = collectionWrapper.getElementType();
+        if (elementType!=null && elementType!=Object.class) {
+          contextList.add(elementType);
+        }
+        body.getAny().add(jaxbElement);
       }
     } else if (aResult instanceof CharSequence) {
+      DocumentBuilder db;
+      try {
+        db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      } catch (ParserConfigurationException e) {
+        e.printStackTrace();
+        throw new MessagingException(e);
+      }
+      Document doc = db.newDocument();
+
+      body.getAny().add(doc.createTextNode(aResult.toString()));
       pReply.addAttachment("text", new DataHandler(new StringDataSource("text", "text/plain", aResult.toString())));
-    } else {
-      if (aResult !=null) {
-        try {
-          JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
-          pReply.setContent(new JAXBSource(jaxbContext, aResult));
-        } catch (JAXBException e) {
-          throw new MessagingException(e);
+    }
+    if (! contentSet) {
+      try {
+        JAXBContext context = newJAXBContext(contextList);
+        Marshaller m = context.createMarshaller();
+        JAXBSource source = new JAXBSource(m, envelope);
+        pReply.setContent(source);
+      } catch (JAXBException e) {
+        throw new MessagingException(e);
+      }
+    }
+
+  }
+
+  private JAXBCollectionWrapper wrapCollection(Type pType, Collection<?> pCollection) {
+    final JAXBCollectionWrapper collectionWrapper;
+    {
+      final Class<?> rawType;
+      if (pType instanceof ParameterizedType) {
+        ParameterizedType returnType = (ParameterizedType) pType;
+        rawType = (Class<?>) returnType.getRawType();
+      } else if (pType instanceof Class<?>) {
+        rawType = (Class<?>) pType;
+      } else if (pType instanceof WildcardType) {
+        final Type[] UpperBounds = ((WildcardType) pType).getUpperBounds();
+        if (UpperBounds.length>0) {
+          rawType = (Class<?>) UpperBounds[0];
+        } else {
+          rawType = Object.class;
         }
+      } else if (pType instanceof TypeVariable) {
+        final Type[] UpperBounds = ((TypeVariable<?>) pType).getBounds();
+        if (UpperBounds.length>0) {
+          rawType = (Class<?>) UpperBounds[0];
+        } else {
+          rawType = Object.class;
+        }
+      } else {
+        throw new IllegalArgumentException("Unsupported type variable");
       }
+      Class<?> elementType = null;
+      if (Collection.class.isAssignableFrom(rawType)) {
+        Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pType);
+        elementType = Types.toRawType(paramTypes[0]);
+        if (elementType.isInterface()) {
+          // interfaces not supported by jaxb
+          elementType = Types.commonAncestor(pCollection);
+        }
+      } else {
+        elementType = Types.commonAncestor(pCollection);
+      }
+      collectionWrapper = new JAXBCollectionWrapper(pCollection, elementType);
     }
+    return collectionWrapper;
   }
 
-  private Source collectionToSource(Type pReturnType, Collection<?> pResult, QName pName) throws MessagingException {
-    final Class<?> rawType;
-    if (pReturnType instanceof ParameterizedType) {
-      ParameterizedType returnType = (ParameterizedType) pReturnType;
-      rawType = (Class<?>) returnType.getRawType();
-    } else if (pReturnType instanceof Class<?>) {
-      rawType = (Class<?>) pReturnType;
-    } else if (pReturnType instanceof WildcardType) {
-      final Type[] UpperBounds = ((WildcardType) pReturnType).getUpperBounds();
-      if (UpperBounds.length>0) {
-        rawType = (Class<?>) UpperBounds[0];
-      } else {
-        rawType = Object.class;
-      }
-    } else if (pReturnType instanceof TypeVariable) {
-      final Type[] UpperBounds = ((TypeVariable<?>) pReturnType).getBounds();
-      if (UpperBounds.length>0) {
-        rawType = (Class<?>) UpperBounds[0];
-      } else {
-        rawType = Object.class;
-      }
-    } else {
-      throw new IllegalArgumentException("Unsupported type variable");
-    }
-    Class<?> elementType = null;
-    if (Collection.class.isAssignableFrom(rawType)) {
-      Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pReturnType);
-      elementType = Types.toRawType(paramTypes[0]);
-      if (elementType.isInterface()) {
-        // interfaces not supported by jaxb
-        elementType = Types.commonAncestor(pResult);
-      }
-    } else {
-      elementType = Types.commonAncestor(pResult);
-    }
-    try {
-      JAXBContext context = newJAXBContext(JAXBCollectionWrapper.class, elementType);
-      return new JAXBSource(context, new JAXBCollectionWrapper(pResult).getJAXBElement(pName));
-    } catch (JAXBException e) {
-      throw new MessagingException(e);
-    }
-  }
-
-  private JAXBContext newJAXBContext(Class<?>...pClasses) throws JAXBException {
+  private JAXBContext newJAXBContext(List<Class<?>> pClasses) throws JAXBException {
     Class<?>[] classList;
     Class<?> clazz = aMethod.getDeclaringClass();
     XmlSeeAlso seeAlso = clazz.getAnnotation(XmlSeeAlso.class);
     if (seeAlso!=null && seeAlso.value().length>0) {
       final Class<?>[] seeAlsoClasses = seeAlso.value();
-      classList = new Class<?>[seeAlsoClasses.length+pClasses.length];
-      System.arraycopy(seeAlsoClasses, 0, classList, 0, seeAlsoClasses.length);
-      System.arraycopy(pClasses, 0, classList, seeAlsoClasses.length, pClasses.length);
+      final int seeAlsoLength = seeAlsoClasses.length;
+      classList = new Class<?>[seeAlsoLength+pClasses.size()];
+      System.arraycopy(seeAlsoClasses, 0, classList, 0, seeAlsoLength);
+      for(int i=0; i<pClasses.size();++i) {
+        classList[seeAlsoLength+i] = pClasses.get(i);
+      }
     } else {
-      classList = pClasses;
+      classList = pClasses.toArray(new Class[pClasses.size()]);
     }
     return JAXBContext.newInstance(classList);
   }

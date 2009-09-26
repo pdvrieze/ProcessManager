@@ -41,11 +41,11 @@ public class EndNode extends ProcessNode{
     }
     return ps.iterator().next();
   }
-  
+
   public void setPredecessor(ProcessNode predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
-  
+
   @XmlElement(name="export")
   public List<XmlExportType> getExports() {
     if (aExports == null) {
@@ -53,19 +53,19 @@ public class EndNode extends ProcessNode{
     }
     return aExports;
   }
-  
+
   @Override
   public Collection<ProcessNode> getSuccessors() {
     return new ArrayList<ProcessNode>(0);
   }
 
   @Override
-  public boolean provideTask(Object pInstance) {
+  public <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance) {
     return true;
   }
 
   @Override
-  public boolean takeTask(Object pInstance) {
+  public <T> boolean takeTask(IMessageService<T> pMessageService, Task pInstance) {
     return true;
   }
 

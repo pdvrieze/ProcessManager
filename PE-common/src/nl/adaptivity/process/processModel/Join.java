@@ -69,7 +69,7 @@ public class Join extends ProcessNode{
 //    j.incSkipped();
 //    throw new UnsupportedOperationException("Not yet correct");
   }
-  
+
   @XmlElement(name="predecessor")
   @XmlIDREF
   public Collection<Object> getPred() {
@@ -78,7 +78,7 @@ public class Join extends ProcessNode{
     }
     return aPred;
   }
-  
+
 //  @XmlElement(name="predecessor")
 //  @XmlIDREF
   @Override
@@ -87,19 +87,19 @@ public class Join extends ProcessNode{
   }
 
   @Override
-  public boolean provideTask(Object pInstance) {
+  public <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
 
   @Override
-  public boolean takeTask(Object pInstance) {
+  public <T> boolean takeTask(IMessageService<T> pMessageService, Task pInstance) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
 
   @Override

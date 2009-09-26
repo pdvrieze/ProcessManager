@@ -67,7 +67,7 @@ public class MethodWrapper {
     Annotation[][] parameterAnnotations = aMethod.getParameterAnnotations();
     int argCnt = 0;
     aParams = new Object[parameterTypes.length];
-    
+
     for(int i =0; i<parameterTypes.length; ++i) {
       RestParam annotation = Annotations.getAnnotation(parameterAnnotations[i], RestParam.class);
       String name;
@@ -84,7 +84,7 @@ public class MethodWrapper {
       }
 
       aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage, pAttachments);
-      
+
     }
   }
 
@@ -119,7 +119,7 @@ public class MethodWrapper {
         result = JAXB.unmarshal(new CharArrayReader(result.toString().toCharArray()), pClass);
       }
     }
-    
+
     return result;
   }
 
@@ -144,7 +144,7 @@ public class MethodWrapper {
       } catch (IOException e) {
         throw new MessagingException(e);
       }
-        
+
     }
     return null;
   }
@@ -178,7 +178,7 @@ public class MethodWrapper {
     // TODO Auto-generated method stub
     // return null;
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
 
   private String nodeToString(Node pNode) {
@@ -233,20 +233,20 @@ public class MethodWrapper {
       XmlElementWrapper annotation = aMethod.getAnnotation(XmlElementWrapper.class);
       if (annotation!=null) {
         pReply.setContent(collectionToSource(aMethod.getGenericReturnType(),(Collection<?>) aResult, getQName(annotation)));
-//       
-//        
+//
+//
 //        Collection<?> value = (Collection<?>) aResult;
 //        Collection<JAXBElement<String>> value2 = new ArrayDeque<JAXBElement<String>>();
 //        value2.add(new JAXBElement<String>(new QName("test"), String.class, "value1"));
 //        value2.add(new JAXBElement<String>(new QName("test"), String.class, "value2"));
 //        @SuppressWarnings("unchecked") Class<Collection<?>> declaredType = ((Class) aResult.getClass());
 //        QName name = getQName(annotation);
-//        
-//        
+//
+//
 //        JAXBElement<?> element = new JAXBElement<Collection<?>>(name, declaredType, value2);
-//        
+//
 //        element = (new JAXBCollectionWrapper((Collection<?>) aResult)).getJAXBElement(name);
-//        
+//
 //        try {
 //          JAXBContext jaxbContext = newJAXBContext(JAXBCollectionWrapper.class, aResult.getClass());
 ////          jaxbContext.createMarshaller().marshal(element, System.err);
@@ -254,7 +254,7 @@ public class MethodWrapper {
 //        } catch (JAXBException e) {
 //          throw new MessagingException(e);
 //        }
-        
+
       }
     } else if (aResult instanceof CharSequence) {
       pReply.addAttachment("text", new DataHandler(new StringDataSource("text", "text/plain", aResult.toString())));
@@ -307,7 +307,7 @@ public class MethodWrapper {
     }
     try {
       JAXBContext context = newJAXBContext(JAXBCollectionWrapper.class, elementType);
-      return new JAXBSource(context, new JAXBCollectionWrapper(pResult).getJAXBElement(pName));
+      return new JAXBSource(context, new JAXBCollectionWrapper(pResult, elementType).getJAXBElement(pName));
     } catch (JAXBException e) {
       throw new MessagingException(e);
     }

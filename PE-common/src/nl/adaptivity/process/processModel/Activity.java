@@ -19,10 +19,10 @@ public class Activity extends ProcessNode{
   private String aCondition;
   private List<XmlImportType> aImports;
   private List<XmlExportType> aExports;
-  
+
   private XmlMessage aMessage;
 
-  
+
   public Activity(ProcessNode pPredecessor) {
     super(pPredecessor);
   }
@@ -37,7 +37,7 @@ public class Activity extends ProcessNode{
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
-    
+
   }
 
   @XmlAttribute
@@ -63,24 +63,24 @@ public class Activity extends ProcessNode{
     aExports.addAll(pExports);
   }
 
-  
+
   @XmlElement
   public String getCondition() {
     return aCondition;
   }
 
-  
+
   @XmlElement(name="import")
   public List<XmlImportType> getImports() {
     return aImports;
   }
 
-  
+
   @XmlElement(name="export")
   public List<XmlExportType> getExports() {
     return aExports;
   }
-  
+
   @XmlAttribute(name="predecessor", required=true)
   @XmlIDREF
   public ProcessNode getPredecessor() {
@@ -90,7 +90,7 @@ public class Activity extends ProcessNode{
     }
     return ps.iterator().next();
   }
-  
+
   public void setPredecessor(ProcessNode predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
@@ -105,26 +105,26 @@ public class Activity extends ProcessNode{
   }
 
   @Override
-  public boolean provideTask(Object pInstance) {
-    return false;
-  }
-
-  @Override
-  public boolean takeTask(Object pInstance) {
-    return false;
-  }
-
-  @Override
-  public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
+  public <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance) {
     // TODO handle imports
     T message = pMessageService.createMessage(aMessage);
     if (! pMessageService.sendMessage(message)) {
       pInstance.failTask();
     }
-    
+
     return false;
   }
-  
-  
+
+  @Override
+  public <T> boolean takeTask(IMessageService<T> pMessageService, Task pInstance) {
+    return false;
+  }
+
+  @Override
+  public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
+    return false;
+  }
+
+
 
 }

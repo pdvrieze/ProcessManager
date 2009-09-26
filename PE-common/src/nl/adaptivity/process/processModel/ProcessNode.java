@@ -20,17 +20,17 @@ import nl.adaptivity.process.exec.Task;
 public abstract class ProcessNode implements Serializable {
 
   private static final long serialVersionUID = -7745019972129682199L;
-  
+
   private Collection<ProcessNode> aPredecessors;
 
   private Collection<ProcessNode> aSuccessors = null;
 
   private String aId;
-  
+
   protected ProcessNode() {
-    
+
   }
-  
+
   protected ProcessNode(ProcessNode pPrevious) {
     if (pPrevious == null) {
       if (! (this instanceof StartNode || this instanceof Join)) {
@@ -41,7 +41,7 @@ public abstract class ProcessNode implements Serializable {
       setPredecessors(Arrays.asList(pPrevious));
     }
   }
-  
+
   public ProcessNode(Collection<ProcessNode> pPredecessors) {
     if (pPredecessors.size()<1 && (! (this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
@@ -88,7 +88,7 @@ public abstract class ProcessNode implements Serializable {
 //      successor.skip(pThreads, pProcessInstance, pPredecessor);
 //    }
   }
-  
+
   @XmlAttribute
   @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   @XmlID
@@ -106,17 +106,19 @@ public abstract class ProcessNode implements Serializable {
 
   /**
    * Take action to make task available
+   * @param pMessageService TODO
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract boolean provideTask(Object pInstance);
+  public abstract <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance);
 
   /**
    * Take action to accept the task (but not start it yet)
+   * @param pMessageService TODO
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */
-  public abstract boolean takeTask(Object pInstance);
+  public abstract <T> boolean takeTask(IMessageService<T> pMessageService, Task pInstance);
 
   public abstract <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance);
 

@@ -21,7 +21,7 @@ public class StartNode extends ProcessNode {
   }
 
   private static final long serialVersionUID = 7779338146413772452L;
-  
+
   private List<XmlImportType> aImports;
 
   @Override
@@ -38,17 +38,17 @@ public class StartNode extends ProcessNode {
   }
 
   @Override
-  public boolean provideTask(Object pInstance) {
+  public <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance) {
     return true;
   }
 
   @Override
-  public boolean takeTask(Object pInstance) {
+  public <T> boolean takeTask(IMessageService<T> pMessageService, Task pInstance) {
     return true;
   }
 
   @Override
   public <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance) {
-    throw new UnsupportedOperationException();
+    return true;
   }
 }

@@ -37,11 +37,12 @@ import javax.xml.namespace.QName;
  *
  *
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Envelope", propOrder = {
     "header",
     "body"
 })
+@XmlRootElement(name="Envelope", namespace="http://www.w3.org/2003/05/soap-envelope")
 public class Envelope {
 
     @XmlElement(name = "Header")
@@ -50,6 +51,7 @@ public class Envelope {
     protected Body body;
     @XmlAnyAttribute
     private Map<QName, String> otherAttributes = new HashMap<QName, String>();
+
     private URI encodingStyle;
 
     /**

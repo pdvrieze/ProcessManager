@@ -18,9 +18,9 @@ import nl.adaptivity.util.HttpMessage;
 public class RestMessageHandler {
 
   private static RestMessageHandler aInstance;
-  
+
   private Map<Class<?>,EnumMap<HttpMethod, PrefixMap<Method>>> cache;
-  
+
 
   public static RestMessageHandler newInstance() {
     if (aInstance == null) {
@@ -28,14 +28,14 @@ public class RestMessageHandler {
     }
     return aInstance;
   }
-  
+
   private RestMessageHandler() {}
 
   public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) throws MessagingException{
     HttpMessage httpMessage = JAXB.unmarshal(message.getContent(),HttpMessage.class);
 
     MethodWrapper method = getMethodFor(operation, httpMessage, target);
-    
+
     if (method !=null) {
       method.unmarshalParams(httpMessage, new AttachmentMap(message));
       method.exec();
@@ -54,15 +54,15 @@ public class RestMessageHandler {
       RestMethod annotation = candidate.getAnnotation(RestMethod.class);
       Map<String, String> pathParams = new HashMap<String, String>();
 
-      if (annotation !=null && 
-          annotation.method()==pHttpMethod && 
+      if (annotation !=null &&
+          annotation.method()==pHttpMethod &&
           pathFits(pathParams, annotation.path(), httpMessage.getPathInfo()) &&
           conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), httpMessage)) {
         MethodWrapper result = new MethodWrapper(target, candidate);
         result.setPathParams(pathParams);
         return result;
       }
-      
+
     }
     return null;
   }
@@ -77,14 +77,14 @@ public class RestMessageHandler {
     }
     PrefixMap<Method> w = v.get(pHttpMethod);
     if (w == null) { return Collections.emptyList(); }
-    
+
     return w.getPrefixValues(pPathInfo);
   }
 
   private EnumMap<HttpMethod, PrefixMap<Method>> createCacheElem(Class<? extends Object> pClass) {
     EnumMap<HttpMethod, PrefixMap<Method>> result = new EnumMap<HttpMethod, PrefixMap<Method>>(HttpMethod.class);
     final Method[] methods = pClass.getDeclaredMethods();
-    
+
     for(Method m: methods) {
       RestMethod annotation = m.getAnnotation(RestMethod.class);
       if (annotation != null) {
@@ -239,6 +239,14 @@ public class RestMessageHandler {
     }
     return j>=pPathInfo.length();
   }
-  
-  
+
+  public static boolean canHandle(Class<?> pClass) {
+    for (Method m: pClass.getMethods()) {
+      RestMethod an = m.getAnnotation(RestMethod.class);
+      if (an!=null) { return true; }
+    }
+    return false;
+  }
+
+
 }
