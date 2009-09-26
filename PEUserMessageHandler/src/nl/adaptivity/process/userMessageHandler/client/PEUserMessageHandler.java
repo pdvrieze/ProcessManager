@@ -52,8 +52,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    * The message displayed to the user when the server cannot be reached or
    * returns an error.
    */
-  private static final String SERVER_ERROR = "An error occurred while " + 
-      "attempting to contact the server. Please check your network " + 
+  private static final String SERVER_ERROR = "An error occurred while " +
+      "attempting to contact the server. Please check your network " +
       "connection and try again.";
 
   private static final String BASEURL = ""/*"http://localhost:8192/ProcessEngine/"*/;
@@ -101,10 +101,10 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   private static ProcessModelRef[] asProcessList(final String pText) {
     final Document myResponse;
-    
+
     myResponse = XMLParser.parse(pText);
     ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
-    
+
     Node root = myResponse.getFirstChild();
     if (root.getNodeName().equals("processModels")) {
       Node child = root.getFirstChild();
@@ -119,7 +119,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
       }
       return result.toArray(new ProcessModelRef[result.size()]);
     }
-    
+
     return new ProcessModelRef[0];
   }
 
@@ -128,7 +128,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    */
   private static ProcessModelRef[] asProcessList(final com.google.gwt.dom.client.Document pDocument) {
     ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
-    
+
     Element root = Element.as(pDocument.getFirstChild());
     if (root.getNodeName().equals("processModels")) {
       Element child = root.getFirstChildElement();
@@ -143,7 +143,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
       GWT.log("  return "+result.toString(), null);
       return result.toArray(new ProcessModelRef[result.size()]);
     }
-    
+
     return new ProcessModelRef[0];
   }
 
@@ -156,42 +156,42 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     if (initToken.length() == 0) {
       History.newItem("Processes");
     }
-    
+
     final RootPanel rootPanel = RootPanel.get("gwt");
-    
+
     DockPanel dockPanel = new DockPanel();
     rootPanel.add(dockPanel);
-    
+
     aTabPanel = new TabPanel();
     dockPanel.add(aTabPanel, DockPanel.CENTER);
-    
+
     HorizontalPanel hp1 = createProcessesPanel();
-    
+
     HorizontalPanel hp2 = createInstancesPanel();
-    
+
     HorizontalPanel hp3 = createTaskPanel();
-    
+
     aTabPanel.add(hp1, "Processes");
     aTabPanel.add(hp2, "Instances");
     aTabPanel.add(hp3, "Tasks");
     aTabPanel.selectTab(0);
-    
+
     aTabPanel.getTabBar().addSelectionHandler(this);
-    
+
     DockPanel statusPanel = new DockPanel();
     aStatusLabel = new Label();
     aStatusLabel.setText("Initializing...");
     statusPanel.add(aStatusLabel, DockPanel.WEST);
-    
+
     aRefreshCheckbox = new CheckBox("refresh");
     aRefreshCheckbox.setValue(DEFAULT_REFRESH);
     statusPanel.add(aRefreshCheckbox, DockPanel.EAST);
     statusPanel.addStyleName("fullWidth");
     dockPanel.add(statusPanel, DockPanel.SOUTH);
-    
+
     aProcessListBox.start();
     aTaskListBox.start();
-    
+
     Timer refreshTimer = new Timer() {
       @Override
       public void run() {
@@ -199,9 +199,9 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
       }
     };
     refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
-    
+
     aHistoryHandler = History.addValueChangeHandler(this);
-    
+
     History.fireCurrentHistoryState();
   }
 
@@ -211,53 +211,53 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private HorizontalPanel createProcessesPanel() {
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
-    
+
     aProcessListBox = new RemoteListBox(PROCESSLISTURL);
     aProcessListBox.setRootElement("processModels");
     aProcessListBox.setListElement("processModel");
     aProcessListBox.setValueElement("@handle");
     aProcessListBox.setTextElement("@name");
     hp1.add(aProcessListBox);
-    
+
     aProcessListBox.addItem("Process1");
     aProcessListBox.addItem("Process2");
     aProcessListBox.addStyleName("mhList");
     aProcessListBox.addStyleName("tabContent");
-    
+
     VerticalPanel vp1 = new VerticalPanel();
     vp1.addStyleName("tabContent");
     hp1.add(vp1);
-    
+
     aStartProcessButton = new Button("Start process");
     aProcessListBox.addControlledWidget(aStartProcessButton);
     aStartProcessButton.addStyleName("inTabButton");
     aStartProcessButton.addClickHandler(this);
     vp1.add(aStartProcessButton);
-    
+
     aProcessFileForm = new MyFormPanel();
     aProcessFileForm.setAction(PROCESSLISTURL);
     aProcessFileForm.setEncoding(FormPanel.ENCODING_MULTIPART);
     aProcessFileForm.setMethod(FormPanel.METHOD_POST);
     aProcessFileForm.addStyleName("fileForm");
-    
+
     VerticalPanel vp2 = new VerticalPanel();
     aProcessFileForm.setWidget(vp2);
-  
+
     Label label = new Label();
     label.setText("Upload new model");
     vp2.add(label);
-    
+
     aProcessUpload = new MyFileUpload();
     aProcessUpload.setName("processUpload");
     aProcessUpload.registerChangeHandler(this);
     vp2.add(aProcessUpload);
-    
-    
+
+
     aProcessFileSubmitButton = new Button("Submit");
     aProcessFileSubmitButton.addClickHandler(this);
     aProcessUpload.addControlledWidget(aProcessFileSubmitButton);
     vp2.add(aProcessFileSubmitButton);
-    
+
     vp1.add(aProcessFileForm);
     return hp1;
   }
@@ -268,17 +268,17 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private HorizontalPanel createInstancesPanel() {
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
-    
+
     aInstanceListBox = new ControllingListBox();
     hp1.add(aInstanceListBox);
     aInstanceListBox.addStyleName("mhList");
     aInstanceListBox.addStyleName("tabContent");
     aInstanceListBox.addChangeHandler(this);
-    
+
     VerticalPanel vp1 = new VerticalPanel();
     hp1.add(vp1);
     vp1.addStyleName("tabContent");
-    
+
     aShowInstanceStatusButton = new Button("Show status");
     aInstanceListBox.addControlledWidget(aShowInstanceStatusButton);
     aShowInstanceStatusButton.addStyleName("inTabButton");
@@ -293,54 +293,54 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private HorizontalPanel createTaskPanel() {
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
-    
-    
+
+
     aTaskListBox = new RemoteListBox(TASKLISTURL);
     aTaskListBox.addStyleName("mhList");
     aTaskListBox.addStyleName("tabContent");
     aTaskListBox.setRootElement("tasks");
     aTaskListBox.setTextElement("=@summary (@{state})");
     aTaskListBox.setValueElement("@handle");
-    aTaskListBox.setListElement("dummyTask");
-    
+    aTaskListBox.setListElement("task");
+
     hp1.add(aTaskListBox);
 //    aTaskListBox.addChangeHandler(this);
-    
+
     VerticalPanel vp1 = new VerticalPanel();
     hp1.add(vp1);
     vp1.addStyleName("tabContent");
-    
-    
+
+
     aTakeTaskButton = new Button("Take task");
     aTaskListBox.addControlledWidget(aTakeTaskButton);
     aTakeTaskButton.addStyleName("inTabButton");
     vp1.add(aTakeTaskButton);
     aTakeTaskButton.addClickHandler(this);
-    
+
     aStartTaskButton = new Button("Start task");
     aTaskListBox.addControlledWidget(aStartTaskButton);
     aStartTaskButton.addStyleName("inTabButton");
     vp1.add(aStartTaskButton);
     aStartTaskButton.addClickHandler(this);
-    
+
     aCompleteTaskButton = new Button("Complete task");
     aTaskListBox.addControlledWidget(aCompleteTaskButton);
     aCompleteTaskButton.addStyleName("inTabButton");
     vp1.add(aCompleteTaskButton);
     aCompleteTaskButton.addClickHandler(this);
-    
-    
+
+
     return hp1;
   }
 
   /**
-     * @category UI 
+     * @category UI
      */
     private void updateProcessList(ProcessModelRef[] pProcessModels) {
       int selectedIndex = aProcessListBox.getSelectedIndex();
       String selected = selectedIndex>=0 ? aProcessListBox.getValue(selectedIndex) : null;
       aProcessListBox.clear();
-      
+
       int newSelected = -1;
       int i=0;
       for(ProcessModelRef ref:pProcessModels) {
@@ -359,7 +359,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
    * @category method
    */
   protected void refreshState() {
-    
+
     if (aRefreshCheckbox.getValue()) {
       aProcessListBox.update();
       aTaskListBox.update();
@@ -413,7 +413,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   private void submitProcessFile(ClickEvent pEvent) {
     aProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
     aProcessFileForm.submit();
-    
+
     aProcessFileForm.reset();
   }
 
@@ -442,12 +442,12 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
           // TODO perhaps do something with this, but the instances are not visible from the tab
 //          aInstanceListBox.update();
         }
-        
+
       });
     } catch (RequestException e) {
       aStatusLabel.setText("Error ("+e.getMessage()+")");
     }
-    
+
   }
 
   /**
@@ -505,20 +505,20 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
         public void onResponseReceived(Request pRequest, Response pResponse) {
           aTaskListBox.update();
         }
-        
+
       });
     } catch (RequestException e) {
       aStatusLabel.setText("Error ("+e.getMessage()+")");
     }
   }
 
-  /** Handle history 
+  /** Handle history
    * @category action
    */
   @Override
   public void onValueChange(ValueChangeEvent<String> pEvent) {
     final String value = pEvent.getValue();
-    
+
     int c = aTabPanel.getTabBar().getTabCount();
     for(int i = 0; i<c; ++i) {
       if (value.equals(aTabPanel.getTabBar().getTabHTML(i))) {
@@ -526,7 +526,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
         break;
       }
     }
-    
+
   }
 
   /**

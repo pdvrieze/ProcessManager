@@ -5,17 +5,18 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.jbi.util.EndPointDescriptor;
+import nl.adaptivity.process.exec.Task.TaskState;
 
-
+@XmlSeeAlso(InternalEndpoint.XmlTask.class)
 public class InternalEndpoint implements GenericEndpoint {
 
   @XmlRootElement(name="task")
-  public static class XmlTask implements Task{
+  public static class XmlTask implements UserTask{
     private long aHandle;
     private TaskState aState;
     private String aSummary;
@@ -23,21 +24,9 @@ public class InternalEndpoint implements GenericEndpoint {
     public XmlTask() {
       aHandle = -1;
     }
-    
+
     public XmlTask(long pHandle) {
       aHandle = pHandle;
-    }
-
-    @Override
-    public void failTask() {
-      setState(TaskState.Failed);
-      updateRemoteTaskState(getState());
-    }
-
-    @Override
-    public void finishTask(Object pPayload) {
-      setState(TaskState.Complete);
-      updateRemoteTaskState(getState());
     }
 
     @XmlAttribute
@@ -47,36 +36,16 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     @Override
-    public boolean provideTask() {
-      setState(TaskState.Available);
-      updateRemoteTaskState(getState());
-      return false;
-    }
-
-    @Override
     public void setState(TaskState pNewState) {
       aState = pNewState;
-    }
-
-    @Override
-    public <T> boolean startTask(IMessageService<T> pMessageService) {
-      setState(TaskState.Taken);
-      updateRemoteTaskState(getState());
-      return false;
-    }
-
-    @Override
-    public boolean takeTask() {
-      setState(TaskState.Taken);
-      updateRemoteTaskState(getState());
-      return false;
+      updateRemoteTaskState(aState);
     }
 
     private void updateRemoteTaskState(TaskState pState) {
       // TODO Auto-generated method stub
-      // 
+      //
       throw new UnsupportedOperationException("Not yet implemented");
-      
+
     }
 
     @XmlAttribute(name="handle")
@@ -89,17 +58,17 @@ public class InternalEndpoint implements GenericEndpoint {
     public long getHandle() {
       return aHandle;
     }
-    
+
     @XmlAttribute(name="summary")
     public String getSummary() {
       return aSummary;
     }
-    
+
     public void setSummary(String pSummary) {
       aSummary = pSummary;
     }
   }
-  
+
   private static final String ENDPOINT = "internal";
   public static final QName SERVICENAME = new QName("http:://adaptivity.nl/userMessageHandler", "userMessageHandler");
   private UserMessageService aService;
@@ -119,7 +88,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  boolean postTask(@WebParam(name="task", mode=Mode.IN) Task pTask) {
+  public boolean postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask pTask) {
     return aService.postTask(pTask);
   }
 }

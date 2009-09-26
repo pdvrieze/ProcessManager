@@ -12,8 +12,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import nl.adaptivity.jbi.components.genericSE.EndpointProvider;
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.exec.Task.TaskState;
 
 
@@ -22,12 +20,12 @@ public class UserMessageService implements EndpointProvider {
 
   @XmlRootElement(name="dummyTask")
   @XmlAccessorType(XmlAccessType.NONE)
-  public static class DummyTask implements Task {
+  public static class DummyTask implements UserTask {
 
     private TaskState aState = TaskState.Available;
     private long aHandle = -1;
     private String aSummary;
-    
+
     public DummyTask() {}
 
     public DummyTask(String pSummary) {
@@ -65,65 +63,32 @@ public class UserMessageService implements EndpointProvider {
       aSummary = summary;
     }
 
-    @Override
-    public void failTask() {
-      // TODO Auto-generated method stub
-      // 
-      throw new UnsupportedOperationException("Not yet implemented");
-      
-    }
-
-    @Override
-    public void finishTask(Object pPayload) {
-      setState(TaskState.Complete);
-    }
-
-    @Override
-    public boolean provideTask() {
-      setState(TaskState.Available);
-      return false;
-    }
-
-    @Override
-    public <T> boolean startTask(IMessageService<T> pMessageService) {
-      setState(TaskState.Started);
-      return false;
-    }
-
-    @Override
-    public boolean takeTask() {
-      // TODO Auto-generated method stub
-      // return false;
-      throw new UnsupportedOperationException("Not yet implemented");
-      
-    }
-
   }
 
   private InternalEndpoint internalEndpoint;
   private ExternalEndpoint externalEndpoint;
 
-  private Queue<Task> tasks;
-  
+  private Queue<UserTask> tasks;
+
   public UserMessageService() {
     internalEndpoint = new InternalEndpoint(this);
     externalEndpoint = new ExternalEndpoint(this);
-    tasks = new ArrayDeque<Task>();
-    DummyTask task = new DummyTask("blabla");
-    task.setHandle(1);
-    tasks.add(task);
+    tasks = new ArrayDeque<UserTask>();
+//    DummyTask task = new DummyTask("blabla");
+//    task.setHandle(1);
+//    tasks.add(task);
   }
-  
+
   @Override
   public Collection<GenericEndpoint> getEndpoints() {
     return Arrays.asList(internalEndpoint, externalEndpoint);
   }
 
-  public boolean postTask(Task pTask) {
+  public boolean postTask(UserTask pTask) {
     return tasks.add(pTask);
   }
 
-  public Collection<Task> getPendingTasks() {
+  public Collection<UserTask> getPendingTasks() {
     return tasks;
   }
 
@@ -132,8 +97,8 @@ public class UserMessageService implements EndpointProvider {
     return TaskState.Complete;
   }
 
-  private Task getTask(long pHandle) {
-    for(Task candidate:tasks) {
+  private UserTask getTask(long pHandle) {
+    for(UserTask candidate:tasks) {
       if (candidate.getHandle()==pHandle) {
         return candidate;
       }
