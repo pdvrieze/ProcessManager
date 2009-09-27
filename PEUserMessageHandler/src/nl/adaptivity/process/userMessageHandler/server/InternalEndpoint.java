@@ -8,10 +8,13 @@ import javax.jbi.servicedesc.ServiceEndpoint;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
+import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
+
+import org.w3c.dom.Node;
 
 import net.devrieze.util.Tripple;
 
@@ -28,6 +31,7 @@ public class InternalEndpoint implements GenericEndpoint {
   @XmlAccessorType(XmlAccessType.NONE)
   public static class XmlTask implements UserTask{
     private static final QName UPDATE_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "updateTaskState");
+    private static final QName FINISH_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "finishTask");
     private long aHandle;
     private long aRemoteHandle;
     private TaskState aState=TaskState.Available;
@@ -53,8 +57,13 @@ public class InternalEndpoint implements GenericEndpoint {
     @Override
     public void setState(TaskState pNewState) {
       try {
-        updateRemoteTaskState(aState);
-        aState = pNewState;
+        TaskState newState;
+        if (pNewState==TaskState.Complete) {
+          newState = finishRemoteTask();
+        } else {
+          newState = updateRemoteTaskState(pNewState);
+        }
+        aState = newState;
       } catch (JAXBException e) {
         e.printStackTrace();
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
@@ -64,7 +73,7 @@ public class InternalEndpoint implements GenericEndpoint {
       }
     }
 
-    private void updateRemoteTaskState(TaskState pState) throws JAXBException, MessagingException {
+    private TaskState updateRemoteTaskState(TaskState pState) throws JAXBException, MessagingException {
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState));
       DeliveryChannel channel = aContext.getDeliveryChannel();
 
@@ -80,12 +89,50 @@ public class InternalEndpoint implements GenericEndpoint {
       if (se==null) { throw new MessagingException("No endpoint found"); }
 
       MessageExchangeFactory exf = channel.createExchangeFactory(se);
-      RobustInOnly ex = exf.createRobustInOnlyExchange();
+      InOut ex = exf.createInOutExchange();
       ex.setOperation(UPDATE_OPERATION_NAME);
       NormalizedMessage message = ex.createMessage();
       message.setContent(messageContent);
       ex.setInMessage(message);
-      channel.send(ex);
+      if (channel.sendSync(ex)) {
+        NormalizedMessage result = ex.getOutMessage();
+        if (result!=null) {
+          TaskState newState = JAXB.unmarshal(result.getContent(), TaskState.class);
+          return newState;
+        }
+      }
+      return aState; // Don't change state
+    }
+
+    private TaskState finishRemoteTask() throws JAXBException, MessagingException {
+      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
+      DeliveryChannel channel = aContext.getDeliveryChannel();
+
+      ServiceEndpoint se = null;
+      {
+        for(ServiceEndpoint candidate:aContext.getEndpointsForService(aEndPoint.getServiceName())) {
+          if (candidate.getEndpointName().equals(aEndPoint.getEndpointName())) {
+            se = candidate;
+            break;
+          }
+        }
+      }
+      if (se==null) { throw new MessagingException("No endpoint found"); }
+
+      MessageExchangeFactory exf = channel.createExchangeFactory(se);
+      InOut ex = exf.createInOutExchange();
+      ex.setOperation(FINISH_OPERATION_NAME);
+      NormalizedMessage message = ex.createMessage();
+      message.setContent(messageContent);
+      ex.setInMessage(message);
+      if (channel.sendSync(ex)) {
+        NormalizedMessage result = ex.getOutMessage();
+        if (result!=null) {
+          TaskState newState = JAXB.unmarshal(result.getContent(), TaskState.class);
+          return newState;
+        }
+      }
+      return aState; // Don't change state
     }
 
     @XmlAttribute(name="handle")
