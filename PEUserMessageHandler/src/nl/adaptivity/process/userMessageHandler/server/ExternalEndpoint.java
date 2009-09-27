@@ -8,18 +8,18 @@ import javax.xml.namespace.QName;
 
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
 import nl.adaptivity.process.exec.Task;
-import nl.adaptivity.process.userMessageHandler.server.UserMessageService.DummyTask;
+import nl.adaptivity.process.userMessageHandler.server.InternalEndpoint.XmlTask;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
-@XmlSeeAlso(DummyTask.class)
+@XmlSeeAlso(XmlTask.class)
 public class ExternalEndpoint implements GenericEndpoint {
 
   public static final String ENDPOINT = "external";
-  public static final QName SERVICENAME = new QName("http:://adaptivity.nl/userMessageHandler", "userMessageHandler");
+  public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
   UserMessageService aService;
 
   public ExternalEndpoint(UserMessageService pService) {
@@ -36,7 +36,7 @@ public class ExternalEndpoint implements GenericEndpoint {
     return ENDPOINT;
   }
 
-  @XmlElementWrapper(name="tasks", namespace="http:://adaptivity.nl/userMessageHandler")
+  @XmlElementWrapper(name="tasks", namespace=UserMessageService.UMH_NS)
   @RestMethod(method=HttpMethod.GET, path="/pendingTasks")
   public Collection<UserTask> getPendingTasks() {
     return aService.getPendingTasks();

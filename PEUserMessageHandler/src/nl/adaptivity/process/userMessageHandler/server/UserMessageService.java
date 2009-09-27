@@ -1,14 +1,11 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Queue;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.jbi.component.ComponentContext;
+
+import net.devrieze.util.HandleMap;
 
 import nl.adaptivity.jbi.components.genericSE.EndpointProvider;
 import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
@@ -18,62 +15,19 @@ import nl.adaptivity.process.exec.Task.TaskState;
 
 public class UserMessageService implements EndpointProvider {
 
-  @XmlRootElement(name="dummyTask")
-  @XmlAccessorType(XmlAccessType.NONE)
-  public static class DummyTask implements UserTask {
-
-    private TaskState aState = TaskState.Available;
-    private long aHandle = -1;
-    private String aSummary;
-
-    public DummyTask() {}
-
-    public DummyTask(String pSummary) {
-      setSummary(pSummary);
-    }
-
-    @XmlAttribute
-    @Override
-    public TaskState getState() {
-      return aState;
-    }
-
-    @Override
-    public void setState(TaskState pNewState) {
-      aState  = pNewState;
-    }
-
-    @XmlAttribute
-    @Override
-    public long getHandle() {
-      return aHandle ;
-    }
-
-    @Override
-    public void setHandle(long pHandle) {
-      aHandle = pHandle;
-    }
-
-    @XmlAttribute(name="summary")
-    public String getSummary() {
-      return aSummary;
-    }
-
-    public void setSummary(String summary) {
-      aSummary = summary;
-    }
-
-  }
+  public static final String UMH_NS="http://adaptivity.nl/userMessageHandler";
 
   private InternalEndpoint internalEndpoint;
   private ExternalEndpoint externalEndpoint;
 
-  private Queue<UserTask> tasks;
+  private HandleMap<UserTask> tasks;
+
+  private ComponentContext aContext;
 
   public UserMessageService() {
     internalEndpoint = new InternalEndpoint(this);
     externalEndpoint = new ExternalEndpoint(this);
-    tasks = new ArrayDeque<UserTask>();
+    tasks = new HandleMap<UserTask>();
 //    DummyTask task = new DummyTask("blabla");
 //    task.setHandle(1);
 //    tasks.add(task);
@@ -85,11 +39,12 @@ public class UserMessageService implements EndpointProvider {
   }
 
   public boolean postTask(UserTask pTask) {
-    return tasks.add(pTask);
+    pTask.setContext(getContext());
+    return tasks.put(pTask) >= 0;
   }
 
   public Collection<UserTask> getPendingTasks() {
-    return tasks;
+    return tasks.toCollection();
   }
 
   public TaskState finishTask(long pHandle) {
@@ -98,12 +53,7 @@ public class UserMessageService implements EndpointProvider {
   }
 
   private UserTask getTask(long pHandle) {
-    for(UserTask candidate:tasks) {
-      if (candidate.getHandle()==pHandle) {
-        return candidate;
-      }
-    }
-    return null;
+    return tasks.get(pHandle);
   }
 
   public TaskState takeTask(long pHandle) {
@@ -114,6 +64,15 @@ public class UserMessageService implements EndpointProvider {
   public TaskState startTask(long pHandle) {
     getTask(pHandle).setState(TaskState.Started);
     return TaskState.Taken;
+  }
+
+  @Override
+  public void setContext(ComponentContext context) {
+    aContext = context;
+  }
+
+  public ComponentContext getContext() {
+    return aContext;
   }
 
 }
