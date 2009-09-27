@@ -4,16 +4,17 @@ import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 
 
 public class ProcessEngine implements IProcessEngine {
 
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
-  
-  private final HandleMap<InternalMessage> aMessageMap = new HandleMap<InternalMessage>();
-  
+
+  private final HandleMap<Task> aTaskMap = new HandleMap<Task>();
+
   private final HandleMap<ProcessModel> aProcessModels = new HandleMap<ProcessModel>();
 
   private ProcessMessageListener aMessageListener;
@@ -23,7 +24,7 @@ public class ProcessEngine implements IProcessEngine {
   public ProcessEngine(IMessageService<?> pMessageService) {
     aMessageService = pMessageService;
   }
-  
+
   @Override
   public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload) {
     ProcessInstance instance = new ProcessInstance(pModel, this, pPayload);
@@ -36,20 +37,6 @@ public class ProcessEngine implements IProcessEngine {
     return startProcess(aProcessModels.get(pProcessModel), pPayload);
   }
 
-  @Override
-  public void postMessage(MessageHandle pHOrigMessage, ExtMessage pMessage) throws InvalidMessageException {
-    // Get the (outgoing) message this is a reply to
-    InternalMessage repliedMessage = retrieveMessage(pHOrigMessage);
-    verifyMessage(repliedMessage, pMessage);
-
-    final ProcessInstance processInstance = repliedMessage.getProcessInstance();
-
-    ProcessNodeInstance pos = processInstance.getProcesNodeInstanceFor(repliedMessage);
-    
-    pos.finishTask(pMessage.getPayload());
-    aMessageMap.remove(pHOrigMessage.getHandle());
-  }
-
   private void verifyMessage(InternalMessage pRepliedMessage, ExtMessage pMessage) throws InvalidMessageException {
     if (pRepliedMessage==null) {
       throw new InvalidMessageException("The message replied to can not be found", pMessage);
@@ -57,21 +44,12 @@ public class ProcessEngine implements IProcessEngine {
     if (! pRepliedMessage.isValidReply(pMessage)) {
       throw new InvalidMessageException("The message is not in reply to the original", pMessage);
     }
-    
+
     // TODO further validation
   }
 
-  private InternalMessage retrieveMessage(MessageHandle pHandle) {
-    return aMessageMap.get(pHandle.getHandle());
-  }
-
-  @Override
-  public void fireMessage(InternalMessage pMessage) {
-    ensureMessageHandle(pMessage);
-    
-    ExtMessage extVersion = pMessage.externalize();
-    
-    getMessageListener().fireMessage(extVersion);
+  public Task retrieveTask(long pHandle) {
+    return aTaskMap.get(pHandle);
   }
 
   public void setMessageListener(ProcessMessageListener messageListener) {
@@ -96,16 +74,8 @@ public class ProcessEngine implements IProcessEngine {
     }
   }
 
-  private long ensureMessageHandle(InternalMessage pMessage) {
-    if (pMessage.hasHandle()) {
-      return pMessage.getHandle();
-    }
-    return aMessageMap.put(pMessage);
-  }
-
   public Iterable<ProcessModel> getProcessModels() {
     return aProcessModels;
-    
   }
 
   public long addProcessModel(ProcessModel pPm) {
@@ -114,6 +84,20 @@ public class ProcessEngine implements IProcessEngine {
 
   public Iterable<ProcessInstance> getInstances() {
     return aInstanceMap;
+  }
+
+  public void updateTaskState(long pHandle, TaskState pNewState) {
+    // TODO Auto-generated method stub
+    //
+    throw new UnsupportedOperationException("Not yet implemented");
+
+  }
+
+  public long registerMessage(Task pInstance) {
+    if (pInstance.getHandle()>=0) {
+      throw new IllegalArgumentException("Process node already registered");
+    }
+    return aTaskMap.put(pInstance);
   }
 
 }

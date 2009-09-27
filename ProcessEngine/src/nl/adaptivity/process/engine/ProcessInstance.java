@@ -112,10 +112,6 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aJoins.remove(pJ.getNode());
   }
 
-  public void fireMessage(InternalMessage pMessage) {
-    aEngine.fireMessage(pMessage);
-  }
-
   @Override
   public long getHandle() {
     return aHandle;

@@ -4,9 +4,8 @@ import java.io.CharArrayWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.MissingResourceException;
+import java.net.URI;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +17,10 @@ import javax.jbi.component.ComponentLifeCycle;
 import javax.jbi.component.ServiceUnitManager;
 import javax.jbi.messaging.*;
 import javax.jbi.servicedesc.ServiceEndpoint;
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.jws.WebService;
+import javax.jws.WebParam.Mode;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -26,7 +29,11 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.*;
+import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -35,45 +42,50 @@ import org.xml.sax.SAXException;
 import net.devrieze.util.HandleMap;
 
 import nl.adaptivity.jbi.rest.RestMessageHandler;
+import nl.adaptivity.jbi.soap.SoapMessageHandler;
+import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
+import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
-
+@WebService(targetNamespace=JBIProcessEngine.PROCESS_ENGINE_NS)
 public class JBIProcessEngine implements Component, Runnable, IMessageService<JBIProcessEngine.JBIMessage> {
 
-  private static class JBIMessage {
+  private class JBIMessage {
 
-    private final QName aService;
-    private final String aEndpoint;
+    private final QName aRemoteService;
+    private final String aRemoteEndpoint;
     private final QName aOperation;
-    private final Source aBody;
+    private Source aBody;
 
     public JBIMessage(QName pService, String pEndpoint, QName pOperation, Source pBody) {
-      aService = pService;
-      aEndpoint = pEndpoint;
+      aRemoteService = pService;
+      aRemoteEndpoint = pEndpoint;
       aOperation = pOperation;
       aBody = pBody;
     }
 
 
     public QName getService() {
-      return aService;
+      return aRemoteService;
     }
 
 
     public String getEndpoint() {
-      return aEndpoint;
+      return aRemoteEndpoint;
     }
 
 
@@ -86,11 +98,224 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       return aBody;
     }
 
+
+    public void setHandle(long pHandle) throws MessagingException {
+      try {
+        XMLInputFactory xif = XMLInputFactory.newInstance();
+        XMLEventReader xer = xif.createXMLEventReader(aBody);
+        XMLOutputFactory xof = XMLOutputFactory.newInstance();
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        DocumentBuilder db;
+        try {
+          db = dbf.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+          throw new MessagingException(e);
+        }
+        DOMResult result = new DOMResult(db.newDocument());
+        XMLEventWriter xew = xof.createXMLEventWriter(result);
+        StartElement lastSE = null;
+
+        while (xer.hasNext()) {
+          XMLEvent event = xer.nextEvent();
+          if (event.isStartElement()) {
+            StartElement se = event.asStartElement();
+            final QName eName = se.getName();
+            if (MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
+              @SuppressWarnings("unchecked") Iterator<Attribute> attributes = se.getAttributes();
+              if (eName.getLocalPart().equals("attribute")) {
+                writeAttribute(lastSE, xer, attributes, xew, pHandle);
+              } else if (eName.getLocalPart().equals("element")) {
+                xew.add(lastSE);
+                writeElement(xer, attributes, xew, pHandle);
+              } else {
+                throw new MessagingException("Unsupported activity modifier");
+              }
+              lastSE = null;
+            } else {
+              if (lastSE!=null) {
+                xew.add(lastSE);
+              }
+              lastSE = se;
+            }
+          } else {
+            if (event.isCharacters()) {
+              Characters c = event.asCharacters();
+              String charData = c.getData();
+              int i;
+              for(i =0; i<charData.length(); ++i) {
+                if (! Character.isWhitespace(charData.charAt(i))) {
+                  break;
+                }
+              }
+              if (i==charData.length()) {
+                continue; // ignore it, and go to next event
+              }
+            }
+
+            if (lastSE!=null) {
+              xew.add(lastSE);
+              lastSE = null;
+            }
+            if (event instanceof Namespace) {
+
+              Namespace ns = (Namespace) event;
+              if (! ns.getNamespaceURI().equals(MODIFY_NS)) {
+                xew.add(event);
+              }
+            } else {
+              xew.add(event);
+            }
+          }
+        }
+        aBody = new DOMSource(result.getNode());
+
+      } catch (FactoryConfigurationError e) {
+        throw new MessagingException(e);
+      } catch (XMLStreamException e) {
+        throw new MessagingException(e);
+      }
+    }
+
+    private void writeElement(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws MessagingException, XMLStreamException {
+      String valueName = null;
+      {
+        while(pAttributes.hasNext()) {
+          Attribute attr = pAttributes.next();
+          String attrName = attr.getName().getLocalPart();
+          if ("value".equals(attrName)) {
+            valueName = attr.getValue();
+          }
+        }
+      }
+      {
+        XMLEvent ev = in.nextEvent();
+
+        while (! ev.isEndElement()) {
+          if (ev.isStartElement()) { throw new MessagingException("Violation of schema"); }
+          if (ev.isAttribute()) {
+            Attribute attr = (Attribute) ev;
+            String attrName = attr.getName().getLocalPart();
+            if ("value".equals(attrName)) {
+              valueName = attr.getValue();
+            }
+          }
+        }
+      }
+      if (valueName!=null) {
+        XMLEventFactory xef = XMLEventFactory.newInstance();
+
+        if ("handle".equals(valueName)) {
+          out.add(xef.createCharacters(Long.toString(pHandle)));
+        } else if ("endpoint".equals(valueName)) {
+
+          QName qname1 = new QName(EndPointDescriptor.MY_JBI_NS, "endpointDescriptor", "");
+          List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", EndPointDescriptor.MY_JBI_NS));
+          out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
+
+          {
+            QName qname2 = new QName(EndPointDescriptor.MY_JBI_NS, "serviceName", "");
+            final QName serviceName = aEndPoint.getServiceName();
+            List<Namespace> namespaces2 = Collections.singletonList(xef.createNamespace(serviceName.getPrefix(), serviceName.getNamespaceURI()));
+            out.add(xef.createStartElement(qname2, null, namespaces2.iterator()));
+            out.add(xef.createCharacters(serviceName.getPrefix()+":"+serviceName.getLocalPart()));
+            out.add(xef.createEndElement(qname2, namespaces2.iterator()));
+          }
+
+          {
+            QName qname3 = new QName(EndPointDescriptor.MY_JBI_NS, "endpointName", "");
+            out.add(xef.createStartElement(qname3, null, null));
+            out.add(xef.createCharacters(aEndPoint.getEndpointName()));
+            out.add(xef.createEndElement(qname3, null));
+          }
+
+          xef.createEndElement(qname1, namespaces.iterator());
+        }
+      } else {
+        throw new MessagingException("Missing parameter name");
+      }
+
+    }
+
+    private void writeAttribute(StartElement pLastSE, XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException, MessagingException {
+      String valueName = null;
+      String paramName = null;
+      {
+        while(pAttributes.hasNext()) {
+          Attribute attr = pAttributes.next();
+          String attrName = attr.getName().getLocalPart();
+          if ("value".equals(attrName)) {
+            valueName = attr.getValue();
+          } else if ("name".equals(attrName)) {
+            paramName = attr.getValue();
+          }
+        }
+      }
+      {
+        XMLEvent ev = in.nextEvent();
+
+        while (! ev.isEndElement()) {
+          if (ev.isStartElement()) { throw new MessagingException("Violation of schema"); }
+          if (ev.isAttribute()) {
+            Attribute attr = (Attribute) ev;
+            String attrName = attr.getName().getLocalPart();
+            if ("value".equals(attrName)) {
+              valueName = attr.getValue();
+            } else if ("name".equals(attrName)) {
+              paramName = attr.getValue();
+            }
+          }
+        }
+      }
+      if (valueName!=null) {
+
+
+        XMLEventFactory xef = XMLEventFactory.newInstance();
+
+        if ("handle".equals(valueName)) {
+          Attribute attr;
+          if (paramName !=null) {
+            attr = xef.createAttribute(paramName, Long.toString(pHandle));
+          } else {
+            attr = xef.createAttribute("handle", Long.toString(pHandle));
+          }
+          {
+
+            final QName qname = pLastSE.getName();
+            final StartElement newSE = xef.createStartElement(qname, null, null);
+            out.add(newSE);
+          }
+          {
+            @SuppressWarnings("unchecked") Iterator<? extends XMLEvent> it = pLastSE.getAttributes();
+            while (it.hasNext()) {
+              out.add(it.next());
+            }
+            out.add(attr);
+          }
+          {
+            @SuppressWarnings("unchecked") Iterator<? extends XMLEvent> it = pLastSE.getNamespaces();
+            while (it.hasNext()) {
+              out.add(it.next());
+            }
+          }
+        } else {
+          out.add(pLastSE);
+        }
+
+
+      } else {
+        throw new MessagingException("Missing parameter name");
+      }
+
+    }
+
   }
 
+  public static final URI MODIFY_NS = URI.create("http://adaptivity.nl/ProcessEngine/activity");
   private static final String OP_POST_MESSAGE = "postMessage";
   private static final String OP_START_PROCESS = "startProcess";
-  public static final QName SERVICE_QNAME = new QName("http://adaptivity.nl/ProcessEngine/","ProcessEngine");
+  public static final String PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/";
+  public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS,"ProcessEngine");
   private static final String LOGSUFFIX = null;
   private ComponentContext aContext;
   private ServiceEndpoint aEndPoint;
@@ -99,6 +324,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   private Logger aLogger;
   private ProcessEngine aProcessEngine;
   private RestMessageHandler aRestMessageHandler;
+  private SoapMessageHandler aSoapMessageHandler;
 
   @Override
   public ComponentLifeCycle getLifeCycle() {
@@ -203,7 +429,8 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
              "GET".equals(operationName) ||
              "POST".equals(operationName) ||
              "PUT".equals(operationName) ||
-             "DELETE".equals(operationName);
+             "DELETE".equals(operationName) ||
+             pExchange.getOperation().getNamespaceURI().equals(PROCESS_ENGINE_NS);
 
     } else {
       return false;
@@ -278,8 +505,8 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
           initPostMessage(pDeliveryChannel, ex);
         } else if (localPart.equals(OP_START_PROCESS)) {
           initStartProcess(pDeliveryChannel, (InOut) ex);
-        } else if ("GET".equals(localPart) || "POST".equals(localPart) || "PUT".equals(localPart) || "DELETE".equals(localPart)) {
-          processRest(pDeliveryChannel, ex);
+        } else {
+          processRestSoap(pDeliveryChannel, ex);
         }
       }
     } catch (Exception e) {
@@ -296,15 +523,35 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     return aRestMessageHandler;
   }
 
-  private void processRest(DeliveryChannel pDeliveryChannel, MessageExchange pEx) throws MessagingException{
-    HttpMethod operation = HttpMethod.valueOf(pEx.getOperation().getLocalPart());
+  private SoapMessageHandler getSoapMessageHandler() {
+    if (aSoapMessageHandler == null) {
+      aSoapMessageHandler = SoapMessageHandler.newInstance();
+    }
+    return aSoapMessageHandler;
+  }
+
+  private void processRestSoap(DeliveryChannel pDeliveryChannel, MessageExchange pEx) throws MessagingException{
     NormalizedMessage inMessage = pEx.getMessage("in");
     NormalizedMessage reply = pEx.createMessage();
-    if (getRestMessageHandler().processRequest(operation, inMessage, reply, this)) {
-      pEx.setMessage(reply, "out");
-      pDeliveryChannel.send(pEx);
+    if (pEx.getOperation().getNamespaceURI().equals(Constants.WEBMETHOD_NS.toString())) {
+      HttpMethod operation = HttpMethod.valueOf(pEx.getOperation().getLocalPart());
+      if (getRestMessageHandler().processRequest(operation, inMessage, reply, this)) {
+        pEx.setMessage(reply, "out");
+        pDeliveryChannel.send(pEx);
+      } else {
+        pEx.setError(new FileNotFoundException());
+        pDeliveryChannel.send(pEx);
+      }
     } else {
-      pEx.setError(new FileNotFoundException());
+      if (getSoapMessageHandler().processRequest(pEx.getOperation(), inMessage, reply, this)) {
+        if (pEx.getPattern().equals(Constants.WSDL_MEP_IN_ONLY)|| pEx.getPattern().equals(Constants.WSDL_MEP_ROBUST_IN_ONLY)) {
+          pEx.setStatus(ExchangeStatus.DONE);
+        } else {
+          pEx.setMessage(reply, "out");
+        }
+      } else {
+        pEx.setError(new FileNotFoundException());
+      }
       pDeliveryChannel.send(pEx);
     }
   }
@@ -320,7 +567,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @RestMethod(method=HttpMethod.GET, path="/processInstances")
-  @XmlElementWrapper(name="processInstances", namespace="http://adaptivity.nl/ProcessEngine/")
+  @XmlElementWrapper(name="processInstances", namespace=PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs() {
     Iterable<ProcessInstance> processInstances = aProcessEngine.getInstances();
     Collection<ProcessInstanceRef> list = new ArrayList<ProcessInstanceRef>();
@@ -350,6 +597,15 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle) {
     return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), null);
   }
+
+  @WebMethod(operationName="updateTaskState")
+  @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
+  public void updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
+                              @WebParam(name="state", mode=Mode.IN) @RestParam(name="state", type=ParamType.QUERY) TaskState pNewState) {
+    aProcessEngine.updateTaskState(pHandle, pNewState);
+  }
+
+
 
   private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {
     logEntry();
@@ -406,7 +662,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @Override
-  public boolean sendMessage(JBIMessage pMessage) {
+  public boolean sendMessage(JBIMessage pMessage, Task pInstance) {
     try {
       DeliveryChannel deliveryChannel = aContext.getDeliveryChannel();
       ServiceEndpoint se = aContext.getEndpoint(pMessage.getService(), pMessage.getEndpoint());
@@ -414,6 +670,11 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       RobustInOnly ex = exchangeFactory.createRobustInOnlyExchange();
       ex.setOperation(pMessage.getOperation());
       NormalizedMessage msg = ex.createMessage();
+
+
+      long handle = aProcessEngine.registerMessage(pInstance);
+      pMessage.setHandle(handle);
+
       msg.setContent(pMessage.getContent());
       ex.setInMessage(msg);
       deliveryChannel.send(ex);

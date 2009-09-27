@@ -18,6 +18,7 @@ public class ProcessNodeInstance implements Task{
   private final Collection<ProcessNodeInstance> aPredecessors;
 
   private TaskState aState=null;
+  private long aHandle = -1;
 
   public ProcessNodeInstance(ProcessNode pNode, InternalMessage pMessage, Collection<ProcessNodeInstance> pPredecessor) {
     super();
@@ -60,18 +61,12 @@ public class ProcessNodeInstance implements Task{
 
   @Override
   public void setHandle(long pHandle) {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
-
+    aHandle = pHandle;
   }
 
   @Override
   public long getHandle() {
-    // TODO Auto-generated method stub
-    // return 0;
-    throw new UnsupportedOperationException("Not yet implemented");
-
+    return aHandle;
   }
 
   public <T> boolean provideTask(IMessageService<T> pMessageService) {
