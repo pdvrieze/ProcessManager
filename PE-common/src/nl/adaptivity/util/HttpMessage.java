@@ -17,10 +17,10 @@ import org.w3c.dom.Node;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name="HttpMessage", namespace=HttpMessage.NAMESPACE)
 public class HttpMessage {
-    
+
     public static final String NAMESPACE = "http://adaptivity.nl/HttpMessage";
-    
-    
+
+
     @XmlType(name="Body", namespace=HttpMessage.NAMESPACE)
     @XmlAccessorType(XmlAccessType.NONE)
     public static class Body {
@@ -35,11 +35,11 @@ public class HttpMessage {
 
     @XmlAccessorType(XmlAccessType.NONE)
     public static class ByteContent implements DataSource {
-        
+
         private String contentType;
-        
+
         private byte[] byteContent;
-        
+
         private String name;
 
         public ByteContent(String pName, String pContentType, byte[] pByteContent) {
@@ -87,7 +87,7 @@ public class HttpMessage {
         @Override
         public OutputStream getOutputStream() throws IOException {
             throw new UnsupportedOperationException("Byte content is not writable");
-            
+
         }
 
     }
@@ -128,9 +128,9 @@ public class HttpMessage {
     public static class Query {
         private String aKey;
         private String aValue;
-        
+
         protected Query() {}
-        
+
         public Query(Entry<String, String> pEntry) {
             aKey = pEntry.getKey();
             aValue = pEntry.getValue();
@@ -239,7 +239,7 @@ public class HttpMessage {
             if (aMap == null) { return false; }
             Query q = (Query) pO;
             String candidate = aMap.get(q.getKey());
-            
+
             if ((candidate==null && q.getValue()==null)|| (candidate!=null && candidate.equals(q.getValue()))) {
                 aMap.remove(q.getKey());
                 return true;
@@ -263,18 +263,18 @@ public class HttpMessage {
     private String aPathInfo;
     private String aContextPath;
 
-    protected HttpMessage() {
-        
+    public HttpMessage() {
+
     }
-    
+
     public String getQuery(String pName) {
         return aQueries == null ? null : aQueries.get(pName);
     }
-    
+
     public String getPost(String pName) {
         return aPost ==null ? null : aPost.get(pName);
     }
-    
+
     public String getParam(String pName) {
         String result = getQuery(pName);
         if (result != null) {
@@ -282,7 +282,7 @@ public class HttpMessage {
         }
         return getPost(pName);
     }
-    
+
     @XmlElement(name="query", namespace=HttpMessage.NAMESPACE)
     public Collection<Query> getQueries() {
         if (aQueries == null) {
@@ -290,7 +290,7 @@ public class HttpMessage {
         }
         return new QueryMapCollection(aQueries);
     }
-    
+
     @XmlElement(name="post", namespace=HttpMessage.NAMESPACE)
     public Collection<Query> getPost() {
         if (aPost == null) {
@@ -303,16 +303,16 @@ public class HttpMessage {
     public Body getBody() {
         return aBody;
     }
-    
+
     public void setBody(Body pBody) {
         aBody = pBody;
     }
-    
+
     public Collection<ByteContent> getByteContent() {
         if (aByteContent==null) {
             aByteContent= new ArrayList<ByteContent>();
         }
-        return aByteContent; 
+        return aByteContent;
     }
 
     public void setPathInfo(String pathInfo) {

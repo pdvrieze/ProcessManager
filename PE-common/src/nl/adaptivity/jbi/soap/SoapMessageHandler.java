@@ -55,7 +55,7 @@ public class SoapMessageHandler {
       WebMethod annotation = candidate.getAnnotation(WebMethod.class);
 
       if (annotation !=null && ((annotation.operationName().length()==0 && candidate.getName().equals(pOperation.getLocalPart())) ||
-          annotation.operationName()==pOperation.getLocalPart())) {
+          annotation.operationName().equals(pOperation.getLocalPart()))) {
         SoapMethodWrapper result = new SoapMethodWrapper(target, candidate);
         return result;
       }

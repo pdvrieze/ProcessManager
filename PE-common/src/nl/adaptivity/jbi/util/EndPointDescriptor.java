@@ -4,22 +4,25 @@ import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 
-@XmlRootElement(name="endPointDescriptor")
+@XmlRootElement(name="endpointDescriptor", namespace=EndPointDescriptor.MY_JBI_NS)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(propOrder={"serviceName", "endpointName"})
+@XmlType(propOrder={"serviceNamespace", "serviceLocalName", "endpointName"})
 public class EndPointDescriptor {
 
-  private QName aServiceName;
+  public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
+  private String aServiceLocalName;
+  private String aServiceNamespace;
   private String aEndpointName;
 
   public EndPointDescriptor() {}
 
   public EndPointDescriptor(QName pServiceName, String pEndpointName) {
-    aServiceName = pServiceName;
+    aServiceLocalName = pServiceName.getLocalPart();
+    aServiceNamespace = pServiceName.getNamespaceURI();
     aEndpointName = pEndpointName;
   }
 
-  @XmlElement
+  @XmlAttribute(name="endpointName")
   public String getEndpointName() {
     return aEndpointName;
   }
@@ -28,13 +31,26 @@ public class EndPointDescriptor {
     aEndpointName = endpointName;
   }
 
-  @XmlElement
-  public QName getServiceName() {
-    return aServiceName;
+  @XmlAttribute(name="serviceLocalName")
+  public String getServiceLocalName() {
+    return aServiceLocalName;
   }
 
-  public void setServiceName(QName serviceName) {
-    aServiceName = serviceName;
+  public void setServiceLocalName(String localName) {
+    aServiceLocalName = localName;
+  }
+
+  @XmlAttribute(name="serviceNS")
+  public String getServiceNamespace() {
+    return aServiceNamespace;
+  }
+
+  public void setServiceNamespace(String serviceNamespace) {
+    aServiceNamespace = serviceNamespace;
+  }
+
+  public QName getServiceName() {
+    return new QName(aServiceNamespace, aServiceLocalName);
   }
 
 }

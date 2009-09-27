@@ -108,7 +108,7 @@ public class Activity extends ProcessNode{
   public <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance) {
     // TODO handle imports
     T message = pMessageService.createMessage(aMessage);
-    if (! pMessageService.sendMessage(message)) {
+    if (! pMessageService.sendMessage(message, pInstance)) {
       pInstance.failTask();
     }
 

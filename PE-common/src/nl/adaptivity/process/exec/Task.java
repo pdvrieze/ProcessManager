@@ -8,7 +8,7 @@ import nl.adaptivity.process.IMessageService;
 
 public interface Task extends HandleAware<Task>{
 
-  @XmlRootElement(name="taskState", namespace="http:://adaptivity.nl/userMessageHandler")
+  @XmlRootElement(name="taskState", namespace="http://adaptivity.nl/userMessageHandler")
   public static enum TaskState {
     Available,
     Taken,

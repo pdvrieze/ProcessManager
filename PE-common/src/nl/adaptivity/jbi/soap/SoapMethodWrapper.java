@@ -140,12 +140,16 @@ public class SoapMethodWrapper {
     }
   }
 
-  private Object getParam(Class<?> pClass, Node pValue) throws MessagingException {
+  private Object getParam(Class<?> pClass, Node pAttrWrapper) throws MessagingException {
+    Node value = pAttrWrapper ==null ? null : pAttrWrapper.getFirstChild();
     Object result;
-    if (pValue != null && (! pClass.isInstance(pValue))) {
+    if (value != null && (! pClass.isInstance(value))) {
       if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass))) {
-        result = Types.parsePrimitive(pClass, pValue.getTextContent());
+        result = Types.parsePrimitive(pClass, value.getTextContent());
       } else {
+        if (value.getNextSibling()!=null) {
+          throw new UnsupportedOperationException("Collection parameters not yet supported");
+        }
         try {
           JAXBContext context;
 
@@ -156,13 +160,13 @@ public class SoapMethodWrapper {
           }
           Unmarshaller um = context.createUnmarshaller();
           if (pClass.isInterface()) {
-            result = um.unmarshal(pValue);
+            result = um.unmarshal(value);
             if (result instanceof JAXBElement) {
               result = ((JAXBElement<?>)result).getValue();
             }
           } else {
             final JAXBElement<?> umresult;
-            umresult = um.unmarshal(pValue, pClass);
+            umresult = um.unmarshal(value, pClass);
             result = umresult.getValue();
           }
 
@@ -171,7 +175,7 @@ public class SoapMethodWrapper {
         }
       }
     } else {
-      result = pValue;
+      result = value;
     }
 
     return result;

@@ -306,7 +306,12 @@ public class MethodWrapper {
       elementType = Types.commonAncestor(pResult);
     }
     try {
-      JAXBContext context = newJAXBContext(JAXBCollectionWrapper.class, elementType);
+      JAXBContext context;
+      if (elementType==null) {
+        context = newJAXBContext(JAXBCollectionWrapper.class);
+      } else {
+        context = newJAXBContext(JAXBCollectionWrapper.class, elementType);
+      }
       return new JAXBSource(context, new JAXBCollectionWrapper(pResult, elementType).getJAXBElement(pName));
     } catch (JAXBException e) {
       throw new MessagingException(e);
