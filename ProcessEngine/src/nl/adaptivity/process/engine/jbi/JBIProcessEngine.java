@@ -214,19 +214,9 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {
-            QName qname2 = new QName(EndPointDescriptor.MY_JBI_NS, "serviceName", "");
-            final QName serviceName = aEndPoint.getServiceName();
-            List<Namespace> namespaces2 = Collections.singletonList(xef.createNamespace(serviceName.getPrefix(), serviceName.getNamespaceURI()));
-            out.add(xef.createStartElement(qname2, null, namespaces2.iterator()));
-            out.add(xef.createCharacters(serviceName.getPrefix()+":"+serviceName.getLocalPart()));
-            out.add(xef.createEndElement(qname2, namespaces2.iterator()));
-          }
-
-          {
-            QName qname3 = new QName(EndPointDescriptor.MY_JBI_NS, "endpointName", "");
-            out.add(xef.createStartElement(qname3, null, null));
-            out.add(xef.createCharacters(aEndPoint.getEndpointName()));
-            out.add(xef.createEndElement(qname3, null));
+            out.add(xef.createAttribute("serviceNS", aEndPoint.getServiceName().getNamespaceURI()));
+            out.add(xef.createAttribute("serviceLocalName", aEndPoint.getServiceName().getLocalPart()));
+            out.add(xef.createAttribute("endpointName", aEndPoint.getEndpointName()));
           }
 
           xef.createEndElement(qname1, namespaces.iterator());
