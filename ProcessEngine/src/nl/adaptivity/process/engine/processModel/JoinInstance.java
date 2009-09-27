@@ -2,13 +2,14 @@ package nl.adaptivity.process.engine.processModel;
 
 import java.util.Collection;
 
+import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.processModel.Join;
 
 
 public class JoinInstance extends ProcessNodeInstance {
 
-  public JoinInstance(Join pNode, Collection<ProcessNodeInstance> pPredecessors) {
-    super(pNode, null, pPredecessors);
+  public JoinInstance(Join pNode, Collection<ProcessNodeInstance> pPredecessors, ProcessInstance pProcessInstance) {
+    super(pNode, null, pPredecessors, pProcessInstance);
   }
 
   private int aComplete = 0;
@@ -30,7 +31,7 @@ public class JoinInstance extends ProcessNodeInstance {
   public void incSkipped() {
     aSkipped++;
   }
-  
+
   @Override
   public Join getNode() {
     return (Join) super.getNode();
@@ -43,10 +44,10 @@ public class JoinInstance extends ProcessNodeInstance {
   public boolean isFinished() {
     return aFinished;
   }
-  
+
   public void setFinished() {
     aFinished=true;
   }
-  
+
 
 }

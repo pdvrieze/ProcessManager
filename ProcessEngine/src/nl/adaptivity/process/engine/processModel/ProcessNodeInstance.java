@@ -5,12 +5,13 @@ import java.util.Collection;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.InternalMessage;
 import nl.adaptivity.process.engine.Payload;
+import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 
 
-public class ProcessNodeInstance implements Task{
+public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
 
   private final ProcessNode aNode;
   private final InternalMessage aMessage;
@@ -19,12 +20,14 @@ public class ProcessNodeInstance implements Task{
 
   private TaskState aState=null;
   private long aHandle = -1;
+  private final ProcessInstance aProcessInstance;
 
-  public ProcessNodeInstance(ProcessNode pNode, InternalMessage pMessage, Collection<ProcessNodeInstance> pPredecessor) {
+  public ProcessNodeInstance(ProcessNode pNode, InternalMessage pMessage, Collection<ProcessNodeInstance> pPredecessor, ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
     aMessage = pMessage;
     aPredecessors = pPredecessor;
+    aProcessInstance = pProcessInstance;
     if (aPredecessors==null && ! (pNode instanceof StartNode)) {
       throw new NullPointerException();
     }
@@ -69,17 +72,17 @@ public class ProcessNodeInstance implements Task{
     return aHandle;
   }
 
-  public <T> boolean provideTask(IMessageService<T> pMessageService) {
+  public <T> boolean provideTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Available);
     return aNode.provideTask(pMessageService, this);
   }
 
-  public <T> boolean takeTask(IMessageService<T> pMessageService) {
+  public <T> boolean takeTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Taken);
     return aNode.takeTask(pMessageService, this);
   }
 
-  public <T> boolean startTask(IMessageService<T> pMessageService) {
+  public <T> boolean startTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Started);
     return aNode.startTask(pMessageService, this);
   }
@@ -99,6 +102,10 @@ public class ProcessNodeInstance implements Task{
   @Override
   public String toString() {
     return aNode.getClass().getSimpleName()+" ("+aState+")";
+  }
+
+  public ProcessInstance getProcessInstance() {
+    return aProcessInstance;
   }
 
 }

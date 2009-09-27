@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 
@@ -72,17 +74,12 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final IProcessEngine aEngine;
 
-  private final Payload aPayload;
-
-  private Payload aResult;
-
-  public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine, Payload pPayload) {
+  public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine) {
     aProcessModel = pProcessModel;
     aEngine = pEngine;
-    aPayload = pPayload;
     aThreads = new LinkedList<ProcessNodeInstance>();
     for (StartNode node: aProcessModel.getStartNodes()) {
-      ProcessNodeInstance instance = new ProcessNodeInstance(node, null, null);
+      ProcessNodeInstance instance = new ProcessNodeInstance(node, null, null, this);
       aThreads.add(instance);
     }
     aJoins = new HashMap<Join, JoinInstance>();
@@ -100,7 +97,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     if (result == null) {
       Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pJoin.getPredecessors().size());
       predecessors.add(pPredecessor);
-      result = new JoinInstance(pJoin, predecessors);
+      result = new JoinInstance(pJoin, predecessors, this);
       aJoins.put(pJoin, result);
     } else {
       result.addPredecessor(pPredecessor);
@@ -140,43 +137,50 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return new ProcessInstanceRef(this);
   }
 
-  public void start(IMessageService pMessageService) {
+  public void start(IMessageService<?, ProcessNodeInstance> pMessageService) {
     for(ProcessNodeInstance node:aThreads) {
       provideTask(pMessageService, node);
     }
   }
 
-  private void provideTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode) {
+  public void provideTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.provideTask(pMessageService)) {
       takeTask(pMessageService, pNode);
     }
   }
 
-  private void takeTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode) {
+  public void takeTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.takeTask(pMessageService)) {
       startTask(pMessageService, pNode);
     }
   }
 
-  private void startTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode) {
+  public void startTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.startTask(pMessageService)) {
       finishTask(pMessageService, pNode, null);
     }
   }
 
-  private void finishTask(IMessageService<?> pMessageService, ProcessNodeInstance pNode, Payload pPayload) {
+  public void finishTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Node pPayload) {
     pNode.finishTask(pPayload);
     aThreads.remove(pNode);
     List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
     final List<ProcessNodeInstance> nodelist = Arrays.asList(pNode);
     for (ProcessNode successorNode: pNode.getNode().getSuccessors()) {
-      ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, null, nodelist);
+      ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, null, nodelist, this);
       aThreads.add(instance);
       startedTasks.add(instance);
     }
     for (ProcessNodeInstance task:startedTasks) {
       provideTask(pMessageService, task);
     }
+  }
+
+  public void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
+    // TODO Auto-generated method stub
+    //
+    throw new UnsupportedOperationException("Not yet implemented");
+
   }
 
 }

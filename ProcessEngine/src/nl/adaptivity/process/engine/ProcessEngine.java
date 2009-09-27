@@ -1,9 +1,12 @@
 package nl.adaptivity.process.engine;
 
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
@@ -13,21 +16,21 @@ public class ProcessEngine implements IProcessEngine {
 
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
 
-  private final HandleMap<Task> aTaskMap = new HandleMap<Task>();
+  private final HandleMap<ProcessNodeInstance> aTaskMap = new HandleMap<ProcessNodeInstance>();
 
   private final HandleMap<ProcessModel> aProcessModels = new HandleMap<ProcessModel>();
 
   private ProcessMessageListener aMessageListener;
 
-  private final IMessageService<?> aMessageService;
+  private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
-  public ProcessEngine(IMessageService<?> pMessageService) {
+  public ProcessEngine(IMessageService<?, ProcessNodeInstance> pMessageService) {
     aMessageService = pMessageService;
   }
 
   @Override
   public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload) {
-    ProcessInstance instance = new ProcessInstance(pModel, this, pPayload);
+    ProcessInstance instance = new ProcessInstance(pModel, this);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start(aMessageService);
     return result;
@@ -86,14 +89,37 @@ public class ProcessEngine implements IProcessEngine {
     return aInstanceMap;
   }
 
-  public void updateTaskState(long pHandle, TaskState pNewState) {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
-
+  public TaskState updateTaskState(long pHandle, TaskState pNewState) {
+    ProcessNodeInstance t = aTaskMap.get(pHandle);
+    ProcessInstance pi = t.getProcessInstance();
+    switch (pNewState) {
+      case Available:
+        throw new IllegalArgumentException("Updating task state to initial state not possible");
+      case Taken:
+        pi.takeTask(aMessageService, t);
+        break;
+      case Started:
+        pi.startTask(aMessageService, t);
+        break;
+      case Complete:
+        throw new IllegalArgumentException("Finishing a task must be done by a separate method");
+      case Failed:
+        pi.failTask(aMessageService, t);
+        break;
+      default:
+        throw new IllegalArgumentException("Unsupported state");
+    }
+    return t.getState();
   }
 
-  public long registerMessage(Task pInstance) {
+  public TaskState finishTask(long pHandle, Node pPayload) {
+    ProcessNodeInstance t = aTaskMap.get(pHandle);
+    ProcessInstance pi = t.getProcessInstance();
+    pi.finishTask(aMessageService, t, pPayload);
+    return t.getState();
+  }
+
+  public long registerMessage(ProcessNodeInstance pInstance) {
     if (pInstance.getHandle()>=0) {
       throw new IllegalArgumentException("Process node already registered");
     }

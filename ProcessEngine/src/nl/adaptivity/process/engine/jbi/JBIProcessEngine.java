@@ -37,6 +37,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import net.devrieze.util.HandleMap;
@@ -49,7 +50,7 @@ import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
@@ -62,7 +63,7 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 @WebService(targetNamespace=JBIProcessEngine.PROCESS_ENGINE_NS)
-public class JBIProcessEngine implements Component, Runnable, IMessageService<JBIProcessEngine.JBIMessage> {
+public class JBIProcessEngine implements Component, Runnable, IMessageService<JBIProcessEngine.JBIMessage, ProcessNodeInstance> {
 
   private class JBIMessage {
 
@@ -590,9 +591,16 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
   @WebMethod(operationName="updateTaskState")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
-  public void updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
+  public TaskState updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
                               @WebParam(name="state", mode=Mode.IN) @RestParam(name="state", type=ParamType.QUERY) TaskState pNewState) {
-    aProcessEngine.updateTaskState(pHandle, pNewState);
+    return aProcessEngine.updateTaskState(pHandle, pNewState);
+  }
+
+  @WebMethod(operationName="finishTask")
+  @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state=Complete"})
+  public TaskState finishTask(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
+                              @WebParam(name="payload", mode=Mode.IN) @RestParam(name="payload", type=ParamType.QUERY) Node pPayload) {
+    return aProcessEngine.finishTask(pHandle, pPayload);
   }
 
 
@@ -652,7 +660,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @Override
-  public boolean sendMessage(JBIMessage pMessage, Task pInstance) {
+  public boolean sendMessage(JBIMessage pMessage, ProcessNodeInstance pInstance) {
     try {
       DeliveryChannel deliveryChannel = aContext.getDeliveryChannel();
       ServiceEndpoint se = aContext.getEndpoint(pMessage.getService(), pMessage.getEndpoint());
