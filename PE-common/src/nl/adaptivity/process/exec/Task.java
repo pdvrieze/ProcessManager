@@ -6,7 +6,7 @@ import net.devrieze.util.HandleMap.HandleAware;
 
 import nl.adaptivity.process.IMessageService;
 
-public interface Task extends HandleAware<Task>{
+public interface Task<V extends Task> extends HandleAware<V>{
 
   @XmlRootElement(name="taskState", namespace="http://adaptivity.nl/userMessageHandler")
   public static enum TaskState {
@@ -21,11 +21,11 @@ public interface Task extends HandleAware<Task>{
 
   public void setState(TaskState aNewState);
 
-  public <T> boolean provideTask(IMessageService<T> pMessageService);
+  public <T> boolean provideTask(IMessageService<T, V> pMessageService);
 
-  public <T> boolean takeTask(IMessageService<T> pMessageService);
+  public <T> boolean takeTask(IMessageService<T, V> pMessageService);
 
-  public <T> boolean startTask(IMessageService<T> pMessageService);
+  public <T> boolean startTask(IMessageService<T, V> pMessageService);
 
   public void finishTask(Object pPayload);
 

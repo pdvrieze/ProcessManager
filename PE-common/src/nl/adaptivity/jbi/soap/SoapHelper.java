@@ -76,7 +76,9 @@ public class SoapHelper {
     pMessage.appendChild(wrapper);
 
     final Class<?> paramType = pParam.getElem2();
-    if (Types.isPrimitive(paramType)|| Types.isPrimitiveWrapper(paramType)) {
+    if (pParam.getElem3()==null) {
+      // don't add anything
+    } if (Types.isPrimitive(paramType)|| Types.isPrimitiveWrapper(paramType)) {
       wrapper.appendChild(pResultDoc.createTextNode(pParam.getElem3().toString()));
     } else if (Collection.class.isAssignableFrom(paramType)){
       Collection<?> params = (Collection<?>) pParam.getElem3();

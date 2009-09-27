@@ -110,7 +110,7 @@ public abstract class ProcessNode implements Serializable {
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract <T> boolean provideTask(IMessageService<T> pMessageService, Task pInstance);
+  public abstract <T, U extends Task> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance);
 
   /**
    * Take action to accept the task (but not start it yet)
@@ -118,8 +118,8 @@ public abstract class ProcessNode implements Serializable {
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */
-  public abstract <T> boolean takeTask(IMessageService<T> pMessageService, Task pInstance);
+  public abstract <T, U extends Task> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance);
 
-  public abstract <T> boolean startTask(IMessageService<T> pMessageService, Task pInstance);
+  public abstract <T, U extends Task> boolean startTask(IMessageService<T, U> pMessageService, U pInstance);
 
 }
