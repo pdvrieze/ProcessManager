@@ -6,7 +6,6 @@ import nl.adaptivity.gwt.base.client.MyFileUpload;
 import nl.adaptivity.gwt.base.client.MyFormPanel;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteEvent;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteHandler;
-import nl.adaptivity.gwt.ext.client.ControllingListBox;
 import nl.adaptivity.gwt.ext.client.RemoteListBox;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -60,7 +59,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private static final String PROCESSLISTURL = BASEURL+"/ProcessEngine/processModels";
 
-  private static final String PROCESSINSTANCELISTURL = BASEURL+"processInstances";
+  private static final String PROCESSINSTANCELISTURL = BASEURL+"/ProcessEngine/processInstances";
 
   private static final String TASKLISTURL = BASEURL+"/UserMessageService/pendingTasks";
 
@@ -80,7 +79,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private RemoteListBox aProcessListBox;
 
-  private ControllingListBox aInstanceListBox;
+  private RemoteListBox aInstanceListBox;
 
   private RemoteListBox aTaskListBox;
 
@@ -216,7 +215,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     aProcessListBox.setRootElement("processModels");
     aProcessListBox.setListElement("processModel");
     aProcessListBox.setValueElement("@handle");
-    aProcessListBox.setTextElement("@name");
+    aProcessListBox.setTextElement("=@{handle}: @{name}");
     hp1.add(aProcessListBox);
 
     aProcessListBox.addItem("Process1");
@@ -269,11 +268,16 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     HorizontalPanel hp1 = new HorizontalPanel();
     hp1.addStyleName("tabPanel");
 
-    aInstanceListBox = new ControllingListBox();
+    aInstanceListBox = new RemoteListBox(PROCESSINSTANCELISTURL);
+    aInstanceListBox.setRootElement("processInstances");
+    aInstanceListBox.setListElement("processInstance");
+    aInstanceListBox.setValueElement("@handle");
+    aInstanceListBox.setTextElement("=Instance @{handle} of model (@{processModel})");
+
+
     hp1.add(aInstanceListBox);
     aInstanceListBox.addStyleName("mhList");
     aInstanceListBox.addStyleName("tabContent");
-    aInstanceListBox.addChangeHandler(this);
 
     VerticalPanel vp1 = new VerticalPanel();
     hp1.add(vp1);
@@ -363,10 +367,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
     if (aRefreshCheckbox.getValue()) {
       aProcessListBox.update();
       aTaskListBox.update();
-//      requestProcessesUpdate();
+      aInstanceListBox.update();
     }
-//    requestInstancesUpdate();
-//    requestTaskUpdate();
   }
 
   /**
@@ -549,6 +551,11 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
       aProcessListBox.start();
     } else {
       aProcessListBox.stop();
+    }
+    if ("Instances".equals(tabText)) {
+      aInstanceListBox.start();
+    } else {
+      aInstanceListBox.stop();
     }
     if ("Tasks".equals(tabText)) {
       aTaskListBox.start();
