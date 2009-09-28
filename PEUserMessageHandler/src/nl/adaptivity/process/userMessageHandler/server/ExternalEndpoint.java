@@ -38,7 +38,7 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   @XmlElementWrapper(name="tasks", namespace=UserMessageService.UMH_NS)
   @RestMethod(method=HttpMethod.GET, path="/pendingTasks")
-  public Collection<UserTask> getPendingTasks() {
+  public Collection<UserTask<?>> getPendingTasks() {
     return aService.getPendingTasks();
   }
 

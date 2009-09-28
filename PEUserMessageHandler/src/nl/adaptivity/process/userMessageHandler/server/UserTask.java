@@ -5,11 +5,10 @@ import javax.jbi.component.ComponentContext;
 import net.devrieze.util.HandleMap.HandleAware;
 
 import nl.adaptivity.jbi.util.EndPointDescriptor;
-import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.exec.Task.TaskState;
 
 
-public interface UserTask  extends HandleAware<Task>{
+public interface UserTask <T extends UserTask<T>> extends HandleAware<T>{
 
   public TaskState getState();
 

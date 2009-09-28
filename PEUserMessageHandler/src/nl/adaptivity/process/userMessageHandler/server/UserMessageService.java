@@ -20,14 +20,14 @@ public class UserMessageService implements EndpointProvider {
   private InternalEndpoint internalEndpoint;
   private ExternalEndpoint externalEndpoint;
 
-  private HandleMap<UserTask> tasks;
+  private HandleMap<UserTask<?>> tasks;
 
   private ComponentContext aContext;
 
   public UserMessageService() {
     internalEndpoint = new InternalEndpoint(this);
     externalEndpoint = new ExternalEndpoint(this);
-    tasks = new HandleMap<UserTask>();
+    tasks = new HandleMap<UserTask<?>>();
 //    DummyTask task = new DummyTask("blabla");
 //    task.setHandle(1);
 //    tasks.add(task);
@@ -38,21 +38,25 @@ public class UserMessageService implements EndpointProvider {
     return Arrays.asList(internalEndpoint, externalEndpoint);
   }
 
-  public boolean postTask(UserTask pTask) {
+  public boolean postTask(UserTask<?> pTask) {
     pTask.setContext(getContext());
     return tasks.put(pTask) >= 0;
   }
 
-  public Collection<UserTask> getPendingTasks() {
+  public Collection<UserTask<?>> getPendingTasks() {
     return tasks.toCollection();
   }
 
   public TaskState finishTask(long pHandle) {
-    getTask(pHandle).setState(TaskState.Complete);
-    return TaskState.Complete;
+    final UserTask<?> task = getTask(pHandle);
+    task.setState(TaskState.Complete);
+    if (task.getState()==TaskState.Complete|| task.getState()==TaskState.Failed) {
+      tasks.remove(task);
+    }
+    return task.getState();
   }
 
-  private UserTask getTask(long pHandle) {
+  private UserTask<?> getTask(long pHandle) {
     return tasks.get(pHandle);
   }
 

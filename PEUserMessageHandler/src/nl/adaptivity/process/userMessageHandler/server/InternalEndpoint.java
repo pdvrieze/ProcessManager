@@ -8,7 +8,6 @@ import javax.jbi.servicedesc.ServiceEndpoint;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
-import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
@@ -29,7 +28,7 @@ public class InternalEndpoint implements GenericEndpoint {
 
   @XmlRootElement(name="task")
   @XmlAccessorType(XmlAccessType.NONE)
-  public static class XmlTask implements UserTask{
+  public static class XmlTask implements UserTask<XmlTask>{
     private static final QName UPDATE_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "updateTaskState");
     private static final QName FINISH_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "finishTask");
     private long aHandle;
@@ -97,7 +96,8 @@ public class InternalEndpoint implements GenericEndpoint {
       if (channel.sendSync(ex)) {
         NormalizedMessage result = ex.getOutMessage();
         if (result!=null) {
-          TaskState newState = JAXB.unmarshal(result.getContent(), TaskState.class);
+          TaskState newState = SoapHelper.processResponse(TaskState.class, result.getContent());
+          aState = newState;
           return newState;
         }
       }
@@ -105,7 +105,7 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     private TaskState finishRemoteTask() throws JAXBException, MessagingException {
-      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
+      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
       DeliveryChannel channel = aContext.getDeliveryChannel();
 
       ServiceEndpoint se = null;
@@ -125,10 +125,12 @@ public class InternalEndpoint implements GenericEndpoint {
       NormalizedMessage message = ex.createMessage();
       message.setContent(messageContent);
       ex.setInMessage(message);
+      // TODO Perhaps use async communication for this
       if (channel.sendSync(ex)) {
         NormalizedMessage result = ex.getOutMessage();
         if (result!=null) {
-          TaskState newState = JAXB.unmarshal(result.getContent(), TaskState.class);
+          TaskState newState = SoapHelper.processResponse(TaskState.class, result.getContent());
+          aState = newState;
           return newState;
         }
       }
@@ -200,7 +202,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public boolean postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask pTask) {
+  public boolean postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     return aService.postTask(pTask);
   }
