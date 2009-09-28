@@ -5,7 +5,9 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
@@ -16,25 +18,19 @@ import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
 import javax.xml.XMLConstants;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
-import net.devrieze.util.StringDataSource;
+import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 
 
@@ -86,15 +82,7 @@ public class SoapMethodWrapper {
     Node root = (Node) pBody.getAny().get(0);
     assertRootNode(root);
 
-    LinkedHashMap<String, Node> params = new LinkedHashMap<String, Node>();
-
-    Node child = root.getFirstChild();
-    while (child != null) {
-      if (child.getNodeType()==Node.ELEMENT_NODE) {
-        params.put(child.getLocalName(), child);
-      }
-      child = child.getNextSibling();
-    }
+    LinkedHashMap<String, Node> params = SoapHelper.getParamMap(root);
 
     Class<?>[] parameterTypes = aMethod.getParameterTypes();
     Annotation[][] parameterAnnotations = aMethod.getParameterAnnotations();
@@ -113,7 +101,7 @@ public class SoapMethodWrapper {
       if (value==null) {
         throw new MessagingException("Parameter \""+name+"\" not found");
       }
-      aParams[i] = getParam(parameterTypes[i], value);
+      aParams[i] = SoapHelper.unMarshalNode(aMethod, parameterTypes[i], value);
 
     }
     if (params.size()>0) {
@@ -138,47 +126,6 @@ public class SoapMethodWrapper {
         throw new MessagingException("Root node does not correspond to operation namespace");
       }
     }
-  }
-
-  private Object getParam(Class<?> pClass, Node pAttrWrapper) throws MessagingException {
-    Node value = pAttrWrapper ==null ? null : pAttrWrapper.getFirstChild();
-    Object result;
-    if (value != null && (! pClass.isInstance(value))) {
-      if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass))) {
-        result = Types.parsePrimitive(pClass, value.getTextContent());
-      } else {
-        if (value.getNextSibling()!=null) {
-          throw new UnsupportedOperationException("Collection parameters not yet supported");
-        }
-        try {
-          JAXBContext context;
-
-          if (pClass.isInterface()) {
-            context = newJAXBContext(Collections.<Class<?>>emptyList());
-          } else {
-            context = newJAXBContext(Collections.<Class<?>>singletonList(pClass));
-          }
-          Unmarshaller um = context.createUnmarshaller();
-          if (pClass.isInterface()) {
-            result = um.unmarshal(value);
-            if (result instanceof JAXBElement) {
-              result = ((JAXBElement<?>)result).getValue();
-            }
-          } else {
-            final JAXBElement<?> umresult;
-            umresult = um.unmarshal(value, pClass);
-            result = umresult.getValue();
-          }
-
-        } catch (JAXBException e) {
-          throw new MessagingException(e);
-        }
-      }
-    } else {
-      result = value;
-    }
-
-    return result;
   }
 
   private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) throws MessagingException {
@@ -224,62 +171,17 @@ public class SoapMethodWrapper {
   }
 
   public void marshalResult(NormalizedMessage pReply) throws MessagingException {
-    Envelope envelope = new Envelope();
-    org.w3.soapEnvelope.Body body = new org.w3.soapEnvelope.Body();
-    envelope.setBody(body);
-    List<Class<?>> contextList = new ArrayList<Class<?>>();
-    contextList.add(Envelope.class);
-
-    boolean contentSet = false;
-    XmlRootElement xmlRootElement = aResult==null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
-    if (xmlRootElement!=null) {
-      body.getAny().add(aResult);
-      contextList.add(aResult.getClass());
-      try {
-        JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
-        pReply.setContent(new JAXBSource(jaxbContext, aResult));
-      } catch (JAXBException e) {
-        throw new MessagingException(e);
-      }
-    } else if (aResult instanceof Source) {
+    if (aResult instanceof Source) {
       pReply.setContent((Source) aResult);
-      contentSet = true;
-    } else if (aResult instanceof Node){
-      body.getAny().add(aResult);
-    } else if (aResult instanceof Collection) {
-      XmlElementWrapper annotation = aMethod.getAnnotation(XmlElementWrapper.class);
-      if (annotation!=null) {
-        JAXBCollectionWrapper collectionWrapper = wrapCollection(aMethod.getGenericReturnType(), (Collection<?>) aResult);
-        JAXBElement<JAXBCollectionWrapper> jaxbElement = collectionWrapper.getJAXBElement(getQName(annotation));
-        contextList.add(JAXBCollectionWrapper.class);
-        final Class<?> elementType = collectionWrapper.getElementType();
-        if (elementType!=null && elementType!=Object.class) {
-          contextList.add(elementType);
-        }
-        body.getAny().add(jaxbElement);
-      }
-    } else if (aResult instanceof CharSequence) {
-      DocumentBuilder db;
-      try {
-        db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      } catch (ParserConfigurationException e) {
-        e.printStackTrace();
-        throw new MessagingException(e);
-      }
-      Document doc = db.newDocument();
-
-      body.getAny().add(doc.createTextNode(aResult.toString()));
-      pReply.addAttachment("text", new DataHandler(new StringDataSource("text", "text/plain", aResult.toString())));
     }
-    if (! contentSet) {
-      try {
-        JAXBContext context = newJAXBContext(contextList);
-        Marshaller m = context.createMarshaller();
-        JAXBSource source = new JAXBSource(m, envelope);
-        pReply.setContent(source);
-      } catch (JAXBException e) {
-        throw new MessagingException(e);
-      }
+
+    @SuppressWarnings("unchecked") Tripple<String, Class<?>, Object>[] params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
+                                                                                             Tripple.tripple("result", aMethod.getReturnType(), aResult)};
+    try {
+      Source result = SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), params);
+      pReply.setContent(result);
+    } catch (JAXBException e) {
+      throw new MessagingException(e);
     }
 
   }
@@ -324,24 +226,6 @@ public class SoapMethodWrapper {
       collectionWrapper = new JAXBCollectionWrapper(pCollection, elementType);
     }
     return collectionWrapper;
-  }
-
-  private JAXBContext newJAXBContext(List<Class<?>> pClasses) throws JAXBException {
-    Class<?>[] classList;
-    Class<?> clazz = aMethod.getDeclaringClass();
-    XmlSeeAlso seeAlso = clazz.getAnnotation(XmlSeeAlso.class);
-    if (seeAlso!=null && seeAlso.value().length>0) {
-      final Class<?>[] seeAlsoClasses = seeAlso.value();
-      final int seeAlsoLength = seeAlsoClasses.length;
-      classList = new Class<?>[seeAlsoLength+pClasses.size()];
-      System.arraycopy(seeAlsoClasses, 0, classList, 0, seeAlsoLength);
-      for(int i=0; i<pClasses.size();++i) {
-        classList[seeAlsoLength+i] = pClasses.get(i);
-      }
-    } else {
-      classList = pClasses.toArray(new Class[pClasses.size()]);
-    }
-    return JAXBContext.newInstance(classList);
   }
 
   private static QName getQName(XmlElementWrapper pAnnotation) {
