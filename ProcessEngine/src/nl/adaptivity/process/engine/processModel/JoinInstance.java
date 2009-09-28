@@ -9,7 +9,7 @@ import nl.adaptivity.process.processModel.Join;
 public class JoinInstance extends ProcessNodeInstance {
 
   public JoinInstance(Join pNode, Collection<ProcessNodeInstance> pPredecessors, ProcessInstance pProcessInstance) {
-    super(pNode, null, pPredecessors, pProcessInstance);
+    super(pNode, pPredecessors, pProcessInstance);
   }
 
   private int aComplete = 0;

@@ -69,14 +69,16 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private long aHandle;
 
-  private final IProcessEngine aEngine;
+  private final ProcessEngine aEngine;
 
-  public ProcessInstance(ProcessModel pProcessModel, IProcessEngine pEngine) {
+  private Node aPayload;
+
+  public ProcessInstance(ProcessModel pProcessModel, ProcessEngine pEngine) {
     aProcessModel = pProcessModel;
     aEngine = pEngine;
     aThreads = new LinkedList<ProcessNodeInstance>();
     for (StartNode node: aProcessModel.getStartNodes()) {
-      ProcessNodeInstance instance = new ProcessNodeInstance(node, null, null, this);
+      ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
       aThreads.add(instance);
     }
     aJoins = new HashMap<Join, JoinInstance>();
@@ -117,16 +119,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aHandle = pHandle;
   }
 
-  public ProcessNodeInstance getProcesNodeInstanceFor(InternalMessage pRepliedMessage) {
-    for(ProcessNodeInstance thread:aThreads) {
-      if (thread.getMessage()==pRepliedMessage) {
-        return thread;
-      }
-    }
-    return null;
-  }
-
-  public IProcessEngine getEngine() {
+  public ProcessEngine getEngine() {
     return aEngine;
   }
 
@@ -134,7 +127,12 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return new ProcessInstanceRef(this);
   }
 
-  public void start(IMessageService<?, ProcessNodeInstance> pMessageService) {
+  public Node getPayload() {
+    return aPayload;
+  }
+
+  public void start(IMessageService<?, ProcessNodeInstance> pMessageService, Node pPayload) {
+    aPayload = pPayload;
     for(ProcessNodeInstance node:aThreads) {
       provideTask(pMessageService, node);
     }
@@ -168,7 +166,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
       final List<ProcessNodeInstance> nodelist = Arrays.asList(pNode);
       for (ProcessNode successorNode: pNode.getNode().getSuccessors()) {
-        ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, null, nodelist, this);
+        ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, nodelist, this);
         aThreads.add(instance);
         startedTasks.add(instance);
       }

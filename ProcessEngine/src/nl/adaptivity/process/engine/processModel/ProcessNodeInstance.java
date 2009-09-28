@@ -2,9 +2,9 @@ package nl.adaptivity.process.engine.processModel;
 
 import java.util.Collection;
 
+import org.w3c.dom.Node;
+
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.InternalMessage;
-import nl.adaptivity.process.engine.Payload;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.processModel.ProcessNode;
@@ -14,19 +14,17 @@ import nl.adaptivity.process.processModel.StartNode;
 public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
 
   private final ProcessNode aNode;
-  private final InternalMessage aMessage;
-  private Payload aPayload;
+  private Node aPayload;
   private final Collection<ProcessNodeInstance> aPredecessors;
 
   private TaskState aState=null;
   private long aHandle = -1;
   private final ProcessInstance aProcessInstance;
 
-  public ProcessNodeInstance(ProcessNode pNode, InternalMessage pMessage, Collection<ProcessNodeInstance> pPredecessor, ProcessInstance pProcessInstance) {
+  public ProcessNodeInstance(ProcessNode pNode, Collection<ProcessNodeInstance> pPredecessors, ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
-    aMessage = pMessage;
-    aPredecessors = pPredecessor;
+    aPredecessors = pPredecessors;
     aProcessInstance = pProcessInstance;
     if (aPredecessors==null && ! (pNode instanceof StartNode)) {
       throw new NullPointerException();
@@ -37,11 +35,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
     return aNode;
   }
 
-  public InternalMessage getMessage() {
-    return aMessage;
-  }
-
-  public Payload getPayload() {
+  public Node getPayload() {
     return aPayload;
   }
 
@@ -87,9 +81,9 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
     return aNode.startTask(pMessageService, this);
   }
 
-  public void finishTask(Object pPayload) {
+  public void finishTask(Node pPayload) {
     setState(TaskState.Complete);
-    aPayload = new Payload(pPayload);
+    aPayload = pPayload;
   }
 
   @Override

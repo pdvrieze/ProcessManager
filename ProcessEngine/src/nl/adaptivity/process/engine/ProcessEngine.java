@@ -7,12 +7,11 @@ import net.devrieze.util.HandleMap.Handle;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 
 
-public class ProcessEngine implements IProcessEngine {
+public class ProcessEngine /* implements IProcessEngine*/ {
 
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
 
@@ -20,62 +19,37 @@ public class ProcessEngine implements IProcessEngine {
 
   private final HandleMap<ProcessModel> aProcessModels = new HandleMap<ProcessModel>();
 
-  private ProcessMessageListener aMessageListener;
-
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
   public ProcessEngine(IMessageService<?, ProcessNodeInstance> pMessageService) {
     aMessageService = pMessageService;
   }
 
-  @Override
-  public HProcessInstance startProcess(ProcessModel pModel, Payload pPayload) {
+  public HProcessInstance startProcess(ProcessModel pModel, Node pPayload) {
     ProcessInstance instance = new ProcessInstance(pModel, this);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
-    instance.start(aMessageService);
+    instance.start(aMessageService, pPayload);
     return result;
   }
 
-  public HProcessInstance startProcess(Handle<ProcessModel> pProcessModel, Payload pPayload) {
+  public HProcessInstance startProcess(Handle<ProcessModel> pProcessModel, Node pPayload) {
     return startProcess(aProcessModels.get(pProcessModel), pPayload);
   }
 
-  private void verifyMessage(InternalMessage pRepliedMessage, ExtMessage pMessage) throws InvalidMessageException {
-    if (pRepliedMessage==null) {
-      throw new InvalidMessageException("The message replied to can not be found", pMessage);
-    }
-    if (! pRepliedMessage.isValidReply(pMessage)) {
-      throw new InvalidMessageException("The message is not in reply to the original", pMessage);
-    }
-
-    // TODO further validation
-  }
-
-  public Task retrieveTask(long pHandle) {
+  public ProcessNodeInstance retrieveTask(long pHandle) {
     return aTaskMap.get(pHandle);
   }
 
-  public void setMessageListener(ProcessMessageListener messageListener) {
-    aMessageListener = messageListener;
-  }
-
-  public ProcessMessageListener getMessageListener() {
-    return aMessageListener;
-  }
-
-  @Override
   public void finishInstance(ProcessInstance pProcessInstance) {
-    if (aMessageListener!=null) {
-      aMessageListener.fireFinishedInstance(pProcessInstance.getHandle());
-    }
     aInstanceMap.remove(pProcessInstance);
   }
 
-  @Override
   public void cancelAll() {
     for(ProcessInstance instance: aInstanceMap) {
-      aMessageListener.cancelInstance(instance.getHandle());
       aInstanceMap.remove(instance);
+    }
+    for(ProcessNodeInstance task: aTaskMap) {
+      aTaskMap.remove(task);
     }
   }
 
