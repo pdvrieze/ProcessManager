@@ -16,10 +16,7 @@ import net.devrieze.util.HandleMap.HandleAware;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.*;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>{
@@ -163,16 +160,21 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public void finishTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Node pPayload) {
     pNode.finishTask(pPayload);
-    aThreads.remove(pNode);
-    List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
-    final List<ProcessNodeInstance> nodelist = Arrays.asList(pNode);
-    for (ProcessNode successorNode: pNode.getNode().getSuccessors()) {
-      ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, null, nodelist, this);
-      aThreads.add(instance);
-      startedTasks.add(instance);
-    }
-    for (ProcessNodeInstance task:startedTasks) {
-      provideTask(pMessageService, task);
+    if (pNode.getNode() instanceof EndNode) {
+      finish();
+      aThreads.remove(pNode);
+    } else {
+      aThreads.remove(pNode);
+      List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
+      final List<ProcessNodeInstance> nodelist = Arrays.asList(pNode);
+      for (ProcessNode successorNode: pNode.getNode().getSuccessors()) {
+        ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, null, nodelist, this);
+        aThreads.add(instance);
+        startedTasks.add(instance);
+      }
+      for (ProcessNodeInstance task:startedTasks) {
+        provideTask(pMessageService, task);
+      }
     }
   }
 

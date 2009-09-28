@@ -65,7 +65,9 @@ public class ProcessEngine implements IProcessEngine {
 
   @Override
   public void finishInstance(ProcessInstance pProcessInstance) {
-    aMessageListener.fireFinishedInstance(pProcessInstance.getHandle());
+    if (aMessageListener!=null) {
+      aMessageListener.fireFinishedInstance(pProcessInstance.getHandle());
+    }
     aInstanceMap.remove(pProcessInstance);
   }
 
@@ -116,7 +118,11 @@ public class ProcessEngine implements IProcessEngine {
     ProcessNodeInstance t = aTaskMap.get(pHandle);
     ProcessInstance pi = t.getProcessInstance();
     pi.finishTask(aMessageService, t, pPayload);
-    return t.getState();
+    final TaskState newState = t.getState();
+    if (newState==TaskState.Complete) {
+      aTaskMap.remove(t);
+    }
+    return newState;
   }
 
   public long registerMessage(ProcessNodeInstance pInstance) {

@@ -88,6 +88,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
   }
 
   public void finishTask(Object pPayload) {
+    setState(TaskState.Complete);
     aPayload = new Payload(pPayload);
   }
 
