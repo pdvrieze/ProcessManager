@@ -9,7 +9,11 @@
 package nl.adaptivity.process.processModel;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
+import javax.lang.model.element.Element;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.transform.*;
@@ -44,11 +48,12 @@ public class XmlMessage {
 
     @XmlAttribute(required = true)
     protected QName service;
-    @XmlAttribute
+    @XmlAttribute(required = true)
     protected String endpoint;
-    @XmlAttribute
+    @XmlAttribute(required = true)
     protected QName operation;
     private Node aBody;
+    private ArrayList<Object> aAny;
 
     /**
      * Gets the value of the service property.
@@ -111,7 +116,34 @@ public class XmlMessage {
     }
 
     @XmlAnyElement(lax=false)
+    public Collection<Object> getAny() {
+      if (aAny == null) {
+        aAny = new ArrayList<Object>(1);
+        if (aBody!=null) {
+          aAny.add(aBody);
+          aBody = null;
+        }
+      }
+      return aAny;
+    }
+
     public Node getMessageBody() {
+      if (aBody ==null && aAny!=null) {
+        Iterator<Object> it = aAny.iterator();
+        while(it.hasNext()) {
+          Object next = it.next();
+          if (! (next instanceof Element)) {
+            it.remove();
+          }
+        }
+        if (aAny.size()>0) {
+          if (aAny.size()>1) { throw new IllegalStateException("Only one member allowed"); }
+
+          aBody = (Node) aAny.get(0);
+          aAny = null;
+        }
+      }
+
       return aBody;
     }
 

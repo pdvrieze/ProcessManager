@@ -11,7 +11,7 @@ import net.devrieze.util.HandleMap.HandleAware;
 //@XmlRootElement(name="processModel")
 //@XmlType(name="ProcessModel")
 //@XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModel implements HandleAware, Serializable{
+public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
 
   private static final long serialVersionUID = -4199223546188994559L;
   private Collection<StartNode> aStartNodes;
@@ -27,10 +27,10 @@ public class ProcessModel implements HandleAware, Serializable{
   public ProcessModel(EndNode... pEndNodes) {
     this(Arrays.asList(pEndNodes));
   }
-  
+
   public ProcessModel(XmlProcessModel pXmlModel) {
     Collection<EndNode> endNodes = new ArrayList<EndNode>();
-    
+
     for(ProcessNode node:pXmlModel.getNodes()) {
       if (node instanceof EndNode) {
         endNodes.add((EndNode) node);
@@ -38,13 +38,13 @@ public class ProcessModel implements HandleAware, Serializable{
     }
 
     aEndNodeCount = endNodes.size();
-    
+
     aStartNodes = reverseGraph(endNodes);
     setName(pXmlModel.getName());
   }
 
   private static Collection<StartNode> reverseGraph(Collection<EndNode> pEndNodes) {
-    
+
     Collection<StartNode> resultList = new ArrayList<StartNode>();
     for (EndNode endNode:pEndNodes) {
       reverseGraph(resultList, endNode);
@@ -85,7 +85,7 @@ public class ProcessModel implements HandleAware, Serializable{
     }
     return list.toArray(new ProcessNode[list.size()]);
   }
-  
+
   public void setModelNodes(ProcessNode[] pProcessNodes) {
     ArrayList<EndNode> endNodes = new ArrayList<EndNode>();
     for(ProcessNode n:pProcessNodes) {
@@ -107,7 +107,7 @@ public class ProcessModel implements HandleAware, Serializable{
       extractElements(pTo, pSeen, node);
     }
   }
-  
+
   public Collection<StartNode> getStartNodes() {
     return aStartNodes;
   }
@@ -119,11 +119,11 @@ public class ProcessModel implements HandleAware, Serializable{
   public int getEndNodeCount() {
     return aEndNodeCount;
   }
-  
+
   public String getName() {
     return aName;
   }
-  
+
   public void setName(String name) {
     aName = name;
   }
