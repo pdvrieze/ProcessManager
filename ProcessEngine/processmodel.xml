@@ -42,9 +42,63 @@
           </Envelope>
         </message>
       </activity>
-      <!--<join id="j1" min="2" max="2">
-        <predecessor>ac1</predecessor>
+      <activity id="ac3" predecessor="ac1" name="ac3">
+        <message service="umh:userMessageHandler" endpoint="internal" operation="postTask">
+          <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+            <Body>
+              <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                <replies>
+                  <jbi:element value="endpoint"/>
+                </replies>
+                <task>
+                  <task summary="Task Baz1">
+                    <jbi:attribute name="remotehandle" value="handle"/>
+                  </task>
+                </task>
+              </postTask>
+            </Body>
+          </Envelope>
+        </message>
+      </activity>
+      <activity id="ac5" predecessor="ac3" name="ac5">
+        <message service="umh:userMessageHandler" endpoint="internal" operation="postTask">
+          <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+            <Body>
+              <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                <replies>
+                  <jbi:element value="endpoint"/>
+                </replies>
+                <task>
+                  <task summary="Task Baz2">
+                    <jbi:attribute name="remotehandle" value="handle"/>
+                  </task>
+                </task>
+              </postTask>
+            </Body>
+          </Envelope>
+        </message>
+      </activity>
+      <join id="j1" min="2" max="2">
         <predecessor>ac2</predecessor>
-      </join>-->
-      <end predecessor="ac2"/>
+        <predecessor>ac5</predecessor>
+      </join>
+      <activity id="ac4" predecessor="j1" name="ac4">
+        <message service="umh:userMessageHandler" endpoint="internal" operation="postTask">
+          <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+            <Body>
+              <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                <replies>
+                  <jbi:element value="endpoint"/>
+                </replies>
+                <task>
+                  <task summary="Task Last">
+                    <jbi:attribute name="remotehandle" value="handle"/>
+                  </task>
+                </task>
+              </postTask>
+            </Body>
+          </Envelope>
+        </message>
+      </activity>
+      <end predecessor="ac4"/>
 </processModel>
