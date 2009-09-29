@@ -132,6 +132,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public void start(IMessageService<?, ProcessNodeInstance> pMessageService, Node pPayload) {
+    if (aThreads.size()==0) { throw new IllegalStateException("No starting nodes in process"); }
     aPayload = pPayload;
     for(ProcessNodeInstance node:aThreads) {
       provideTask(pMessageService, node);
