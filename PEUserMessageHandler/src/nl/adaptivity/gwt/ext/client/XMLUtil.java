@@ -1,7 +1,7 @@
 package nl.adaptivity.gwt.ext.client;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Element;
+import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.Node;
 
 
@@ -67,7 +67,7 @@ public class XMLUtil {
           while (j<pSpec.length() && pSpec.charAt(j)!='}') {
             ++j;
           }
-          result.append(getAttributeValue(pNode, pSpec.substring(i, j)));
+          result.append(getAttributeValue((Element)pNode, pSpec.substring(i, j)));
           ++j;
         } else {
           ++j;
@@ -75,7 +75,7 @@ public class XMLUtil {
           while (j<pSpec.length() && isChar(pSpec.charAt(j))) {
             ++j;
           }
-          result.append(getAttributeValue(pNode, pSpec.substring(i, j)));
+          result.append(getAttributeValue((Element)pNode, pSpec.substring(i, j)));
         }
 
         i=j;
@@ -125,7 +125,7 @@ public class XMLUtil {
           while (j<pSpec.length() && pSpec.charAt(j)!='}') {
             ++j;
           }
-          result.append(getAttributeValue(Element.as(pNode), pSpec.substring(i, j)));
+          result.append(getAttributeValue(com.google.gwt.dom.client.Element.as(pNode), pSpec.substring(i, j)));
           ++j;
         } else {
           ++j;
@@ -133,7 +133,7 @@ public class XMLUtil {
           while (j<pSpec.length() && isChar(pSpec.charAt(j))) {
             ++j;
           }
-          result.append(getAttributeValue(Element.as(pNode), pSpec.substring(i, j)));
+          result.append(getAttributeValue(com.google.gwt.dom.client.Element.as(pNode), pSpec.substring(i, j)));
         }
 
         i=j;
@@ -171,7 +171,7 @@ public class XMLUtil {
     return value;
   }
 
-  public static String getAttributeValue(Node pNode, String pName) {
+  public static String getAttributeValue(Element pNode, String pName) {
     final Node val = pNode.getAttributes().getNamedItem(pName);
     if (val==null) {
       GWT.log("Attribute "+pName+" could not be resolved", null);
@@ -179,7 +179,7 @@ public class XMLUtil {
     return val ==null ? null : val.toString();
   }
 
-  private static String getAttributeValue(com.google.gwt.dom.client.Element pNode, String pName) {
+  public static String getAttributeValue(com.google.gwt.dom.client.Element pNode, String pName) {
     String val = pNode.getAttribute(pName);
 
     if (val==null) {
