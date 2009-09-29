@@ -2,17 +2,49 @@
 <processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
       xmlns="http://adaptivity.nl/ProcessEngine/"
+      xmlns:umh="http://adaptivity.nl/userMessageHandler"
+      xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
       name="testProcessModel">
       <start id="start"/>
       <activity id="ac1" predecessor="start" name="ac1">
-        <message service="foo"/>
+        <message service="umh:userMessageHandler" endpoint="internal" operation="postTask">
+          <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+            <Body>
+              <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                <replies>
+                  <jbi:element value="endpoint"/>
+                </replies>
+                <task>
+                  <task summary="Task Foo">
+                    <jbi:attribute name="remotehandle" value="handle"/>
+                  </task>
+                </task>
+              </postTask>
+            </Body>
+          </Envelope>
+        </message>
       </activity>
-      <activity id="ac2" predecessor="start" name="ac2">
-        <message service="bar"/>
+      <activity id="ac2" predecessor="ac1" name="ac2">
+        <message service="umh:userMessageHandler" endpoint="internal" operation="postTask">
+          <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+            <Body>
+              <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                <replies>
+                  <jbi:element value="endpoint"/>
+                </replies>
+                <task>
+                  <task summary="Task Foo">
+                    <jbi:attribute name="remotehandle" value="handle"/>
+                  </task>
+                </task>
+              </postTask>
+            </Body>
+          </Envelope>
+        </message>
       </activity>
-      <join id="j1" min="2" max="2">
+      <!--<join id="j1" min="2" max="2">
         <predecessor>ac1</predecessor>
         <predecessor>ac2</predecessor>
-      </join>
-      <end predecessor="j1"/>
+      </join>-->
+      <end predecessor="ac2"/>
 </processModel>

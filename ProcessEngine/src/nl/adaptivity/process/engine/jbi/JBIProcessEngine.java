@@ -103,6 +103,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     public void setHandle(long pHandle) throws MessagingException {
       try {
         XMLInputFactory xif = XMLInputFactory.newInstance();
+        if (aBody ==null) { throw new NullPointerException(); }
         XMLEventReader xer = xif.createXMLEventReader(aBody);
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
