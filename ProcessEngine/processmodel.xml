@@ -33,7 +33,7 @@
                   <jbi:element value="endpoint"/>
                 </replies>
                 <task>
-                  <task summary="Task Foo">
+                  <task summary="Task Bar">
                     <jbi:attribute name="remotehandle" value="handle"/>
                   </task>
                 </task>
