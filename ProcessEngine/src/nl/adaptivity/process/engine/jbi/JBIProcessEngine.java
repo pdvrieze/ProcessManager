@@ -116,7 +116,6 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
         }
         DOMResult result = new DOMResult(db.newDocument());
         XMLEventWriter xew = xof.createXMLEventWriter(result);
-        StartElement lastSE = null;
 
         while (xer.hasNext()) {
           XMLEvent event = xer.nextEvent();
@@ -126,19 +125,14 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
             if (MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
               @SuppressWarnings("unchecked") Iterator<Attribute> attributes = se.getAttributes();
               if (eName.getLocalPart().equals("attribute")) {
-                writeAttribute(lastSE, xer, attributes, xew, pHandle);
+                writeAttribute(xer, attributes, xew, pHandle);
               } else if (eName.getLocalPart().equals("element")) {
-                xew.add(lastSE);
                 writeElement(xer, attributes, xew, pHandle);
               } else {
                 throw new MessagingException("Unsupported activity modifier");
               }
-              lastSE = null;
             } else {
-              if (lastSE!=null) {
-                xew.add(lastSE);
-              }
-              lastSE = se;
+              xew.add(se);
             }
           } else {
             if (event.isCharacters()) {
@@ -155,10 +149,6 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
               }
             }
 
-            if (lastSE!=null) {
-              xew.add(lastSE);
-              lastSE = null;
-            }
             if (event instanceof Namespace) {
 
               Namespace ns = (Namespace) event;
@@ -221,7 +211,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
             out.add(xef.createAttribute("endpointName", aEndPoint.getEndpointName()));
           }
 
-          xef.createEndElement(qname1, namespaces.iterator());
+          out.add(xef.createEndElement(qname1, namespaces.iterator()));
         }
       } else {
         throw new MessagingException("Missing parameter name");
@@ -229,7 +219,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
     }
 
-    private void writeAttribute(StartElement pLastSE, XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException, MessagingException {
+    private void writeAttribute(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException, MessagingException {
       String valueName = null;
       String paramName = null;
       {
@@ -271,27 +261,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
           } else {
             attr = xef.createAttribute("handle", Long.toString(pHandle));
           }
-          {
-
-            final QName qname = pLastSE.getName();
-            final StartElement newSE = xef.createStartElement(qname, null, null);
-            out.add(newSE);
-          }
-          {
-            @SuppressWarnings("unchecked") Iterator<? extends XMLEvent> it = pLastSE.getAttributes();
-            while (it.hasNext()) {
-              out.add(it.next());
-            }
-            out.add(attr);
-          }
-          {
-            @SuppressWarnings("unchecked") Iterator<? extends XMLEvent> it = pLastSE.getNamespaces();
-            while (it.hasNext()) {
-              out.add(it.next());
-            }
-          }
-        } else {
-          out.add(pLastSE);
+          out.add(attr);
         }
 
 
