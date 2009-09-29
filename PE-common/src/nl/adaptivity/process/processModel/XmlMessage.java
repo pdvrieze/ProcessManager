@@ -13,13 +13,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.lang.model.element.Element;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 
@@ -132,14 +134,14 @@ public class XmlMessage {
         Iterator<Object> it = aAny.iterator();
         while(it.hasNext()) {
           Object next = it.next();
-          if (! (next instanceof Element)) {
-            it.remove();
+          if ((next instanceof Element) || (next instanceof Document) || (next instanceof DocumentFragment)) {
+            if (aBody !=null) {
+              throw new IllegalStateException("Only one member allowed");
+            }
+            aBody = (Node) next;
           }
         }
-        if (aAny.size()>0) {
-          if (aAny.size()>1) { throw new IllegalStateException("Only one member allowed"); }
-
-          aBody = (Node) aAny.get(0);
+        if (aBody!=null) {
           aAny = null;
         }
       }
@@ -166,7 +168,7 @@ public class XmlMessage {
     }
 
     public Source getBodySource() {
-      return new DOMSource(aBody);
+      return new DOMSource(getMessageBody());
     }
 
     @Override
