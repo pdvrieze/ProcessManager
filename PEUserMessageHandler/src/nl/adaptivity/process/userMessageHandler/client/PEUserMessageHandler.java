@@ -1,7 +1,5 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
-import java.util.ArrayList;
-
 import nl.adaptivity.gwt.base.client.MyFileUpload;
 import nl.adaptivity.gwt.base.client.MyFormPanel;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteEvent;
@@ -9,8 +7,6 @@ import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteHandler;
 import nl.adaptivity.gwt.ext.client.RemoteListBox;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.event.dom.client.*;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.event.logical.shared.SelectionHandler;
@@ -21,10 +17,6 @@ import com.google.gwt.http.client.*;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.*;
-import com.google.gwt.xml.client.Document;
-import com.google.gwt.xml.client.NamedNodeMap;
-import com.google.gwt.xml.client.Node;
-import com.google.gwt.xml.client.XMLParser;
 
 
 /**
@@ -39,21 +31,12 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
       aStatusLabel.setText("File submit complete!!");
       com.google.gwt.dom.client.Document results = pEvent.getResults();
       if (results != null) {
-        GWT.log("Actually got a response: \""+results+"\"", null);
-        updateProcessList(asProcessList(results));
+        aProcessListBox.update(results);
       } else {
         aProcessListBox.update();
       }
     }
   }
-
-  /**
-   * The message displayed to the user when the server cannot be reached or
-   * returns an error.
-   */
-  private static final String SERVER_ERROR = "An error occurred while " +
-      "attempting to contact the server. Please check your network " +
-      "connection and try again.";
 
   private static final String BASEURL = ""/*"http://localhost:8192/ProcessEngine/"*/;
 
@@ -93,58 +76,8 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
 
   private TabPanel aTabPanel;
 
+  @SuppressWarnings("unused")
   private HandlerRegistration aHistoryHandler;
-
-  /**
-   * @category helper
-   */
-  private static ProcessModelRef[] asProcessList(final String pText) {
-    final Document myResponse;
-
-    myResponse = XMLParser.parse(pText);
-    ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
-
-    Node root = myResponse.getFirstChild();
-    if (root.getNodeName().equals("processModels")) {
-      Node child = root.getFirstChild();
-      while(child!=null) {
-        if ("processModel".equals(child.getNodeName()) ){
-          final NamedNodeMap attributes = child.getAttributes();
-          String name = attributes.getNamedItem("name").getNodeValue();
-          String handle = attributes.getNamedItem("handle").getNodeValue();
-          result.add(new ProcessModelRef(handle, name));
-        }
-        child = child.getNextSibling();
-      }
-      return result.toArray(new ProcessModelRef[result.size()]);
-    }
-
-    return new ProcessModelRef[0];
-  }
-
-  /**
-   * @category helper
-   */
-  private static ProcessModelRef[] asProcessList(final com.google.gwt.dom.client.Document pDocument) {
-    ArrayList<ProcessModelRef> result = new ArrayList<ProcessModelRef>();
-
-    Element root = Element.as(pDocument.getFirstChild());
-    if (root.getNodeName().equals("processModels")) {
-      Element child = root.getFirstChildElement();
-      while(child!=null) {
-        if ("processModel".equals(child.getNodeName()) ){
-          String name = child.getAttribute("name");
-          String handle = child.getAttribute("handle");
-          result.add(new ProcessModelRef(handle, name));
-        }
-        child = child.getNextSiblingElement();
-      }
-      GWT.log("  return "+result.toString(), null);
-      return result.toArray(new ProcessModelRef[result.size()]);
-    }
-
-    return new ProcessModelRef[0];
-  }
 
   /**
    * This is the entry point method.
@@ -338,28 +271,6 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   }
 
   /**
-     * @category UI
-     */
-    private void updateProcessList(ProcessModelRef[] pProcessModels) {
-      int selectedIndex = aProcessListBox.getSelectedIndex();
-      String selected = selectedIndex>=0 ? aProcessListBox.getValue(selectedIndex) : null;
-      aProcessListBox.clear();
-
-      int newSelected = -1;
-      int i=0;
-      for(ProcessModelRef ref:pProcessModels) {
-        aProcessListBox.addItem(ref.name, ref.handle);
-        if (ref.handle.equals(selected)) {
-          newSelected = i;
-        }
-        ++i;
-      }
-      if (newSelected>=0) {
-        aProcessListBox.setSelectedIndex(newSelected);
-      }
-    }
-
-  /**
    * @category method
    */
   protected void refreshState() {
@@ -377,17 +288,17 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   @Override
   public void onClick(ClickEvent pEvent) {
     if (pEvent.getSource()==aStartTaskButton) {
-      startTask(pEvent);
+      startTask();
     } else if (pEvent.getSource()==aTakeTaskButton){
-      takeTask(pEvent);
+      takeTask();
     } else if (pEvent.getSource()==aCompleteTaskButton){
-      completeTask(pEvent);
+      completeTask();
     } else if (pEvent.getSource()==aShowInstanceStatusButton) {
-      showInstance(pEvent);
+      showInstance();
     } else if (pEvent.getSource()==aStartProcessButton) {
-      startProcess(pEvent);
+      startProcess();
     } else if (pEvent.getSource()==aProcessFileSubmitButton) {
-      submitProcessFile(pEvent);
+      submitProcessFile();
     }
   }
 
@@ -397,14 +308,14 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   @Override
   public void onChange(ChangeEvent pEvent) {
     if (pEvent.getSource()==aProcessUpload) {
-      changeProcessUpload(pEvent);
+      changeProcessUpload();
     }
   }
 
   /**
    * @category event handler
    */
-  private void changeProcessUpload(ChangeEvent pEvent) {
+  private void changeProcessUpload() {
     aProcessFileSubmitButton.setEnabled(aProcessUpload.getFilename().length()>0);
     aStatusLabel.setText("upload file changed");
   }
@@ -412,7 +323,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   /**
    * @category action
    */
-  private void submitProcessFile(ClickEvent pEvent) {
+  private void submitProcessFile() {
     aProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
     aProcessFileForm.submit();
 
@@ -422,7 +333,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   /**
    * @category action
    */
-  private void startProcess(ClickEvent pEvent) {
+  private void startProcess() {
     aStatusLabel.setText("startProcess");
     String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
     String URL=PROCESSLISTURL+"/"+handle;
@@ -455,14 +366,14 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   /**
    * @category action
    */
-  private void showInstance(DomEvent<?> pEvent) {
+  private void showInstance() {
     aStatusLabel.setText("showInstance");
   }
 
   /**
    * @category action
    */
-  private void startTask(DomEvent<?> pEvent) {
+  private void startTask() {
     aStatusLabel.setText("startTask");
     String newState = "Started";
     updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
@@ -471,7 +382,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   /**
    * @category action
    */
-  private void takeTask(DomEvent<?> pEvent) {
+  private void takeTask() {
     aStatusLabel.setText("takeTask");
     String newState = "Taken";
     updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
@@ -480,7 +391,7 @@ public class PEUserMessageHandler implements EntryPoint, ClickHandler, ChangeHan
   /**
    * @category action
    */
-  private void completeTask(DomEvent<?> pEvent) {
+  private void completeTask() {
     aStatusLabel.setText("completeTask");
     String newState = "Finished";
     updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
