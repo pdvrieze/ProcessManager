@@ -105,7 +105,7 @@ public class Activity extends ProcessNode{
   }
 
   @Override
-  public <T, U extends Task> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
     // TODO handle imports
     T message = pMessageService.createMessage(aMessage);
     if (! pMessageService.sendMessage(message, pInstance)) {
@@ -116,12 +116,12 @@ public class Activity extends ProcessNode{
   }
 
   @Override
-  public <T, U extends Task> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
     return false;
   }
 
   @Override
-  public <T, U extends Task> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
     return false;
   }
 

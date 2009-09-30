@@ -110,7 +110,7 @@ public abstract class ProcessNode implements Serializable {
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract <T, U extends Task> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance);
 
   /**
    * Take action to accept the task (but not start it yet)
@@ -118,8 +118,30 @@ public abstract class ProcessNode implements Serializable {
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */
-  public abstract <T, U extends Task> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance);
 
-  public abstract <T, U extends Task> boolean startTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance);
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    result.append(getClass().getName()).append(" (").append(getId());
+    if (this.getPredecessors()==null || getPredecessors().size()==0) {
+      result.append(')');
+    } if (this.getPredecessors().size()>1) {
+      result.append(", pred={");
+      for(ProcessNode pred:getPredecessors()) {
+        result.append(pred.getId()).append(", ");
+      }
+      if (result.charAt(result.length()-2)==',') {
+        result.setLength(result.length()-2);
+      }
+      result.append("})");
+    } else {
+      result.append(", pred=").append(getPredecessors().iterator().next().getId());
+      result.append(')');
+    }
+    return result.toString();
+  }
 
 }

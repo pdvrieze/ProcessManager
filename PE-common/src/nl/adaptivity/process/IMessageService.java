@@ -4,7 +4,7 @@ import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.processModel.XmlMessage;
 
 
-public interface IMessageService<T,U extends Task> {
+public interface IMessageService<T,U extends Task<U>> {
 
   T createMessage(XmlMessage pMessage);
 

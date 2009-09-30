@@ -83,11 +83,21 @@ public class Join extends ProcessNode{
 //  @XmlIDREF
   @Override
   public Collection<ProcessNode> getPredecessors() {
+    if (aPred!=null) {
+      Collection<ProcessNode> pred = super.getPredecessors();
+      for(Object o:aPred) {
+        if (o instanceof ProcessNode) {
+          pred.add((ProcessNode) o);
+        }
+      }
+      aPred = null;
+      return pred;
+    }
     return super.getPredecessors();
   }
 
   @Override
-  public <T, U extends Task> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
@@ -95,7 +105,7 @@ public class Join extends ProcessNode{
   }
 
   @Override
-  public <T, U extends Task> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
@@ -103,7 +113,7 @@ public class Join extends ProcessNode{
   }
 
   @Override
-    public <T, U extends Task> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
+    public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
   //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
   //    if (j.isFinished()) {
   //      return;

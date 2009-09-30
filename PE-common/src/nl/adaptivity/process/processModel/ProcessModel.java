@@ -57,14 +57,16 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
     for(ProcessNode prev: previous) {
       if (prev instanceof StartNode) {
         if (prev.getSuccessors()==null) {
-          pResultList.add((StartNode) prev);
+          prev.addSuccessor(pNode);
         }
-        prev.addSuccessor(pNode);
-      } else if (prev.getSuccessors()==null || prev.getSuccessors().size()==0){
-        prev.addSuccessor(pNode);
-        reverseGraph(pResultList, prev);
+        pResultList.add((StartNode) prev);
       } else {
-        prev.addSuccessor(pNode);
+        if (prev.getSuccessors()==null || prev.getSuccessors().size()==0){
+          prev.addSuccessor(pNode);
+          reverseGraph(pResultList, prev);
+        } else {
+          prev.addSuccessor(pNode);
+        }
       }
     }
   }

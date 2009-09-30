@@ -60,17 +60,17 @@ public class EndNode extends ProcessNode{
   }
 
   @Override
-  public <T, U extends Task> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
     return true;
   }
 
   @Override
-    public <T, U extends Task> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
+    public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
   //    pProcessInstance.finish();
       return true;
     }
