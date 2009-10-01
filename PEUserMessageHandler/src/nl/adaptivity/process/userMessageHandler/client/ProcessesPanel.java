@@ -11,6 +11,7 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.http.client.*;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.*;
 
 
@@ -40,32 +41,47 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
   private final Label aStatusLabel;
 
+  private VerticalPanel aButtonsPanel;
+
+  private Button aRenameProcessButton;
+
+  private VerticalPanel aNonListPanel;
+
   public ProcessesPanel(Label pStatusLabel) {
+    HorizontalSplitPanel mainPanel = new HorizontalSplitPanel();
     aStatusLabel = pStatusLabel;
-    HorizontalPanel hp1 = new HorizontalPanel();
-    hp1.addStyleName("tabPanel");
+    VerticalPanel leftPanel = new VerticalPanel();
+    leftPanel.addStyleName("tabPanel");
+    mainPanel.setLeftWidget(leftPanel);
 
     aProcessListBox = new RemoteListBox(PROCESSLISTURL);
     aProcessListBox.setRootElement("processModels");
     aProcessListBox.setListElement("processModel");
     aProcessListBox.setValueElement("@handle");
     aProcessListBox.setTextElement("=@{handle}: @{name}");
-    hp1.add(aProcessListBox);
+    leftPanel.add(aProcessListBox);
+    leftPanel.setCellHeight(aProcessListBox, "100%");
 
     aProcessListBox.addItem("Process1");
     aProcessListBox.addItem("Process2");
     aProcessListBox.addStyleName("mhList");
     aProcessListBox.addStyleName("tabContent");
 
-    VerticalPanel vp1 = new VerticalPanel();
-    vp1.addStyleName("tabContent");
-    hp1.add(vp1);
+    aNonListPanel = new VerticalPanel();
+    aNonListPanel.addStyleName("tabContent");
+    leftPanel.add(aNonListPanel);
 
     aStartProcessButton = new Button("Start process");
     aProcessListBox.addControlledWidget(aStartProcessButton);
     aStartProcessButton.addStyleName("inTabButton");
     aStartProcessButton.addClickHandler(this);
-    vp1.add(aStartProcessButton);
+    aNonListPanel.add(aStartProcessButton);
+
+    aRenameProcessButton = new Button("Rename process");
+    aProcessListBox.addControlledWidget(aRenameProcessButton);
+    aRenameProcessButton.addStyleName("inTabButton");
+    aRenameProcessButton.addClickHandler(this);
+    aNonListPanel.add(aRenameProcessButton);
 
     aProcessFileForm = new MyFormPanel();
     aProcessFileForm.setAction(PROCESSLISTURL);
@@ -73,26 +89,40 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     aProcessFileForm.setMethod(FormPanel.METHOD_POST);
     aProcessFileForm.addStyleName("fileForm");
 
-    VerticalPanel vp2 = new VerticalPanel();
-    aProcessFileForm.setWidget(vp2);
+    aButtonsPanel = new VerticalPanel();
+    aProcessFileForm.setWidget(aButtonsPanel);
 
     Label label = new Label();
     label.setText("Upload new model");
-    vp2.add(label);
+    aButtonsPanel.add(label);
 
     aProcessUpload = new MyFileUpload();
     aProcessUpload.setName("processUpload");
     aProcessUpload.registerChangeHandler(this);
-    vp2.add(aProcessUpload);
+    aButtonsPanel.add(aProcessUpload);
 
 
     aProcessFileSubmitButton = new Button("Submit");
     aProcessFileSubmitButton.addClickHandler(this);
     aProcessUpload.addControlledWidget(aProcessFileSubmitButton);
-    vp2.add(aProcessFileSubmitButton);
+    aButtonsPanel.add(aProcessFileSubmitButton);
 
-    vp1.add(aProcessFileForm);
-    initWidget(hp1);
+    aNonListPanel.add(aProcessFileForm);
+
+    Label rightPanel = new Label("right");
+    mainPanel.setRightWidget(rightPanel);
+
+    int pos = (2*Window.getClientWidth())/9;
+    pos = Math.max(pos, 100);
+    mainPanel.setSplitPosition(pos+"px");
+    aProcessListBox.setWidth("100%");
+    aNonListPanel.setWidth("100%");
+    aProcessUpload.setWidth("100%");
+    aProcessFileForm.setWidth("100%");
+    aButtonsPanel.setWidth("100%");
+
+
+    initWidget(mainPanel);
   }
 
 
@@ -170,6 +200,18 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     aStatusLabel.setText("upload file changed");
   }
 
+
+  public void setHeight(int pHeight) {
+    int height = pHeight;
+    height -= aNonListPanel.getOffsetHeight();
+
+    height -= 5;
+    final int adjust = pHeight- height;
+    final int listBoxHeight = Math.max(150, height);
+    aProcessListBox.setHeight(listBoxHeight+"px");
+    super.setHeight((listBoxHeight+adjust)+"px");
+
+  }
 
   public void start() {
     aProcessListBox.start();

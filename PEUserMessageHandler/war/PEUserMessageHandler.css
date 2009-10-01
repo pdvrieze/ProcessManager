@@ -20,38 +20,70 @@ h1 {
   width: 400px;
 }
 
-.inTabButton {
-  width: 175px;
-}
-
 .gwt-Button.inTabButton {
   margin-bottom: 5px;
 }
 
+.gwt-TabPanelBottom {
+  overflow: auto !important;
+}
+
 .tabPanel {
-  padding: 2px;
+  xpadding: 2px;
 }
 
 #gwt {
-  margin: 10px;
+  margin: 7px;
   text-align: center;
 }
 
 .tabContent {
-  width: 400px;
-  margin: 3px;
+  width: 100%;
+  xmargin: 3px;
+  padding-right:3px;
+}
+
+.tabContent .gwt-Button{
+  width: 100%;
 }
 
 .mhList {
-  width:200px;
+  xwidth:200px;
   height:300px;
+  margin-bottom: 4px;
 }
 
 .fileForm {
-  border: 1px solid black;
+  border: 1px solid green;
   margin-top: 2px;
   margin-bottom: 2px;
-  padding: 4px;
+  padding-bottom: 4px;
+  padding-top: 4px;
+  overflow: hidden;
+}
+
+.dockPanel {
+  width: 100%;
+}
+
+#gwt {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
+}
+
+.gwt-TabPanelBottom {
+  top: 0px;
+  bottom: 0px;
+  overflow: scroll;
+}
+
+.tabPanel {
+  width: 100%;
+  xheight: 100%;
+  overflow: scroll;
 }
 
 .fullWidth {

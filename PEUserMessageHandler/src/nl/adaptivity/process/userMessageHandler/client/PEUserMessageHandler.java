@@ -1,20 +1,18 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.logical.shared.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.*;
 
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<String>, SelectionHandler<Integer> {
+public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<String>, SelectionHandler<Integer>, ResizeHandler {
 
   static final String BASEURL = ""/*"http://localhost:8192/ProcessEngine/"*/;
 
@@ -37,6 +35,12 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   private TasksPanel aTasksPanel;
 
+  private RootPanel aRootPanel;
+
+  private DockPanel aDockPanel;
+
+  private DockPanel aStatusPanel;
+
   /**
    * This is the entry point method.
    * @category UI
@@ -47,13 +51,16 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
       History.newItem("Processes");
     }
 
-    final RootPanel rootPanel = RootPanel.get("gwt");
+    aRootPanel = RootPanel.get("gwt");
 
-    DockPanel dockPanel = new DockPanel();
-    rootPanel.add(dockPanel);
+    aDockPanel = new DockPanel();
+    aDockPanel.addStyleName("dockPanel");
+    aRootPanel.add(aDockPanel);
 
     aTabPanel = new TabPanel();
-    dockPanel.add(aTabPanel, DockPanel.CENTER);
+    aTabPanel.addStyleName("tabPanel");
+    aDockPanel.add(aTabPanel, DockPanel.CENTER);
+    aDockPanel.setCellHeight(aTabPanel, "100%");
 
     aStatusLabel = new Label();
     aStatusLabel.setText("Initializing...");
@@ -71,14 +78,19 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
     aTabPanel.getTabBar().addSelectionHandler(this);
 
-    DockPanel statusPanel = new DockPanel();
-    statusPanel.add(aStatusLabel, DockPanel.WEST);
+    aStatusPanel = new DockPanel();
+    aStatusPanel.add(aStatusLabel, DockPanel.WEST);
 
     aRefreshCheckbox = new CheckBox("refresh");
     aRefreshCheckbox.setValue(DEFAULT_REFRESH);
-    statusPanel.add(aRefreshCheckbox, DockPanel.EAST);
-    statusPanel.addStyleName("fullWidth");
-    dockPanel.add(statusPanel, DockPanel.SOUTH);
+    aStatusPanel.add(aRefreshCheckbox, DockPanel.EAST);
+    aStatusPanel.addStyleName("fullWidth");
+    aDockPanel.add(aStatusPanel, DockPanel.SOUTH);
+    aDockPanel.setCellHeight(aTabPanel, "100%");
+
+    Window.addResizeHandler(this);
+    onResize(null);
+
 
     Timer refreshTimer = new Timer() {
       @Override
@@ -174,6 +186,23 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     } else {
       aTasksPanel.stop();
     }
+  }
+
+  @Override
+  public void onResize(ResizeEvent pEvent) {
+    int height = Window.getClientHeight();
+    aRootPanel.setHeight((height-10)+"px");
+    height -= 14; // margin
+    height -= aStatusPanel.getOffsetHeight();
+    aDockPanel.setHeight(height+"px");
+    height -= aTabPanel.getTabBar().getOffsetHeight();
+
+    height -= 11; // arbitrary missing margin adjustment
+    aTabPanel.getDeckPanel().setHeight(height+"px");
+
+    aProcessesPanel.setHeight(height);
+    aInstancesPanel.setHeight(height+"px");
+    aTasksPanel.setHeight(height+"px");
   }
 
 }
