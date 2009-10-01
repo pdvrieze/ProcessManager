@@ -144,4 +144,16 @@ public abstract class ProcessNode implements Serializable {
     return result.toString();
   }
 
+  public boolean isPredecessorOf(ProcessNode pNode) {
+    for(ProcessNode pred:pNode.getPredecessors()) {
+      if (pred==pNode) {
+        return true;
+      }
+      if (isPredecessorOf(pred)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 }

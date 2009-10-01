@@ -98,36 +98,17 @@ public class Join extends ProcessNode{
 
   @Override
   public <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
-
+    return true;
   }
 
   @Override
   public <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
-
+    return true;
   }
 
   @Override
-    public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
-  //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
-  //    if (j.isFinished()) {
-  //      return;
-  //    }
-  //    j.incComplete();
-  //    if (j.getComplete()>=getMin() || j.getTotal()>=getMax()) {
-  //      cancelPredecessors(pProcessInstance);
-  //      j.setFinished();
-  //      pProcessInstance.removeJoin(j);
-  //      pProcessInstance.finishThread(j);
-  //    } else {
-  //      pThreads.add(j);
-  //    }
-      throw new UnsupportedOperationException("Not yet implemented");
-    }
+  public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
+    return true;
+  }
 
 }
