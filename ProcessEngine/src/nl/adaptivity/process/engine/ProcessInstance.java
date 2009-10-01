@@ -165,9 +165,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     } else {
       aThreads.remove(pNode);
       List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
-      final List<ProcessNodeInstance> nodelist = Arrays.asList(pNode);
       for (ProcessNode successorNode: pNode.getNode().getSuccessors()) {
-        ProcessNodeInstance instance = new ProcessNodeInstance(successorNode, nodelist, this);
+        ProcessNodeInstance instance = getProcessInstance(pNode, successorNode);
         aThreads.add(instance);
         startedTasks.add(instance);
       }
@@ -177,11 +176,70 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
+  private ProcessNodeInstance getProcessInstance(final ProcessNodeInstance pPredecessor, ProcessNode pNode) {
+    if (pNode instanceof Join) {
+      Join join = (Join) pNode;
+      if (aJoins==null) {
+        aJoins = new HashMap<Join, JoinInstance>();
+      }
+      JoinInstance instance = aJoins.get(join);
+      if (instance==null) {
+
+        Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pNode.getPredecessors().size());
+        predecessors.add(pPredecessor);
+        instance = new JoinInstance(join, predecessors , this);
+        aJoins.put(join, instance);
+      } else {
+        instance.addPredecessor(pPredecessor);
+      }
+      return instance;
+
+    } else {
+      return new ProcessNodeInstance(pNode, pPredecessor, this);
+    }
+  }
+
   public void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     // TODO Auto-generated method stub
     //
     throw new UnsupportedOperationException("Not yet implemented");
 
+  }
+
+  public Collection<ProcessNodeInstance> getActivePredecessorsFor(Join pJoin) {
+    ArrayList<ProcessNodeInstance> activePredecesors=new ArrayList<ProcessNodeInstance>(Math.min(pJoin.getPredecessors().size(), aThreads.size()));
+    for(ProcessNodeInstance node:aThreads) {
+      if (node.getNode().isPredecessorOf(pJoin)) {
+        activePredecesors.add(node);
+      }
+    }
+
+
+    // TODO Auto-generated method stub
+    // return null;
+    throw new UnsupportedOperationException("Not yet implemented");
+
+  }
+
+  public Collection<ProcessNodeInstance> getDirectSuccessors(ProcessNodeInstance pPredecessor) {
+    ArrayList<ProcessNodeInstance> result = new ArrayList<ProcessNodeInstance>(pPredecessor.getNode().getSuccessors().size());
+    for (ProcessNodeInstance candidate:aThreads) {
+      addDirectSuccessor(result, candidate, pPredecessor);
+    }
+    return result;
+  }
+
+  private void addDirectSuccessor(ArrayList<ProcessNodeInstance> pResult, ProcessNodeInstance pCandidate, ProcessNodeInstance pPredecessor) {
+    // First look for this node, before diving into it's children
+    for(ProcessNodeInstance node: pCandidate.getDirectPredecessors()) {
+      if (node == pPredecessor) {
+        pResult.add(pCandidate);
+        return; // Assume that there is no further "succcesor" down the chain
+      }
+    }
+    for(ProcessNodeInstance node: pCandidate.getDirectPredecessors()) {
+      addDirectSuccessor(pResult, node, pPredecessor);
+    }
   }
 
 }

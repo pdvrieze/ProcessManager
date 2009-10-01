@@ -1,6 +1,7 @@
 package nl.adaptivity.process.engine.processModel;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import org.w3c.dom.Node;
 
@@ -21,7 +22,17 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
   private long aHandle = -1;
   private final ProcessInstance aProcessInstance;
 
-  public ProcessNodeInstance(ProcessNode pNode, Collection<ProcessNodeInstance> pPredecessors, ProcessInstance pProcessInstance) {
+  public ProcessNodeInstance(ProcessNode pNode, ProcessNodeInstance pPredecessor, ProcessInstance pProcessInstance) {
+    super();
+    aNode = pNode;
+    aPredecessors = Collections.singletonList(pPredecessor);
+    aProcessInstance = pProcessInstance;
+    if (aPredecessors==null && ! (pNode instanceof StartNode)) {
+      throw new NullPointerException();
+    }
+  }
+
+  protected ProcessNodeInstance(ProcessNode pNode, Collection<ProcessNodeInstance> pPredecessors, ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
     aPredecessors = pPredecessors;
@@ -39,7 +50,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
     return aPayload;
   }
 
-  protected Collection<ProcessNodeInstance> getPredecessors() {
+  public Collection<ProcessNodeInstance> getDirectPredecessors() {
     return aPredecessors;
   }
 
