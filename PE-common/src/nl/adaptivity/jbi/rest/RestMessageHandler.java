@@ -50,6 +50,8 @@ public class RestMessageHandler {
   private MethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage httpMessage, Object target) {
 //    final Method[] candidates = target.getClass().getDeclaredMethods();
     Collection<Method> candidates = getCandidatesFor(target.getClass(), pHttpMethod, httpMessage.getPathInfo());
+    MethodWrapper result = null;
+    RestMethod resultAnnotation = null;
     for(Method candidate:candidates) {
       RestMethod annotation = candidate.getAnnotation(RestMethod.class);
       Map<String, String> pathParams = new HashMap<String, String>();
@@ -58,15 +60,22 @@ public class RestMessageHandler {
           annotation.method()==pHttpMethod &&
           pathFits(pathParams, annotation.path(), httpMessage.getPathInfo()) &&
           conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), httpMessage)) {
-        MethodWrapper result = new MethodWrapper(target, candidate);
-        result.setPathParams(pathParams);
-        return result;
+        if (resultAnnotation==null || isMoreSpecificThan(resultAnnotation, annotation)) {
+          result = new MethodWrapper(target, candidate);
+          result.setPathParams(pathParams);
+          resultAnnotation = annotation;
+        }
       }
 
     }
-    return null;
+    return result;
   }
 
+
+  private boolean isMoreSpecificThan(RestMethod pBaseAnnotation, RestMethod pAnnotation) {
+    // TODO more sophisticated filtering
+    return (pBaseAnnotation.path().length()<pAnnotation.path().length());
+  }
 
   private Collection<Method> getCandidatesFor(Class<? extends Object> pClass, HttpMethod pHttpMethod, String pPathInfo) {
     if (cache == null) { cache = new HashMap<Class<?>, EnumMap<HttpMethod,PrefixMap<Method>>>(); }

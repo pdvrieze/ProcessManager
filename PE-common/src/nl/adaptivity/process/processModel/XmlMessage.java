@@ -48,7 +48,6 @@ import org.w3c.dom.Node;
 @XmlType(name = "Message")
 public class XmlMessage {
 
-    @XmlAttribute(required = true)
     protected QName service;
     @XmlAttribute(required = true)
     protected String endpoint;
@@ -65,6 +64,33 @@ public class XmlMessage {
      *     {@link QName }
      *
      */
+    @XmlAttribute(name="serviceName", required = true)
+    public String getServiceName() {
+      return service.getLocalPart();
+    }
+
+    public void setServiceName(String pName) {
+      if (service==null) {
+        service = new QName(pName);
+      } else {
+        service = new QName(service.getNamespaceURI(), pName);
+      }
+    }
+
+
+    @XmlAttribute(name="serviceNS", required = true)
+    public String getServiceNS() {
+      return service.getNamespaceURI();
+    }
+
+    public void setServiceNS(String pNamespace) {
+      if (service==null) {
+        service = new QName(pNamespace, "xx");
+      } else {
+        service = new QName(pNamespace, service.getLocalPart());
+      }
+    }
+
     public QName getService() {
         return service;
     }
