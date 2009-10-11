@@ -192,4 +192,23 @@ public class XMLUtil {
     return Character.isLetterOrDigit(c);
   }
 
+  public static boolean isTag(String pNamespace, String pLocalName, Node pElement) {
+    return isNS(pNamespace, pElement) && isLocalPart(pLocalName, pElement);
+  }
+
+  public static boolean isLocalPart(String pLocalPart, Node pElement) {
+    if (pElement.getNodeType()==Node.ELEMENT_NODE) {
+      return pLocalPart.equals(((Element) pElement).getTagName());
+    }
+    return false;
+  }
+
+  public static boolean isNS(String pNameSpace, Node pElement) {
+    if (pNameSpace==null) {
+      return pElement.getNamespaceURI()==null || "".equals(pElement.getNamespaceURI());
+    } else {
+      return pNameSpace.equals(pElement.getNamespaceURI());
+    }
+  }
+
 }

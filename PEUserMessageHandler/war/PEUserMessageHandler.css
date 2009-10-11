@@ -62,6 +62,11 @@ h1 {
   overflow: hidden;
 }
 
+.leftSplitPanel {
+  padding-right: 2px;
+  overflow:hidden;
+}
+
 .dockPanel {
   width: 100%;
 }
@@ -83,7 +88,7 @@ h1 {
 .tabPanel {
   width: 100%;
   xheight: 100%;
-  overflow: scroll;
+  overflow: hidden;
 }
 
 .fullWidth {
