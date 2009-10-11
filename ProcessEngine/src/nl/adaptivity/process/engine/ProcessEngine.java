@@ -106,4 +106,13 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     return aTaskMap.put(pInstance);
   }
 
+  public void renameProcess(Handle<ProcessModel> pHandle, String pName) {
+    ProcessModel pm = aProcessModels.get(pHandle);
+    pm.setName(pName);
+  }
+
+  public ProcessModel getProcessModel(long pHandle) {
+    return aProcessModels.get(pHandle);
+  }
+
 }

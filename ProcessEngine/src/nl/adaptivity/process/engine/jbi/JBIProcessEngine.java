@@ -560,6 +560,11 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), null);
   }
 
+  @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", post={"name"})
+  public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
+    aProcessEngine.renameProcess(HandleMap.<ProcessModel>handle(pHandle), pName);
+  }
+
   @WebMethod(operationName="updateTaskState")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
   public TaskState updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
@@ -574,6 +579,15 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     return aProcessEngine.finishTask(pHandle, pPayload);
   }
 
+
+  @RestMethod(method=HttpMethod.GET, path="/processModels/${handle}")
+  public XmlProcessModel getProcessModel(@RestParam(name="handle",type=ParamType.VAR) long pHandle) throws FileNotFoundException {
+    try {
+      return new XmlProcessModel(aProcessEngine.getProcessModel(pHandle));
+    } catch (NullPointerException e) {
+      throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
+    }
+  }
 
 
   private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {
