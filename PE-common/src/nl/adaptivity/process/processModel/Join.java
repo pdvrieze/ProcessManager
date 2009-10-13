@@ -79,8 +79,8 @@ public class Join extends ProcessNode{
     return aPred;
   }
 
-//  @XmlElement(name="predecessor")
-//  @XmlIDREF
+  @XmlElement(name="predecessor")
+  @XmlIDREF
   @Override
   public Collection<ProcessNode> getPredecessors() {
     if (aPred!=null) {
