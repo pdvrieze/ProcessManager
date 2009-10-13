@@ -1,9 +1,6 @@
 package nl.adaptivity.process.userMessageHandler.client.processModel;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
@@ -46,14 +43,19 @@ public class StartNode extends ProcessNode {
 
   @Override
   public void ensureSuccessor(ProcessNode pNode) {
-    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
     aSuccessors.add(pNode);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
     return aSuccessors;
+  }
+
+  @Override
+  public Collection<ProcessNode> getPredecessors() {
+    return Collections.emptyList();
   }
 
 }

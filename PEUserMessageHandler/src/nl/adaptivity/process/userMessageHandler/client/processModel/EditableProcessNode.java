@@ -10,8 +10,6 @@ public class EditableProcessNode extends Composite {
 
   private ProcessNode aNode;
   private Label aWidget;
-  private int aX = -1;
-  private int aY = -1;
   private Shape aShape;
 
   public EditableProcessNode(ProcessNode pNode) {
@@ -25,12 +23,12 @@ public class EditableProcessNode extends Composite {
     return new EditableProcessNode(pNode);
   }
 
-  int getX() {
-    return aX;
+  public int getX() {
+    return aNode.getX();
   }
 
-  int getY() {
-    return aY;
+  public int getY() {
+    return aNode.getY();
   }
 
   public void setShape(Shape pShape) {

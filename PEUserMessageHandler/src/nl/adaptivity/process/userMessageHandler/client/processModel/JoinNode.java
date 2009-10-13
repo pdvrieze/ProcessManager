@@ -18,13 +18,20 @@ public class JoinNode extends ProcessNode {
   private Set<ProcessNode> aPredecessors;
   private Set<ProcessNode> aSuccessors;
 
-  protected JoinNode(String pId, Collection<String> pPredecessorNames) {
+  private String aMin;
+  private String aMax;
+
+  protected JoinNode(String pId, Collection<String> pPredecessorNames, String pMin, String pMax) {
     super(pId);
     aPredecessorNames = pPredecessorNames;
+    aMin = pMin;
+    aMax = pMax;
   }
 
   public static JoinNode fromXml(Element pNode) {
     String id = null;
+    String min = null;
+    String max = null;
     {
       NamedNodeMap attrs = pNode.getAttributes();
       int attrCount = attrs.getLength();
@@ -33,8 +40,12 @@ public class JoinNode extends ProcessNode {
         if (XMLUtil.isNS(null, attr)) {
           if ("id".equals(attr.getName())) {
             id = attr.getValue();
+          } else if ("min".equals(attr.getName())) {
+            min = attr.getValue();
+          } else if ("max".equals(attr.getName())) {
+            max = attr.getValue();
           } else {
-            GWT.log("Unsupported attribute in startnode "+attr.toString(), null);
+            GWT.log("Unsupported attribute in joinnode "+attr.getName(), null);
           }
         }
       }
@@ -55,7 +66,7 @@ public class JoinNode extends ProcessNode {
         GWT.log("Unexpected subtag "+child, null);
       }
     }
-    JoinNode result = new JoinNode(id, predecessors);
+    JoinNode result = new JoinNode(id, predecessors, min, max);
 
     return result;
   }
@@ -63,7 +74,7 @@ public class JoinNode extends ProcessNode {
   @Override
   public void resolvePredecessors(Map<String, ProcessNode> pMap) {
     if (aPredecessors==null) {
-      aPredecessors = new HashSet<ProcessNode>();
+      aPredecessors = new LinkedHashSet<ProcessNode>();
     } else {
       aPredecessors.clear();
     }
@@ -79,14 +90,19 @@ public class JoinNode extends ProcessNode {
 
   @Override
   public void ensureSuccessor(ProcessNode pNode) {
-    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
     aSuccessors.add(pNode);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
     return aSuccessors;
+  }
+
+  @Override
+  public Collection<ProcessNode> getPredecessors() {
+    return aPredecessors;
   }
 
 }

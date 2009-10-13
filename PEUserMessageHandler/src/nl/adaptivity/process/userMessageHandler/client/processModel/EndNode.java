@@ -1,9 +1,6 @@
 package nl.adaptivity.process.userMessageHandler.client.processModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
@@ -38,7 +35,7 @@ public class EndNode extends ProcessNode {
           } else if ("predecessor".equals(attr.getName())) {
             predecessor=attr.getValue();
           } else {
-            GWT.log("Unsupported attribute in startnode "+attr.toString(), null);
+            GWT.log("Unsupported attribute in endnode "+attr.getName(), null);
           }
         }
       }
@@ -91,6 +88,11 @@ public class EndNode extends ProcessNode {
   @Override
   public Collection<ProcessNode> getSuccessors() {
     return new ArrayList(0);
+  }
+
+  @Override
+  public Collection<ProcessNode> getPredecessors() {
+    return Collections.singletonList(aPredecessor);
   }
 
 }

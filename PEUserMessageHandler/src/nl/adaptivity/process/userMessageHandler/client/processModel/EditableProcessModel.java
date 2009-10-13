@@ -26,6 +26,7 @@ public class EditableProcessModel {
   }
 
   public void layout() {
+    aProcessModel.layout();
     // TODO layout nodes
   }
 

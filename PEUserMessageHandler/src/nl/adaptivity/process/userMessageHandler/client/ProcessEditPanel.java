@@ -75,7 +75,7 @@ public class ProcessEditPanel extends Composite {
       for (EditableProcessNode w: aProcessModel.getNodes()) {
         map.put(w.getNode().getId(), w);
         Shape shapeForW = new Shape(w);
-        aDiagramPanel.add(w, posx+xcorrect, 60+ycorrect);
+        aDiagramPanel.add(w, w.getX()+xcorrect, w.getY()+ycorrect);
         shapeForW.showOnDiagram(aDiagram);
         w.setShape(shapeForW);
         posx+=100;

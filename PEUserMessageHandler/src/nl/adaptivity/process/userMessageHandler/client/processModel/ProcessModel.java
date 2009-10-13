@@ -39,7 +39,7 @@ public class ProcessModel {
           if ("name".equals(attr.getName())) {
             name=attr.getValue();
           } else {
-            GWT.log("Unsupported attribute in startnode "+attr.toString(), null);
+            GWT.log("Unsupported attribute in processModel "+attr.getName(), null);
           }
         }
       }
@@ -88,6 +88,31 @@ public class ProcessModel {
       aNodes = new ArrayList<ProcessNode>(0);
     }
     return aNodes;
+  }
+
+  public void layout() {
+    for (ProcessNode node:aNodes) {
+      node.unsetPos();
+    }
+    int lowestY= 30;
+    for (ProcessNode node:aNodes) {
+      if (! node.hasPos()) {
+        lowestY = node.layout(30, lowestY, null, true);
+        lowestY += 45;
+      }
+    }
+    int minX=Integer.MAX_VALUE;
+    int minY = Integer.MAX_VALUE;
+    for (ProcessNode node: aNodes) {
+      minX = Math.min(node.getX(), minX);
+      minY = Math.min(node.getY(), minY);
+    }
+    int offsetX = 30 - minX;
+    int offsetY = 30 - minY;
+
+    for (ProcessNode node: aNodes) {
+      node.offset(offsetX, offsetY);
+    }
   }
 
 }
