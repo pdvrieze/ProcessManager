@@ -1,8 +1,10 @@
 package nl.adaptivity.gwt.ext.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.xml.client.CDATASection;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.Node;
+import com.google.gwt.xml.client.Text;
 
 
 public class XMLUtil {
@@ -209,6 +211,21 @@ public class XMLUtil {
     } else {
       return pNameSpace.equals(pElement.getNamespaceURI());
     }
+  }
+
+  public static String getTextChildren(Node pNode) {
+    StringBuilder result = new StringBuilder();
+    for(Node child = pNode.getFirstChild(); child!=null; child = child.getNextSibling()) {
+      if (child.getNodeType()==Node.CDATA_SECTION_NODE) {
+        result.append(((CDATASection)child).getData());
+      } else if (child.getNodeType()==Node.TEXT_NODE) {
+        result.append(((Text) child).getData());
+      } else {
+        GWT.log("Unexpected node: "+child, null);
+      }
+    }
+    result.trimToSize();
+    return result.toString();
   }
 
 }

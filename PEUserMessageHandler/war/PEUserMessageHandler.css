@@ -99,6 +99,17 @@ h1 {
   float: right;
 }
 
+.bordered {
+  border: 1px solid red;
+}
+
+.EditableProcessNode {
+  border: 1px solid black;
+  width: 30px;
+  height: 20px;
+  text-align:center;
+}
+
 .fileForm .gwt-Button {
   margin-top: 5px;
   float: right;

@@ -1,4 +1,4 @@
-package nl.adaptivity.process.userMessageHandler.client;
+package nl.adaptivity.process.userMessageHandler.client.processModel;
 
 
 public class ProcessInstance {

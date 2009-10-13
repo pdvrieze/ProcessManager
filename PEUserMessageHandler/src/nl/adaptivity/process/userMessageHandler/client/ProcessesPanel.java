@@ -217,12 +217,10 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     aStatusLabel.setText("startProcess");
     String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
     String URL=PROCESSLISTURL+"/"+handle;
-    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, URL);
-    rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
-    String postData = "op=newInstance";
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, URL);
 
     try {
-      rb.sendRequest(postData, new RequestCallback() {
+      rb.sendRequest(null, new RequestCallback() {
 
         @Override
         public void onError(Request pRequest, Throwable pException) {

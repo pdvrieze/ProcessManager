@@ -1,4 +1,9 @@
-package nl.adaptivity.process.userMessageHandler.client;
+package nl.adaptivity.process.userMessageHandler.client.processModel;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
@@ -10,6 +15,8 @@ import com.google.gwt.xml.client.NamedNodeMap;
 
 
 public class StartNode extends ProcessNode {
+
+  private Set<ProcessNode> aSuccessors;
 
   private StartNode(String pId) {
     super(pId);
@@ -25,11 +32,28 @@ public class StartNode extends ProcessNode {
         if ("id".equals(attr.getName())) {
           id = attr.getValue();
         } else {
-          GWT.log("Unsupported attribute in startnode "+attr.toString(), null);
+          GWT.log("Unsupported attribute in startnode: "+attr.getName(), null);
         }
       }
     }
     return new StartNode(id);
+  }
+
+  @Override
+  public void resolvePredecessors(Map<String, ProcessNode> pMap) {
+    // start node has no predecessors
+  }
+
+  @Override
+  public void ensureSuccessor(ProcessNode pNode) {
+    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    aSuccessors.add(pNode);
+  }
+
+  @Override
+  public Collection<ProcessNode> getSuccessors() {
+    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    return aSuccessors;
   }
 
 }

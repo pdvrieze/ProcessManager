@@ -1,9 +1,6 @@
-package nl.adaptivity.process.userMessageHandler.client;
+package nl.adaptivity.process.userMessageHandler.client.processModel;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
@@ -17,18 +14,21 @@ import com.google.gwt.xml.client.Node;
 public class ActivityNode extends ProcessNode {
 
   private String aName;
-  private String aPredecessorName;
+  private String aPredecessorId;
   private String aOperation;
   private String aServiceNS;
   private String aServiceName;
   private String aEndpoint;
-  private List<String> aImports;
-  private List<String> aExports;
+  private List<Element> aImports;
+  private List<Element> aExports;
+  private String aCondition;
+  private ProcessNode aPredecessor;
+  private Set<ProcessNode> aSuccessors;
 
   public ActivityNode(String pId, String pName, String pPredecessor) {
     super(pId);
     aName = pName;
-    aPredecessorName = pPredecessor;
+    aPredecessorId = pPredecessor;
   }
 
   public static ActivityNode fromXml(Element pNode) {
@@ -56,20 +56,11 @@ public class ActivityNode extends ProcessNode {
 
     ActivityNode result = new ActivityNode(id, name, predecessor);
 
-    Node child = pNode.getFirstChild();
-    Map<String, ProcessNode> map = new HashMap<String, ProcessNode>();
-    List<ProcessNode> nodes = new ArrayList<ProcessNode>();
-
-    List<String> imports = new ArrayList<String>();
-    List<String> exports = new ArrayList<String>();
+    List<Element> imports = new ArrayList<Element>();
+    List<Element> exports = new ArrayList<Element>();
     Node message;
-    String condition;
-    String serviceNS;
-    String serviceName;
-    String endpoint;
-    String operation;
 
-    while (child!=null) {
+    for (Node child = pNode.getFirstChild(); child!=null; child = child.getNextSibling()) {
       if (XMLUtil.isNS(ProcessModel.PROCESSMODEL_NS, child)) {
 
         if (XMLUtil.isLocalPart("import", child)) {
@@ -116,12 +107,28 @@ public class ActivityNode extends ProcessNode {
     return result;
   }
 
-  private void setExports(List<String> pExports) {
+  private static String conditionFromXml(Element pElem) {
+    return XMLUtil.getTextChildren(pElem);
+  }
+
+  private static Element importFromXml(Element pChild) {
+    return pChild;
+  }
+
+  private static Element exportFromXml(Element pChild) {
+    return pChild;
+  }
+
+  private void setExports(List<Element> pExports) {
     aExports = pExports;
   }
 
-  private void setImports(List<String> pImports) {
+  private void setImports(List<Element> pImports) {
     aImports = pImports;
+  }
+
+  private void setCondition(String pCondition) {
+    aCondition = pCondition;
   }
 
   private void setOperation(String pValue) {
@@ -140,4 +147,25 @@ public class ActivityNode extends ProcessNode {
     aServiceNS = pValue;
   }
 
+  @Override
+  public void resolvePredecessors(Map<String, ProcessNode> pMap) {
+    ProcessNode predecessor = pMap.get(aPredecessorId);
+    if (predecessor !=null) {
+      aPredecessorId = predecessor.getId();
+      aPredecessor = predecessor;
+      aPredecessor.ensureSuccessor(this);
+    }
+  }
+
+  @Override
+  public void ensureSuccessor(ProcessNode pNode) {
+    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    aSuccessors.add(pNode);
+  }
+
+  @Override
+  public Collection<ProcessNode> getSuccessors() {
+    if (aSuccessors==null) { aSuccessors = new HashSet<ProcessNode>(); }
+    return aSuccessors;
+  }
 }

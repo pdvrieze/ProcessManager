@@ -9,5 +9,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GenericJBIComponent"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/PE-common"/>
+	<classpathentry kind="src" path="/gwt-connectors"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
