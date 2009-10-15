@@ -56,12 +56,16 @@ public class ProcessEditPanel extends Composite {
   }
 
   public void init(Response pResponse) {
+    final ProcessModel plainModel = ProcessModel.fromXml(XMLParser.parse(pResponse.getText()));
+    init(plainModel);
+  }
+
+  public void init(ProcessModel pModel) {
     while (aDiagramPanel.getWidgetCount()>0) {
       aDiagramPanel.remove(0);
     }
-    final ProcessModel plainModel = ProcessModel.fromXml(XMLParser.parse(pResponse.getText()));
-    if (plainModel !=null) {
-      aProcessModel = new EditableProcessModel(plainModel);
+    if (pModel !=null) {
+      aProcessModel = new EditableProcessModel(pModel);
       aProcessModel.layout();
       // TODO Auto-generated method stub
       //
@@ -105,7 +109,6 @@ public class ProcessEditPanel extends Composite {
     } else {
       GWT.log("Could not load process model", null);
     }
-
   }
 
 }

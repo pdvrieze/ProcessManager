@@ -1,5 +1,7 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
+import java.util.ArrayList;
+
 import nl.adaptivity.gwt.base.client.MyFileUpload;
 import nl.adaptivity.gwt.base.client.MyFormPanel;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteEvent;
@@ -8,6 +10,9 @@ import nl.adaptivity.gwt.ext.client.RemoteListBox;
 import nl.adaptivity.gwt.ext.client.TextInputPopup;
 import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteEvent;
 import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteHandler;
+import nl.adaptivity.process.userMessageHandler.client.processModel.ProcessModel;
+import nl.adaptivity.process.userMessageHandler.client.processModel.ProcessNode;
+import nl.adaptivity.process.userMessageHandler.client.processModel.StartNode;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -95,10 +100,10 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     aLowerPanel.addStyleName("tabContent");
     aRoot.setBottomLeftWidget(aLowerPanel);
 
-    aStartProcessButton = createLeftButton("Start process");
-    aNewProcessButton = createLeftButton("New process");
-    aEditProcessButton = createLeftButton("View process");
-    aRenameProcessButton = createLeftButton("Rename process");
+    aStartProcessButton = createLeftButton("Start process", true);
+    aNewProcessButton = createLeftButton("New process", false);
+    aEditProcessButton = createLeftButton("View process", true);
+    aRenameProcessButton = createLeftButton("Rename process", true);
 
     initUploadPanel();
 
@@ -110,9 +115,11 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
   }
 
 
-  private Button createLeftButton(String pCaption) {
+  private Button createLeftButton(String pCaption, boolean pControlled) {
     Button result = new Button(pCaption);
-    aProcessListBox.addControlledWidget(result);
+    if (pControlled) {
+      aProcessListBox.addControlledWidget(result);
+    }
     result.addStyleName("inTabButton");
     result.addClickHandler(this);
     aLowerPanel.add(result);
@@ -236,6 +243,27 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
   private void newProcess() {
     aProcessEditPanel.reset();
+    TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
+    namePopup.addInputCompleteHandler(new InputCompleteHandler() {
+
+      @Override
+      public void onComplete(InputCompleteEvent pCompleteEvent) {
+        if (pCompleteEvent.isSuccess()) {
+          newProcess(pCompleteEvent.getNewValue());
+        }
+      }
+
+    });
+    namePopup.show();
+  }
+
+
+  protected void newProcess(String pName) {
+    aProcessListBox.setSelectedIndex(-1);
+    ArrayList<ProcessNode> list = new ArrayList<ProcessNode>();
+    list.add(new StartNode("start"));
+    ProcessModel model = new ProcessModel(pName, list);
+    aProcessEditPanel.init(model);
   }
 
 

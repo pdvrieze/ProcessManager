@@ -15,7 +15,7 @@ public class StartNode extends ProcessNode {
 
   private Set<ProcessNode> aSuccessors;
 
-  private StartNode(String pId) {
+  public StartNode(String pId) {
     super(pId);
   }
 

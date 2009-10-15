@@ -16,7 +16,7 @@ import com.google.gwt.user.client.ui.ListBox;
  *
  */
 public class ControllingListBox extends ListBox implements ChangeHandler, IWidgetController {
-  
+
   private Collection<FocusWidget> aWidgetsToEnable;
 
   public ControllingListBox() {
@@ -27,12 +27,12 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
 
   @Override
   public void onChange(ChangeEvent pEvent) {
-    boolean enabled = getSelectedIndex()>=0; 
+    boolean enabled = getSelectedIndex()>=0;
     for (FocusWidget widget: aWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }
-  
+
   /* (non-Javadoc)
    * @see nl.adaptivity.gwt.ext.WidgetController#addControlledWidget(com.google.gwt.user.client.ui.FocusWidget)
    */
@@ -40,12 +40,21 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
     pWidget.setEnabled(getSelectedIndex()>=0);
     aWidgetsToEnable.add(pWidget);
   }
-  
+
   /* (non-Javadoc)
    * @see nl.adaptivity.gwt.ext.WidgetController#removeControlledWidget(com.google.gwt.user.client.ui.FocusWidget)
    */
   public boolean removeControlledWidget(FocusWidget pWidget) {
     return aWidgetsToEnable.remove(pWidget);
+  }
+
+  @Override
+  public void setSelectedIndex(int pIndex) {
+    super.setSelectedIndex(pIndex);
+    boolean enabled = pIndex>=0;
+    for (FocusWidget widget: aWidgetsToEnable) {
+      widget.setEnabled(enabled);
+    }
   }
 
 }
