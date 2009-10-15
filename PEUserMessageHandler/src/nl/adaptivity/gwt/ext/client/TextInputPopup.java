@@ -1,8 +1,7 @@
 package nl.adaptivity.gwt.ext.client;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.*;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -10,7 +9,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.*;
 
 
-public class TextInputPopup extends PopupPanel implements ClickHandler {
+public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPressHandler {
 
   public enum PopupState {
     INITIALISED,
@@ -80,6 +79,8 @@ public class TextInputPopup extends PopupPanel implements ClickHandler {
     setPopupPosition(x, y);
     Widget content = getContentWidget(pQuery, pOkButtonLabel);
     setWidget(content);
+
+    aInputField.addKeyPressHandler(this);
   }
 
   private Widget getContentWidget(String pQuery, String pOkButtonLabel) {
@@ -127,13 +128,32 @@ public class TextInputPopup extends PopupPanel implements ClickHandler {
   @Override
   public void onClick(ClickEvent pEvent) {
     if (pEvent.getSource()==aOkButton) {
-      aState = PopupState.COMPLETE;
-      hide();
-      fireRenameHandler(aInputField.getValue(), true);
+      onComplete();
     } else if (pEvent.getSource()==aCancelButton) {
-      aState = PopupState.CANCELLED;
-      hide();
-      fireRenameHandler(aInputField.getValue(), false);
+      onCancel();
+    }
+  }
+
+  private void onComplete() {
+    aState = PopupState.COMPLETE;
+    hide();
+    fireRenameHandler(aInputField.getValue(), true);
+  }
+
+  private void onCancel() {
+    aState = PopupState.CANCELLED;
+    hide();
+    fireRenameHandler(aInputField.getValue(), false);
+  }
+
+  @Override
+  public void onKeyPress(KeyPressEvent pEvent) {
+    if (pEvent.getSource()==aInputField) {
+      if (pEvent.getCharCode()==KeyCodes.KEY_ENTER) {
+        onComplete();
+      } else if (pEvent.getCharCode()==KeyCodes.KEY_ESCAPE) {
+        onCancel();
+      }
     }
   }
 
