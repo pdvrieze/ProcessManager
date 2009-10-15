@@ -100,5 +100,5 @@
           </Envelope>
         </message>
       </activity>
-      <end predecessor="ac4"/>
+      <end predecessor="ac4" id="end"/>
 </processModel>

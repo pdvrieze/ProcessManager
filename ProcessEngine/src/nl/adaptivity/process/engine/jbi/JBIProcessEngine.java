@@ -22,9 +22,7 @@ import javax.jws.WebParam;
 import javax.jws.WebService;
 import javax.jws.WebParam.Mode;
 import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -462,14 +460,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     logEntry();
     try {
       if (ex.getStatus()==ExchangeStatus.ACTIVE) {
-        final String localPart = ex.getOperation().getLocalPart();
-        if (localPart.equals(OP_POST_MESSAGE)) {
-          initPostMessage(pDeliveryChannel, ex);
-        } else if (localPart.equals(OP_START_PROCESS)) {
-          initStartProcess(pDeliveryChannel, (InOut) ex);
-        } else {
-          processRestSoap(pDeliveryChannel, ex);
-        }
+        processRestSoap(pDeliveryChannel, ex);
       }
     } catch (Exception e) {
       logError(e);
@@ -556,8 +547,8 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", query={"op=newInstance"})
-  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle) {
-    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), null);
+  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
+    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), pName, null);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", post={"name"})
@@ -589,41 +580,6 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     }
   }
 
-
-  private void initStartProcess(DeliveryChannel pDeliveryChannel, InOut pEx) {
-    logEntry();
-
-    try {
-      NormalizedMessage msg = pEx.getInMessage();
-      Source content = msg.getContent();
-      ProcessModel processModel = JAXB.unmarshal(content, XmlProcessModel.class).toProcessModel();
-
-      HProcessInstance result = aProcessEngine.startProcess(processModel, null);
-      NormalizedMessage reply = pEx.createMessage();
-      reply.setContent(new JAXBSource(JAXBContext.newInstance(HProcessInstance.class), result));
-      pEx.setOutMessage(reply);
-      pDeliveryChannel.send(pEx);
-    } catch (Exception e) {
-      logError(e);
-      try {
-        pEx.setError(e);
-        pDeliveryChannel.send(pEx);
-      } catch (MessagingException e2) {
-        logError(e2);
-      }
-    }
-  }
-
-  private void initPostMessage(DeliveryChannel pDeliveryChannel, MessageExchange pEx) {
-    logEntry();
-    try {
-      pEx.setStatus(ExchangeStatus.DONE);
-      pDeliveryChannel.send(pEx);
-    } catch (MessagingException e) {
-      logError(e);
-    }
-
-  }
 
   public void stop() throws JBIException {
     aKeepRunning = false;

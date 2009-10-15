@@ -25,24 +25,28 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   @XmlAccessorType(XmlAccessType.NONE)
   public static class ProcessInstanceRef implements Handle<ProcessInstance> {
 
-    @XmlAttribute(name="handle")
     private long aHandle;
-    @XmlAttribute(name="processModel")
     private long aProcessModel;
+    private String aName;
 
     public ProcessInstanceRef() {
       // empty constructor;
     }
 
     public ProcessInstanceRef(ProcessInstance pProcessInstance) {
-      setHandle(pProcessInstance.aHandle);
+      setHandle(pProcessInstance.getHandle());
       setProcessModel(pProcessInstance.aProcessModel.getHandle());
+      aName = pProcessInstance.getName();
+      if (aName == null || aName.trim().length()==0) {
+        aName = pProcessInstance.aProcessModel.getName()+" instance " + aHandle;
+      }
     }
 
     public void setHandle(long handle) {
       aHandle = handle;
     }
 
+    @XmlAttribute(name="handle")
     public long getHandle() {
       return aHandle;
     }
@@ -51,8 +55,18 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       aProcessModel = processModel;
     }
 
+    @XmlAttribute(name="processModel")
     public long getProcessModel() {
       return aProcessModel;
+    }
+
+    @XmlAttribute(name="name")
+    public String getName() {
+      return aName;
+    }
+
+    public void setName(String pName) {
+      aName = pName;
     }
 
   }
@@ -73,8 +87,11 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private Node aPayload;
 
-  public ProcessInstance(ProcessModel pProcessModel, ProcessEngine pEngine) {
+  private final String aName;
+
+  public ProcessInstance(ProcessModel pProcessModel, String pName, ProcessEngine pEngine) {
     aProcessModel = pProcessModel;
+    aName = pName;
     aEngine = pEngine;
     aThreads = new LinkedList<ProcessNodeInstance>();
     for (StartNode node: aProcessModel.getStartNodes()) {
@@ -117,6 +134,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public void setHandle(long pHandle) {
 
     aHandle = pHandle;
+  }
+
+  public String getName() {
+    return aName;
   }
 
   public ProcessEngine getEngine() {

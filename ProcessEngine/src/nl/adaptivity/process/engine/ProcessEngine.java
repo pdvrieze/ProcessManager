@@ -25,15 +25,15 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     aMessageService = pMessageService;
   }
 
-  public HProcessInstance startProcess(ProcessModel pModel, Node pPayload) {
-    ProcessInstance instance = new ProcessInstance(pModel, this);
+  public HProcessInstance startProcess(ProcessModel pModel, String pName, Node pPayload) {
+    ProcessInstance instance = new ProcessInstance(pModel, pName, this);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start(aMessageService, pPayload);
     return result;
   }
 
-  public HProcessInstance startProcess(Handle<ProcessModel> pProcessModel, Node pPayload) {
-    return startProcess(aProcessModels.get(pProcessModel), pPayload);
+  public HProcessInstance startProcess(Handle<ProcessModel> pProcessModel, String pName, Node pPayload) {
+    return startProcess(aProcessModels.get(pProcessModel), pName, pPayload);
   }
 
   public ProcessNodeInstance retrieveTask(long pHandle) {
