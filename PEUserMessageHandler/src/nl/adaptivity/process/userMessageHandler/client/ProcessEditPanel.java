@@ -24,6 +24,7 @@ public class ProcessEditPanel extends Composite {
   public ProcessEditPanel() {
     aDiagramPanel = new AbsolutePanel();
     aDiagramPanel.setSize("100%", "100%");
+    aDiagramPanel.addStyleName("autoscroll");
     Label label = new Label("ProcessEditPanel");
     aDiagramPanel.add(label, 10, 10);
 
@@ -33,7 +34,7 @@ public class ProcessEditPanel extends Composite {
 //    ScrollPanel scrollPanel = new ScrollPanel();
 //    scrollPanel.addStyleName("bordered");
 //    scrollPanel.add(aDiagramPanel);
-    aDiagramPanel.addStyleName("bordered");
+//    aDiagramPanel.addStyleName("bordered");
 
     initWidget(aDiagramPanel);
 
@@ -75,7 +76,7 @@ public class ProcessEditPanel extends Composite {
       for (EditableProcessNode w: aProcessModel.getNodes()) {
         map.put(w.getNode().getId(), w);
         Shape shapeForW = new Shape(w);
-        aDiagramPanel.add(w, w.getX()+xcorrect, w.getY()+ycorrect);
+        aDiagramPanel.add(w, w.getX(), w.getY());
         shapeForW.showOnDiagram(aDiagram);
         w.setShape(shapeForW);
         posx+=100;

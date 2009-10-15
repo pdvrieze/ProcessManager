@@ -1,4 +1,4 @@
-package nl.adaptivity.process.userMessageHandler.client;
+package nl.adaptivity.gwt.ext.client;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -10,11 +10,7 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.*;
 
 
-public class RenamePopup extends PopupPanel implements ClickHandler {
-
-
-
-
+public class TextInputPopup extends PopupPanel implements ClickHandler {
 
   public enum PopupState {
     INITIALISED,
@@ -23,26 +19,30 @@ public class RenamePopup extends PopupPanel implements ClickHandler {
     CANCELLED
   }
 
-  public static class RenameEvent extends GwtEvent<RenameHandler> {
-    private static Type<RenameHandler> TYPE;
+  public static class InputCompleteEvent extends GwtEvent<InputCompleteHandler> {
+    private static Type<InputCompleteHandler> TYPE;
     private final String aNewValue;
 
-    public RenameEvent(String pNewValue) {
-      aNewValue = pNewValue;
+    public InputCompleteEvent(String pNewValue, boolean pSuccess) {
+      if (pSuccess) {
+        aNewValue = pNewValue;
+      } else {
+        aNewValue = null;
+      }
     }
 
-    public static Type<RenameHandler> getType() {
-      if (TYPE==null) { TYPE = new Type<RenameHandler>(); }
+    public static Type<InputCompleteHandler> getType() {
+      if (TYPE==null) { TYPE = new Type<InputCompleteHandler>(); }
       return TYPE;
     }
 
     @Override
-    protected void dispatch(RenameHandler pHandler) {
-      pHandler.onRename(this);
+    protected void dispatch(InputCompleteHandler pHandler) {
+      pHandler.onComplete(this);
     }
 
     @Override
-    public Type<RenameHandler> getAssociatedType() {
+    public Type<InputCompleteHandler> getAssociatedType() {
       return getType();
     }
 
@@ -50,40 +50,42 @@ public class RenamePopup extends PopupPanel implements ClickHandler {
       return aNewValue;
     }
 
+    public boolean isSuccess() {
+      return aNewValue!=null;
+    }
+
   }
 
-  public interface RenameHandler extends EventHandler {
+  public interface InputCompleteHandler extends EventHandler {
 
-    void onRename(RenameEvent pRenameEvent);
+    void onComplete(InputCompleteEvent pInputCompleteEvent);
 
   }
 
   private static final int BUTTONWIDTH = 100;
   private static final int HEIGHT = 200;
   private static final int WIDTH = 300;
-  private final String aName;
   private Button aOkButton;
   private Button aCancelButton;
   private TextBox aInputField;
   private PopupState aState = PopupState.INITIALISED;
 
-  public RenamePopup(String pName) {
+  public TextInputPopup(String pQuery, String pOkButtonLabel) {
     super(true, true);
-    aName = pName;
 
-    setWidth("300px");
-    setHeight("200px");
+    setWidth(WIDTH+"px");
+    setHeight(HEIGHT+"px");
     int x = (Window.getClientWidth()-WIDTH)/2;
     int y = (Window.getClientHeight()-HEIGHT)/2;
     setPopupPosition(x, y);
-    Widget content = getContentWidget();
+    Widget content = getContentWidget(pQuery, pOkButtonLabel);
     setWidget(content);
   }
 
-  private Widget getContentWidget() {
+  private Widget getContentWidget(String pQuery, String pOkButtonLabel) {
     AbsolutePanel mainPanel = new AbsolutePanel();
     VerticalPanel mainContent = new VerticalPanel();
-    mainContent.add(new Label("Enter new name of the "+aName));
+    mainContent.add(new Label(pQuery));
     aInputField = new TextBox();
     mainContent.add(aInputField);
     {
@@ -97,7 +99,7 @@ public class RenamePopup extends PopupPanel implements ClickHandler {
     }
 
     HorizontalPanel buttonPanel = new HorizontalPanel();
-    aOkButton = new Button("Rename");
+    aOkButton = new Button(pOkButtonLabel);
     aOkButton.setWidth(BUTTONWIDTH+"px");
     aOkButton.addClickHandler(this);
     aCancelButton = new Button("Cancel");
@@ -119,6 +121,7 @@ public class RenamePopup extends PopupPanel implements ClickHandler {
   public void show() {
     aState = PopupState.ACTIVE;
     super.show();
+    aInputField.setFocus(true);
   }
 
   @Override
@@ -126,10 +129,11 @@ public class RenamePopup extends PopupPanel implements ClickHandler {
     if (pEvent.getSource()==aOkButton) {
       aState = PopupState.COMPLETE;
       hide();
-      fireRenameHandler(aInputField.getValue());
+      fireRenameHandler(aInputField.getValue(), true);
     } else if (pEvent.getSource()==aCancelButton) {
       aState = PopupState.CANCELLED;
       hide();
+      fireRenameHandler(aInputField.getValue(), false);
     }
   }
 
@@ -137,12 +141,12 @@ public class RenamePopup extends PopupPanel implements ClickHandler {
     return aInputField.getValue();
   }
 
-  private void fireRenameHandler(String pNewValue) {
-    fireEvent(new RenameEvent(pNewValue));
+  private void fireRenameHandler(String pNewValue, boolean pSuccess) {
+    fireEvent(new InputCompleteEvent(pNewValue, pSuccess));
   }
 
-  public HandlerRegistration addRenameHandler(RenameHandler pHandler) {
-    return addHandler(pHandler, RenameEvent.getType());
+  public HandlerRegistration addInputCompleteHandler(InputCompleteHandler pHandler) {
+    return addHandler(pHandler, InputCompleteEvent.getType());
   }
 
   public PopupState getState() {

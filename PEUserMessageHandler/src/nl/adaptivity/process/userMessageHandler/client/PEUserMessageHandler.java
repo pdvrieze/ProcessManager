@@ -1,6 +1,7 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.History;
@@ -80,6 +81,10 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
     aStatusPanel = new DockPanel();
     aStatusPanel.add(aStatusLabel, DockPanel.WEST);
+
+    if (! GWT.isScript()) {
+      aStatusPanel.add(new Label("Hosted mode"), DockPanel.CENTER);
+    }
 
     aRefreshCheckbox = new CheckBox("refresh");
     aRefreshCheckbox.setValue(DEFAULT_REFRESH);

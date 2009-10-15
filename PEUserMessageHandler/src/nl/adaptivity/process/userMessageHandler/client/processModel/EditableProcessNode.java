@@ -1,22 +1,39 @@
 package nl.adaptivity.process.userMessageHandler.client.processModel;
 
 import pl.tecna.gwt.connectors.client.Shape;
+import nl.adaptivity.gwt.ext.client.BoxWidget;
 
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.Widget;
 
 
 public class EditableProcessNode extends Composite {
 
   private ProcessNode aNode;
-  private Label aWidget;
+  private Widget aWidget;
   private Shape aShape;
 
   public EditableProcessNode(ProcessNode pNode) {
     aNode = pNode;
-    aWidget = new Label(pNode.getId());
+    String extraStyle = null;
+    if (pNode instanceof StartNode) {
+      aWidget = new Image("images/startNode.png");
+      extraStyle = "StartNode";
+    } else if (pNode instanceof EndNode) {
+      aWidget = new Image("images/endNode.png");
+      extraStyle = "EndNode";
+    } else {
+      if (pNode instanceof JoinNode) {
+        extraStyle = "JoinNode";
+      } else if (pNode instanceof ActivityNode) {
+        extraStyle = "ActivityNode";
+      }
+      aWidget = new BoxWidget(pNode.getId());
+    }
     initWidget(aWidget);
     setStyleName("EditableProcessNode");
+    if (extraStyle != null) { addStyleName(extraStyle); }
   }
 
   public static EditableProcessNode create(ProcessNode pNode) {

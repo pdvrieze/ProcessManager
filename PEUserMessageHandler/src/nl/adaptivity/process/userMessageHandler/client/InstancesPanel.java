@@ -27,7 +27,7 @@ public class InstancesPanel extends Composite implements ClickHandler {
     aInstanceListBox.setRootElement("processInstances");
     aInstanceListBox.setListElement("processInstance");
     aInstanceListBox.setValueElement("@handle");
-    aInstanceListBox.setTextElement("=Instance @{handle} of model (@{processModel})");
+    aInstanceListBox.setTextElement("=@{handle}: Instance \"@{name}\" of model (@{processModel})");
 
 
     hp1.add(aInstanceListBox);

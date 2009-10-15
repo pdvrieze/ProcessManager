@@ -25,7 +25,7 @@ h1 {
 }
 
 .gwt-TabPanelBottom {
-  overflow: auto !important;
+/*  overflow: auto !important; */
 }
 
 .tabPanel {
@@ -103,14 +103,28 @@ h1 {
   border: 1px solid red;
 }
 
-.EditableProcessNode {
-  border: 1px solid black;
+.StartNode {
+  width: 16px;
+  height: 16px; 
+}
+
+.EndNode {
+  width: 21px;
+  height: 21px;
+}
+
+div.EditableProcessNode {
   width: 30px;
   height: 20px;
+  border: 1px solid black;
   text-align:center;
 }
 
 .fileForm .gwt-Button {
   margin-top: 5px;
   float: right;
+}
+
+.autoscroll {
+  scroll: auto;
 }

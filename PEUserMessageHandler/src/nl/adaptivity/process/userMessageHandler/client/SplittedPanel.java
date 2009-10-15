@@ -13,7 +13,7 @@ public class SplittedPanel extends Composite {
   public SplittedPanel() {
     aMainPanel = new HorizontalSplitPanel();
 
-    int pos = (2*Window.getClientWidth())/9;
+    int pos = (2*Math.max(Window.getClientWidth(),400))/9;
     pos = Math.max(pos, 100);
     aMainPanel.setSplitPosition(pos+"px");
 

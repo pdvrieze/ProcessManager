@@ -5,8 +5,9 @@ import nl.adaptivity.gwt.base.client.MyFormPanel;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteEvent;
 import nl.adaptivity.gwt.base.client.MyFormPanel.SubmitCompleteHandler;
 import nl.adaptivity.gwt.ext.client.RemoteListBox;
-import nl.adaptivity.process.userMessageHandler.client.RenamePopup.RenameEvent;
-import nl.adaptivity.process.userMessageHandler.client.RenamePopup.RenameHandler;
+import nl.adaptivity.gwt.ext.client.TextInputPopup;
+import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteEvent;
+import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteHandler;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -55,6 +56,8 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
   private ProcessEditPanel aProcessEditPanel;
 
+  private Button aNewProcessButton;
+
   public ProcessesPanel(Label pStatusLabel) {
     aRoot = new SplittedFillLeftPanel<Widget>();
 
@@ -93,6 +96,7 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     aRoot.setBottomLeftWidget(aLowerPanel);
 
     aStartProcessButton = createLeftButton("Start process");
+    aNewProcessButton = createLeftButton("New process");
     aEditProcessButton = createLeftButton("View process");
     aRenameProcessButton = createLeftButton("Rename process");
 
@@ -141,17 +145,33 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     aFormPanel.add(aProcessFileSubmitButton);
   }
 
+  private void startProcess() {
+    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
+    namePopup.addInputCompleteHandler(new InputCompleteHandler() {
+
+      @Override
+      public void onComplete(InputCompleteEvent pCompleteEvent) {
+        if (pCompleteEvent.isSuccess()) {
+          submitStartProcess(handle, pCompleteEvent.getNewValue());
+        }
+      }
+
+    });
+    namePopup.show();
+
+  }
+
 
   /**
    * @category action
    */
-  private void startProcess() {
+  private void submitStartProcess(String pHandle, String pName) {
     aStatusLabel.setText("startProcess");
-    String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
-    String URL=PROCESSLISTURL+"/"+handle;
-    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, URL);
+    String url=PROCESSLISTURL+"/"+pHandle;
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, url);
     rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
-    String postData = "op=newInstance";
+    String postData = "op=newInstance&name="+URL.encodeComponent(pName);
 
     try {
       rb.sendRequest(postData, new RequestCallback() {
@@ -208,7 +228,14 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
       submitProcessFile();
     } else if (pEvent.getSource()==aEditProcessButton) {
       editProcess();
+    } else if (pEvent.getSource()==aNewProcessButton) {
+      newProcess();
     }
+  }
+
+
+  private void newProcess() {
+    aProcessEditPanel.reset();
   }
 
 
@@ -243,13 +270,15 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
   private void renameProcess() {
     final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
-    RenamePopup renamePopup = new RenamePopup("Process");
-    renamePopup.addRenameHandler(new RenameHandler() {
+    TextInputPopup renamePopup = new TextInputPopup("Enter new name of the process", "Rename");
+    renamePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
       @Override
-      public void onRename(RenameEvent pRenameEvent) {
-        aStatusLabel.setText("Rename process "+handle+" to "+pRenameEvent.getNewValue());
-        submitRenameProcess(handle, pRenameEvent.getNewValue());
+      public void onComplete(InputCompleteEvent pCompleteEvent) {
+        if (pCompleteEvent.isSuccess()) {
+          aStatusLabel.setText("Rename process "+handle+" to "+pCompleteEvent.getNewValue());
+          submitRenameProcess(handle, pCompleteEvent.getNewValue());
+        }
       }
 
     });
