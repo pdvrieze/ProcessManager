@@ -21,7 +21,7 @@ public class JoinNode extends ProcessNode {
   private String aMin;
   private String aMax;
 
-  protected JoinNode(String pId, Collection<String> pPredecessorNames, String pMin, String pMax) {
+  public JoinNode(String pId, Collection<String> pPredecessorNames, String pMin, String pMax) {
     super(pId);
     aPredecessorNames = pPredecessorNames;
     aMin = pMin;

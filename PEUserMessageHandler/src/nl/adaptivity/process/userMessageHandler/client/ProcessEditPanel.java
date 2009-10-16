@@ -3,32 +3,183 @@ package nl.adaptivity.process.userMessageHandler.client;
 import java.util.HashMap;
 
 import pl.tecna.gwt.connectors.client.*;
+import nl.adaptivity.gwt.ext.client.TextInputPopup;
+import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteEvent;
+import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteHandler;
 import nl.adaptivity.process.userMessageHandler.client.processModel.*;
 
+import com.allen_sauer.gwt.dnd.client.DragContext;
+import com.allen_sauer.gwt.dnd.client.PickupDragController;
+import com.allen_sauer.gwt.dnd.client.VetoDragException;
+import com.allen_sauer.gwt.dnd.client.drop.AbstractDropController;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.http.client.Response;
-import com.google.gwt.user.client.ui.AbsolutePanel;
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.*;
 import com.google.gwt.xml.client.XMLParser;
 
 
 public class ProcessEditPanel extends Composite {
 
+
+
+  public static interface MyHorizontalSplitPanelImages extends HorizontalSplitPanelImages {
+
+    @ImageBundle.Resource(value="blackSplitPanel.png")
+    @Override
+    public AbstractImagePrototype horizontalSplitPanelThumb();
+
+  }
+
+  private class ProcessElementDropController extends AbstractDropController implements InputCompleteHandler {
+
+    private DragContext aContext;
+
+
+    public ProcessElementDropController() {
+      super(aDiagramPanel);
+    }
+
+
+    @Override
+    public void onDrop(DragContext pContext) {
+      for (Object w: pContext.selectedWidgets) {
+        String kind = null;
+
+        if (w==aNewStartNode) {
+          kind = "start node";
+        } else if (w == aNewActivity) {
+          kind = "activity";
+        } else if (w == aNewJoinNode) {
+          kind = "join node";
+        } else if (w == aNewEndNode) {
+          kind = "end node";
+        } else if (w == aArrow) {
+          SectionDecoration endDecoration = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
+          int x = pContext.desiredDraggableX - aDiagramPanel.getAbsoluteLeft();
+          int y = pContext.desiredDraggableY - aDiagramPanel.getAbsoluteTop();
+          Connector connector = new Connector(x, y ,x + 20, y, null, endDecoration);
+          connector.showOnDiagram(aDiagram);
+
+          continue;
+        }
+        aContext = pContext;
+
+        TextInputPopup namePopup = new TextInputPopup("What is the name of the new "+kind, "Create");
+        namePopup.addInputCompleteHandler(ProcessElementDropController.this);
+        namePopup.show();
+      }
+    }
+
+
+    @Override
+    public void onPreviewDrop(DragContext pContext) throws VetoDragException {
+      for (Object w: pContext.selectedWidgets) {
+        if (! (w==aNewStartNode || w==aNewEndNode || w==aNewActivity || w==aNewJoinNode || w==aArrow)) {
+          throw new VetoDragException();
+        }
+      }
+    }
+
+
+    @Override
+    public void onComplete(InputCompleteEvent pInputCompleteEvent) {
+      if (pInputCompleteEvent.isSuccess()) {
+        for (Object w: aContext.selectedWidgets) {
+          String name = pInputCompleteEvent.getNewValue();
+          ProcessNode processNode = null;
+          if (w==aNewStartNode) {
+            processNode = new StartNode(name);
+          } else if (w == aNewActivity) {
+            processNode = new ActivityNode(name, name, null);
+          } else if (w == aNewJoinNode) {
+            processNode = new JoinNode(name, null, "1", Integer.toString(Integer.MAX_VALUE));
+          } else if (w == aNewEndNode) {
+            processNode = new EndNode(name, null);
+          }
+          EditableProcessNode editNode = new EditableProcessNode(processNode);
+          aDiagramPanel.add(editNode, aContext.desiredDraggableX-aDiagramPanel.getAbsoluteLeft(), aContext.desiredDraggableY- aDiagramPanel.getAbsoluteTop());
+          Shape shape = new Shape(editNode);
+          shape.showOnDiagram(aDiagram);
+          editNode.setShape(shape);
+
+        }
+      }
+    }
+
+  }
+
   private boolean aEditInstance;
+  private final boolean aEditable;
   private EditableProcessModel aProcessModel;
   private ProcessInstance aProcessInstance;
   private AbsolutePanel aDiagramPanel;
   private Diagram aDiagram;
+  private HorizontalSplitPanel aSplitPanel;
+  private VerticalPanel aSourcePanel;
+  private Widget aNewStartNode;
+  private Widget aNewActivity;
+  private Widget aNewJoinNode;
+  private Widget aNewEndNode;
+  private AbsolutePanel aBoundaryPanel;
+  private PickupDragController aDragController;
+  private ProcessElementDropController aDropController;
+  private Image aArrow;
 
-  public ProcessEditPanel() {
+  public ProcessEditPanel(boolean pEditable) {
+    aEditable = pEditable;
     aDiagramPanel = new AbsolutePanel();
     aDiagramPanel.setSize("100%", "100%");
     aDiagramPanel.addStyleName("autoscroll");
+    aDiagramPanel.addStyleName("ProcessEditPanel-canvas");
     Label label = new Label("ProcessEditPanel");
     aDiagramPanel.add(label, 10, 10);
 
+    aDiagram = new Diagram(aDiagramPanel);
 
+    if (aEditable) {
+
+      HorizontalSplitPanelImages splitPanelImages = GWT.create(MyHorizontalSplitPanelImages.class);
+      aSplitPanel = new HorizontalSplitPanel(splitPanelImages );
+      aSplitPanel.setSplitPosition("50px");
+      aSplitPanel.setRightWidget(aDiagramPanel);
+      aSplitPanel.addStyleName("blackHorizontalSplitPane");
+
+      aBoundaryPanel = new AbsolutePanel();
+      aBoundaryPanel.setSize("100%", "100%");
+      aBoundaryPanel.add(aSplitPanel);
+
+
+      aSourcePanel = new VerticalPanel();
+      aSourcePanel.setWidth("100%");
+      aSourcePanel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
+      aSplitPanel.setLeftWidget(aSourcePanel);
+
+      aArrow = new Image("images/arrow.png");
+
+      aNewStartNode = new EditableProcessNode(new StartNode(null)).getDragHandle();
+      aNewActivity = new EditableProcessNode(new ActivityNode("activity", "activity", null)).getDragHandle();
+      aNewJoinNode = new EditableProcessNode(new JoinNode("join", null, "0", Integer.toString(Integer.MAX_VALUE))).getDragHandle();
+      aNewEndNode = new EditableProcessNode(new EndNode(null, null)).getDragHandle();
+
+      aDragController = new PickupDragController(aBoundaryPanel, false);
+      aDragController.setBehaviorDragProxy(true);
+      aDragController.setBehaviorConstrainedToBoundaryPanel(true);
+
+      aDropController = new ProcessElementDropController();
+      aDragController.registerDropController(aDropController);
+
+      initWidget(aBoundaryPanel);
+
+      for (Widget node: new Widget[] {aArrow, aNewStartNode, aNewActivity, aNewJoinNode, aNewEndNode,}) {
+        node.addStyleName("sourceoptions");
+        aSourcePanel.add(node);
+
+        aDragController.makeDraggable(node);
+      }
+
+    } else {
+      initWidget(aDiagramPanel);
+    }
 
 
 //    ScrollPanel scrollPanel = new ScrollPanel();
@@ -36,9 +187,7 @@ public class ProcessEditPanel extends Composite {
 //    scrollPanel.add(aDiagramPanel);
 //    aDiagramPanel.addStyleName("bordered");
 
-    initWidget(aDiagramPanel);
 
-    aDiagram = new Diagram(aDiagramPanel);
   }
 
   public void setInstance(boolean pInstance) {
@@ -109,6 +258,10 @@ public class ProcessEditPanel extends Composite {
     } else {
       GWT.log("Could not load process model", null);
     }
+  }
+
+  public boolean isEditable() {
+    return aEditable;
   }
 
 }

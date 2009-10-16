@@ -74,7 +74,7 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
     initLowerPanel();
 
-    aProcessEditPanel = new ProcessEditPanel();
+    aProcessEditPanel = new ProcessEditPanel(false);
     aProcessEditPanel.setInstance(false);
     aRoot.setRightWidget(aProcessEditPanel);
 
@@ -234,7 +234,7 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
     } else if (pEvent.getSource()==aProcessFileSubmitButton) {
       submitProcessFile();
     } else if (pEvent.getSource()==aEditProcessButton) {
-      editProcess();
+      viewProcess();
     } else if (pEvent.getSource()==aNewProcessButton) {
       newProcess();
     }
@@ -242,7 +242,6 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
 
   private void newProcess() {
-    aProcessEditPanel.reset();
     TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
     namePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
@@ -259,6 +258,12 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
 
   protected void newProcess(String pName) {
+    if (! aProcessEditPanel.isEditable()) {
+      aProcessEditPanel = new ProcessEditPanel(true);
+      aRoot.setRightWidget(aProcessEditPanel);
+    }
+    aProcessEditPanel.reset();
+
     aProcessListBox.setSelectedIndex(-1);
     ArrayList<ProcessNode> list = new ArrayList<ProcessNode>();
     list.add(new StartNode("start"));
@@ -267,7 +272,11 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
   }
 
 
-  private void editProcess() {
+  private void viewProcess() {
+    if (aProcessEditPanel.isEditable()) {
+      aProcessEditPanel = new ProcessEditPanel(false);
+      aRoot.setRightWidget(aProcessEditPanel);
+    }
     aProcessEditPanel.reset();
     aStatusLabel.setText("startProcess");
     String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());

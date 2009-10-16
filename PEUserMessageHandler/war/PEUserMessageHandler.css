@@ -128,3 +128,19 @@ div.EditableProcessNode {
 .autoscroll {
   scroll: auto;
 }
+
+.blackHorizontalSplitPane .hsplitter {
+  background-image: none !important;
+  background-color: rgb(230,230,230) !important;
+}
+
+.ProcessEditPanel-canvas {
+  background-image: url("images/diagramBackground.png");
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+
+.sourceoptions {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}

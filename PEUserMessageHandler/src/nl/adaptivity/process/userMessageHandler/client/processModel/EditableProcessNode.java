@@ -3,12 +3,11 @@ package nl.adaptivity.process.userMessageHandler.client.processModel;
 import pl.tecna.gwt.connectors.client.Shape;
 import nl.adaptivity.gwt.ext.client.BoxWidget;
 
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.Widget;
+import com.allen_sauer.gwt.dnd.client.HasDragHandle;
+import com.google.gwt.user.client.ui.*;
 
 
-public class EditableProcessNode extends Composite {
+public class EditableProcessNode extends Composite implements HasDragHandle {
 
   private ProcessNode aNode;
   private Widget aWidget;
@@ -60,6 +59,28 @@ public class EditableProcessNode extends Composite {
 
   public Shape getShape() {
     return aShape;
+  }
+
+  public Widget getDragHandle() {
+    if (aWidget instanceof Image) {
+      Image img = (Image) aWidget;
+      return wrapMouseEventSource(new Image(img.getUrl()));
+    } else if (aWidget instanceof BoxWidget) {
+      if (aNode instanceof JoinNode) {
+        return wrapMouseEventSource(new BoxWidget("join"));
+      } else if (aNode instanceof ActivityNode) {
+        return wrapMouseEventSource(new BoxWidget("activity"));
+      }
+    }
+    return this;
+  }
+
+  @SuppressWarnings("deprecation")
+  private Widget wrapMouseEventSource(Widget pWidget) {
+    if (pWidget instanceof SourcesMouseEvents) {
+      return pWidget;
+    }
+    return new FocusPanel(pWidget);
   }
 
 }

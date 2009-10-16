@@ -17,7 +17,7 @@ public class EndNode extends ProcessNode {
   private List<Element> aExports;
   private ProcessNode aPredecessor;
 
-  protected EndNode(String pId, String pPredecessorName) {
+  public EndNode(String pId, String pPredecessorName) {
     super(pId);
     aPredecessorId = pPredecessorName;
   }
