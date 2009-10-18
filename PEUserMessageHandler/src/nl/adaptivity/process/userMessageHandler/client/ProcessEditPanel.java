@@ -247,8 +247,8 @@ public class ProcessEditPanel extends Composite {
                 startPoint.getAbsoluteTop()+ycorrect,
                 endPoint.getAbsoluteLeft()+xcorrect, endPoint.getAbsoluteTop()+ycorrect,
                 null, arrowDecorator);
-            connector.startEndPoint.glueToConnectionPoint(startPoint);
-            connector.endEndPoint.glueToConnectionPoint(endPoint);
+            connector.getStartEndPoint().glueToConnectionPoint(startPoint);
+            connector.getEndEndPoint().glueToConnectionPoint(endPoint);
             connector.showOnDiagram(aDiagram);
           }
 
