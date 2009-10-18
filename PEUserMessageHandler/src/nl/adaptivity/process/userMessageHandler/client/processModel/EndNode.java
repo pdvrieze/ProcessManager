@@ -87,7 +87,7 @@ public class EndNode extends ProcessNode {
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    return new ArrayList(0);
+    return new ArrayList<ProcessNode>(0);
   }
 
   @Override
