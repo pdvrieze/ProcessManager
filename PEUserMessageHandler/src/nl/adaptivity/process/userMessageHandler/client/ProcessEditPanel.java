@@ -56,8 +56,8 @@ public class ProcessEditPanel extends Composite {
         } else if (w == aArrow) {
           SectionDecoration endDecoration = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
           int x = pContext.desiredDraggableX - aDiagramPanel.getAbsoluteLeft();
-          int y = pContext.desiredDraggableY - aDiagramPanel.getAbsoluteTop();
-          Connector connector = new Connector(x, y ,x + 20, y, null, endDecoration);
+          int y = pContext.desiredDraggableY + (pContext.draggable.getOffsetHeight()/2) - aDiagramPanel.getAbsoluteTop();
+          IConnector connector = new AutoConnector(x, y ,x + pContext.draggable.getOffsetWidth(), y, null, endDecoration);
           connector.showOnDiagram(aDiagram);
 
           continue;
@@ -243,7 +243,7 @@ public class ProcessEditPanel extends Composite {
             SectionDecoration arrowDecorator = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
             ConnectionPoint startPoint= start.getShape().connectionPoints[Shape.E];
             ConnectionPoint endPoint = end.getShape().connectionPoints[Shape.W];
-            Connector connector = new Connector(startPoint.getAbsoluteLeft()+xcorrect,
+            IConnector connector = new AutoConnector(startPoint.getAbsoluteLeft()+xcorrect,
                 startPoint.getAbsoluteTop()+ycorrect,
                 endPoint.getAbsoluteLeft()+xcorrect, endPoint.getAbsoluteTop()+ycorrect,
                 null, arrowDecorator);
