@@ -1,7 +1,7 @@
 package nl.adaptivity.process.userMessageHandler.client.processModel;
 
-import pl.tecna.gwt.connectors.client.Shape;
 import nl.adaptivity.gwt.ext.client.BoxWidget;
+import nl.adaptivity.process.userMessageHandler.client.ProcessShape;
 
 import com.allen_sauer.gwt.dnd.client.HasDragHandle;
 import com.google.gwt.user.client.ui.*;
@@ -11,7 +11,7 @@ public class EditableProcessNode extends Composite implements HasDragHandle {
 
   private ProcessNode aNode;
   private Widget aWidget;
-  private Shape aShape;
+  private ProcessShape aShape;
 
   public EditableProcessNode(ProcessNode pNode) {
     aNode = pNode;
@@ -47,7 +47,7 @@ public class EditableProcessNode extends Composite implements HasDragHandle {
     return aNode.getY();
   }
 
-  public void setShape(Shape pShape) {
+  public void setShape(ProcessShape pShape) {
 
     // TODO evaluate the necessity of this, for now ignore
     aShape = pShape;
@@ -57,7 +57,7 @@ public class EditableProcessNode extends Composite implements HasDragHandle {
     return aNode;
   }
 
-  public Shape getShape() {
+  public ProcessShape getShape() {
     return aShape;
   }
 
@@ -81,6 +81,14 @@ public class EditableProcessNode extends Composite implements HasDragHandle {
       return pWidget;
     }
     return new FocusPanel(pWidget);
+  }
+
+  public int getVerticalOffset() {
+    if (aWidget instanceof BoxWidget) {
+      return ((BoxWidget) aWidget).getBox().getOffsetHeight()/2;
+    } else {
+      return aWidget.getOffsetHeight()/2;
+    }
   }
 
 }

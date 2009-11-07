@@ -98,7 +98,7 @@ public class ProcessEditPanel extends Composite {
           }
           EditableProcessNode editNode = new EditableProcessNode(processNode);
           aDiagramPanel.add(editNode, aContext.desiredDraggableX-aDiagramPanel.getAbsoluteLeft(), aContext.desiredDraggableY- aDiagramPanel.getAbsoluteTop());
-          Shape shape = new Shape(editNode);
+          ProcessShape shape = new ProcessShape(editNode);
           shape.showOnDiagram(aDiagram);
           editNode.setShape(shape);
 
@@ -228,7 +228,7 @@ public class ProcessEditPanel extends Composite {
 
       for (EditableProcessNode w: aProcessModel.getNodes()) {
         map.put(w.getNode().getId(), w);
-        Shape shapeForW = new Shape(w);
+        ProcessShape shapeForW = new ProcessShape(w);
         aDiagramPanel.add(w, w.getX(), w.getY());
         shapeForW.showOnDiagram(aDiagram);
         w.setShape(shapeForW);
@@ -241,11 +241,11 @@ public class ProcessEditPanel extends Composite {
           EditableProcessNode end = map.get(s.getId());
           if (end!=null) {
             SectionDecoration arrowDecorator = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
-            ConnectionPoint startPoint= start.getShape().connectionPoints[Shape.E];
-            ConnectionPoint endPoint = end.getShape().connectionPoints[Shape.W];
-            IConnector connector = new AutoConnector(startPoint.getAbsoluteLeft()+xcorrect,
-                startPoint.getAbsoluteTop()+ycorrect,
-                endPoint.getAbsoluteLeft()+xcorrect, endPoint.getAbsoluteTop()+ycorrect,
+            ConnectionPoint startPoint= start.getShape().getEastConnectionPoint();
+            ConnectionPoint endPoint = end.getShape().getWestConnectionPoint();
+            IConnector connector = new AutoConnector(startPoint.getAbsoluteLeft()+xcorrect +(startPoint.getOffsetWidth()/2),
+                startPoint.getAbsoluteTop()+ycorrect + (startPoint.getOffsetHeight()/2),
+                endPoint.getAbsoluteLeft()+xcorrect + (endPoint.getOffsetWidth()/2), endPoint.getAbsoluteTop()+ycorrect+(endPoint.getOffsetHeight()/2),
                 null, arrowDecorator);
             connector.getStartEndPoint().glueToConnectionPoint(startPoint);
             connector.getEndEndPoint().glueToConnectionPoint(endPoint);

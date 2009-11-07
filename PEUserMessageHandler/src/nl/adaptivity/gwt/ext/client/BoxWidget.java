@@ -9,6 +9,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class BoxWidget extends Composite {
 
   private Label aBox;
+
   private Label aLabel;
   private VerticalPanel aContainer;
 
@@ -27,6 +28,16 @@ public class BoxWidget extends Composite {
     setStyleName("pwt-BoxWidget");
 
     // TODO Auto-generated constructor stub
+  }
+
+
+  public Label getBox() {
+    return aBox;
+  }
+
+
+  public Label getLabel() {
+    return aLabel;
   }
 
 
