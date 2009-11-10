@@ -13,9 +13,9 @@ import javax.activation.MimetypesFileTypeMap;
 
 
 public class UrlDataSource implements DataSource {
-  
+
   private static MimetypesFileTypeMap _mimeMap;
-  
+
   private final String aContentType;
   private final URL aURL;
 
@@ -26,12 +26,19 @@ public class UrlDataSource implements DataSource {
   public UrlDataSource(URL pFinalUrl) throws IOException {
     URLConnection connection;
     connection = pFinalUrl.openConnection();
-    aContentType = connection.getContentType();
-    
+    {
+
+      String contentType = connection.getContentType();
+      if ("content/unknown".equals(contentType)) {
+        contentType = getMimeTypeForFileName(pFinalUrl.getFile());
+      }
+      aContentType = contentType;
+    }
+
     aInputStream = connection.getInputStream();
 
     aHeaders= connection.getHeaderFields();
-    
+
     aURL = pFinalUrl;
   }
 
@@ -53,12 +60,13 @@ public class UrlDataSource implements DataSource {
   @Override
   public OutputStream getOutputStream() throws IOException {
     throw new UnsupportedOperationException("Not allowed");
-    
+
   }
 
   private static String getMimeTypeForFileName(String pFileName) {
     if (_mimeMap==null) {
       _mimeMap = new MimetypesFileTypeMap();
+      _mimeMap.addMimeTypes("text/css css\ntext/html htm html shtml\nimage/png png\n");
     }
     return _mimeMap.getContentType(pFileName);
   }
@@ -74,5 +82,5 @@ public class UrlDataSource implements DataSource {
   public Map<String, List<String>> getHeaders() {
     return aHeaders;
   }
-  
+
 }
