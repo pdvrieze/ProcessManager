@@ -7,19 +7,9 @@
   
   <!-- Servlets -->
   <servlet>
-    <servlet-name>greetServlet</servlet-name>
-    <servlet-class>nl.adaptivity.process.userMessageHandler.server.GreetingServiceImpl</servlet-class>
-  </servlet>
-  
-  <servlet>
     <servlet-name>simpleServlet</servlet-name>
     <servlet-class>nl.adaptivity.process.userMessageHandler.server.SimpleServlet</servlet-class>
   </servlet>
-  
-  <servlet-mapping>
-    <servlet-name>greetServlet</servlet-name>
-    <url-pattern>/peusermessagehandler/greet</url-pattern>
-  </servlet-mapping>
   
   <servlet-mapping>
     <servlet-name>simpleServlet</servlet-name>
