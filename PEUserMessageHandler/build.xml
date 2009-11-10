@@ -6,6 +6,10 @@
   <path id="project.class.path">
     <pathelement location="war/WEB-INF/classes"/>
     <pathelement location="${gwt.sdk}/gwt-user.jar"/>
+    <pathelement location="../gwt-connectors/war/WEB-INF/classes/"/>
+    <pathelement location="../GWT-DragDrop/bin/"/>
+    <pathelement location="../gwt-connectors/src/"/>
+    <pathelement location="../GWT-DragDrop/src/"/>
     <fileset dir="${gwt.sdk}" includes="gwt-dev*.jar"/>
     <!-- Add any additional non-server libs (such as JUnit) -->
     <fileset dir="war/WEB-INF/lib" includes="**/*.jar"/>
@@ -31,6 +35,7 @@
   </target>
 
   <target name="gwtc" depends="javac" description="GWT compile to JavaScript">
+    <mkdir  dir="log"/>
     <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
       <classpath>
         <pathelement location="src"/>
@@ -38,6 +43,10 @@
       </classpath>
       <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
       <jvmarg value="-Xmx256M"/>
+      <arg value="-XdisableClassMetadata"/>
+      <arg value="-soyc"/>
+      <arg value="-localWorkers"/><arg value="2"/>
+      <arg value="-extra"/><arg value="log"/>
       <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
       <arg value="nl.adaptivity.process.userMessageHandler.PEUserMessageHandler"/>
     </java>

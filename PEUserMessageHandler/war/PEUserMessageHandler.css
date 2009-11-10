@@ -10,6 +10,11 @@ h1 {
   text-align: center;
 }
 
+body {
+  /* Work around a stupid hidden (put way too left div that ensures enough space, but puts a scrollbar on screen*/
+  overflow: hidden;
+}
+
 .sendButton {
   display: block;
   font-size: 16pt;
@@ -28,11 +33,7 @@ h1 {
 /*  overflow: auto !important; */
 }
 
-.tabPanel {
-  xpadding: 2px;
-}
-
-#gwt {
+#xx-gwt {
   margin: 7px;
   text-align: center;
 }
@@ -67,11 +68,11 @@ h1 {
   overflow:hidden;
 }
 
-.dockPanel {
+.xx-dockPanel {
   width: 100%;
 }
 
-#gwt {
+#xx-gwt {
   position: fixed;
   top: 0px;
   bottom: 0px;
@@ -85,7 +86,8 @@ h1 {
   overflow: scroll;
 }
 
-.tabPanel {
+.xxxtabPanel {
+  xpadding: 2px;
   width: 100%;
   xheight: 100%;
   overflow: hidden;
@@ -143,4 +145,33 @@ div.EditableProcessNode {
 .sourceoptions {
   margin-top: 10px;
   margin-bottom: 20px;
+}
+
+.gwt-HTML {
+  background-color: rgb(240, 240, 255);
+}
+
+.statusPanel {
+  padding: 2px 0px 2px 0px;
+  font-size: 15px;
+  text-align: center;
+}
+.statusPanel-left {
+  padding-left: 5px;
+  text-align: left;
+  float: left;
+}
+.statusPanel-right {
+  padding-right: 5px;
+  text-align: right;
+  float: right;
+  display: block;
+}
+
+.span {
+  display:inline;
+}
+
+.gwt-Label {
+  display:inline;
 }

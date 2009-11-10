@@ -2,11 +2,10 @@ package nl.adaptivity.process.userMessageHandler.client;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.*;
 
 
@@ -25,7 +24,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   private CheckBox aRefreshCheckbox;
 
-  private TabPanel aTabPanel;
+  private TabLayoutPanel aTabPanel;
 
   @SuppressWarnings("unused")
   private HandlerRegistration aHistoryHandler;
@@ -36,11 +35,11 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   private TasksPanel aTasksPanel;
 
-  private RootPanel aRootPanel;
+  private RootLayoutPanel aRootPanel;
 
-  private DockPanel aDockPanel;
+  private DockLayoutPanel aDockPanel;
 
-  private DockPanel aStatusPanel;
+  private FlowPanel aStatusPanel;
 
   /**
    * This is the entry point method.
@@ -52,51 +51,63 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
       History.newItem("Processes");
     }
 
-    aRootPanel = RootPanel.get("gwt");
+    aRootPanel = RootLayoutPanel.get();
 
-    aDockPanel = new DockPanel();
-    aDockPanel.addStyleName("dockPanel");
+    aDockPanel = new DockLayoutPanel(Unit.PX);
+    aDockPanel.addNorth(new HTML("North"), 20);
+//    aDockPanel.addStyleName("dockPanel");
     aRootPanel.add(aDockPanel);
 
-    aTabPanel = new TabPanel();
+    aTabPanel = new TabLayoutPanel(25, Unit.PX);
     aTabPanel.addStyleName("tabPanel");
-    aDockPanel.add(aTabPanel, DockPanel.CENTER);
-    aDockPanel.setCellHeight(aTabPanel, "100%");
+//    aDockPanel.setCellHeight(aTabPanel, "100%");
 
-    aStatusLabel = new Label();
-    aStatusLabel.setText("Initializing...");
 
     aProcessesPanel = createProcessesPanel();
 
     aInstancesPanel = createInstancesPanel();
 
     aTasksPanel = createTaskPanel();
-
     aTabPanel.add(aProcessesPanel, "Processes");
     aTabPanel.add(aInstancesPanel, "Instances");
     aTabPanel.add(aTasksPanel, "Tasks");
     aTabPanel.selectTab(0);
 
-    aTabPanel.getTabBar().addSelectionHandler(this);
+    aTabPanel.addSelectionHandler(this);
 
-    aStatusPanel = new DockPanel();
-    aStatusPanel.add(aStatusLabel, DockPanel.WEST);
-
-    if (! GWT.isScript()) {
-      aStatusPanel.add(new Label("Hosted mode"), DockPanel.CENTER);
-    }
+    aStatusPanel = new FlowPanel();
+    aStatusLabel = new Label();
+    aStatusLabel.setText("Initializing...");
+    aStatusLabel.addStyleName("statusPanel-left");
+    aStatusPanel.add(aStatusLabel);
+    aStatusPanel.addStyleName("statusPanel");
 
     aRefreshCheckbox = new CheckBox("refresh");
     aRefreshCheckbox.setValue(DEFAULT_REFRESH);
-    aStatusPanel.add(aRefreshCheckbox, DockPanel.EAST);
-    aStatusPanel.addStyleName("fullWidth");
-    aDockPanel.add(aStatusPanel, DockPanel.SOUTH);
-    aDockPanel.setCellHeight(aTabPanel, "100%");
+    aRefreshCheckbox.addStyleName("statusPanel-right");
+    aStatusPanel.add(aRefreshCheckbox);
 
-    Window.addResizeHandler(this);
-    onResize(null);
+    if (! GWT.isScript()) {
+      final Label label = new Label("Hosted mode");
+      label.addStyleName("span");
+      aStatusPanel.add(label);
+    } else {
+      aStatusPanel.add(new HTML("Status"));
+    }
 
+//    aDockPanel.addSouth(new HTML("South"), 20);
+    aDockPanel.addSouth(aStatusPanel, 20d);
+//    aDockPanel.setCellHeight(aTabPanel, "100%");
 
+    aDockPanel.add(aTabPanel);
+//    aDockPanel.add(new HTML("Center"));
+
+    aDockPanel.layout();
+    aRootPanel.layout();
+//    Window.addResizeHandler(this);
+//    onResize(null);
+
+/*
     Timer refreshTimer = new Timer() {
       @Override
       public void run() {
@@ -108,6 +119,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     aHistoryHandler = History.addValueChangeHandler(this);
 
     History.fireCurrentHistoryState();
+    */
   }
 
   /**
@@ -150,9 +162,9 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
   public void onValueChange(ValueChangeEvent<String> pEvent) {
     final String value = pEvent.getValue();
 
-    int c = aTabPanel.getTabBar().getTabCount();
+    int c = aTabPanel.getWidgetCount();
     for(int i = 0; i<c; ++i) {
-      if (value.equals(aTabPanel.getTabBar().getTabHTML(i))) {
+      if (value.equals(aTabPanel.getTabWidget(i).getElement().getInnerText())) {
         aTabPanel.selectTab(i);
         break;
       }
@@ -165,7 +177,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    */
   @Override
   public void onSelection(SelectionEvent<Integer> pEvent) {
-    if (pEvent.getSource()==aTabPanel.getTabBar()) {
+    if (pEvent.getSource()==aTabPanel) {
       handleTabSelection(pEvent);
     }
   }
@@ -174,7 +186,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    * @category action
    */
   private void handleTabSelection(SelectionEvent<Integer> pEvent) {
-    String tabText = aTabPanel.getTabBar().getTabHTML(pEvent.getSelectedItem());
+    String tabText = aTabPanel.getTabWidget(pEvent.getSelectedItem()).getElement().getInnerText();
     History.newItem(tabText, false);
     if ("Processes".equals(tabText)) {
       aProcessesPanel.start();
@@ -195,19 +207,19 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   @Override
   public void onResize(ResizeEvent pEvent) {
-    int height = Window.getClientHeight();
-    aRootPanel.setHeight((height-10)+"px");
-    height -= 14; // margin
-    height -= aStatusPanel.getOffsetHeight();
-    aDockPanel.setHeight(height+"px");
-    height -= aTabPanel.getTabBar().getOffsetHeight();
-
-    height -= 11; // arbitrary missing margin adjustment
-    aTabPanel.getDeckPanel().setHeight(height+"px");
-
-    aProcessesPanel.setHeight(height);
-    aInstancesPanel.setHeight(height+"px");
-    aTasksPanel.setHeight(height+"px");
+//    int height = Window.getClientHeight();
+//    aRootPanel.setHeight((height-10)+"px");
+//    height -= 14; // margin
+//    height -= aStatusPanel.getOffsetHeight();
+//    aDockPanel.setHeight(height+"px");
+//    height -= aTabPanel.getTabBar().getOffsetHeight();
+//
+//    height -= 11; // arbitrary missing margin adjustment
+//    aTabPanel.getDeckPanel().setHeight(height+"px");
+//
+//    aProcessesPanel.setHeight(height);
+//    aInstancesPanel.setHeight(height+"px");
+//    aTasksPanel.setHeight(height+"px");
   }
 
 }
