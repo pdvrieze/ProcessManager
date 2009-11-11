@@ -23,7 +23,7 @@ import com.google.gwt.http.client.*;
 import com.google.gwt.user.client.ui.*;
 
 
-public class ProcessesPanel extends Composite implements ClickHandler, ChangeHandler {
+public class ProcessesPanel extends LayoutComposite implements ClickHandler, ChangeHandler {
 
   private final class FileSubmitHandler implements SubmitCompleteHandler {
 
@@ -55,7 +55,7 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
   private VerticalPanel aLowerPanel;
 
-  SplittedFillLeftPanel<Widget> aRoot;
+  private SplittedFillLeftPanel<Widget> aRoot;
 
   private Button aEditProcessButton;
 
@@ -65,6 +65,8 @@ public class ProcessesPanel extends Composite implements ClickHandler, ChangeHan
 
   public ProcessesPanel(Label pStatusLabel) {
     aRoot = new SplittedFillLeftPanel<Widget>();
+    aRoot.setTopLeftWidget(new HTML("Top Left"));
+    aRoot.setRightWidget(new HTML("Right"));
 
 //    HorizontalSplitPanel mainPanel = new HorizontalSplitPanel();
 

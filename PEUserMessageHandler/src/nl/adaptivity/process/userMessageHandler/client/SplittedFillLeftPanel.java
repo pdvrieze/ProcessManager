@@ -1,34 +1,41 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.VerticalPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.*;
 
 
-public class SplittedFillLeftPanel<T extends Widget> extends Composite {
+public class SplittedFillLeftPanel<T extends Widget> extends LayoutComposite {
 
   private T aTopLeftWidget;
   private Widget aBottomLeftWidget;
   private int aMinTopHeight = 150;
+  private LayoutPanel aRightWidget;
+
   public SplittedFillLeftPanel() {
     super();
-    final SplittedPanel root = new SplittedPanel();
+    final SplitLayoutPanel root = new SplitLayoutPanel();
     initWidget(root);
 
     VerticalPanel leftPanel = new VerticalPanel();
+    leftPanel.setHeight("100%");
     leftPanel.setWidth("100%");
-    root.setLeftWidget(leftPanel);
+    root.addWest(leftPanel, 275d);
     leftPanel.addStyleName("leftSplitPanel");
     root.addStyleName("pwt-SplittedFillLeftPanel");
+
+    aRightWidget = new LayoutPanel();
+
+    root.add(aRightWidget);
+    root.setWidgetMinSize(leftPanel, 200);
+    root.layout();
   }
 
   @Override
-  protected SplittedPanel getWidget() {
-    return (SplittedPanel) super.getWidget();
+  protected SplitLayoutPanel getWidget() {
+    return (SplitLayoutPanel) super.getWidget();
   }
 
   private VerticalPanel getLeftPanel() {
-    return (VerticalPanel) getWidget().getLeftWidget();
+    return (VerticalPanel) getWidget().getWidget(0);
   }
 
   public void setTopLeftWidget(T pWidget) {
@@ -63,12 +70,23 @@ public class SplittedFillLeftPanel<T extends Widget> extends Composite {
   }
 
   public Widget getRightWidget() {
-    return getWidget().getRightWidget();
+    if (aRightWidget.getWidgetCount()<1) {
+      return null;
+    }
+    return aRightWidget.getWidget(0);
   }
 
   public void setRightWidget(Widget pWidget) {
-    getWidget().setRightWidget(pWidget);
-    pWidget.addStyleDependentName("rightSplit");
+    SplitLayoutPanel root = getWidget();
+    if (aRightWidget.getWidgetCount()>0) {
+      aRightWidget.remove(0);
+    }
+    aRightWidget.add(pWidget);
+//    Layer layer = aRightWidget.getLayer(pWidget);
+
+    aRightWidget.layout();
+
+    //root.layout();
   }
 
   public void setHeight(int pHeight) {

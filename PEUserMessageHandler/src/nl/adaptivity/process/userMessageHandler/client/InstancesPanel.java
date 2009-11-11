@@ -4,10 +4,13 @@ import nl.adaptivity.gwt.ext.client.RemoteListBox;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.LayoutComposite;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 
-public class InstancesPanel extends Composite implements ClickHandler {
+public class InstancesPanel extends LayoutComposite implements ClickHandler {
 
   private static final String PROCESSINSTANCELISTURL = PEUserMessageHandler.BASEURL+"/ProcessEngine/processInstances";
 
@@ -17,11 +20,10 @@ public class InstancesPanel extends Composite implements ClickHandler {
 
   private final Label aStatusLabel;
 
-
   public InstancesPanel(Label pStatusLabel) {
     aStatusLabel = pStatusLabel;
-    HorizontalPanel hp1 = new HorizontalPanel();
-    hp1.addStyleName("tabPanel");
+    SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
+//    hp1.addStyleName("tabPanel");
 
     aInstanceListBox = new RemoteListBox(PROCESSINSTANCELISTURL);
     aInstanceListBox.setRootElement("processInstances");
@@ -30,12 +32,12 @@ public class InstancesPanel extends Composite implements ClickHandler {
     aInstanceListBox.setTextElement("=@{handle}: Instance \"@{name}\" of model (@{processModel})");
 
 
-    hp1.add(aInstanceListBox);
+    root.setTopLeftWidget(aInstanceListBox);
     aInstanceListBox.addStyleName("mhList");
     aInstanceListBox.addStyleName("tabContent");
 
     VerticalPanel vp1 = new VerticalPanel();
-    hp1.add(vp1);
+    root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
     aShowInstanceStatusButton = new Button("Show status");
@@ -43,7 +45,7 @@ public class InstancesPanel extends Composite implements ClickHandler {
     aShowInstanceStatusButton.addStyleName("inTabButton");
     vp1.add(aShowInstanceStatusButton);
     aShowInstanceStatusButton.addClickHandler(this);
-    initWidget(hp1);
+    initWidget(root);
   }
 
   /**

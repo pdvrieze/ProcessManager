@@ -5,7 +5,10 @@ import nl.adaptivity.gwt.ext.client.RemoteListBox;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.http.client.*;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.VerticalPanel;
 
 
 public class TasksPanel extends Composite implements ClickHandler {
@@ -22,8 +25,8 @@ public class TasksPanel extends Composite implements ClickHandler {
 
   public TasksPanel(Label pStatusLabel) {
     aStatusLabel = pStatusLabel;
-    HorizontalPanel hp1 = new HorizontalPanel();
-    hp1.addStyleName("tabPanel");
+    SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
+//    root.addStyleName("tabPanel");
 
     aTaskListBox = new RemoteListBox(TASKLISTURL);
     aTaskListBox.addStyleName("mhList");
@@ -33,11 +36,11 @@ public class TasksPanel extends Composite implements ClickHandler {
     aTaskListBox.setValueElement("@handle");
     aTaskListBox.setListElement("task");
 
-    hp1.add(aTaskListBox);
+    root.setTopLeftWidget(aTaskListBox);
 //    aTaskListBox.addChangeHandler(this);
 
     VerticalPanel vp1 = new VerticalPanel();
-    hp1.add(vp1);
+    root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
 
@@ -59,7 +62,7 @@ public class TasksPanel extends Composite implements ClickHandler {
     vp1.add(aCompleteTaskButton);
     aCompleteTaskButton.addClickHandler(this);
 
-    initWidget(hp1);
+    initWidget(root);
   }
 
   /**

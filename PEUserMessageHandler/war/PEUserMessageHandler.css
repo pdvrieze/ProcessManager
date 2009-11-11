@@ -1,13 +1,37 @@
 /** Add css rules here for your application. */
 
+/** Copy styles from the normal tab panel */
+/*.gwt-TabLayoutPanel*/ .gwt-Tab {
+  margin-left: 6px;
+  padding: 3px 6px 3px 6px;
+  cursor: pointer;
+  cursor: hand;
+  color: black;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  background: #d0e4f6;
+}
+/*.gwt-TabLayoutPanel*/ .gwt-Tab-selected {
+  cursor: default;
+  background: #92c1f0;
+} 
+/*.gwt-TabLayoutPanel*/ .gwt-Tab-disabled {
+  cursor: default;
+  color: #999999;
+}
+.gwt-TabInner > div {
+  display: inline;
+}
+
+
 
 /** Example rules used by the template application (remove for your app) */
-h1 {
-  font-size: 2em;
-  font-weight: bold;
-  color: #777777;
-  margin: 40px 0px 70px;
+.title {
+  font-size: 18px;
   text-align: center;
+  margin: 2px;
+  color: blue;
 }
 
 body {
@@ -50,12 +74,13 @@ body {
 
 .mhList {
   xwidth:200px;
-  height:300px;
+  xheight:300px;
+  height: 100%;
   margin-bottom: 4px;
 }
 
 .fileForm {
-  border: 1px solid green;
+/*  border: 1px solid green;*/
   margin-top: 2px;
   margin-bottom: 2px;
   padding-bottom: 4px;
@@ -65,7 +90,6 @@ body {
 
 .leftSplitPanel {
   padding-right: 2px;
-  overflow:hidden;
 }
 
 .xx-dockPanel {
@@ -131,6 +155,16 @@ div.EditableProcessNode {
   scroll: auto;
 }
 
+.LayoutPanel-HDragger {
+  cursor: move;
+  background: #91c0ef url(peusermessagehandler/gwt/standard/images/vborder.png) repeat-y;
+}
+
+.LayoutPanel-VDragger {
+  cursor: move;
+  background: #91c0ef url(peusermessagehandler/gwt/standard/images/hborder.png) repeat-x;
+}
+
 .blackHorizontalSplitPane .hsplitter {
   background-image: none !important;
   background-color: rgb(230,230,230) !important;
@@ -145,10 +179,6 @@ div.EditableProcessNode {
 .sourceoptions {
   margin-top: 10px;
   margin-bottom: 20px;
-}
-
-.gwt-HTML {
-  background-color: rgb(240, 240, 255);
 }
 
 .statusPanel {

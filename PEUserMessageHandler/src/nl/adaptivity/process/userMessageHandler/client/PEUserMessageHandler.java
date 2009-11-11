@@ -6,6 +6,7 @@ import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.logical.shared.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.*;
 
 
@@ -54,13 +55,17 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     aRootPanel = RootLayoutPanel.get();
 
     aDockPanel = new DockLayoutPanel(Unit.PX);
-    aDockPanel.addNorth(new HTML("North"), 20);
+    aDockPanel.addNorth(new HTML("<h1 class=\"title\">Process Engine Interface</h1>"), 25);
 //    aDockPanel.addStyleName("dockPanel");
     aRootPanel.add(aDockPanel);
 
-    aTabPanel = new TabLayoutPanel(25, Unit.PX);
+    aTabPanel = new TabLayoutPanel(22, Unit.PX);
     aTabPanel.addStyleName("tabPanel");
 //    aDockPanel.setCellHeight(aTabPanel, "100%");
+
+    aStatusLabel = new Label();
+    aStatusLabel.setText("Initializing...");
+    aStatusLabel.addStyleName("statusPanel-left");
 
 
     aProcessesPanel = createProcessesPanel();
@@ -76,9 +81,6 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     aTabPanel.addSelectionHandler(this);
 
     aStatusPanel = new FlowPanel();
-    aStatusLabel = new Label();
-    aStatusLabel.setText("Initializing...");
-    aStatusLabel.addStyleName("statusPanel-left");
     aStatusPanel.add(aStatusLabel);
     aStatusPanel.addStyleName("statusPanel");
 
@@ -107,7 +109,6 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 //    Window.addResizeHandler(this);
 //    onResize(null);
 
-/*
     Timer refreshTimer = new Timer() {
       @Override
       public void run() {
@@ -119,7 +120,6 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     aHistoryHandler = History.addValueChangeHandler(this);
 
     History.fireCurrentHistoryState();
-    */
   }
 
   /**
