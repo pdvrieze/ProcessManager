@@ -6,11 +6,11 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.LayoutComposite;
+import com.google.gwt.user.client.ui.ResizeComposite;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 
-public class InstancesPanel extends LayoutComposite implements ClickHandler {
+public class InstancesPanel extends ResizeComposite implements ClickHandler {
 
   private static final String PROCESSINSTANCELISTURL = PEUserMessageHandler.BASEURL+"/ProcessEngine/processInstances";
 

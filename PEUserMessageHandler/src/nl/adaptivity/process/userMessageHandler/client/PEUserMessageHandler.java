@@ -104,8 +104,6 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     aDockPanel.add(aTabPanel);
 //    aDockPanel.add(new HTML("Center"));
 
-    aDockPanel.layout();
-    aRootPanel.layout();
 //    Window.addResizeHandler(this);
 //    onResize(null);
 

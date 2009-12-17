@@ -3,7 +3,7 @@ package nl.adaptivity.process.userMessageHandler.client;
 import com.google.gwt.user.client.ui.*;
 
 
-public class SplittedFillLeftPanel<T extends Widget> extends LayoutComposite {
+public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
 
   private T aTopLeftWidget;
   private Widget aBottomLeftWidget;
@@ -26,7 +26,7 @@ public class SplittedFillLeftPanel<T extends Widget> extends LayoutComposite {
 
     root.add(aRightWidget);
     root.setWidgetMinSize(leftPanel, 200);
-    root.layout();
+//    root.layout();
   }
 
   @Override
@@ -83,10 +83,6 @@ public class SplittedFillLeftPanel<T extends Widget> extends LayoutComposite {
     }
     aRightWidget.add(pWidget);
 //    Layer layer = aRightWidget.getLayer(pWidget);
-
-    aRightWidget.layout();
-
-    //root.layout();
   }
 
   public void setHeight(int pHeight) {

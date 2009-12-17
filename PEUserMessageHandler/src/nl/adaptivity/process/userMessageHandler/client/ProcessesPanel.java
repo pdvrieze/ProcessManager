@@ -23,7 +23,7 @@ import com.google.gwt.http.client.*;
 import com.google.gwt.user.client.ui.*;
 
 
-public class ProcessesPanel extends LayoutComposite implements ClickHandler, ChangeHandler {
+public class ProcessesPanel extends ResizeComposite implements ClickHandler, ChangeHandler {
 
   private final class FileSubmitHandler implements SubmitCompleteHandler {
 
