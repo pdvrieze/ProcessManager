@@ -63,7 +63,7 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 @WebService(targetNamespace=JBIProcessEngine.PROCESS_ENGINE_NS)
 public class JBIProcessEngine implements Component, Runnable, IMessageService<JBIProcessEngine.JBIMessage, ProcessNodeInstance> {
 
-  private class JBIMessage {
+  class JBIMessage {
 
     private final QName aRemoteService;
     private final String aRemoteEndpoint;
