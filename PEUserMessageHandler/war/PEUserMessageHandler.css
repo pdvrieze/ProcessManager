@@ -1,7 +1,7 @@
 /** Add css rules here for your application. */
 
 /** Copy styles from the normal tab panel */
-/*.gwt-TabLayoutPanel*/ .gwt-Tab {
+/*.gwt-TabLayoutPanel*/ .gwt-TabLayoutPanelTab {
   margin-left: 6px;
   padding: 3px 6px 3px 6px;
   cursor: pointer;
@@ -12,15 +12,15 @@
   text-align: center;
   background: #d0e4f6;
 }
-/*.gwt-TabLayoutPanel*/ .gwt-Tab-selected {
+/*.gwt-TabLayoutPanel*/ .gwt-TabLayoutPanelTab-selected {
   cursor: default;
   background: #92c1f0;
 } 
-/*.gwt-TabLayoutPanel*/ .gwt-Tab-disabled {
+/*.gwt-TabLayoutPanel*/ .gwt-TabLayoutPanelTab-disabled {
   cursor: default;
   color: #999999;
 }
-.gwt-TabInner > div {
+.gwt-TabLayoutPanelTabInner > div {
   display: inline;
 }
 
