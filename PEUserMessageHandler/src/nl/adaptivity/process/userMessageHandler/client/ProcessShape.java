@@ -24,8 +24,7 @@ public class ProcessShape extends AbstractShape {
     super(pW);
   }
 
-  @Override
-  public EditableProcessNode getWidget() {
+  public EditableProcessNode getContainedWidget() {
     return (EditableProcessNode) widget;
   }
 
@@ -43,7 +42,7 @@ public class ProcessShape extends AbstractShape {
 
     int cpPanelHeight = pConnectionPointsPanel.getOffsetHeight();
     int cpPanelWidth = pConnectionPointsPanel.getOffsetWidth();
-    int yOffset = getWidget().getVerticalOffset();
+    int yOffset = getContainedWidget().getVerticalOffset();
 
     pConnectionPointsPanel.add(aWestConnectionPoint, 0, (yOffset) + (CP_MARGIN / 2));
     pConnectionPointsPanel.add(aNorthConnectionPoint, (cpPanelWidth-CP_MARGIN) / 2, 0);

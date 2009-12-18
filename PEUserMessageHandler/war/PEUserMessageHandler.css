@@ -139,13 +139,6 @@ body {
   height: 21px;
 }
 
-div.EditableProcessNode {
-  width: 30px;
-  height: 20px;
-  border: 1px solid black;
-  text-align:center;
-}
-
 .fileForm .gwt-Button {
   margin-top: 5px;
   float: right;

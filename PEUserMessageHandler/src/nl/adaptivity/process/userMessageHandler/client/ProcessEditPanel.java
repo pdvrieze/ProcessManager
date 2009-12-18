@@ -170,7 +170,7 @@ public class ProcessEditPanel extends Composite {
 
       initWidget(aBoundaryPanel);
 
-      for (Widget node: new Widget[] {aArrow, aNewStartNode, aNewActivity, aNewJoinNode, aNewEndNode,}) {
+      for (Widget node: new Widget[] { aArrow, aNewStartNode, aNewActivity, aNewJoinNode, aNewEndNode,}) {
         node.addStyleName("sourceoptions");
         aSourcePanel.add(node);
 
