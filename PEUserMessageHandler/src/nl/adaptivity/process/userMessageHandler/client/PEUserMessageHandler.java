@@ -115,8 +115,10 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     };
     refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
 
+    aProcessesPanel.start();
+    
     aHistoryHandler = History.addValueChangeHandler(this);
-
+    
     History.fireCurrentHistoryState();
   }
 
