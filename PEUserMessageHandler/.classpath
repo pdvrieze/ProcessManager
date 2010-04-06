@@ -7,5 +7,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/PE-common"/>
 	<classpathentry kind="src" path="/gwt-connectors"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GWT-DragDrop"/>
+	<classpathentry kind="var" path="LIBS/org.apache.servicemix.specs.jbi-api-1.0-1.1.0.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
