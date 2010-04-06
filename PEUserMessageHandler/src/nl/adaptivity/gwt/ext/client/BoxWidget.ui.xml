@@ -5,8 +5,9 @@
       font-weight: bold;
     }
     .BoxWidget {
-      text-align: center;
-      display: inline-block;
+      left: -11px;
+      margin-top: -11px;
+      text-align:left;
     }
     .BoxWidget-Box {
       width: 20px;
@@ -16,11 +17,16 @@
       display: inline-block;
     }
     .BoxWidget-Label {
+      position: relative;
+      width: 10em;
+      margin-left: -5em;
+      margin-right: -5em;
       text-align: center;
+      left: 10px;
     }
   </ui:style>
   <div class="{style.BoxWidget}">
-    <div style="position: relative"><span class="{style.BoxWidget-Box} pwt-BoxWidget-Box" ui:field="boxSpan">&nbsp;</span></div>
-    <div style="position: relative"><span class="{style.BoxWidget-Label} pwt-BoxWidget-Label" ui:field="labelSpan"></span></div>
+    <div class="{style.BoxWidget-Box} pwt-BoxWidget-Box" ui:field="boxSpan"></div>
+    <div class="{style.BoxWidget-Label} pwt-BoxWidget-Label" ui:field="labelSpan"></div>
   </div>
 </ui:UiBinder>

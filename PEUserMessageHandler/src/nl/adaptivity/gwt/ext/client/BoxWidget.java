@@ -1,6 +1,7 @@
 package nl.adaptivity.gwt.ext.client;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.DivElement;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.SpanElement;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -16,17 +17,17 @@ public class BoxWidget extends Widget {
   interface BoxWidgetUiBinder extends UiBinder<Element, BoxWidget> {}
 
   @UiField
-  SpanElement labelSpan;
+  DivElement labelSpan;
 
   @UiField
-  SpanElement boxSpan;
+  DivElement boxSpan;
 
   public BoxWidget(String pLabel) {
     setElement(uiBinder.createAndBindUi(this));
     labelSpan.setInnerText(pLabel);
   }
 
-  public SpanElement getBox() {
+  public DivElement getBox() {
     return boxSpan;
   }
 
