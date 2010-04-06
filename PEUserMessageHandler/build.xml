@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <project name="PEUserMessageHandler" default="build" basedir=".">
   <!-- Configure path to GWT SDK -->
-  <property name="gwt.sdk" location="/home/paul/.bins/gwt-2.0.0-ms2" />
+  <property name="gwt.sdk" location="/home/pdvrieze/.eclipse/org.eclipse.platform_3.5.0_272132066/plugins/com.google.gwt.eclipse.sdkbundle.2.0.3_2.0.3.v201002191036/gwt-2.0.3/" />
 
   <path id="project.class.path">
     <pathelement location="war/WEB-INF/classes"/>
@@ -75,6 +75,15 @@
   <target name="clean" description="Cleans this project">
     <delete dir="war/WEB-INF/classes" failonerror="false" />
     <delete dir="war/peusermessagehandler" failonerror="false" />
+  </target>
+
+  <target name="images" description="Generate the images">
+    <mkdir dir="war/images"/>
+    <exec executable="/usr/bin/inkscape"><arg line="-e src/nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png images/blackSplitPanel.svg"/></exec>
+    <exec executable="/usr/bin/inkscape"><arg line="-e war/images/arrow.png  images/arrow.svg"/></exec>
+    <exec executable="/usr/bin/inkscape"><arg line="-e war/images/diagramBackground.png  images/diagramBackground.svg"/></exec>
+    <exec executable="/usr/bin/inkscape"><arg line="-e war/images/endNode.png  images/endNode.svg"/></exec>
+    <exec executable="/usr/bin/inkscape"><arg line="-e war/images/startNode.png  images/startNode.svg"/></exec>
   </target>
 
 </project>
