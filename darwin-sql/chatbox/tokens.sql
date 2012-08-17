@@ -1,3 +1,5 @@
+DROP TABLE `tokens`;
+
 CREATE TABLE `tokens` (
   `tokenId` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) DEFAULT NULL,
