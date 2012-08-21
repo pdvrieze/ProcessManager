@@ -54,9 +54,8 @@ public class DarwinRealm extends RealmBase {
 
   @Override
   protected String getPassword(String pArg0) {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+    // Never return a password, we don't store that, and it's a bad idea.
+    return null;
   }
 
 
