@@ -1,3 +1,4 @@
+DROP TABLE `users`;
 CREATE TABLE `users` (
   `user` varchar(30) NOT NULL,
   `password` varchar(40) NOT NULL,
