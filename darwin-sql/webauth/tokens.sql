@@ -4,7 +4,7 @@ CREATE TABLE `tokens` (
   `tokenid` int(11) NOT NULL AUTO_INCREMENT,
   `user` varchar(30) NOT NULL,
   `ip` varchar(24) NOT NULL,
-  `keyid` int(11) NOT NULL,
+  `keyid` int(11),
   `token` varchar(45) NOT NULL,
   `epoch` int(11) NOT NULL,
   PRIMARY KEY (`tokenid`),
