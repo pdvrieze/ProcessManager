@@ -14,9 +14,9 @@ BEGIN
   DELETE FROM tokens WHERE (epoch +1800 < @mytimestamp);
   BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET @myuser = NULL;
-    SELECT user INTO @myuser FROM tokens WHERE token = tokenparam AND IS_NULL(keyid) AND (epoch + 1800) > @mytimestamp;
+    SELECT user INTO @myuser FROM tokens WHERE token = tokenparam AND ISNULL(keyid) AND (epoch + 1800) > @mytimestamp;
   END;
-  IF IS_NULL(@myuser) THEN
+  IF ISNULL(@myuser) THEN
     RETURN 0;
   ELSE
     UPDATE tokens SET epoch=@mytimestamp WHERE token=tokenparam;
