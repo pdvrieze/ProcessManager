@@ -11,7 +11,7 @@ BEGIN
   DECLARE myuser VARCHAR(30) DEFAULT "hello";
 --  SELECT UNIX_TIMESTAMP() INTO @mytimestamp;
   SET @mytimestamp = UNIX_TIMESTAMP();
-  DELETE FROM tokens WHERE (epoch +1800 < @mytimestamp);
+  DELETE FROM tokens WHERE (epoch +1800) < @mytimestamp;
   BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET @myuser = NULL;
     SELECT user INTO @myuser FROM tokens WHERE token = tokenparam AND ISNULL(keyid) AND (epoch + 1800) > @mytimestamp;
