@@ -98,6 +98,12 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
     
   }
 
+  public void close() throws SQLException {
+    if (aResultSet!=null) {
+      aResultSet.close();
+    }
+  }
+  
   protected final ResultSet aResultSet;
 
   protected ResultSetAdapter(ResultSet pResultSet) {
