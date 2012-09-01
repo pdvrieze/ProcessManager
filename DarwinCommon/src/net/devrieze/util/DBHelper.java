@@ -38,6 +38,7 @@ public class DBHelper {
 
     boolean execCommit();
 
+    void close() throws SQLException;
   }
 
 
@@ -151,6 +152,14 @@ public class DBHelper {
         }
       }
       return result;
+    }
+
+    @Override
+    public void close() throws SQLException {
+      if (aSQL!=null) {
+        aSQL.close();
+        aSQL=null;
+      }
     }
   
   }
@@ -406,6 +415,8 @@ public class DBHelper {
   }
 
   public void close() throws SQLException {
+    if (aSQL!=null) { aSQL.close(); }
+    
     if (aConnection!=null) { aConnection.close(); }
     else if (aDataSource!=null) {
       aConnection = aDataSource.aConnectionMap.get(aKey);
