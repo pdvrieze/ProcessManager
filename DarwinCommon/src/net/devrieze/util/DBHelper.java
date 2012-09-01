@@ -122,6 +122,10 @@ public class DBHelper {
       checkValid();
       DBHelper.this.aValid = false;
       try {
+        if (aSQL==null) {
+          logException("No prepared statement available", new SQLException(new NullPointerException()));
+          return false;
+        }
         aSQL.execute();
         return true;
       } catch (SQLException e) {
