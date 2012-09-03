@@ -16,6 +16,7 @@ import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.deploy.SecurityCollection;
 import org.apache.catalina.deploy.SecurityConstraint;
+import org.apache.catalina.realm.GenericPrincipal;
 import org.apache.catalina.util.LifecycleSupport;
 
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
@@ -334,9 +335,11 @@ public class DarwinRealm implements Realm, Lifecycle {
 
   @Override
   public boolean hasRole(Principal principal, String role) {
-    if (principal instanceof DarwinUserPrincipalImpl) {
-      DBHelper db = DBHelper.dbHelper(RESOURCE, this);
-      return ((DarwinUserPrincipalImpl) principal).getRoles(db).contains(role);
+    if (principal instanceof GenericPrincipal) {
+      principal = ((GenericPrincipal) principal).getUserPrincipal();
+    }
+    if (principal instanceof GenericPrincipal) {
+      return ((GenericPrincipal) principal).hasRole(role);
     }
 
     if (principal instanceof CoyotePrincipal) {
@@ -344,8 +347,7 @@ public class DarwinRealm implements Realm, Lifecycle {
       // principal will contain UserDatabaseRealm role info.
       DarwinUserPrincipalImpl p = getDarwinPrincipal(principal.getName());
       if (p != null) {
-        DBHelper db = DBHelper.dbHelper(RESOURCE, this);
-        return p.getRoles(db).contains(role);
+        return p.hasRole(role);
       }
     }
     return false;
@@ -353,7 +355,7 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   private DarwinUserPrincipalImpl getDarwinPrincipal(String pName) {
-    return new DarwinUserPrincipalImpl(pName);
+    return new DarwinUserPrincipalImpl(getDbHelper(), this, pName);
   }
 
   public static DBHelper getDbHelper() {

@@ -11,7 +11,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.catalina.*;
+import net.devrieze.util.DBHelper;
+import net.devrieze.util.DBHelper.DBQuery;
+import net.devrieze.util.StringAdapter;
+
+import org.apache.catalina.Authenticator;
+import org.apache.catalina.Container;
+import org.apache.catalina.Context;
+import org.apache.catalina.Lifecycle;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleListener;
+import org.apache.catalina.Realm;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.deploy.LoginConfig;
@@ -22,10 +32,6 @@ import org.apache.catalina.valves.ValveBase;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 import uk.ac.bournemouth.darwin.html.util.DarwinHtml;
-
-import net.devrieze.util.DBHelper;
-import net.devrieze.util.DBHelper.DBQuery;
-import net.devrieze.util.StringAdapter;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle{
@@ -43,7 +49,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   private Context aContext;
 
   private boolean authenticate(Request pRequest, Response pResponse) throws IOException {
-    DarwinUserPrincipal principal = toDarwinPrincipal(pRequest.getUserPrincipal());
+    DarwinUserPrincipal principal = toDarwinPrincipal(aDb, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
     if (principal != null) { 
       pRequest.setAuthType(AUTHTYPE);
       pRequest.setUserPrincipal(principal);
@@ -86,23 +92,23 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     }
     if (user!=null) {
       pRequest.setAuthType(AUTHTYPE);
-      principal = getDarwinPrincipal(user);
+      principal = getDarwinPrincipal(aDb, pRequest.getContext().getRealm(), user);
       pRequest.setUserPrincipal(principal);
       return (true); 
     }
     return false;
   }
 
-  private DarwinUserPrincipal getDarwinPrincipal(String pUserName) {
-    return new DarwinUserPrincipalImpl(pUserName);
+  private DarwinUserPrincipal getDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, String pUserName) {
+    return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pUserName);
   }
 
-  private DarwinUserPrincipal toDarwinPrincipal(Principal pPrincipal) {
+  private DarwinUserPrincipal toDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, Principal pPrincipal) {
     if (pPrincipal==null) { return null; }
     if (pPrincipal instanceof DarwinUserPrincipal) {
       return (DarwinUserPrincipal) pPrincipal;
     }
-    return new DarwinUserPrincipalImpl(pPrincipal.getName());
+    return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pPrincipal.getName());
   }
 
   DBHelper getUserDatabase(Request pRequest) {
@@ -201,7 +207,9 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         if (authenticated && realm.hasResourcePermission(pRequest, pResponse, constraints, aContext)) {
           getNext().invoke(pRequest, pResponse);
           return;
-        } else {
+        } else if (authenticated) {
+          pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "User "+pRequest.getUserPrincipal()+" does not have permission for "+realm.getInfo()+" class:"+realm.getClass().getName() );
+        }else {
           
           // Not logged in yet. So go to login page.
           String loginpage = config.getLoginPage();
@@ -210,7 +218,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
             incommingPath.append(pRequest.getPathInfo());
             pResponse.sendRedirect(loginpage+"?redirect="+URLEncoder.encode(incommingPath.toString(), "utf-8"));
           } else {
-            pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+            pResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "You need to log in for this page, but no login page is configured");
           }
           return;
         }
