@@ -10,6 +10,7 @@ public class DarwinHtml {
 
   public static void writeError(HttpServletResponse pResponse, int pStatus, String pTitle, Throwable pError) {
     pResponse.setStatus(pStatus);
+    pResponse.setContentType("text/html");
     try {
       PrintWriter out = pResponse.getWriter();
       try {
