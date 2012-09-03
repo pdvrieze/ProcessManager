@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -444,6 +445,31 @@ public class DBHelper {
           }
           dataSource.aConnectionMap.remove(pReference);
         } 
+      }
+    }
+  }
+
+  public static void closeAllConnections(String pDbResource) {
+    ArrayList<SQLException> exceptions = null;
+    synchronized (aShareLock) {
+      DataSourceWrapper wrapper = aSourceMap.get(pDbResource);
+      if (wrapper!=null) {
+        for( Connection connection:wrapper.aConnectionMap.values()) {
+          try {
+            connection.close();
+          } catch (SQLException e) {
+            if (exceptions==null) { exceptions = new ArrayList<SQLException>(); }
+            exceptions.add(e);
+          }
+        }
+        aSourceMap.remove(pDbResource);
+      }
+    }
+    if (exceptions!=null) {
+      if (exceptions.size()==1) {
+        throw new RuntimeException(exceptions.get(0));
+      } else {
+        throw new CompoundException(exceptions);
       }
     }
   }
