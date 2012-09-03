@@ -6,6 +6,8 @@ import java.security.Principal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -36,8 +38,17 @@ import uk.ac.bournemouth.darwin.html.util.DarwinHtml;
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle{
   
+  
+  private enum AuthResult {
+    AUTHENTICATED,
+    ERROR,
+    EXPIRED,
+    LOGIN_NEEDED;
+  }
+
   private static final String AUTHTYPE = "DARWIN";
   public static final String DBRESOURCE = "java:/comp/env/jdbc/webauth";
+  private static final String LOGGERNAME = "DarwinRealm";
 
   private boolean aStarted = false;
   
@@ -47,13 +58,15 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
   private DBHelper aDb;
   private Context aContext;
+  private StringBuilder aError = new StringBuilder();
 
-  private boolean authenticate(Request pRequest, Response pResponse) throws IOException {
+  private AuthResult authenticate(Request pRequest, Response pResponse) throws IOException {
     DarwinUserPrincipal principal = toDarwinPrincipal(aDb, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
     if (principal != null) { 
+      logFine("Found preexisting principal, converted to darwinprincipal: "+principal.getName());
       pRequest.setAuthType(AUTHTYPE);
       pRequest.setUserPrincipal(principal);
-      return (true); 
+      return AuthResult.AUTHENTICATED; 
     }
     
     
@@ -64,9 +77,9 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       if (cookies!=null) {
         for (Cookie cookie: cookies) {
           if ("DWNID".equals(cookie.getName())) {
-            // TODO Look up user from database
             String requestIp = pRequest.getRemoteAddr();
-            DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch +1800) > UNIX_TIMESTAMP()");
+            logFine("Found DWNID cookie with value: '"+cookie.getValue()+"' and request ip:"+requestIp);
+            DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()");
             try {
               query.addParam(1, requestIp);
               query.addParam(2, cookie.getValue());
@@ -76,8 +89,10 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
                 
                 if (it.hasNext()) {
                   user = it.next();
+                } else {
+                  logFine("Expired cookie: '"+cookie.getValue()+'\'');
+                  return AuthResult.EXPIRED;
                 }
-                result.close();
               }
             } finally {
               query.close();
@@ -87,16 +102,18 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         }
       }
     } catch (SQLException e) {
+      logError("Error while verifying cookie in database", e);
       DarwinHtml.writeError(pResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error while authenticating", e);
-      return false;
+      return AuthResult.ERROR;
     }
     if (user!=null) {
+      logFine("Authenticated user "+user);
       pRequest.setAuthType(AUTHTYPE);
       principal = getDarwinPrincipal(aDb, pRequest.getContext().getRealm(), user);
       pRequest.setUserPrincipal(principal);
-      return (true); 
+      return AuthResult.AUTHENTICATED; 
     }
-    return false;
+    return AuthResult.LOGIN_NEEDED;
   }
 
   private DarwinUserPrincipal getDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, String pUserName) {
@@ -173,12 +190,14 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   public void invoke(Request pRequest, Response pResponse) throws IOException, ServletException {
     LoginConfig config = aContext.getLoginConfig();
 
-    boolean authenticated = authenticate(pRequest, pResponse);
+    AuthResult authresult = authenticate(pRequest, pResponse);
     
     Realm realm = aContext.getRealm();
     if (realm!=null) {
+      logInfo("This context has an authentication realm, enforce the constraints");
       SecurityConstraint[] constraints = realm.findSecurityConstraints(pRequest, aContext);
       if (constraints==null) {
+        logInfo("Realm has no constraints, calling next in chain");
         // Unconstrained
         getNext().invoke(pRequest, pResponse);
         return;
@@ -204,21 +223,22 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       }
       
       if (authRequired) {
-        if (authenticated && realm.hasResourcePermission(pRequest, pResponse, constraints, aContext)) {
+        if (authresult==AuthResult.AUTHENTICATED && realm.hasResourcePermission(pRequest, pResponse, constraints, aContext)) {
           getNext().invoke(pRequest, pResponse);
           return;
-        } else if (authenticated) {
+        } else if (authresult==AuthResult.AUTHENTICATED) { // We are authenticated, but the wrong user.
           pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "User "+pRequest.getUserPrincipal()+" does not have permission for "+realm.getInfo()+" class:"+realm.getClass().getName() );
         }else {
-          
-          // Not logged in yet. So go to login page.
-          String loginpage = config.getLoginPage();
-          if (loginpage!=null) {
-            StringBuilder incommingPath = new StringBuilder();
-            incommingPath.append(pRequest.getPathInfo());
-            pResponse.sendRedirect(loginpage+"?redirect="+URLEncoder.encode(incommingPath.toString(), "utf-8"));
-          } else {
-            pResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "You need to log in for this page, but no login page is configured");
+          if (authresult!=AuthResult.ERROR) {
+            // Not logged in yet. So go to login page.
+            String loginpage = config.getLoginPage();
+            if (loginpage!=null) {
+              StringBuilder incommingPath = new StringBuilder();
+              incommingPath.append(pRequest.getPathInfo());
+              pResponse.sendRedirect(loginpage+"?redirect="+URLEncoder.encode(incommingPath.toString(), "utf-8"));
+            } else {
+              pResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "You need to log in for this page, but no login page is configured");
+            }
           }
           return;
         }
@@ -237,6 +257,38 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   private void denyPermission(Response pResponse) throws IOException {
     pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+  }
+  
+  private Logger getLogger() {
+    return Logger.getLogger(LOGGERNAME);
+  }
+  
+  private void logFine(String pString) {
+    getLogger().fine(pString);
+  }
+  
+  private void logFiner(String pString) {
+    getLogger().finer(pString);
+  }
+
+  private void logError(String pMessage) {
+    getLogger().severe(pMessage);
+  }
+  
+  private void logError(String pMessage, Throwable pException) {
+    getLogger().log(Level.SEVERE, pMessage, pException);
+  }
+  
+  private void logWarning(String pMessage) {
+    getLogger().warning(pMessage);
+  }
+  
+  private void logWarning(String pMessage, Throwable pException) {
+    getLogger().log(Level.WARNING, pMessage, pException);
+  }
+  
+  private void logInfo(String pMessage) {
+    getLogger().info(pMessage);
   }
   
 }
