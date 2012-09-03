@@ -168,7 +168,6 @@ public class DBHelper {
     public void close() throws SQLException {
       if (aSQL!=null) {
         aSQL.close();
-        logWarnings("Closing prepared statement", aSQL.getWarnings());
         aSQL=null;
       }
     }
@@ -455,13 +454,11 @@ public class DBHelper {
   public void close() throws SQLException {
     if (aConnection!=null) { 
       aConnection.close();
-      logWarnings("Closing database connection", aConnection.getWarnings());
     }
     else if (aDataSource!=null) {
       aConnection = aDataSource.aConnectionMap.get(aKey);
       if (aConnection!=null) { 
         aConnection.close(); 
-        logWarnings("Closing database connection", aConnection.getWarnings());
       }
     }
     aConnection = null;
@@ -477,7 +474,6 @@ public class DBHelper {
         if (conn !=null) {
           try {
             conn.close();
-            logWarnings("Closing database connection", conn.getWarnings());
           } catch (SQLException e) {
             logException("Failure to close connection", e);
           }
