@@ -16,7 +16,9 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
     @Override
     protected String doCreateElem(ResultSet pResultSet) throws SQLException {
-      return pResultSet.getString(1);
+      final String result = pResultSet.getString(1);
+      DBHelper.logWarnings("Reading string out of resultset", pResultSet.getWarnings());
+      return result;
     }
 
   }

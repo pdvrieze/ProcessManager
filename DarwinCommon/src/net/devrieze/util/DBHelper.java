@@ -1,9 +1,6 @@
 package net.devrieze.util;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +14,9 @@ import javax.sql.DataSource;
 
 public class DBHelper {
   
+  private static final String LOGGER_NAME = "DBHelper";
+
+
   private static class DataSourceWrapper {
     DataSource aDataSource;
     ConcurrentHashMap<Object, Connection> aConnectionMap;
@@ -44,7 +44,6 @@ public class DBHelper {
 
 
   public String aErrorMsg;
-  public PreparedStatement aSQL;
   private Connection aConnection;
   private Object aKey;
   public boolean aValid;
@@ -56,6 +55,7 @@ public class DBHelper {
 
   private class DBStatementImpl implements DBStatement {
     
+    public PreparedStatement aSQL;
     
     public DBStatementImpl() {
       // Dud that doesn't do anything
@@ -72,7 +72,8 @@ public class DBHelper {
           aDataSource.aConnectionMap.put(DBHelper.this.aKey, DBHelper.this.aConnection);
         }
       }
-      DBHelper.this.aSQL=aConnection.prepareStatement(pSQL);
+      aSQL=aConnection.prepareStatement(pSQL);
+      logWarnings("Preparing statement", DBHelper.this.aConnection.getWarnings());
       DBHelper.this.aErrorMsg=pErrorMsg;
     }
 
@@ -83,7 +84,7 @@ public class DBHelper {
         try {
           aSQL.setString(pColumn, pValue);
         } catch (SQLException e) {
-          getLogger().log(Level.SEVERE, "Failure to create prepared statement", e);
+          logException("Failure to create prepared statement", e);
           aSQL=null;
         }
       }
@@ -97,7 +98,7 @@ public class DBHelper {
         try {
           aSQL.setInt(pColumn, pValue);
         } catch (SQLException e) {
-          getLogger().log(Level.SEVERE, "Failure to create prepared statement", e);
+          logException("Failure to create prepared statement", e);
           aSQL=null;
         }
       }
@@ -111,7 +112,7 @@ public class DBHelper {
         try {
           aSQL.setLong(pColumn, pValue);
         } catch (SQLException e) {
-          getLogger().log(Level.SEVERE, "Failure to create prepared statement", e);
+          logException("Failure to create prepared statement", e);
           aSQL=null;
         }
       }
@@ -124,15 +125,17 @@ public class DBHelper {
       DBHelper.this.aValid = false;
       try {
         if (aSQL==null) {
-          logException("No prepared statement available", new SQLException(new NullPointerException()));
+          logException("No prepared statement available", new NullPointerException());
           return false;
         }
         aSQL.execute();
+        logWarnings("Executing prepared statement", aSQL.getWarnings());
         return true;
       } catch (SQLException e) {
         logException(aErrorMsg, e);
         try {
           aConnection.rollback();
+          logWarnings("Rolling back database statements", aConnection.getWarnings());
         } catch (SQLException e1) {
           logException( "Rollback failed", e);
         }
@@ -146,10 +149,12 @@ public class DBHelper {
       if (result) {
         try {
           aConnection.commit();
+          logWarnings("Committing database statements", aConnection.getWarnings());
         } catch (SQLException e) {
           logException("Commit failed", e);
           try {
             aConnection.rollback();
+            logWarnings("Rolling back database statements", aConnection.getWarnings());
           } catch (SQLException e1) {
             logException("Rollback failed after commit failed", e1);
           }
@@ -163,6 +168,7 @@ public class DBHelper {
     public void close() throws SQLException {
       if (aSQL!=null) {
         aSQL.close();
+        logWarnings("Closing prepared statement", aSQL.getWarnings());
         aSQL=null;
       }
     }
@@ -223,7 +229,11 @@ public class DBHelper {
       checkValid();
       DBHelper.this.aValid = false;
       try {
-        return aSQL==null ? null : aSQL.executeQuery();
+        if (aSQL==null) { return null; }
+        ResultSet result = aSQL.executeQuery();
+        logWarnings("Prepared statement "+ aSQL.toString(), aSQL.getWarnings());
+        
+        return result;
       } catch (SQLException e) {
         logException(aErrorMsg, e);
       }
@@ -234,7 +244,10 @@ public class DBHelper {
     public boolean execQueryNotEmpty() {
       ResultSet rs = execQuery();
       try {
-        return rs!=null && rs.next();
+        if (rs==null) { return false; }
+        boolean result = rs.next();
+        logWarnings("execQueryNotEmpty resultset", rs.getWarnings());
+        return result;
       } catch (SQLException e) {
         logException("Error processing result set", e);
         return false;
@@ -245,7 +258,10 @@ public class DBHelper {
     public boolean execQueryEmpty() {
       ResultSet rs = execQuery();
       try {
-        return rs==null || (! rs.next());
+        if (rs==null) { return true; }
+        boolean result = ! rs.next();
+        logWarnings("execQueryNotEmpty resultset", rs.getWarnings());
+        return result;
       } catch (SQLException e) {
         logException("Error processing result set", e);
         return true;
@@ -281,10 +297,17 @@ public class DBHelper {
         logWarning("The query "+aSQL+ " does not return 1 element");
         return null;
       }
+      logWarnings("getSingleHelper resultset", rs.getWarnings());
       if (! rs.next()) {
+        logWarnings("getSingleHelper resultset", rs.getWarnings());
         return null; // No result, that is allowed, no warning
       }
-      if (rs.getObject(1)==null) { return null; }
+      logWarnings("getSingleHelper resultset", rs.getWarnings());
+      if (rs.getObject(1)==null) { 
+        logWarnings("getSingleHelper resultset", rs.getWarnings());
+        return null; 
+      }
+      logWarnings("getSingleHelper resultset", rs.getWarnings());
       return rs;
     }
     
@@ -349,11 +372,18 @@ public class DBHelper {
   }
   
   private static Logger getLogger() {
-    return Logger.getAnonymousLogger();
+    return Logger.getLogger(LOGGER_NAME);
   }
 
   public static void logWarning(String pMsg) {
     getLogger().log(Level.WARNING, pMsg);
+  }
+
+  static void logWarnings(String pString, SQLWarning pWarnings) {
+    if (pWarnings!=null) {
+      getLogger().log(Level.WARNING, pString, pWarnings);
+      logWarnings(pString, pWarnings.getNextWarning());
+    }
   }
 
   public static void logException(final String pMsg, Throwable pE) {
@@ -401,10 +431,12 @@ public class DBHelper {
   public void commit() {
     try {
       aConnection.commit();
+      logWarnings("Committing database connection", aConnection.getWarnings());
     } catch (SQLException e) {
       logException("Failure to commit statement", e);
       try {
         aConnection.rollback();
+        logWarnings("Rolling back database connection", aConnection.getWarnings());
       } catch (SQLException f) {
         logException("Failure to rollback after failed commit", f);
       }
@@ -414,18 +446,23 @@ public class DBHelper {
   public void rollback() {
     try {
       aConnection.rollback();
+      logWarnings("Rolling back database connection", aConnection.getWarnings());
     } catch (SQLException e) {
       logException("Failure to roll back statement", e);
     }
   }
 
   public void close() throws SQLException {
-    if (aSQL!=null) { aSQL.close(); }
-    
-    if (aConnection!=null) { aConnection.close(); }
+    if (aConnection!=null) { 
+      aConnection.close();
+      logWarnings("Closing database connection", aConnection.getWarnings());
+    }
     else if (aDataSource!=null) {
       aConnection = aDataSource.aConnectionMap.get(aKey);
-      if (aConnection!=null) { aConnection.close(); }
+      if (aConnection!=null) { 
+        aConnection.close(); 
+        logWarnings("Closing database connection", aConnection.getWarnings());
+      }
     }
     aConnection = null;
     if (aDataSource !=null) {
@@ -440,6 +477,7 @@ public class DBHelper {
         if (conn !=null) {
           try {
             conn.close();
+            logWarnings("Closing database connection", conn.getWarnings());
           } catch (SQLException e) {
             logException("Failure to close connection", e);
           }

@@ -26,12 +26,15 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       if (aResultSet!=null) {
         try {
           aResultSet.beforeFirst();
+          DBHelper.logWarnings("Resetting resultset for AdapterIterator", aResultSet.getWarnings());
           ResultSetMetaData metadata = aResultSet.getMetaData();
+          DBHelper.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet.getWarnings());
           for (int i = 1; i <= metadata.getColumnCount(); ++i) {
             doRegisterColumn(i, metadata.getColumnName(i));
           }
           aInitialized = true;
         } catch (SQLException e) {
+          DBHelper.logException("Initializing resultset iterator", e);
           throw new RuntimeException(e);
         }
       }
@@ -44,22 +47,28 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
     @Override
     public final boolean hasNext() {
       if (! aInitialized ) { init(); }
+      if (aResultSet==null) { return false; }
       try {
-        aPeeked = aResultSet!=null && aResultSet.next();
+        aPeeked = aResultSet.next();
+        DBHelper.logWarnings("Getting a peek at next row in resultset", aResultSet.getWarnings());
         return aPeeked;
       } catch (SQLException e) {
+        DBHelper.logException("Initializing resultset iterator", e);
         throw new RuntimeException(e);
       }
     }
 
     @Override
     public final T next() {
+      if (aResultSet==null) { throw new IllegalStateException("Trying to access a null resultset"); }
       if (! aInitialized ) { init(); }
       try {
         if (!aPeeked) {
-          if (aResultSet==null || !aResultSet.next()) {
+          if (!aResultSet.next()) {
+            DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", aResultSet.getWarnings());
             throw new IllegalStateException("Trying to go beyond the last element");
           }
+          DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", aResultSet.getWarnings());
         }
         aPeeked = false;
 
@@ -75,6 +84,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       if (! aInitialized ) {throw new IllegalStateException("Trying to remove an element before reading the iterator");}
       try {
         aResultSet.deleteRow();
+        DBHelper.logWarnings("Deleting a row in ResultSetAdapter", aResultSet.getWarnings());
       } catch (SQLFeatureNotSupportedException e) {
         throw new UnsupportedOperationException(e);
       } catch (SQLException e) {
@@ -101,6 +111,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
   public void close() throws SQLException {
     if (aResultSet!=null) {
       aResultSet.close();
+      DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
     }
   }
   
