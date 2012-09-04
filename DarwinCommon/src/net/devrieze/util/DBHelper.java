@@ -543,12 +543,16 @@ public class DBHelper {
    */
   public void close() throws SQLException {
     if (aConnection!=null) { 
-      aConnection.close();
+      if (! aConnection.isClosed()) {
+        aConnection.close();
+      }
     }
     else if (aDataSource!=null) {
       aConnection = aDataSource.aConnectionMap.get(aKey);
       if (aConnection!=null) { 
-        aConnection.close(); 
+        if (! aConnection.isClosed()) {
+          aConnection.close();
+        }
       }
     }
     aConnection = null;
@@ -565,7 +569,9 @@ public class DBHelper {
         if (conn !=null) {
           ++count;
           try {
-            conn.close();
+            if (! conn.isClosed()) {
+              conn.close();
+            }
           } catch (SQLException e) {
             logException("Failure to close connection", e);
           }

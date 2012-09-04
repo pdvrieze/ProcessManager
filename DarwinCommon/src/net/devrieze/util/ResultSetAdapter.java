@@ -57,8 +57,8 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       if (aResultSet==null) { return false; }
       try {
         aPeeked = aResultSet.next();
-        if (aAutoClose && ! aPeeked) { closeStatement(); }
         DBHelper.logWarnings("Getting a peek at next row in resultset", aResultSet.getWarnings());
+        if (aAutoClose && ! aPeeked) { closeStatement(); }
         return aPeeked;
       } catch (SQLException e) {
         DBHelper.logException("Initializing resultset iterator", e);
