@@ -62,9 +62,15 @@ public class DBHelper {
     }
 
     DBStatementImpl(String pSQL, String pErrorMsg) throws SQLException {
-      if (DBHelper.this.aConnection==null) {
+      if (DBHelper.this.aConnection==null || (!aConnection.isValid(1))) {
         if (SHARE_CONNECTIONS) {
-          DBHelper.this.aConnection = aDataSource.aConnectionMap.get(DBHelper.this.aKey);
+          Connection connection = aDataSource.aConnectionMap.get(DBHelper.this.aKey);
+          if (DBHelper.this.aConnection==null && connection.isValid(1)) {
+            DBHelper.this.aConnection = connection;
+          } else {
+            aDataSource.aConnectionMap.remove(DBHelper.this.aKey);
+            DBHelper.this.aConnection = null;
+          }
         }
         if (DBHelper.this.aConnection==null) {
           DBHelper.this.aConnection = aDataSource.aDataSource.getConnection();
@@ -354,7 +360,7 @@ public class DBHelper {
         }
       }
     }
-    DataSourceWrapper dataSource = aSourceMap.get(pResourceName); 
+    DataSourceWrapper dataSource = aSourceMap.get(pResourceName);
     if (dataSource==null) {
       try {
         InitialContext initialContext = new InitialContext();
