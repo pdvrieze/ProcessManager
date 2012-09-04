@@ -55,7 +55,7 @@ public class DBHelper {
 
   private class DBStatementImpl implements DBStatement {
     
-    public PreparedStatement aSQL;
+    public PreparedStatement aSQLStatement;
     
     public DBStatementImpl() {
       // Dud that doesn't do anything
@@ -65,7 +65,7 @@ public class DBHelper {
       if (DBHelper.this.aConnection==null || (!aConnection.isValid(1))) {
         if (SHARE_CONNECTIONS) {
           Connection connection = aDataSource.aConnectionMap.get(DBHelper.this.aKey);
-          if (DBHelper.this.aConnection==null && connection.isValid(1)) {
+          if (DBHelper.this.aConnection==null && connection!=null && connection.isValid(1)) {
             DBHelper.this.aConnection = connection;
           } else {
             aDataSource.aConnectionMap.remove(DBHelper.this.aKey);
@@ -78,7 +78,12 @@ public class DBHelper {
           aDataSource.aConnectionMap.put(DBHelper.this.aKey, DBHelper.this.aConnection);
         }
       }
-      aSQL=aConnection.prepareStatement(pSQL);
+      try {
+        aSQLStatement=aConnection.prepareStatement(pSQL);
+      } catch (SQLException e) {
+        DBHelper.this.close();
+        throw e;
+      }
       logWarnings("Preparing statement", DBHelper.this.aConnection.getWarnings());
       DBHelper.this.aErrorMsg=pErrorMsg;
     }
@@ -86,12 +91,22 @@ public class DBHelper {
     @Override
     public DBStatement addParam(int pColumn, String pValue) {
       checkValid();
-      if (aSQL!=null) {
+      if (aSQLStatement!=null) {
         try {
-          aSQL.setString(pColumn, pValue);
+          aSQLStatement.setString(pColumn, pValue);
         } catch (SQLException e) {
-          logException("Failure to create prepared statement", e);
-          aSQL=null;
+          logException("Failure to set parameter on prepared statement", e);
+          try {
+            DBStatementImpl.this.close();
+          } catch (SQLException e2) {
+            logException("Failure to close prepared statement", e2);
+            try {
+              DBHelper.this.close();
+            } catch (SQLException e1) {
+              logException("Failure to close database connection", e1);
+            }
+          }
+          aSQLStatement=null;
         }
       }
       return this;
@@ -100,12 +115,22 @@ public class DBHelper {
     @Override
     public DBStatement addParam(int pColumn, int pValue) {
       checkValid();
-      if (aSQL!=null) {
+      if (aSQLStatement!=null) {
         try {
-          aSQL.setInt(pColumn, pValue);
+          aSQLStatement.setInt(pColumn, pValue);
         } catch (SQLException e) {
           logException("Failure to create prepared statement", e);
-          aSQL=null;
+          try {
+            DBStatementImpl.this.close();
+          } catch (SQLException e2) {
+            logException("Failure to close prepared statement", e2);
+            try {
+              DBHelper.this.close();
+            } catch (SQLException e1) {
+              logException("Failure to close database connection", e1);
+            }
+          }
+          aSQLStatement=null;
         }
       }
       return this;
@@ -114,12 +139,22 @@ public class DBHelper {
     @Override
     public DBStatement addParam(int pColumn, long pValue) {
       checkValid();
-      if (aSQL!=null) {
+      if (aSQLStatement!=null) {
         try {
-          aSQL.setLong(pColumn, pValue);
+          aSQLStatement.setLong(pColumn, pValue);
         } catch (SQLException e) {
           logException("Failure to create prepared statement", e);
-          aSQL=null;
+          try {
+            DBStatementImpl.this.close();
+          } catch (SQLException e2) {
+            logException("Failure to close prepared statement", e2);
+            try {
+              DBHelper.this.close();
+            } catch (SQLException e1) {
+              logException("Failure to close database connection", e1);
+            }
+          }
+          aSQLStatement=null;
         }
       }
       return this;
@@ -130,15 +165,22 @@ public class DBHelper {
       checkValid();
       DBHelper.this.aValid = false;
       try {
-        if (aSQL==null) {
+        if (aSQLStatement==null) {
           logException("No prepared statement available", new NullPointerException());
           return false;
         }
-        aSQL.execute();
-        logWarnings("Executing prepared statement", aSQL.getWarnings());
+        aSQLStatement.execute();
+        logWarnings("Executing prepared statement", aSQLStatement.getWarnings());
         return true;
       } catch (SQLException e) {
         logException(aErrorMsg, e);
+        try {
+          aSQLStatement.close();
+        } catch (SQLException e2) {
+          logWarning("Error closing prepared statement after error", e2);
+        }
+          
+        aSQLStatement = null;
         try {
           aConnection.rollback();
           logWarnings("Rolling back database statements", aConnection.getWarnings());
@@ -172,9 +214,9 @@ public class DBHelper {
 
     @Override
     public void close() throws SQLException {
-      if (aSQL!=null) {
-        aSQL.close();
-        aSQL=null;
+      if (aSQLStatement!=null) {
+        aSQLStatement.close();
+        aSQLStatement=null;
       }
     }
   
@@ -216,17 +258,20 @@ public class DBHelper {
 
     @Override
     public DBQuery addParam(int pColumn, String pValue) {
-      return (DBQuery) super.addParam(pColumn, pValue);
+      super.addParam(pColumn, pValue);
+      return this;
     }
 
     @Override
     public DBQuery addParam(int pColumn, int pValue) {
-      return (DBQuery) super.addParam(pColumn, pValue);
+      super.addParam(pColumn, pValue);
+      return this;
     }
 
     @Override
     public DBQuery addParam(int pColumn, long pValue) {
-      return (DBQuery) super.addParam(pColumn, pValue);
+      super.addParam(pColumn, pValue);
+      return this;
     }
 
     @Override
@@ -234,9 +279,9 @@ public class DBHelper {
       checkValid();
       DBHelper.this.aValid = false;
       try {
-        if (aSQL==null) { return null; }
-        ResultSet result = aSQL.executeQuery();
-        logWarnings("Prepared statement "+ aSQL.toString(), aSQL.getWarnings());
+        if (aSQLStatement==null) { return null; }
+        ResultSet result = aSQLStatement.executeQuery();
+        logWarnings("Prepared statement "+ aSQLStatement.toString(), aSQLStatement.getWarnings());
         
         return result;
       } catch (SQLException e) {
@@ -299,7 +344,7 @@ public class DBHelper {
       ResultSet rs = execQuery();
       if (rs==null) { return null; }
       if (rs.getMetaData().getColumnCount()!=1) {
-        logWarning("The query "+aSQL+ " does not return 1 element");
+        logWarning("The query "+aSQLStatement+ " does not return 1 element");
         return null;
       }
       logWarnings("getSingleHelper resultset", rs.getWarnings());
@@ -371,9 +416,18 @@ public class DBHelper {
         return new DBHelper(null, pKey); // Return an empty helper to ensure building doesn't fail stuff
       }
     }
-    
+    if (getLogger().isLoggable(Level.FINE)) { // Do this only when we log this is going to be output
+      StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+      StringBuilder message = new StringBuilder();
+      message.append("dbHelper invoked for ").append(pResourceName).append(" with key [").append(pKey).append("] from ");
+      for (int i=1; i<stackTraceElements.length && i<5; ++i) {
+        if (i>1) { message.append(" -> "); }
+        message.append(stackTraceElements[i]);
+      }
+      message.append("\n  ").append(dataSource.aConnectionMap.size()).append(" outstanding helpers on this resource.");
+      getLogger().fine(message.toString());
+    }
     return new DBHelper(dataSource, pKey);
-    
   }
   
   private static Logger getLogger() {
@@ -382,6 +436,10 @@ public class DBHelper {
 
   public static void logWarning(String pMsg) {
     getLogger().log(Level.WARNING, pMsg);
+  }
+
+  public static void logWarning(String pMsg, Throwable pException) {
+    getLogger().log(Level.WARNING, pMsg, pException);
   }
 
   static void logWarnings(String pString, SQLWarning pWarnings) {
@@ -457,6 +515,11 @@ public class DBHelper {
     }
   }
 
+  /**
+   * Close the underlying connection for this helper. A new connection will automatically
+   * be established when needed.
+   * @throws SQLException
+   */
   public void close() throws SQLException {
     if (aConnection!=null) { 
       aConnection.close();
@@ -474,10 +537,12 @@ public class DBHelper {
   }
 
   public static void closeConnections(Object pReference) {
+    int count =0;
     synchronized (aShareLock) {
       for(DataSourceWrapper dataSource: aSourceMap.values()) {
         Connection conn = dataSource.aConnectionMap.get(pReference);
         if (conn !=null) {
+          ++count;
           try {
             conn.close();
           } catch (SQLException e) {
@@ -487,15 +552,18 @@ public class DBHelper {
         } 
       }
     }
+    getLogger().fine("Closed "+count+" connections for key "+pReference);
   }
 
   public static void closeAllConnections(String pDbResource) {
     ArrayList<SQLException> exceptions = null;
+    int count = 0;
     synchronized (aShareLock) {
       DataSourceWrapper wrapper = aSourceMap.get(pDbResource);
       if (wrapper!=null) {
         for( Connection connection:wrapper.aConnectionMap.values()) {
           try {
+            ++count;
             connection.close();
           } catch (SQLException e) {
             if (exceptions==null) { exceptions = new ArrayList<SQLException>(); }
@@ -505,6 +573,7 @@ public class DBHelper {
         aSourceMap.remove(pDbResource);
       }
     }
+    getLogger().fine("Closed "+count+" connections for resource "+pDbResource);
     if (exceptions!=null) {
       if (exceptions.size()==1) {
         throw new RuntimeException(exceptions.get(0));

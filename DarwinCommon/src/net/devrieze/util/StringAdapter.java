@@ -2,7 +2,8 @@ package net.devrieze.util;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Iterator;
+
+import net.devrieze.util.DBHelper.DBStatement;
 
 
 public class StringAdapter extends ResultSetAdapter<String> {
@@ -10,8 +11,12 @@ public class StringAdapter extends ResultSetAdapter<String> {
   
   public class StringAdapterIterator extends SingletonAdapterIterator<String> {
 
-    public StringAdapterIterator(ResultSet pResultSet) {
-      super(pResultSet);
+    public StringAdapterIterator(DBStatement pStatement, ResultSet pResultSet) {
+      super(pStatement, pResultSet);
+    }
+
+    public StringAdapterIterator(DBStatement pStatement, ResultSet pResultSet, boolean pAutoClose) {
+      super(pStatement, pResultSet, pAutoClose);
     }
 
     @Override
@@ -23,14 +28,21 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
   }
 
-  public StringAdapter(ResultSet pResultSet) {
-    super(pResultSet);
+  private boolean aAutoClose;
+
+  public StringAdapter(DBStatement pStatement, ResultSet pResultSet) {
+    this(pStatement, pResultSet, false);
+  }
+
+  public StringAdapter(DBStatement pStatement, ResultSet pResultSet, boolean pAutoClose) {
+    super(pStatement, pResultSet);
+    aAutoClose = pAutoClose;
   }
 
   @Override
-  public Iterator<String> iterator() {
+  public StringAdapterIterator iterator() {
     
-    return new StringAdapterIterator(aResultSet);
+    return new StringAdapterIterator(aStatement, aResultSet, aAutoClose);
   }
 
 }

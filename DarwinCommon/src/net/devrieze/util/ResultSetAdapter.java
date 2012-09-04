@@ -1,10 +1,9 @@
 package net.devrieze.util;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
+import java.sql.*;
 import java.util.Iterator;
+
+import net.devrieze.util.DBHelper.DBStatement;
 
 
 public abstract class ResultSetAdapter<T> implements Iterable<T> {
@@ -12,14 +11,21 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
 
   public abstract static class ResultSetAdapterIterator<T> implements Iterator<T> {
 
-    private final ResultSet aResultSet;
+    private ResultSet aResultSet;
+    private DBStatement aStatement;
+    private final boolean aAutoClose;
 
     private boolean aPeeked = false;
     
     private boolean aInitialized = false;
 
-    public ResultSetAdapterIterator(ResultSet pResultSet) {
+    public ResultSetAdapterIterator(DBStatement pStatement, ResultSet pResultSet) {
+      this(pStatement, pResultSet, false);
+    }
+    public ResultSetAdapterIterator(DBStatement pStatement, ResultSet pResultSet, boolean pAutoClose) {
       aResultSet = pResultSet;
+      aStatement = pStatement;
+      aAutoClose = pAutoClose;
     }
 
     private void init() {
@@ -35,6 +41,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
           aInitialized = true;
         } catch (SQLException e) {
           DBHelper.logException("Initializing resultset iterator", e);
+          closeStatement();
           throw new RuntimeException(e);
         }
       }
@@ -50,10 +57,12 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       if (aResultSet==null) { return false; }
       try {
         aPeeked = aResultSet.next();
+        if (aAutoClose && ! aPeeked) { closeStatement(); }
         DBHelper.logWarnings("Getting a peek at next row in resultset", aResultSet.getWarnings());
         return aPeeked;
       } catch (SQLException e) {
         DBHelper.logException("Initializing resultset iterator", e);
+        closeStatement();
         throw new RuntimeException(e);
       }
     }
@@ -65,6 +74,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       try {
         if (!aPeeked) {
           if (!aResultSet.next()) {
+            closeStatement();
             DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", aResultSet.getWarnings());
             throw new IllegalStateException("Trying to go beyond the last element");
           }
@@ -75,6 +85,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
         return doCreateElem(aResultSet);
 
       } catch (SQLException e) {
+        closeStatement();
         throw new RuntimeException(e);
       }
     }
@@ -88,15 +99,51 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       } catch (SQLFeatureNotSupportedException e) {
         throw new UnsupportedOperationException(e);
       } catch (SQLException e) {
+        closeStatement();
         throw new RuntimeException(e);
       }
     }
+    
+    public void close() {
+      if (aResultSet!=null) {
+        try {
+          aResultSet.close();
+          DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
+        } catch (SQLException e) {
+          DBHelper.logException("Error closing resultset", e);
+        }
+        aResultSet = null;
+      }
+    }
+    
+    public void closeStatement() {
+      if (aResultSet!=null) {
+        try {
+          try {
+            aResultSet.close();
+          } finally {
+            if (aStatement!=null) {
+              aStatement.close();
+            }
+          }
+        } catch (SQLException e) {
+          DBHelper.logException("Error closing owning iterator for resultset", e);
+        }
+        aResultSet = null;
+        aStatement = null;
+      }
+    }
+    
   }
 
   public abstract static class SingletonAdapterIterator<T> extends ResultSetAdapterIterator<T> {
 
-    public SingletonAdapterIterator(ResultSet pResultSet) {
-      super(pResultSet);
+    public SingletonAdapterIterator(DBStatement pStatement, ResultSet pResultSet) {
+      super(pStatement, pResultSet);
+    }
+
+    public SingletonAdapterIterator(DBStatement pStatement, ResultSet pResultSet, boolean pAutoClose) {
+      super(pStatement, pResultSet, pAutoClose);
     }
 
     @Override
@@ -108,19 +155,45 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
     
   }
 
-  public void close() throws SQLException {
+  public void close() {
     if (aResultSet!=null) {
-      aResultSet.close();
-      DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
+      try {
+        aResultSet.close();
+        DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
+      } catch (SQLException e) {
+        DBHelper.logException("Error closing resultset", e);
+      }
+      aResultSet=null;
     }
   }
   
-  protected final ResultSet aResultSet;
+  public void closeStatement() {
+    if (aResultSet!=null) {
+      try {
+        try {
+          aResultSet.close();
+        } finally {
+          if (aStatement!=null) {
+            aStatement.close();
+          }
+        }
+      } catch (SQLException e) {
+        DBHelper.logException("Error closing owning iterator for resultset", e);
+      }
+      aResultSet = null;
+      aStatement = null;
+    }
+  }
+  
+  protected ResultSet aResultSet;
+  
+  protected DBStatement aStatement;
 
-  protected ResultSetAdapter(ResultSet pResultSet) {
+  protected ResultSetAdapter(DBStatement pStatement, ResultSet pResultSet) {
     aResultSet = pResultSet;
+    aStatement = pStatement;
   }
 
   @Override
-  public abstract Iterator<T> iterator();
+  public abstract ResultSetAdapterIterator<T> iterator();
 }
