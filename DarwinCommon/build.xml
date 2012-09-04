@@ -20,5 +20,9 @@
 		<jar destfile="DarwinCommon-1.0.jar" basedir="release">
 		</jar>
 	</target>
+	<target name="debugjar" depends="build">
+		<jar destfile="DarwinCommon-1.0.jar" basedir="build">
+		</jar>
+	</target>
 
 </project>
