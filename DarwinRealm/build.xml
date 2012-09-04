@@ -21,7 +21,7 @@
     </jar>
   </target>
   <target name="debugjar" depends="build">
-    <jar destfile="DarwinCommon-1.0.jar" basedir="build">
+    <jar destfile="DarwinRealm-1.0.jar" basedir="build">
     </jar>
   </target>
 </project>
