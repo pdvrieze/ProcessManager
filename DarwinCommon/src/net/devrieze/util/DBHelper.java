@@ -208,6 +208,11 @@ public class DBHelper {
           }
           return false;
         }
+        try {
+          close();
+        } catch (SQLException e) {
+          logException("Error closing statement", e);
+        }
       }
       return result;
     }
@@ -321,22 +326,38 @@ public class DBHelper {
     @Override
     public Integer intQuery() {
       try {
-        ResultSet rs = getSingleHelper();
-        return rs==null ? null : rs.getInt(1);
-      } catch (SQLException e) {
-        logException("Error processing result set", e);
-        return null;
+        try {
+          ResultSet rs = getSingleHelper();
+          return rs==null ? null : rs.getInt(1);
+        } catch (SQLException e) {
+          logException("Error processing result set", e);
+          return null;
+        }
+      } finally {
+        try {
+          close();
+        } catch (SQLException e) {
+          logException("Error closing statement", e);
+        }
       }
     }
 
     @Override
     public Long longQuery() {
       try {
-        ResultSet rs = getSingleHelper();
-        return rs==null ? null : rs.getLong(1);
-      } catch (SQLException e) {
-        logException("Error processing result set", e);
-        return null;
+        try {
+          ResultSet rs = getSingleHelper();
+          return rs==null ? null : rs.getLong(1);
+        } catch (SQLException e) {
+          logException("Error processing result set", e);
+          return null;
+        }
+      } finally {
+        try {
+          close();
+        } catch (SQLException e) {
+          logException("Error closing statement", e);
+        }
       }
     }
 
