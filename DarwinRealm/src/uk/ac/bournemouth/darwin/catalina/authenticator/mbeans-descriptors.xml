@@ -1,0 +1,15 @@
+<mbeans-descriptors>
+  <mbean      name="DarwinAuthenticator"
+       description="Authenticator (and valve) for the darwin authentication system"
+            domain="Catalina"
+             group="Valve"
+             type="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator">
+    <attribute name="loginPage"
+        description="URL to which page is the login page."
+               type="java.lang.String" />
+    <attribute   name="className"
+               description="Fully qualified class name of the managed object"
+               type="java.lang.String"
+               writeable="false"/>
+  </mbean>
+</mbeans-descriptors>

@@ -59,60 +59,71 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   private DBHelper aDb;
   private Context aContext;
   private StringBuilder aError = new StringBuilder();
+  private String aLoginPage;
+  
 
   private AuthResult authenticate(Request pRequest, Response pResponse) throws IOException {
-    DarwinUserPrincipal principal = toDarwinPrincipal(aDb, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
-    if (principal != null) { 
-      logFine("Found preexisting principal, converted to darwinprincipal: "+principal.getName());
-      pRequest.setAuthType(AUTHTYPE);
-      pRequest.setUserPrincipal(principal);
-      return AuthResult.AUTHENTICATED; 
-    }
-    
-    
-    String user =null;
+    DBHelper db = getDatabase();
     try {
-      DBHelper db = getDatabase();
-      final Cookie[] cookies = pRequest.getCookies();
-      if (cookies!=null) {
-        for (Cookie cookie: cookies) {
-          if ("DWNID".equals(cookie.getName())) {
-            String requestIp = pRequest.getRemoteAddr();
-            logFine("Found DWNID cookie with value: '"+cookie.getValue()+"' and request ip:"+requestIp);
-            DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()");
-            try {
-              query.addParam(1, requestIp);
-              query.addParam(2, cookie.getValue());
-              ResultSet result = query.execQuery();
-              if (result!=null) {
-                Iterator<String> it = (new StringAdapter(result)).iterator();
-                
-                if (it.hasNext()) {
-                  user = it.next();
-                } else {
-                  logFine("Expired cookie: '"+cookie.getValue()+'\'');
-                  return AuthResult.EXPIRED;
+      DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
+      if (principal != null) { 
+        logFine("Found preexisting principal, converted to darwinprincipal: "+principal.getName());
+        pRequest.setAuthType(AUTHTYPE);
+        pRequest.setUserPrincipal(principal);
+        return AuthResult.AUTHENTICATED; 
+      }
+      
+      
+      String user =null;
+      try {
+        final Cookie[] cookies = pRequest.getCookies();
+        if (cookies!=null) {
+          for (Cookie cookie: cookies) {
+            if ("DWNID".equals(cookie.getName())) {
+              String requestIp = pRequest.getRemoteAddr();
+              logFine("Found DWNID cookie with value: '"+cookie.getValue()+"' and request ip:"+requestIp);
+              DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()");
+              try {
+                query.addParam(1, requestIp);
+                query.addParam(2, cookie.getValue());
+                ResultSet result = query.execQuery();
+                if (result!=null) {
+                  Iterator<String> it = (new StringAdapter(query, result, false)).iterator();
+                  
+                  if (it.hasNext()) {
+                    user = it.next();
+                  } else {
+                    logFine("Expired cookie: '"+cookie.getValue()+'\'');
+                    return AuthResult.EXPIRED;
+                  }
                 }
+              } finally {
+                query.close();
               }
-            } finally {
-              query.close();
+              break;
             }
-            break;
           }
         }
+      } catch (SQLException e) {
+        logError("Error while verifying cookie in database", e);
+        DarwinHtml.writeError(pResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error while authenticating", e);
+        return AuthResult.ERROR;
       }
-    } catch (SQLException e) {
-      logError("Error while verifying cookie in database", e);
-      DarwinHtml.writeError(pResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error while authenticating", e);
-      return AuthResult.ERROR;
-    }
-    if (user!=null) {
-      logFine("Authenticated user "+user);
-      pRequest.setAuthType(AUTHTYPE);
-      principal = getDarwinPrincipal(aDb, pRequest.getContext().getRealm(), user);
-      pRequest.setUserPrincipal(principal);
-      return AuthResult.AUTHENTICATED; 
-    }
+      if (user!=null) {
+        logFine("Authenticated user "+user);
+        pRequest.setAuthType(AUTHTYPE);
+        principal = getDarwinPrincipal(db, pRequest.getContext().getRealm(), user);
+        pRequest.setUserPrincipal(principal);
+        return AuthResult.AUTHENTICATED; 
+      }
+    } finally {
+      try {
+        db.close();
+      } catch (SQLException e) {
+        logError("Error closing database connection", e);
+        aDb = null;
+      }
+    }      
     return AuthResult.LOGIN_NEEDED;
   }
 
@@ -142,6 +153,14 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     }
   }
 
+  public String getLoginPage() {
+    return aLoginPage;
+  }
+
+  public void setLoginPage(String loginPage) {
+    aLoginPage = loginPage;
+  }
+
   @Override
   public void addLifecycleListener(LifecycleListener pListener) {
     aLifecycle.addLifecycleListener(pListener);
@@ -162,6 +181,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     if (aStarted) throw new LifecycleException("Already started");
     aLifecycle.fireLifecycleEvent(START_EVENT, null);
     aStarted = true;
+    setLoginPage(null); // Default is not specified.
   }
   
   DBHelper getDatabase() {
@@ -188,7 +208,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   @Override
   public void invoke(Request pRequest, Response pResponse) throws IOException, ServletException {
-    LoginConfig config = aContext.getLoginConfig();
 
     AuthResult authresult = authenticate(pRequest, pResponse);
     
@@ -231,13 +250,15 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         }else {
           if (authresult!=AuthResult.ERROR) {
             // Not logged in yet. So go to login page.
-            String loginpage = config.getLoginPage();
+            LoginConfig loginConfig = aContext.getLoginConfig();
+            String loginpage = loginConfig!=null ? loginConfig.getLoginPage() : null;
+            if (loginpage==null) { loginpage = aLoginPage; }
             if (loginpage!=null) {
               StringBuilder incommingPath = new StringBuilder();
               incommingPath.append(pRequest.getPathInfo());
               pResponse.sendRedirect(loginpage+"?redirect="+URLEncoder.encode(incommingPath.toString(), "utf-8"));
             } else {
-              pResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "You need to log in for this page, but no login page is configured");
+              pResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You need to log in for this page, but no login page is configured");
             }
           }
           return;

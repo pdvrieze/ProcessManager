@@ -1,17 +1,16 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
 import java.security.Principal;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.catalina.Realm;
+
 import net.devrieze.util.DBHelper;
 import net.devrieze.util.DBHelper.DBQuery;
 import net.devrieze.util.StringAdapter;
-
-import org.apache.catalina.Realm;
 
 
 
@@ -44,26 +43,12 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   private void refreshIfNeeded() {
     if (aRoles==null || needsRefresh()) {
-      try {
-        aRoles = new HashSet<String>();
-        DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?");
-        try {
-          query.addParam(1, getName());
-          StringAdapter queryResult = new StringAdapter(query.execQuery());
-          try {
-            for(String role: queryResult) {
-              aRoles.add(role);
-            }
-          } finally {
-            queryResult.close();
-          }
-        } finally {
-          query.close();
-        }
-      } catch (SQLException e) {
-        // TODO log properly
-        e.printStackTrace();
-        aRoles = Collections.emptySet();
+      aRoles = new HashSet<String>();
+      DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?");
+      query.addParam(1, getName());
+      StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true);
+      for(String role: queryResult) {
+        aRoles.add(role);
       }
     }
   }
