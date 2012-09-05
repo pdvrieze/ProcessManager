@@ -5,11 +5,6 @@
 	<classpathentry kind="src" path="artefacts/processEngine-se"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/java-common"/>
-	<classpathentry kind="lib" path="lib/org.apache.servicemix.specs.jbi-api-1.0-1.1.0.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="http://servicemix.apache.org/dist/servicemix-3.2.1/site/parent/core/servicemix-jbi/apidocs/"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/PE-common"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
