@@ -11,10 +11,16 @@
   <target name="build">
     <mkdir dir="build" />
     <javac srcdir="src" destdir="build" classpath="${classpath}" debug="on" source="1.6" target="1.6" />
+    <copy todir="build">
+      <fileset dir="src" includes="**/*.xml"></fileset>
+    </copy>
   </target>
   <target name="release">
     <mkdir dir="release" />
     <javac srcdir="src" destdir="release" classpath="${classpath}" debug="off" source="1.6" target="1.6" />
+    <copy todir="release">
+      <fileset dir="src" includes="**/*.xml"></fileset>
+    </copy>
   </target>
   <target name="jar" depends="release">
     <jar destfile="DarwinRealm-1.0.jar" basedir="release">
