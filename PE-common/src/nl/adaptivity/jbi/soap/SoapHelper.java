@@ -3,7 +3,6 @@ package nl.adaptivity.jbi.soap;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import javax.jbi.messaging.MessagingException;
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
@@ -125,7 +124,7 @@ public class SoapHelper {
     return wrapper;
   }
 
-  public static <T> T processResponse(Class<T> pClass, Source pContent) throws MessagingException {
+  public static <T> T processResponse(Class<T> pClass, Source pContent)  {
     Envelope env = JAXB.unmarshal(pContent, Envelope.class);
     List<Object> elements = env.getBody().getAny();
     if (elements.size()!=1) {
@@ -172,7 +171,7 @@ public class SoapHelper {
     return params;
   }
 
-  static <T> T unMarshalNode(Method pMethod, Class<T> pClass, Node pAttrWrapper) throws MessagingException {
+  static <T> T unMarshalNode(Method pMethod, Class<T> pClass, Node pAttrWrapper) {
     Node value = pAttrWrapper ==null ? null : pAttrWrapper.getFirstChild();
     Object result;
     if (value != null && (! pClass.isInstance(value))) {
@@ -203,7 +202,7 @@ public class SoapHelper {
           }
 
         } catch (JAXBException e) {
-          throw new MessagingException(e);
+          throw new RuntimeException(e);
         }
       }
     } else {

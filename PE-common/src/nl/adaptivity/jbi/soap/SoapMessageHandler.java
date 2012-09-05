@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 import javax.jws.WebMethod;
 import javax.xml.namespace.QName;
 
@@ -15,6 +13,7 @@ import net.devrieze.util.PrefixMap;
 import net.devrieze.util.ValueCollection;
 import net.devrieze.util.PrefixMap.Entry;
 
+import nl.adaptivity.jbi.NormalizedMessage;
 import nl.adaptivity.jbi.util.AttachmentMap;
 
 
@@ -34,7 +33,7 @@ public class SoapMessageHandler {
 
   private SoapMessageHandler() {}
 
-  public boolean processRequest(QName operation, NormalizedMessage message, NormalizedMessage reply, Object target) throws MessagingException{
+  public boolean processRequest(QName operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
     SoapMethodWrapper method = getMethodFor(operation, target);
 
     if (method !=null) {

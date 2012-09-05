@@ -3,7 +3,12 @@ package nl.adaptivity.jbi.soap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -12,8 +17,6 @@ import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
@@ -24,14 +27,16 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
+import nl.adaptivity.jbi.MyMessagingException;
+import nl.adaptivity.jbi.NormalizedMessage;
+
+import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Node;
 
 
 public class SoapMethodWrapper {
@@ -47,7 +52,7 @@ public class SoapMethodWrapper {
     aMethod = pMethod;
   }
 
-  public void unmarshalParams(Source pSource, Map<String, DataHandler> pAttachments) throws MessagingException {
+  public void unmarshalParams(Source pSource, Map<String, DataHandler> pAttachments) {
     if (aParams!=null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
@@ -59,12 +64,12 @@ public class SoapMethodWrapper {
     if (es==null || es.equals(SOAP_ENCODING)) {
       processSoapBody(envelope.getBody(), pAttachments);
     } else {
-      throw new MessagingException("Ununderstood message body");
+      throw new MyMessagingException("Ununderstood message body");
     }
 
   }
 
-  private void ensureNoUnunderstoodHeaders(Envelope pEnvelope) throws MessagingException{
+  private void ensureNoUnunderstoodHeaders(Envelope pEnvelope){
     // TODO Auto-generated method stub
     //
   }
@@ -75,9 +80,9 @@ public class SoapMethodWrapper {
     /* For now just ignore headers, i.e. none understood*/
   }
 
-  private void processSoapBody(org.w3.soapEnvelope.Body pBody, Map<String, DataHandler> pAttachments) throws MessagingException {
+  private void processSoapBody(org.w3.soapEnvelope.Body pBody, Map<String, DataHandler> pAttachments) {
     if (pBody.getAny().size()!=1) {
-      throw new MessagingException("Multiple body elements not expected");
+      throw new MyMessagingException("Multiple body elements not expected");
     }
     Node root = (Node) pBody.getAny().get(0);
     assertRootNode(root);
@@ -99,7 +104,7 @@ public class SoapMethodWrapper {
       }
       Node value = params.remove(name);
       if (value==null) {
-        throw new MessagingException("Parameter \""+name+"\" not found");
+        throw new MyMessagingException("Parameter \""+name+"\" not found");
       }
       aParams[i] = SoapHelper.unMarshalNode(aMethod, parameterTypes[i], value);
 
@@ -109,26 +114,26 @@ public class SoapMethodWrapper {
     }
   }
 
-  private void assertRootNode(Node pRoot) throws MessagingException {
+  private void assertRootNode(Node pRoot) {
     WebMethod wm = aMethod.getAnnotation(WebMethod.class);
     if (wm==null || wm.operationName().equals("")) {
       if (!pRoot.getLocalName().equals(aMethod.getName())) {
-        throw new MessagingException("Root node does not correspond to operation name");
+        throw new MyMessagingException("Root node does not correspond to operation name");
       }
     } else {
       if (!pRoot.getLocalName().equals(wm.operationName())) {
-        throw new MessagingException("Root node does not correspond to operation name");
+        throw new MyMessagingException("Root node does not correspond to operation name");
       }
     }
     WebService ws = aMethod.getDeclaringClass().getAnnotation(WebService.class);
     if (! (ws==null || ws.targetNamespace().equals(""))) {
       if (! ws.targetNamespace().equals(pRoot.getNamespaceURI())) {
-        throw new MessagingException("Root node does not correspond to operation namespace");
+        throw new MyMessagingException("Root node does not correspond to operation namespace");
       }
     }
   }
 
-  private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) throws MessagingException {
+  private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) {
     DataHandler handler = pAttachments.get(pName);
     if (handler != null) {
       if (DataHandler.class.isAssignableFrom(pClass)) {
@@ -138,7 +143,7 @@ public class SoapMethodWrapper {
         try {
           return handler.getInputStream();
         } catch (IOException e) {
-          throw new MessagingException(e);
+          throw new MyMessagingException(e);
         }
       }
       if (DataSource.class.isAssignableFrom(pClass)) {
@@ -147,30 +152,30 @@ public class SoapMethodWrapper {
       try {
         return handler.getContent();
       } catch (IOException e) {
-        throw new MessagingException(e);
+        throw new MyMessagingException(e);
       }
 
     }
     return null;
   }
 
-  public void exec() throws MessagingException {
+  public void exec() {
     if (aParams==null) {
       throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
     }
     try {
       aResult = aMethod.invoke(aOwner, aParams);
     } catch (IllegalArgumentException e) {
-      throw new MessagingException(e);
+      throw new MyMessagingException(e);
     } catch (IllegalAccessException e) {
-      throw new MessagingException(e);
+      throw new MyMessagingException(e);
     } catch (InvocationTargetException e) {
       Throwable cause = e.getCause();
-      throw new MessagingException(cause!=null ? cause : e);
+      throw new MyMessagingException(cause!=null ? cause : e);
     }
   }
 
-  public void marshalResult(NormalizedMessage pReply) throws MessagingException {
+  public void marshalResult(NormalizedMessage pReply) {
     if (aResult instanceof Source) {
       pReply.setContent((Source) aResult);
     }
@@ -181,7 +186,7 @@ public class SoapMethodWrapper {
       Source result = SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), params);
       pReply.setContent(result);
     } catch (JAXBException e) {
-      throw new MessagingException(e);
+      throw new MyMessagingException(e);
     }
 
   }

@@ -1,10 +1,15 @@
 package nl.adaptivity.jbi.util;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import javax.activation.DataHandler;
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
+
+import nl.adaptivity.jbi.NormalizedMessage;
 
 
 public class AttachmentMap extends AbstractMap<String, DataHandler> {
@@ -31,11 +36,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     @Override
     public DataHandler setValue(DataHandler pValue) {
       DataHandler result = aMessage.getAttachment(aKey);
-      try {
-        aMessage.addAttachment(aKey, pValue);
-      } catch (MessagingException e) {
-        throw new UnsupportedOperationException(e);
-      }
+      aMessage.addAttachment(aKey, pValue);
       return result;
     }
     
@@ -141,11 +142,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   public DataHandler remove(Object pKey) {
     if (pKey instanceof String) {
       DataHandler old = aMessage.getAttachment((String)pKey);
-      try {
-        aMessage.removeAttachment((String) pKey);
-      } catch (MessagingException e) {
-        throw new UnsupportedOperationException(e);
-      }
+      aMessage.removeAttachment((String) pKey);
       return old;
     }
     return null;

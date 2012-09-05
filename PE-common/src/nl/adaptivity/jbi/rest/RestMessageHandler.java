@@ -3,12 +3,11 @@ package nl.adaptivity.jbi.rest;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 import javax.xml.bind.JAXB;
 
 import net.devrieze.util.PrefixMap;
 
+import nl.adaptivity.jbi.NormalizedMessage;
 import nl.adaptivity.jbi.util.AttachmentMap;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
@@ -31,7 +30,7 @@ public class RestMessageHandler {
 
   private RestMessageHandler() {}
 
-  public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) throws MessagingException{
+  public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
     HttpMessage httpMessage = JAXB.unmarshal(message.getContent(),HttpMessage.class);
 
     MethodWrapper method = getMethodFor(operation, httpMessage, target);
