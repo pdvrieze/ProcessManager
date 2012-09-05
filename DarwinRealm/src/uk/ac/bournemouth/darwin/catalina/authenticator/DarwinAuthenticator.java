@@ -59,7 +59,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   private DBHelper aDb;
   private Context aContext;
   private StringBuilder aError = new StringBuilder();
-  private String aLoginPage;
+  private String aLoginPage = "/accounts/login";
   
 
   private AuthResult authenticate(Request pRequest, Response pResponse) throws IOException {
