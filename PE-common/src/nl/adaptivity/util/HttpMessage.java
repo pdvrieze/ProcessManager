@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.*;
 
 import org.w3c.dom.Node;
 
+// TODO change this to handle regular request bodies.
 @XmlRootElement(name = "httpMessage", namespace=HttpMessage.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name="HttpMessage", namespace=HttpMessage.NAMESPACE)
