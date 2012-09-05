@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 
 public class DBHelper {
   
+  private static final Level DETAIL_LOG_LEVEL = Level.INFO;
   private static final String LOGGER_NAME = "DBHelper";
 
 
@@ -46,8 +47,6 @@ public class DBHelper {
   public String aErrorMsg;
   private Connection aConnection;
   private Object aKey;
-  public boolean aValid;
-  
   private static Object aShareLock = new Object();
   private static final boolean SHARE_CONNECTIONS = true;
   private volatile static Map<String, DataSourceWrapper> aSourceMap;
@@ -90,8 +89,8 @@ public class DBHelper {
 
     @Override
     public DBStatement addParam(int pColumn, String pValue) {
-      checkValid();
       if (aSQLStatement!=null) {
+        checkValid();
         try {
           aSQLStatement.setString(pColumn, pValue);
         } catch (SQLException e) {
@@ -114,8 +113,8 @@ public class DBHelper {
 
     @Override
     public DBStatement addParam(int pColumn, int pValue) {
-      checkValid();
       if (aSQLStatement!=null) {
+        checkValid();
         try {
           aSQLStatement.setInt(pColumn, pValue);
         } catch (SQLException e) {
@@ -163,7 +162,6 @@ public class DBHelper {
     @Override
     public boolean exec() {
       checkValid();
-      DBHelper.this.aValid = false;
       try {
         if (aSQLStatement==null) {
           logException("No prepared statement available", new NullPointerException());
@@ -217,6 +215,17 @@ public class DBHelper {
       return result;
     }
 
+    protected final void checkValid() {
+      try {
+        if (aSQLStatement.isClosed()) {
+          throw new IllegalStateException("Trying to use a closed prepared statement");
+        }
+      } catch (SQLException e) {
+        logException("Failure to check whether prepared statement is closed", e);
+        throw new RuntimeException(e);
+      }
+    }
+    
     @Override
     public void close() throws SQLException {
       if (aSQLStatement!=null) {
@@ -282,7 +291,6 @@ public class DBHelper {
     @Override
     public ResultSet execQuery() {
       checkValid();
-      DBHelper.this.aValid = false;
       try {
         if (aSQLStatement==null) { return null; }
         ResultSet result = aSQLStatement.executeQuery();
@@ -415,7 +423,6 @@ public class DBHelper {
   private DBHelper(DataSourceWrapper pDataSource, Object pKey) {
     aDataSource = pDataSource;
     aKey = pKey!=null ? pKey : new Object();
-    aValid=true;
   }
   
   public static DBHelper dbHelper(String pResourceName, Object pKey) {
@@ -437,16 +444,16 @@ public class DBHelper {
         return new DBHelper(null, pKey); // Return an empty helper to ensure building doesn't fail stuff
       }
     }
-    if (getLogger().isLoggable(Level.FINE)) { // Do this only when we log this is going to be output
+    if (getLogger().isLoggable(DETAIL_LOG_LEVEL)) { // Do this only when we log this is going to be output
       StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
       StringBuilder message = new StringBuilder();
       message.append("dbHelper invoked for ").append(pResourceName).append(" with key [").append(pKey).append("] from ");
-      for (int i=1; i<stackTraceElements.length && i<5; ++i) {
-        if (i>1) { message.append(" -> "); }
+      for (int i=2; i<stackTraceElements.length && i<7; ++i) {
+        if (i>2) { message.append(" -> "); }
         message.append(stackTraceElements[i]);
       }
       message.append("\n  ").append(dataSource.aConnectionMap.size()).append(" outstanding helpers on this resource.");
-      getLogger().fine(message.toString());
+      getLogger().log(DETAIL_LOG_LEVEL,message.toString());
     }
     return new DBHelper(dataSource, pKey);
   }
@@ -474,18 +481,11 @@ public class DBHelper {
     getLogger().log(Level.SEVERE, pMsg, pE);
   }
   
-  private void checkValid() {
-    if (!aValid) {
-      throw new IllegalStateException("DBHelpers can not be reused");
-    }
-  }
-  
   public DBQuery makeQuery(String pSQL) {
     return makeQuery(pSQL, null);
   }
 
   public DBQuery makeQuery(String pSQL, String pErrorMsg) {
-    aValid=true;
     try {
       if (aDataSource!=null) {
         return new DBQueryImpl(pSQL, pErrorMsg);
@@ -501,7 +501,6 @@ public class DBHelper {
   }
 
   public DBInsert makeInsert(String pSQL, String pErrorMsg) {
-    aValid=true;
     try {
       if (aDataSource!=null) {
         return new DBInsertImpl(pSQL, pErrorMsg);
@@ -542,6 +541,7 @@ public class DBHelper {
    * @throws SQLException
    */
   public void close() throws SQLException {
+    getLogger().log(DETAIL_LOG_LEVEL, "Closing connection for key "+aKey);
     if (aConnection!=null) { 
       if (! aConnection.isClosed()) {
         aConnection.close();
