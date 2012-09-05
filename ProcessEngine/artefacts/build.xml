@@ -1,7 +1,7 @@
 <project name="artefacts" default="processEngine-WS-sa.zip">
 
 	<property name="HOMEDIR" location="."/>
-	<property name="sm-home" location="/home/paul/.bins/apache-servicemix-3.3.1"/>
+	<property name="sm-home" location="/home/pdvrieze/workspace/ServiceMix/"/>
 	
 	<taskdef file="${sm-home}/ant/servicemix_ant_taskdef.properties">
 		<classpath id="servicemix.classpath">
