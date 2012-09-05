@@ -1,11 +1,10 @@
-package nl.adaptivity.jbi.util;
+package nl.adaptivity.util.activation;
 
 import java.util.*;
 
 import javax.activation.DataHandler;
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 
+import nl.adaptivity.process.engine.NormalizedMessage;
 
 public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
@@ -31,11 +30,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     @Override
     public DataHandler setValue(DataHandler pValue) {
       DataHandler result = aMessage.getAttachment(aKey);
-      try {
-        aMessage.addAttachment(aKey, pValue);
-      } catch (MessagingException e) {
-        throw new UnsupportedOperationException(e);
-      }
+      aMessage.addAttachment(aKey, pValue);
       return result;
     }
     
@@ -45,7 +40,6 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     
     private final Iterator<String> aBackingIterator;
 
-    @SuppressWarnings("unchecked")
     public EntryIterator() {
       aBackingIterator = aMessage.getAttachmentNames().iterator();
     }
@@ -131,7 +125,6 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public Set<String> keySet() {
     return aMessage.getAttachmentNames();
@@ -141,11 +134,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   public DataHandler remove(Object pKey) {
     if (pKey instanceof String) {
       DataHandler old = aMessage.getAttachment((String)pKey);
-      try {
-        aMessage.removeAttachment((String) pKey);
-      } catch (MessagingException e) {
-        throw new UnsupportedOperationException(e);
-      }
+      aMessage.removeAttachment((String) pKey);
       return old;
     }
     return null;

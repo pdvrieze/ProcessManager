@@ -1,4 +1,4 @@
-package nl.adaptivity.jbi.rest;
+package nl.adaptivity.ws.rest;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -10,8 +10,6 @@ import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
@@ -36,13 +34,15 @@ import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.StringDataSource;
 import net.devrieze.util.Types;
 
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.engine.NormalizedMessage;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
 
 
-public class MethodWrapper {
+public class RestMethodWrapper {
 
   private Map<String, String> aPathParams;
   private final Object aOwner;
@@ -50,7 +50,7 @@ public class MethodWrapper {
   private Object[] aParams;
   private Object aResult;
 
-  public MethodWrapper(Object pOwner, Method pMethod) {
+  public RestMethodWrapper(Object pOwner, Method pMethod) {
     aOwner = pOwner;
     aMethod = pMethod;
   }
@@ -59,7 +59,7 @@ public class MethodWrapper {
     aPathParams = pPathParams;
   }
 
-  public void unmarshalParams(HttpMessage pHttpMessage, Map<String, DataHandler> pAttachments) throws MessagingException {
+  public void unmarshalParams(HttpMessage pHttpMessage, Map<String, DataHandler> pAttachments) {
     if (aParams!=null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
@@ -88,7 +88,7 @@ public class MethodWrapper {
     }
   }
 
-  private Object getParam(Class<?> pClass, String pName, ParamType pType, String pXpath, HttpMessage pMessage, Map<String, DataHandler> pAttachments) throws MessagingException {
+  private Object getParam(Class<?> pClass, String pName, ParamType pType, String pXpath, HttpMessage pMessage, Map<String, DataHandler> pAttachments) {
     Object result = null;
     switch (pType) {
       case GET:
@@ -123,7 +123,7 @@ public class MethodWrapper {
     return result;
   }
 
-  private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) throws MessagingException {
+  private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) {
     DataHandler handler = pAttachments.get(pName);
     if (handler != null) {
       if (DataHandler.class.isAssignableFrom(pClass)) {
@@ -133,7 +133,7 @@ public class MethodWrapper {
         try {
           return handler.getInputStream();
         } catch (IOException e) {
-          throw new MessagingException(e);
+          throw new MyMessagingException(e);
         }
       }
       if (DataSource.class.isAssignableFrom(pClass)) {
@@ -142,7 +142,7 @@ public class MethodWrapper {
       try {
         return handler.getContent();
       } catch (IOException e) {
-        throw new MessagingException(e);
+        throw new MyMessagingException(e);
       }
 
     }
@@ -200,30 +200,30 @@ public class MethodWrapper {
     return result.item(0);
   }
 
-  public void exec() throws MessagingException {
+  public void exec() {
     if (aParams==null) {
       throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
     }
     try {
       aResult = aMethod.invoke(aOwner, aParams);
     } catch (IllegalArgumentException e) {
-      throw new MessagingException(e);
+      throw new MyMessagingException(e);
     } catch (IllegalAccessException e) {
-      throw new MessagingException(e);
+      throw new MyMessagingException(e);
     } catch (InvocationTargetException e) {
       Throwable cause = e.getCause();
-      throw new MessagingException(cause!=null ? cause : e);
+      throw new MyMessagingException(cause!=null ? cause : e);
     }
   }
 
-  public void marshalResult(NormalizedMessage pReply) throws MessagingException {
+  public void marshalResult(NormalizedMessage pReply) {
     XmlRootElement xmlRootElement = aResult==null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
     if (xmlRootElement!=null) {
       try {
         JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
         pReply.setContent(new JAXBSource(jaxbContext, aResult));
       } catch (JAXBException e) {
-        throw new MessagingException(e);
+        throw new MyMessagingException(e);
       }
     } else if (aResult instanceof Source) {
       pReply.setContent((Source) aResult);
@@ -264,13 +264,13 @@ public class MethodWrapper {
           JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
           pReply.setContent(new JAXBSource(jaxbContext, aResult));
         } catch (JAXBException e) {
-          throw new MessagingException(e);
+          throw new MyMessagingException(e);
         }
       }
     }
   }
 
-  private Source collectionToSource(Type pReturnType, Collection<?> pResult, QName pName) throws MessagingException {
+  private Source collectionToSource(Type pReturnType, Collection<?> pResult, QName pName) {
     final Class<?> rawType;
     if (pReturnType instanceof ParameterizedType) {
       ParameterizedType returnType = (ParameterizedType) pReturnType;
@@ -314,7 +314,7 @@ public class MethodWrapper {
       }
       return new JAXBSource(context, new JAXBCollectionWrapper(pResult, elementType).getJAXBElement(pName));
     } catch (JAXBException e) {
-      throw new MessagingException(e);
+      throw new MyMessagingException(e);
     }
   }
 

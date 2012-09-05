@@ -1,4 +1,4 @@
-package nl.adaptivity.jbi.soap;
+package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -6,16 +6,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 import javax.jws.WebMethod;
 import javax.xml.namespace.QName;
 
 import net.devrieze.util.PrefixMap;
-import net.devrieze.util.ValueCollection;
 import net.devrieze.util.PrefixMap.Entry;
+import net.devrieze.util.ValueCollection;
 
-import nl.adaptivity.jbi.util.AttachmentMap;
+import nl.adaptivity.process.engine.NormalizedMessage;
+import nl.adaptivity.util.activation.AttachmentMap;
 
 
 public class SoapMessageHandler {
@@ -34,7 +33,7 @@ public class SoapMessageHandler {
 
   private SoapMessageHandler() {}
 
-  public boolean processRequest(QName operation, NormalizedMessage message, NormalizedMessage reply, Object target) throws MessagingException{
+  public boolean processRequest(QName operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
     SoapMethodWrapper method = getMethodFor(operation, target);
 
     if (method !=null) {

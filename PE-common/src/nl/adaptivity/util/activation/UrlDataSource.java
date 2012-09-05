@@ -1,4 +1,4 @@
-package nl.adaptivity.jbi.util;
+package nl.adaptivity.util.activation;
 
 import java.io.IOException;
 import java.io.InputStream;

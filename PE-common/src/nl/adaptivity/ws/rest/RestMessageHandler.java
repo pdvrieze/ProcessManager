@@ -1,18 +1,17 @@
-package nl.adaptivity.jbi.rest;
+package nl.adaptivity.ws.rest;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
 import javax.xml.bind.JAXB;
 
 import net.devrieze.util.PrefixMap;
 
-import nl.adaptivity.jbi.util.AttachmentMap;
+import nl.adaptivity.process.engine.NormalizedMessage;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.util.activation.AttachmentMap;
 
 
 public class RestMessageHandler {
@@ -31,10 +30,10 @@ public class RestMessageHandler {
 
   private RestMessageHandler() {}
 
-  public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) throws MessagingException{
+  public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
     HttpMessage httpMessage = JAXB.unmarshal(message.getContent(),HttpMessage.class);
 
-    MethodWrapper method = getMethodFor(operation, httpMessage, target);
+    RestMethodWrapper method = getMethodFor(operation, httpMessage, target);
 
     if (method !=null) {
       method.unmarshalParams(httpMessage, new AttachmentMap(message));
@@ -47,10 +46,10 @@ public class RestMessageHandler {
     return false;
   }
 
-  private MethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage httpMessage, Object target) {
+  private RestMethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage httpMessage, Object target) {
 //    final Method[] candidates = target.getClass().getDeclaredMethods();
     Collection<Method> candidates = getCandidatesFor(target.getClass(), pHttpMethod, httpMessage.getPathInfo());
-    MethodWrapper result = null;
+    RestMethodWrapper result = null;
     RestMethod resultAnnotation = null;
     for(Method candidate:candidates) {
       RestMethod annotation = candidate.getAnnotation(RestMethod.class);
@@ -61,7 +60,7 @@ public class RestMessageHandler {
           pathFits(pathParams, annotation.path(), httpMessage.getPathInfo()) &&
           conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), httpMessage)) {
         if (resultAnnotation==null || isMoreSpecificThan(resultAnnotation, annotation)) {
-          result = new MethodWrapper(target, candidate);
+          result = new RestMethodWrapper(target, candidate);
           result.setPathParams(pathParams);
           resultAnnotation = annotation;
         }
