@@ -1,51 +1,75 @@
 package nl.adaptivity.ws.rest;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
+import javax.xml.transform.TransformerException;
 
 import net.devrieze.util.PrefixMap;
 
-import nl.adaptivity.process.engine.NormalizedMessage;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.util.activation.AttachmentMap;
 
 
 public class RestMessageHandler {
 
-  private static RestMessageHandler aInstance;
+  private static volatile Map<Object, RestMessageHandler> aInstances;
 
   private Map<Class<?>,EnumMap<HttpMethod, PrefixMap<Method>>> cache;
 
+  private Object aTarget;
 
-  public static RestMessageHandler newInstance() {
-    if (aInstance == null) {
-      aInstance = new RestMessageHandler();
+
+  public static RestMessageHandler newInstance(Object pTarget) {
+    if (aInstances == null) {
+      aInstances = new ConcurrentHashMap<Object, RestMessageHandler>();
+      RestMessageHandler instance = new RestMessageHandler(pTarget);
+      aInstances.put(pTarget, instance);
+      return instance;
     }
-    return aInstance;
+    if (!aInstances.containsKey(pTarget)) {
+      synchronized (aInstances) {
+        RestMessageHandler instance = aInstances.get(pTarget);
+        if (instance==null) {
+          instance = new RestMessageHandler(pTarget);
+          aInstances.put(pTarget, instance);
+        }
+        return instance;
+      }
+    } else {
+      return aInstances.get(pTarget);
+    }
   }
 
-  private RestMessageHandler() {}
+  private RestMessageHandler(Object pTarget) { aTarget = pTarget; }
 
-  public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
-    HttpMessage httpMessage = JAXB.unmarshal(message.getContent(),HttpMessage.class);
+  public boolean processRequest(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) throws IOException {
+    HttpMessage httpMessage = JAXB.unmarshal(pRequest.getInputStream(),HttpMessage.class);
 
-    RestMethodWrapper method = getMethodFor(operation, httpMessage, target);
+    RestMethodWrapper method = getMethodFor(pMethod, httpMessage, aTarget);
 
     if (method !=null) {
-      method.unmarshalParams(httpMessage, new AttachmentMap(message));
+      method.unmarshalParams(httpMessage, null);
       method.exec();
-      if (reply!=null) {
-        method.marshalResult(reply);
+      try {
+        method.marshalResult(pRequest, pResponse);
+      } catch (TransformerException e) {
+        throw new IOException(e);
       }
       return true;
     }
     return false;
   }
 
+  /**
+   * TODO This could actually be cached, so reflection only needs to be done once!
+   */
   private RestMethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage httpMessage, Object target) {
 //    final Method[] candidates = target.getClass().getDeclaredMethods();
     Collection<Method> candidates = getCandidatesFor(target.getClass(), pHttpMethod, httpMessage.getPathInfo());
@@ -254,6 +278,14 @@ public class RestMessageHandler {
       if (an!=null) { return true; }
     }
     return false;
+  }
+
+  // XXX Determine whether this request is a rest request for this source or not
+  public boolean isRestRequest(HttpServletRequest pRequest) {
+    
+    // TODO Auto-generated method stub
+    // return false;
+    throw new UnsupportedOperationException("Not yet implemented");
   }
 
 
