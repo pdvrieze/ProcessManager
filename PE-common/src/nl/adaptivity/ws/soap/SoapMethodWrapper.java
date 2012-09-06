@@ -3,12 +3,7 @@ package nl.adaptivity.ws.soap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -27,19 +22,17 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
-import net.devrieze.util.Annotations;
-import net.devrieze.util.JAXBCollectionWrapper;
-import net.devrieze.util.Tripple;
-import net.devrieze.util.Types;
-import nl.adaptivity.jbi.MyMessagingException;
-import nl.adaptivity.jbi.NormalizedMessage;
-
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Node;
 
-import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.process.engine.NormalizedMessage;
+import net.devrieze.util.Annotations;
+import net.devrieze.util.JAXBCollectionWrapper;
+import net.devrieze.util.Tripple;
+import net.devrieze.util.Types;
+
+import nl.adaptivity.jbi.MyMessagingException;
+import nl.adaptivity.jbi.NormalizedMessage;
 
 
 public class SoapMethodWrapper {
