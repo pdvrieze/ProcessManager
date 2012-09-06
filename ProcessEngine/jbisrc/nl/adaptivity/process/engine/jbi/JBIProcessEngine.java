@@ -58,8 +58,6 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
 import net.devrieze.util.HandleMap;
-import nl.adaptivity.jbi.rest.RestMessageHandler;
-import nl.adaptivity.jbi.soap.SoapMessageHandler;
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.HProcessInstance;
@@ -77,6 +75,8 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.ws.rest.RestMessageHandler;
+import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
