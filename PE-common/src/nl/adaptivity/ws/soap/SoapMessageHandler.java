@@ -17,6 +17,7 @@ import net.devrieze.util.PrefixMap.Entry;
 import net.devrieze.util.ValueCollection;
 
 import nl.adaptivity.process.engine.NormalizedMessage;
+import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.activation.AttachmentMap;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 
@@ -53,7 +54,7 @@ public class SoapMessageHandler {
 
   private SoapMessageHandler(Object pTarget) { aTarget = pTarget; }
 
-  public boolean processRequest(HttpServletRequest pRequest, HttpServletResponse pResponse) {
+  public boolean processRequest(HttpMessage pRequest, HttpServletResponse pResponse) {
     SoapMethodWrapper method = getMethodFor(operation, target);
 
     if (method !=null) {
