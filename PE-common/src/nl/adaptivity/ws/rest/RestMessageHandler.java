@@ -1,14 +1,17 @@
-package nl.adaptivity.jbi.rest;
+package nl.adaptivity.ws.rest;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
+import javax.xml.transform.TransformerException;
 
 import net.devrieze.util.PrefixMap;
 
-import nl.adaptivity.jbi.NormalizedMessage;
-import nl.adaptivity.jbi.util.AttachmentMap;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
@@ -16,40 +19,62 @@ import nl.adaptivity.util.HttpMessage;
 
 public class RestMessageHandler {
 
-  private static RestMessageHandler aInstance;
+  private static volatile Map<Object, RestMessageHandler> aInstances;
 
   private Map<Class<?>,EnumMap<HttpMethod, PrefixMap<Method>>> cache;
 
+  private Object aTarget;
 
-  public static RestMessageHandler newInstance() {
-    if (aInstance == null) {
-      aInstance = new RestMessageHandler();
+
+  public static RestMessageHandler newInstance(Object pTarget) {
+    if (aInstances == null) {
+      aInstances = new ConcurrentHashMap<Object, RestMessageHandler>();
+      RestMessageHandler instance = new RestMessageHandler(pTarget);
+      aInstances.put(pTarget, instance);
+      return instance;
     }
-    return aInstance;
+    if (!aInstances.containsKey(pTarget)) {
+      synchronized (aInstances) {
+        RestMessageHandler instance = aInstances.get(pTarget);
+        if (instance==null) {
+          instance = new RestMessageHandler(pTarget);
+          aInstances.put(pTarget, instance);
+        }
+        return instance;
+      }
+    } else {
+      return aInstances.get(pTarget);
+    }
   }
 
-  private RestMessageHandler() {}
+  private RestMessageHandler(Object pTarget) { aTarget = pTarget; }
 
-  public boolean processRequest(HttpMethod operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
-    HttpMessage httpMessage = JAXB.unmarshal(message.getContent(),HttpMessage.class);
+  public boolean processRequest(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) throws IOException {
+    // TODO this will not work.
+    HttpMessage httpMessage = JAXB.unmarshal(pRequest.getInputStream(),HttpMessage.class);
 
-    MethodWrapper method = getMethodFor(operation, httpMessage, target);
+    RestMethodWrapper method = getMethodFor(pMethod, httpMessage);
 
     if (method !=null) {
-      method.unmarshalParams(httpMessage, new AttachmentMap(message));
+      method.unmarshalParams(httpMessage, null);
       method.exec();
-      if (reply!=null) {
-        method.marshalResult(reply);
+      try {
+        method.marshalResult(pRequest, pResponse);
+      } catch (TransformerException e) {
+        throw new IOException(e);
       }
       return true;
     }
     return false;
   }
 
-  private MethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage httpMessage, Object target) {
+  /**
+   * TODO This could actually be cached, so reflection only needs to be done once!
+   */
+  private RestMethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage httpMessage) {
 //    final Method[] candidates = target.getClass().getDeclaredMethods();
-    Collection<Method> candidates = getCandidatesFor(target.getClass(), pHttpMethod, httpMessage.getPathInfo());
-    MethodWrapper result = null;
+    Collection<Method> candidates = getCandidatesFor(pHttpMethod, httpMessage.getPathInfo());
+    RestMethodWrapper result = null;
     RestMethod resultAnnotation = null;
     for(Method candidate:candidates) {
       RestMethod annotation = candidate.getAnnotation(RestMethod.class);
@@ -58,9 +83,9 @@ public class RestMessageHandler {
       if (annotation !=null &&
           annotation.method()==pHttpMethod &&
           pathFits(pathParams, annotation.path(), httpMessage.getPathInfo()) &&
-          conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), httpMessage)) {
+          conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pRequest)) {
         if (resultAnnotation==null || isMoreSpecificThan(resultAnnotation, annotation)) {
-          result = new MethodWrapper(target, candidate);
+          result = new RestMethodWrapper(aTarget, candidate);
           result.setPathParams(pathParams);
           resultAnnotation = annotation;
         }
@@ -76,12 +101,13 @@ public class RestMessageHandler {
     return (pBaseAnnotation.path().length()<pAnnotation.path().length());
   }
 
-  private Collection<Method> getCandidatesFor(Class<? extends Object> pClass, HttpMethod pHttpMethod, String pPathInfo) {
+  private Collection<Method> getCandidatesFor(HttpMethod pHttpMethod, String pPathInfo) {
+    Class<? extends Object> targetClass = aTarget.getClass();
     if (cache == null) { cache = new HashMap<Class<?>, EnumMap<HttpMethod,PrefixMap<Method>>>(); }
-    EnumMap<HttpMethod,PrefixMap<Method>> v = cache.get(pClass);
+    EnumMap<HttpMethod,PrefixMap<Method>> v = cache.get(targetClass);
     if (v==null) {
-      v = createCacheElem(pClass);
-      cache.put(pClass, v);
+      v = createCacheElem(targetClass);
+      cache.put(targetClass, v);
     }
     PrefixMap<Method> w = v.get(pHttpMethod);
     if (w == null) { return Collections.emptyList(); }
@@ -132,26 +158,26 @@ public class RestMessageHandler {
     return pPath;
   }
 
-  private static boolean conditionsSatisfied(String[] pGet, String[] pPost, String[] pQuery, HttpMessage pHttpMessage) {
+  private static boolean conditionsSatisfied(String[] pGet, String[] pPost, String[] pQuery, HttpServletRequest pRequest) {
     for (String condition: pGet) {
-      if (! conditionGetSatisfied(condition, pHttpMessage)) {
+      if (! conditionGetSatisfied(condition, pRequest)) {
         return false;
       }
     }
     for (String condition: pPost) {
-      if (! conditionPostSatisfied(condition, pHttpMessage)) {
+      if (! conditionPostSatisfied(condition, pRequest)) {
         return false;
       }
     }
     for (String condition: pQuery) {
-      if (! conditionParamSatisfied(condition, pHttpMessage)) {
+      if (! conditionParamSatisfied(condition, pRequest)) {
         return false;
       }
     }
     return true;
   }
 
-  private static boolean conditionGetSatisfied(String pCondition, HttpMessage pHttpMessage) {
+  private static boolean conditionGetSatisfied(String pCondition, HttpServletRequest pRequest) {
     int i = pCondition.indexOf('=');
     String param;
     String value;
@@ -162,11 +188,11 @@ public class RestMessageHandler {
       param = pCondition;
       value=null;
     }
-    String val = pHttpMessage.getQuery(param);
+    String val = pRequest.getParameter(param);
     return (val != null) && (value == null || value.equals(val));
   }
 
-  private static boolean conditionPostSatisfied(String pCondition, HttpMessage pHttpMessage) {
+  private static boolean conditionPostSatisfied(String pCondition, HttpServletRequest pRequest) {
     int i = pCondition.indexOf('=');
     String param;
     String value;
@@ -177,11 +203,11 @@ public class RestMessageHandler {
       param = pCondition;
       value=null;
     }
-    String val = pHttpMessage.getPost(param);
+    String val = pRequest.getPost(param);
     return (val != null) && (value == null || value.equals(val));
   }
 
-  private static boolean conditionParamSatisfied(String pCondition, HttpMessage pHttpMessage) {
+  private static boolean conditionParamSatisfied(String pCondition, HttpServletRequest pRequest) {
     int i = pCondition.indexOf('=');
     String param;
     String value;
@@ -192,7 +218,7 @@ public class RestMessageHandler {
       param = pCondition;
       value=null;
     }
-    String val = pHttpMessage.getParam(param);
+    String val = pRequest.getParam(param);
     return (val != null) && (value == null || value.equals(val));
   }
 
@@ -252,6 +278,25 @@ public class RestMessageHandler {
     for (Method m: pClass.getMethods()) {
       RestMethod an = m.getAnnotation(RestMethod.class);
       if (an!=null) { return true; }
+    }
+    return false;
+  }
+
+  // XXX Determine whether this request is a rest request for this source or not
+  public boolean isRestRequest(HttpMethod pHttpMethod, HttpServletRequest pRequest) {
+    Collection<Method> candidates = getCandidatesFor(pHttpMethod, pRequest.getPathInfo());
+    RestMethodWrapper result = null;
+    for(Method candidate:candidates) {
+      RestMethod annotation = candidate.getAnnotation(RestMethod.class);
+      Map<String, String> pathParams = new HashMap<String, String>();
+
+      if (annotation !=null &&
+          annotation.method()==pHttpMethod &&
+          pathFits(pathParams, annotation.path(), pRequest.getPathInfo()) &&
+          conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pRequest)) {
+        return true;
+      }
+
     }
     return false;
   }

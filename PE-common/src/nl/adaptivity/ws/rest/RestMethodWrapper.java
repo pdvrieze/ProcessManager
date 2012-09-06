@@ -1,4 +1,4 @@
-package nl.adaptivity.jbi.rest;
+package nl.adaptivity.ws.rest;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -10,6 +10,8 @@ import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
@@ -20,6 +22,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -31,18 +34,18 @@ import org.w3c.dom.NodeList;
 
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
-import net.devrieze.util.StringDataSource;
 import net.devrieze.util.Types;
 
-import nl.adaptivity.jbi.MyMessagingException;
-import nl.adaptivity.jbi.NormalizedMessage;
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
+import nl.adaptivity.util.activation.Sources;
 
 
-public class MethodWrapper {
+public class RestMethodWrapper {
 
   private Map<String, String> aPathParams;
   private final Object aOwner;
@@ -50,7 +53,7 @@ public class MethodWrapper {
   private Object[] aParams;
   private Object aResult;
 
-  public MethodWrapper(Object pOwner, Method pMethod) {
+  public RestMethodWrapper(Object pOwner, Method pMethod) {
     aOwner = pOwner;
     aMethod = pMethod;
   }
@@ -216,23 +219,28 @@ public class MethodWrapper {
     }
   }
 
-  public void marshalResult(NormalizedMessage pReply) {
+  public void marshalResult(HttpServletRequest pRequest, HttpServletResponse pResponse) throws TransformerException, IOException {
     XmlRootElement xmlRootElement = aResult==null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
     if (xmlRootElement!=null) {
       try {
         JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
-        pReply.setContent(new JAXBSource(jaxbContext, aResult));
+        final JAXBSource jaxbSource = new JAXBSource(jaxbContext, aResult);
+        setContentType(pResponse, "text/xml");
+        Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
       } catch (JAXBException e) {
         throw new MyMessagingException(e);
       }
     } else if (aResult instanceof Source) {
-      pReply.setContent((Source) aResult);
+      setContentType(pResponse, "application/binary");// Unknown content type
+      Sources.writeToStream((Source) aResult, pResponse.getOutputStream());
     } else if (aResult instanceof Node){
-      pReply.setContent(new DOMSource((Node) aResult));
+      pResponse.setContentType("text/xml");
+      Sources.writeToStream(new DOMSource((Node) aResult), pResponse.getOutputStream());
     } else if (aResult instanceof Collection) {
       XmlElementWrapper annotation = aMethod.getAnnotation(XmlElementWrapper.class);
       if (annotation!=null) {
-        pReply.setContent(collectionToSource(aMethod.getGenericReturnType(),(Collection<?>) aResult, getQName(annotation)));
+        setContentType(pResponse, "text/xml");
+        Sources.writeToStream(collectionToSource(aMethod.getGenericReturnType(),(Collection<?>) aResult, getQName(annotation)), pResponse.getOutputStream());
 //
 //
 //        Collection<?> value = (Collection<?>) aResult;
@@ -257,16 +265,30 @@ public class MethodWrapper {
 
       }
     } else if (aResult instanceof CharSequence) {
-      pReply.addAttachment("text", new DataHandler(new StringDataSource("text", "text/plain", aResult.toString())));
+      setContentType(pResponse, "text/plain");
+      pResponse.getWriter().append((CharSequence) aResult);
     } else {
       if (aResult !=null) {
         try {
           JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
-          pReply.setContent(new JAXBSource(jaxbContext, aResult));
+          setContentType(pResponse, "text/xml");
+
+          JAXBSource jaxbSource = new JAXBSource(jaxbContext, aResult);
+          Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
+
         } catch (JAXBException e) {
           throw new MyMessagingException(e);
         }
       }
+    }
+  }
+
+  private void setContentType(HttpServletResponse pResponse, final String pDefault) {
+    RestMethod methodAnnotation = aMethod.getAnnotation(RestMethod.class);
+    if (methodAnnotation==null || methodAnnotation.contentType().length()==0) {
+      pResponse.setContentType(pDefault);
+    } else {
+      pResponse.setContentType(methodAnnotation.contentType());
     }
   }
 

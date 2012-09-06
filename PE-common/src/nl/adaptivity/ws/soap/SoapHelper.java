@@ -1,4 +1,4 @@
-package nl.adaptivity.jbi.soap;
+package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -19,6 +19,8 @@ import org.w3c.dom.Node;
 
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
+
+import nl.adaptivity.process.engine.MyMessagingException;
 
 
 
@@ -124,7 +126,7 @@ public class SoapHelper {
     return wrapper;
   }
 
-  public static <T> T processResponse(Class<T> pClass, Source pContent)  {
+  public static <T> T processResponse(Class<T> pClass, Source pContent) {
     Envelope env = JAXB.unmarshal(pContent, Envelope.class);
     List<Object> elements = env.getBody().getAny();
     if (elements.size()!=1) {
@@ -202,7 +204,7 @@ public class SoapHelper {
           }
 
         } catch (JAXBException e) {
-          throw new RuntimeException(e);
+          throw new MyMessagingException(e);
         }
       }
     } else {

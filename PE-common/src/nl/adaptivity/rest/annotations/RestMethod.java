@@ -14,7 +14,8 @@ public @interface RestMethod {
     GET,
     POST,
     PUT,
-    DELETE
+    DELETE;
+
   }
 
   HttpMethod method();
@@ -33,5 +34,7 @@ public @interface RestMethod {
    * Expressions that put conditions on any request parameters (post or get)
    */
   String[] query() default {};
+  
+  String contentType() default "" ;
 
 }

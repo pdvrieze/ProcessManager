@@ -1,11 +1,6 @@
-package nl.adaptivity.jbi.util;
+package nl.adaptivity.util.activation;
 
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.activation.DataHandler;
 
@@ -46,7 +41,6 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     
     private final Iterator<String> aBackingIterator;
 
-    @SuppressWarnings("unchecked")
     public EntryIterator() {
       aBackingIterator = aMessage.getAttachmentNames().iterator();
     }
@@ -132,7 +126,6 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     return null;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public Set<String> keySet() {
     return aMessage.getAttachmentNames();

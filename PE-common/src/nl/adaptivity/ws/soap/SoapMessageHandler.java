@@ -1,39 +1,59 @@
-package nl.adaptivity.jbi.soap;
+package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jws.WebMethod;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
 
 import net.devrieze.util.PrefixMap;
-import net.devrieze.util.ValueCollection;
 import net.devrieze.util.PrefixMap.Entry;
+import net.devrieze.util.ValueCollection;
 
-import nl.adaptivity.jbi.NormalizedMessage;
-import nl.adaptivity.jbi.util.AttachmentMap;
+import nl.adaptivity.process.engine.NormalizedMessage;
+import nl.adaptivity.util.activation.AttachmentMap;
+import nl.adaptivity.ws.rest.RestMessageHandler;
 
 
 public class SoapMessageHandler {
 
-  private static SoapMessageHandler aInstance;
+  private static volatile Map<Object, SoapMessageHandler> aInstances;
 
   private Map<Class<?>,PrefixMap<Method>> cache;
 
+  private Object aTarget;
 
-  public static SoapMessageHandler newInstance() {
-    if (aInstance == null) {
-      aInstance = new SoapMessageHandler();
+
+  public static SoapMessageHandler newInstance(Object pTarget) {
+    if (aInstances == null) {
+      aInstances = new ConcurrentHashMap<Object, SoapMessageHandler>();
+      SoapMessageHandler instance = new SoapMessageHandler(pTarget);
+      aInstances.put(pTarget, instance);
+      return instance;
     }
-    return aInstance;
+    if (!aInstances.containsKey(pTarget)) {
+      synchronized (aInstances) {
+        SoapMessageHandler instance = aInstances.get(pTarget);
+        if (instance==null) {
+          instance = new SoapMessageHandler(pTarget);
+          aInstances.put(pTarget, instance);
+        }
+        return instance;
+      }
+    } else {
+      return aInstances.get(pTarget);
+    }
   }
 
-  private SoapMessageHandler() {}
+  private SoapMessageHandler(Object pTarget) { aTarget = pTarget; }
 
-  public boolean processRequest(QName operation, NormalizedMessage message, NormalizedMessage reply, Object target) {
+  public boolean processRequest(HttpServletRequest pRequest, HttpServletResponse pResponse) {
     SoapMethodWrapper method = getMethodFor(operation, target);
 
     if (method !=null) {

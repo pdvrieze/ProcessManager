@@ -1,4 +1,4 @@
-package nl.adaptivity.jbi.soap;
+package nl.adaptivity.ws.soap;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +37,9 @@ import nl.adaptivity.jbi.NormalizedMessage;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Node;
+
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.engine.NormalizedMessage;
 
 
 public class SoapMethodWrapper {
