@@ -45,6 +45,7 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
@@ -386,8 +387,9 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   private void processRestSoap(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) {
     RestMessageHandler restHandler = getRestMessageHandler();
     try {
-      if (restHandler.isRestRequest(pRequest)) {
-        if (!getRestMessageHandler().processRequest(pMethod, pRequest, pResponse)) {
+      HttpMessage message = new HttpMessage(pRequest);
+      if (restHandler.isRestRequest(pMethod, message)) {
+        if (!getRestMessageHandler().processRequest(pMethod, message, pResponse)) {
           getLogger().warning("Error processing rest request");
         }
       } else {
