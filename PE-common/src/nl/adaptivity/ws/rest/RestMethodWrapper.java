@@ -219,7 +219,7 @@ public class RestMethodWrapper {
     }
   }
 
-  public void marshalResult(HttpServletRequest pRequest, HttpServletResponse pResponse) throws TransformerException, IOException {
+  public void marshalResult(HttpMessage pRequest, HttpServletResponse pResponse) throws TransformerException, IOException {
     XmlRootElement xmlRootElement = aResult==null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
     if (xmlRootElement!=null) {
       try {
