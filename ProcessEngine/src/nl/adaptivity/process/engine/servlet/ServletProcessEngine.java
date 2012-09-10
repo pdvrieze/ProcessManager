@@ -386,14 +386,15 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
 
   private void processRestSoap(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) {
     RestMessageHandler restHandler = getRestMessageHandler();
+    SoapMessageHandler soapHandler = getSoapMessageHandler();
     try {
       HttpMessage message = new HttpMessage(pRequest);
-      if (restHandler.isRestRequest(pMethod, message)) {
+      if (!soapHandler.isSoapMessage(pRequest)) {
         if (!getRestMessageHandler().processRequest(pMethod, message, pResponse)) {
           getLogger().warning("Error processing rest request");
         }
       } else {
-        if (!getSoapMessageHandler().processRequest(pRequest, pResponse)) {
+        if (!soapHandler.processRequest(message, pResponse)) {
           getLogger().warning("Error processing soap request");
         }
         
