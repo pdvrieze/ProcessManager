@@ -15,12 +15,14 @@ import javax.activation.DataSource;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
@@ -33,6 +35,7 @@ import net.devrieze.util.Types;
 
 import nl.adaptivity.jbi.MyMessagingException;
 import nl.adaptivity.jbi.NormalizedMessage;
+import nl.adaptivity.util.activation.Sources;
 
 
 public class SoapMethodWrapper {
@@ -171,17 +174,29 @@ public class SoapMethodWrapper {
     }
   }
 
-  public void marshalResult(NormalizedMessage pReply) {
+  public void marshalResult(HttpServletResponse pResponse) {
+    pResponse.setContentType("application/soap+xml");
     if (aResult instanceof Source) {
-      pReply.setContent((Source) aResult);
+      try {
+        Sources.writeToStream((Source) aResult, pResponse.getOutputStream());
+      } catch (TransformerException e) {
+        throw new MyMessagingException(e);
+      } catch (IOException e) {
+        throw new MyMessagingException(e);
+      }
+      return;
     }
 
     @SuppressWarnings("unchecked") Tripple<String, Class<?>, Object>[] params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                                                                                              Tripple.tripple("result", aMethod.getReturnType(), aResult)};
     try {
       Source result = SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), params);
-      pReply.setContent(result);
+      Sources.writeToStream(result, pResponse.getOutputStream());
     } catch (JAXBException e) {
+      throw new MyMessagingException(e);
+    } catch (TransformerException e) {
+      throw new MyMessagingException(e);
+    } catch (IOException e) {
       throw new MyMessagingException(e);
     }
 

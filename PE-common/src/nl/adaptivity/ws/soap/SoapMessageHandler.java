@@ -10,7 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jws.WebMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+
+import org.w3.soapEnvelope.Envelope;
 
 import net.devrieze.util.PrefixMap;
 import net.devrieze.util.PrefixMap.Entry;
@@ -55,13 +59,16 @@ public class SoapMessageHandler {
   private SoapMessageHandler(Object pTarget) { aTarget = pTarget; }
 
   public boolean processRequest(HttpMessage pRequest, HttpServletResponse pResponse) {
-    SoapMethodWrapper method = getMethodFor(operation, target);
+    Envelope envelope = JAXB.unmarshal(pRequest.getContent(), Envelope.class);
+    QName operation = pRequest.getOperation();
+    
+    SoapMethodWrapper method = getMethodFor(operation, aTarget);
 
     if (method !=null) {
-      method.unmarshalParams(message.getContent(), new AttachmentMap(message));
+      method.unmarshalParams(pRequest.getContent(), null);
       method.exec();
-      if (reply!=null) {
-        method.marshalResult(reply);
+      if (pResponse!=null) {
+        method.marshalResult(pResponse);
       }
       return true;
     }
@@ -121,6 +128,10 @@ public class SoapMessageHandler {
       if (an!=null) { return true; }
     }
     return false;
+  }
+
+  public boolean isSoapMessage(HttpServletRequest pRequest) {
+    return "application/soap+xml".equals(pRequest.getContentType());
   }
 
 

@@ -10,9 +10,12 @@ import javax.activation.DataSource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -303,12 +306,17 @@ public class HttpMessage {
   
   private Map<String, List<String>> aHeaders;
 
+  private QName aOperation;
+
   public HttpMessage() {
 
   }
 
   public HttpMessage(HttpServletRequest pRequest) throws UnsupportedEncodingException, IOException {
     aHeaders = getHeaders(pRequest);
+    
+    // XXX This is not actually correct yet.
+    aOperation = new QName(pRequest.getRequestURI());
     
     aQueries = toQueries(pRequest.getQueryString());
     setMethod(pRequest.getMethod());
@@ -578,5 +586,20 @@ public class HttpMessage {
   @XmlAttribute
   public String getContextPath() {
     return aContextPath;
+  }
+
+  public Source getContent() {
+    final List<Node> elements = aBody.getElements();
+    if (elements.size()==0) {
+      return null;
+    }
+    if (elements.size()>1) {
+      throw new IllegalStateException("");
+    }
+    return new DOMSource(elements.get(0)); 
+  }
+
+  public QName getOperation() {
+    return aOperation;
   }
 }
