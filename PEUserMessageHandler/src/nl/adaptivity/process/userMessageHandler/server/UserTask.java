@@ -1,11 +1,10 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import javax.jbi.component.ComponentContext;
-
 import net.devrieze.util.HandleMap.HandleAware;
 
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.messaging.AsyncMessenger;
 
 
 public interface UserTask <T extends UserTask<T>> extends HandleAware<T>{
@@ -16,8 +15,8 @@ public interface UserTask <T extends UserTask<T>> extends HandleAware<T>{
 
   public void setEndpoint(EndPointDescriptor pEndPoint);
 
-  void setContext(ComponentContext pContext);
+  void setContext(AsyncMessenger pContext);
 
-  ComponentContext getContext();
+  AsyncMessenger getContext();
 
 }

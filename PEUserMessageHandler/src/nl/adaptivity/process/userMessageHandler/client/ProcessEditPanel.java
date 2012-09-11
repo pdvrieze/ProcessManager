@@ -1,18 +1,15 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
-import pl.tecna.gwt.connectors.client.*;
 import nl.adaptivity.gwt.ext.client.TextInputPopup;
 import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteEvent;
 import nl.adaptivity.gwt.ext.client.TextInputPopup.InputCompleteHandler;
 import nl.adaptivity.process.userMessageHandler.client.processModel.*;
 
-import com.allen_sauer.gwt.dnd.client.DragContext;
-import com.allen_sauer.gwt.dnd.client.PickupDragController;
-import com.allen_sauer.gwt.dnd.client.VetoDragException;
-import com.allen_sauer.gwt.dnd.client.drop.AbstractDropController;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DropEvent;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.xml.client.XMLParser;
@@ -30,19 +27,13 @@ public class ProcessEditPanel extends Composite {
 
   }
 
-  private class ProcessElementDropController extends AbstractDropController implements InputCompleteHandler {
-
-    private DragContext aContext;
+  private class ProcessElementDropController implements InputCompleteHandler {
 
 
-    public ProcessElementDropController() {
-      super(aDiagramPanel);
-    }
-
-
-    @Override
-    public void onDrop(DragContext pContext) {
-      for (Object w: pContext.selectedWidgets) {
+    @Deprecated
+    public void onDrop(DropEvent pEvent) {
+      ArrayList<Object> pContext = new ArrayList<Object>();
+      for (Object w: pContext) {
         String kind = null;
 
         if (w==aNewStartNode) {
@@ -54,15 +45,15 @@ public class ProcessEditPanel extends Composite {
         } else if (w == aNewEndNode) {
           kind = "end node";
         } else if (w == aArrow) {
-          SectionDecoration endDecoration = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
+/*          SectionDecoration endDecoration = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
           int x = pContext.desiredDraggableX - aDiagramPanel.getAbsoluteLeft();
           int y = pContext.desiredDraggableY + (pContext.draggable.getOffsetHeight()/2) - aDiagramPanel.getAbsoluteTop();
           IConnector connector = new AutoConnector(x, y ,x + pContext.draggable.getOffsetWidth(), y, null, endDecoration);
           connector.showOnDiagram(aDiagram);
-
-          continue;
+*/
+          throw new UnsupportedOperationException("Not supported for arrows");
+//          continue;
         }
-        aContext = pContext;
 
         TextInputPopup namePopup = new TextInputPopup("What is the name of the new "+kind, "Create");
         namePopup.addInputCompleteHandler(ProcessElementDropController.this);
@@ -70,7 +61,7 @@ public class ProcessEditPanel extends Composite {
       }
     }
 
-
+/*
     @Override
     public void onPreviewDrop(DragContext pContext) throws VetoDragException {
       for (Object w: pContext.selectedWidgets) {
@@ -79,12 +70,13 @@ public class ProcessEditPanel extends Composite {
         }
       }
     }
+*/
 
-
+    @Deprecated
     @Override
     public void onComplete(InputCompleteEvent pInputCompleteEvent) {
       if (pInputCompleteEvent.isSuccess()) {
-        for (Object w: aContext.selectedWidgets) {
+        for (Object w: new ArrayList<Object>()) {
           String name = pInputCompleteEvent.getNewValue();
           ProcessNode processNode = null;
           if (w==aNewStartNode) {
@@ -97,9 +89,9 @@ public class ProcessEditPanel extends Composite {
             processNode = new EndNode(name, null);
           }
           EditableProcessNode editNode = new EditableProcessNode(processNode);
-          aDiagramPanel.add(editNode, aContext.desiredDraggableX-aDiagramPanel.getAbsoluteLeft(), aContext.desiredDraggableY- aDiagramPanel.getAbsoluteTop());
+//          aDiagramPanel.add(editNode, aContext.desiredDraggableX-aDiagramPanel.getAbsoluteLeft(), aContext.desiredDraggableY- aDiagramPanel.getAbsoluteTop());
           ProcessShape shape = new ProcessShape(editNode);
-          shape.showOnDiagram(aDiagram);
+//          shape.showOnDiagram(aDiagram);
           editNode.setShape(shape);
 
         }
@@ -113,7 +105,6 @@ public class ProcessEditPanel extends Composite {
   private EditableProcessModel aProcessModel;
   private ProcessInstance aProcessInstance;
   private AbsolutePanel aDiagramPanel;
-  private Diagram aDiagram;
   private HorizontalSplitPanel aSplitPanel;
   private VerticalPanel aSourcePanel;
   private Widget aNewStartNode;
@@ -121,7 +112,6 @@ public class ProcessEditPanel extends Composite {
   private Widget aNewJoinNode;
   private Widget aNewEndNode;
   private AbsolutePanel aBoundaryPanel;
-  private PickupDragController aDragController;
   private ProcessElementDropController aDropController;
   private Image aArrow;
 
@@ -133,8 +123,6 @@ public class ProcessEditPanel extends Composite {
     aDiagramPanel.addStyleName("ProcessEditPanel-canvas");
     Label label = new Label("ProcessEditPanel");
     aDiagramPanel.add(label, 10, 10);
-
-    aDiagram = new Diagram(aDiagramPanel);
 
     if (aEditable) {
 
@@ -161,12 +149,14 @@ public class ProcessEditPanel extends Composite {
       aNewJoinNode = new EditableProcessNode(new JoinNode("join", null, "0", Integer.toString(Integer.MAX_VALUE))).getDragHandle();
       aNewEndNode = new EditableProcessNode(new EndNode(null, null)).getDragHandle();
 
+      /*
       aDragController = new PickupDragController(aBoundaryPanel, false);
       aDragController.setBehaviorDragProxy(true);
       aDragController.setBehaviorConstrainedToBoundaryPanel(true);
 
       aDropController = new ProcessElementDropController();
       aDragController.registerDropController(aDropController);
+      */
 
       initWidget(aBoundaryPanel);
 
@@ -174,7 +164,9 @@ public class ProcessEditPanel extends Composite {
         node.addStyleName("sourceoptions");
         aSourcePanel.add(node);
 
+        /*
         aDragController.makeDraggable(node);
+        */
       }
 
     } else {
@@ -228,10 +220,10 @@ public class ProcessEditPanel extends Composite {
 
       for (EditableProcessNode w: aProcessModel.getNodes()) {
         map.put(w.getNode().getId(), w);
-        ProcessShape shapeForW = new ProcessShape(w);
+//        ProcessShape shapeForW = new ProcessShape(w);
         aDiagramPanel.add(w, w.getX(), w.getY());
-        shapeForW.showOnDiagram(aDiagram);
-        w.setShape(shapeForW);
+//        shapeForW.showOnDiagram(aDiagram);
+//        w.setShape(shapeForW);
         posx+=100;
       }
 
@@ -240,6 +232,7 @@ public class ProcessEditPanel extends Composite {
         for (ProcessNode s: start.getNode().getSuccessors()) {
           EditableProcessNode end = map.get(s.getId());
           if (end!=null) {
+/*
             SectionDecoration arrowDecorator = new SectionDecoration(SectionDecoration.DECORATE_ARROW);
             ConnectionPoint startPoint= start.getShape().getEastConnectionPoint();
             ConnectionPoint endPoint = end.getShape().getWestConnectionPoint();
@@ -250,6 +243,7 @@ public class ProcessEditPanel extends Composite {
             connector.getStartEndPoint().glueToConnectionPoint(startPoint);
             connector.getEndEndPoint().glueToConnectionPoint(endPoint);
             connector.showOnDiagram(aDiagram);
+            */
           }
 
         }

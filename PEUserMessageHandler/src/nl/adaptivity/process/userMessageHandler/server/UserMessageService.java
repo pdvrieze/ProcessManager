@@ -3,13 +3,12 @@ package nl.adaptivity.process.userMessageHandler.server;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.jbi.component.ComponentContext;
-
 import net.devrieze.util.HandleMap;
 
-import nl.adaptivity.jbi.components.genericSE.EndpointProvider;
-import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
 import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.messaging.AsyncMessenger;
+import nl.adaptivity.process.messaging.EndpointProvider;
+import nl.adaptivity.process.messaging.GenericEndpoint;
 
 
 
@@ -22,7 +21,7 @@ public class UserMessageService implements EndpointProvider {
 
   private HandleMap<UserTask<?>> tasks;
 
-  private ComponentContext aContext;
+  private AsyncMessenger aContext;
 
   public UserMessageService() {
     internalEndpoint = new InternalEndpoint(this);
@@ -71,11 +70,11 @@ public class UserMessageService implements EndpointProvider {
   }
 
   @Override
-  public void setContext(ComponentContext context) {
+  public void setContext(AsyncMessenger context) {
     aContext = context;
   }
 
-  public ComponentContext getContext() {
+  public AsyncMessenger getContext() {
     return aContext;
   }
 

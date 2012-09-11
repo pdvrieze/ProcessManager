@@ -15,7 +15,7 @@
   <inherits name="nl.adaptivity.gwt.base.Base"/>
   <inherits name="nl.adaptivity.gwt.ext.Ext"/>
 
-  <inherits name="pl.tecna.gwt.connectors.Connectors"/>
+  <!-- inherits name="pl.tecna.gwt.connectors.Connectors"/ -->
 
   <!-- Specify the app entry point class.                         -->
   <entry-point class='nl.adaptivity.process.userMessageHandler.client.PEUserMessageHandler'/>

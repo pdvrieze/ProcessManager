@@ -2,25 +2,18 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import java.util.logging.Logger;
 
-import javax.jbi.component.ComponentContext;
-import javax.jbi.messaging.*;
-import javax.jbi.servicedesc.ServiceEndpoint;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
 
-import org.w3c.dom.Node;
-
-import net.devrieze.util.Tripple;
-
-import nl.adaptivity.jbi.components.genericSE.GenericEndpoint;
-import nl.adaptivity.jbi.soap.SoapHelper;
 import nl.adaptivity.jbi.util.EndPointDescriptor;
+import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.messaging.AsyncMessenger;
+import nl.adaptivity.process.messaging.GenericEndpoint;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
@@ -36,7 +29,7 @@ public class InternalEndpoint implements GenericEndpoint {
     private TaskState aState=TaskState.Available;
     private String aSummary;
     private EndPointDescriptor aEndPoint = null;
-    private ComponentContext aContext;
+    private AsyncMessenger aContext;
 
     public XmlTask() {
       aHandle = -1;
@@ -66,13 +59,15 @@ public class InternalEndpoint implements GenericEndpoint {
       } catch (JAXBException e) {
         e.printStackTrace();
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
-      } catch (MessagingException e) {
+      } catch (MyMessagingException e) {
         e.printStackTrace();
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
       }
     }
 
-    private TaskState updateRemoteTaskState(TaskState pState) throws JAXBException, MessagingException {
+    private TaskState updateRemoteTaskState(TaskState pState) throws JAXBException, MyMessagingException {
+      throw new UnsupportedOperationException("Not implemented");
+      /*
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState));
       DeliveryChannel channel = aContext.getDeliveryChannel();
 
@@ -102,9 +97,12 @@ public class InternalEndpoint implements GenericEndpoint {
         }
       }
       return aState; // Don't change state
+      */
     }
 
-    private TaskState finishRemoteTask() throws JAXBException, MessagingException {
+    private TaskState finishRemoteTask() throws JAXBException, MyMessagingException {
+      throw new UnsupportedOperationException("Not implemented");
+      /*
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
       DeliveryChannel channel = aContext.getDeliveryChannel();
 
@@ -135,6 +133,7 @@ public class InternalEndpoint implements GenericEndpoint {
         }
       }
       return aState; // Don't change state
+      */
     }
 
     @XmlAttribute(name="handle")
@@ -173,12 +172,12 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     @Override
-    public void setContext(ComponentContext context) {
+    public void setContext(AsyncMessenger context) {
       aContext = context;
     }
 
     @Override
-    public ComponentContext getContext() {
+    public AsyncMessenger getContext() {
       return aContext;
     }
   }

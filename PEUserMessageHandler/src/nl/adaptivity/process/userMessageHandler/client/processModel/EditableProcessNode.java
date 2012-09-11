@@ -3,11 +3,30 @@ package nl.adaptivity.process.userMessageHandler.client.processModel;
 import nl.adaptivity.gwt.ext.client.BoxWidget;
 import nl.adaptivity.process.userMessageHandler.client.ProcessShape;
 
-import com.allen_sauer.gwt.dnd.client.HasDragHandle;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.event.dom.client.*;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.*;
 
 
-public class EditableProcessNode extends Composite implements HasDragHandle {
+public class EditableProcessNode extends Composite implements HasAllDragAndDropHandlers {
+  
+  class MyDragHandler implements DragHandler, DragStartHandler {
+
+    @Override
+    public void onDragStart(DragStartEvent pEvent) {
+      // TODO Auto-generated method stub
+      // 
+    }
+
+    @Override
+    public void onDrag(DragEvent pEvent) {
+      // TODO Auto-generated method stub
+      // 
+    }
+    
+  }
+  
 
   private ProcessNode aNode;
   private Widget aWidget;
@@ -33,6 +52,8 @@ public class EditableProcessNode extends Composite implements HasDragHandle {
     initWidget(aWidget);
     setStyleName("EditableProcessNode");
     if (extraStyle != null) { addStyleName(extraStyle); }
+    getElement().setDraggable(Element.DRAGGABLE_TRUE);
+//    addDragStartHandler(new MyDragHandler());
   }
 
   public static EditableProcessNode create(ProcessNode pNode) {
@@ -89,6 +110,41 @@ public class EditableProcessNode extends Composite implements HasDragHandle {
     } else {
       return aWidget.getOffsetHeight()/2;
     }
+  }
+
+  @Override
+  public HandlerRegistration addDragEndHandler(DragEndHandler pHandler) {
+    return addDomHandler(pHandler, DragEndEvent.getType());
+  }
+
+  @Override
+  public HandlerRegistration addDragEnterHandler(DragEnterHandler pHandler) {
+    return addDomHandler(pHandler, DragEnterEvent.getType());
+  }
+
+  @Override
+  public HandlerRegistration addDragLeaveHandler(DragLeaveHandler pHandler) {
+    return addDomHandler(pHandler, DragLeaveEvent.getType());
+  }
+
+  @Override
+  public HandlerRegistration addDragHandler(DragHandler pHandler) {
+    return addDomHandler(pHandler, DragEvent.getType());
+  }
+
+  @Override
+  public HandlerRegistration addDragOverHandler(DragOverHandler pHandler) {
+    return addDomHandler(pHandler, DragOverEvent.getType());
+  }
+
+  @Override
+  public HandlerRegistration addDragStartHandler(DragStartHandler pHandler) {
+    return addDomHandler(pHandler, DragStartEvent.getType());
+  }
+
+  @Override
+  public HandlerRegistration addDropHandler(DropHandler pHandler) {
+    return addDomHandler(pHandler, DropEvent.getType());
   }
 
 }
