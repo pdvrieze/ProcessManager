@@ -4,7 +4,7 @@ import java.util.*;
 
 import javax.activation.DataHandler;
 
-import nl.adaptivity.jbi.NormalizedMessage;
+import nl.adaptivity.process.engine.NormalizedMessage;
 
 
 public class AttachmentMap extends AbstractMap<String, DataHandler> {

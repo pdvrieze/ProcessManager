@@ -33,8 +33,7 @@ import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 
-import nl.adaptivity.jbi.MyMessagingException;
-import nl.adaptivity.jbi.NormalizedMessage;
+import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.activation.Sources;
 
 
