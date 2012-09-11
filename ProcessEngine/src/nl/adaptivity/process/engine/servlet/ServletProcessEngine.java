@@ -284,7 +284,9 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   @Override
   public void destroy() {
     aKeepRunning = false;
-    aThread.interrupt();
+    if (aThread!=null) {
+      aThread.interrupt();
+    }
   }
 
   @Override
@@ -310,37 +312,27 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
 
   @Override
   protected void doDelete(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    // TODO Auto-generated method stub
-    // super.doDelete(pReq, pResp);
-    throw new UnsupportedOperationException("Not yet implemented");
+    processRestSoap(HttpMethod.DELETE, pReq, pResp);
   }
 
   @Override
   protected void doGet(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    // TODO Auto-generated method stub
-    // super.doGet(pReq, pResp);
-    throw new UnsupportedOperationException("Not yet implemented");
+    processRestSoap(HttpMethod.GET, pReq, pResp);
   }
 
   @Override
   protected void doHead(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    // TODO Auto-generated method stub
-    // super.doHead(pReq, pResp);
-    throw new UnsupportedOperationException("Not yet implemented");
+    processRestSoap(HttpMethod.HEAD, pReq, pResp);
   }
 
   @Override
   protected void doPost(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    // TODO Auto-generated method stub
-    // super.doPost(pReq, pResp);
-    throw new UnsupportedOperationException("Not yet implemented");
+    processRestSoap(HttpMethod.POST, pReq, pResp);
   }
 
   @Override
   protected void doPut(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    // TODO Auto-generated method stub
-    // super.doPut(pReq, pResp);
-    throw new UnsupportedOperationException("Not yet implemented");
+    processRestSoap(HttpMethod.PUT, pReq, pResp);
   }
 
   @Override
@@ -385,12 +377,12 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   }
 
   private void processRestSoap(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) {
-    RestMessageHandler restHandler = getRestMessageHandler();
-    SoapMessageHandler soapHandler = getSoapMessageHandler();
+    final RestMessageHandler restHandler = getRestMessageHandler();
+    final SoapMessageHandler soapHandler = getSoapMessageHandler();
     try {
       HttpMessage message = new HttpMessage(pRequest);
       if (!soapHandler.isSoapMessage(pRequest)) {
-        if (!getRestMessageHandler().processRequest(pMethod, message, pResponse)) {
+        if (!restHandler.processRequest(pMethod, message, pResponse)) {
           getLogger().warning("Error processing rest request");
         }
       } else {
