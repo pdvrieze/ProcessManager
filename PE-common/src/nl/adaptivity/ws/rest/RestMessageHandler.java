@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.activation.DataHandler;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
@@ -56,7 +57,7 @@ public class RestMessageHandler {
     RestMethodWrapper method = getMethodFor(pMethod, httpMessage);
 
     if (method !=null) {
-      method.unmarshalParams(httpMessage, null);
+      method.unmarshalParams(httpMessage);
       method.exec();
       try {
         method.marshalResult(pRequest, pResponse);
@@ -72,7 +73,6 @@ public class RestMessageHandler {
    * TODO This could actually be cached, so reflection only needs to be done once!
    */
   private RestMethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage pHttpMessage) {
-//    final Method[] candidates = target.getClass().getDeclaredMethods();
     Collection<Method> candidates = getCandidatesFor(pHttpMethod, pHttpMessage.getPathInfo());
     RestMethodWrapper result = null;
     RestMethod resultAnnotation = null;

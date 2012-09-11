@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import net.devrieze.util.Iterators;
+import net.devrieze.util.webServer.HttpRequest;
 
 
 // TODO change this to handle regular request bodies.
@@ -308,6 +309,8 @@ public class HttpMessage {
 
   private QName aOperation;
 
+  private Map<String, DataSource> aAttachments;
+
   public HttpMessage() {
 
   }
@@ -360,22 +363,7 @@ public class HttpMessage {
       if ("application/x-www-form-urlencoded".equals(aContentType)) {
         aPost = toQueries(getBody(pRequest).toString(aCharacterEncoding));
       } else if (isMultipart) {
-        throw new UnsupportedOperationException("Handling multipart mime types is not yet supported");
-//        FileItemFactory factory = new DiskFileItemFactory();
-//        ServletFileUpload upload = new ServletFileUpload(factory);
-//
-//        @SuppressWarnings("unchecked")
-//        List<FileItem> items = upload.parseRequest(pRequest);
-//        for (FileItem file : items) {
-//          if (file.isFormField()) {
-//            if (aPost == null) {
-//              aPost = new HashMap<String, String>();
-//            }
-//            aPost.put(file.getFieldName(), file.getString());
-//          } else {
-//            getByteContent().add(new ByteContent(file.getFieldName(), file.getContentType(), file.get()));
-//          }
-//        }
+        aAttachments = HttpRequest.parseMultipartFormdata(pRequest.getInputStream(), HttpRequest.mimeType(pRequest.getContentType()), null);
       } else {
         ByteArrayOutputStream baos = getBody(pRequest);
 
@@ -504,6 +492,21 @@ public class HttpMessage {
   }
 
   public String getPost(String pName) {
+    if (aPost!=null) {
+      String result = aPost.get(pName);
+      if (result==null && aAttachments!=null) {
+        DataSource source = aAttachments.get(pName);
+        if (source!=null) {
+          try {
+            result = Streams.toString(new InputStreamReader(source.getInputStream(), "UTF-8"));
+          } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }
     return aPost == null ? null : aPost.get(pName);
   }
 
@@ -514,6 +517,17 @@ public class HttpMessage {
     }
     return getPost(pName);
   }
+  
+  public DataSource getAttachment(String pName) {
+    if (aAttachments==null) { return null; }
+    return aAttachments.get(pName);
+  }
+  
+  public Map<String, DataSource> getAttachments() {
+    if (aAttachments==null) { return Collections.emptyMap(); }
+    return Collections.unmodifiableMap(aAttachments);
+  }
+  
 
   @XmlElement(name = "query", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getQueries() {

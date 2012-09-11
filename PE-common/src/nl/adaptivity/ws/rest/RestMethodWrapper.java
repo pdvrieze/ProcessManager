@@ -62,7 +62,7 @@ public class RestMethodWrapper {
     aPathParams = pPathParams;
   }
 
-  public void unmarshalParams(HttpMessage pHttpMessage, Map<String, DataHandler> pAttachments) {
+  public void unmarshalParams(HttpMessage pHttpMessage) {
     if (aParams!=null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
@@ -86,12 +86,12 @@ public class RestMethodWrapper {
         xpath = annotation.xpath();
       }
 
-      aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage, pAttachments);
+      aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage);
 
     }
   }
 
-  private Object getParam(Class<?> pClass, String pName, ParamType pType, String pXpath, HttpMessage pMessage, Map<String, DataHandler> pAttachments) {
+  private Object getParam(Class<?> pClass, String pName, ParamType pType, String pXpath, HttpMessage pMessage) {
     Object result = null;
     switch (pType) {
       case GET:
@@ -113,7 +113,7 @@ public class RestMethodWrapper {
         result = getParamXPath(pClass, pXpath, pMessage.getBody());
         break;
       case ATTACHMENT:
-        result = getAttachment(pClass, pName, pAttachments);
+        result = getAttachment(pClass, pName, pMessage);
     }
     if (result != null && (! pClass.isInstance(result))) {
       if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass)) && result instanceof String) {
@@ -126,24 +126,25 @@ public class RestMethodWrapper {
     return result;
   }
 
-  private Object getAttachment(Class<?> pClass, String pName, Map<String, DataHandler> pAttachments) {
-    DataHandler handler = pAttachments.get(pName);
-    if (handler != null) {
+  private Object getAttachment(Class<?> pClass, String pName, HttpMessage pMessage) {
+    DataSource source = pMessage.getAttachment(pName);
+    if (source != null) {
       if (DataHandler.class.isAssignableFrom(pClass)) {
-        return handler;
+        return new DataHandler(source);
+      }
+      if (DataSource.class.isAssignableFrom(pClass)) {
+        return source;
       }
       if (InputStream.class.isAssignableFrom(pClass)) {
         try {
-          return handler.getInputStream();
+          return source.getInputStream();
         } catch (IOException e) {
           throw new MyMessagingException(e);
         }
       }
-      if (DataSource.class.isAssignableFrom(pClass)) {
-        return handler.getDataSource();
-      }
       try {
-        return handler.getContent();
+        // This will try to do magic to handle the data
+        return new DataHandler(source).getContent();
       } catch (IOException e) {
         throw new MyMessagingException(e);
       }

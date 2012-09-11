@@ -14,7 +14,8 @@ public @interface RestMethod {
     GET,
     POST,
     PUT,
-    DELETE;
+    DELETE, 
+    HEAD;
 
   }
 
