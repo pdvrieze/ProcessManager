@@ -3,6 +3,8 @@
 	<name>ProcessEngine</name>
 	<comment></comment>
 	<projects>
+		<project>PE-common</project>
+		<project>java-common</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
