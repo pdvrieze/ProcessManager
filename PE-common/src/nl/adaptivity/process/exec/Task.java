@@ -16,7 +16,8 @@ public interface Task<V extends Task<V>> extends HandleAware<V>{
     Taken,
     Started,
     Complete,
-    Failed;
+    Failed, 
+    Cancelled;
   }
 
   public TaskState getState();
