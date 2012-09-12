@@ -11,6 +11,7 @@ import nl.adaptivity.process.userMessageHandler.client.processModel.*;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DropEvent;
 import com.google.gwt.http.client.Response;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.xml.client.XMLParser;
 
@@ -19,11 +20,11 @@ public class ProcessEditPanel extends Composite {
 
 
 
-  public static interface MyHorizontalSplitPanelImages extends HorizontalSplitPanelImages {
+  public static interface MyHorizontalSplitPanelImages extends HorizontalSplitPanel.Resources {
 
-    @ImageBundle.Resource(value="blackSplitPanel.png")
+    @Source(value="blackSplitPanel.png")
     @Override
-    public AbstractImagePrototype horizontalSplitPanelThumb();
+    ImageResource horizontalSplitPanelThumb();
 
   }
 
@@ -126,8 +127,8 @@ public class ProcessEditPanel extends Composite {
 
     if (aEditable) {
 
-      HorizontalSplitPanelImages splitPanelImages = GWT.create(MyHorizontalSplitPanelImages.class);
-      aSplitPanel = new HorizontalSplitPanel(splitPanelImages );
+	  HorizontalSplitPanel.Resources splitPanelImages = GWT.create(MyHorizontalSplitPanelImages.class);
+      aSplitPanel = new HorizontalSplitPanel(splitPanelImages);
       aSplitPanel.setSplitPosition("50px");
       aSplitPanel.setRightWidget(aDiagramPanel);
       aSplitPanel.addStyleName("blackHorizontalSplitPane");
@@ -160,7 +161,7 @@ public class ProcessEditPanel extends Composite {
 
       initWidget(aBoundaryPanel);
 
-      for (Widget node: new Widget[] {aArrow, aNewStartNode, aNewActivity, aNewJoinNode, aNewEndNode,}) {
+      for (Widget node: new Widget[] { aArrow, aNewStartNode, aNewActivity, aNewJoinNode, aNewEndNode,}) {
         node.addStyleName("sourceoptions");
         aSourcePanel.add(node);
 

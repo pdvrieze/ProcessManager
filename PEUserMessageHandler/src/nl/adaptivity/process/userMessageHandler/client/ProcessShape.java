@@ -30,6 +30,7 @@ public class ProcessShape {
     aNode.getElement().setDraggable(Element.DRAGGABLE_TRUE);
   }
 
+  @Override
   public EditableProcessNode getWidget() {
     return aNode;
   }
@@ -48,7 +49,7 @@ public class ProcessShape {
 
     int cpPanelHeight = pConnectionPointsPanel.getOffsetHeight();
     int cpPanelWidth = pConnectionPointsPanel.getOffsetWidth();
-    int yOffset = getWidget().getVerticalOffset();
+    int yOffset = getContainedWidget().getVerticalOffset();
 
     pConnectionPointsPanel.add(aWestConnectionPoint, 0, (yOffset) + (CP_MARGIN / 2));
     pConnectionPointsPanel.add(aNorthConnectionPoint, (cpPanelWidth-CP_MARGIN) / 2, 0);

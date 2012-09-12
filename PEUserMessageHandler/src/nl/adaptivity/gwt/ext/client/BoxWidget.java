@@ -1,45 +1,41 @@
 package nl.adaptivity.gwt.ext.client;
 
-import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.DivElement;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.ui.Widget;
 
 
-public class BoxWidget extends Composite {
+public class BoxWidget extends Widget {
 
-  private Label aBox;
 
-  private Label aLabel;
-  private VerticalPanel aContainer;
+  private static BoxWidgetUiBinder uiBinder = GWT.create(BoxWidgetUiBinder.class);
+
+  interface BoxWidgetUiBinder extends UiBinder<Element, BoxWidget> {}
+
+  @UiField
+  DivElement labelSpan;
+
+  @UiField
+  DivElement boxSpan;
 
   public BoxWidget(String pLabel) {
-    aContainer = new VerticalPanel();
-    aContainer.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_CENTER);
-
-    aBox = new Label("");
-    aBox.setStyleName("pwt-BoxWidget-box");
-    aBox.setSize("20px", "20px");
-    aLabel = new Label(pLabel);
-    aLabel.setStyleName("pwt-BoxWidget-label");
-    aContainer.add(aBox);
-    aContainer.add(aLabel);
-    initWidget(aContainer);
-    setStyleName("pwt-BoxWidget");
-
-    // TODO Auto-generated constructor stub
+    setElement(uiBinder.createAndBindUi(this));
+    labelSpan.setInnerText(pLabel);
   }
 
-
-  public Label getBox() {
-    return aBox;
+  public DivElement getBox() {
+    return boxSpan;
   }
-
-
-  public Label getLabel() {
-    return aLabel;
+  
+  public String getLabel() {
+    return labelSpan.getInnerHTML();
   }
-
-
+  
+  public void setLabel(String innerHTML) {
+    labelSpan.setInnerHTML(innerHTML);
+  }
 
 }
