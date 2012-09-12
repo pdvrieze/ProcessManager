@@ -30,7 +30,6 @@ public class ProcessShape {
     aNode.getElement().setDraggable(Element.DRAGGABLE_TRUE);
   }
 
-  @Override
   public EditableProcessNode getWidget() {
     return aNode;
   }
