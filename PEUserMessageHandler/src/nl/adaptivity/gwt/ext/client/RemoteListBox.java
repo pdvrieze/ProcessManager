@@ -181,7 +181,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     if (Response.SC_OK == pResponse.getStatusCode()) {
       updateList(asListElements(pResponse.getText()));
     } else if (pResponse.getStatusCode()>=400){
-      fireUpdateError(new RemoteListException(pResponse.getStatusCode(), pResponse.getStatusText()));
+      fireUpdateError(new RemoteListException(pResponse.getStatusCode(), pResponse.getStatusText()+"["+pRequest.toString()+"]"));
     }
   }
 
