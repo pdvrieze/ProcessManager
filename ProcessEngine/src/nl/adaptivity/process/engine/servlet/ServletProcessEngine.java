@@ -1,9 +1,19 @@
 package nl.adaptivity.process.engine.servlet;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.*;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,21 +32,36 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.*;
-import javax.xml.stream.events.*;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap;
-
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.*;
+import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.messaging.AsyncMessenger;
+import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
+import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
+import nl.adaptivity.process.messaging.ISendableMessage;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -46,11 +71,15 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
-public class ServletProcessEngine extends HttpServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance> {
+
+public class ServletProcessEngine extends HttpServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener {
 
   private static final long serialVersionUID = -6277449163953383974L;
   
@@ -62,7 +91,7 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   private static final String OP_POST_MESSAGE = "postMessage";
   private static final String OP_START_PROCESS = "startProcess";
 
-  static class ServletMessage{
+  static class ServletMessage implements ISendableMessage{
 
     private final QName aRemoteService;
     private final String aRemoteEndpoint;
@@ -268,6 +297,47 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
       }
 
     }
+
+
+    @Override
+    public URL getDestination() {
+      // TODO Auto-generated method stub
+      try {
+        return new URL(aRemoteEndpoint);
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+
+    @Override
+    public String getMethod() {
+      // TODO Auto-generated method stub
+      return null; // default for now
+    }
+
+
+    @Override
+    public boolean hasBody() {
+      return aBody!=null;
+    }
+
+
+    @Override
+    public Collection<Entry<String, String>> getHeaders() {
+      // TODO Auto-generated method stub
+      return Collections.emptyList();
+    }
+
+
+    @Override
+    public void writeBody(OutputStream pOutputStream) throws IOException {
+      try {
+        Sources.writeToStream(aBody, pOutputStream);
+      } catch (TransformerException e) {
+        throw new IOException(e);
+      }
+    }
     
   }
   private Thread aThread;
@@ -276,6 +346,8 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   private ProcessEngine aProcessEngine;
   private RestMessageHandler aRestMessageHandler;
   private SoapMessageHandler aSoapMessageHandler;
+
+  private AsyncMessenger aMessagingService;
   
   /*
    * Servlet methods 
@@ -287,12 +359,7 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
     if (aThread!=null) {
       aThread.interrupt();
     }
-  }
-
-  @Override
-  public ServletConfig getServletConfig() {
-    // TODO Auto-generated method stub
-    return null;
+    aMessagingService.destroy();
   }
 
   @Override
@@ -304,6 +371,8 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   public void init(ServletConfig pConfig) throws ServletException {
     super.init(pConfig);
     aProcessEngine = new ProcessEngine(this);
+    aMessagingService = AsyncMessenger.getInstance();
+    aMessagingService.addCompletionListener(this);
   }
 
   /*
@@ -337,16 +406,16 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
 
   @Override
   public ServletMessage createMessage(XmlMessage pMessage) {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+    return new ServletMessage(pMessage.getService(), pMessage.getEndpoint(), pMessage.getOperation(), pMessage.getBodySource());
   }
 
   @Override
   public boolean sendMessage(ServletMessage pMessage, ProcessNodeInstance pInstance) {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
+    long handle = aProcessEngine.registerMessage(pInstance);
+    pMessage.setHandle(handle);
+    
+    aMessagingService.sendMessage(pMessage, handle);
+    return true;
   }
 
   private RestMessageHandler getRestMessageHandler() {
@@ -498,6 +567,23 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
       return new XmlProcessModel(aProcessEngine.getProcessModel(pHandle));
     } catch (NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
+    }
+  }
+
+  @Override
+  public void onMessageCompletion(AsyncFuture pFuture) {
+    if (pFuture.isCancelled()) {
+      aProcessEngine.cancelledTask(pFuture.getHandle());
+    } else {
+      try {
+        byte[] result = pFuture.get();
+        InputSource source = new InputSource(new ByteArrayInputStream(result));
+        aProcessEngine.finishedTask(pFuture.getHandle(), source);
+      } catch (ExecutionException e) {
+        aProcessEngine.errorTask(pFuture.getHandle(), e.getCause()); 
+      } catch (InterruptedException e) {
+        aProcessEngine.cancelledTask(pFuture.getHandle());
+      }
     }
   }
   

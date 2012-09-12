@@ -1,16 +1,26 @@
 package nl.adaptivity.process.engine;
 
-import org.w3c.dom.Node;
+import java.io.IOException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+/**
+ * XXX make sure this is thread safe!!
+ */
 public class ProcessEngine /* implements IProcessEngine*/ {
 
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
@@ -82,6 +92,8 @@ public class ProcessEngine /* implements IProcessEngine*/ {
       case Failed:
         pi.failTask(aMessageService, t);
         break;
+      case Cancelled:
+        pi.cancelTask(aMessageService, t);
       default:
         throw new IllegalArgumentException("Unsupported state");
     }
@@ -99,6 +111,23 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     return newState;
   }
 
+  public void finishedTask(long pHandle, InputSource pResult) {
+    DocumentBuilderFactory dbf= DocumentBuilderFactory.newInstance();
+    try {
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      Document xml = db.parse(pResult);
+      finishTask(pHandle, xml); 
+      
+    } catch (ParserConfigurationException e) {
+      throw new MyMessagingException(e);
+    } catch (SAXException e) {
+      throw new MyMessagingException(e);
+    } catch (IOException e) {
+      throw new MyMessagingException(e);
+    }
+    
+  }
+
   public long registerMessage(ProcessNodeInstance pInstance) {
     if (pInstance.getHandle()>=0) {
       throw new IllegalArgumentException("Process node already registered");
@@ -113,6 +142,20 @@ public class ProcessEngine /* implements IProcessEngine*/ {
 
   public ProcessModel getProcessModel(long pHandle) {
     return aProcessModels.get(pHandle);
+  }
+
+  /**
+   * Handle the fact that this task has been cancelled.
+   * @param pHandle
+   */
+  public void cancelledTask(long pHandle) {
+    updateTaskState(pHandle, TaskState.Cancelled);
+  }
+
+  public void errorTask(long pHandle, Throwable pCause) {
+    ProcessNodeInstance task = aTaskMap.get(pHandle);
+    ProcessInstance pi = task.getProcessInstance();
+    pi.failTask(aMessageService, task, pCause);
   }
 
 }

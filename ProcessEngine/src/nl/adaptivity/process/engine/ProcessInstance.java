@@ -221,10 +221,24 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
+    pNode.failTask();
     // TODO Auto-generated method stub
     //
     throw new UnsupportedOperationException("Not yet implemented");
 
+  }
+
+  public void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Throwable pCause) {
+    pNode.failTask(pCause);
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Not yet implemented");
+    
+  }
+
+  public void cancelTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pT) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Not yet implemented");
+    
   }
 
   public Collection<ProcessNodeInstance> getActivePredecessorsFor(Join pJoin) {

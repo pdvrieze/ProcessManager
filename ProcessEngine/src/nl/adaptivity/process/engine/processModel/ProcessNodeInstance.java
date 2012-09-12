@@ -21,6 +21,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
   private TaskState aState=null;
   private long aHandle = -1;
   private final ProcessInstance aProcessInstance;
+  private Throwable aFailureCause;
 
   public ProcessNodeInstance(ProcessNode pNode, ProcessNodeInstance pPredecessor, ProcessInstance pProcessInstance) {
     super();
@@ -112,6 +113,10 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
 
   public ProcessInstance getProcessInstance() {
     return aProcessInstance;
+  }
+
+  public void failTask(Throwable pCause) {
+    aFailureCause = pCause;
   }
 
 }
