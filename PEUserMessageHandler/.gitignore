@@ -4,3 +4,5 @@
 /war/WEB-INF/lib/
 /war/images/
 /war/peusermessagehandler/
+/gwt-unitCache/
+/war/WEB-INF/deploy/
