@@ -22,6 +22,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import net.devrieze.util.Iterators;
+import net.devrieze.util.Streams;
 import net.devrieze.util.webServer.HttpRequest;
 
 

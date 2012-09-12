@@ -19,6 +19,8 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import net.devrieze.util.Urls;
+
 import nl.adaptivity.process.engine.MyMessagingException;
 
 
@@ -60,7 +62,10 @@ public class AsyncMessenger {
     }
 
     private byte[] sendMessage() throws IOException, ProtocolException {
-      final URL destination = aMessage.getDestination();
+      URL destination = aMessage.getDestination();
+      if (destination.getProtocol()==null || destination.getProtocol().length()==0 || destination.getHost()==null || destination.getHost().length()==0) {
+        destination = new URL(getOwnUrl(), aMessage.getDestination().toString());
+      }
       final URLConnection connection = destination.openConnection();
       if (connection instanceof HttpURLConnection){
         final HttpURLConnection httpConnection = (HttpURLConnection) connection;
@@ -149,19 +154,25 @@ public class AsyncMessenger {
 
   // Let the class loader do the nasty synchronization for us, but still initialise ondemand.
   private static class MessengerHolder {
-    static final AsyncMessenger globalMessenger = new AsyncMessenger();
+    static final AsyncMessenger globalMessenger = new AsyncMessenger(Urls.newURL("http://localhost/"));
   }
 
   ExecutorService aExecutor;
   private Collection<CompletionListener> aListeners;
+  private final URL aBaseUrl;
   
   public static AsyncMessenger getInstance() {
     return MessengerHolder.globalMessenger;
   }
   
-  private AsyncMessenger() {
+  public URL getOwnUrl() {
+    return aBaseUrl;
+  }
+
+  private AsyncMessenger(URL pBaseUrl) {
     aExecutor = new ThreadPoolExecutor(1, 20, 1, TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
     aListeners = new ArrayList<CompletionListener>();
+    aBaseUrl = pBaseUrl;
   }
 
   public void addCompletionListener(CompletionListener pListener) {
