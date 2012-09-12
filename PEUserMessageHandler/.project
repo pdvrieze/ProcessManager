@@ -3,6 +3,8 @@
 	<name>PEUserMessageHandler</name>
 	<comment>PEUserMessageHandler project</comment>
 	<projects>
+		<project>PE-common</project>
+		<project>java-common</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
