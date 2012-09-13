@@ -61,9 +61,12 @@ public class AsyncMessenger {
 
     @Override
     public byte[] call() throws Exception {
-      byte[] result = sendMessage();
-      notifyCompletionListeners(aFuture);
-      return result;
+      try {
+        byte[] result = sendMessage();
+        return result;
+      } finally {
+        notifyCompletionListeners(aFuture);
+      }
     }
 
     private byte[] sendMessage() throws IOException, ProtocolException {
