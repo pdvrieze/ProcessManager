@@ -530,7 +530,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), pName, null);
   }
 
-  @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", post={"name"})
+  @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}")
   public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
     aProcessEngine.renameProcess(HandleMap.<ProcessModel>handle(pHandle), pName);
   }
