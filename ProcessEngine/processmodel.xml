@@ -7,7 +7,7 @@
       name="testProcessModel">
       <start id="start"/>
       <activity id="ac1" predecessor="start" name="ac1">
-        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
@@ -25,7 +25,7 @@
         </message>
       </activity>
       <activity id="ac2" predecessor="ac1" name="ac2">
-        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
@@ -43,7 +43,7 @@
         </message>
       </activity>
       <activity id="ac3" predecessor="ac1" name="ac3">
-        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
@@ -61,7 +61,7 @@
         </message>
       </activity>
       <activity id="ac5" predecessor="ac3" name="ac5">
-        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
@@ -83,7 +83,7 @@
         <predecessor>ac5</predecessor>
       </join>
       <activity id="ac4" predecessor="j1" name="ac4">
-        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask">
+        <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
