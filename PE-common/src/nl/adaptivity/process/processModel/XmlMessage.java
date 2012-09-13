@@ -56,24 +56,21 @@ import org.w3c.dom.Node;
 @XmlType(name = "Message", propOrder = { "any" })
 public class XmlMessage {
 
-    // These are managed on the methods.
-    private ArrayList<Object> aAny;
-    private Node aBody;
     
-    @XmlAttribute(name = "serviceNS")
-    protected String serviceNS;
+    @XmlAttribute(name = "service")
+    @XmlSchemaType(name = "NCName")
+    protected QName service;
     @XmlAttribute(name = "endpoint")
     protected String endpoint;
     @XmlAttribute(name = "operation")
     protected QName operation;
-    @XmlAttribute(name = "serviceName")
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    @XmlSchemaType(name = "NCName")
-    protected QName serviceName;
     @XmlAttribute(name = "url")
     protected String url;
     @XmlAttribute(name = "method")
     protected String method;
+    // These are managed on the methods.
+    private Node aBody;
+    private ArrayList<Object> aAny;
 
     /**
      * Gets the value of the service property.
@@ -85,33 +82,33 @@ public class XmlMessage {
      */
     @XmlAttribute(name="serviceName", required = true)
     public String getServiceName() {
-      return serviceName.getLocalPart();
+      return service.getLocalPart();
     }
 
     public void setServiceName(String pName) {
-      if (serviceName==null) {
-        serviceName = new QName(pName);
+      if (service==null) {
+        service = new QName(pName);
       } else {
-        serviceName = new QName(serviceName.getNamespaceURI(), pName);
+        service = new QName(service.getNamespaceURI(), pName);
       }
     }
 
-
-    @XmlAttribute(name="serviceNS", required = true)
+    
+    @XmlAttribute(name="serviceNS")
     public String getServiceNS() {
-      return serviceName.getNamespaceURI();
+      return service.getNamespaceURI();
     }
 
     public void setServiceNS(String pNamespace) {
-      if (serviceName==null) {
-        serviceName = new QName(pNamespace, "xx");
+      if (service==null) {
+        service = new QName(pNamespace, "xx");
       } else {
-        serviceName = new QName(pNamespace, serviceName.getLocalPart());
+        service = new QName(pNamespace, service.getLocalPart());
       }
     }
 
     public QName getService() {
-        return serviceName;
+        return service;
     }
 
     /**
@@ -123,7 +120,7 @@ public class XmlMessage {
      *
      */
     public void setService(QName value) {
-        this.serviceName = value;
+        this.service = value;
     }
 
     /**
