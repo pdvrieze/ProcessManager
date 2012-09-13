@@ -10,10 +10,21 @@
     <servlet-name>simpleServlet</servlet-name>
     <servlet-class>nl.adaptivity.process.userMessageHandler.server.SimpleServlet</servlet-class>
   </servlet>
+
+  <servlet>
+    <servlet-name>endpointServlet</servlet-name>
+    <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
+    <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.InternalEndpoint</param-value></init-param>
+  </servlet>
   
   <servlet-mapping>
     <servlet-name>simpleServlet</servlet-name>
     <url-pattern>/peusermessagehandler/rest/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>endpointServlet</servlet-name>
+    <url-pattern>/peusermessagehandler/internal</url-pattern>
   </servlet-mapping>
   
   <!-- Default page to serve -->
