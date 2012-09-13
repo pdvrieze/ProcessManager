@@ -53,12 +53,9 @@ import org.w3c.dom.Node;
  * 
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "Message", propOrder = { "any" })
+@XmlType(name = "Message")
 public class XmlMessage {
 
-    
-    @XmlAttribute(name = "service")
-    @XmlSchemaType(name = "NCName")
     protected QName service;
     @XmlAttribute(name = "endpoint")
     protected String endpoint;
@@ -159,7 +156,7 @@ public class XmlMessage {
         return operation;
     }
 
-    @XmlAnyElement(lax=false)
+    @XmlAnyElement(lax=true)
     public Collection<Object> getAny() {
       if (aAny == null) {
         aAny = new ArrayList<Object>(1);
