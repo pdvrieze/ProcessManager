@@ -107,7 +107,7 @@
     		use="optional">
     	</xsd:attribute>
     	<xsd:attribute name="url" type="xsd:string" use="optional"></xsd:attribute>
-    	<xsd:attribute name="method" type="xsd:string" use="optional" default="POST"></xsd:attribute>
+    	<xsd:attribute name="method" type="xsd:string" use="optional"></xsd:attribute>
     </xsd:complexType>
 
     <xsd:complexType name="ExportType" mixed="true">

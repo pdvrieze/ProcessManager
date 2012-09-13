@@ -23,7 +23,6 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
@@ -61,6 +60,8 @@ import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
 import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
+import nl.adaptivity.process.messaging.EndpointServlet;
+import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.messaging.ISendableMessage;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
@@ -79,7 +80,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 
-public class ServletProcessEngine extends HttpServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener {
+public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
 
   private static final long serialVersionUID = -6277449163953383974L;
   
@@ -97,12 +98,21 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
     private final String aRemoteEndpoint;
     private final QName aOperation;
     private Source aBody;
-
-    public ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody) {
+    private final String aMethod;
+    private final String aUrl;
+    
+    private ServletMessage(XmlMessage pSource) {
+      this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl());
+    }
+    
+    
+    private ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl) {
       aRemoteService = pService;
       aRemoteEndpoint = pEndpoint;
       aOperation = pOperation;
       aBody = pBody;
+      aMethod = pMethod;
+      aUrl = pUrl;
     }
 
 
@@ -301,9 +311,8 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
 
     @Override
     public URL getDestination() {
-      // TODO Auto-generated method stub
       try {
-        return new URL(aRemoteEndpoint);
+        return new URL(aUrl);
       } catch (MalformedURLException e) {
         throw new RuntimeException(e);
       }
@@ -312,8 +321,7 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
 
     @Override
     public String getMethod() {
-      // TODO Auto-generated method stub
-      return null; // default for now
+      return aMethod;
     }
 
 
@@ -353,6 +361,12 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
    * Servlet methods 
    */
 
+  @Override
+  protected
+  GenericEndpoint getEndpointProvider() {
+    return this;
+  }
+  
   @Override
   public void destroy() {
     aKeepRunning = false;
@@ -406,7 +420,7 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
 
   @Override
   public ServletMessage createMessage(XmlMessage pMessage) {
-    return new ServletMessage(pMessage.getService(), pMessage.getEndpoint(), pMessage.getOperation(), pMessage.getBodySource());
+    return new ServletMessage(pMessage);
   }
 
   @Override
@@ -446,15 +460,15 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
   }
 
   private void processRestSoap(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) {
-    final RestMessageHandler restHandler = getRestMessageHandler();
-    final SoapMessageHandler soapHandler = getSoapMessageHandler();
     try {
       HttpMessage message = new HttpMessage(pRequest);
-      if (!soapHandler.isSoapMessage(pRequest)) {
+      if (!SoapMessageHandler.isSoapMessage(pRequest)) {
+        final RestMessageHandler restHandler = getRestMessageHandler();
         if (!restHandler.processRequest(pMethod, message, pResponse)) {
           getLogger().warning("Error processing rest request");
         }
       } else {
+        final SoapMessageHandler soapHandler = getSoapMessageHandler();
         if (!soapHandler.processRequest(message, pResponse)) {
           getLogger().warning("Error processing soap request");
         }
@@ -467,31 +481,6 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
         getLogger().log(Level.WARNING, "Failure to notify client of error", e);
       }
     }
-    /*
-    NormalizedMessage inMessage = pEx.getMessage("in");
-    NormalizedMessage reply = pEx.createMessage();
-    if (pEx.getOperation().getNamespaceURI().equals(Constants.WEBMETHOD_NS.toString())) {
-      HttpMethod operation = HttpMethod.valueOf(pEx.getOperation().getLocalPart());
-      if (getRestMessageHandler().processRequest(operation, inMessage, reply, this)) {
-        pEx.setMessage(reply, "out");
-        pDeliveryChannel.send(pEx);
-      } else {
-        pEx.setError(new FileNotFoundException());
-        pDeliveryChannel.send(pEx);
-      }
-    } else {
-      if (getSoapMessageHandler().processRequest(pEx.getOperation(), inMessage, reply, this)) {
-        if (pEx.getPattern().equals(Constants.WSDL_MEP_IN_ONLY)|| pEx.getPattern().equals(Constants.WSDL_MEP_ROBUST_IN_ONLY)) {
-          pEx.setStatus(ExchangeStatus.DONE);
-        } else {
-          pEx.setMessage(reply, "out");
-        }
-      } else {
-        pEx.setError(new FileNotFoundException());
-      }
-      pDeliveryChannel.send(pEx);
-    }
-    */
   }
 
   /*
@@ -585,6 +574,16 @@ public class ServletProcessEngine extends HttpServlet implements IMessageService
         aProcessEngine.cancelledTask(pFuture.getHandle());
       }
     }
+  }
+
+  @Override
+  public QName getService() {
+    return new QName("http://adaptivity.nl/ProcessEngine/", "ProcessEngine");
+  }
+
+  @Override
+  public String getEndpoint() {
+    return "soap";
   }
   
   
