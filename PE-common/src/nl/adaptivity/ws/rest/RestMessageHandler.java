@@ -98,7 +98,16 @@ public class RestMessageHandler {
 
   private boolean isMoreSpecificThan(RestMethod pBaseAnnotation, RestMethod pAnnotation) {
     // TODO more sophisticated filtering
-    return (pBaseAnnotation.path().length()<pAnnotation.path().length());
+    if (pBaseAnnotation.path().length()<pAnnotation.path().length()) { return true; }
+    int postdiff = pBaseAnnotation.post().length - pAnnotation.post().length;
+    int getdiff = pBaseAnnotation.get().length-pAnnotation.get().length;
+    int querydiff = pBaseAnnotation.query().length-pAnnotation.query().length;
+    if ((postdiff<0 && getdiff<=0 && querydiff<=0) || 
+        (postdiff<=0 && getdiff<0 && querydiff<=0) ||
+        (postdiff<=0 && getdiff<=0 && querydiff<0)) {
+      return true;
+    }
+    return false;
   }
 
   private Collection<Method> getCandidatesFor(HttpMethod pHttpMethod, String pPathInfo) {

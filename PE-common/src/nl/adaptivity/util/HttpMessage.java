@@ -428,6 +428,7 @@ public class HttpMessage {
             }
             result.put(key, value);
             key=null;
+            startPos=i+1;
           }
         }
       }
