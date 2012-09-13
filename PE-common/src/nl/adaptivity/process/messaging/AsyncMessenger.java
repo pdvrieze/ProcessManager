@@ -24,6 +24,11 @@ import net.devrieze.util.Urls;
 import nl.adaptivity.process.engine.MyMessagingException;
 
 
+/**
+ * 
+ * @author pdvrieze
+ * @todo Add the abiltiy to send directly to servlets on the same host.
+ */
 public class AsyncMessenger {
 
   

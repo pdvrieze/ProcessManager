@@ -4,13 +4,17 @@ import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.Collection;
 import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
@@ -29,13 +33,9 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Types;
-
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -43,6 +43,9 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
 import nl.adaptivity.util.activation.Sources;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
 public class RestMethodWrapper {

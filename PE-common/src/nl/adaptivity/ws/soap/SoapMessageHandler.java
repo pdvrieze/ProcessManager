@@ -12,18 +12,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
-import javax.xml.transform.dom.DOMSource;
-
-import org.w3.soapEnvelope.Envelope;
 
 import net.devrieze.util.PrefixMap;
 import net.devrieze.util.PrefixMap.Entry;
 import net.devrieze.util.ValueCollection;
-
-import nl.adaptivity.process.engine.NormalizedMessage;
 import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.util.activation.AttachmentMap;
-import nl.adaptivity.ws.rest.RestMessageHandler;
+
+import org.w3.soapEnvelope.Envelope;
 
 
 public class SoapMessageHandler {
@@ -130,7 +125,7 @@ public class SoapMessageHandler {
     return false;
   }
 
-  public boolean isSoapMessage(HttpServletRequest pRequest) {
+  public static boolean isSoapMessage(HttpServletRequest pRequest) {
     return "application/soap+xml".equals(pRequest.getContentType());
   }
 

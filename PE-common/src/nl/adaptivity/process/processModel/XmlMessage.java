@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
@@ -27,34 +29,51 @@ import org.w3c.dom.Node;
 
 /**
  * <p>Java class for Message complex type.
- *
+ * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- *
+ * 
  * <pre>
  * &lt;complexType name="Message">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="service" use="required" type="{http://www.w3.org/2001/XMLSchema}QName" />
+ *       &lt;sequence>
+ *         &lt;any processContents='lax'/>
+ *       &lt;/sequence>
+ *       &lt;attribute name="serviceNS" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="endpoint" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="operation" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="serviceName" type="{http://www.w3.org/2001/XMLSchema}NCName" />
+ *       &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="method" type="{http://www.w3.org/2001/XMLSchema}string" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
+ * 
+ * 
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "Message")
+@XmlType(name = "Message", propOrder = { "any" })
 public class XmlMessage {
 
-    protected QName service;
-    @XmlAttribute(required = true)
-    protected String endpoint;
-    @XmlAttribute(required = true)
-    protected QName operation;
-    private Node aBody;
+    // These are managed on the methods.
     private ArrayList<Object> aAny;
+    private Node aBody;
+    
+    @XmlAttribute(name = "serviceNS")
+    protected String serviceNS;
+    @XmlAttribute(name = "endpoint")
+    protected String endpoint;
+    @XmlAttribute(name = "operation")
+    protected QName operation;
+    @XmlAttribute(name = "serviceName")
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+    @XmlSchemaType(name = "NCName")
+    protected QName serviceName;
+    @XmlAttribute(name = "url")
+    protected String url;
+    @XmlAttribute(name = "method")
+    protected String method;
 
     /**
      * Gets the value of the service property.
@@ -66,33 +85,33 @@ public class XmlMessage {
      */
     @XmlAttribute(name="serviceName", required = true)
     public String getServiceName() {
-      return service.getLocalPart();
+      return serviceName.getLocalPart();
     }
 
     public void setServiceName(String pName) {
-      if (service==null) {
-        service = new QName(pName);
+      if (serviceName==null) {
+        serviceName = new QName(pName);
       } else {
-        service = new QName(service.getNamespaceURI(), pName);
+        serviceName = new QName(serviceName.getNamespaceURI(), pName);
       }
     }
 
 
     @XmlAttribute(name="serviceNS", required = true)
     public String getServiceNS() {
-      return service.getNamespaceURI();
+      return serviceName.getNamespaceURI();
     }
 
     public void setServiceNS(String pNamespace) {
-      if (service==null) {
-        service = new QName(pNamespace, "xx");
+      if (serviceName==null) {
+        serviceName = new QName(pNamespace, "xx");
       } else {
-        service = new QName(pNamespace, service.getLocalPart());
+        serviceName = new QName(pNamespace, serviceName.getLocalPart());
       }
     }
 
     public QName getService() {
-        return service;
+        return serviceName;
     }
 
     /**
@@ -104,7 +123,7 @@ public class XmlMessage {
      *
      */
     public void setService(QName value) {
-        this.service = value;
+        this.serviceName = value;
     }
 
     /**
@@ -197,6 +216,56 @@ public class XmlMessage {
       return new DOMSource(getMessageBody());
     }
 
+
+    /**
+     * Gets the value of the url property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the value of the url property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setUrl(String value) {
+        this.url = value;
+    }
+
+    /**
+     * Gets the value of the method property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getMethod() {
+        return method;
+    }
+
+    /**
+     * Sets the value of the method property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setMethod(String value) {
+        this.method = value;
+    }
+    
+    
     @Override
     public String toString() {
       TransformerFactory tf = TransformerFactory.newInstance();
