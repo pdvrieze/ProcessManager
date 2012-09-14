@@ -382,7 +382,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     aProcessEngine = new ProcessEngine(this);
     String port = pConfig.getInitParameter("port");
     if (port==null) { 
-      aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost:8080/"+pConfig.getServletContext().getContextPath()));
+      aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost/"+pConfig.getServletContext().getContextPath()));
     } else {
       aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost:"+port+"/"+pConfig.getServletContext().getContextPath()));
     }
@@ -396,27 +396,38 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   protected void doDelete(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.DELETE, pReq, pResp);
+    updatePort(pReq);
+    super.doDelete(pReq, pResp);
+  }
+
+  private void updatePort(HttpServletRequest pReq) {
+    if (aMessagingService.getOwnUrl().getPort()<0) {
+      aMessagingService.setOwnPort(pReq.getLocalPort());
+    }
   }
 
   @Override
   protected void doGet(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.GET, pReq, pResp);
+    updatePort(pReq);
+    super.doGet(pReq, pResp);
   }
 
   @Override
   protected void doHead(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.HEAD, pReq, pResp);
+    updatePort(pReq);
+    super.doHead(pReq, pResp);
   }
 
   @Override
   protected void doPost(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.POST, pReq, pResp);
+    updatePort(pReq);
+    super.doPost(pReq, pResp);
   }
 
   @Override
   protected void doPut(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.PUT, pReq, pResp);
+    updatePort(pReq);
+    super.doPut(pReq, pResp);
   }
 
   @Override
@@ -460,29 +471,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return aLogger;
   }
 
-  private void processRestSoap(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) {
-    try {
-      HttpMessage message = new HttpMessage(pRequest);
-      if (!SoapMessageHandler.isSoapMessage(pRequest)) {
-        final RestMessageHandler restHandler = getRestMessageHandler();
-        if (!restHandler.processRequest(pMethod, message, pResponse)) {
-          getLogger().warning("Error processing rest request");
-        }
-      } else {
-        final SoapMessageHandler soapHandler = getSoapMessageHandler();
-        if (!soapHandler.processRequest(message, pResponse)) {
-          getLogger().warning("Error processing soap request");
-        }
-        
-      }
-    } catch (IOException e) {
-      try {
-        pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      } catch (IOException e1) {
-        getLogger().log(Level.WARNING, "Failure to notify client of error", e);
-      }
-    }
-  }
+  
 
   /*
    * Web interface for this servlet 
