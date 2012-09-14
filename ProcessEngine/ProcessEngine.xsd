@@ -108,6 +108,7 @@
     	</xsd:attribute>
     	<xsd:attribute name="url" type="xsd:string" use="optional"></xsd:attribute>
     	<xsd:attribute name="method" type="xsd:string" use="optional"></xsd:attribute>
+    	<xsd:attribute name="type" type="xsd:string" default="application/soap+xml"></xsd:attribute>
     </xsd:complexType>
 
     <xsd:complexType name="ExportType" mixed="true">
