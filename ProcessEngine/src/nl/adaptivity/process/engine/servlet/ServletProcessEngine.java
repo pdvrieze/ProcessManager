@@ -4,15 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,6 +46,8 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
 import net.devrieze.util.HandleMap;
+import net.devrieze.util.Tupple;
+import net.devrieze.util.Urls;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.MyMessagingException;
@@ -100,19 +99,21 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     private Source aBody;
     private final String aMethod;
     private final String aUrl;
+    private final String aContentType;
     
     private ServletMessage(XmlMessage pSource) {
-      this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl());
+      this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl(), pSource.getType());
     }
     
     
-    private ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl) {
+    private ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl, String pContentType) {
       aRemoteService = pService;
       aRemoteEndpoint = pEndpoint;
       aOperation = pOperation;
       aBody = pBody;
       aMethod = pMethod;
       aUrl = pUrl;
+      aContentType = pContentType;
     }
 
 
@@ -310,12 +311,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
     @Override
-    public URL getDestination() {
-      try {
-        return new URL(aUrl);
-      } catch (MalformedURLException e) {
-        throw new RuntimeException(e);
-      }
+    public String getDestination() {
+      return aUrl;
     }
 
 
@@ -324,7 +321,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       return aMethod;
     }
 
-
     @Override
     public boolean hasBody() {
       return aBody!=null;
@@ -332,9 +328,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
     @Override
-    public Collection<Entry<String, String>> getHeaders() {
-      // TODO Auto-generated method stub
-      return Collections.emptyList();
+    public Collection<Tupple<String, String>> getHeaders() {
+      return Collections.singletonList(Tupple.tupple("Content-Type", aContentType));
     }
 
 
@@ -385,7 +380,13 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public void init(ServletConfig pConfig) throws ServletException {
     super.init(pConfig);
     aProcessEngine = new ProcessEngine(this);
-    aMessagingService = AsyncMessenger.getInstance();
+    String port = pConfig.getInitParameter("port");
+    if (port==null) { 
+      aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost:8080/"+pConfig.getServletContext().getContextPath()));
+    } else {
+      aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost:"+port+"/"+pConfig.getServletContext().getContextPath()));
+    }
+    
     aMessagingService.addCompletionListener(this);
   }
 
