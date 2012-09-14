@@ -1,12 +1,8 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
-import java.util.Arrays;
-import java.util.List;
-
 import nl.adaptivity.process.userMessageHandler.client.processModel.EditableProcessNode;
 
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.user.client.ui.AbsolutePanel;
 
 /**
  * 
