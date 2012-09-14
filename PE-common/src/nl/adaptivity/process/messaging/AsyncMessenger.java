@@ -4,28 +4,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
+
 import nl.adaptivity.process.engine.MyMessagingException;
 
 
@@ -146,7 +134,11 @@ public class AsyncMessenger {
         for(Tupple<String, String> header: aMessage.getHeaders()) {
           httpConnection.addRequestProperty(header.getElem1(), header.getElem2());
         }
-        httpConnection.connect();
+        try {
+          httpConnection.connect();
+        } catch (ConnectException e) {
+          throw new MyMessagingException("Error connecting to "+destination, e);
+        }
         try {
           if (hasPayload) {
             OutputStream out = httpConnection.getOutputStream();
@@ -288,6 +280,14 @@ public class AsyncMessenger {
     AsyncFutureImpl future = new AsyncFutureImpl(this, pMessage, pHandle);
     aExecutor.execute(future);
     return future;
+  }
+
+  public void setOwnPort(int pLocalPort) {
+    try {
+      aBaseUrl = new URL(aBaseUrl.getProtocol(), aBaseUrl.getHost(), pLocalPort, aBaseUrl.getFile());
+    } catch (MalformedURLException e) {
+      e.printStackTrace();
+    }
   }
 
 }
