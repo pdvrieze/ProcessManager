@@ -65,6 +65,8 @@ public class XmlMessage {
     protected String url;
     @XmlAttribute(name = "method")
     protected String method;
+    @XmlAttribute(name = "type")
+    protected String type;
     // These are managed on the methods.
     private Node aBody;
     private ArrayList<Object> aAny;
@@ -259,6 +261,17 @@ public class XmlMessage {
         this.method = value;
     }
     
+    public String getType() {
+      if (type==null) {
+        return "application/soap+xml";
+      } else {
+        return type;
+      }
+    }
+    
+    public void setType(String pType) {
+      type = pType;
+    }
     
     @Override
     public String toString() {
