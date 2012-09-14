@@ -26,7 +26,7 @@ public class UserMessageService {
 
   public UserMessageService() {
     tasks = new HandleMap<UserTask<?>>();
-    aContext = AsyncMessenger.getInstance(Urls.newURL("http://localhost:8080/"));
+    aContext = AsyncMessenger.getInstance(Urls.newURL("http://localhost:9080/"));
     
     
 //    DummyTask task = new DummyTask("blabla");
