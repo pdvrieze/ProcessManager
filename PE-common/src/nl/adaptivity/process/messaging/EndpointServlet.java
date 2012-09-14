@@ -68,7 +68,6 @@ public class EndpointServlet extends HttpServlet {
         if (!soapHandler.processRequest(message, pResponse)) {
           getLogger().warning("Error processing soap request");
         }
-        
       }
     } catch (IOException e) {
       try {
