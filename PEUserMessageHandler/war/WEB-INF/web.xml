@@ -19,7 +19,7 @@
   
   <servlet-mapping>
     <servlet-name>externalEndpointServlet</servlet-name>
-    <url-pattern>/</url-pattern>
+    <url-pattern>/UserMessageService/*</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

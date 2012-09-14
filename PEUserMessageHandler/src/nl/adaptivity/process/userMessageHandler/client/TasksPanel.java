@@ -13,7 +13,7 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class TasksPanel extends Composite implements ClickHandler {
 
-  private static final String TASKLISTURL = PEUserMessageHandler.BASEURL+"/UserMessageService/pendingTasks";
+  private static final String TASKLISTURL = PEUserMessageHandler.BASEURL+"/PEUserMessageService/UserMessageService/pendingTasks";
 
   private Button aStartTaskButton;
   private Button aTakeTaskButton;
