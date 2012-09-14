@@ -1,29 +1,49 @@
 package nl.adaptivity.util;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.annotation.*;
-import javax.xml.namespace.QName;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
-
 import net.devrieze.util.Iterators;
 import net.devrieze.util.Streams;
 import net.devrieze.util.webServer.HttpRequest;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 
 // TODO change this to handle regular request bodies.
@@ -308,8 +328,6 @@ public class HttpMessage {
   
   private Map<String, List<String>> aHeaders;
 
-  private QName aOperation;
-
   private Map<String, DataSource> aAttachments;
 
   public HttpMessage() {
@@ -319,12 +337,9 @@ public class HttpMessage {
   public HttpMessage(HttpServletRequest pRequest) throws UnsupportedEncodingException, IOException {
     aHeaders = getHeaders(pRequest);
     
-    // XXX This is not actually correct yet.
-    aOperation = new QName(pRequest.getRequestURI());
-    
     aQueries = toQueries(pRequest.getQueryString());
     setMethod(pRequest.getMethod());
-    setPathInfo(pRequest.getPathInfo());
+    setPathInfo(pRequest.getServletPath());
     setContextPath(pRequest.getContextPath());
     if ("POST".equals(pRequest.getMethod()) || "PUT".equals(pRequest.getMethod())) {
       aContentType = pRequest.getContentType();
@@ -613,9 +628,5 @@ public class HttpMessage {
       throw new IllegalStateException("");
     }
     return new DOMSource(elements.get(0)); 
-  }
-
-  public QName getOperation() {
-    return aOperation;
   }
 }
