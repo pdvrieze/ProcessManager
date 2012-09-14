@@ -1,9 +1,11 @@
 package nl.adaptivity.ws.soap;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +21,7 @@ import net.devrieze.util.ValueCollection;
 import nl.adaptivity.util.HttpMessage;
 
 import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Element;
 
 
 public class SoapMessageHandler {
@@ -53,9 +56,22 @@ public class SoapMessageHandler {
 
   private SoapMessageHandler(Object pTarget) { aTarget = pTarget; }
 
-  public boolean processRequest(HttpMessage pRequest, HttpServletResponse pResponse) {
+  public boolean processRequest(HttpMessage pRequest, HttpServletResponse pResponse) throws IOException {
     Envelope envelope = JAXB.unmarshal(pRequest.getContent(), Envelope.class);
-    QName operation = pRequest.getOperation();
+    List<Object> operations = envelope.getBody().getAny();
+    Element operationElem = null;
+    for(Object operationObject: operations) {
+      if (operationObject instanceof Element) {
+        operationElem = (Element) operationObject;
+        break;
+      }
+    }
+    if (operationElem==null) {
+      pResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "No operation found");
+      return true;
+    }
+    
+    QName operation = new QName(operationElem.getNamespaceURI(), operationElem.getLocalName());
     
     SoapMethodWrapper method = getMethodFor(operation, aTarget);
 
