@@ -105,7 +105,6 @@ public class EndpointServlet extends HttpServlet {
     return Logger.getLogger(EndpointServlet.class.getName());
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void init(ServletConfig pConfig) throws ServletException {
     super.init(pConfig);
@@ -114,11 +113,11 @@ public class EndpointServlet extends HttpServlet {
       String className = pConfig.getInitParameter("endpoint");
       if (className==null) { throw new ServletException("The EndpointServlet needs to be configured with an endpoint parameter."); }
       try {
-        clazz = (Class<? extends GenericEndpoint>) GenericEndpoint.class.asSubclass(Class.forName(className));
+        clazz = Class.forName(className).asSubclass(GenericEndpoint.class);
       } catch (ClassNotFoundException e) {
         throw new ServletException(e);
       } catch (ClassCastException e) {
-        throw new ServletException("The endpoint for an EndpointServlet needs to implement "+GenericEndpoint.class.getName(), e);
+        throw new ServletException("The endpoint for an EndpointServlet needs to implement "+GenericEndpoint.class.getName()+" the class given is "+className, e);
       }
       try {
         aEndpoint = clazz.newInstance();
