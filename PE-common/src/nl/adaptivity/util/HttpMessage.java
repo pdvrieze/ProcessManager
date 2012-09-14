@@ -316,7 +316,7 @@ public class HttpMessage {
 
   private Collection<ByteContent> aByteContent;
 
-  private String aPathInfo;
+  private String aRequestPath;
 
   private String aContextPath;
 
@@ -339,7 +339,8 @@ public class HttpMessage {
     
     aQueries = toQueries(pRequest.getQueryString());
     setMethod(pRequest.getMethod());
-    setPathInfo(pRequest.getServletPath());
+    String pathInfo = pRequest.getPathInfo();
+    setRequestPath(pathInfo==null || pathInfo.length()==0? pRequest.getServletPath(): pathInfo);
     setContextPath(pRequest.getContextPath());
     if ("POST".equals(pRequest.getMethod()) || "PUT".equals(pRequest.getMethod())) {
       aContentType = pRequest.getContentType();
@@ -578,13 +579,13 @@ public class HttpMessage {
     return aByteContent;
   }
 
-  public void setPathInfo(String pathInfo) {
-    aPathInfo = pathInfo;
+  public void setRequestPath(String pathInfo) {
+    aRequestPath = pathInfo;
   }
 
   @XmlAttribute
-  public String getPathInfo() {
-    return aPathInfo;
+  public String getRequestPath() {
+    return aRequestPath;
   }
   
   public Iterable<String> getHeaders(String pName) {

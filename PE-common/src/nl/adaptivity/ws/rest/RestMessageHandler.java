@@ -51,7 +51,6 @@ public class RestMessageHandler {
   private RestMessageHandler(Object pTarget) { aTarget = pTarget; }
 
   public boolean processRequest(HttpMethod pMethod, HttpMessage pRequest, HttpServletResponse pResponse) throws IOException {
-    // TODO this will not work.
     HttpMessage httpMessage = pRequest;
 
     RestMethodWrapper method = getMethodFor(pMethod, httpMessage);
@@ -65,6 +64,8 @@ public class RestMessageHandler {
         throw new IOException(e);
       }
       return true;
+    } else {
+      pResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
     return false;
   }
@@ -73,7 +74,7 @@ public class RestMessageHandler {
    * TODO This could actually be cached, so reflection only needs to be done once!
    */
   private RestMethodWrapper getMethodFor(HttpMethod pHttpMethod, HttpMessage pHttpMessage) {
-    Collection<Method> candidates = getCandidatesFor(pHttpMethod, pHttpMessage.getPathInfo());
+    Collection<Method> candidates = getCandidatesFor(pHttpMethod, pHttpMessage.getRequestPath());
     RestMethodWrapper result = null;
     RestMethod resultAnnotation = null;
     for(Method candidate:candidates) {
@@ -82,7 +83,7 @@ public class RestMessageHandler {
 
       if (annotation !=null &&
           annotation.method()==pHttpMethod &&
-          pathFits(pathParams, annotation.path(), pHttpMessage.getPathInfo()) &&
+          pathFits(pathParams, annotation.path(), pHttpMessage.getRequestPath()) &&
           conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pHttpMessage)) {
         if (resultAnnotation==null || isMoreSpecificThan(resultAnnotation, annotation)) {
           result = new RestMethodWrapper(aTarget, candidate);
@@ -293,14 +294,14 @@ public class RestMessageHandler {
 
   // XXX Determine whether this request is a rest request for this source or not
   public boolean isRestRequest(HttpMethod pHttpMethod, HttpMessage pRequest) {
-    Collection<Method> candidates = getCandidatesFor(pHttpMethod, pRequest.getPathInfo());
+    Collection<Method> candidates = getCandidatesFor(pHttpMethod, pRequest.getRequestPath());
     for(Method candidate:candidates) {
       RestMethod annotation = candidate.getAnnotation(RestMethod.class);
       Map<String, String> pathParams = new HashMap<String, String>();
 
       if (annotation !=null &&
           annotation.method()==pHttpMethod &&
-          pathFits(pathParams, annotation.path(), pRequest.getPathInfo()) &&
+          pathFits(pathParams, annotation.path(), pRequest.getRequestPath()) &&
           conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pRequest)) {
         return true;
       }
