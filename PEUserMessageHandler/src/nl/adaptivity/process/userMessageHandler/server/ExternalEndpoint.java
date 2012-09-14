@@ -22,8 +22,8 @@ public class ExternalEndpoint implements GenericEndpoint {
   public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
   UserMessageService aService;
 
-  public ExternalEndpoint(UserMessageService pService) {
-    aService = pService;
+  public ExternalEndpoint() {
+    aService = UserMessageService.getInstance();
   }
 
   @Override
