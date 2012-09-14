@@ -1,40 +1,37 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 import net.devrieze.util.HandleMap;
-
+import net.devrieze.util.Urls;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.AsyncMessenger;
-import nl.adaptivity.process.messaging.EndpointProvider;
-import nl.adaptivity.process.messaging.GenericEndpoint;
 
 
 
-public class UserMessageService implements EndpointProvider {
+public class UserMessageService {
+
+  
+  private static class InstantiationHelper {
+
+    public static final UserMessageService INSTANCE = new UserMessageService();
+
+  }
 
   public static final String UMH_NS="http://adaptivity.nl/userMessageHandler";
-
-  private InternalEndpoint internalEndpoint;
-  private ExternalEndpoint externalEndpoint;
 
   private HandleMap<UserTask<?>> tasks;
 
   private AsyncMessenger aContext;
 
   public UserMessageService() {
-    internalEndpoint = new InternalEndpoint(this);
-    externalEndpoint = new ExternalEndpoint(this);
     tasks = new HandleMap<UserTask<?>>();
+    aContext = AsyncMessenger.getInstance(Urls.newURL("http://localhost:8080/"));
+    
+    
 //    DummyTask task = new DummyTask("blabla");
 //    task.setHandle(1);
 //    tasks.add(task);
-  }
-
-  @Override
-  public Collection<GenericEndpoint> getEndpoints() {
-    return Arrays.asList(internalEndpoint, externalEndpoint);
   }
 
   public boolean postTask(UserTask<?> pTask) {
@@ -69,13 +66,12 @@ public class UserMessageService implements EndpointProvider {
     return TaskState.Taken;
   }
 
-  @Override
-  public void setContext(AsyncMessenger context) {
-    aContext = context;
-  }
-
   public AsyncMessenger getContext() {
     return aContext;
+  }
+
+  public static UserMessageService getInstance() {
+    return InstantiationHelper.INSTANCE;
   }
 
 }

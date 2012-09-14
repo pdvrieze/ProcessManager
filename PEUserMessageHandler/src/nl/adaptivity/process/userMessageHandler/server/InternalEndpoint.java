@@ -186,8 +186,8 @@ public class InternalEndpoint implements GenericEndpoint {
   public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
   private UserMessageService aService;
 
-  public InternalEndpoint(UserMessageService pService) {
-    aService = pService;
+  public InternalEndpoint() {
+    aService = UserMessageService.getInstance();
   }
 
   @Override
