@@ -231,7 +231,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Throwable pCause) {
     pNode.failTask(pCause);
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Not yet implemented");
+    throw new UnsupportedOperationException("Not yet implemented", pCause);
     
   }
 
