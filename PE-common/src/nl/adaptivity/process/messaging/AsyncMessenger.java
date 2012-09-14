@@ -5,22 +5,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.devrieze.util.Urls;
-
+import net.devrieze.util.InputStreamOutputStream;
+import net.devrieze.util.Tupple;
 import nl.adaptivity.process.engine.MyMessagingException;
 
 
@@ -31,6 +36,49 @@ import nl.adaptivity.process.engine.MyMessagingException;
  */
 public class AsyncMessenger {
 
+  private class MessageCompletionNotifier extends Thread {
+    
+    private final BlockingQueue<AsyncFuture> aPendingNotifications;
+    private volatile boolean aFinished = false;
+    
+    
+    public MessageCompletionNotifier() {
+      super(AsyncMessenger.class.getName()+" - Completion Notifier");
+      aPendingNotifications = new LinkedBlockingQueue<AsyncFuture>(CONCURRENTCAPACITY);
+    }
+
+    @Override
+    public void run() {
+      while (! aFinished) {
+        try {
+          AsyncFuture future = aPendingNotifications.take();
+          notififyCompletion(future);
+        } catch (InterruptedException e) {
+          // Ignore the interruption. Just continue
+        }
+      }
+
+    }
+
+    private void notififyCompletion(AsyncFuture pFuture) {
+      for(CompletionListener listener: aListeners) {
+        listener.onMessageCompletion(pFuture);
+      }
+    }
+
+    public synchronized void shutdown() {
+      aFinished = true;
+      interrupt();
+    }
+
+    public void addNotification(AsyncFuture pFuture) {
+      aPendingNotifications.add(pFuture);
+      
+    }
+    
+    
+  }
+  
   
   public interface CompletionListener {
 
@@ -64,15 +112,25 @@ public class AsyncMessenger {
       try {
         byte[] result = sendMessage();
         return result;
+      } catch (MyMessagingException e) {
+        Logger.getLogger(AsyncMessenger.class.getName()).log(Level.WARNING, "Error sending message",e);
+        throw e;
       } finally {
         notifyCompletionListeners(aFuture);
       }
     }
 
     private byte[] sendMessage() throws IOException, ProtocolException {
-      URL destination = aMessage.getDestination();
+      URL destination;
+    
+      try {
+        destination = new URL(aMessage.getDestination());
+      } catch (MalformedURLException e) {
+        destination = new URL(getOwnUrl(), aMessage.getDestination());
+      }
+        
       if (destination.getProtocol()==null || destination.getProtocol().length()==0 || destination.getHost()==null || destination.getHost().length()==0) {
-        destination = new URL(getOwnUrl(), aMessage.getDestination().toString());
+        destination = new URL(getOwnUrl(), aMessage.getDestination());
       }
       final URLConnection connection = destination.openConnection();
       if (connection instanceof HttpURLConnection){
@@ -85,8 +143,8 @@ public class AsyncMessenger {
         }
         httpConnection.setRequestMethod(method);
         
-        for(Entry<String, String> header: aMessage.getHeaders()) {
-          httpConnection.addRequestProperty(header.getKey(), header.getValue());
+        for(Tupple<String, String> header: aMessage.getHeaders()) {
+          httpConnection.addRequestProperty(header.getElem1(), header.getElem2());
         }
         httpConnection.connect();
         try {
@@ -101,7 +159,19 @@ public class AsyncMessenger {
           }
           aResponseCode = httpConnection.getResponseCode();
           if (aResponseCode<200 || aResponseCode>=400) {
-            throw new MyMessagingException("Error in the result code: "+httpConnection.getResponseMessage());
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Future<Boolean> isos = InputStreamOutputStream.getInputStreamOutputStream(httpConnection.getErrorStream(), baos);
+            try {
+              if (isos.get()) {
+                Logger.getLogger(AsyncMessenger.class.getName()).info("Error in sending message ["+aResponseCode+"]:\n"+new String(baos.toByteArray())); 
+              } else {
+                throw new MyMessagingException("Error in the result code: "+httpConnection.getResponseMessage());
+              }
+            } catch (InterruptedException e) {
+              throw new MyMessagingException(e);
+            } catch (ExecutionException e) {
+              throw new MyMessagingException(e);
+            }
           }
           ByteArrayOutputStream resultBuffer = new ByteArrayOutputStream();
           byte[] buffer = new byte[0x4000];
@@ -162,14 +232,16 @@ public class AsyncMessenger {
 
   // Let the class loader do the nasty synchronization for us, but still initialise ondemand.
   private static class MessengerHolder {
-    static final AsyncMessenger globalMessenger = new AsyncMessenger(Urls.newURL("http://localhost/"));
+    static final AsyncMessenger globalMessenger = new AsyncMessenger();
   }
 
   ExecutorService aExecutor;
   private Collection<CompletionListener> aListeners;
-  private final URL aBaseUrl;
+  private URL aBaseUrl;
+  private MessageCompletionNotifier aNotifier;
   
-  public static AsyncMessenger getInstance() {
+  public static AsyncMessenger getInstance(URL pBaseUrl) {
+    MessengerHolder.globalMessenger.aBaseUrl = pBaseUrl;
     return MessengerHolder.globalMessenger;
   }
   
@@ -177,10 +249,11 @@ public class AsyncMessenger {
     return aBaseUrl;
   }
 
-  private AsyncMessenger(URL pBaseUrl) {
+  private AsyncMessenger() {
     aExecutor = new ThreadPoolExecutor(1, 20, 1, TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
     aListeners = new ArrayList<CompletionListener>();
-    aBaseUrl = pBaseUrl;
+    aNotifier = new MessageCompletionNotifier();
+    aNotifier.start();
   }
 
   public void addCompletionListener(CompletionListener pListener) {
@@ -188,9 +261,8 @@ public class AsyncMessenger {
   }
   
   public void notifyCompletionListeners(AsyncFuture pFuture) {
-    for(CompletionListener listener: aListeners) {
-      listener.onMessageCompletion(pFuture);
-    }
+    aNotifier.addNotification(pFuture);
+    
   }
   
   public void removeCompletionListener(CompletionListener pListener) {
@@ -202,6 +274,7 @@ public class AsyncMessenger {
    */
   public void destroy() {
     aExecutor.shutdown();
+    aNotifier.shutdown();
     // Release the resources.
   }
 

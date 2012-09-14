@@ -2,18 +2,18 @@ package nl.adaptivity.process.messaging;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.Collection;
-import java.util.Map;
+
+import net.devrieze.util.Tupple;
 
 
 public interface ISendableMessage {
 
   /**
    * What should be the destination of the message.
-   * @return the url to open
+   * @return the url to open. Can be partial!
    */
-  URL getDestination();
+  String getDestination();
 
   /**
    * What method should be used for the message
@@ -28,7 +28,7 @@ public interface ISendableMessage {
   boolean hasBody();
 
   /** Get the headers needing to be set on the request. */
-  Collection<Map.Entry<String, String>> getHeaders();
+  Collection<Tupple<String, String>> getHeaders();
 
   /**
    * Write the body to the outputstream
