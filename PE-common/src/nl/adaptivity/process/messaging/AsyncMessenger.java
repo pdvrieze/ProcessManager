@@ -11,10 +11,13 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.activation.DataSource;
+
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
 
 import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.util.HttpMessage;
 
 
 /**
@@ -76,15 +79,17 @@ public class AsyncMessenger {
 
   private static final int CONCURRENTCAPACITY = 2048; // Allow 2048 pending messages
 
-  public interface AsyncFuture extends Future<byte[]> {
+  public interface AsyncFuture extends Future<DataSource> {
 
     long getHandle();
 
     int getResponseCode();
+
+    void setMetadata(HttpURLConnection pHttpConnection);
     
   }
   
-  private class AsyncFutureCallable implements Callable<byte[]> {
+  private class AsyncFutureCallable implements Callable<DataSource> {
     private final long aHandle;
     private final ISendableMessage aMessage;
     private int aResponseCode;
@@ -96,9 +101,9 @@ public class AsyncMessenger {
     }
 
     @Override
-    public byte[] call() throws Exception {
+    public DataSource call() throws Exception {
       try {
-        byte[] result = sendMessage();
+        DataSource result = sendMessage();
         return result;
       } catch (MyMessagingException e) {
         Logger.getLogger(AsyncMessenger.class.getName()).log(Level.WARNING, "Error sending message",e);
@@ -108,7 +113,7 @@ public class AsyncMessenger {
       }
     }
 
-    private byte[] sendMessage() throws IOException, ProtocolException {
+    private DataSource sendMessage() throws IOException, ProtocolException {
       URL destination;
     
       try {
@@ -167,6 +172,7 @@ public class AsyncMessenger {
           }
           ByteArrayOutputStream resultBuffer = new ByteArrayOutputStream();
           byte[] buffer = new byte[0x4000];
+          aFuture.setMetadata(httpConnection);
           InputStream in = httpConnection.getInputStream();
           try {
             int i=0;
@@ -179,7 +185,7 @@ public class AsyncMessenger {
           } finally {
             in.close();
           }
-          return resultBuffer.toByteArray();
+          return new HttpMessage.ByteContentDataSource(null, httpConnection.getContentType(), resultBuffer.toByteArray());
         
         } finally {
           httpConnection.disconnect();
@@ -196,7 +202,7 @@ public class AsyncMessenger {
     
   }
   
-  private static class AsyncFutureImpl extends FutureTask<byte[]> implements AsyncFuture {
+  private static class AsyncFutureImpl extends FutureTask<DataSource> implements AsyncFuture {
 
     private AsyncFutureCallable aCallable;
 
@@ -218,6 +224,11 @@ public class AsyncMessenger {
     @Override
     public int getResponseCode() {
       return aCallable.aResponseCode;
+    }
+
+    @Override
+    public void setMetadata(HttpURLConnection pHttpConnection) {
+      // TODO record more metadata
     }
     
   }
