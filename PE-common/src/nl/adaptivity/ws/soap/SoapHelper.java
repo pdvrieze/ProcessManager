@@ -147,7 +147,7 @@ public class SoapHelper {
       return wrapper;
     }
     
-    Element wrapper = ownerDoc.createElementNS(pMessage.getNamespaceURI(), pMessage.getPrefix()+":"+pParam.getElem1());
+    Element wrapper = ownerDoc.createElementNS(pMessage.getNamespaceURI(), prefix+pParam.getElem1());
     wrapper.setPrefix(pMessage.getPrefix());
     pMessage.appendChild(wrapper);
 
