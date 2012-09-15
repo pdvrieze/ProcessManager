@@ -36,6 +36,10 @@ public class SoapHelper {
 
   private SoapHelper() {}
 
+  public static <T> Source createMessage(QName pOperationName, Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
+    return createMessage(pOperationName, null, pParams);
+  }
+
   /**
    * Create a Source encapsulating a soap message for the given operation name and parameters.
    * @param pOperationName The name of the soap operation (name of the first child of the soap body)
@@ -43,7 +47,7 @@ public class SoapHelper {
    * @return a Source that encapsulates the message.
    * @throws JAXBException
    */
-  public static <T> Source createMessage(QName pOperationName, Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
+  public static Source createMessage(QName pOperationName, List<Object> pHeaders, Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
     DocumentBuilder db;
     {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -56,7 +60,11 @@ public class SoapHelper {
     }
     Document resultDoc = db.newDocument();
 
-    Element body = createSoapEnvelope(resultDoc);
+    Element envelope = createSoapEnvelope(resultDoc);
+    if (pHeaders!=null && pHeaders.size()>0) {
+      createSoapHeader(envelope, pHeaders);
+    }
+    Element body = createSoapBody(envelope);
     Element message = createBodyMessage(body, pOperationName);
     for(Tripple<String, Class<?>, Object> param:pParams) {
       addParam(message, param);
@@ -70,13 +78,41 @@ public class SoapHelper {
    * @return The body element.
    */
   private static Element createSoapEnvelope(Document pDoc) {
-    Element envelope = pDoc.createElementNS(SOAP_ENVELOPE_NS, "Envelope");
-    envelope.setPrefix("soap");
+    Element envelope = pDoc.createElementNS(SOAP_ENVELOPE_NS, "soap:Envelope");
     envelope.setAttribute("encodingStyle", SoapMethodWrapper.SOAP_ENCODING.toString());
     pDoc.appendChild(envelope);
-    Element body = pDoc.createElementNS(SOAP_ENVELOPE_NS, "Body");
-    body.setPrefix("soap");
-    envelope.appendChild(body);
+    return envelope;
+  }
+
+  private static Element createSoapHeader(Element pEnvelope, List<Object> pHeaders) {
+    Document ownerDoc = pEnvelope.getOwnerDocument();
+    Element header = ownerDoc.createElementNS(SOAP_ENVELOPE_NS, "soap:Header");
+    pEnvelope.appendChild(header);
+    for(Object headerElem:pHeaders) {
+      if (headerElem instanceof Node) {
+        Node node = ownerDoc.importNode(((Node) headerElem),true);
+        header.appendChild(node);
+      } else {
+        try {
+          Marshaller marshaller;
+          {
+            JAXBContext context = JAXBContext.newInstance(headerElem.getClass());
+            marshaller = context.createMarshaller();
+          }
+          marshaller.marshal(headerElem, header);
+
+        } catch (JAXBException e) {
+          throw new MyMessagingException(e);
+        }
+      }
+    }
+    
+    return header;
+  }
+
+  private static Element createSoapBody(Element pEnvelope) {
+    Element body = pEnvelope.getOwnerDocument().createElementNS(SOAP_ENVELOPE_NS, "soap:Body");
+    pEnvelope.appendChild(body);
     return body;
   }
 
@@ -97,18 +133,21 @@ public class SoapHelper {
 
   private static Element addParam(Element pMessage, Tripple<String, Class<?>, Object> pParam) throws JAXBException {
     Document ownerDoc = pMessage.getOwnerDocument();
-    if (pParam.getElem1()==RESULT) {
-      Element wrapper = ownerDoc.createElementNS(SOAP_RPC_RESULT.getNamespaceURI(), SOAP_RPC_RESULT.getLocalPart());
-      wrapper.setPrefix("rpc");
+    String prefix;
+    if (pMessage.getPrefix()!=null && pMessage.getPrefix().length()>0) {
+      prefix= pMessage.getPrefix()+':';
+    } else {
+      prefix="";
+    }
+    if (pParam.getElem1()==RESULT) { // We need to create the wrapper that refers to the actual result.
+      Element wrapper = ownerDoc.createElementNS(SOAP_RPC_RESULT.getNamespaceURI(), "rpc:"+SOAP_RPC_RESULT.getLocalPart());
       pMessage.appendChild(wrapper);
-      if (pMessage.getPrefix()==null || pMessage.getPrefix().length()==0) {
-        wrapper.appendChild(ownerDoc.createTextNode(((CharSequence)pParam.getElem3()).toString()));
-      } else {
-        wrapper.appendChild(ownerDoc.createTextNode(pMessage.getPrefix()+":"+((CharSequence)pParam.getElem3()).toString()));
-      }
+
+      wrapper.appendChild(ownerDoc.createTextNode(prefix+((CharSequence)pParam.getElem3()).toString()));
       return wrapper;
     }
-    Element wrapper = ownerDoc.createElementNS(pMessage.getNamespaceURI(), pParam.getElem1());
+    
+    Element wrapper = ownerDoc.createElementNS(pMessage.getNamespaceURI(), pMessage.getPrefix()+":"+pParam.getElem1());
     wrapper.setPrefix(pMessage.getPrefix());
     pMessage.appendChild(wrapper);
 
@@ -135,8 +174,7 @@ public class SoapHelper {
       }
     } else if (Node.class.isAssignableFrom(paramType)) {
       Node param = (Node) pParam.getElem3();
-      param = param.cloneNode(true);
-      param = ownerDoc.adoptNode(param);
+      param = ownerDoc.importNode(param, true);
       wrapper.appendChild(param);
     } else {
       Marshaller marshaller;

@@ -5,9 +5,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.net.URI;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
@@ -34,6 +32,7 @@ import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 
 import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
 
 
@@ -173,6 +172,7 @@ public class SoapMethodWrapper {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public void marshalResult(HttpServletResponse pResponse) {
     pResponse.setContentType("application/soap+xml");
     if (aResult instanceof Source) {
@@ -186,10 +186,18 @@ public class SoapMethodWrapper {
       return;
     }
 
-    @SuppressWarnings("unchecked") Tripple<String, Class<?>, Object>[] params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                                                                                             Tripple.tripple("result", aMethod.getReturnType(), aResult)};
+    Tripple<String, Class<?>, Object>[] params;
+    List<Object> headers;
+    if (aResult instanceof ActivityResponse) {
+      ActivityResponse<?> activityResponse = (ActivityResponse<?>) aResult;
+      params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue())};
+      headers = Collections.<Object>singletonList(activityResponse);
+    } else {    
+      params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", aMethod.getReturnType(), aResult)};
+      headers = Collections.emptyList();
+    }
     try {
-      Source result = SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), params);
+      Source result = SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), headers, params);
       Sources.writeToStream(result, pResponse.getOutputStream());
     } catch (JAXBException e) {
       throw new MyMessagingException(e);

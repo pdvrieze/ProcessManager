@@ -8,9 +8,6 @@
 
 package nl.adaptivity.process.messaging;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -47,15 +44,17 @@ import nl.adaptivity.process.exec.Task.TaskState;
  * 
  * 
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ActivityResponseType")
 @XmlRootElement(name=ActivityResponse.ELEMENTNAME, namespace = "http://adaptivity.nl/ProcessEngine/")
-public class ActivityResponse {
+public class ActivityResponse<T>  {
 
     public static final String ELEMENTNAME = "ActivityResponse";
     public static final String TASKSTATEATTRNAME = "taskState";
-    @XmlAnyElement(lax = false)
-    protected List<Object> body;
+
+    private T aReturnValue;
+    private Class<T> aReturnType;
+    
     
     @XmlTransient
     private TaskState aTaskState;
@@ -63,38 +62,10 @@ public class ActivityResponse {
     // Default constructor for jaxb use
     protected ActivityResponse() {}
     
-    public ActivityResponse(TaskState pTaskState, Object... pResult) {
+    public ActivityResponse(TaskState pTaskState, Class<T> pReturnType, T pReturnValue) {
       aTaskState = pTaskState;
-      getBody().addAll(Arrays.asList(pResult));
-    }
-
-    /**
-     * Gets the value of the any property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the any property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getAny().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Object }
-     * 
-     * 
-     */
-    public List<Object> getBody() {
-        if (body == null) {
-            body = new ArrayList<Object>();
-        }
-        return this.body;
+      aReturnType = pReturnType;
+      aReturnValue = pReturnValue;
     }
 
     /**
@@ -120,6 +91,14 @@ public class ActivityResponse {
      */
     public void setTaskState(String value) {
         aTaskState = TaskState.valueOf(value);
+    }
+
+    public Class<T> getReturnType() {
+      return aReturnType;
+    }
+    
+    public T getReturnValue() {
+      return aReturnValue;
     }
 
 }
