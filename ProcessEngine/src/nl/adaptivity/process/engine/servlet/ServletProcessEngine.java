@@ -34,6 +34,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -551,12 +552,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           Element rootNode = domResult.getDocumentElement();
           // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
           if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
-            Element body = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, Body.ELEMENTNAME);
-            Element operation = XmlUtil.getFirstChildElement(body);
-            Element resultRefNode = XmlUtil.getChild(operation, SoapHelper.SOAP_RPC_RESULT);
-            QName resultNodeName = XmlUtil.asQName(resultRefNode, resultRefNode.getTextContent());
-            final Element resultNode = XmlUtil.getChild(operation, resultNodeName);
-            rootNode = XmlUtil.getFirstChild(resultNode, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+            Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, Header.ELEMENTNAME);
+            rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
           }
           if (rootNode!=null) {
             // If we receive an ActivityResponse, treat that specially.
