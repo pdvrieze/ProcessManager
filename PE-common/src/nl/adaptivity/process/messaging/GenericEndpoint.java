@@ -8,5 +8,7 @@ public interface GenericEndpoint {
   QName getService();
 
   String getEndpoint();
+  
+  void destroy();
 
 }
