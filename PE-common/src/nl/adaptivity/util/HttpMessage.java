@@ -8,16 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -31,9 +23,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.XmlValue;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
@@ -43,7 +32,6 @@ import net.devrieze.util.webServer.HttpRequest;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 
 // TODO change this to handle regular request bodies.
@@ -70,7 +58,7 @@ public class HttpMessage {
   }
 
   @XmlAccessorType(XmlAccessType.NONE)
-  public static class ByteContent implements DataSource {
+  public static class ByteContentDataSource implements DataSource {
 
     private String contentType;
 
@@ -78,7 +66,7 @@ public class HttpMessage {
 
     private String name;
 
-    public ByteContent(String pName, String pContentType, byte[] pByteContent) {
+    public ByteContentDataSource(String pName, String pContentType, byte[] pByteContent) {
       name = pName;
       contentType = pContentType;
       byteContent = pByteContent;
@@ -124,6 +112,11 @@ public class HttpMessage {
     public OutputStream getOutputStream() throws IOException {
       throw new UnsupportedOperationException("Byte content is not writable");
 
+    }
+
+    @Override
+    public String toString() {
+      return "ByteContentDataSource [name=" + name + ", contentType=" + contentType + ", byteContent=\"" + new String(byteContent) + "\"]";
     }
 
   }
@@ -314,7 +307,7 @@ public class HttpMessage {
 
   private Body aBody;
 
-  private Collection<ByteContent> aByteContent;
+  private Collection<ByteContentDataSource> aByteContent;
 
   private String aRequestPath;
 
@@ -329,10 +322,6 @@ public class HttpMessage {
   private Map<String, List<String>> aHeaders;
 
   private Map<String, DataSource> aAttachments;
-
-  public HttpMessage() {
-
-  }
 
   public HttpMessage(HttpServletRequest pRequest) throws UnsupportedEncodingException, IOException {
     aHeaders = getHeaders(pRequest);
@@ -386,7 +375,7 @@ public class HttpMessage {
 
         final Document xml;
 
-        xml = tryParseXml(new ByteArrayInputStream(baos.toByteArray()));
+        xml = XmlUtil.tryParseXml(new ByteArrayInputStream(baos.toByteArray()));
         if (xml == null) {
           addByteContent(baos.toByteArray(), pRequest.getContentType());
         } else {
@@ -481,25 +470,8 @@ public class HttpMessage {
   }
 
   private void addByteContent(byte[] pByteArray, String pContentType) {
-      getByteContent().add(new ByteContent(null, pContentType, pByteArray));
+      getByteContent().add(new ByteContentDataSource(null, pContentType, pByteArray));
   }
-
-  private Document tryParseXml(ByteArrayInputStream pByteArrayInputStream) throws IOException {
-      try {
-          final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-          dbf.setNamespaceAware(true);
-          DocumentBuilder db = dbf.newDocumentBuilder();
-          
-          Document d = db.parse(pByteArrayInputStream);
-          return d;
-      } catch (SAXException e) {
-          return null;
-      } catch (ParserConfigurationException e) {
-          e.printStackTrace();
-          return null;
-      }
-  }
-
   
   /*
    * Getters and setters
@@ -572,9 +544,9 @@ public class HttpMessage {
     aBody = pBody;
   }
 
-  public Collection<ByteContent> getByteContent() {
+  public Collection<ByteContentDataSource> getByteContent() {
     if (aByteContent == null) {
-      aByteContent = new ArrayList<ByteContent>();
+      aByteContent = new ArrayList<ByteContentDataSource>();
     }
     return aByteContent;
   }
