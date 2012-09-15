@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://adaptivity.nl/ProcessEngine/" elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://adaptivity.nl/ProcessEngine/">
+
+    <element name="ActivityResponse" type="tns:ActivityResponseType"></element>
+    
+    <complexType name="ActivityResponseType">
+    	<sequence>
+    		<any minOccurs="0" maxOccurs="unbounded">
+    			<annotation>
+    				<documentation>
+    					The actual body of the response
+    				</documentation>
+    			</annotation>
+    		</any>
+    	</sequence>
+    	<attribute name="taskState">
+    		<simpleType>
+                <annotation>
+                	<documentation>What should the new state of the task be after this reply. This is advisory only, and the process engine could ignore it.</documentation>
+                </annotation>
+                <restriction base="string">
+    				<enumeration value="Available"></enumeration>
+    				<enumeration value="Taken"></enumeration>
+    				<enumeration value="Started"></enumeration>
+    				<enumeration value="Complete"></enumeration>
+    				<enumeration value="Failed"></enumeration>
+    				<enumeration value="Cancelled"></enumeration>
+    			</restriction>
+    		</simpleType>
+    	</attribute>
+    </complexType>
+</schema>
