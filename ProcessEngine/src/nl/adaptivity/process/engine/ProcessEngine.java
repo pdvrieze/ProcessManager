@@ -2,21 +2,23 @@ package nl.adaptivity.process.engine;
 
 import java.io.IOException;
 
+import javax.activation.DataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import net.devrieze.util.HandleMap;
-import net.devrieze.util.HandleMap.Handle;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.exec.Task.TaskState;
-import nl.adaptivity.process.processModel.ProcessModel;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import net.devrieze.util.HandleMap;
+import net.devrieze.util.HandleMap.Handle;
+
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.processModel.ProcessModel;
 
 /**
  * XXX make sure this is thread safe!!
@@ -79,8 +81,11 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     ProcessNodeInstance t = aTaskMap.get(pHandle);
     ProcessInstance pi = t.getProcessInstance();
     switch (pNewState) {
-      case Available:
+      case Sent:
         throw new IllegalArgumentException("Updating task state to initial state not possible");
+      case Acknowledged:
+        t.setState(pNewState); // Record the state, do nothing else.
+        break;
       case Taken:
         pi.takeTask(aMessageService, t);
         break;
@@ -111,11 +116,17 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     return newState;
   }
 
-  public void finishedTask(long pHandle, InputSource pResult) {
+  public void finishedTask(long pHandle, DataSource pResult) {
+    InputSource result;
+    try {
+      result = new InputSource(pResult.getInputStream());
+    } catch (IOException e) {
+      throw new MyMessagingException(e);
+    }
     DocumentBuilderFactory dbf= DocumentBuilderFactory.newInstance();
     try {
       DocumentBuilder db = dbf.newDocumentBuilder();
-      Document xml = db.parse(pResult);
+      Document xml = db.parse(result);
       finishTask(pHandle, xml); 
       
     } catch (ParserConfigurationException e) {
