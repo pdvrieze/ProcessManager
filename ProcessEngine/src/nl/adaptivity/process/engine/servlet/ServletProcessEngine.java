@@ -1,20 +1,16 @@
 package nl.adaptivity.process.engine.servlet;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
@@ -28,40 +24,32 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.stream.*;
+import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.w3.soapEnvelope.Body;
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.Tupple;
 import net.devrieze.util.Urls;
+
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.HProcessInstance;
-import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
-import nl.adaptivity.process.messaging.AsyncMessenger;
+import nl.adaptivity.process.messaging.*;
 import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
 import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
-import nl.adaptivity.process.messaging.EndpointServlet;
-import nl.adaptivity.process.messaging.GenericEndpoint;
-import nl.adaptivity.process.messaging.ISendableMessage;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -70,13 +58,11 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
-import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.rest.RestMessageHandler;
+import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
-
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
@@ -549,15 +535,54 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
   }
 
+  /**
+   * Handle the completing of sending a message and receiving some sort of reply. If the
+   * reply is an ActivityResponse message we handle that specially. 
+   */
   @Override
   public void onMessageCompletion(AsyncFuture pFuture) {
     if (pFuture.isCancelled()) {
       aProcessEngine.cancelledTask(pFuture.getHandle());
     } else {
       try {
-        byte[] result = pFuture.get();
-        InputSource source = new InputSource(new ByteArrayInputStream(result));
-        aProcessEngine.finishedTask(pFuture.getHandle(), source);
+        DataSource result = pFuture.get();
+        try {
+          Document domResult = XmlUtil.tryParseXml(result.getInputStream());
+          Element rootNode = domResult.getDocumentElement();
+          // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
+          if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
+            Element body = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, Body.ELEMENTNAME);
+            Element operation = XmlUtil.getFirstChildElement(body);
+            Element resultRefNode = XmlUtil.getChild(operation, SoapHelper.SOAP_RPC_RESULT);
+            QName resultNodeName = XmlUtil.asQName(resultRefNode, resultRefNode.getTextContent());
+            final Element resultNode = XmlUtil.getChild(operation, resultNodeName);
+            rootNode = XmlUtil.getFirstChild(resultNode, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+          }
+          if (rootNode!=null) {
+            // If we receive an ActivityResponse, treat that specially.
+            if (PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
+              String taskStateAttr = rootNode.getAttribute(ActivityResponse.TASKSTATEATTRNAME);
+              try {
+                TaskState taskState = TaskState.valueOf(taskStateAttr);
+                aProcessEngine.updateTaskState(pFuture.getHandle(), taskState);
+                return;
+              } catch (NullPointerException e) {
+                // ignore
+              } catch (IllegalArgumentException e) {
+                aProcessEngine.errorTask(pFuture.getHandle(), e);
+              }
+            }
+          }
+          
+        } catch (NullPointerException e) {
+          // ignore
+        } catch (IOException e) {
+          // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
+        }
+        
+        
+        // By default assume that we have finished the task
+        aProcessEngine.finishedTask(pFuture.getHandle(), result);
       } catch (ExecutionException e) {
         aProcessEngine.errorTask(pFuture.getHandle(), e.getCause()); 
       } catch (InterruptedException e) {
@@ -568,7 +593,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   public QName getService() {
-    return new QName("http://adaptivity.nl/ProcessEngine/", "ProcessEngine");
+    return new QName(PROCESS_ENGINE_NS, "ProcessEngine");
   }
 
   @Override
