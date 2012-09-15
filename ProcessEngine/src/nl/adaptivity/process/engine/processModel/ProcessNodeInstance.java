@@ -79,7 +79,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
   }
 
   public <T> boolean provideTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
-    setState(TaskState.Available);
+    setState(TaskState.Sent);
     return aNode.provideTask(pMessageService, this);
   }
 
