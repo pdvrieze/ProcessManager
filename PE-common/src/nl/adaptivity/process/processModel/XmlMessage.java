@@ -68,7 +68,9 @@ public class XmlMessage {
     @XmlAttribute(name = "type")
     protected String type;
     // These are managed on the methods.
+    @XmlTransient
     private Node aBody;
+    @XmlTransient
     private ArrayList<Object> aAny;
 
     /**
