@@ -40,11 +40,13 @@ import org.w3c.dom.Element;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Body", propOrder = {
+@XmlType(name = Body.ELEMENTNAME, propOrder = {
     "any"
 })
 public class Body {
 
+    public static final String ELEMENTNAME="Body";
+  
     @XmlAnyElement(lax = false)
     protected List<Object> any;
     @XmlAnyAttribute
