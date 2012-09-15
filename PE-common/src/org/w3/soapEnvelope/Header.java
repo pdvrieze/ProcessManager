@@ -44,11 +44,12 @@ import org.w3c.dom.Element;
  *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Header", propOrder = {
+@XmlType(name = Header.ELEMENTNAME, propOrder = {
     "any"
 })
 public class Header {
 
+    public static final String ELEMENTNAME = "Header";
     @XmlAnyElement(lax = false)
     protected List<Object> any;
     @XmlAnyAttribute

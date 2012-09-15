@@ -47,7 +47,7 @@ public class Envelope {
 
     public static final String NAMESPACE = "http://www.w3.org/2003/05/soap-envelope";
     public static final String ELEMENTNAME = "Envelope";
-    @XmlElement(name = "Header")
+    @XmlElement(name = Header.ELEMENTNAME)
     protected Header header;
     @XmlElement(name = Body.ELEMENTNAME, required = true)
     protected Body body;
