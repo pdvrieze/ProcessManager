@@ -206,11 +206,11 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public ActivityResponse postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
+  public ActivityResponse<Boolean> postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged); // Only now mark as acknowledged
-    return new ActivityResponse(TaskState.Acknowledged, new JAXBElement<Boolean>(SoapHelper.SOAP_RPC_RESULT, Boolean.class, Boolean.valueOf(result)));
+    return new ActivityResponse<Boolean>(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
   }
 
   @Override
