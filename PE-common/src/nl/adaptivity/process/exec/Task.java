@@ -12,7 +12,8 @@ public interface Task<V extends Task<V>> extends HandleAware<V>{
 
   @XmlRootElement(name="taskState", namespace="http://adaptivity.nl/userMessageHandler")
   public static enum TaskState {
-    Available,
+    Sent,
+    Acknowledged,
     Taken,
     Started,
     Complete,
