@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
@@ -12,8 +13,10 @@ import javax.xml.namespace.QName;
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.ws.soap.SoapHelper;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
@@ -26,7 +29,7 @@ public class InternalEndpoint implements GenericEndpoint {
     private static final QName FINISH_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "finishTask");
     private long aHandle;
     private long aRemoteHandle;
-    private TaskState aState=TaskState.Available;
+    private TaskState aState=TaskState.Sent;
     private String aSummary;
     private EndPointDescriptor aEndPoint = null;
     private AsyncMessenger aContext;
@@ -52,6 +55,8 @@ public class InternalEndpoint implements GenericEndpoint {
         TaskState newState;
         if (pNewState==TaskState.Complete) {
           newState = finishRemoteTask();
+        } else if (pNewState==TaskState.Acknowledged) {
+          newState = pNewState; // Just shortcircuit. This is just record keeping
         } else {
           newState = updateRemoteTaskState(pNewState);
         }
@@ -201,8 +206,15 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public boolean postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
+  public ActivityResponse postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
-    return aService.postTask(pTask);
+    boolean result = aService.postTask(pTask);
+    pTask.setState(TaskState.Acknowledged); // Only now mark as acknowledged
+    return new ActivityResponse(TaskState.Acknowledged, new JAXBElement<Boolean>(SoapHelper.SOAP_RPC_RESULT, Boolean.class, Boolean.valueOf(result)));
+  }
+
+  @Override
+  public void destroy() {
+    aService.destroy();
   }
 }
