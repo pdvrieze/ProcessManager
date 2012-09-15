@@ -38,16 +38,18 @@ import javax.xml.namespace.QName;
  *
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "Envelope", propOrder = {
+@XmlType(name = Envelope.ELEMENTNAME, propOrder = {
     "header",
     "body"
 })
-@XmlRootElement(name="Envelope", namespace="http://www.w3.org/2003/05/soap-envelope")
+@XmlRootElement(name=Envelope.ELEMENTNAME, namespace=Envelope.NAMESPACE)
 public class Envelope {
 
+    public static final String NAMESPACE = "http://www.w3.org/2003/05/soap-envelope";
+    public static final String ELEMENTNAME = "Envelope";
     @XmlElement(name = "Header")
     protected Header header;
-    @XmlElement(name = "Body", required = true)
+    @XmlElement(name = Body.ELEMENTNAME, required = true)
     protected Body body;
     @XmlAnyAttribute
     private Map<QName, String> otherAttributes = new HashMap<QName, String>();
