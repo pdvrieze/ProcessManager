@@ -74,4 +74,11 @@ public class UserMessageService {
     return InstantiationHelper.INSTANCE;
   }
 
+  public synchronized void destroy() {
+    if (aContext!=null) {
+      aContext.destroy();
+      aContext = null;
+    }
+  }
+
 }

@@ -57,4 +57,9 @@ public class ExternalEndpoint implements GenericEndpoint {
     return aService.finishTask(Long.parseLong(pHandle));
   }
 
+  @Override
+  public void destroy() {
+    aService.destroy();
+  }
+
 }
