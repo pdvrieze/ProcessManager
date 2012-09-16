@@ -3,7 +3,7 @@ package nl.adaptivity.jbi.util;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
-
+@Deprecated
 @XmlRootElement(name="endpointDescriptor", namespace=EndPointDescriptor.MY_JBI_NS)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(propOrder={"serviceNamespace", "serviceLocalName", "endpointName"})
