@@ -240,6 +240,11 @@ public class SoapHelper {
     if (value != null && (! pClass.isInstance(value))) {
       if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass))) {
         result = Types.parsePrimitive(pClass, value.getTextContent());
+      } else if (Enum.class.isAssignableFrom(pClass)) {
+        String val = value.getTextContent();
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        final Object tmpResult = Enum.valueOf((Class) pClass, val);
+        result = tmpResult;
       } else {
         if (value.getNextSibling()!=null) {
           throw new UnsupportedOperationException("Collection parameters not yet supported");
