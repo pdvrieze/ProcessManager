@@ -18,6 +18,8 @@ import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 public class EndpointServlet extends HttpServlet {
 
+  private static final long serialVersionUID = 5882346515807438320L;
+  
   private GenericEndpoint aEndpoint;
   private SoapMessageHandler aSoapMessageHandler;
   private RestMessageHandler aRestMessageHandler;
