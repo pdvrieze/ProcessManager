@@ -6,10 +6,12 @@ import net.devrieze.util.HandleMap;
 import net.devrieze.util.Urls;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.AsyncMessenger;
+import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
+import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
 
 
 
-public class UserMessageService {
+public class UserMessageService implements CompletionListener {
 
   
   private static class InstantiationHelper {
@@ -27,6 +29,7 @@ public class UserMessageService {
   public UserMessageService() {
     tasks = new HandleMap<UserTask<?>>();
     aContext = AsyncMessenger.getInstance(Urls.newURL("http://localhost:9080/"));
+    aContext.addCompletionListener(this);
     
     
 //    DummyTask task = new DummyTask("blabla");
@@ -79,6 +82,12 @@ public class UserMessageService {
       aContext.destroy();
       aContext = null;
     }
+  }
+
+  @Override
+  public void onMessageCompletion(AsyncFuture pFuture) {
+    // TODO Auto-generated method stub
+    // 
   }
 
 }
