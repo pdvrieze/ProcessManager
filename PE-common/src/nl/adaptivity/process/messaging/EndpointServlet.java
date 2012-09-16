@@ -128,4 +128,11 @@ public class EndpointServlet extends HttpServlet {
     }
   }
 
+  @Override
+  public void destroy() {
+    if (aEndpoint!=null) {
+      aEndpoint.destroy();
+    }
+  }
+
 }
