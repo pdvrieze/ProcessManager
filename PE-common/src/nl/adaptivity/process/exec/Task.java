@@ -98,7 +98,7 @@ public interface Task<V extends Task<V>> extends HandleAware<V>{
   /**
    * Called to signify that this task has failed.
    */
-  public void failTask();
+  public void failTask(Throwable pCause);
 
   /**
    * Called to signify that this task has been cancelled.

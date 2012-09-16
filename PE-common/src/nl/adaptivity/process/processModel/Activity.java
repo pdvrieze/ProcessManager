@@ -8,6 +8,7 @@ import java.util.List;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task;
 
 @XmlRootElement(name = "activity")
@@ -109,7 +110,7 @@ public class Activity extends ProcessNode{
     // TODO handle imports
     T message = pMessageService.createMessage(aMessage);
     if (! pMessageService.sendMessage(message, pInstance)) {
-      pInstance.failTask();
+      pInstance.failTask(new MyMessagingException("Failure to send message"));
     }
 
     return false;
