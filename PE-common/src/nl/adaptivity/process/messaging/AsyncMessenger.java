@@ -160,7 +160,7 @@ public class AsyncMessenger {
             Future<Boolean> isos = InputStreamOutputStream.getInputStreamOutputStream(httpConnection.getErrorStream(), baos);
             try {
               if (isos.get()) {
-                Logger.getLogger(AsyncMessenger.class.getName()).info("Error in sending message ["+aResponseCode+"]:\n"+new String(baos.toByteArray())); 
+                Logger.getLogger(AsyncMessenger.class.getName()).info("Error in sending message with "+method+" to ("+destination+") ["+aResponseCode+"]:\n"+new String(baos.toByteArray())); 
               } else {
                 throw new MyMessagingException("Error in the result code: "+httpConnection.getResponseMessage());
               }
