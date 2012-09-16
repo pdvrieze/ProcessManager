@@ -6,7 +6,10 @@ import java.util.Collection;
 
 import net.devrieze.util.Tupple;
 
-
+/**
+ * Interface signalling that a message can be sent by {@link AsyncMessenger}
+ * @author Paul de Vrieze
+ */
 public interface ISendableMessage {
 
   /**
