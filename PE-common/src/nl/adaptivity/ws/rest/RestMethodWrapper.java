@@ -121,8 +121,21 @@ public class RestMethodWrapper {
     if (result != null && (! pClass.isInstance(result))) {
       if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass)) && result instanceof String) {
         result = Types.parsePrimitive(pClass, ((String) result));
+      } else if (Enum.class.isAssignableFrom(pClass)) {
+        @SuppressWarnings({ "rawtypes" })
+        Class clazz = pClass;
+        @SuppressWarnings("unchecked")
+        Enum<?> tmpResult =  Enum.valueOf(clazz, result.toString());
+        result = tmpResult;
       } else {
-        result = JAXB.unmarshal(new CharArrayReader(result.toString().toCharArray()), pClass);
+        String s = result.toString();
+        // Only wrap when we don't start with <
+        final char[] requestBody = (s.startsWith("<")? s : "<wrapper>"+s+"</wrapper>").toCharArray();
+        if (requestBody.length>0) {
+          result = JAXB.unmarshal(new CharArrayReader(requestBody), pClass);
+        } else {
+          result = null;
+        }
       }
     }
 
