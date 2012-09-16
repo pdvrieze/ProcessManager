@@ -121,7 +121,6 @@ public class ActivityResponse<T>  {
      * @param value the new task state.
      *     
      */
-    @XmlAttribute(name = ATTRTASKSTATE)
     public void setTaskStateString(String value) {
         aTaskState = TaskState.valueOf(value);
     }
