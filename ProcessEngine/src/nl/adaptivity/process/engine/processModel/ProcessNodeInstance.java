@@ -99,11 +99,8 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
   }
 
   @Override
-  public void failTask() {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
-
+  public void cancelTask() {
+    setState(TaskState.Cancelled);
   }
 
   @Override
@@ -115,7 +112,9 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
     return aProcessInstance;
   }
 
+  @Override
   public void failTask(Throwable pCause) {
+    setState(TaskState.Failed);
     aFailureCause = pCause;
   }
 
