@@ -17,7 +17,6 @@ import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
 
 import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
 import nl.adaptivity.util.HttpMessage;
 
 
