@@ -86,12 +86,12 @@ public class InternalEndpoint implements GenericEndpoint {
 
     private void updateRemoteTaskState(TaskState pState) throws JAXBException, MyMessagingException {
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState));
-      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle);
+      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null);
     }
 
     private void finishRemoteTask() throws JAXBException, MyMessagingException {
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
-      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle);
+      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null);
       /*
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
       DeliveryChannel channel = aContext.getDeliveryChannel();
@@ -155,7 +155,7 @@ public class InternalEndpoint implements GenericEndpoint {
         
         @Override
         public String getDestination() {
-          return "/ProcessEngine/tasks/"+pRemoteHandle;
+          return aEndPoint.getEndpointLocationString();
         }
       };
     }
@@ -229,7 +229,7 @@ public class InternalEndpoint implements GenericEndpoint {
     pTask.setEndpoint(pEndPoint);
     boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged); // Only now mark as acknowledged
-    return new ActivityResponse<Boolean>(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
+    return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
   }
 
   @Override
