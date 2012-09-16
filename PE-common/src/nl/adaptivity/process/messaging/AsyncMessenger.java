@@ -17,16 +17,54 @@ import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
 
 import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
 import nl.adaptivity.util.HttpMessage;
 
 
 /**
+ * A messenger class for sending and receiving messages.
+ * This is a singleton class, and for a given classloader will always be the same instance.
  * 
  * @author pdvrieze
  * @todo Add the abiltiy to send directly to servlets on the same host.
  */
 public class AsyncMessenger {
 
+  /**
+   * How big should the worker thread pool be initially.
+   */
+  private static final int INITIAL_WORK_THREADS = 1;
+
+  /**
+   * How many worker threads are there concurrently? Note that extra work will not block,
+   * it will just be added to a waiting queue.
+   */
+  private static final int MAXIMUM_WORK_THREADS = 20;
+  
+  /**
+   * How long to keep idle worker threads busy (in miliseconds).
+   */
+  private static final int WORKER_KEEPALIVE_MS = 60000;
+
+  /** The name of the notification tread. */
+  private static final String NOTIFIERTHREADNAME = AsyncMessenger.class.getName()+" - Completion Notifier";
+  
+  /** 
+   * How long should the notification thread wait when polling messages. This 
+   * should ensure that every 30 seconds it checks whether it's finished.
+   */
+  private static final long NOTIFICATIONPOLLTIMEOUTMS = 30000l; // Timeout polling for next message every 30 seconds
+
+  /**
+   * How many queued messages should be allowed. This is also the limit of pending notifications.
+   */
+  private static final int CONCURRENTCAPACITY = 2048; // Allow 2048 pending messages
+
+  /**
+   * Helper thread that performs (in a single tread) all notifications of messaging completions.
+   * The notification can not be done on the sending thread (deadlocks as that thread would be waiting for itself) and the calling tread is unknown.
+   * @author Paul de Vrieze
+   */
   private class MessageCompletionNotifier extends Thread {
     
     private final BlockingQueue<AsyncFuture> aPendingNotifications;
@@ -34,16 +72,21 @@ public class AsyncMessenger {
     
     
     public MessageCompletionNotifier() {
-      super(AsyncMessenger.class.getName()+" - Completion Notifier");
+      super(NOTIFIERTHREADNAME);
+      this.setDaemon(true); // This is just a helper thread, don't block cleanup.
       aPendingNotifications = new LinkedBlockingQueue<AsyncFuture>(CONCURRENTCAPACITY);
     }
 
+    /**
+     * Simple message pump.
+     */
     @Override
     public void run() {
       while (! aFinished) {
         try {
-          AsyncFuture future = aPendingNotifications.take();
-          notififyCompletion(future);
+          AsyncFuture future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
+          if (future!=null) // Null when timeout. 
+            notififyCompletion(future);
         } catch (InterruptedException e) {
           // Ignore the interruption. Just continue
         }
@@ -52,17 +95,31 @@ public class AsyncMessenger {
     }
 
     private void notififyCompletion(AsyncFuture pFuture) {
-      for(CompletionListener listener: aListeners) {
+      ArrayList<CompletionListener> listeners;
+      synchronized(aListeners) { // Make a local copy of the list of listeners
+        // Notifying them all can take a long time and will block any modification
+        // of the list needlessly.
+        listeners = new ArrayList<CompletionListener>(aListeners);
+      }
+      for(CompletionListener listener: listeners) {
         listener.onMessageCompletion(pFuture);
       }
     }
-
-    public synchronized void shutdown() {
+    
+    /**
+     * Allow for shutting down the thread.
+     */
+    public void shutdown() {
       aFinished = true;
       interrupt();
     }
 
+    /**
+     * Add a notification to the message queue.
+     * @param pFuture The future whose completion should be communicated.
+     */
     public void addNotification(AsyncFuture pFuture) {
+      // aPendingNotifications is threadsafe!
       aPendingNotifications.add(pFuture);
       
     }
@@ -70,25 +127,56 @@ public class AsyncMessenger {
     
   }
   
-  
+  /**
+   * Interface for classes that can receive completion messages from the {@link AsyncMessenger}. This happens
+   * in a separate thread.
+   * @author Paul de Vrieze
+   *
+   */
   public interface CompletionListener {
 
+    /**
+     * Signify the completion of the task corresponding to the given future. Note that
+     * as the notification is done as the last part of the calling there future theoretically
+     * is not guaranteed to be complete.
+     * @param pFuture The future that is complete.
+     */
     void onMessageCompletion(AsyncFuture pFuture);
 
   }
 
-  private static final int CONCURRENTCAPACITY = 2048; // Allow 2048 pending messages
-
+  /** 
+   * Special kind of future that contains additional information.
+   * @author Paul de Vrieze
+   *
+   */
   public interface AsyncFuture extends Future<DataSource> {
 
+    /** 
+     * The handle corresponding to the message this future is the response to.
+     * @return The handle.
+     */
     long getHandle();
 
+    /**
+     * The HTTP response code.
+     * @return The response code.
+     */
     int getResponseCode();
 
+    /**
+     * Update the metadata based on the given {@link HttpURLConnection}
+     * @param pHttpConnection The connection to get metadata from.
+     */
     void setMetadata(HttpURLConnection pHttpConnection);
     
   }
   
+  /**
+   * Callable that does the actual work of communicating with the remote service.
+   * @author Paul de Vrieze
+   *
+   */
   private class AsyncFutureCallable implements Callable<DataSource> {
     private final long aHandle;
     private final ISendableMessage aMessage;
@@ -100,6 +188,10 @@ public class AsyncMessenger {
       aHandle = pHandle;
     }
 
+    /**
+     * Calls {@link #sendMessage()} to do the sending and receiving, and finally notifies of completion.
+     * @return A DataSource that contains the bytes of the response body, as well as the contenttype if given.
+     */
     @Override
     public DataSource call() throws Exception {
       try {
@@ -202,6 +294,11 @@ public class AsyncMessenger {
     
   }
   
+  /**
+   * Class that actually implements the future. Most work is done in {@link AsyncFutureCallable} though.
+   * @author Paul de Vrieze
+   *
+   */
   private static class AsyncFutureImpl extends FutureTask<DataSource> implements AsyncFuture {
 
     private AsyncFutureCallable aCallable;
@@ -233,43 +330,65 @@ public class AsyncMessenger {
     
   }
 
-  // Let the class loader do the nasty synchronization for us, but still initialise ondemand.
+  /** Let the class loader do the nasty synchronization for us, but still initialise ondemand. */
   private static class MessengerHolder {
     static final AsyncMessenger globalMessenger = new AsyncMessenger();
   }
 
   ExecutorService aExecutor;
   private Collection<CompletionListener> aListeners;
+  /**
+   * The url agains which relative urls are resolved.
+   */
   private URL aBaseUrl;
   private MessageCompletionNotifier aNotifier;
   
+  /**
+   * Get the singleton instance. This also updates the base URL.
+   * @param pBaseUrl The url to resolve relative urls to.
+   * @return The singleton instance.
+   */
   public static AsyncMessenger getInstance(URL pBaseUrl) {
     MessengerHolder.globalMessenger.aBaseUrl = pBaseUrl;
     return MessengerHolder.globalMessenger;
   }
-  
+
+  /**
+   * Get the URL used to resolve relative urls against.
+   * @return The base URL.
+   */
   public URL getOwnUrl() {
     return aBaseUrl;
   }
 
+  /**
+   * Create the messenger.
+   */
   private AsyncMessenger() {
-    aExecutor = new ThreadPoolExecutor(1, 20, 1, TimeUnit.MINUTES, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
+    aExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
     aListeners = new ArrayList<CompletionListener>();
     aNotifier = new MessageCompletionNotifier();
     aNotifier.start();
   }
 
+  /**
+   * Add a listener for completions.
+   * @param pListener
+   */
   public void addCompletionListener(CompletionListener pListener) {
-    aListeners.add(pListener);
+    synchronized (aListeners) {
+      aListeners.add(pListener);
+    }
   }
   
   public void notifyCompletionListeners(AsyncFuture pFuture) {
     aNotifier.addNotification(pFuture);
-    
   }
   
   public void removeCompletionListener(CompletionListener pListener) {
-    aListeners.remove(pListener);
+    synchronized(aListeners) {
+      aListeners.remove(pListener);
+    }
   }
 
   /**
@@ -293,6 +412,11 @@ public class AsyncMessenger {
     return future;
   }
 
+  /**
+   * Update only the port part of our own url. Apparently it's impossible to determine
+   * our own port from the context. Only from a request is this possible.
+   * @param pLocalPort The local port to use in the aBaseUrl.
+   */
   public void setOwnPort(int pLocalPort) {
     try {
       aBaseUrl = new URL(aBaseUrl.getProtocol(), aBaseUrl.getHost(), pLocalPort, aBaseUrl.getFile());
