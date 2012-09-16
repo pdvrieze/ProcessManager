@@ -365,7 +365,7 @@ public class HttpMessage {
       if (aCharacterEncoding == null) {
         aCharacterEncoding = "UTF-8";
       }
-      boolean isMultipart = aContentType.startsWith("multipart/");
+      boolean isMultipart = aContentType!=null && aContentType.startsWith("multipart/");
       if ("application/x-www-form-urlencoded".equals(aContentType)) {
         aPost = toQueries(getBody(pRequest).toString(aCharacterEncoding));
       } else if (isMultipart) {
