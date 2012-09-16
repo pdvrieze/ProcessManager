@@ -16,6 +16,7 @@ import javax.activation.DataSource;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
 
+import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
 
@@ -177,14 +178,16 @@ public class AsyncMessenger {
    *
    */
   private class AsyncFutureCallable implements Callable<DataSource> {
+    private final EndPointDescriptor aLocalEndPoint;
     private final long aHandle;
     private final ISendableMessage aMessage;
     private int aResponseCode;
     private AsyncFuture aFuture;
 
-    public AsyncFutureCallable(ISendableMessage pMessage, long pHandle) {
+    public AsyncFutureCallable(ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
       aMessage = pMessage;
       aHandle = pHandle;
+      aLocalEndPoint = pLocalEndPoint;
     }
 
     /**
@@ -210,11 +213,11 @@ public class AsyncMessenger {
       try {
         destination = new URL(aMessage.getDestination());
       } catch (MalformedURLException e) {
-        destination = new URL(getOwnUrl(), aMessage.getDestination());
+        destination = new URL(aLocalEndPoint.getEnpointLocation().toURL(), aMessage.getDestination());
       }
         
       if (destination.getProtocol()==null || destination.getProtocol().length()==0 || destination.getHost()==null || destination.getHost().length()==0) {
-        destination = new URL(getOwnUrl(), aMessage.getDestination());
+        destination = new URL(aLocalEndPoint.getEnpointLocation().toURL(), aMessage.getDestination());
       }
       final URLConnection connection = destination.openConnection();
       if (connection instanceof HttpURLConnection){
@@ -302,8 +305,8 @@ public class AsyncMessenger {
 
     private AsyncFutureCallable aCallable;
 
-    AsyncFutureImpl(AsyncMessenger pMessenger, ISendableMessage pMessage, long pHandle) {
-      this(pMessenger.new AsyncFutureCallable(pMessage, pHandle));
+    AsyncFutureImpl(AsyncMessenger pMessenger, ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
+      this(pMessenger.new AsyncFutureCallable(pMessage, pHandle, pLocalEndPoint));
     }
     
     private AsyncFutureImpl(AsyncFutureCallable pCallable) {
@@ -336,28 +339,26 @@ public class AsyncMessenger {
 
   ExecutorService aExecutor;
   private Collection<CompletionListener> aListeners;
-  /**
-   * The url agains which relative urls are resolved.
-   */
-  private URL aBaseUrl;
+
   private MessageCompletionNotifier aNotifier;
   
   /**
    * Get the singleton instance. This also updates the base URL.
    * @param pBaseUrl The url to resolve relative urls to.
    * @return The singleton instance.
+   * @deprecated The parameter is ignored, just forwards {@link #getInstance()}
    */
+  @Deprecated
   public static AsyncMessenger getInstance(URL pBaseUrl) {
-    MessengerHolder.globalMessenger.aBaseUrl = pBaseUrl;
-    return MessengerHolder.globalMessenger;
+    return getInstance();
   }
-
+  
   /**
-   * Get the URL used to resolve relative urls against.
-   * @return The base URL.
+   * Get the singleton instance. This also updates the base URL.
+   * @return The singleton instance.
    */
-  public URL getOwnUrl() {
-    return aBaseUrl;
+  public static AsyncMessenger getInstance() {
+    return MessengerHolder.globalMessenger;
   }
 
   /**
@@ -403,25 +404,13 @@ public class AsyncMessenger {
    * Send the given message to whereever it needs to go.
    * @param pMessage The message to send
    * @param pHandle The handle of the node corresponding to the message.
+   * @param pLocalEndPoint The local endpoint to which to send replies.
    * @return A future for the asynchronous message.
    */
-  public AsyncFuture sendMessage(ISendableMessage pMessage, long pHandle) {
-    AsyncFutureImpl future = new AsyncFutureImpl(this, pMessage, pHandle);
+  public AsyncFuture sendMessage(ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
+    AsyncFutureImpl future = new AsyncFutureImpl(this, pMessage, pHandle, pLocalEndPoint);
     aExecutor.execute(future);
     return future;
-  }
-
-  /**
-   * Update only the port part of our own url. Apparently it's impossible to determine
-   * our own port from the context. Only from a request is this possible.
-   * @param pLocalPort The local port to use in the aBaseUrl.
-   */
-  public void setOwnPort(int pLocalPort) {
-    try {
-      aBaseUrl = new URL(aBaseUrl.getProtocol(), aBaseUrl.getHost(), pLocalPort, aBaseUrl.getFile());
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-    }
   }
 
 }
