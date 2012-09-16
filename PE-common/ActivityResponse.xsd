@@ -19,7 +19,8 @@
                 	<documentation>What should the new state of the task be after this reply. This is advisory only, and the process engine could ignore it.</documentation>
                 </annotation>
                 <restriction base="string">
-    				<enumeration value="Available"></enumeration>
+    				<enumeration value="Sent"></enumeration>
+            <enumeration value="Acknowledged"></enumeration>
     				<enumeration value="Taken"></enumeration>
     				<enumeration value="Started"></enumeration>
     				<enumeration value="Complete"></enumeration>
