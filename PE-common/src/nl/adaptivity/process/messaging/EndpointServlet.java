@@ -133,6 +133,7 @@ public class EndpointServlet extends HttpServlet {
     if (aEndpoint!=null) {
       aEndpoint.destroy();
     }
+    super.destroy();
   }
 
 }
