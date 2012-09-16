@@ -76,7 +76,7 @@ public class SoapMessageHandler {
     SoapMethodWrapper method = getMethodFor(operation, aTarget);
 
     if (method !=null) {
-      method.unmarshalParams(pRequest.getContent(), null);
+      method.unmarshalParams(envelope, pRequest.getAttachments());
       method.exec();
       if (pResponse!=null) {
         method.marshalResult(pResponse);
