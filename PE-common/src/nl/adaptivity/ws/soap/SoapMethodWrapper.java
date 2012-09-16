@@ -49,21 +49,25 @@ public class SoapMethodWrapper {
     aMethod = pMethod;
   }
 
-  public void unmarshalParams(Source pSource, Map<String, DataHandler> pAttachments) {
+  public void unmarshalParams(Source pSource, Map<String, DataSource> pAttachments) {
+    Envelope envelope = JAXB.unmarshal(pSource, Envelope.class);
+    unmarshalParams(envelope, pAttachments);
+
+  }
+
+  public void unmarshalParams(Envelope pEnvelope, Map<String, DataSource> pAttachments) {
     if (aParams!=null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
 
-    Envelope envelope = JAXB.unmarshal(pSource, Envelope.class);
-    ensureNoUnunderstoodHeaders(envelope);
-    processSoapHeader(envelope.getHeader());
-    URI es = envelope.getEncodingStyle();
+    ensureNoUnunderstoodHeaders(pEnvelope);
+    processSoapHeader(pEnvelope.getHeader());
+    URI es = pEnvelope.getEncodingStyle();
     if (es==null || es.equals(SOAP_ENCODING)) {
-      processSoapBody(envelope.getBody(), pAttachments);
+      processSoapBody(pEnvelope.getBody(), pAttachments);
     } else {
       throw new MyMessagingException("Ununderstood message body");
     }
-
   }
 
   private void ensureNoUnunderstoodHeaders(Envelope pEnvelope){
@@ -77,7 +81,7 @@ public class SoapMethodWrapper {
     /* For now just ignore headers, i.e. none understood*/
   }
 
-  private void processSoapBody(org.w3.soapEnvelope.Body pBody, Map<String, DataHandler> pAttachments) {
+  private void processSoapBody(org.w3.soapEnvelope.Body pBody, Map<String, DataSource> pAttachments) {
     if (pBody.getAny().size()!=1) {
       throw new MyMessagingException("Multiple body elements not expected");
     }
@@ -107,7 +111,7 @@ public class SoapMethodWrapper {
 
     }
     if (params.size()>0) {
-      Logger.getLogger(getClass().getCanonicalName()).warning("Extra parameters in message");
+      Logger.getLogger(getClass().getCanonicalName()).warning("Extra parameters in message: "+params.keySet().toString());
     }
   }
 
