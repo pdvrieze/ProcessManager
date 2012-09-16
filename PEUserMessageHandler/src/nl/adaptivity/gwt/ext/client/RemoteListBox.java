@@ -80,6 +80,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   private String aListElement;
   private String aTextElement;
   private String aValueElement;
+  private String aNameSpace;
   private boolean aStarted = false;
 
   public RemoteListBox(String pUrl) {
@@ -166,6 +167,14 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   public void setValueElement(String pValueElement) {
     aValueElement = pValueElement;
   }
+  
+  public void setNameSpace(String pNameSpace) {
+    aNameSpace = pNameSpace;
+  }
+  
+  public String getNameSpace() {
+    return aNameSpace;
+  }
 
   public HandlerRegistration addUpdateEventHandler(UpdateEventHandler pHandler) {
     return addHandler(pHandler, UpdateEvent.getType());
@@ -214,10 +223,10 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     ArrayList<ListElement> result = new ArrayList<ListElement>();
 
     com.google.gwt.dom.client.Node root = myResponse.getFirstChild();
-    if (root.getNodeName().equals(aRootElement)) {
+    if (localName(root.getNodeName()).equals(aRootElement)) {
       com.google.gwt.dom.client.Node child = root.getFirstChild();
       while(child!=null) {
-        if (aListElement.equals(child.getNodeName()) ){
+        if (aListElement.equals(localName(child.getNodeName())) ){
           final String text = XMLUtil.getParamText(child, aTextElement);
           final String value = XMLUtil.getParamText(child, aValueElement);
 
@@ -234,6 +243,12 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   }
 
 
+  private String localName(String pNodeName) {
+    int i=pNodeName.indexOf(':');
+    if (i<0) { return pNodeName; }
+    return pNodeName.substring(i+1);
+  }
+
   private List<ListElement> asListElements(String pText) {
     final Document myResponse;
 
@@ -241,10 +256,10 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     ArrayList<ListElement> result = new ArrayList<ListElement>();
 
     Node root = myResponse.getFirstChild();
-    if (root.getNodeName().equals(aRootElement)) {
+    if (localName(root.getNodeName()).equals(aRootElement)) {
       Node child = root.getFirstChild();
       while(child!=null) {
-        if (aListElement.equals(child.getNodeName()) ){
+        if (aListElement.equals(localName(child.getNodeName())) ){
           final String text = XMLUtil.getParamText(child, aTextElement);
           final String value = XMLUtil.getParamText(child, aValueElement);
 
