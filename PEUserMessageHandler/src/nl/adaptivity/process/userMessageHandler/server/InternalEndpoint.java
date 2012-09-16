@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
+import org.w3c.dom.Node;
+
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Tupple;
 
@@ -88,7 +90,7 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     private void finishRemoteTask() throws JAXBException, MyMessagingException {
-      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, TaskState.Complete));
+      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
       aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle);
       /*
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
