@@ -1,8 +1,6 @@
 package nl.adaptivity.process.engine.servlet;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -16,15 +14,16 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.SOAPEnvelope;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
@@ -32,17 +31,21 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.w3.soapEnvelope.Body;
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import sun.security.action.GetLongAction;
+
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.Tupple;
-import net.devrieze.util.Urls;
 
+import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
@@ -62,7 +65,6 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.rest.RestMessageHandler;
-import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
@@ -87,13 +89,14 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     private final String aMethod;
     private final String aUrl;
     private final String aContentType;
+    private final EndPointDescriptor aReplies;
     
-    private ServletMessage(XmlMessage pSource) {
-      this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl(), pSource.getType());
+    private ServletMessage(XmlMessage pSource, EndPointDescriptor pReplies) {
+      this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl(), pSource.getType(), pReplies);
     }
     
     
-    private ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl, String pContentType) {
+    private ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl, String pContentType, EndPointDescriptor pReplies) {
       aRemoteService = pService;
       aRemoteEndpoint = pEndpoint;
       aOperation = pOperation;
@@ -101,6 +104,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       aMethod = pMethod;
       aUrl = pUrl;
       aContentType = pContentType;
+      aReplies = pReplies;
     }
 
 
@@ -181,7 +185,19 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
                 xew.add(event);
               }
             } else {
-              xew.add(event);
+              try {
+                xew.add(event);
+              } catch (IllegalStateException e) {
+                StringBuilder errorMessage= new StringBuilder("Error adding event: ");
+                errorMessage.append(event.toString()).append(' ');
+                if (event.isStartElement()) {
+                  errorMessage.append('<').append(event.asStartElement().getName()).append('>');
+                } else if (event.isEndElement()) {
+                  errorMessage.append("</").append(event.asEndElement().getName()).append('>');
+                }
+                getLogger().log(Level.WARNING, errorMessage.toString(), e);
+                throw e;
+              }
             }
           }
         }
@@ -225,18 +241,32 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         if ("handle".equals(valueName)) {
           out.add(xef.createCharacters(Long.toString(pHandle)));
         } else if ("endpoint".equals(valueName)) {
-          // TODO Write our own location.
+          // TODO Why can't we use STAX?
           QName qname1 = new QName(MY_JBI_NS, "endpointDescriptor", "");
           List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", MY_JBI_NS));
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
-//          {
-//            out.add(xef.createAttribute("serviceNS", aEndPoint.getServiceName().getNamespaceURI()));
-//            out.add(xef.createAttribute("serviceLocalName", aEndPoint.getServiceName().getLocalPart()));
-//            out.add(xef.createAttribute("endpointName", aEndPoint.getEndpointName()));
-//          }
+          {
+            out.add(xef.createAttribute("serviceNS", aReplies.getServiceName().getNamespaceURI()));
+            out.add(xef.createAttribute("serviceLocalName", aReplies.getServiceName().getLocalPart()));
+            out.add(xef.createAttribute("endpointName", aReplies.getEndpointName()));
+            out.add(xef.createAttribute("endpointLocation", aReplies.getEndpointLocationString()));
+          }
 
           out.add(xef.createEndElement(qname1, namespaces.iterator()));
+
+          
+//          JAXBContext jaxbContext;
+//          try {
+//            jaxbContext = JAXBContext.newInstance(EndPointDescriptor.class);
+//            Marshaller marshaller = jaxbContext.createMarshaller();
+//            StringWriter outBuffer = new StringWriter();
+//            marshaller.marshal(aReplies, outBuffer);
+//            XMLInputFactory xif = XMLInputFactory.newFactory();
+//            out.add(xif.createXMLEventReader(new StringReader(outBuffer.toString())));
+//          } catch (JAXBException e) {
+//            throw new MyMessagingException(e);
+//          }
         }
       } else {
         throw new MyMessagingException("Missing parameter name");
@@ -338,6 +368,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   private SoapMessageHandler aSoapMessageHandler;
 
   private AsyncMessenger aMessagingService;
+
+  private EndPointDescriptor aLocalEndPoint;
   
   /*
    * Servlet methods 
@@ -367,12 +399,52 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public void init(ServletConfig pConfig) throws ServletException {
     super.init(pConfig);
     aProcessEngine = new ProcessEngine(this);
+    String hostname = pConfig.getInitParameter("hostname");
     String port = pConfig.getInitParameter("port");
-    if (port==null) { 
-      aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost/"+pConfig.getServletContext().getContextPath()));
-    } else {
-      aMessagingService = AsyncMessenger.getInstance(Urls.newURL("http://localhost:"+port+"/"+pConfig.getServletContext().getContextPath()));
+    {
+      URI localURL = null;
+      
+      if (hostname==null) { hostname="localhost"; }
+
+      // TODO this should can be done better.
+      if (port==null) {
+        try {
+          Service[] services = ServerFactory.getServer().findServices();
+          
+          for (Service service: services) {
+            // Loop repeatedly, prefer
+            final List<String> protocolList;
+            if ("localhost".equals(hostname)) {
+              protocolList = Arrays.asList("HTTP/1.1", "org.apache.coyote.http11.Http11NioProtocol");
+            } else {
+              protocolList = Arrays.asList("HTTP/1.1", "org.apache.coyote.http11.Http11NioProtocol", "AJP/1.3");
+            }
+            for (String candidateProtocol: protocolList) {
+              for(Connector connector: service.findConnectors()) {
+                String protocol = connector.getProtocol();
+                if (candidateProtocol.equals(protocol)) {
+                  if ("localhost".equals(hostname)) {
+                    port = Integer.toString(connector.getPort()); 
+                  } else {
+                    port = Integer.toString(connector.getProxyPort());
+                  }
+                }
+              }
+              
+            }
+          }
+        } catch (Error e) { // We're not on tomcat, this trick won't work.
+          localURL = URI.create("http://"+hostname+"/"+pConfig.getServletContext().getContextPath());
+        }
+      }
+      if (port==null) {
+        localURL = URI.create("http://"+hostname+pConfig.getServletContext().getContextPath());
+      } else {
+        localURL = URI.create("http://"+hostname+":"+port+pConfig.getServletContext().getContextPath());
+      }
+      aLocalEndPoint=new EndPointDescriptor(getService(), getEndpoint(), localURL);
     }
+    aMessagingService = AsyncMessenger.getInstance();
     
     aMessagingService.addCompletionListener(this);
   }
@@ -382,44 +454,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
 
   @Override
-  protected void doDelete(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    updatePort(pReq);
-    super.doDelete(pReq, pResp);
-  }
-
-  private void updatePort(HttpServletRequest pReq) {
-    if (aMessagingService.getOwnUrl().getPort()<0) {
-      aMessagingService.setOwnPort(pReq.getLocalPort());
-    }
-  }
-
-  @Override
-  protected void doGet(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    updatePort(pReq);
-    super.doGet(pReq, pResp);
-  }
-
-  @Override
-  protected void doHead(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    updatePort(pReq);
-    super.doHead(pReq, pResp);
-  }
-
-  @Override
-  protected void doPost(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    updatePort(pReq);
-    super.doPost(pReq, pResp);
-  }
-
-  @Override
-  protected void doPut(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
-    updatePort(pReq);
-    super.doPut(pReq, pResp);
-  }
-
-  @Override
   public ServletMessage createMessage(XmlMessage pMessage) {
-    return new ServletMessage(pMessage);
+    return new ServletMessage(pMessage, aLocalEndPoint);
   }
 
   @Override
@@ -427,7 +463,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     long handle = aProcessEngine.registerMessage(pInstance);
     pMessage.setHandle(handle);
     
-    aMessagingService.sendMessage(pMessage, handle);
+    aMessagingService.sendMessage(pMessage, handle, aLocalEndPoint);
     return true;
   }
 
@@ -449,13 +485,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    * Methods inherited from JBIProcessEngine
    */
 
-  Logger getLogger() {
-    if (aLogger != null) {
-      return aLogger;
-    }
-    aLogger = Logger.getLogger(getClass().getName());
-    aLogger.setLevel(Level.ALL);
-    return aLogger;
+  static Logger getLogger() {
+    Logger logger =  Logger.getLogger(ServletProcessEngine.class.getName());
+    logger.setLevel(Level.ALL);
+    return logger;
   }
 
   
@@ -558,7 +591,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           if (rootNode!=null) {
             // If we receive an ActivityResponse, treat that specially.
             if (PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
-              String taskStateAttr = rootNode.getAttribute(ActivityResponse.TASKSTATEATTRNAME);
+              String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
               try {
                 TaskState taskState = TaskState.valueOf(taskStateAttr);
                 aProcessEngine.updateTaskState(pFuture.getHandle(), taskState);
