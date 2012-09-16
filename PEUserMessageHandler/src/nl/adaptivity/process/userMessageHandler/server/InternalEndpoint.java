@@ -1,14 +1,22 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Logger;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+
+import net.devrieze.util.Tripple;
+import net.devrieze.util.Tupple;
 
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
@@ -16,6 +24,8 @@ import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.process.messaging.ISendableMessage;
+import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
@@ -54,11 +64,13 @@ public class InternalEndpoint implements GenericEndpoint {
       try {
         TaskState newState;
         if (pNewState==TaskState.Complete) {
-          newState = finishRemoteTask();
+          finishRemoteTask();
+          newState = TaskState.Complete; // Use server state instead.
         } else if (pNewState==TaskState.Acknowledged) {
           newState = pNewState; // Just shortcircuit. This is just record keeping
         } else {
-          newState = updateRemoteTaskState(pNewState);
+          updateRemoteTaskState(pNewState);
+          newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
         }
         aState = newState;
       } catch (JAXBException e) {
@@ -70,43 +82,14 @@ public class InternalEndpoint implements GenericEndpoint {
       }
     }
 
-    private TaskState updateRemoteTaskState(TaskState pState) throws JAXBException, MyMessagingException {
-      throw new UnsupportedOperationException("Not implemented");
-      /*
+    private void updateRemoteTaskState(TaskState pState) throws JAXBException, MyMessagingException {
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState));
-      DeliveryChannel channel = aContext.getDeliveryChannel();
-
-      ServiceEndpoint se = null;
-      {
-        for(ServiceEndpoint candidate:aContext.getEndpointsForService(aEndPoint.getServiceName())) {
-          if (candidate.getEndpointName().equals(aEndPoint.getEndpointName())) {
-            se = candidate;
-            break;
-          }
-        }
-      }
-      if (se==null) { throw new MessagingException("No endpoint found"); }
-
-      MessageExchangeFactory exf = channel.createExchangeFactory(se);
-      InOut ex = exf.createInOutExchange();
-      ex.setOperation(UPDATE_OPERATION_NAME);
-      NormalizedMessage message = ex.createMessage();
-      message.setContent(messageContent);
-      ex.setInMessage(message);
-      if (channel.sendSync(ex)) {
-        NormalizedMessage result = ex.getOutMessage();
-        if (result!=null) {
-          TaskState newState = SoapHelper.processResponse(TaskState.class, result.getContent());
-          aState = newState;
-          return newState;
-        }
-      }
-      return aState; // Don't change state
-      */
+      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle);
     }
 
-    private TaskState finishRemoteTask() throws JAXBException, MyMessagingException {
-      throw new UnsupportedOperationException("Not implemented");
+    private void finishRemoteTask() throws JAXBException, MyMessagingException {
+      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, TaskState.Complete));
+      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle);
       /*
       @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
       DeliveryChannel channel = aContext.getDeliveryChannel();
@@ -139,6 +122,40 @@ public class InternalEndpoint implements GenericEndpoint {
       }
       return aState; // Don't change state
       */
+    }
+
+    private ISendableMessage createMessage(final long pRemoteHandle, final Source pMessageContent) {
+      return new ISendableMessage() {
+        
+        @Override
+        public void writeBody(OutputStream pOutputStream) throws IOException {
+          try {
+            Sources.writeToStream(pMessageContent, pOutputStream);
+          } catch (TransformerException e) {
+            throw new IOException(e);
+          }
+        }
+        
+        @Override
+        public boolean hasBody() {
+          return true;
+        }
+        
+        @Override
+        public String getMethod() {
+          return "POST";
+        }
+        
+        @Override
+        public Collection<Tupple<String, String>> getHeaders() {
+          return Collections.emptyList();
+        }
+        
+        @Override
+        public String getDestination() {
+          return "/ProcessEngine/tasks/"+pRemoteHandle;
+        }
+      };
     }
 
     @XmlAttribute(name="handle")
