@@ -148,7 +148,7 @@ public class InternalEndpoint implements GenericEndpoint {
         
         @Override
         public Collection<Tupple<String, String>> getHeaders() {
-          return Collections.emptyList();
+          return Collections.singletonList(Tupple.tupple("Content-Type", "application/soap+xml"));
         }
         
         @Override
