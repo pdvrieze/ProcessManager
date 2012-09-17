@@ -4,18 +4,33 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
 
+import net.devrieze.util.HandleMap;
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
-
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
@@ -24,7 +39,7 @@ import nl.adaptivity.util.HttpMessage;
 /**
  * A messenger class for sending and receiving messages.
  * This is a singleton class, and for a given classloader will always be the same instance.
- * 
+ *
  * @author pdvrieze
  * @todo Add the abiltiy to send directly to servlets on the same host.
  */
@@ -40,7 +55,7 @@ public class AsyncMessenger {
    * it will just be added to a waiting queue.
    */
   private static final int MAXIMUM_WORK_THREADS = 20;
-  
+
   /**
    * How long to keep idle worker threads busy (in miliseconds).
    */
@@ -48,9 +63,9 @@ public class AsyncMessenger {
 
   /** The name of the notification tread. */
   private static final String NOTIFIERTHREADNAME = AsyncMessenger.class.getName()+" - Completion Notifier";
-  
-  /** 
-   * How long should the notification thread wait when polling messages. This 
+
+  /**
+   * How long should the notification thread wait when polling messages. This
    * should ensure that every 30 seconds it checks whether it's finished.
    */
   private static final long NOTIFICATIONPOLLTIMEOUTMS = 30000l; // Timeout polling for next message every 30 seconds
@@ -66,11 +81,11 @@ public class AsyncMessenger {
    * @author Paul de Vrieze
    */
   private class MessageCompletionNotifier extends Thread {
-    
+
     private final BlockingQueue<AsyncFuture> aPendingNotifications;
     private volatile boolean aFinished = false;
-    
-    
+
+
     public MessageCompletionNotifier() {
       super(NOTIFIERTHREADNAME);
       this.setDaemon(true); // This is just a helper thread, don't block cleanup.
@@ -85,7 +100,7 @@ public class AsyncMessenger {
       while (! aFinished) {
         try {
           AsyncFuture future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
-          if (future!=null) // Null when timeout. 
+          if (future!=null) // Null when timeout.
             notififyCompletion(future);
         } catch (InterruptedException e) {
           // Ignore the interruption. Just continue
@@ -105,7 +120,7 @@ public class AsyncMessenger {
         listener.onMessageCompletion(pFuture);
       }
     }
-    
+
     /**
      * Allow for shutting down the thread.
      */
@@ -121,12 +136,12 @@ public class AsyncMessenger {
     public void addNotification(AsyncFuture pFuture) {
       // aPendingNotifications is threadsafe!
       aPendingNotifications.add(pFuture);
-      
+
     }
-    
-    
+
+
   }
-  
+
   /**
    * Interface for classes that can receive completion messages from the {@link AsyncMessenger}. This happens
    * in a separate thread.
@@ -145,18 +160,18 @@ public class AsyncMessenger {
 
   }
 
-  /** 
+  /**
    * Special kind of future that contains additional information.
    * @author Paul de Vrieze
    *
    */
   public interface AsyncFuture extends Future<DataSource> {
 
-    /** 
+    /**
      * The handle corresponding to the message this future is the response to.
      * @return The handle.
      */
-    long getHandle();
+    <T> Handle<T> getHandle();
 
     /**
      * The HTTP response code.
@@ -169,9 +184,9 @@ public class AsyncMessenger {
      * @param pHttpConnection The connection to get metadata from.
      */
     void setMetadata(HttpURLConnection pHttpConnection);
-    
+
   }
-  
+
   /**
    * Callable that does the actual work of communicating with the remote service.
    * @author Paul de Vrieze
@@ -209,13 +224,13 @@ public class AsyncMessenger {
 
     private DataSource sendMessage() throws IOException, ProtocolException {
       URL destination;
-    
+
       try {
         destination = new URL(aMessage.getDestination());
       } catch (MalformedURLException e) {
         destination = new URL(aLocalEndPoint.getEnpointLocation().toURL(), aMessage.getDestination());
       }
-        
+
       if (destination.getProtocol()==null || destination.getProtocol().length()==0 || destination.getHost()==null || destination.getHost().length()==0) {
         destination = new URL(aLocalEndPoint.getEnpointLocation().toURL(), aMessage.getDestination());
       }
@@ -229,7 +244,7 @@ public class AsyncMessenger {
           method = hasPayload ? "POST" : "GET";
         }
         httpConnection.setRequestMethod(method);
-        
+
         for(Tupple<String, String> header: aMessage.getHeaders()) {
           httpConnection.addRequestProperty(header.getElem1(), header.getElem2());
         }
@@ -241,7 +256,7 @@ public class AsyncMessenger {
         try {
           if (hasPayload) {
             OutputStream out = httpConnection.getOutputStream();
-          
+
             try {
               aMessage.writeBody(httpConnection.getOutputStream());
             } finally {
@@ -254,7 +269,7 @@ public class AsyncMessenger {
             Future<Boolean> isos = InputStreamOutputStream.getInputStreamOutputStream(httpConnection.getErrorStream(), baos);
             try {
               if (isos.get()) {
-                Logger.getLogger(AsyncMessenger.class.getName()).info("Error in sending message with "+method+" to ("+destination+") ["+aResponseCode+"]:\n"+new String(baos.toByteArray())); 
+                Logger.getLogger(AsyncMessenger.class.getName()).info("Error in sending message with "+method+" to ("+destination+") ["+aResponseCode+"]:\n"+new String(baos.toByteArray()));
               } else {
                 throw new MyMessagingException("Error in the result code: "+httpConnection.getResponseMessage());
               }
@@ -280,11 +295,11 @@ public class AsyncMessenger {
             in.close();
           }
           return new HttpMessage.ByteContentDataSource(null, httpConnection.getContentType(), resultBuffer.toByteArray());
-        
+
         } finally {
           httpConnection.disconnect();
         }
-        
+
       } else {
         throw new UnsupportedOperationException("No support yet for non-http connections");
       }
@@ -293,9 +308,9 @@ public class AsyncMessenger {
     public void setFuture(AsyncFuture pFuture) {
       aFuture = pFuture;
     }
-    
+
   }
-  
+
   /**
    * Class that actually implements the future. Most work is done in {@link AsyncFutureCallable} though.
    * @author Paul de Vrieze
@@ -308,18 +323,18 @@ public class AsyncMessenger {
     AsyncFutureImpl(AsyncMessenger pMessenger, ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
       this(pMessenger.new AsyncFutureCallable(pMessage, pHandle, pLocalEndPoint));
     }
-    
+
     private AsyncFutureImpl(AsyncFutureCallable pCallable) {
       super(pCallable);
       aCallable = pCallable;
       aCallable.setFuture(this);
     }
-    
+
     @Override
-    public long getHandle() {
-      return aCallable.aHandle;
+    public <T> Handle<T> getHandle() {
+      return HandleMap.<T>handle(aCallable.aHandle);
     }
-    
+
     @Override
     public int getResponseCode() {
       return aCallable.aResponseCode;
@@ -329,7 +344,7 @@ public class AsyncMessenger {
     public void setMetadata(HttpURLConnection pHttpConnection) {
       // TODO record more metadata
     }
-    
+
   }
 
   /** Let the class loader do the nasty synchronization for us, but still initialise ondemand. */
@@ -341,7 +356,7 @@ public class AsyncMessenger {
   private Collection<CompletionListener> aListeners;
 
   private MessageCompletionNotifier aNotifier;
-  
+
   /**
    * Get the singleton instance. This also updates the base URL.
    * @param pBaseUrl The url to resolve relative urls to.
@@ -352,7 +367,7 @@ public class AsyncMessenger {
   public static AsyncMessenger getInstance(URL pBaseUrl) {
     return getInstance();
   }
-  
+
   /**
    * Get the singleton instance. This also updates the base URL.
    * @return The singleton instance.
@@ -380,11 +395,11 @@ public class AsyncMessenger {
       aListeners.add(pListener);
     }
   }
-  
+
   public void notifyCompletionListeners(AsyncFuture pFuture) {
     aNotifier.addNotification(pFuture);
   }
-  
+
   public void removeCompletionListener(CompletionListener pListener) {
     synchronized(aListeners) {
       aListeners.remove(pListener);
