@@ -21,6 +21,7 @@ import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 
 /**
+ * This class represents the process engine.
  * XXX make sure this is thread safe!!
  */
 public class ProcessEngine /* implements IProcessEngine*/ {
@@ -33,10 +34,23 @@ public class ProcessEngine /* implements IProcessEngine*/ {
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
+  /**
+   * Create a new process engine.
+   * 
+   * @param pMessageService The service to use for actual sending of messages by
+   *          activities.
+   */
   public ProcessEngine(IMessageService<?, ProcessNodeInstance> pMessageService) {
     aMessageService = pMessageService;
   }
 
+  /**
+   * Create a new process instance started by this process.
+   * @param pModel The model to create and start an instance of.
+   * @param pName The name of the new instance.
+   * @param pPayload The payload representing the parameters for the process.
+   * @return A Handle to the {@link ProcessInstance}.
+   */
   public HProcessInstance startProcess(ProcessModel pModel, String pName, Node pPayload) {
     ProcessInstance instance = new ProcessInstance(pModel, pName, this);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
@@ -44,6 +58,13 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     return result;
   }
 
+  /**
+   * Convenience method to start a process based upon a process model handle.
+   * @param pProcessModel The process model to start a new instance for.
+   * @param pName The name of the new instance.
+   * @param pPayload The payload representing the parameters for the process.
+   * @return A Handle to the {@link ProcessInstance}.
+   */
   public HProcessInstance startProcess(Handle<ProcessModel> pProcessModel, String pName, Node pPayload) {
     return startProcess(aProcessModels.get(pProcessModel), pName, pPayload);
   }
@@ -52,10 +73,19 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     return aTaskMap.get(pHandle);
   }
 
+  /**
+   * Finish the process instance.
+   * 
+   * @param pProcessInstance The process instance to finish.
+   * @todo evaluate whether this should not retain some results
+   */
   public void finishInstance(ProcessInstance pProcessInstance) {
     aInstanceMap.remove(pProcessInstance);
   }
 
+  /**
+   * Cancel all process instances and tasks in the engine.
+   */
   public void cancelAll() {
     for(ProcessInstance instance: aInstanceMap) {
       aInstanceMap.remove(instance);
@@ -65,12 +95,21 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     }
   }
 
+  /**
+   * Get all process models loaded into the engine.
+   * @return The list of process models.
+   */
   public Iterable<ProcessModel> getProcessModels() {
     return aProcessModels;
   }
 
-  public long addProcessModel(ProcessModel pPm) {
-    return aProcessModels.put(pPm);
+  /**
+   * Add a process model to the engine.
+   * @param pPm The process model to add.
+   * @return The processModel to add.
+   */
+  public HProcessModel addProcessModel(ProcessModel pPm) {
+    return new HProcessModel(aProcessModels.put(pPm));
   }
 
   public Iterable<ProcessInstance> getInstances() {
