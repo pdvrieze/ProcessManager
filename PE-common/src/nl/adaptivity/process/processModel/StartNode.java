@@ -12,7 +12,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.Task;
 
 
-@XmlRootElement(name="start")
+@XmlRootElement(name=StartNode.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNode extends ProcessNode {
 
@@ -21,6 +21,8 @@ public class StartNode extends ProcessNode {
   }
 
   private static final long serialVersionUID = 7779338146413772452L;
+
+  public static final String ELEMENTNAME = "start";
 
   private List<XmlImportType> aImports;
 

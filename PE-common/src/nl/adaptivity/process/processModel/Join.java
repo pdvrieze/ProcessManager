@@ -4,17 +4,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.Task;
 
-@XmlRootElement(name = "join")
+@XmlRootElement(name = Join.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
 public class Join extends ProcessNode{
 
   private static final long serialVersionUID = -8598245023280025173L;
+
+  public static final String ELEMENTNAME = "join";
 
   private int aMin;
   private int aMax;
