@@ -6,14 +6,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.StringCache;
 
 
 /**
  * A class representing a process model. This is too complex to directly support
  * JAXB serialization, so the {@link ProcessModelXmlAdapter} does that.
- * 
+ *
  * @author Paul de Vrieze
  */
 public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
@@ -23,11 +25,13 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
   private int aEndNodeCount;
   private String aName;
   private long aHandle;
+  private String aOwner;
+  private Set<String> aRoles;
 
   /**
    * Create a new processModel based on the given endnodes. These endnodes must
    * have proper predecessors set, and end with {@link StartNode StartNodes}
-   * 
+   *
    * @param pEndNodes The endnodes
    */
   public ProcessModel(Collection<EndNode> pEndNodes) {
@@ -39,7 +43,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
    * Create a new processModel based on the given endnodes. This is a convenience
    * constructor. These endnodes must have proper predecessors set, and end with
    * {@link StartNode StartNodes}
-   * 
+   *
    * @param pEndNodes The endnodes
    */
   public ProcessModel(EndNode... pEndNodes) {
@@ -63,6 +67,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
 
     aStartNodes = reverseGraph(endNodes);
     setName(pXmlModel.getName());
+    aOwner = pXmlModel.getOwner();
   }
 
   /**
@@ -104,13 +109,12 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
   }
 
   /**
-   * Get an array of all process nodes in the model
-   * 
+   * Get an array of all process nodes in the model. Used by XmlProcessModel
+   *
    * @return An array of all nodes.
-   * @deprecated It's unclear whether this method is needed
+   *
    */
-  @Deprecated
-  public ProcessNode[] getModelNodes() {
+  ProcessNode[] getModelNodes() {
     Collection<ProcessNode> list = new ArrayList<ProcessNode>();
     HashSet<String> seen = new HashSet<String>();
     if (aStartNodes != null) {
@@ -125,7 +129,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
    * Set the process nodes for the model. This will actually just retrieve
    * the {@link EndNode}s and sets the model accordingly. This does mean that
    * only passing {@link EndNode}s will have the same result, and the other nodes
-   * will be pulled in.  
+   * will be pulled in.
    * @param pProcessNodes The process nodes to base the model on.
    */
   public void setModelNodes(ProcessNode[] pProcessNodes) {
@@ -210,6 +214,37 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
    */
   public ProcessModelRef getRef() {
     return new ProcessModelRef(getName(), aHandle);
+  }
+
+  public String getOwner() {
+    return aOwner;
+  }
+
+  /**
+   *
+   * @param pOwner
+   * @return
+   * @todo add security checks.
+   */
+  public void setOwner(String pOwner) {
+    aOwner = pOwner;
+  }
+
+  public Set<String> getRoles() {
+    if (aRoles ==null) { aRoles = new HashSet<String>(); }
+    return aRoles;
+  }
+
+  public void cacheStrings(StringCache pStringCache) {
+    aOwner = pStringCache.lookup(aOwner);
+    aName = pStringCache.lookup(aName);
+    if (aRoles!=null && aRoles.size()>0) {
+      Set<String> roles = aRoles;
+      aRoles = new HashSet<String>(aRoles.size()+(aRoles.size()>>1));
+      for(String role:roles) {
+        aRoles.add(pStringCache.lookup(role));
+      }
+    }
   }
 
 }
