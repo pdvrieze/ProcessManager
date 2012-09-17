@@ -31,6 +31,7 @@ import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 
+import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
@@ -38,7 +39,7 @@ import nl.adaptivity.util.activation.Sources;
 
 public class SoapMethodWrapper {
 
-  public static final URI SOAP_ENCODING = URI.create("http://www.w3.org/2003/05/soap-encoding");
+  public static final URI SOAP_ENCODING = URI.create(ProcessConsts.Soap.SOAP_ENCODING_NS);
   private final Object aOwner;
   private final Method aMethod;
   private Object[] aParams;

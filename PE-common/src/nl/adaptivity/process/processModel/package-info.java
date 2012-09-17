@@ -6,10 +6,10 @@
 //
 
 @javax.xml.bind.annotation.XmlSchema(
-    namespace = "http://adaptivity.nl/ProcessEngine/",
+    namespace = nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE,
     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
     xmlns={
-           @javax.xml.bind.annotation.XmlNs(prefix="soap", namespaceURI="http://www.w3.org/2003/05/soap-encoding"),
-           @javax.xml.bind.annotation.XmlNs(prefix="", namespaceURI="http://adaptivity.nl/ProcessEngine/")})
+           @javax.xml.bind.annotation.XmlNs(prefix=nl.adaptivity.process.ProcessConsts.Soap.SOAP_ENCODING_PREFIX, namespaceURI=nl.adaptivity.process.ProcessConsts.Soap.SOAP_ENCODING_NS),
+           @javax.xml.bind.annotation.XmlNs(prefix=javax.xml.XMLConstants.DEFAULT_NS_PREFIX, namespaceURI=nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE)})
 
 package nl.adaptivity.process.processModel;
