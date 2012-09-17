@@ -80,6 +80,10 @@ public abstract class ProcessNode implements Serializable {
     return aSuccessors;
   }
 
+  /**
+   * Should this node be able to be provided?
+   * @return <code>true</code> if the node can be started, <code>false</code> if not.
+   */
   public abstract boolean condition();
 
   @Deprecated
