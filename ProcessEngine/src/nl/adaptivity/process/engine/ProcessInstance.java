@@ -1,22 +1,29 @@
 package nl.adaptivity.process.engine;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
+
+import org.w3c.dom.Node;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>{
@@ -46,6 +53,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       aHandle = handle;
     }
 
+    @Override
     @XmlAttribute(name="handle")
     public long getHandle() {
       return aHandle;
@@ -101,14 +109,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aJoins = new HashMap<Join, JoinInstance>();
   }
 
-  public void finish() {
+  public synchronized void finish() {
     aFinished++;
     if (aFinished>=aProcessModel.getEndNodeCount()) {
       aEngine.finishInstance(this);
     }
   }
 
-  public JoinInstance getJoinInstance(Join pJoin, ProcessNodeInstance pPredecessor) {
+  public synchronized JoinInstance getJoinInstance(Join pJoin, ProcessNodeInstance pPredecessor) {
     JoinInstance result = aJoins.get(pJoin);
     if (result == null) {
       Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pJoin.getPredecessors().size());
@@ -121,7 +129,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return result;
   }
 
-  public void removeJoin(JoinInstance pJ) {
+  public synchronized void removeJoin(JoinInstance pJ) {
     aJoins.remove(pJ.getNode());
   }
 
@@ -152,7 +160,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return aPayload;
   }
 
-  public void start(IMessageService<?, ProcessNodeInstance> pMessageService, Node pPayload) {
+  public synchronized void start(IMessageService<?, ProcessNodeInstance> pMessageService, Node pPayload) {
     if (aThreads.size()==0) { throw new IllegalStateException("No starting nodes in process"); }
     aPayload = pPayload;
     for(ProcessNodeInstance node:aThreads) {
@@ -160,25 +168,25 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  public void provideTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
+  public synchronized void provideTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.provideTask(pMessageService)) {
       takeTask(pMessageService, pNode);
     }
   }
 
-  public void takeTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
+  public synchronized void takeTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.takeTask(pMessageService)) {
       startTask(pMessageService, pNode);
     }
   }
 
-  public void startTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
+  public synchronized void startTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
     if (pNode.startTask(pMessageService)) {
       finishTask(pMessageService, pNode, null);
     }
   }
 
-  public void finishTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Node pPayload) {
+  public synchronized void finishTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Node pPayload) {
     pNode.finishTask(pPayload);
     if (pNode.getNode() instanceof EndNode) {
       finish();
@@ -225,33 +233,25 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     pNode.failTask(null);
   }
 
-  public void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Throwable pCause) {
+  public synchronized void failTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode, Throwable pCause) {
     pNode.failTask(pCause);
-    
   }
 
-  public void cancelTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pT) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Not yet implemented");
-    
+  public synchronized void cancelTask(IMessageService<?, ProcessNodeInstance> pMessageService, ProcessNodeInstance pNode) {
+    pNode.cancelTask();
   }
 
-  public Collection<ProcessNodeInstance> getActivePredecessorsFor(Join pJoin) {
+  public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(Join pJoin) {
     ArrayList<ProcessNodeInstance> activePredecesors=new ArrayList<ProcessNodeInstance>(Math.min(pJoin.getPredecessors().size(), aThreads.size()));
     for(ProcessNodeInstance node:aThreads) {
       if (node.getNode().isPredecessorOf(pJoin)) {
         activePredecesors.add(node);
       }
     }
-
-
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
-
+    return activePredecesors;
   }
 
-  public Collection<ProcessNodeInstance> getDirectSuccessors(ProcessNodeInstance pPredecessor) {
+  public synchronized Collection<ProcessNodeInstance> getDirectSuccessors(ProcessNodeInstance pPredecessor) {
     ArrayList<ProcessNodeInstance> result = new ArrayList<ProcessNodeInstance>(pPredecessor.getNode().getSuccessors().size());
     for (ProcessNodeInstance candidate:aThreads) {
       addDirectSuccessor(result, candidate, pPredecessor);
