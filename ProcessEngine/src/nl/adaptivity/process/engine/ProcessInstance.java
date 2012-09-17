@@ -264,7 +264,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     for(ProcessNodeInstance node: pCandidate.getDirectPredecessors()) {
       if (node == pPredecessor) {
         pResult.add(pCandidate);
-        return; // Assume that there is no further "succcesor" down the chain
+        return; // Assume that there is no further "successor" down the chain
       }
     }
     for(ProcessNodeInstance node: pCandidate.getDirectPredecessors()) {
