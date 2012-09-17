@@ -9,6 +9,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.StringCache;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -34,6 +35,8 @@ public class ProcessEngine /* implements IProcessEngine*/ {
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
+  private final StringCache aStringCache = new StringCache.SafeStringCache();
+
   /**
    * Create a new process engine.
    *
@@ -58,6 +61,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @return The processModel to add.
    */
   public ProcessModelRef addProcessModel(ProcessModel pPm) {
+    pPm.cacheStrings(aStringCache);
     return new ProcessModelRef(pPm.getName(), aProcessModels.put(pPm));
   }
 
