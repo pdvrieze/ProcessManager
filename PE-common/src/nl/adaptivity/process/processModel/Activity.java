@@ -5,7 +5,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.MyMessagingException;
@@ -54,55 +60,86 @@ public class Activity extends ProcessNode{
   public Activity() {
   }
 
-  @Override
-  public boolean condition() {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
-
-  }
-
+  /**
+   * Get the name of the activity.
+   * @return The name
+   */
   @XmlAttribute
   public String getName() {
     return aName;
   }
 
+  /**
+   * Set the name of this activity. Note that for serialization to XML to work
+   * this needs to be unique for the process model at time of serialization, and can
+   * not be null or an empty string. While in Java mode other nodes are referred to by
+   * reference, not name.
+   * @param pName The name of the activity.
+   */
   public void setName(String pName) {
     aName = pName;
   }
 
-  public void setCondition(String pCondition) {
-    aCondition = pCondition;
-  }
-
-  public void setImports(List<XmlImportType> pImports) {
-    aImports = new ArrayList<XmlImportType>(pImports.size());
-    aImports.addAll(pImports);
-  }
-
-  public void setExports(List<XmlExportType> pExports) {
-    aExports = new ArrayList<XmlExportType>(pExports.size());
-    aExports.addAll(pExports);
-  }
-
-
+  /**
+   * Get the condition of the activity.
+   * @return The condition.
+   */
   @XmlElement(name=ELEM_CONDITION)
   public String getCondition() {
     return aCondition;
   }
 
+  /**
+   * Set the condition that needs to be true to start this activity.
+   * @param pCondition The condition.
+   */
+  public void setCondition(String pCondition) {
+    aCondition = pCondition;
+  }
 
+  /**
+   * Get the list of imports. The imports are provided to the message for use as data
+   * parameters.
+   * @return The list of imports.
+   */
   @XmlElement(name=XmlImportType.ELEMENTNAME)
   public List<XmlImportType> getImports() {
     return aImports;
   }
 
+  /**
+   * Set the import requirements for this activity. This will create a copy
+   * of the parameter for safety.
+   * @param pImports The imports to set.
+   */
+  public void setImports(Collection<XmlImportType> pImports) {
+    aImports = new ArrayList<XmlImportType>(pImports.size());
+    aImports.addAll(pImports);
+  }
 
+  /**
+   * Get the list of exports. Exports will allow storing the response of an activity.
+   * @return The list of exports.
+   */
   @XmlElement(name=XmlExportType.ELEMENTNAME)
   public List<XmlExportType> getExports() {
     return aExports;
   }
 
+  /**
+   * Set the export requirements for this activity. This will create a copy
+   * of the parameter for safety.
+   * @param pExports The exports to set.
+   */
+  public void setExports(Collection<XmlExportType> pExports) {
+    aExports = new ArrayList<XmlExportType>(pExports.size());
+    aExports.addAll(pExports);
+  }
+
+  /**
+   * Get the predecessor node for this activity.
+   * @return the predecessor
+   */
   @XmlAttribute(name=ATTR_PREDECESSOR, required=true)
   @XmlIDREF
   public ProcessNode getPredecessor() {
@@ -113,19 +150,52 @@ public class Activity extends ProcessNode{
     return ps.iterator().next();
   }
 
+  /**
+   * Set the predecessor for this activity.
+   * @param predecessor The predecessor
+   */
   public void setPredecessor(ProcessNode predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
 
-  public void setMessage(XmlMessage message) {
-    aMessage = message;
-  }
-
+  /**
+   * Get the message of this activity. This provides all the information
+   * to be able to actually invoke the service.
+   * @return The message.
+   */
   @XmlElement(name=XmlMessage.ELEMENTNAME, required=true)
   public XmlMessage getMessage() {
     return aMessage;
   }
 
+  /**
+   * Set the message of this activity. This encodes what actually needs to be
+   * done when the activity is activated.
+   * @param message The message.
+   */
+  public void setMessage(XmlMessage message) {
+    aMessage = message;
+  }
+
+  /**
+   * Determine whether the process can start.
+   * @todo Not yet implemented.
+   */
+  @Override
+  public boolean condition() {
+    // TODO Auto-generated method stub
+    // return false;
+    throw new UnsupportedOperationException("Not yet implemented");
+  
+  }
+
+  /**
+   * This will actually take the message element, and send it through the message service.
+   * @param pMessageService The message service to use to send the message.
+   * @param pInstance The processInstance that represents the actual activity instance that
+   *                  the message responds to.
+   * @todo handle imports.
+   */
   @Override
   public <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
     // TODO handle imports
@@ -137,11 +207,21 @@ public class Activity extends ProcessNode{
     return false;
   }
 
+  /**
+   * Take the task. Tasks are either process aware or finished when a reply is received. In either case
+   * they should not be automatically taken.
+   * @return <code>false</code>
+   */
   @Override
   public <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
     return false;
   }
 
+  /**
+   * Start the task. Tasks are either process aware or finished when a reply is received. In either case
+   * they should not be automatically started.
+   * @return <code>false</code>
+   */
   @Override
   public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
     return false;
