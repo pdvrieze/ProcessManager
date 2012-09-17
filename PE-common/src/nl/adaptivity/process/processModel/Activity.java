@@ -11,10 +11,27 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task;
 
-@XmlRootElement(name = "activity")
+/**
+ * Class representing an activity in a process engine. Activities are expected
+ * to invoke one (and only one) web service. Some services are special in that they
+ * either invoke another process (and the process engine can treat this specially 
+ * in later versions), or set interaction with the user. Services can use the ActivityResponse
+ * soap header to indicate support for processes and what the actual state of the task
+ * after return should be (instead of complete). 
+ * @author pdvrieze
+ *
+ */
+@XmlRootElement(name = Activity.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "Activity", propOrder = { "imports", "exports", "message", "condition" })
+@XmlType(name = Activity.ELEMENTNAME+"Type", propOrder = { XmlImportType.ELEMENTNAME, XmlImportType.ELEMENTNAME, XmlMessage.ELEMENTNAME, "condition" })
 public class Activity extends ProcessNode{
+
+  private static final long serialVersionUID = 282944120294737322L;
+  
+  /** The name of the XML element. */
+  public static final String ELEMENTNAME = "activity";
+  public static final String ELEM_CONDITION = "condition";
+  public static final String ATTR_PREDECESSOR = "predecessor";
 
   private String aName;
   private String aCondition;
@@ -23,15 +40,19 @@ public class Activity extends ProcessNode{
 
   private XmlMessage aMessage;
 
-
+  /**
+   * Create a new Activity. Note that activities can only have a a single predecessor.
+   * @param pPredecessor The process node that starts immediately precedes this activity.
+   */
   public Activity(ProcessNode pPredecessor) {
     super(pPredecessor);
   }
 
+  /**
+   * Create an activity without predecessor. This constructor is needed for JAXB to work.
+   */
   public Activity() {
   }
-
-  private static final long serialVersionUID = 282944120294737322L;
 
   @Override
   public boolean condition() {
@@ -65,24 +86,24 @@ public class Activity extends ProcessNode{
   }
 
 
-  @XmlElement
+  @XmlElement(name=ELEM_CONDITION)
   public String getCondition() {
     return aCondition;
   }
 
 
-  @XmlElement(name="import")
+  @XmlElement(name=XmlImportType.ELEMENTNAME)
   public List<XmlImportType> getImports() {
     return aImports;
   }
 
 
-  @XmlElement(name="export")
+  @XmlElement(name=XmlExportType.ELEMENTNAME)
   public List<XmlExportType> getExports() {
     return aExports;
   }
 
-  @XmlAttribute(name="predecessor", required=true)
+  @XmlAttribute(name=ATTR_PREDECESSOR, required=true)
   @XmlIDREF
   public ProcessNode getPredecessor() {
     Collection<ProcessNode> ps = getPredecessors();
@@ -100,7 +121,7 @@ public class Activity extends ProcessNode{
     aMessage = message;
   }
 
-  @XmlElement(required=true)
+  @XmlElement(name=XmlMessage.ELEMENTNAME, required=true)
   public XmlMessage getMessage() {
     return aMessage;
   }

@@ -35,6 +35,8 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ImportType")
 public class XmlImportType {
+  
+  public static final String ELEMENTNAME = "import";
 
     private String name;
     private String path;

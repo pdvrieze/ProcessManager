@@ -45,6 +45,8 @@ import javax.xml.bind.annotation.*;
 })
 public class XmlExportType {
 
+    public static final String ELEMENTNAME = "export";
+    
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content;
