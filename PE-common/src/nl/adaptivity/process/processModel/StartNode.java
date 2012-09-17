@@ -25,7 +25,7 @@ public class StartNode extends ProcessNode {
   private List<XmlImportType> aImports;
 
   @Override
-  public boolean condition() {
+  public boolean condition(Task<?> pInstance) {
     return true;
   }
 

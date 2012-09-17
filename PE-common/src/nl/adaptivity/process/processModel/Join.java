@@ -56,7 +56,7 @@ public class Join extends ProcessNode{
   }
 
   @Override
-  public boolean condition() {
+  public boolean condition(Task<?> pInstance) {
     return true;
   }
 

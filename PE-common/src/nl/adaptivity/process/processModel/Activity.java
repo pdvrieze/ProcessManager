@@ -40,7 +40,7 @@ public class Activity extends ProcessNode{
   public static final String ATTR_PREDECESSOR = "predecessor";
 
   private String aName;
-  private String aCondition;
+  private Condition aCondition;
   private List<XmlImportType> aImports;
   private List<XmlExportType> aExports;
 
@@ -86,7 +86,7 @@ public class Activity extends ProcessNode{
    */
   @XmlElement(name=ELEM_CONDITION)
   public String getCondition() {
-    return aCondition;
+    return aCondition.toString();
   }
 
   /**
@@ -94,7 +94,7 @@ public class Activity extends ProcessNode{
    * @param pCondition The condition.
    */
   public void setCondition(String pCondition) {
-    aCondition = pCondition;
+    aCondition = new Condition(pCondition);
   }
 
   /**
@@ -145,7 +145,7 @@ public class Activity extends ProcessNode{
   public ProcessNode getPredecessor() {
     Collection<ProcessNode> ps = getPredecessors();
     if (ps==null || ps.size()!=1) {
-      return null;
+      return null; 
     }
     return ps.iterator().next();
   }
@@ -179,14 +179,11 @@ public class Activity extends ProcessNode{
 
   /**
    * Determine whether the process can start.
-   * @todo Not yet implemented.
    */
   @Override
-  public boolean condition() {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
-  
+  public boolean condition(Task<?> pInstance) {
+    if (aCondition==null) { return true; }
+    return aCondition.eval(pInstance);
   }
 
   /**

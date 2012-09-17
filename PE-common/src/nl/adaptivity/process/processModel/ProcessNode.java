@@ -82,9 +82,10 @@ public abstract class ProcessNode implements Serializable {
 
   /**
    * Should this node be able to be provided?
+   * @param The instance against which the condition should be evaluated.
    * @return <code>true</code> if the node can be started, <code>false</code> if not.
    */
-  public abstract boolean condition();
+  public abstract boolean condition(Task<?> pInstance);
 
   @Deprecated
   public void skip() {

@@ -28,7 +28,7 @@ public class EndNode extends ProcessNode{
   private static final long serialVersionUID = 220908810658246960L;
 
   @Override
-  public boolean condition() {
+  public boolean condition(Task<?> pInstance) {
     return true;
   }
 
