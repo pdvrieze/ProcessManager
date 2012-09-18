@@ -3,17 +3,36 @@ package nl.adaptivity.process.userMessageHandler.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.logical.shared.*;
+import com.google.gwt.event.logical.shared.ResizeEvent;
+import com.google.gwt.event.logical.shared.ResizeHandler;
+import com.google.gwt.event.logical.shared.SelectionEvent;
+import com.google.gwt.event.logical.shared.SelectionHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.CheckBox;
+import com.google.gwt.user.client.ui.DockLayoutPanel;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTML;
+import com.google.gwt.user.client.ui.InlineLabel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RootLayoutPanel;
+import com.google.gwt.user.client.ui.TabLayoutPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
 public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<String>, SelectionHandler<Integer>, ResizeHandler {
+
+  interface MyUiBinder extends UiBinder<Widget, PEUserMessageHandler> {
+    MyUiBinder INSTANCE = GWT.create(MyUiBinder.class);
+  }
 
   static final String BASEURL = ""/*"http://localhost:8192/ProcessEngine/"*/;
 
@@ -42,17 +61,23 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   private FlowPanel aStatusPanel;
 
+  @UiField InlineLabel nStatusLabel;
+  @UiField CheckBox nRefreshCheckbox;
+
   /**
    * This is the entry point method.
    * @category UI
    */
+  @Override
   public void onModuleLoad() {
     String initToken = History.getToken();
     if (initToken.length() == 0) {
       History.newItem("Processes");
     }
 
+    Widget w = MyUiBinder.INSTANCE.createAndBindUi(this);
     aRootPanel = RootLayoutPanel.get();
+    aRootPanel.add(w);
 
     aDockPanel = new DockLayoutPanel(Unit.PX);
     aDockPanel.addNorth(new HTML("<h1 class=\"title\">Process Engine Interface</h1>"), 25);
@@ -116,9 +141,9 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
 
     aProcessesPanel.start();
-    
+
     aHistoryHandler = History.addValueChangeHandler(this);
-    
+
     History.fireCurrentHistoryState();
   }
 

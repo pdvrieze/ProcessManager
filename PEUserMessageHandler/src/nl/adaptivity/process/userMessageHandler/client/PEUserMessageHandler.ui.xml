@@ -1,0 +1,28 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui">
+	<ui:style>
+		.important {
+		  font-weight: bold;
+		}
+	</ui:style>
+	<g:DockLayoutPanel width="100%" unit="PX" height="100%">
+		<g:north size="107">
+			<g:HorizontalPanel>
+			  <g:HTMLPanel height="100%" width="100%"><h1 id="header"><a href="../" id="logo">Darwin</a><span id="title">Editor</span></h1></g:HTMLPanel>
+			</g:HorizontalPanel>
+		</g:north>
+		<g:north size="40">
+			<g:HorizontalSplitPanel/>
+		</g:north>
+		<g:center>
+			<g:SplitLayoutPanel/>
+		</g:center>
+		<g:south size="26">
+			<g:HTMLPanel>
+				<g:InlineLabel ui:field="nStatusLabel"/>
+				<g:CheckBox ui:field="nRefreshCheckbox" text="refresh"/>Darwin is a Bournemouth University Project</g:HTMLPanel>
+		</g:south>
+	    
+	</g:DockLayoutPanel>
+</ui:UiBinder> 
