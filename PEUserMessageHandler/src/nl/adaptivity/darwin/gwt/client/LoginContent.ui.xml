@@ -6,7 +6,15 @@
 		  font-weight: bold;
 		}
 	</ui:style>
-	<div>
+  <div>
+  <table style='border:none'>
+    <tr><td><label for='#username'>User name:</label></td><td><input name='username' ui:field="username" type='text'/></td></tr>
+    <tr><td><label for='#password'>Password:</label></td><td><input name='password' ui:field="password" type='password' /></td></tr>
+  </table><span style='margin-top:1em;float:right;'>
+    <input type='submit' value='Cancel' ui:field="cancel"/>
+    <input type='submit' value='Log in' ui:field="login"/></span>
+  </div>
+<!-- 
 		<table style='border:none'>
 			<tr>
 				<td for='#username'>
@@ -29,5 +37,5 @@
 			<input type="submit" text="Log in" ui:field="login"></input>
 			<input type="submit" text="Cancel" ui:field="cancel"></input>
 		</span>
-	</div>
+	</div> -->
 </ui:UiBinder>

@@ -119,8 +119,9 @@ public class Darwin implements EntryPoint {
   private ClickHandler aMenuClickHandler;
 
   @UiField
-  HeadingElement dialogTitle;
+  Label dialogTitle;
 
+  @UiField
   FlowPanel dialogContent;
 
   private ClickHandler aDialogCloseHandler;
@@ -167,13 +168,17 @@ public class Darwin implements EntryPoint {
   private void loginDialog() {
     LoginContent loginContent = new LoginContent();
     if (aDialogCloseHandler==null) { aDialogCloseHandler = new DialogCloseHandler(); }
-    loginContent.cancelButton.addClickHandler(aDialogCloseHandler);
-    dialog("Login", loginContent);
+    dialog("Log in", loginContent);
+    Clickable cancel = Clickable.wrapNoAttach(loginContent.cancel);
+    
+    cancel.addClickHandler(aDialogCloseHandler);
+    // This must be after dialog, otherwise cancelButton will not be attached (and can not get a handler)
+//    loginContent.cancelButton.addClickHandler(aDialogCloseHandler);
   }
 
   private void dialog(String pTitle, Widget... pContents) {
     Widget dialog = darwinDialogBinder.createAndBindUi(this);
-    dialogTitle.setInnerText(pTitle);
+    dialogTitle.setText(pTitle);
     RootPanel.get();
     for(Widget w: pContents) {
       dialogContent.add(w);

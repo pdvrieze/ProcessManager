@@ -16,9 +16,9 @@
 	</ui:style>
 	<g:FlowPanel stylePrimaryName="dialog centerContents">
 	  <g:FlowPanel stylePrimaryName="dialogOuter">
-	    <g:HTMLPanel>
-        <h1 class="dlgTitle" ui:field="dialogTitle">Dialog Title</h1>
-      </g:HTMLPanel>
+	    <g:Label stylePrimaryName="dlgTitle" ui:field="dialogTitle">
+        Dialog Title
+      </g:Label>
       <g:FlowPanel stylePrimaryName ="dialogInner centerContents">
         <g:FlowPanel stylePrimaryName="dlgContent" ui:field="dialogContent">
         </g:FlowPanel>
