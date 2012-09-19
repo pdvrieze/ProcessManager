@@ -1,38 +1,21 @@
 package nl.adaptivity.darwin.gwt.client;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import nl.adaptivity.gwt.base.client.Clickable;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
-import com.google.gwt.dom.client.DivElement;
-import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.EventTarget;
-import com.google.gwt.dom.client.HeadingElement;
+import com.google.gwt.dom.client.*;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestBuilder;
-import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.RequestException;
-import com.google.gwt.http.client.Response;
-import com.google.gwt.http.client.URL;
+import com.google.gwt.http.client.*;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ResizeLayoutPanel;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.*;
 
 
 public class Darwin implements EntryPoint {
@@ -70,7 +53,7 @@ public class Darwin implements EntryPoint {
     @Override
     public void onClick(ClickEvent pEvent) {
       if (aUsername==null) {
-        String location="accounts/login";
+        loginDialog();
         // Login
       } else {
         try {
@@ -117,7 +100,7 @@ public class Darwin implements EntryPoint {
 
     @Override
     public void onError(Request pRequest, Throwable pException) {
-      getLogger().log(Level.SEVERE, "Error updating the menu", pException);
+      log("Error updating the menu", pException);
     }
 
   }
@@ -185,6 +168,7 @@ public class Darwin implements EntryPoint {
     LoginContent loginContent = new LoginContent();
     if (aDialogCloseHandler==null) { aDialogCloseHandler = new DialogCloseHandler(); }
     loginContent.cancelButton.addClickHandler(aDialogCloseHandler);
+    dialog("Login", loginContent);
   }
 
   private void dialog(String pTitle, Widget... pContents) {
@@ -199,11 +183,8 @@ public class Darwin implements EntryPoint {
 
   private void updateLogin(Document document) {
     Clickable loginout =Clickable.wrap(document.getElementById("logout"));
-
-    boolean loggedIn = aUsername!=null;
-    if (loggedIn) {
-      loginout.addClickHandler(new LoginoutClickHandler());
-    }
+    loginout.getElement().removeAttribute("href");
+    loginout.addClickHandler(new LoginoutClickHandler());
 
 
   }
@@ -226,8 +207,6 @@ public class Darwin implements EntryPoint {
     } else if (aLocation.equals("/about")) {
       setAboutPanel();
     }
-    // TODO Auto-generated method stub
-
   }
 
   private void setActionPanel() {
@@ -235,12 +214,14 @@ public class Darwin implements EntryPoint {
 
       @Override
       public void onSuccess() {
-        aContentLayoutPanel.setWidget(new Label("Action Panel"));
+        aContentPanel.clear();
+        aContentPanel.add(new Label("Action Panel"));
       }
 
       @Override
       public void onFailure(Throwable pReason) {
-        aContentLayoutPanel.setWidget(new Label("Could not load action panel module"));
+        aContentPanel.clear();
+        aContentPanel.add(new Label("Could not load action panel module"));
       }
     });
   }
@@ -299,12 +280,16 @@ public class Darwin implements EntryPoint {
     try {
       rBuilder.sendRequest(null, new MenuReceivedCallback());
     } catch (RequestException e) {
-      getLogger().log(Level.SEVERE, "Could not update menu", e);
+      log("Could not update menu", e);
     }
   }
 
-  private Logger getLogger() {
-    return Logger.getLogger("darwin");
+  private void log(String pMessage, Throwable pThrowable) {
+    GWT.log(pMessage, pThrowable);
+  }
+
+  private void log(String pMessage) {
+    GWT.log(pMessage);
   }
 
 }

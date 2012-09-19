@@ -7,6 +7,12 @@
 		@external .dlgTitle;
 		@external .dialogInner;
 		@external .dlgContent;
+
+    .dialog {}
+    .centerContents {}
+    .dlgTitle {}
+    .dialogInner {}
+    .dlgContent {}
 	</ui:style>
 	<g:FlowPanel stylePrimaryName="dialog centerContents">
 	  <g:FlowPanel stylePrimaryName="dialogOuter">
