@@ -15,6 +15,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.http.client.Request;
 import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
@@ -25,12 +26,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ResizeLayoutPanel;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.*;
 
 
 public class Darwin implements EntryPoint {
@@ -41,6 +37,47 @@ public class Darwin implements EntryPoint {
 
 
 
+  
+  private class LoginReceivedCallback implements RequestCallback {
+
+    @Override
+    public void onResponseReceived(Request pRequest, Response pResponse) {
+      String text = pResponse.getText();
+      int cpos = text.indexOf(':');
+      String result, payload;
+      if (cpos>=0) {
+        result = text.substring(0,cpos);
+        payload = text.substring(cpos+1);
+      } else {
+        result = text;
+        payload=null;
+      }
+      
+      if ("login".equals(result) && (payload!=null)) {
+        aUsername = payload;
+        closeDialogs();
+        updateLoginPanel();
+      } else if ("logout".equals(result)) {
+        aUsername = null;
+        closeDialogs();
+        updateLoginPanel();
+      } else if ("error".equals(result)) {
+        closeDialogs();
+        error("Error validating login: "+payload, null);
+      } else if ("invalid".equals(result)) {
+        updateDialogTitle("Log in - Credentials invalid");
+        aLoginContent.password.setValue("");
+      }
+      
+    }
+
+    @Override
+    public void onError(Request pRequest, Throwable pException) {
+      error("Error validating credentials:"+pException.getMessage(), pException);
+    }
+
+  }
+
   private class LoginHandler implements ClickHandler {
 
     @Override
@@ -50,11 +87,16 @@ public class Darwin implements EntryPoint {
       InputElement password = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "password"));
 
       RequestBuilder rBuilder;
-      rBuilder = new RequestBuilder(RequestBuilder.GET, "/accounts/login");
+      rBuilder = new RequestBuilder(RequestBuilder.POST, "/accounts/login");
       rBuilder.setHeader("Accept", "application/binary");
       rBuilder.setHeader("Content-Type", "application/x-www-form-urlencoded");
-      String postData = "username="+URL.encode(username.getValue())+"?password="+URL.encode(password.getValue());
-      rBuilder.sendRequest(postData, new LoginReceivedCallback());
+      String postData = "username="+URL.encode(username.getValue())+"&password="+URL.encode(password.getValue());
+      try {
+        rBuilder.sendRequest(postData, new LoginReceivedCallback());
+      } catch (RequestException e) {
+        error("Could not send login request", e);
+        closeDialogs();
+      }
 
 
     }
@@ -66,20 +108,6 @@ public class Darwin implements EntryPoint {
     @Override
     public void onClick(ClickEvent pEvent) {
       closeDialogs();
-    }
-
-    private void closeDialogs() {
-      for(int i = 0; i<aContentPanel.getWidgetCount(); ++i) {
-        Widget w = aContentPanel.getWidget(i);
-        String[] styleNames = w.getStyleName().split(" ");
-        for (String styleName:styleNames) {
-          if ("dialog".equals(styleName)) {
-            w.removeFromParent();
-            --i; // Decrease so adding will move us to our current position.
-            break;
-          }
-        }
-      }
     }
 
   }
@@ -162,6 +190,10 @@ public class Darwin implements EntryPoint {
 
   private ClickHandler aDialogCloseHandler;
 
+  private LoginContent aLoginContent;
+
+  private HandlerRegistration aLoginoutRegistration;
+
   @Override
   public void onModuleLoad() {
     String initToken = History.getToken();
@@ -190,29 +222,41 @@ public class Darwin implements EntryPoint {
     History.addValueChangeHandler(new HistoryChangeHandler());
   }
 
-  public void error(String pMessage, Exception pE) {
-    GWT.log("Error: "+pMessage, pE);
-    modalDialog(new InlineLabel(pMessage)+"<br />"+pE.getMessage());
+  public void error(String pMessage, Throwable pException) {
+    GWT.log("Error: "+pMessage, pException);
+    String message;
+    if (pException==null) {
+      message = pMessage;
+    } else {
+      message = pMessage+"<br />"+pException.getMessage();
+    }
+    modalDialog(message);
   }
 
   private void modalDialog(String pString) {
-
+    Button closeButton = new Button("Ok");
+    closeButton.addClickHandler(aDialogCloseHandler);
+    dialog("Message", new Label(pString), closeButton);
     // TODO Auto-generated method stub
 
   }
 
   private void loginDialog() {
-    LoginContent loginContent = new LoginContent();
+    aLoginContent = new LoginContent();
     if (aDialogCloseHandler==null) { aDialogCloseHandler = new DialogCloseHandler(); }
-    dialog("Log in", loginContent);
-    Clickable cancel = Clickable.wrapNoAttach(loginContent.cancel);
+    dialog("Log in", aLoginContent);
+    Clickable cancel = Clickable.wrapNoAttach(aLoginContent.cancel);
 
     cancel.addClickHandler(aDialogCloseHandler);
 
-    Clickable login = Clickable.wrapNoAttach(loginContent.login);
+    Clickable login = Clickable.wrapNoAttach(aLoginContent.login);
     login.addClickHandler(new LoginHandler());
     // This must be after dialog, otherwise cancelButton will not be attached (and can not get a handler)
 //    loginContent.cancelButton.addClickHandler(aDialogCloseHandler);
+  }
+
+  public void updateDialogTitle(String pString) {
+    dialogTitle.setText(pString);
   }
 
   private void dialog(String pTitle, Widget... pContents) {
@@ -225,12 +269,18 @@ public class Darwin implements EntryPoint {
     aContentPanel.add(dialog);
   }
 
-  private void updateLogin(Document document) {
-    Clickable loginout =Clickable.wrap(document.getElementById("logout"));
-    loginout.getElement().removeAttribute("href");
-    loginout.addClickHandler(new LoginoutClickHandler());
-
-
+  private void closeDialogs() {
+    for(int i = 0; i<aContentPanel.getWidgetCount(); ++i) {
+      Widget w = aContentPanel.getWidget(i);
+      String[] styleNames = w.getStyleName().split(" ");
+      for (String styleName:styleNames) {
+        if ("dialog".equals(styleName)) {
+          w.removeFromParent();
+          --i; // Decrease so adding will move us to our current position.
+          break;
+        }
+      }
+    }
   }
 
   public void navigateTo(String pNewLocation, boolean addHistory) {
@@ -317,6 +367,30 @@ public class Darwin implements EntryPoint {
       l.addClickHandler(aMenuClickHandler);
     }
   }
+  
+  private void updateLogin(Document document) {
+    Clickable loginout =Clickable.wrap(document.getElementById("logout"));
+    loginout.getElement().removeAttribute("href");
+    aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
+  
+  
+  }
+
+  private void updateLoginPanel() {
+    aLoginoutRegistration.removeHandler();
+    Document document = Document.get();
+
+    DivElement loginPanel = document.getElementById("login").cast();
+    if (aUsername!=null) {
+      loginPanel.setInnerHTML("<span id=\"username\">"+aUsername+"</span><a id=\"logout\">logout</a>");
+    } else {
+      loginPanel.setInnerHTML("<a id=\"logout\">login</a>");
+    }
+    Clickable loginout =Clickable.wrap(document.getElementById("logout"));
+    aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
+    
+  }
+  
 
   private void requestRefreshMenu() {
     RequestBuilder rBuilder;

@@ -3,6 +3,7 @@
 <module rename-to="darwinjs">
 	<inherits name="com.google.gwt.user.User" />
 	<inherits name="com.google.gwt.logging.Logging"/>
+	<inherits name="com.google.gwt.xml.XML"/>
 	<inherits name="nl.adaptivity.gwt.base.Base" />
 	<inherits name="nl.adaptivity.gwt.ext.Ext" />
 	<source path="client" />
