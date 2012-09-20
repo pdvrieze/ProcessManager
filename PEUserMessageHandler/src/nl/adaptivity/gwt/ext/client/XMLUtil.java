@@ -228,4 +228,20 @@ public class XMLUtil {
     return result.toString();
   }
 
+  public static com.google.gwt.dom.client.Element descendentWithAttribute(com.google.gwt.dom.client.Element pBase, String pAttributeName, String pValue) {
+    for(com.google.gwt.dom.client.Element elem = pBase.getFirstChildElement(); elem!=null; elem = elem.getNextSiblingElement()) {
+      if (pValue.equals(elem.getAttribute(pAttributeName))) {
+        return elem;
+      }
+    }
+
+    for(com.google.gwt.dom.client.Element elem = pBase.getFirstChildElement(); elem!=null; elem = elem.getNextSiblingElement()) {
+      com.google.gwt.dom.client.Element descendent = descendentWithAttribute(elem, pAttributeName, pValue);
+      if (descendent!=null) {
+        return descendent;
+      }
+    }
+    return null;
+  }
+
 }

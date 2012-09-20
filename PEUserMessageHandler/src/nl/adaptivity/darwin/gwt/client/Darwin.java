@@ -1,21 +1,36 @@
 package nl.adaptivity.darwin.gwt.client;
 
 import nl.adaptivity.gwt.base.client.Clickable;
+import nl.adaptivity.gwt.ext.client.XMLUtil;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.RunAsyncCallback;
-import com.google.gwt.dom.client.*;
+import com.google.gwt.dom.client.DivElement;
+import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.http.client.*;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
+import com.google.gwt.http.client.Response;
+import com.google.gwt.http.client.URL;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.InlineLabel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ResizeLayoutPanel;
+import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 
 public class Darwin implements EntryPoint {
@@ -24,6 +39,27 @@ public class Darwin implements EntryPoint {
 
 
 
+
+
+  private class LoginHandler implements ClickHandler {
+
+    @Override
+    public void onClick(ClickEvent pEvent) {
+      com.google.gwt.user.client.Element dialogBase = dialogContent.getElement();
+      InputElement username = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "username"));
+      InputElement password = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "password"));
+
+      RequestBuilder rBuilder;
+      rBuilder = new RequestBuilder(RequestBuilder.GET, "/accounts/login");
+      rBuilder.setHeader("Accept", "application/binary");
+      rBuilder.setHeader("Content-Type", "application/x-www-form-urlencoded");
+      String postData = "username="+URL.encode(username.getValue())+"?password="+URL.encode(password.getValue());
+      rBuilder.sendRequest(postData, new LoginReceivedCallback());
+
+
+    }
+
+  }
 
   private class DialogCloseHandler implements ClickHandler {
 
@@ -58,9 +94,9 @@ public class Darwin implements EntryPoint {
       } else {
         try {
           RequestBuilder rBuilder;
-          rBuilder = new RequestBuilder(RequestBuilder.GET, "logout");
+          rBuilder = new RequestBuilder(RequestBuilder.GET, "/accounts/logout");
           rBuilder.setHeader("Accept", "application/binary");
-          rBuilder.sendRequest(null, new MenuReceivedCallback());
+          rBuilder.sendRequest(null, new LoginReceivedCallback());
         } catch (RequestException e) {
           error ("Could not log out", e);
         }
@@ -170,8 +206,11 @@ public class Darwin implements EntryPoint {
     if (aDialogCloseHandler==null) { aDialogCloseHandler = new DialogCloseHandler(); }
     dialog("Log in", loginContent);
     Clickable cancel = Clickable.wrapNoAttach(loginContent.cancel);
-    
+
     cancel.addClickHandler(aDialogCloseHandler);
+
+    Clickable login = Clickable.wrapNoAttach(loginContent.login);
+    login.addClickHandler(new LoginHandler());
     // This must be after dialog, otherwise cancelButton will not be attached (and can not get a handler)
 //    loginContent.cancelButton.addClickHandler(aDialogCloseHandler);
   }
