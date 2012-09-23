@@ -10,6 +10,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 
@@ -117,6 +118,17 @@ public class RestMethodWrapper {
         break;
       case ATTACHMENT:
         result = getAttachment(pClass, pName, pMessage);
+        break;
+      case PRINCIPAL: {
+        Principal principal = pMessage.getUserPrincipal();
+        if (pClass.isAssignableFrom(String.class)) {
+          result = principal.getName();
+        } else {
+          result = principal;
+        }
+        break;
+      }
+        
     }
     if (result != null && (! pClass.isInstance(result))) {
       if (Types.isPrimitive(pClass)||(Types.isPrimitiveWrapper(pClass)) && result instanceof String) {
