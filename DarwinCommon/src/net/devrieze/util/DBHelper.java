@@ -41,6 +41,7 @@ public class DBHelper {
     boolean execCommit();
 
     void close() throws SQLException;
+    StringCache getStringCache();
   }
 
 
@@ -232,6 +233,11 @@ public class DBHelper {
         aSQLStatement.close();
         aSQLStatement=null;
       }
+    }
+
+    @Override
+    public StringCache getStringCache() {
+      return aStringCache;
     }
   
   }

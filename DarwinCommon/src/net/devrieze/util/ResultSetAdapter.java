@@ -18,6 +18,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
     private boolean aPeeked = false;
     
     private boolean aInitialized = false;
+    private StringCache aStringCache;
 
     public ResultSetAdapterIterator(DBStatement pStatement, ResultSet pResultSet) {
       this(pStatement, pResultSet, false);
@@ -26,6 +27,7 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       aResultSet = pResultSet;
       aStatement = pStatement;
       aAutoClose = pAutoClose;
+      aStringCache = pStatement.getStringCache();
     }
 
     private void init() {
@@ -132,6 +134,10 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
         aResultSet = null;
         aStatement = null;
       }
+    }
+    
+    protected StringCache getStringCache() {
+      return aStringCache;
     }
     
   }

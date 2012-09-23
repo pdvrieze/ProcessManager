@@ -21,7 +21,12 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
     @Override
     protected String doCreateElem(ResultSet pResultSet) throws SQLException {
-      final String result = pResultSet.getString(1);
+      final String result;
+      if (getStringCache()==null) {
+        result = pResultSet.getString(1);
+      } else {
+        result = getStringCache().lookup(pResultSet.getString(1));
+      }
       DBHelper.logWarnings("Reading string out of resultset", pResultSet.getWarnings());
       return result;
     }
