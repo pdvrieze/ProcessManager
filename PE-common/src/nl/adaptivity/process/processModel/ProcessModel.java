@@ -7,6 +7,8 @@ import java.util.*;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.StringCache;
 
@@ -17,7 +19,11 @@ import net.devrieze.util.StringCache;
  *
  * @author Paul de Vrieze
  */
-public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
+public class ProcessModel implements HandleAware<ProcessModel>, Serializable, SecureObject {
+  
+  public enum Permissions implements SecurityProvider.Permission{
+    INSTANTIATE;
+  }
 
   private static final long serialVersionUID = -4199223546188994559L;
   private Collection<StartNode> aStartNodes;
