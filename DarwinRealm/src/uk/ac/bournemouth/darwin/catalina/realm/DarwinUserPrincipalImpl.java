@@ -26,6 +26,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   private Set<String> aRoles;
 
+  @Override
   public Set<? extends String> getRolesSet() {
     refreshIfNeeded();
     return Collections.unmodifiableSet(aRoles);
@@ -87,12 +88,15 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   @Override
   public CharSequence getEmail() {
-    final String name = getName();
-    StringBuilder result=new StringBuilder(name.length()+DOMAIN.length()+1);
-    result.append(name).append('@').append(DOMAIN);
+    final String lName = getName();
+    StringBuilder result=new StringBuilder(lName.length()+DOMAIN.length()+1);
+    result.append(lName).append('@').append(DOMAIN);
     return result;
   }
 
-  
+  @Override
+  public boolean isAdmin() {
+    return hasRole("admin");
+  }
   
 }
