@@ -1,5 +1,6 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.security.Principal;
 import java.util.Collection;
 
 import net.devrieze.util.HandleMap;
@@ -46,9 +47,9 @@ public class UserMessageService implements CompletionListener {
     return tasks.toCollection();
   }
 
-  public TaskState finishTask(long pHandle) {
+  public TaskState finishTask(long pHandle, Principal pUser) {
     final UserTask<?> task = getTask(pHandle);
-    task.setState(TaskState.Complete);
+    task.setState(TaskState.Complete, pUser);
     if (task.getState()==TaskState.Complete|| task.getState()==TaskState.Failed) {
       tasks.remove(task);
     }
@@ -59,13 +60,13 @@ public class UserMessageService implements CompletionListener {
     return tasks.get(pHandle);
   }
 
-  public TaskState takeTask(long pHandle) {
-    getTask(pHandle).setState(TaskState.Taken);
+  public TaskState takeTask(long pHandle, Principal pUser) {
+    getTask(pHandle).setState(TaskState.Taken, pUser);
     return TaskState.Taken;
   }
 
-  public TaskState startTask(long pHandle) {
-    getTask(pHandle).setState(TaskState.Started);
+  public TaskState startTask(long pHandle, Principal pUser) {
+    getTask(pHandle).setState(TaskState.Started, pUser);
     return TaskState.Taken;
   }
 

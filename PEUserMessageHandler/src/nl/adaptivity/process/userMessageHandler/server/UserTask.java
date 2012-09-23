@@ -1,5 +1,7 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.security.Principal;
+
 import net.devrieze.util.HandleMap.HandleAware;
 
 import nl.adaptivity.jbi.util.EndPointDescriptor;
@@ -11,12 +13,14 @@ public interface UserTask <T extends UserTask<T>> extends HandleAware<T>{
 
   public TaskState getState();
 
-  public void setState(TaskState aNewState);
+  public void setState(TaskState aNewState, Principal pUser);
 
   public void setEndpoint(EndPointDescriptor pEndPoint);
 
   void setContext(AsyncMessenger pContext);
 
   AsyncMessenger getContext();
+
+  public Principal getOwner();
 
 }

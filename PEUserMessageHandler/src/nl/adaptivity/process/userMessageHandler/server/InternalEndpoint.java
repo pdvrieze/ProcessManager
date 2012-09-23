@@ -2,6 +2,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ import org.w3c.dom.Node;
 
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Tupple;
+import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
@@ -45,6 +47,7 @@ public class InternalEndpoint implements GenericEndpoint {
     private String aSummary;
     private EndPointDescriptor aEndPoint = null;
     private AsyncMessenger aContext;
+    private Principal aOwner;
 
     public XmlTask() {
       aHandle = -1;
@@ -62,16 +65,16 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     @Override
-    public void setState(TaskState pNewState) {
+    public void setState(TaskState pNewState, Principal pUser) {
       try {
         TaskState newState;
         if (pNewState==TaskState.Complete) {
-          finishRemoteTask();
+          finishRemoteTask(pUser);
           newState = TaskState.Complete; // Use server state instead.
         } else if (pNewState==TaskState.Acknowledged) {
           newState = pNewState; // Just shortcircuit. This is just record keeping
         } else {
-          updateRemoteTaskState(pNewState);
+          updateRemoteTaskState(pNewState, pUser);
           newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
         }
         aState = newState;
@@ -84,46 +87,20 @@ public class InternalEndpoint implements GenericEndpoint {
       }
     }
 
-    private void updateRemoteTaskState(TaskState pState) throws JAXBException, MyMessagingException {
-      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState));
-      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null);
+    private void updateRemoteTaskState(TaskState pState, Principal pUser) throws JAXBException, MyMessagingException {
+      @SuppressWarnings("unchecked") 
+      Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), 
+                                                                              Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState),
+                                                                                                             Tripple.<String, Class<?>, Object>tripple("user", String.class, pUser.getName()));
+      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null, pUser);
     }
 
-    private void finishRemoteTask() throws JAXBException, MyMessagingException {
-      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
-      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null);
-      /*
-      @SuppressWarnings("unchecked") Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null));
-      DeliveryChannel channel = aContext.getDeliveryChannel();
-
-      ServiceEndpoint se = null;
-      {
-        for(ServiceEndpoint candidate:aContext.getEndpointsForService(aEndPoint.getServiceName())) {
-          if (candidate.getEndpointName().equals(aEndPoint.getEndpointName())) {
-            se = candidate;
-            break;
-          }
-        }
-      }
-      if (se==null) { throw new MessagingException("No endpoint found"); }
-
-      MessageExchangeFactory exf = channel.createExchangeFactory(se);
-      InOut ex = exf.createInOutExchange();
-      ex.setOperation(FINISH_OPERATION_NAME);
-      NormalizedMessage message = ex.createMessage();
-      message.setContent(messageContent);
-      ex.setInMessage(message);
-      // TODO Perhaps use async communication for this
-      if (channel.sendSync(ex)) {
-        NormalizedMessage result = ex.getOutMessage();
-        if (result!=null) {
-          TaskState newState = SoapHelper.processResponse(TaskState.class, result.getContent());
-          aState = newState;
-          return newState;
-        }
-      }
-      return aState; // Don't change state
-      */
+    private void finishRemoteTask(Principal pUser) throws JAXBException, MyMessagingException {
+      @SuppressWarnings("unchecked")
+      Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle),
+                                                                              Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null),
+                                                                              Tripple.<String, Class<?>, Object>tripple("user", String.class, pUser.getName()));
+      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null, pUser);
     }
 
     private ISendableMessage createMessage(final long pRemoteHandle, final Source pMessageContent) {
@@ -204,6 +181,24 @@ public class InternalEndpoint implements GenericEndpoint {
     public AsyncMessenger getContext() {
       return aContext;
     }
+
+    @Override
+    public Principal getOwner() {
+      return aOwner;
+    }
+    
+    public void setOwner(Principal pOwner) {
+      aOwner=pOwner;
+    }
+    
+    @XmlAttribute(name="owner")
+    String getOwnerString() {
+      return aOwner.getName();
+    }
+    
+    void setOwnerString(String pOwner) {
+      aOwner = new SimplePrincipal(pOwner);
+    }
   }
 
   private static final String ENDPOINT = "internal";
@@ -228,7 +223,7 @@ public class InternalEndpoint implements GenericEndpoint {
   public ActivityResponse<Boolean> postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     boolean result = aService.postTask(pTask);
-    pTask.setState(TaskState.Acknowledged); // Only now mark as acknowledged
+    pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
     return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
   }
 
