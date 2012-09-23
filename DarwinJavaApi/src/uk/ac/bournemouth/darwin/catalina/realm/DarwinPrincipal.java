@@ -3,6 +3,8 @@ package uk.ac.bournemouth.darwin.catalina.realm;
 import java.security.Principal;
 import java.util.Set;
 
+import net.devrieze.util.StringCache;
+
 
 public interface DarwinPrincipal extends Principal {
 
@@ -37,6 +39,8 @@ public interface DarwinPrincipal extends Principal {
    * @return The set of roles.
    */
   public Set<? extends CharSequence> getRolesSet();
+
+  Principal cacheStrings(StringCache pStringCache);
   
   
 }
