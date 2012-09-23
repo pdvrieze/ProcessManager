@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -31,6 +32,8 @@ import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
+import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
@@ -185,6 +188,12 @@ public class AsyncMessenger {
      */
     void setMetadata(HttpURLConnection pHttpConnection);
 
+    /**
+     * Get the user responsible for starting this request.
+     * @return The owner. Note that this might be a truncated principal.
+     */
+    Principal getOwner();
+
   }
 
   /**
@@ -198,11 +207,13 @@ public class AsyncMessenger {
     private final ISendableMessage aMessage;
     private int aResponseCode;
     private AsyncFuture aFuture;
+    private Principal aOwner;
 
-    public AsyncFutureCallable(ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
+    public AsyncFutureCallable(ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint, Principal pOwner) {
       aMessage = pMessage;
       aHandle = pHandle;
       aLocalEndPoint = pLocalEndPoint;
+      aOwner = pOwner;
     }
 
     /**
@@ -320,8 +331,8 @@ public class AsyncMessenger {
 
     private AsyncFutureCallable aCallable;
 
-    AsyncFutureImpl(AsyncMessenger pMessenger, ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
-      this(pMessenger.new AsyncFutureCallable(pMessage, pHandle, pLocalEndPoint));
+    AsyncFutureImpl(AsyncMessenger pMessenger, ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint, Principal pOwner) {
+      this(pMessenger.new AsyncFutureCallable(pMessage, pHandle, pLocalEndPoint, pOwner));
     }
 
     private AsyncFutureImpl(AsyncFutureCallable pCallable) {
@@ -343,6 +354,11 @@ public class AsyncMessenger {
     @Override
     public void setMetadata(HttpURLConnection pHttpConnection) {
       // TODO record more metadata
+    }
+
+    @Override
+    public Principal getOwner() {
+      return aCallable.aOwner;
     }
 
   }
@@ -422,8 +438,9 @@ public class AsyncMessenger {
    * @param pLocalEndPoint The local endpoint to which to send replies.
    * @return A future for the asynchronous message.
    */
-  public AsyncFuture sendMessage(ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint) {
-    AsyncFutureImpl future = new AsyncFutureImpl(this, pMessage, pHandle, pLocalEndPoint);
+  public AsyncFuture sendMessage(ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint, Principal pOwner) {
+    Principal owner = new SimplePrincipal(pOwner.getName()); // Optimize the storage of the name.
+    AsyncFutureImpl future = new AsyncFutureImpl(this, pMessage, pHandle, pLocalEndPoint, owner);
     aExecutor.execute(future);
     return future;
   }
