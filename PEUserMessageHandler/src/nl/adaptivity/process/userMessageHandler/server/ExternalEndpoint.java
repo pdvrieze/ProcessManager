@@ -1,5 +1,6 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.security.Principal;
 import java.util.Collection;
 
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -10,8 +11,8 @@ import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.userMessageHandler.server.InternalEndpoint.XmlTask;
 import nl.adaptivity.rest.annotations.RestMethod;
-import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
@@ -43,18 +44,18 @@ public class ExternalEndpoint implements GenericEndpoint {
   }
 
   @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Started"})
-  public Task.TaskState startTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle) {
-    return aService.startTask(Long.parseLong(pHandle));
+  public Task.TaskState startTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle, @RestParam(type=ParamType.PRINCIPAL) Principal pUser) {
+    return aService.startTask(Long.parseLong(pHandle), pUser);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Taken"})
-  public Task.TaskState takeTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle) {
-    return aService.takeTask(Long.parseLong(pHandle));
+  public Task.TaskState takeTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle, @RestParam(type=ParamType.PRINCIPAL) Principal pUser) {
+    return aService.takeTask(Long.parseLong(pHandle), pUser);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Finished"})
-  public Task.TaskState finishTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle) {
-    return aService.finishTask(Long.parseLong(pHandle));
+  public Task.TaskState finishTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle, @RestParam(type=ParamType.PRINCIPAL) Principal pUser) {
+    return aService.finishTask(Long.parseLong(pHandle), pUser);
   }
 
   @Override
