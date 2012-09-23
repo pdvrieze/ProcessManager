@@ -1,31 +1,41 @@
 package nl.adaptivity.process.engine;
 
 import java.io.IOException;
+import java.security.Principal;
 
 import javax.activation.DataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.devrieze.util.HandleMap;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import uk.ac.bournemouth.darwin.auth.DarwinPermission;
+
+import net.devrieze.util.*;
 import net.devrieze.util.HandleMap.Handle;
-import net.devrieze.util.StringCache;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRef;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 /**
  * This class represents the process engine.
  * XXX make sure this is thread safe!!
  */
 public class ProcessEngine /* implements IProcessEngine*/ {
+
+  
+  public enum Permissions implements DarwinPermission {
+    ADD_MODEL,
+    ;
+
+  }
 
   private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
 
@@ -35,7 +45,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
-  private final StringCache aStringCache = new StringCache.SafeStringCache();
+  private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
 
   /**
    * Create a new process engine.
@@ -61,6 +71,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @return The processModel to add.
    */
   public ProcessModelRef addProcessModel(ProcessModel pPm) {
+    Users.ensurePermission(Permissions.ADD_MODEL, pPm.getOwner());
     pPm.cacheStrings(aStringCache);
     return new ProcessModelRef(pPm.getName(), aProcessModels.put(pPm));
   }
@@ -110,8 +121,11 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    */
-  public HProcessInstance startProcess(ProcessModel pModel, String pName, Node pPayload) {
-    ProcessInstance instance = new ProcessInstance(pModel, pName, this);
+  public HProcessInstance startProcess(Principal pOwner, ProcessModel pModel, String pName, Node pPayload) {
+    if (pOwner==null) {
+      throw new MyMessagingException("Annonymous processes are not allowed");
+    }
+    ProcessInstance instance = new ProcessInstance(pOwner, pModel, pName, this);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start(aMessageService, pPayload);
     return result;
@@ -124,8 +138,8 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    */
-  public HProcessInstance startProcess(Handle<ProcessModel> pProcessModel, String pName, Node pPayload) {
-    return startProcess(aProcessModels.get(pProcessModel), pName, pPayload);
+  public HProcessInstance startProcess(Principal pOwner, Handle<ProcessModel> pProcessModel, String pName, Node pPayload) {
+    return startProcess(pOwner, aProcessModels.get(pProcessModel), pName, pPayload);
   }
 
   /**
@@ -190,6 +204,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
           break;
         case Cancelled:
           pi.cancelTask(aMessageService, t);
+          break;
         default:
           throw new IllegalArgumentException("Unsupported state");
       }

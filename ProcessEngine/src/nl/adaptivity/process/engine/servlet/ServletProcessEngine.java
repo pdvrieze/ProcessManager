@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,6 +47,8 @@ import javax.xml.transform.dom.DOMSource;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.Tupple;
+import net.devrieze.util.Users;
+
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.HProcessInstance;
@@ -537,24 +540,43 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels")
-  public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment) throws IOException {
-
-    XmlProcessModel pm;
+  public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment, @RestParam(type=ParamType.PRINCIPAL)Principal pOwner) throws IOException {
+    if (pOwner==null) {
+      throw new MyMessagingException("Login required");
+    }
+    XmlProcessModel xmlpm;
     try {
-      pm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
+      xmlpm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
     } catch (IOException e) {
       throw e;
     }
-    if (pm!=null) {
-      aProcessEngine.addProcessModel(pm.toProcessModel());
+    if (xmlpm!=null) {
+      final ProcessModel processModel = xmlpm.toProcessModel();
+      if (processModel.getOwner()==null) {
+        processModel.setOwner(pOwner);
+      } else if (Users.canAssignOwnershipTo(pOwner,xmlpm.getOwner())) {
+        if (processModel.getOwner().getName().equals(pOwner.getName())) {
+          processModel.setOwner(pOwner);
+        }
+      } else {
+        throw new MyMessagingException("Permission to create process model denied");
+      }
+      aProcessEngine.addProcessModel(processModel);
     }
 
     return getProcesModelRefs();
   }
 
+  /**
+   * Create a new process instance and start it.
+   * @param pHandle The handle of the process to start.
+   * @param pName The name that will allow the user to remember the instance. If <code>null</code> a name will be assigned. This name has no semantic meaning.
+   * @param pOwner The owner of the process instance. (Who started it).
+   * @return
+   */
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", query={"op=newInstance"})
-  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
-    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), pName, null);
+  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName, @RestParam(type=ParamType.PRINCIPAL)Principal pOwner) {
+    return aProcessEngine.startProcess(pOwner, HandleMap.<ProcessModel>handle(pHandle), pName, null);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}")

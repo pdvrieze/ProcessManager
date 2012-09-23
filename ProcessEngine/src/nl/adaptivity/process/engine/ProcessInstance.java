@@ -1,6 +1,7 @@
 package nl.adaptivity.process.engine;
 
 import java.io.Serializable;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -97,11 +98,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final String aName;
 
-  public ProcessInstance(ProcessModel pProcessModel, String pName, ProcessEngine pEngine) {
+  private final Principal aOwner;
+
+  public ProcessInstance(Principal pOwner, ProcessModel pProcessModel, String pName, ProcessEngine pEngine) {
     aProcessModel = pProcessModel;
     aName = pName;
     aEngine = pEngine;
     aThreads = new LinkedList<ProcessNodeInstance>();
+    aOwner = pOwner;
     for (StartNode node: aProcessModel.getStartNodes()) {
       ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
       aThreads.add(instance);
@@ -146,6 +150,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public String getName() {
     return aName;
+  }
+
+  public Principal getOwner() {
+    return aOwner;
   }
 
   public ProcessEngine getEngine() {
