@@ -15,6 +15,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.security.SecureObject;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -27,7 +29,7 @@ import nl.adaptivity.process.processModel.StartNode;
 import org.w3c.dom.Node;
 
 
-public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>{
+public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject{
 
   @XmlRootElement(name="processInstance", namespace="http://adaptivity.nl/ProcessEngine/")
   @XmlAccessorType(XmlAccessType.NONE)

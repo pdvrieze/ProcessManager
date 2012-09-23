@@ -5,12 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,43 +23,35 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.*;
+import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.Tupple;
-import net.devrieze.util.Users;
+import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.HProcessInstance;
-import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
-import nl.adaptivity.process.messaging.ActivityResponse;
-import nl.adaptivity.process.messaging.AsyncMessenger;
+import nl.adaptivity.process.messaging.*;
 import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
 import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
-import nl.adaptivity.process.messaging.EndpointServlet;
-import nl.adaptivity.process.messaging.GenericEndpoint;
-import nl.adaptivity.process.messaging.ISendableMessage;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -77,15 +64,6 @@ import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
-
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
@@ -148,7 +126,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
 
 
-    public void setHandle(long pHandle) {
+    public void setHandle(long pHandle, Principal pOwner) {
       try {
         XMLInputFactory xif = XMLInputFactory.newInstance();
         if (aBody ==null) { throw new NullPointerException(); }
@@ -174,7 +152,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
             if (MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
               @SuppressWarnings("unchecked") Iterator<Attribute> attributes = se.getAttributes();
               if (eName.getLocalPart().equals("attribute")) {
-                writeAttribute(xer, attributes, xew, pHandle);
+                writeAttribute(xer, attributes, xew, pHandle, pOwner);
               } else if (eName.getLocalPart().equals("element")) {
                 writeElement(xer, attributes, xew, pHandle);
               } else {
@@ -294,7 +272,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    private void writeAttribute(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException {
+    private void writeAttribute(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle, Principal pOwner) throws XMLStreamException {
       String valueName = null;
       String paramName = null;
       {
@@ -335,6 +313,14 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
             attr = xef.createAttribute(paramName, Long.toString(pHandle));
           } else {
             attr = xef.createAttribute("handle", Long.toString(pHandle));
+          }
+          out.add(attr);
+        } else if ("owner".equals(valueName)) {
+          Attribute attr;
+          if (paramName !=null) {
+            attr = xef.createAttribute(paramName, pOwner.getName());
+          } else {
+            attr = xef.createAttribute("owner", pOwner.getName());
           }
           out.add(attr);
         }
@@ -481,9 +467,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @Override
   public boolean sendMessage(ServletMessage pMessage, ProcessNodeInstance pInstance) {
     long handle = aProcessEngine.registerMessage(pInstance);
-    pMessage.setHandle(handle);
+    pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner());
 
-    aMessagingService.sendMessage(pMessage, handle, aLocalEndPoint);
+    aMessagingService.sendMessage(pMessage, handle, aLocalEndPoint, pInstance.getProcessInstance().getOwner());
     return true;
   }
 
@@ -530,8 +516,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method=HttpMethod.GET, path="/processInstances")
   @XmlElementWrapper(name="processInstances", namespace=PROCESS_ENGINE_NS)
-  public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs() {
-    Iterable<ProcessInstance> processInstances = aProcessEngine.getInstances();
+  public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type=ParamType.PRINCIPAL)Principal pOwner) {
+    Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(pOwner);
     Collection<ProcessInstanceRef> list = new ArrayList<ProcessInstanceRef>();
     for (ProcessInstance pi: processInstances) {
       list.add(pi.getRef());
@@ -552,16 +538,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
     if (xmlpm!=null) {
       final ProcessModel processModel = xmlpm.toProcessModel();
-      if (processModel.getOwner()==null) {
-        processModel.setOwner(pOwner);
-      } else if (Users.canAssignOwnershipTo(pOwner,xmlpm.getOwner())) {
-        if (processModel.getOwner().getName().equals(pOwner.getName())) {
-          processModel.setOwner(pOwner);
-        }
-      } else {
-        throw new MyMessagingException("Permission to create process model denied");
-      }
-      aProcessEngine.addProcessModel(processModel);
+      aProcessEngine.addProcessModel(processModel, pOwner);
     }
 
     return getProcesModelRefs();
@@ -580,29 +557,46 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}")
-  public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
-    aProcessEngine.renameProcessModel(HandleMap.<ProcessModel>handle(pHandle), pName);
+  public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName, @RestParam(type=ParamType.PRINCIPAL)Principal pUser) {
+    aProcessEngine.renameProcessModel(pUser, HandleMap.<ProcessModel>handle(pHandle), pName);
   }
 
   @WebMethod(operationName="updateTaskState")
+  public TaskState updateTaskStateSoap(
+                   @WebParam(name = "handle", mode = Mode.IN) long pHandle, 
+                   @WebParam(name = "state", mode = Mode.IN) TaskState pNewState,
+                   @WebParam(name = "user", mode = Mode.IN) String pUser) {
+    return updateTaskState(pHandle, pNewState, new SimplePrincipal(pUser));
+  }
+  
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
-  public TaskState updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
-                              @WebParam(name="state", mode=Mode.IN) @RestParam(name="state", type=ParamType.QUERY) TaskState pNewState) {
-    return aProcessEngine.updateTaskState(HandleMap.<ProcessNodeInstance>handle(pHandle), pNewState);
+  public TaskState updateTaskState(
+                   @RestParam(name="handle",type=ParamType.VAR) long pHandle,
+                   @RestParam(name="state", type=ParamType.QUERY) TaskState pNewState,
+                   @RestParam(type=ParamType.PRINCIPAL)Principal pUser) {
+    return aProcessEngine.updateTaskState(HandleMap.<ProcessNodeInstance>handle(pHandle), pNewState, pUser);
+  }
+
+  @WebMethod(operationName="finishTask")
+  public TaskState finishTaskSoap(
+                   @WebParam(name="handle",mode=Mode.IN) long pHandle,
+                   @WebParam(name="payload", mode=Mode.IN) Node pPayload,
+                   @WebParam(name="user", mode=Mode.IN) String pUser) {
+    return finishTask(pHandle, pPayload, new SimplePrincipal(pUser));
   }
 
   @WebMethod(operationName="finishTask")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state=Complete"})
   public TaskState finishTask(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
-                              @WebParam(name="payload", mode=Mode.IN) @RestParam(name="payload", type=ParamType.QUERY) Node pPayload) {
-    return aProcessEngine.finishTask(HandleMap.<ProcessNodeInstance>handle(pHandle), pPayload);
+                              @WebParam(name="payload", mode=Mode.IN) @RestParam(name="payload", type=ParamType.QUERY) Node pPayload, @RestParam(type=ParamType.PRINCIPAL)Principal pUser) {
+    return aProcessEngine.finishTask(HandleMap.<ProcessNodeInstance>handle(pHandle), pPayload, pUser);
   }
 
 
   @RestMethod(method=HttpMethod.GET, path="/processModels/${handle}")
-  public XmlProcessModel getProcessModel(@RestParam(name="handle",type=ParamType.VAR) long pHandle) throws FileNotFoundException {
+  public XmlProcessModel getProcessModel(@RestParam(name="handle",type=ParamType.VAR) long pHandle, @RestParam(type=ParamType.PRINCIPAL)Principal pUser) throws FileNotFoundException {
     try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(pHandle));
+      return new XmlProcessModel(aProcessEngine.getProcessModel(HandleMap.<ProcessModel>handle(pHandle), pUser));
     } catch (NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }
@@ -615,7 +609,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @Override
   public void onMessageCompletion(AsyncFuture pFuture) {
     if (pFuture.isCancelled()) {
-      aProcessEngine.cancelledTask(pFuture.<ProcessNodeInstance>getHandle());
+      aProcessEngine.cancelledTask(pFuture.<ProcessNodeInstance>getHandle(), pFuture.getOwner());
     } else {
       try {
         DataSource result = pFuture.get();
@@ -633,12 +627,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
               String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
               try {
                 TaskState taskState = TaskState.valueOf(taskStateAttr);
-                aProcessEngine.updateTaskState(pFuture.<ProcessNodeInstance>getHandle(), taskState);
+                aProcessEngine.updateTaskState(pFuture.<ProcessNodeInstance>getHandle(), taskState, pFuture.getOwner());
                 return;
               } catch (NullPointerException e) {
                 // ignore
               } catch (IllegalArgumentException e) {
-                aProcessEngine.errorTask(pFuture.<ProcessNodeInstance>getHandle(), e);
+                aProcessEngine.errorTask(pFuture.<ProcessNodeInstance>getHandle(), e, pFuture.getOwner());
               }
             }
           }
@@ -651,11 +645,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
         // By default assume that we have finished the task
-        aProcessEngine.finishedTask(pFuture.<ProcessNodeInstance>getHandle(), result);
+        aProcessEngine.finishedTask(pFuture.<ProcessNodeInstance>getHandle(), result, pFuture.getOwner());
       } catch (ExecutionException e) {
-        aProcessEngine.errorTask(pFuture.<ProcessNodeInstance>getHandle(), e.getCause());
+        aProcessEngine.errorTask(pFuture.<ProcessNodeInstance>getHandle(), e.getCause(), pFuture.getOwner());
       } catch (InterruptedException e) {
-        aProcessEngine.cancelledTask(pFuture.<ProcessNodeInstance>getHandle());
+        aProcessEngine.cancelledTask(pFuture.<ProcessNodeInstance>getHandle(), pFuture.getOwner());
       }
     }
   }

@@ -5,6 +5,8 @@ import java.util.Collections;
 
 import org.w3c.dom.Node;
 
+import net.devrieze.util.security.SecureObject;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.Task;
@@ -12,7 +14,7 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 
 
-public class ProcessNodeInstance implements Task<ProcessNodeInstance>{
+public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObject{
 
   private final ProcessNode aNode;
   private Node aPayload;

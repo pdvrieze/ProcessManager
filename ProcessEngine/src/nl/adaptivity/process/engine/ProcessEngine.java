@@ -2,6 +2,8 @@ package nl.adaptivity.process.engine;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.activation.DataSource;
 import javax.xml.parsers.DocumentBuilder;
@@ -13,10 +15,13 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import uk.ac.bournemouth.darwin.auth.DarwinPermission;
-
-import net.devrieze.util.*;
+import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.StringCache;
+import net.devrieze.util.StringCacheImpl;
+import net.devrieze.util.security.DenyingSecurityProvider;
+import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecurityProvider;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -31,8 +36,8 @@ import nl.adaptivity.process.processModel.ProcessModelRef;
 public class ProcessEngine /* implements IProcessEngine*/ {
 
   
-  public enum Permissions implements DarwinPermission {
-    ADD_MODEL,
+  public enum Permissions implements SecurityProvider.Permission {
+    ADD_MODEL, ASSIGN_OWNERSHIP, VIEW_ALL_INSTANCES, CANCEL_ALL,
     ;
 
   }
@@ -46,6 +51,8 @@ public class ProcessEngine /* implements IProcessEngine*/ {
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
   private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
+
+  private SecurityProvider aSecurityProvider = new DenyingSecurityProvider();
 
   /**
    * Create a new process engine.
@@ -70,8 +77,15 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pPm The process model to add.
    * @return The processModel to add.
    */
-  public ProcessModelRef addProcessModel(ProcessModel pPm) {
-    Users.ensurePermission(Permissions.ADD_MODEL, pPm.getOwner());
+  public ProcessModelRef addProcessModel(ProcessModel pPm, Principal pUser) {
+    aSecurityProvider.ensurePermission(Permissions.ADD_MODEL, pUser);
+    
+    if (pPm.getOwner()==null) {
+      pPm.setOwner(pUser);
+    } else if(!pUser.getName().equals(pPm.getOwner().getName())) {
+      aSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, pUser, pPm.getOwner());
+    }
+
     pPm.cacheStrings(aStringCache);
     return new ProcessModelRef(pPm.getName(), aProcessModels.put(pPm));
   }
@@ -83,8 +97,12 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @deprecated In favour of {@link #getProcessModel(HProcessModel)}
    */
   @Deprecated
-  public ProcessModel getProcessModel(long pHandle) {
-    return aProcessModels.get(pHandle);
+  public ProcessModel getProcessModel(long pHandle, Principal pUser) {
+    final ProcessModel result = aProcessModels.get(pHandle);
+    if (result!=null) {
+      aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+    }
+    return result;
   }
 
   /**
@@ -92,8 +110,12 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pHandle The handle to the process model.
    * @return The processModel.
    */
-  public ProcessModel getProcessModel(Handle<ProcessModel> pHandle) {
-    return aProcessModels.get(pHandle);
+  public ProcessModel getProcessModel(Handle<ProcessModel> pHandle, Principal pUser) {
+    final ProcessModel result = aProcessModels.get(pHandle);
+    if (result!=null) {
+      aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+    }
+    return result;
   }
 
   /**
@@ -101,16 +123,53 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pHandle The handle to use.
    * @param pName The process model
    */
-  public void renameProcessModel(Handle<ProcessModel> pHandle, String pName) {
+  public void renameProcessModel(Principal pUser, Handle<ProcessModel> pHandle, String pName) {
     ProcessModel pm = aProcessModels.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, pUser, pm);
     pm.setName(pName);
   }
 
+  public void setSecurityProvider(SecurityProvider pSecurityProvider) {
+    aSecurityProvider = pSecurityProvider;
+  }
+  
   /**
-   * Get all process instances known.
+   * Get all process instances owned by the user.
+   * @param pUser The current user in relation to whom we need to find the instances.
    * @return All instances.
    */
-  public Iterable<ProcessInstance> getInstances() {
+  public Iterable<ProcessInstance> getOwnedProcessInstances(Principal pUser) {
+    List<ProcessInstance> result = new ArrayList<ProcessInstance>();
+    for(ProcessInstance instance: aInstanceMap) {
+      if(instance.getOwner().getName().equals(pUser.getName())) {
+        result.add(instance);
+      }
+    }
+    return result;
+  }
+  
+  /**
+   * Get all process instances visible to the user.
+   * @param pUser The current user in relation to whom we need to find the instances.
+   * @return All instances.
+   */
+  public Iterable<ProcessInstance> getVisibleProcessInstances(Principal pUser) {
+    List<ProcessInstance> result = new ArrayList<ProcessInstance>();
+    for(ProcessInstance instance: aInstanceMap) {
+      if(aSecurityProvider.hasPermission(SecureObject.Permissions.READ, pUser, instance)) {
+        result.add(instance);
+      }
+    }
+    return result;
+  }
+  
+  /**
+   * Get all process instances known. Note that most users should not have permission to do this.
+   * @param pUser The user that wants to perform this action.
+   * @return The instances.
+   */
+  public Iterable<ProcessInstance> getAllProcessInstances(Principal pUser) {
+    aSecurityProvider.ensurePermission(Permissions.VIEW_ALL_INSTANCES, pUser);
     return aInstanceMap;
   }
 
@@ -121,11 +180,12 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    */
-  public HProcessInstance startProcess(Principal pOwner, ProcessModel pModel, String pName, Node pPayload) {
-    if (pOwner==null) {
+  public HProcessInstance startProcess(Principal pUser, ProcessModel pModel, String pName, Node pPayload) {
+    if (pUser==null) {
       throw new MyMessagingException("Annonymous processes are not allowed");
     }
-    ProcessInstance instance = new ProcessInstance(pOwner, pModel, pName, this);
+    aSecurityProvider.ensurePermission(ProcessModel.Permissions.INSTANTIATE, pUser);
+    ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, this);
     HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start(aMessageService, pPayload);
     return result;
@@ -138,8 +198,8 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    */
-  public HProcessInstance startProcess(Principal pOwner, Handle<ProcessModel> pProcessModel, String pName, Node pPayload) {
-    return startProcess(pOwner, aProcessModels.get(pProcessModel), pName, pPayload);
+  public HProcessInstance startProcess(Principal pUser, Handle<ProcessModel> pProcessModel, String pName, Node pPayload) {
+    return startProcess(pUser, aProcessModels.get(pProcessModel), pName, pPayload);
   }
 
   /**
@@ -148,8 +208,10 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @return The handle
    * @todo change the parameter to a handle object.
    */
-  public ProcessNodeInstance getTask(long pHandle) {
-    return aTaskMap.get(pHandle);
+  public ProcessNodeInstance getTask(long pHandle, Principal pUser) {
+    final ProcessNodeInstance result = aTaskMap.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+    return result;
   }
 
   /**
@@ -165,7 +227,8 @@ public class ProcessEngine /* implements IProcessEngine*/ {
   /**
    * Cancel all process instances and tasks in the engine.
    */
-  public void cancelAll() {
+  public void cancelAll(Principal pUser) {
+    aSecurityProvider.ensurePermission(Permissions.CANCEL_ALL, pUser);
     for(ProcessInstance instance: aInstanceMap) {
       aInstanceMap.remove(instance);
     }
@@ -181,45 +244,47 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pNewState The new state
    * @return
    */
-  public TaskState updateTaskState(Handle<ProcessNodeInstance> pHandle, TaskState pNewState) {
-    ProcessNodeInstance t = aTaskMap.get(pHandle);
-    ProcessInstance pi = t.getProcessInstance();
+  public TaskState updateTaskState(Handle<ProcessNodeInstance> pHandle, TaskState pNewState, Principal pUser) {
+    ProcessNodeInstance task = aTaskMap.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
+    ProcessInstance pi = task.getProcessInstance();
     synchronized(pi) {
       switch (pNewState) {
         case Sent:
           throw new IllegalArgumentException("Updating task state to initial state not possible");
         case Acknowledged:
-          t.setState(pNewState); // Record the state, do nothing else.
+          task.setState(pNewState); // Record the state, do nothing else.
           break;
         case Taken:
-          pi.takeTask(aMessageService, t);
+          pi.takeTask(aMessageService, task);
           break;
         case Started:
-          pi.startTask(aMessageService, t);
+          pi.startTask(aMessageService, task);
           break;
         case Complete:
           throw new IllegalArgumentException("Finishing a task must be done by a separate method");
         case Failed:
-          pi.failTask(aMessageService, t);
+          pi.failTask(aMessageService, task);
           break;
         case Cancelled:
-          pi.cancelTask(aMessageService, t);
+          pi.cancelTask(aMessageService, task);
           break;
         default:
           throw new IllegalArgumentException("Unsupported state");
       }
-      return t.getState();
+      return task.getState();
     }
   }
 
-  public TaskState finishTask(Handle<ProcessNodeInstance> pHandle, Node pPayload) {
-    ProcessNodeInstance t = aTaskMap.get(pHandle);
-    ProcessInstance pi = t.getProcessInstance();
+  public TaskState finishTask(Handle<ProcessNodeInstance> pHandle, Node pPayload, Principal pUser) {
+    ProcessNodeInstance task = aTaskMap.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
+    ProcessInstance pi = task.getProcessInstance();
     synchronized (pi) {
-      pi.finishTask(aMessageService, t, pPayload);
-      final TaskState newState = t.getState();
+      pi.finishTask(aMessageService, task, pPayload);
+      final TaskState newState = task.getState();
       if (newState==TaskState.Complete) {
-        aTaskMap.remove(t);
+        aTaskMap.remove(task);
       }
       return newState;
     }
@@ -230,7 +295,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * @param pHandle The handle to finish.
    * @param pResult The source that is parsed into DOM nodes and then passed on to {@link #finishTask(Handle, Node)}
    */
-  public void finishedTask(Handle<ProcessNodeInstance> pHandle, DataSource pResult) {
+  public void finishedTask(Handle<ProcessNodeInstance> pHandle, DataSource pResult, Principal pUser) {
     InputSource result;
     try {
       result = new InputSource(pResult.getInputStream());
@@ -241,7 +306,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
     try {
       DocumentBuilder db = dbf.newDocumentBuilder();
       Document xml = db.parse(result);
-      finishTask(pHandle, xml);
+      finishTask(pHandle, xml, pUser);
 
     } catch (ParserConfigurationException e) {
       throw new MyMessagingException(e);
@@ -264,12 +329,13 @@ public class ProcessEngine /* implements IProcessEngine*/ {
    * Handle the fact that this task has been cancelled.
    * @param pHandle
    */
-  public void cancelledTask(Handle<ProcessNodeInstance> pHandle) {
-    updateTaskState(pHandle, TaskState.Cancelled);
+  public void cancelledTask(Handle<ProcessNodeInstance> pHandle, Principal pUser) {
+    updateTaskState(pHandle, TaskState.Cancelled, pUser);
   }
 
-  public void errorTask(Handle<ProcessNodeInstance> pHandle, Throwable pCause) {
+  public void errorTask(Handle<ProcessNodeInstance> pHandle, Throwable pCause, Principal pUser) {
     ProcessNodeInstance task = aTaskMap.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
     ProcessInstance pi = task.getProcessInstance();
     pi.failTask(aMessageService, task, pCause);
   }
