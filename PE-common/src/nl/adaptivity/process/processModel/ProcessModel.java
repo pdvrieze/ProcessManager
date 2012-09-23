@@ -1,14 +1,13 @@
 package nl.adaptivity.process.processModel;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.security.Principal;
+import java.util.*;
+
+import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.StringCache;
 
 
@@ -25,7 +24,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
   private int aEndNodeCount;
   private String aName;
   private long aHandle;
-  private String aOwner;
+  private Principal aOwner;
   private Set<String> aRoles;
 
   /**
@@ -67,7 +66,8 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
 
     aStartNodes = reverseGraph(endNodes);
     setName(pXmlModel.getName());
-    aOwner = pXmlModel.getOwner();
+    String owner = pXmlModel.getOwner();
+    aOwner = owner == null? null : new SimplePrincipal(pXmlModel.getOwner());
   }
 
   /**
@@ -216,7 +216,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
     return new ProcessModelRef(getName(), aHandle);
   }
 
-  public String getOwner() {
+  public Principal getOwner() {
     return aOwner;
   }
 
@@ -226,7 +226,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
    * @return
    * @todo add security checks.
    */
-  public void setOwner(String pOwner) {
+  public void setOwner(Principal pOwner) {
     aOwner = pOwner;
   }
 
@@ -236,7 +236,11 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable{
   }
 
   public void cacheStrings(StringCache pStringCache) {
-    aOwner = pStringCache.lookup(aOwner);
+    if (aOwner instanceof SimplePrincipal) {
+      aOwner = new SimplePrincipal(pStringCache.lookup(aOwner.getName()));
+    } else if (aOwner instanceof DarwinPrincipal) {
+      aOwner = ((DarwinPrincipal) aOwner).cacheStrings(pStringCache);
+    }
     aName = pStringCache.lookup(aName);
     if (aRoles!=null && aRoles.size()>0) {
       Set<String> roles = aRoles;

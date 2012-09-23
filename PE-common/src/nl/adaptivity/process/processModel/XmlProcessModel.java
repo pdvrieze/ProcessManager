@@ -63,7 +63,7 @@ public class XmlProcessModel {
   public XmlProcessModel(ProcessModel m) {
     nodes = Arrays.asList(m.getModelNodes());
     name = m.getName();
-    owner = m.getOwner();
+    owner = m.getOwner().getName();
     roles = m.getRoles();
   }
 
