@@ -75,9 +75,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public static final URI MODIFY_NS = URI.create("http://adaptivity.nl/ProcessEngine/activity");
   public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS,"ProcessEngine");
 
-  private static final String OP_POST_MESSAGE = "postMessage";
-  private static final String OP_START_PROCESS = "startProcess";
-
   static class ServletMessage implements ISendableMessage{
 
     private final QName aRemoteService;
@@ -471,20 +468,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     aMessagingService.sendMessage(pMessage, handle, aLocalEndPoint, pInstance.getProcessInstance().getOwner());
     return true;
-  }
-
-  private RestMessageHandler getRestMessageHandler() {
-    if (aRestMessageHandler == null) {
-      aRestMessageHandler = RestMessageHandler.newInstance(this);
-    }
-    return aRestMessageHandler;
-  }
-
-  private SoapMessageHandler getSoapMessageHandler() {
-    if (aSoapMessageHandler == null) {
-      aSoapMessageHandler = SoapMessageHandler.newInstance(this);
-    }
-    return aSoapMessageHandler;
   }
 
   /*
