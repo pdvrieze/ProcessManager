@@ -7,6 +7,8 @@ import java.util.List;
 
 public class CompoundException extends RuntimeException {
 
+  private static final long serialVersionUID = -395370803660462253L;
+  
   private List<? extends Throwable> aCauses;
   private int replayPos=0;
 
