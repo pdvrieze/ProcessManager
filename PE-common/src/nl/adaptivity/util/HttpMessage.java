@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.security.Principal;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -28,6 +29,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import net.devrieze.util.Iterators;
 import net.devrieze.util.Streams;
+import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 
 import org.w3c.dom.Document;
@@ -323,10 +325,14 @@ public class HttpMessage {
 
   private Map<String, DataSource> aAttachments;
 
+  private Principal aUserPrincipal;
+
   public HttpMessage(HttpServletRequest pRequest) throws UnsupportedEncodingException, IOException {
     aHeaders = getHeaders(pRequest);
     
     aQueries = toQueries(pRequest.getQueryString());
+    aUserPrincipal = pRequest.getUserPrincipal();
+    
     setMethod(pRequest.getMethod());
     String pathInfo = pRequest.getPathInfo();
     setRequestPath(pathInfo==null || pathInfo.length()==0? pRequest.getServletPath(): pathInfo);
@@ -601,5 +607,22 @@ public class HttpMessage {
       throw new IllegalStateException("");
     }
     return new DOMSource(elements.get(0)); 
+  }
+
+  @XmlAttribute(name="user")
+  String getUser() {
+    return aUserPrincipal.getName();
+  }
+  
+  void setUser(String pName) {
+    aUserPrincipal = new SimplePrincipal(pName);
+  }
+  
+  public Principal getUserPrincipal() {
+    return aUserPrincipal;
+  }
+  
+  void setUserPrincipal(Principal pUserPrincipal) {
+    aUserPrincipal = pUserPrincipal;
   }
 }
