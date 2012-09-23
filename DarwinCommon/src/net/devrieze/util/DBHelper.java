@@ -419,6 +419,7 @@ public class DBHelper {
 
 
   private final DataSourceWrapper aDataSource;
+  private StringCache aStringCache;
 
   private DBHelper(DataSourceWrapper pDataSource, Object pKey) {
     aDataSource = pDataSource;
@@ -608,6 +609,14 @@ public class DBHelper {
         throw new CompoundException(exceptions);
       }
     }
+  }
+
+  /**
+   * Set a string cache to reset strings from.
+   * @param pStringCache The string cache.
+   */
+  public void setStringCache(StringCache pStringCache) {
+    aStringCache = pStringCache;
   }
 
 }
