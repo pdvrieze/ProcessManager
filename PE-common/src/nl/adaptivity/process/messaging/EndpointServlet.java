@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.devrieze.util.security.PermissionDeniedException;
+
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
@@ -101,16 +103,21 @@ public class EndpointServlet extends HttpServlet {
   private void processRestSoap(HttpMethod pMethod, HttpServletRequest pRequest, HttpServletResponse pResponse) {
     try {
       HttpMessage message = new HttpMessage(pRequest);
-      if (!SoapMessageHandler.isSoapMessage(pRequest)) {
-        final RestMessageHandler restHandler = getRestMessageHandler();
-        if (!restHandler.processRequest(pMethod, message, pResponse)) {
-          getLogger().warning("Error processing rest request");
+      try {
+        if (!SoapMessageHandler.isSoapMessage(pRequest)) {
+          final RestMessageHandler restHandler = getRestMessageHandler();
+          if (!restHandler.processRequest(pMethod, message, pResponse)) {
+            getLogger().warning("Error processing rest request");
+          }
+        } else {
+          final SoapMessageHandler soapHandler = getSoapMessageHandler();
+          if (!soapHandler.processRequest(message, pResponse)) {
+            getLogger().warning("Error processing soap request");
+          }
         }
-      } else {
-        final SoapMessageHandler soapHandler = getSoapMessageHandler();
-        if (!soapHandler.processRequest(message, pResponse)) {
-          getLogger().warning("Error processing soap request");
-        }
+      } catch (PermissionDeniedException e) {
+        pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action");
+        return;
       }
     } catch (IOException e) {
       try {
