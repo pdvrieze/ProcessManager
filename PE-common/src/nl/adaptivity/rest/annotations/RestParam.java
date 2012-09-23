@@ -16,7 +16,8 @@ public @interface RestParam {
     GET,
     XPATH,
     VAR,
-    ATTACHMENT
+    ATTACHMENT,
+    PRINCIPAL
   }
 
   String name() default "";
