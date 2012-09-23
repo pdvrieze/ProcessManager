@@ -11,6 +11,7 @@ import org.apache.catalina.Realm;
 import net.devrieze.util.DBHelper;
 import net.devrieze.util.DBHelper.DBQuery;
 import net.devrieze.util.StringAdapter;
+import net.devrieze.util.StringCache;
 
 
 
@@ -26,25 +27,34 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   private Set<String> aRoles;
 
+  /**
+   * Get a set of all the roles in the principal. Note that this will create
+   * a copy to allow concurrency and refreshes.
+   */
   @Override
-  public Set<? extends String> getRolesSet() {
+  public synchronized Set<? extends String> getRolesSet() {
     refreshIfNeeded();
-    return Collections.unmodifiableSet(aRoles);
+    return Collections.unmodifiableSet(new HashSet<String>(aRoles));
   }
   
   @Override
   public String[] getRoles() {
-    Set<? extends String> lroles = getRolesSet();
-    if (roles==null && (aRoles!=null)) {
-      roles = lroles.toArray(new String[lroles.size()]);
-      Arrays.sort(roles);
+    Set<? extends String> lroles;
+    synchronized(this) {
+      refreshIfNeeded();
+      lroles = aRoles;
+      if (roles==null && (aRoles!=null)) {
+        roles = lroles.toArray(new String[lroles.size()]);
+        Arrays.sort(roles);
+      }
     }
     return roles;
   }
 
-  private void refreshIfNeeded() {
+  private synchronized void refreshIfNeeded() {
     if (aRoles==null || needsRefresh()) {
       aRoles = new HashSet<String>();
+      roles=null;
       DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?");
       query.addParam(1, getName());
       StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true);
@@ -97,6 +107,22 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   @Override
   public boolean isAdmin() {
     return hasRole("admin");
+  }
+
+  @Override
+  public synchronized Principal cacheStrings(StringCache pStringCache) {
+    name=pStringCache.lookup(this.name);
+    aDbHelper.setStringCache(pStringCache);
+    
+    // Instead of resetting the roles holder, just update the set to prevent database
+    // roundtrips.
+    final Set<String> tmpRoles = aRoles;
+    aRoles=new HashSet<String>();
+    for(String role:tmpRoles) {
+      aRoles.add(pStringCache.lookup(role));
+    }
+    roles = null; // Just remove cache. This doesn't need database roundtrip
+    return this;
   }
   
 }

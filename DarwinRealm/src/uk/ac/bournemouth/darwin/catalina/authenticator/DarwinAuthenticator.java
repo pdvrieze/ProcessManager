@@ -31,6 +31,7 @@ import org.apache.catalina.deploy.SecurityConstraint;
 import org.apache.catalina.util.LifecycleSupport;
 import org.apache.catalina.valves.ValveBase;
 
+import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 import uk.ac.bournemouth.darwin.html.util.DarwinHtml;
@@ -127,11 +128,11 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     return AuthResult.LOGIN_NEEDED;
   }
 
-  private DarwinUserPrincipal getDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, String pUserName) {
+  private static DarwinUserPrincipal getDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, String pUserName) {
     return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pUserName);
   }
 
-  private DarwinUserPrincipal toDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, Principal pPrincipal) {
+  private static DarwinUserPrincipal toDarwinPrincipal(DBHelper pDbHelper, Realm pRealm, Principal pPrincipal) {
     if (pPrincipal==null) { return null; }
     if (pPrincipal instanceof DarwinUserPrincipal) {
       return (DarwinUserPrincipal) pPrincipal;
@@ -139,7 +140,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pPrincipal.getName());
   }
 
-  DBHelper getUserDatabase(Request pRequest) {
+  static DBHelper getUserDatabase(Request pRequest) {
     return DBHelper.dbHelper(DBRESOURCE, pRequest);
   }
 
@@ -186,9 +187,13 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   
   DBHelper getDatabase() {
     if (aDb==null) {
-      aDb = DBHelper.dbHelper(DBRESOURCE, this);
+      aDb = getDatabaseStatic(this);
     }
     return aDb;
+  }
+
+  private static DBHelper getDatabaseStatic(Object pKey) {
+    return DBHelper.dbHelper(DBRESOURCE, pKey);
   }
 
   @Override
@@ -310,6 +315,26 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   
   private void logInfo(String pMessage) {
     getLogger().info(pMessage);
+  }
+
+  public static DarwinPrincipal getPrincipal(String pUser) {
+    DBHelper db = getDatabaseStatic(DarwinAuthenticator.class);
+    try {
+      return getDarwinPrincipal(db, null, pUser);
+    } finally {
+      try {
+        db.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  public static DarwinPrincipal asDarwinPrincipal(Principal pUser) {
+    DBHelper db = getDatabaseStatic(DarwinAuthenticator.class);
+    Realm realm = null;
+    
+    return toDarwinPrincipal(db, realm, pUser);
   }
   
 }
