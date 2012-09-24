@@ -1,6 +1,7 @@
 package nl.adaptivity.darwin.gwt.client;
 
 import nl.adaptivity.gwt.base.client.Clickable;
+import nl.adaptivity.gwt.base.client.CompletionListener;
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -26,13 +27,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ResizeLayoutPanel;
-import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.*;
 
 
 public class Darwin implements EntryPoint {
@@ -198,6 +193,8 @@ public class Darwin implements EntryPoint {
 
   private HandlerRegistration aLoginoutRegistration;
 
+  private Element aBanner;
+
   @Override
   public void onModuleLoad() {
     String initToken = History.getToken();
@@ -225,9 +222,18 @@ public class Darwin implements EntryPoint {
 
     History.addValueChangeHandler(new HistoryChangeHandler());
 
+    aBanner = document.getElementById("banner");
+
+    hideBanner();
+  }
+
+  private void hideBanner() {
     // Remove the banner
-    Element banner = document.getElementById("banner");
-    if (banner!=null) { banner.removeFromParent(); }
+    if (aBanner!=null) { aBanner.setAttribute("style", "display:none"); }
+  }
+  
+  private void showBanner() {
+    if (aBanner!=null) { aBanner.removeAttribute("style"); }
   }
 
   public void error(String pMessage, Throwable pException) {
@@ -347,6 +353,8 @@ public class Darwin implements EntryPoint {
   }
 
   private void setActionPanel() {
+    ActionPanel.load(getCompletionListener());
+    
     GWT.runAsync(new RunAsyncCallback() {
 
       @Override
@@ -361,6 +369,20 @@ public class Darwin implements EntryPoint {
         aContentPanel.add(new Label("Could not load action panel module"));
       }
     });
+  }
+
+  private CompletionListener getCompletionListener() {
+    return new CompletionListener() {
+      @Override
+      public void onCompletion(UIObject pWidget) {
+        hideBanner();
+        if (pWidget instanceof Widget) {
+          aContentPanel.add((Widget) pWidget);
+        } else {
+          aContentPanel.getElement().appendChild(pWidget.getElement());
+        }
+      }
+    };
   }
 
   private void setAboutPanel() {
