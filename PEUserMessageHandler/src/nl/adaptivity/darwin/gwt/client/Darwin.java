@@ -26,18 +26,17 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.InlineLabel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ResizeLayoutPanel;
+import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.Widget;
 
 
 public class Darwin implements EntryPoint {
 
-
-
-
-
-
-
-  
   private class LoginReceivedCallback implements RequestCallback {
 
     @Override
@@ -52,23 +51,28 @@ public class Darwin implements EntryPoint {
         result = text;
         payload=null;
       }
-      
+
       if ("login".equals(result) && (payload!=null)) {
         aUsername = payload;
         closeDialogs();
         updateLoginPanel();
+        requestRefreshMenu();
       } else if ("logout".equals(result)) {
         aUsername = null;
         closeDialogs();
         updateLoginPanel();
+        requestRefreshMenu();
       } else if ("error".equals(result)) {
         closeDialogs();
         error("Error validating login: "+payload, null);
       } else if ("invalid".equals(result)) {
         updateDialogTitle("Log in - Credentials invalid");
         aLoginContent.password.setValue("");
+      } else {
+        closeDialogs();
+        error("Invalid response received from login form :"+pResponse.getStatusCode(), null);
       }
-      
+
     }
 
     @Override
@@ -82,6 +86,7 @@ public class Darwin implements EntryPoint {
 
     @Override
     public void onClick(ClickEvent pEvent) {
+      pEvent.stopPropagation(); // We handle the propagation.
       com.google.gwt.user.client.Element dialogBase = dialogContent.getElement();
       InputElement username = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "username"));
       InputElement password = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "password"));
@@ -97,7 +102,6 @@ public class Darwin implements EntryPoint {
         error("Could not send login request", e);
         closeDialogs();
       }
-
 
     }
 
@@ -220,6 +224,10 @@ public class Darwin implements EntryPoint {
     updateLogin(document);
 
     History.addValueChangeHandler(new HistoryChangeHandler());
+
+    // Remove the banner
+    Element banner = document.getElementById("banner");
+    if (banner!=null) { banner.removeFromParent(); }
   }
 
   public void error(String pMessage, Throwable pException) {
@@ -233,29 +241,27 @@ public class Darwin implements EntryPoint {
     modalDialog(message);
   }
 
-  private void modalDialog(String pString) {
-    Button closeButton = new Button("Ok");
-    closeButton.addClickHandler(aDialogCloseHandler);
-    dialog("Message", new Label(pString), closeButton);
-    // TODO Auto-generated method stub
-
-  }
-
   private void loginDialog() {
     aLoginContent = new LoginContent();
     if (aDialogCloseHandler==null) { aDialogCloseHandler = new DialogCloseHandler(); }
     dialog("Log in", aLoginContent);
     Clickable cancel = Clickable.wrapNoAttach(aLoginContent.cancel);
 
+    // This must be after dialog, otherwise cancelButton will not be attached (and can not get a handler)
     cancel.addClickHandler(aDialogCloseHandler);
 
     Clickable login = Clickable.wrapNoAttach(aLoginContent.login);
     login.addClickHandler(new LoginHandler());
-    // This must be after dialog, otherwise cancelButton will not be attached (and can not get a handler)
-//    loginContent.cancelButton.addClickHandler(aDialogCloseHandler);
+//    aLoginContent.redirect.setValue(Window.Location.getHref());
   }
 
-  public void updateDialogTitle(String pString) {
+  private void modalDialog(String pString) {
+    Button closeButton = new Button("Ok");
+    closeButton.addClickHandler(aDialogCloseHandler);
+    dialog("Message", new Label(pString), closeButton);
+  }
+
+  private void updateDialogTitle(String pString) {
     dialogTitle.setText(pString);
   }
 
@@ -298,26 +304,11 @@ public class Darwin implements EntryPoint {
       setInboxPanel();
     } else if (aLocation.equals("/actions")) {
       setActionPanel();
+    } else if (aLocation.equals("/processes")) {
+      setProcessesPanel();
     } else if (aLocation.equals("/about")) {
       setAboutPanel();
     }
-  }
-
-  private void setActionPanel() {
-    GWT.runAsync(new RunAsyncCallback() {
-
-      @Override
-      public void onSuccess() {
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Action Panel"));
-      }
-
-      @Override
-      public void onFailure(Throwable pReason) {
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Could not load action panel module"));
-      }
-    });
   }
 
   private void setInboxPanel() {
@@ -334,6 +325,40 @@ public class Darwin implements EntryPoint {
       public void onFailure(Throwable pReason) {
         aContentPanel.clear();
         aContentPanel.add(new Label("Could not load inbox panel module"));
+      }
+    });
+  }
+
+  private void setProcessesPanel() {
+    GWT.runAsync(new RunAsyncCallback() {
+
+      @Override
+      public void onSuccess() {
+        aContentPanel.clear();
+        aContentPanel.add(new AboutPanel());
+      }
+
+      @Override
+      public void onFailure(Throwable pReason) {
+        aContentPanel.clear();
+        aContentPanel.add(new Label("Could not load about page module"));
+      }
+    });
+  }
+
+  private void setActionPanel() {
+    GWT.runAsync(new RunAsyncCallback() {
+
+      @Override
+      public void onSuccess() {
+        aContentPanel.clear();
+        aContentPanel.add(new Label("Action Panel"));
+      }
+
+      @Override
+      public void onFailure(Throwable pReason) {
+        aContentPanel.clear();
+        aContentPanel.add(new Label("Could not load action panel module"));
       }
     });
   }
@@ -367,13 +392,11 @@ public class Darwin implements EntryPoint {
       l.addClickHandler(aMenuClickHandler);
     }
   }
-  
+
   private void updateLogin(Document document) {
     Clickable loginout =Clickable.wrap(document.getElementById("logout"));
     loginout.getElement().removeAttribute("href");
     aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
-  
-  
   }
 
   private void updateLoginPanel() {
@@ -388,9 +411,9 @@ public class Darwin implements EntryPoint {
     }
     Clickable loginout =Clickable.wrap(document.getElementById("logout"));
     aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
-    
+
   }
-  
+
 
   private void requestRefreshMenu() {
     RequestBuilder rBuilder;
