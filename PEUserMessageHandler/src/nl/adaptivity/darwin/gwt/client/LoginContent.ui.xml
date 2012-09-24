@@ -6,14 +6,15 @@
 		  font-weight: bold;
 		}
 	</ui:style>
-  <div>
+  <form method="POST" acceptCharset='utf8' action='/accounts/login'>
   <table style='border:none'>
     <tr><td><label for='#username'>User name:</label></td><td><input name='username' ui:field="username" type='text'/></td></tr>
     <tr><td><label for='#password'>Password:</label></td><td><input name='password' ui:field="password" type='password' /></td></tr>
   </table><span style='margin-top:1em;float:right;'>
-    <input type='submit' value='Cancel' ui:field="cancel"/>
+    <input type='hidden' name="redirect" ui:field="redirect" value="/"/>
+    <input type='button' value='Cancel' ui:field="cancel"/>
     <input type='submit' value='Log in' ui:field="login"/></span>
-  </div>
+  </form>
 <!-- 
 		<table style='border:none'>
 			<tr>
