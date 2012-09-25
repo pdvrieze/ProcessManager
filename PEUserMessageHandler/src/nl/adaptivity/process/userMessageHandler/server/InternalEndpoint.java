@@ -2,6 +2,8 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,18 +12,20 @@ import java.util.logging.Logger;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
+import javax.servlet.ServletConfig;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
-import org.w3c.dom.Node;
-
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -31,6 +35,8 @@ import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.messaging.ISendableMessage;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
+
+import org.w3c.dom.Node;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
@@ -88,8 +94,8 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     private void updateRemoteTaskState(TaskState pState, Principal pUser) throws JAXBException, MyMessagingException {
-      @SuppressWarnings("unchecked") 
-      Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle), 
+      @SuppressWarnings("unchecked")
+      Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle),
                                                                               Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState),
                                                                                                              Tripple.<String, Class<?>, Object>tripple("user", String.class, pUser.getName()));
       aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null, pUser);
@@ -105,7 +111,7 @@ public class InternalEndpoint implements GenericEndpoint {
 
     private ISendableMessage createMessage(final long pRemoteHandle, final Source pMessageContent) {
       return new ISendableMessage() {
-        
+
         @Override
         public void writeBody(OutputStream pOutputStream) throws IOException {
           try {
@@ -114,22 +120,22 @@ public class InternalEndpoint implements GenericEndpoint {
             throw new IOException(e);
           }
         }
-        
+
         @Override
         public boolean hasBody() {
           return true;
         }
-        
+
         @Override
         public String getMethod() {
           return "POST";
         }
-        
+
         @Override
         public Collection<Tupple<String, String>> getHeaders() {
           return Collections.singletonList(Tupple.tupple("Content-Type", "application/soap+xml"));
         }
-        
+
         @Override
         public String getDestination() {
           return aEndPoint.getEndpointLocationString();
@@ -186,16 +192,16 @@ public class InternalEndpoint implements GenericEndpoint {
     public Principal getOwner() {
       return aOwner;
     }
-    
+
     public void setOwner(Principal pOwner) {
       aOwner=pOwner;
     }
-    
+
     @XmlAttribute(name="owner")
     String getOwnerString() {
       return aOwner.getName();
     }
-    
+
     void setOwnerString(String pOwner) {
       aOwner = new SimplePrincipal(pOwner);
     }
@@ -204,19 +210,39 @@ public class InternalEndpoint implements GenericEndpoint {
   private static final String ENDPOINT = "internal";
   public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
   private UserMessageService aService;
+  private URI aURI;
 
   public InternalEndpoint() {
     aService = UserMessageService.getInstance();
   }
 
   @Override
-  public QName getService() {
+  public QName getServiceName() {
     return SERVICENAME;
   }
 
   @Override
-  public String getEndpoint() {
+  public String getEndpointName() {
     return ENDPOINT;
+  }
+
+
+
+  @Override
+  public URI getEndpointLocation() {
+    // TODO Do this better
+    return aURI;
+  }
+
+  @Override
+  public void initEndpoint(ServletConfig pConfig) {
+    StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
+    path.append("/internal");
+    try {
+      aURI = new URI(null, null, path.toString(), null);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e); // Should never happen
+    }
   }
 
   @WebMethod

@@ -1,8 +1,11 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.Collection;
 
+import javax.servlet.ServletConfig;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
@@ -22,19 +25,36 @@ public class ExternalEndpoint implements GenericEndpoint {
   public static final String ENDPOINT = "external";
   public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
   UserMessageService aService;
+  private URI aURI;
 
   public ExternalEndpoint() {
     aService = UserMessageService.getInstance();
   }
 
   @Override
-  public QName getService() {
+  public QName getServiceName() {
     return SERVICENAME;
   }
 
   @Override
-  public String getEndpoint() {
+  public String getEndpointName() {
     return ENDPOINT;
+  }
+
+  @Override
+  public URI getEndpointLocation() {
+    return aURI;
+  }
+
+  @Override
+  public void initEndpoint(ServletConfig pConfig) {
+    StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
+    path.append("/internal");
+    try {
+      aURI = new URI(null, null, path.toString(), null);
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e); // Should never happen
+    }
   }
 
   @XmlElementWrapper(name="tasks", namespace=UserMessageService.UMH_NS)
