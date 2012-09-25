@@ -16,22 +16,25 @@ import javax.xml.namespace.QName;
 public final class MessagingRegistry {
 
 
-  private static class WrappingFuture<T> implements Future<T>, MessengerCommand {
+  private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener {
 
     private Endpoint aDestination;
     private DataSource aMessage;
     private Future<T> aOrigin;
     private boolean aCancelled = false;
+    private CompletionListener aCompletionListener;
 
-    public WrappingFuture(Endpoint pDestination, DataSource pMessage) {
+    public WrappingFuture(Endpoint pDestination, DataSource pMessage, CompletionListener pCompletionListener) {
       aDestination = pDestination;
       aMessage = pMessage;
+      aCompletionListener = pCompletionListener;
     }
 
     @Override
     public synchronized boolean cancel(boolean pMayInterruptIfRunning) {
       if (aOrigin==null) {
         aCancelled = true;
+        if (aCompletionListener!=null) { aCompletionListener.onMessageCompletion(this); }
       } else {
         aCancelled = aOrigin.cancel(pMayInterruptIfRunning);
       }
@@ -100,9 +103,16 @@ public final class MessagingRegistry {
     @Override
     public synchronized void execute(IMessenger pMessenger) {
       if (! aCancelled) {
-        aOrigin = pMessenger.sendMessage(aDestination, aMessage);
+        aOrigin = pMessenger.sendMessage(aDestination, aMessage, this);
       }
       notifyAll(); // Wake up all waiters (should be only one)
+    }
+
+    @Override
+    public void onMessageCompletion(Future<?> pFuture) {
+      if (aCompletionListener!=null) {
+        aCompletionListener.onMessageCompletion(this);
+      }
     }
 
   }
@@ -164,15 +174,15 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public <T> Future<T> sendMessage(final Endpoint pDestination, final DataSource pMessage) {
+    public <T> Future<T> sendMessage(final Endpoint pDestination, final DataSource pMessage, final CompletionListener pCompletionListener) {
       synchronized(this) {
         if (aMessenger==null) {
-          final WrappingFuture<T> future = new WrappingFuture<T>(pDestination, pMessage);
+          final WrappingFuture<T> future = new WrappingFuture<T>(pDestination, pMessage, pCompletionListener);
           aCommandQueue.add(future);
           return future;
         }
       }
-      return aMessenger.sendMessage(pDestination, pMessage);
+      return aMessenger.sendMessage(pDestination, pMessage, pCompletionListener);
     }
 
   }
