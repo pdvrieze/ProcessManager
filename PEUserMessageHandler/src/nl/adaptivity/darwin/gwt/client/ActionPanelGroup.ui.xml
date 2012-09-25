@@ -1,0 +1,16 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder">
+	<ui:style>
+		.actionPanelGroup h1 {
+			font-size: 1.7em;
+			font-weight: bold;
+		}
+		.actionPanelGroupContents {
+	  }
+	</ui:style>
+	<section class="actionPanelGroup">
+	  <hgroup><h1></h1></hgroup>
+	  <div class="actionPanelGroupContents">
+	  </div>
+	</section>
+</ui:UiBinder>
