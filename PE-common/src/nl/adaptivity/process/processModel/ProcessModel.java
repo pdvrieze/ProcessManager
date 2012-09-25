@@ -4,13 +4,18 @@ import java.io.Serializable;
 import java.security.Principal;
 import java.util.*;
 
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-import net.devrieze.util.StringCache;
+
+import nl.adaptivity.process.processModel.ProcessModel.PMXmlAdapter;
 
 
 /**
@@ -19,7 +24,22 @@ import net.devrieze.util.StringCache;
  *
  * @author Paul de Vrieze
  */
+@XmlJavaTypeAdapter(PMXmlAdapter.class)
 public class ProcessModel implements HandleAware<ProcessModel>, Serializable, SecureObject {
+  
+  static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModel> {
+
+    @Override
+    public ProcessModel unmarshal(XmlProcessModel pV) throws Exception {
+      return pV.toProcessModel();
+    }
+
+    @Override
+    public XmlProcessModel marshal(ProcessModel pV) throws Exception {
+      return new XmlProcessModel(pV);
+    }
+    
+  }
   
   public enum Permissions implements SecurityProvider.Permission{
     INSTANTIATE;
