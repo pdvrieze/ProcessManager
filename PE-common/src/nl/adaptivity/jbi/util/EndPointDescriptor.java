@@ -2,13 +2,19 @@ package nl.adaptivity.jbi.util;
 
 import java.net.URI;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
+import nl.adaptivity.messaging.Endpoint;
 
 @XmlRootElement(name="endpointDescriptor", namespace=EndPointDescriptor.MY_JBI_NS)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(propOrder={"serviceNamespace", "serviceLocalName", "endpointName"})
-public class EndPointDescriptor {
+public class EndPointDescriptor implements Endpoint {
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
   private String aServiceLocalName;
@@ -38,19 +44,20 @@ public class EndPointDescriptor {
   public String getEndpointLocationString() {
     return aEndpointLocation.toString();
   }
-  
+
   public void setEndpointLocationString(String pLocation) {
     aEndpointLocation = URI.create(pLocation);
   }
 
-  public URI getEnpointLocation() {
+  @Override
+  public URI getEndpointLocation() {
     return aEndpointLocation;
   }
-  
+
   public void setEndpointLocation(URI pLocation) {
     aEndpointLocation = pLocation;
   }
-  
+
   @XmlAttribute(name="serviceLocalName")
   public String getServiceLocalName() {
     return aServiceLocalName;

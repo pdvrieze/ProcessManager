@@ -239,11 +239,11 @@ public class AsyncMessenger {
       try {
         destination = new URL(aMessage.getDestination());
       } catch (MalformedURLException e) {
-        destination = new URL(aLocalEndPoint.getEnpointLocation().toURL(), aMessage.getDestination());
+        destination = new URL(aLocalEndPoint.getEndpointLocation().toURL(), aMessage.getDestination());
       }
 
       if (destination.getProtocol()==null || destination.getProtocol().length()==0 || destination.getHost()==null || destination.getHost().length()==0) {
-        destination = new URL(aLocalEndPoint.getEnpointLocation().toURL(), aMessage.getDestination());
+        destination = new URL(aLocalEndPoint.getEndpointLocation().toURL(), aMessage.getDestination());
       }
       final URLConnection connection = destination.openConnection();
       if (connection instanceof HttpURLConnection){
