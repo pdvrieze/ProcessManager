@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.devrieze.util.security.PermissionDeniedException;
-
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
@@ -27,7 +26,7 @@ public class EndpointServlet extends HttpServlet {
   private static final String LOGGER_NAME = EndpointServlet.class.getName();
 
   private static final long serialVersionUID = 5882346515807438320L;
-  
+
   private GenericEndpoint aEndpoint;
   private volatile SoapMessageHandler aSoapMessageHandler;
   private volatile RestMessageHandler aRestMessageHandler;
@@ -42,17 +41,17 @@ public class EndpointServlet extends HttpServlet {
       aEndpoint = (GenericEndpoint) this;
     }
   }
-  
+
   /**
-   * A constructor for subclasses that provide an endpoint to use. 
+   * A constructor for subclasses that provide an endpoint to use.
    * @param pEndpoint The endpoint to provide.
    */
   protected EndpointServlet(GenericEndpoint pEndpoint) {
     aEndpoint = pEndpoint;
   }
-  
+
   /**
-   * Handle DELETE requests. 
+   * Handle DELETE requests.
    */
   @Override
   protected void doDelete(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
@@ -60,7 +59,7 @@ public class EndpointServlet extends HttpServlet {
   }
 
   /**
-   * Handle GET requests. 
+   * Handle GET requests.
    */
   @Override
   protected void doGet(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
@@ -68,7 +67,7 @@ public class EndpointServlet extends HttpServlet {
   }
 
   /**
-   * Handle HEAD requests. 
+   * Handle HEAD requests.
    */
   @Override
   protected void doHead(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
@@ -76,7 +75,7 @@ public class EndpointServlet extends HttpServlet {
   }
 
   /**
-   * Handle POST requests. 
+   * Handle POST requests.
    */
   @Override
   protected void doPost(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
@@ -84,7 +83,7 @@ public class EndpointServlet extends HttpServlet {
   }
 
   /**
-   * Handle PUT requests. 
+   * Handle PUT requests.
    */
   @Override
   protected void doPut(HttpServletRequest pReq, HttpServletResponse pResp) throws ServletException, IOException {
@@ -127,7 +126,7 @@ public class EndpointServlet extends HttpServlet {
       }
     }
   }
-  
+
   /**
    * Override this to override the endpoint used by this servlet to serve connections. In
    * most cases it's better to provide the endpoint to the constructor instead, or as a servlet
@@ -206,11 +205,14 @@ public class EndpointServlet extends HttpServlet {
       }
       try {
         aEndpoint = clazz.newInstance();
+        aEndpoint.initEndpoint(pConfig);
       } catch (InstantiationException e) {
         throw new ServletException(e);
       } catch (IllegalAccessException e) {
         throw new ServletException(e);
       }
+    } else {
+      getEndpointProvider().initEndpoint(pConfig);
     }
   }
 

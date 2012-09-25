@@ -18,6 +18,6 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/DarwinJavaApi"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/DarwinJavaApi"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
