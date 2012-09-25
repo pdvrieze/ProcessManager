@@ -2,7 +2,12 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import java.io.IOException;
 
-import javax.servlet.*;
+import javax.servlet.Servlet;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -36,28 +41,28 @@ public class SimpleServlet implements Servlet {
       final HttpServletRequest request = (HttpServletRequest) pReq;
       if (request.getMethod().equals("GET")) {
         String pathInfo = request.getPathInfo();
-        
+
         if (pathInfo.equals("/processModels")) {
           getProcessModels(pRes.getOutputStream());
-          
-        } else {  
+
+        } else {
           StringBuilder s = new StringBuilder();
-          
-          
+
+
           s.append("contextPath:").append(request.getContextPath()).append('\n');
           s.append("pathInfo:").append(request.getPathInfo()).append('\n');
           s.append("pathTranslated:").append(request.getPathTranslated()).append('\n');
           s.append("queryString:").append(request.getQueryString()).append('\n');
           s.append("queryString:").append(request.getQueryString()).append('\n');
-  
-          
-          
+
+
+
           ServletOutputStream out = pRes.getOutputStream();
-          
+
           out.print(s.toString());
-        }        
+        }
       }
-      
+
     }
   }
 
@@ -67,7 +72,7 @@ public class SimpleServlet implements Servlet {
     out.append("  <processModel name=\"processModel A\" handle=\"1\"/>\n");
     out.append("  <processModel name=\"processModel B\" handle=\"2\"/>\n");
     out.append("</processModels>\n");
-    
+
     pOutputStream.print(out.toString());
   }
 
