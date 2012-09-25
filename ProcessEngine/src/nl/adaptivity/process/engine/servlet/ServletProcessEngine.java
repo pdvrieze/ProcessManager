@@ -5,7 +5,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,35 +28,42 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.*;
-import javax.xml.stream.events.*;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.*;
+import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
-import nl.adaptivity.process.messaging.*;
+import nl.adaptivity.process.messaging.ActivityResponse;
+import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
 import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
+import nl.adaptivity.process.messaging.EndpointServlet;
+import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.process.messaging.ISendableMessage;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -62,8 +74,15 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.ws.rest.RestMessageHandler;
-import nl.adaptivity.ws.soap.SoapMessageHandler;
+
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
@@ -364,11 +383,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   }
   private Thread aThread;
-  private boolean aKeepRunning = true;
-  private Logger aLogger;
   private ProcessEngine aProcessEngine;
-  private RestMessageHandler aRestMessageHandler;
-  private SoapMessageHandler aSoapMessageHandler;
 
   private AsyncMessenger aMessagingService;
 
@@ -386,7 +401,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   public void destroy() {
-    aKeepRunning = false;
     if (aThread!=null) {
       aThread.interrupt();
     }
@@ -445,7 +459,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       } else {
         localURL = URI.create("http://"+hostname+":"+port+pConfig.getServletContext().getContextPath());
       }
-      aLocalEndPoint=new EndPointDescriptor(getService(), getEndpoint(), localURL);
+      aLocalEndPoint=new EndPointDescriptor(getServiceName(), getEndpointName(), localURL);
     }
     aMessagingService = AsyncMessenger.getInstance();
 
@@ -546,12 +560,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @WebMethod(operationName="updateTaskState")
   public TaskState updateTaskStateSoap(
-                   @WebParam(name = "handle", mode = Mode.IN) long pHandle, 
+                   @WebParam(name = "handle", mode = Mode.IN) long pHandle,
                    @WebParam(name = "state", mode = Mode.IN) TaskState pNewState,
                    @WebParam(name = "user", mode = Mode.IN) String pUser) {
     return updateTaskState(pHandle, pNewState, new SimplePrincipal(pUser));
   }
-  
+
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
   public TaskState updateTaskState(
                    @RestParam(name="handle",type=ParamType.VAR) long pHandle,
@@ -638,13 +652,23 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @Override
-  public QName getService() {
+  public QName getServiceName() {
     return new QName(PROCESS_ENGINE_NS, "ProcessEngine");
   }
 
   @Override
-  public String getEndpoint() {
+  public String getEndpointName() {
     return "soap";
+  }
+
+  @Override
+  public URI getEndpointLocation() {
+    return null;
+  }
+
+  @Override
+  public void initEndpoint(ServletConfig pConfig) {
+    // We know our config, don't do anything.
   }
 
 
