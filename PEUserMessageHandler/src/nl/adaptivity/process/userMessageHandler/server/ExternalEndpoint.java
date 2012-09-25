@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 import nl.adaptivity.process.exec.Task;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.userMessageHandler.server.InternalEndpoint.XmlTask;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -20,7 +21,7 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 public class ExternalEndpoint implements GenericEndpoint {
 
   public static final String ENDPOINT = "external";
-  public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
+  public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
   UserMessageService aService;
 
   public ExternalEndpoint() {
@@ -37,7 +38,7 @@ public class ExternalEndpoint implements GenericEndpoint {
     return ENDPOINT;
   }
 
-  @XmlElementWrapper(name="tasks", namespace=UserMessageService.UMH_NS)
+  @XmlElementWrapper(name="tasks", namespace=Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method=HttpMethod.GET, path="/pendingTasks")
   public Collection<UserTask<?>> getPendingTasks() {
     return aService.getPendingTasks();

@@ -21,8 +21,6 @@ public class UserMessageService implements CompletionListener {
 
   }
 
-  public static final String UMH_NS="http://adaptivity.nl/userMessageHandler";
-
   private HandleMap<UserTask<?>> tasks;
 
   private AsyncMessenger aContext;

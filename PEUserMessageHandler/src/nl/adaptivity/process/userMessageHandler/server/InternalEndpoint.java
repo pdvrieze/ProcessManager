@@ -29,6 +29,7 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.messaging.ISendableMessage;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
 
@@ -202,7 +203,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   private static final String ENDPOINT = "internal";
-  public static final QName SERVICENAME = new QName(UserMessageService.UMH_NS, "userMessageHandler");
+  public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
   private UserMessageService aService;
 
   public InternalEndpoint() {
