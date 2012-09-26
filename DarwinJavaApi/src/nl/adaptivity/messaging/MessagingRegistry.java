@@ -3,14 +3,10 @@ package nl.adaptivity.messaging;
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
-import javax.activation.DataSource;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
 
 
 public final class MessagingRegistry {
@@ -19,12 +15,12 @@ public final class MessagingRegistry {
   private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener {
 
     private Endpoint aDestination;
-    private DataSource aMessage;
+    private Source aMessage;
     private Future<T> aOrigin;
     private boolean aCancelled = false;
     private CompletionListener aCompletionListener;
 
-    public WrappingFuture(Endpoint pDestination, DataSource pMessage, CompletionListener pCompletionListener) {
+    public WrappingFuture(Endpoint pDestination, Source pMessage, CompletionListener pCompletionListener) {
       aDestination = pDestination;
       aMessage = pMessage;
       aCompletionListener = pCompletionListener;
@@ -174,7 +170,7 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public <T> Future<T> sendMessage(final Endpoint pDestination, final DataSource pMessage, final CompletionListener pCompletionListener) {
+    public <T> Future<T> sendMessage(final Endpoint pDestination, final Source pMessage, final CompletionListener pCompletionListener) {
       synchronized(this) {
         if (aMessenger==null) {
           final WrappingFuture<T> future = new WrappingFuture<T>(pDestination, pMessage, pCompletionListener);
@@ -187,9 +183,9 @@ public final class MessagingRegistry {
 
   }
 
-  private IMessenger aMessenger;
+  private static IMessenger aMessenger;
 
-  public synchronized void registerMessenger(IMessenger pMessenger) {
+  public static synchronized void registerMessenger(IMessenger pMessenger) {
     if (pMessenger==null) { throw new NullPointerException("Null messengers are not allowed"); }
     if (aMessenger instanceof StubMessenger) {
       ((StubMessenger) aMessenger).setMessenger(pMessenger);
@@ -200,11 +196,15 @@ public final class MessagingRegistry {
     aMessenger = pMessenger;
   }
 
-  public synchronized IMessenger getMessenger() {
+  public static synchronized IMessenger getMessenger() {
     if (aMessenger==null) {
       aMessenger = new StubMessenger();
     }
     return aMessenger;
+  }
+  
+  public static <T> Future<T> sendMessage(Endpoint pDestination, Source pMessage, CompletionListener pCompletionListener) {
+    return getMessenger().<T>sendMessage(pDestination, pMessage, pCompletionListener);
   }
 
 }
