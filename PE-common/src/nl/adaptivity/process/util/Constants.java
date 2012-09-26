@@ -14,6 +14,7 @@ public final class Constants {
   public static final URI WSDL_MEP_IN_ONLY = URI.create("http://www.w3.org/2004/08/wsdl/in-only");
 
   public static final URI WEBMETHOD_NS = URI.create("http://www.w3.org/2003/05/soap/features/web-method/Method");
+  public static final String USER_MESSAGE_HANDLER_NS = "http://adaptivity.nl/userMessageHandler";
 
   public static final String PROTOCOL_HEADERS = "javax.jbi.messaging.protocol.headers";
   
