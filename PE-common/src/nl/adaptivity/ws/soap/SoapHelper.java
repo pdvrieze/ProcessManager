@@ -43,11 +43,12 @@ public class SoapHelper {
   /**
    * Create a Source encapsulating a soap message for the given operation name and parameters.
    * @param pOperationName The name of the soap operation (name of the first child of the soap body)
+   * @param pHeaders A list of optional headers to add to the message.
    * @param pParams The parameters of the message
    * @return a Source that encapsulates the message.
    * @throws JAXBException
    */
-  public static Source createMessage(QName pOperationName, List<Object> pHeaders, Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
+  public static Source createMessage(QName pOperationName, List<?> pHeaders, Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
     DocumentBuilder db;
     {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -84,7 +85,7 @@ public class SoapHelper {
     return envelope;
   }
 
-  private static Element createSoapHeader(Element pEnvelope, List<Object> pHeaders) {
+  private static Element createSoapHeader(Element pEnvelope, List<?> pHeaders) {
     Document ownerDoc = pEnvelope.getOwnerDocument();
     Element header = ownerDoc.createElementNS(SOAP_ENVELOPE_NS, "soap:Header");
     pEnvelope.appendChild(header);
