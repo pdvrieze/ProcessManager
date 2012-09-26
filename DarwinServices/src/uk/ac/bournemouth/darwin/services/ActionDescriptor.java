@@ -9,9 +9,10 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.JaxbUriAdapter;
 
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name="action", namespace=Constants.USER_MESSAGE_HANDLER_NS)
+@XmlRootElement(name=ActionDescriptor.ELEMENTNAME, namespace=Constants.USER_MESSAGE_HANDLER_NS)
 public class ActionDescriptor {
   
+  static final String ELEMENTNAME = "action";
   private String aTitle;
   private String aDescription;
   private URI aIcon;
