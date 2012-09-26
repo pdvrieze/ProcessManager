@@ -12,13 +12,29 @@ import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
 
 
 public class MessagingSoapClientGenerator {
+
+  
+  private static final class ParamInfo {
+    
+    public final String name;
+    public final Class<?> type;
+    
+    public ParamInfo(Class<?> pType, String pName) {
+      type = pType;
+      name = pName;
+    }
+
+  }
 
   /**
    * @param args
@@ -131,9 +147,14 @@ public class MessagingSoapClientGenerator {
 
     pOut.write("package "); pOut.write(pPkgname); pOut.write("\n\n");
 
-    pOut.write("import nl.adaptivity.messaging.MessagingRegistry\n\n");
-    pOut.write("import java.net.URI\n\n");
-    pOut.write("import javax.xml.namespace.QName\n\n");
+    pOut.write("import net.devrieze.util.Tripple;\n" +
+    		   "import nl.adaptivity.jbi.util.EndPointDescriptor;\n" +
+               "import nl.adaptivity.messaging.MessagingRegistry;\n" +
+               "import nl.adaptivity.ws.soap.SoapHelper;\n\n" +
+        
+               "import java.net.URI;\n"+
+               "import javax.xml.namespace.QName;\n" +
+               "import javax.xml.transform.Source;\n\n");
 
     pOut.write("public class "); pOut.write(pOutClass); pOut.write(" {\n\n");
 
@@ -192,26 +213,71 @@ public class MessagingSoapClientGenerator {
   private static void writeMethod(Writer pOut, Method pMethod, WebMethod pAnnotation) throws IOException {
     String methodName = pAnnotation.operationName();
     if (methodName==null) { methodName = pMethod.getName(); }
-    pOut.write("public static Future<");
-    pOut.write(pMethod.getReturnType().getCanonicalName());
+    pOut.write("  public static Future<");
+    pOut.write(pMethod.getReturnType().getSimpleName());
     pOut.write("> "); pOut.write(methodName); pOut.write("(");
     boolean firstParam  = true;
-    int paramNo = 0;
-    for(Class<?> paramType: pMethod.getParameterTypes()) {
-      String name = "param"+paramNo;
-      for(Annotation annotation: pMethod.getParameterAnnotations()[paramNo]) {
-        if (annotation instanceof WebParam) {
-          WebParam webparam = (WebParam) annotation;
-          if (webparam.name()!=null) {
-            name = webparam.name();
+    List<ParamInfo> params = new ArrayList<>();
+    {
+      int paramNo = 0;
+      for(Class<?> paramType: pMethod.getParameterTypes()) {
+        String name = "param"+paramNo;
+        for(Annotation annotation: pMethod.getParameterAnnotations()[paramNo]) {
+          if (annotation instanceof WebParam) {
+            WebParam webparam = (WebParam) annotation;
+            if (webparam.name()!=null) {
+              name = webparam.name();
+            }
           }
         }
-
+        params.add(new ParamInfo(paramType, name));
+        if (firstParam) { firstParam=false; } else { pOut.write(", "); }
+        
+        pOut.write(paramType.getCanonicalName());
+        pOut.write(' ');
+        pOut.write(name);
+  
+        ++paramNo;
       }
-
-      ++paramNo;
     }
+    pOut.write(", CompletionListener completionListener) {\n");
+    {
+      int paramNo=0;
+      for(ParamInfo param:params) {
+        pOut.write("    final Tripple.<String, Class<?>, Object> param"+paramNo +" = Tripple.<String, Class<?>, Object>tripple(");
+        pOut.write(appendString(new StringBuilder(), param.name).append(", ").toString());
+        if (param.type.isArray()) {
+          pOut.write("Array.class, ");
+        } else {
+          pOut.write(param.type.getSimpleName());
+          pOut.write(".class, ");
+        }
+        pOut.write(param.name);
+        pOut.write(");\n");
 
+        ++paramNo;
+      }
+    }
+    pOut.write("\n");
+    pOut.write("    Source messageContent = SoapHelper.createMessage(");
+    if (pAnnotation.operationName()!=null) {
+      pOut.write(appendString(new StringBuilder(), pAnnotation.operationName()).append(", ").toString());
+    } else {
+      pOut.write(appendString(new StringBuilder(), pMethod.getName()).append(", ").toString());
+    }
+    for(int i=0; i<params.size(); ++i) {
+      if (i>0) {
+        pOut.write(", ");
+      }
+      pOut.write("param"+i);
+    }
+    pOut.write(");\n\n");
+    
+    pOut.write("    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);\n\n");
+    
+    pOut.write("    MessagingRegistry.sendMessage(endpoint, messageContent, completionListener);\n");
+    
+    pOut.write("  }\n\n");
 
   }
 
