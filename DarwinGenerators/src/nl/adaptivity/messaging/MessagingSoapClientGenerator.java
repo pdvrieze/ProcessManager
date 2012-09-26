@@ -193,11 +193,14 @@ public class MessagingSoapClientGenerator {
     pOut.write("import net.devrieze.util.Tripple;\n" +
     		   "import nl.adaptivity.jbi.util.EndPointDescriptor;\n" +
                "import nl.adaptivity.messaging.CompletionListener;\n" +
+               "import nl.adaptivity.messaging.Endpoint;\n" +
                "import nl.adaptivity.messaging.MessagingRegistry;\n" +
                "import nl.adaptivity.ws.soap.SoapHelper;\n\n" +
         
                "import java.net.URI;\n" +
-               "import java.util.concurrent.Future;\n"+
+               "import java.util.concurrent.Future;\n" +
+               "import javax.xml.bind.JAXBElement;\n" +
+               "import javax.xml.bind.JAXBException;\n"+
                "import javax.xml.namespace.QName;\n" +
                "import javax.xml.transform.Source;\n\n");
 
@@ -267,7 +270,7 @@ public class MessagingSoapClientGenerator {
     {
       int paramNo = 0;
       for(Class<?> paramType: pMethod.getParameterTypes()) {
-        String name = "param"+paramNo;
+        String name = null;
         boolean isPrincipal = false;
         for(Annotation annotation: pMethod.getParameterAnnotations()[paramNo]) {
           if (annotation instanceof WebParam) {
@@ -285,6 +288,9 @@ public class MessagingSoapClientGenerator {
             }
           }
         }
+        if (name==null) {
+          name = "param"+paramNo;
+        }
         if (isPrincipal) {
           principalName = name;
         } else {
@@ -299,7 +305,7 @@ public class MessagingSoapClientGenerator {
         ++paramNo;
       }
     }
-    pOut.write(", CompletionListener completionListener) {\n");
+    pOut.write(", CompletionListener completionListener) throws JAXBException {\n");
     {
       int paramNo=0;
       for(ParamInfo param:params) {
@@ -322,14 +328,15 @@ public class MessagingSoapClientGenerator {
       }
     }
     pOut.write("\n");
-    pOut.write("    Source message = SoapHelper.createMessage(");
+    pOut.write("    @SuppressWarnings(\"unchecked\")\n");
+    pOut.write("    Source message = SoapHelper.createMessage(new QName(");
     if (pAnnotation.operationName()!=null) {
-      pOut.write(appendString(new StringBuilder(), pAnnotation.operationName()).append(", ").toString());
+      pOut.write(appendString(new StringBuilder(), pAnnotation.operationName()).append("), ").toString());
     } else {
-      pOut.write(appendString(new StringBuilder(), pMethod.getName()).append(", ").toString());
+      pOut.write(appendString(new StringBuilder(), pMethod.getName()).append("), ").toString());
     }
     if (principalName!=null) {
-      pOut.write("new JAXBElement<String>(\"principal\", String.class, "+principalName+"), ");
+      pOut.write("java.util.Arrays.asList(new JAXBElement<String>(new QName(\"principal\"), String.class, "+principalName+".getName())), ");
     }
     for(int i=0; i<params.size(); ++i) {
       if (i>0) {
@@ -341,7 +348,7 @@ public class MessagingSoapClientGenerator {
     
     pOut.write("    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);\n\n");
     
-    pOut.write("    MessagingRegistry.sendMessage(endpoint, message, completionListener);\n");
+    pOut.write("    return MessagingRegistry.sendMessage(endpoint, message, completionListener);\n");
     
     pOut.write("  }\n\n");
 
