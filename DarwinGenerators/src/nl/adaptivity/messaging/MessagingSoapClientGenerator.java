@@ -190,19 +190,21 @@ public class MessagingSoapClientGenerator {
 
     pOut.write("package "); pOut.write(pPkgname); pOut.write(";\n\n");
 
-    pOut.write("import net.devrieze.util.Tripple;\n" +
+    pOut.write("import java.net.URI;\n" +
+               "import java.util.concurrent.Future;\n\n" +
+               
+               "import javax.xml.bind.JAXBElement;\n" +
+               "import javax.xml.bind.JAXBException;\n"+
+               "import javax.xml.namespace.QName;\n" +
+               "import javax.xml.transform.Source;\n\n" +
+               
+               "import net.devrieze.util.Tripple;\n\n" +
+               
     		   "import nl.adaptivity.jbi.util.EndPointDescriptor;\n" +
                "import nl.adaptivity.messaging.CompletionListener;\n" +
                "import nl.adaptivity.messaging.Endpoint;\n" +
                "import nl.adaptivity.messaging.MessagingRegistry;\n" +
-               "import nl.adaptivity.ws.soap.SoapHelper;\n\n" +
-        
-               "import java.net.URI;\n" +
-               "import java.util.concurrent.Future;\n" +
-               "import javax.xml.bind.JAXBElement;\n" +
-               "import javax.xml.bind.JAXBException;\n"+
-               "import javax.xml.namespace.QName;\n" +
-               "import javax.xml.transform.Source;\n\n");
+               "import nl.adaptivity.ws.soap.SoapHelper;\n\n");
 
     pOut.write("public class "); pOut.write(pOutClass); pOut.write(" {\n\n");
 
