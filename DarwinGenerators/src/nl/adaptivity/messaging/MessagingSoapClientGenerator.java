@@ -7,6 +7,7 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
@@ -17,8 +18,13 @@ import java.util.List;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.RestoreAction;
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
+
+import nl.adaptivity.rest.annotations.RestParam;
+import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
 public class MessagingSoapClientGenerator {
@@ -42,8 +48,8 @@ public class MessagingSoapClientGenerator {
   public static void main(String[] args) {
     String pkg=null;
     String outClass = null;
-    String inClass = null;
-    String srcdir = ".";
+    List<String> inClasses = new ArrayList<>();
+    String cp = ".";
     String dstdir = ".";
     for(int i = 0; i<args.length; ++i) {
       switch (args[i]) {
@@ -62,14 +68,14 @@ public class MessagingSoapClientGenerator {
           }
           break;
         }
-        case "-srcdir": {
-          if (srcdir!=null) { showHelp(); return; }
-          srcdir = args[i];
+        case "-cp": {
+          if ("."!=cp) { showHelp(); return; }
+          cp = args[++i];
           break;
         }
         case "-dstdir": {
-          if (dstdir!=null) { showHelp(); return; }
-          dstdir = args[i];
+          if ("."!=dstdir) { showHelp(); return; }
+          dstdir = args[++i];
           break;
         }
         case "-help": {
@@ -77,16 +83,18 @@ public class MessagingSoapClientGenerator {
           return;
         }
         default: {
-          if (args[i].charAt(0)=='-' || inClass!=null) {
+          if (args[i].charAt(0)=='-') {
+            System.err.println("Unsupported arguments: "+args[i]);
             showHelp();
             return;
           } else {
-            inClass = args[i];
+            inClasses.add(args[i]);
           }
         }
       }
     }
-    if (inClass==null || outClass==null || pkg==null) {
+    if (inClasses.size()==0 || outClass==null || pkg==null) {
+      System.err.println("Not all three of inclass, outclass and package have been provided");
       showHelp();
       return;
     }
@@ -94,19 +102,34 @@ public class MessagingSoapClientGenerator {
 
     String pkgdir = pkg.replaceAll("\\.", fs.getSeparator());
     String classfilename = outClass+".java";
-    Path outfile = fs.getPath(srcdir, pkgdir, classfilename);
-
-    URLClassLoader urlclassloader;
-    try {
-      urlclassloader = URLClassLoader.newInstance(new URL[] { fs.getPath(srcdir).toUri().toURL()});
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-      return;
+    Path outfile = fs.getPath(dstdir, pkgdir, classfilename);
+    // Ensure the parent directory of the outfile exists.
+    if (!outfile.getParent().toFile().mkdirs()) {
+      if (!outfile.getParent().toFile().exists()) {
+        System.err.println("Could not create the directory "+outfile.getParent());
+        System.exit(2);
+      }
     }
 
+    URLClassLoader urlclassloader;
+    urlclassloader = URLClassLoader.newInstance(getUrls(cp));
+
+    if (inClasses.size()==1) {
+      writeOutFile(inClasses.get(0), pkg, outClass, fs, outfile, urlclassloader);
+    } else {
+      for(String inClass: inClasses) {
+        String newOutClass = inClass.substring(inClass.lastIndexOf('.'))+"Client";
+        Path newOutFile=outfile.getParent().resolve(newOutClass+".java");
+        writeOutFile(inClass, pkg, newOutClass, fs, newOutFile, urlclassloader);
+      }
+    }
+
+  }
+
+  private static void writeOutFile(String inClass, String pkg, String outClass, FileSystem fs, Path outfile, URLClassLoader classloader) {
     Class<?> endpointClass;
     try {
-      endpointClass = urlclassloader.loadClass(inClass);
+      endpointClass = classloader.loadClass(inClass);
     } catch (ClassNotFoundException e) {
       e.printStackTrace();
       return;
@@ -118,7 +141,27 @@ public class MessagingSoapClientGenerator {
       e.printStackTrace();
       return;
     }
+  }
 
+  private static URL[] getUrls(String pClassPath) {
+    FileSystem fs = FileSystems.getDefault();
+    List<URL> result = new ArrayList<>();
+    
+    try {
+      for(String element:pClassPath.split(":")) {
+        try {
+          URI uri = URI.create(element);
+          result.add(uri.toURL());
+        } catch (IllegalArgumentException e) {
+          Path file = fs.getPath(element);
+          result.add(file.normalize().toUri().toURL());
+        }
+      }
+    } catch (MalformedURLException e) {
+      System.err.println("Invalid classpath element");
+      e.printStackTrace();
+    }
+    return result.toArray(new URL[result.size()]);
   }
 
   private static void showHelp() {
@@ -126,7 +169,7 @@ public class MessagingSoapClientGenerator {
     System.out.println("  -help              : Show this message, ignore everything else");
     System.out.println("  -out <classname>   : The output classname to generate");
     System.out.println("  -package <pkgname> : The output package name to generate");
-    System.out.println("  -srcdir <dirname>  : The directory to start looking for sources");
+    System.out.println("  -cp <path>         : The classpath to look for source classes and their dependencies");
     System.out.println("  -dstdir <dirname>  : The directory to write the generated java files");
     System.out.println("  <inputclass>       : The Endpoint that needs a client");
   }
@@ -145,14 +188,16 @@ public class MessagingSoapClientGenerator {
     pOut.write(" * Generated by MessagingSoapClientGenerator.\n");
     pOut.write(" */\n\n");
 
-    pOut.write("package "); pOut.write(pPkgname); pOut.write("\n\n");
+    pOut.write("package "); pOut.write(pPkgname); pOut.write(";\n\n");
 
     pOut.write("import net.devrieze.util.Tripple;\n" +
     		   "import nl.adaptivity.jbi.util.EndPointDescriptor;\n" +
+               "import nl.adaptivity.messaging.CompletionListener;\n" +
                "import nl.adaptivity.messaging.MessagingRegistry;\n" +
                "import nl.adaptivity.ws.soap.SoapHelper;\n\n" +
         
-               "import java.net.URI;\n"+
+               "import java.net.URI;\n" +
+               "import java.util.concurrent.Future;\n"+
                "import javax.xml.namespace.QName;\n" +
                "import javax.xml.transform.Source;\n\n");
 
@@ -163,7 +208,7 @@ public class MessagingSoapClientGenerator {
     try {
       Endpoint instance = (Endpoint) pEndpointClass.newInstance();
 
-      pOut.write(appendString(new StringBuilder("  private static final QName SERVICE = "),qnamestring(instance.getServiceName())).append(";\n").toString());
+      pOut.write("  private static final QName SERVICE = "+qnamestring(instance.getServiceName())+";\n");
       pOut.write(appendString(new StringBuilder("  private static final String ENDPOINT = "),instance.getEndpointName()).append(";\n").toString());
       if (instance.getEndpointLocation()!=null) {
         pOut.write(appendString(new StringBuilder("  private static final URI LOCATION = URI.create("),instance.getEndpointLocation().toString()).append(");\n\n").toString());
@@ -184,7 +229,7 @@ public class MessagingSoapClientGenerator {
     }
 
     // Constructor
-    pOut.write("  private "); pOut.write(pOutClass); pOut.write(" { /* */ }\n\n");
+    pOut.write("  private "); pOut.write(pOutClass); pOut.write("() { }\n\n");
 
     writeMethods(pOut, pEndpointClass);
 
@@ -212,9 +257,10 @@ public class MessagingSoapClientGenerator {
 
   private static void writeMethod(Writer pOut, Method pMethod, WebMethod pAnnotation) throws IOException {
     String methodName = pAnnotation.operationName();
+    String principalName = null;
     if (methodName==null) { methodName = pMethod.getName(); }
     pOut.write("  public static Future<");
-    pOut.write(pMethod.getReturnType().getSimpleName());
+    pOut.write(pMethod.getReturnType().getCanonicalName());
     pOut.write("> "); pOut.write(methodName); pOut.write("(");
     boolean firstParam  = true;
     List<ParamInfo> params = new ArrayList<>();
@@ -222,6 +268,7 @@ public class MessagingSoapClientGenerator {
       int paramNo = 0;
       for(Class<?> paramType: pMethod.getParameterTypes()) {
         String name = "param"+paramNo;
+        boolean isPrincipal = false;
         for(Annotation annotation: pMethod.getParameterAnnotations()[paramNo]) {
           if (annotation instanceof WebParam) {
             WebParam webparam = (WebParam) annotation;
@@ -229,8 +276,20 @@ public class MessagingSoapClientGenerator {
               name = webparam.name();
             }
           }
+          if (annotation instanceof RestParam) {
+            RestParam restParam = (RestParam) annotation;
+            if(((RestParam) annotation).type()==ParamType.PRINCIPAL) {
+              // We nead a principal header
+              isPrincipal = true;
+              if (name==null) { name="user"; }
+            }
+          }
         }
-        params.add(new ParamInfo(paramType, name));
+        if (isPrincipal) {
+          principalName = name;
+        } else {
+          params.add(new ParamInfo(paramType, name));
+        }
         if (firstParam) { firstParam=false; } else { pOut.write(", "); }
         
         pOut.write(paramType.getCanonicalName());
@@ -244,12 +303,16 @@ public class MessagingSoapClientGenerator {
     {
       int paramNo=0;
       for(ParamInfo param:params) {
-        pOut.write("    final Tripple.<String, Class<?>, Object> param"+paramNo +" = Tripple.<String, Class<?>, Object>tripple(");
+        pOut.write("    final Tripple<String, Class<?>, Object> param"+paramNo +" = Tripple.<String, Class<?>, Object>tripple(");
         pOut.write(appendString(new StringBuilder(), param.name).append(", ").toString());
         if (param.type.isArray()) {
           pOut.write("Array.class, ");
         } else {
-          pOut.write(param.type.getSimpleName());
+          if (param.type.isPrimitive()) {
+            pOut.write(param.type.getSimpleName());
+          } else {
+            pOut.write(param.type.getCanonicalName());
+          }
           pOut.write(".class, ");
         }
         pOut.write(param.name);
@@ -259,11 +322,14 @@ public class MessagingSoapClientGenerator {
       }
     }
     pOut.write("\n");
-    pOut.write("    Source messageContent = SoapHelper.createMessage(");
+    pOut.write("    Source message = SoapHelper.createMessage(");
     if (pAnnotation.operationName()!=null) {
       pOut.write(appendString(new StringBuilder(), pAnnotation.operationName()).append(", ").toString());
     } else {
       pOut.write(appendString(new StringBuilder(), pMethod.getName()).append(", ").toString());
+    }
+    if (principalName!=null) {
+      pOut.write("new JAXBElement<String>(\"principal\", String.class, "+principalName+"), ");
     }
     for(int i=0; i<params.size(); ++i) {
       if (i>0) {
@@ -275,7 +341,7 @@ public class MessagingSoapClientGenerator {
     
     pOut.write("    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);\n\n");
     
-    pOut.write("    MessagingRegistry.sendMessage(endpoint, messageContent, completionListener);\n");
+    pOut.write("    MessagingRegistry.sendMessage(endpoint, message, completionListener);\n");
     
     pOut.write("  }\n\n");
 
@@ -283,13 +349,12 @@ public class MessagingSoapClientGenerator {
 
   private static String qnamestring(QName pQName) {
     StringBuilder result = new StringBuilder();
-    new QName(pQName.getNamespaceURI(), pQName.getLocalPart(), pQName.getPrefix());
 
     result.append("new QName(");
-    appendString(result, pQName.getNamespaceURI()).append(',');
+    appendString(result, pQName.getNamespaceURI()).append(", ");
     appendString(result, pQName.getLocalPart());
     if (pQName.getPrefix()!=null) {
-      appendString(result.append(','),pQName.getPrefix());
+      appendString(result.append(", "),pQName.getPrefix());
     }
     result.append(')');
     return result.toString();
@@ -318,6 +383,8 @@ public class MessagingSoapClientGenerator {
           case '\r':
             pResult.append("\\r");
             break;
+          default:
+            pResult.append(c);
         }
       }
       pResult.append('"');
