@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -11,6 +13,8 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
 import javax.xml.namespace.QName;
 
 
@@ -133,6 +137,7 @@ public class MessagingSoapClientGenerator {
 
     pOut.write("public class "); pOut.write(pOutClass); pOut.write(" {\n\n");
 
+    // Write service location constants / variables.
     boolean finalService = false;
     try {
       Endpoint instance = (Endpoint) pEndpointClass.newInstance();
@@ -157,19 +162,57 @@ public class MessagingSoapClientGenerator {
       pOut.write("  private static URI LOCATION = null;\n\n");
     }
 
-
+    // Constructor
     pOut.write("  private "); pOut.write(pOutClass); pOut.write(" { /* */ }\n\n");
 
+    writeMethods(pOut, pEndpointClass);
 
 
-
+    // Initializer in case we can't figure out the locations
     if (!finalService) {
-      pOut.write("  private static QName SERVICE = null;\n");
-      pOut.write("  private static String ENDPOINT = null;\n");
-      pOut.write("  private static URI LOCATION = null;\n\n");
+      pOut.write("  private static void init(QName service, String endpoint, URI location) {\n");
+      pOut.write("    SERVICE=service;\n");
+      pOut.write("    ENDPOINT=endpoint;\n");
+      pOut.write("    LOCATION=location;\n");
+      pOut.write("  }\n\n");
     }
 
     pOut.write("}\n");
+  }
+
+  private static void writeMethods(Writer pOut, Class<?> pEndpointClass) throws IOException {
+    for(Method method:pEndpointClass.getMethods()) {
+      WebMethod annotation = method.getAnnotation(WebMethod.class);
+      if (annotation!=null) {
+        writeMethod(pOut, method, annotation);
+      }
+    }
+  }
+
+  private static void writeMethod(Writer pOut, Method pMethod, WebMethod pAnnotation) throws IOException {
+    String methodName = pAnnotation.operationName();
+    if (methodName==null) { methodName = pMethod.getName(); }
+    pOut.write("public static Future<");
+    pOut.write(pMethod.getReturnType().getCanonicalName());
+    pOut.write("> "); pOut.write(methodName); pOut.write("(");
+    boolean firstParam  = true;
+    int paramNo = 0;
+    for(Class<?> paramType: pMethod.getParameterTypes()) {
+      String name = "param"+paramNo;
+      for(Annotation annotation: pMethod.getParameterAnnotations()[paramNo]) {
+        if (annotation instanceof WebParam) {
+          WebParam webparam = (WebParam) annotation;
+          if (webparam.name()!=null) {
+            name = webparam.name();
+          }
+        }
+
+      }
+
+      ++paramNo;
+    }
+
+
   }
 
   private static String qnamestring(QName pQName) {
