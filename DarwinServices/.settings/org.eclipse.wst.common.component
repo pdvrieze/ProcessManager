@@ -3,6 +3,7 @@
     <wb-module deploy-name="DarwinServices">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/gen"/>
         <property name="context-root" value="services"/>
         <property name="java-output-path" value="/DarwinServices/build/classes"/>
     </wb-module>
