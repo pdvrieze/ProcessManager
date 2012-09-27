@@ -5,23 +5,24 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.*;
 
-import javax.activation.DataSource;
 import javax.xml.namespace.QName;
 
 
 public final class MessagingRegistry {
 
 
-  private static class WrappingFuture implements Future<DataSource>, MessengerCommand, CompletionListener {
+  private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener {
 
     private ISendableMessage aMessage;
-    private Future<DataSource> aOrigin;
+    private Future<T> aOrigin;
     private boolean aCancelled = false;
     private CompletionListener aCompletionListener;
+    private Class<T> aReturnType;
 
-    public WrappingFuture(ISendableMessage pMessage, CompletionListener pCompletionListener) {
+    public WrappingFuture(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
       aMessage = pMessage;
       aCompletionListener = pCompletionListener;
+      aReturnType = pReturnType;
     }
 
     @Override
@@ -52,7 +53,7 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public synchronized DataSource get() throws InterruptedException, ExecutionException {
+    public synchronized T get() throws InterruptedException, ExecutionException {
       while (aOrigin==null) {
         if (aCancelled) {
           throw new CancellationException();
@@ -63,7 +64,7 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public synchronized DataSource get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+    public synchronized T get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
       if (aOrigin==null) {
         long startTime = System.currentTimeMillis();
         try {
@@ -97,7 +98,7 @@ public final class MessagingRegistry {
     @Override
     public synchronized void execute(IMessenger pMessenger) {
       if (! aCancelled) {
-        aOrigin = pMessenger.sendMessage(aMessage, this);
+        aOrigin = pMessenger.sendMessage(aMessage, this, aReturnType);
       }
       notifyAll(); // Wake up all waiters (should be only one)
     }
@@ -168,15 +169,15 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public Future<DataSource> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener) {
+    public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
       synchronized(this) {
         if (aMessenger==null) {
-          final WrappingFuture future = new WrappingFuture(pMessage, pCompletionListener);
+          final WrappingFuture<T> future = new WrappingFuture<T>(pMessage, pCompletionListener, pReturnType);
           aCommandQueue.add(future);
           return future;
         }
       }
-      return aMessenger.sendMessage(pMessage, pCompletionListener);
+      return aMessenger.sendMessage(pMessage, pCompletionListener, pReturnType);
     }
 
   }
@@ -201,8 +202,8 @@ public final class MessagingRegistry {
     return aMessenger;
   }
 
-  public static Future<DataSource> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener) {
-    return getMessenger().sendMessage(pMessage, pCompletionListener);
+  public static <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
+    return getMessenger().sendMessage(pMessage, pCompletionListener, pReturnType);
   }
 
 }

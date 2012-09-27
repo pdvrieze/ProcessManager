@@ -24,5 +24,5 @@ public interface IMessenger {
    */
   public void registerEndpoint(Endpoint pEndpoint);
 
-  public Future<DataSource> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener);
+  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType);
 }
