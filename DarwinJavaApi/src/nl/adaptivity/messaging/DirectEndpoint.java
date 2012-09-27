@@ -2,8 +2,6 @@ package nl.adaptivity.messaging;
 
 import java.util.concurrent.Future;
 
-import javax.xml.transform.Source;
-
 
 public interface DirectEndpoint extends Endpoint {
 
@@ -12,6 +10,6 @@ public interface DirectEndpoint extends Endpoint {
    * @param pMessage The message to deliver
    * @param pCompletionListener The completion Listener to notify of completion.
    */
-  public <T> Future<T> deliverMessage(Source pMessage, CompletionListener pCompletionListener);
+  public <T> Future<T> deliverMessage(ISendableMessage pMessage, CompletionListener pCompletionListener);
 
 }

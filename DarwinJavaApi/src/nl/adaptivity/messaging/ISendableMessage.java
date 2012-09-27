@@ -2,7 +2,7 @@ package nl.adaptivity.messaging;
 
 import java.util.Collection;
 
-import javax.xml.transform.Source;
+import javax.activation.DataSource;
 
 
 /**
@@ -59,6 +59,6 @@ public interface ISendableMessage {
    * @return The body of the message. Returns <code>null</code> if there is no
    *         body.
    */
-  Source getBodySource();
+  DataSource getBodySource();
 
 }
