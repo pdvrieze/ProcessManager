@@ -4,29 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,12 +19,9 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.DirectEndpoint;
-import nl.adaptivity.messaging.Endpoint;
-import nl.adaptivity.messaging.IMessenger;
-import nl.adaptivity.messaging.ISendableMessage;
-import nl.adaptivity.messaging.MessagingRegistry;
+
+import nl.adaptivity.messaging.*;
+import nl.adaptivity.messaging.ISendableMessage.Header;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
 
@@ -55,7 +33,7 @@ import nl.adaptivity.util.HttpMessage;
  * @author Paul de Vrieze
  * @todo Add the abiltiy to send directly to servlets on the same host.
  */
-public class AsyncMessenger implements IMessenger {
+public class AsyncMessenger {
 
   /**
    * How big should the worker thread pool be initially.
@@ -228,18 +206,15 @@ public class AsyncMessenger implements IMessenger {
       URL destination;
 
       try {
-        destination = new URL(aMessage.getDestination());
+        destination = aLocalEndPoint.getEndpointLocation().relativize(aMessage.getDestination().getEndpointLocation()).toURL();
       } catch (MalformedURLException e) {
-        destination = new URL(aLocalEndPoint.getEndpointLocation().toURL(), aMessage.getDestination());
+        throw new MessagingException("Destination is an URL", e);
       }
 
-      if (destination.getProtocol()==null || destination.getProtocol().length()==0 || destination.getHost()==null || destination.getHost().length()==0) {
-        destination = new URL(aLocalEndPoint.getEndpointLocation().toURL(), aMessage.getDestination());
-      }
       final URLConnection connection = destination.openConnection();
       if (connection instanceof HttpURLConnection){
         final HttpURLConnection httpConnection = (HttpURLConnection) connection;
-        boolean hasPayload = aMessage.hasBody();
+        boolean hasPayload = aMessage.getBodySource()!=null;
         connection.setDoOutput(hasPayload);
         String method = aMessage.getMethod();
         if (method==null) {
@@ -247,8 +222,8 @@ public class AsyncMessenger implements IMessenger {
         }
         httpConnection.setRequestMethod(method);
 
-        for(Tupple<String, String> header: aMessage.getHeaders()) {
-          httpConnection.addRequestProperty(header.getElem1(), header.getElem2());
+        for(Header header: aMessage.getHeaders()) {
+          httpConnection.addRequestProperty(header.getName(), header.getValue());
         }
         try {
           httpConnection.connect();
@@ -260,7 +235,7 @@ public class AsyncMessenger implements IMessenger {
             OutputStream out = httpConnection.getOutputStream();
 
             try {
-              aMessage.writeBody(httpConnection.getOutputStream());
+              InputStreamOutputStream.writeToOutputStream(aMessage.getBodySource().getInputStream(), out);
             } finally {
               out.close();
             }
@@ -460,11 +435,11 @@ public class AsyncMessenger implements IMessenger {
   }
 
   @Override
-  public <T> Future<T> sendMessage(final ISendableMessage pMessage, CompletionListener pCompletionListener) {
+  public <T> Future<T> sendMessage(final ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
     Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
 
     if (registeredEndpoint instanceof DirectEndpoint) {
-      return ((DirectEndpoint) registeredEndpoint).<T>deliverMessage(pMessage, pCompletionListener);
+      return ((DirectEndpoint) registeredEndpoint).<T>deliverMessage(pMessage, pCompletionListener, pReturnType);
     }
 
     if (registeredEndpoint==null) {

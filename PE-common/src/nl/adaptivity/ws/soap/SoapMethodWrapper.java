@@ -177,18 +177,21 @@ public class SoapMethodWrapper {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public void marshalResult(HttpServletResponse pResponse) {
+  public static void marshalResult(HttpServletResponse pResponse, Source pSource) {
     pResponse.setContentType("application/soap+xml");
+    try {
+      Sources.writeToStream(pSource, pResponse.getOutputStream());
+    } catch (TransformerException e) {
+      throw new MyMessagingException(e);
+    } catch (IOException e) {
+      throw new MyMessagingException(e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public Source getResultSource() {
     if (aResult instanceof Source) {
-      try {
-        Sources.writeToStream((Source) aResult, pResponse.getOutputStream());
-      } catch (TransformerException e) {
-        throw new MyMessagingException(e);
-      } catch (IOException e) {
-        throw new MyMessagingException(e);
-      }
-      return;
+      return (Source) aResult;
     }
 
     Tripple<String, Class<?>, Object>[] params;
@@ -202,16 +205,14 @@ public class SoapMethodWrapper {
       headers = Collections.emptyList();
     }
     try {
-      Source result = SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), headers, params);
-      Sources.writeToStream(result, pResponse.getOutputStream());
+      return SoapHelper.createMessage(new QName(aMethod.getName()+"Response"), headers, params);
     } catch (JAXBException e) {
       throw new MyMessagingException(e);
-    } catch (TransformerException e) {
-      throw new MyMessagingException(e);
-    } catch (IOException e) {
-      throw new MyMessagingException(e);
     }
+  }
 
+  public Object getResult() {
+    return aResult;
   }
 
   private JAXBCollectionWrapper wrapCollection(Type pType, Collection<?> pCollection) {

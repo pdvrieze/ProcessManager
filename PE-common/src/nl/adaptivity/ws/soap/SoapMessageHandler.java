@@ -2,26 +2,27 @@ package nl.adaptivity.ws.soap;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.activation.DataSource;
 import javax.jws.WebMethod;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Element;
 
 import net.devrieze.util.PrefixMap;
 import net.devrieze.util.PrefixMap.Entry;
 import net.devrieze.util.ValueCollection;
-import nl.adaptivity.util.HttpMessage;
 
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Element;
+import nl.adaptivity.messaging.HttpResponseException;
+import nl.adaptivity.util.HttpMessage;
 
 
 public class SoapMessageHandler {
@@ -57,7 +58,38 @@ public class SoapMessageHandler {
   private SoapMessageHandler(Object pTarget) { aTarget = pTarget; }
 
   public boolean processRequest(HttpMessage pRequest, HttpServletResponse pResponse) throws IOException {
-    Envelope envelope = JAXB.unmarshal(pRequest.getContent(), Envelope.class);
+    final Source source = pRequest.getContent();
+
+    Source result;
+    try {
+      result = processSource(source, pRequest.getAttachments());
+    } catch (HttpResponseException e) {
+      pResponse.sendError(e.getResponseCode(), e.getMessage());
+      return false;
+    }
+    
+    if (pResponse!=null) {
+      SoapMethodWrapper.marshalResult(pResponse, result);
+      return true;
+    }
+    return false;
+  }
+
+
+  public Source processMessage(DataSource pDataSource, Map<String, DataSource> pAttachments) throws IOException {
+    
+    Source source;
+    if (pDataSource instanceof Source) {
+      source = (Source) pDataSource;
+    } else {
+      source = new StreamSource(pDataSource.getInputStream());
+    }
+    
+    return processSource(source, pAttachments);
+  }
+
+  private Source processSource(Source source, Map<String, DataSource> pAttachments) {
+    Envelope envelope = JAXB.unmarshal(source, Envelope.class);
     List<Object> operations = envelope.getBody().getAny();
     Element operationElem = null;
     for(Object operationObject: operations) {
@@ -67,8 +99,7 @@ public class SoapMessageHandler {
       }
     }
     if (operationElem==null) {
-      pResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "No operation found");
-      return true;
+      throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation not found");
     }
     
     QName operation = new QName(operationElem.getNamespaceURI(), operationElem.getLocalName());
@@ -76,16 +107,14 @@ public class SoapMessageHandler {
     SoapMethodWrapper method = getMethodFor(operation, aTarget);
 
     if (method !=null) {
-      method.unmarshalParams(envelope, pRequest.getAttachments());
+      method.unmarshalParams(envelope, pAttachments);
       method.exec();
-      if (pResponse!=null) {
-        method.marshalResult(pResponse);
-      }
-      return true;
+      return method.getResultSource();
     }
-    return false;
+    throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation not found");
   }
-
+  
+  
   private SoapMethodWrapper getMethodFor(QName pOperation, Object target) {
 //    final Method[] candidates = target.getClass().getDeclaredMethods();
     Collection<Method> candidates = getCandidatesFor(target.getClass(), pOperation);
