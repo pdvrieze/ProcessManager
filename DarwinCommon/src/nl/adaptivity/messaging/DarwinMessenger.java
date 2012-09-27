@@ -2,10 +2,8 @@ package nl.adaptivity.messaging;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.*;
@@ -13,15 +11,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
+import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
 
 import nl.adaptivity.messaging.ISendableMessage.Header;
 import nl.adaptivity.process.messaging.AsyncMessenger;
-import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
@@ -65,14 +62,14 @@ public class DarwinMessenger implements IMessenger {
    */
   private class MessageCompletionNotifier extends Thread {
 
-    private final BlockingQueue<MessageTask> aPendingNotifications;
+    private final BlockingQueue<MessageTask<?>> aPendingNotifications;
     private volatile boolean aFinished = false;
 
 
     public MessageCompletionNotifier() {
       super(NOTIFIERTHREADNAME);
       this.setDaemon(true); // This is just a helper thread, don't block cleanup.
-      aPendingNotifications = new LinkedBlockingQueue<MessageTask>(CONCURRENTCAPACITY);
+      aPendingNotifications = new LinkedBlockingQueue<MessageTask<?>>(CONCURRENTCAPACITY);
     }
 
     /**
@@ -82,7 +79,7 @@ public class DarwinMessenger implements IMessenger {
     public void run() {
       while (! aFinished) {
         try {
-          MessageTask future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
+          MessageTask<?> future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
           if (future!=null) // Null when timeout.
             notififyCompletion(future);
         } catch (InterruptedException e) {
@@ -92,8 +89,7 @@ public class DarwinMessenger implements IMessenger {
 
     }
 
-    private <T extends DataSource> void notififyCompletion(MessageTask pFuture) {
-      ArrayList<CompletionListener> listeners;
+    private <T extends DataSource> void notififyCompletion(MessageTask<?> pFuture) {
       pFuture.aCompletionListener.onMessageCompletion(pFuture);
     }
 
@@ -109,7 +105,7 @@ public class DarwinMessenger implements IMessenger {
      * Add a notification to the message queue.
      * @param pFuture The future whose completion should be communicated.
      */
-    public void addNotification(MessageTask pFuture) {
+    public void addNotification(MessageTask<?> pFuture) {
       // aPendingNotifications is threadsafe!
       aPendingNotifications.add(pFuture);
 
@@ -118,23 +114,25 @@ public class DarwinMessenger implements IMessenger {
 
   }
 
-  private class MessageTask implements Future<DataSource>, Runnable {
+  private class MessageTask<T> implements Future<T>, Runnable {
 
     private URI aDestURL;
     private ISendableMessage aMessage;
     private CompletionListener aCompletionListener;
-    private DataSource aResult = null;
+    private T aResult = null;
     private boolean aCancelled = false;
     private int aResponseCode;
     private Exception aError = null;
     private boolean aStarted = false;
+    private final Class<T> aReturnType;
 
 
 
-    public MessageTask(URI pDestURL, ISendableMessage pMessage, CompletionListener pCompletionListener) {
+    public MessageTask(URI pDestURL, ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
       aDestURL = pDestURL;
       aMessage = pMessage;
       aCompletionListener = pCompletionListener;
+      aReturnType = pReturnType;
     }
 
     /**
@@ -143,6 +141,16 @@ public class DarwinMessenger implements IMessenger {
      */
     public MessageTask(Exception pE) {
       aError = pE;
+      aReturnType=null;
+    }
+
+    /**
+     * Create a future that just contains the value without computation/ waiting possible
+     * @param pUnmarshal
+     */
+    public MessageTask(T pResult) {
+      aResult=pResult;
+      aReturnType = null;
     }
 
     @Override
@@ -154,7 +162,7 @@ public class DarwinMessenger implements IMessenger {
       }
       try {
         if (! cancelled ) {
-          DataSource result = sendMessage();
+          T result = sendMessage();
           synchronized(this) {
             aResult = result;
           }
@@ -172,7 +180,7 @@ public class DarwinMessenger implements IMessenger {
     }
 
 
-    private DataSource sendMessage() throws IOException, ProtocolException {
+    private T sendMessage() throws IOException, ProtocolException {
       URL destination;
 
       try {
@@ -227,14 +235,7 @@ public class DarwinMessenger implements IMessenger {
             Logger.getLogger(AsyncMessenger.class.getName()).info(errorMessage);
             throw new HttpResponseException(httpConnection.getResponseCode(), errorMessage);
           }
-          ByteArrayOutputStream resultBuffer = new ByteArrayOutputStream();
-          InputStream in = httpConnection.getInputStream();
-          try {
-            InputStreamOutputStream.writeToOutputStream(in, resultBuffer);
-          } finally {
-            in.close();
-          }
-          return new HttpMessage.ByteContentDataSource(null, httpConnection.getContentType(), resultBuffer.toByteArray());
+          return JAXB.unmarshal(httpConnection.getInputStream(), aReturnType);
 
         } finally {
           httpConnection.disconnect();
@@ -268,7 +269,7 @@ public class DarwinMessenger implements IMessenger {
     }
 
     @Override
-    public synchronized DataSource get() throws InterruptedException, ExecutionException {
+    public synchronized T get() throws InterruptedException, ExecutionException {
       if (aCancelled) { throw new CancellationException(); }
       if (aError!=null) { throw new ExecutionException(aError); }
       if (aResult!=null) { return aResult; }
@@ -278,20 +279,48 @@ public class DarwinMessenger implements IMessenger {
     }
 
     @Override
-    public synchronized DataSource get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+    public synchronized T get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
       if (aCancelled) { throw new CancellationException(); }
       if (aError!=null) { throw new ExecutionException(aError); }
       if (aResult!=null) { return aResult; }
-      // TODO Auto-generated method stub
-      return null;
+      if (pTimeout==0) { throw new TimeoutException(); } 
+
+
+      try {
+        if (pUnit==TimeUnit.NANOSECONDS) {
+          wait(pUnit.toMillis(pTimeout), (int) (pUnit.toNanos(pTimeout)%1000000));
+        } else {
+          wait(pUnit.toMillis(pTimeout));
+        }
+      } catch (InterruptedException e) {
+        if (isDone()) {
+          return get(0, TimeUnit.MILLISECONDS);// Don't wait, even if somehow the state is wrong.
+        } else {
+          throw e;
+        }
+      }
+      throw new TimeoutException();
     }
 
+  }
+
+  /** Let the class loader do the nasty synchronization for us, but still initialise ondemand. */
+  private static class MessengerHolder {
+    static final DarwinMessenger globalMessenger = new DarwinMessenger();
   }
 
   ExecutorService aExecutor;
   private Map<QName,Map<String, Endpoint>> aServices;
 
   private MessageCompletionNotifier aNotifier;
+
+  /**
+   * Get the singleton instance. This also updates the base URL.
+   * @return The singleton instance.
+   */
+  public static void register() {
+    MessagingRegistry.registerMessenger(MessengerHolder.globalMessenger);
+  }
   
 
   private DarwinMessenger() {
@@ -301,7 +330,7 @@ public class DarwinMessenger implements IMessenger {
   }
 
 
-  void notifyCompletionListener(MessageTask pFuture) {
+  void notifyCompletionListener(MessageTask<?> pFuture) {
     aNotifier.addNotification(pFuture);
   }
 
@@ -325,11 +354,11 @@ public class DarwinMessenger implements IMessenger {
   }
 
   @Override
-  public  Future<DataSource> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener) {
+  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
     Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
 
     if (registeredEndpoint instanceof DirectEndpoint) {
-      return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener);
+      return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
     }
     
     if (registeredEndpoint!=null) { // Direct delivery
@@ -339,9 +368,13 @@ public class DarwinMessenger implements IMessenger {
         try {
           resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
         } catch (Exception e) {
-          Future<DataSource> resultfuture = new MessageTask(e);
+          Future<T> resultfuture = new MessageTask<T>(e);
           pCompletionListener.onMessageCompletion(resultfuture);
+          return resultfuture;
         }
+        final MessageTask<T> resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
+        pCompletionListener.onMessageCompletion(resultfuture);
+        return resultfuture;
       }
     }
 
@@ -351,7 +384,7 @@ public class DarwinMessenger implements IMessenger {
 
     final URI destURL = registeredEndpoint.getEndpointLocation();
 
-    MessageTask messageTask = new MessageTask(destURL, pMessage, pCompletionListener);
+    MessageTask<T> messageTask = new MessageTask<T>(destURL, pMessage, pCompletionListener, pReturnType);
     aExecutor.execute(messageTask);
     return messageTask;
   }
@@ -368,4 +401,10 @@ public class DarwinMessenger implements IMessenger {
     return service.get(pEndpoint.getServiceName());
   }
 
+  public void destroy() {
+    aNotifier.shutdown();
+    aExecutor.shutdown();
+    aServices=null;
+  }
+  
 }
