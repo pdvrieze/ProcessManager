@@ -4,7 +4,7 @@ import java.security.Principal;
 
 import net.devrieze.util.HandleMap.HandleAware;
 
-import nl.adaptivity.jbi.util.EndPointDescriptor;
+import nl.adaptivity.messaging.EndPointDescriptor;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 
