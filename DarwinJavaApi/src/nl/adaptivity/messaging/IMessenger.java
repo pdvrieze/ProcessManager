@@ -4,7 +4,6 @@ import java.net.URI;
 import java.util.concurrent.Future;
 
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
 
 
 public interface IMessenger {
@@ -24,5 +23,5 @@ public interface IMessenger {
    */
   public void registerEndpoint(Endpoint pEndpoint);
 
-  public <T> Future<T> sendMessage(Endpoint pDestination, Source pMessage, CompletionListener pCompletionListener);
+  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener);
 }

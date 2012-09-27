@@ -14,7 +14,7 @@
 		<javac srcdir="src" destdir="release" classpath="." debug="off" source="1.6" target="1.6" />
 	</target>
 	<target name="jar" depends="release">
-		<jar destfile="DarwinJavaApi-1.0.jar" basedir="release">
+		<jar destfile="DarwinJavaApi-1.1.jar" basedir="release">
 		</jar>
 	</target>
 

@@ -3,10 +3,13 @@ package nl.adaptivity.messaging;
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
 
 
 public final class MessagingRegistry {
@@ -14,14 +17,12 @@ public final class MessagingRegistry {
 
   private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener {
 
-    private Endpoint aDestination;
-    private Source aMessage;
+    private ISendableMessage aMessage;
     private Future<T> aOrigin;
     private boolean aCancelled = false;
     private CompletionListener aCompletionListener;
 
-    public WrappingFuture(Endpoint pDestination, Source pMessage, CompletionListener pCompletionListener) {
-      aDestination = pDestination;
+    public WrappingFuture(ISendableMessage pMessage, CompletionListener pCompletionListener) {
       aMessage = pMessage;
       aCompletionListener = pCompletionListener;
     }
@@ -99,7 +100,7 @@ public final class MessagingRegistry {
     @Override
     public synchronized void execute(IMessenger pMessenger) {
       if (! aCancelled) {
-        aOrigin = pMessenger.sendMessage(aDestination, aMessage, this);
+        aOrigin = pMessenger.sendMessage(aMessage, this);
       }
       notifyAll(); // Wake up all waiters (should be only one)
     }
@@ -170,15 +171,15 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public <T> Future<T> sendMessage(final Endpoint pDestination, final Source pMessage, final CompletionListener pCompletionListener) {
+    public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener) {
       synchronized(this) {
         if (aMessenger==null) {
-          final WrappingFuture<T> future = new WrappingFuture<T>(pDestination, pMessage, pCompletionListener);
+          final WrappingFuture<T> future = new WrappingFuture<T>(pMessage, pCompletionListener);
           aCommandQueue.add(future);
           return future;
         }
       }
-      return aMessenger.sendMessage(pDestination, pMessage, pCompletionListener);
+      return aMessenger.sendMessage(pMessage, pCompletionListener);
     }
 
   }
@@ -202,9 +203,9 @@ public final class MessagingRegistry {
     }
     return aMessenger;
   }
-  
-  public static <T> Future<T> sendMessage(Endpoint pDestination, Source pMessage, CompletionListener pCompletionListener) {
-    return getMessenger().<T>sendMessage(pDestination, pMessage, pCompletionListener);
+
+  public static <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener) {
+    return getMessenger().<T>sendMessage(pMessage, pCompletionListener);
   }
 
 }
