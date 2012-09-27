@@ -4,36 +4,25 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
 import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
+
 import nl.adaptivity.messaging.ISendableMessage.Header;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
 public class DarwinMessenger implements IMessenger {
@@ -76,14 +65,14 @@ public class DarwinMessenger implements IMessenger {
    */
   private class MessageCompletionNotifier extends Thread {
 
-    private final BlockingQueue<MessageTask<?>> aPendingNotifications;
+    private final BlockingQueue<MessageTask> aPendingNotifications;
     private volatile boolean aFinished = false;
 
 
     public MessageCompletionNotifier() {
       super(NOTIFIERTHREADNAME);
       this.setDaemon(true); // This is just a helper thread, don't block cleanup.
-      aPendingNotifications = new LinkedBlockingQueue<MessageTask<?>>(CONCURRENTCAPACITY);
+      aPendingNotifications = new LinkedBlockingQueue<MessageTask>(CONCURRENTCAPACITY);
     }
 
     /**
@@ -93,7 +82,7 @@ public class DarwinMessenger implements IMessenger {
     public void run() {
       while (! aFinished) {
         try {
-          MessageTask<?> future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
+          MessageTask future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
           if (future!=null) // Null when timeout.
             notififyCompletion(future);
         } catch (InterruptedException e) {
@@ -103,7 +92,7 @@ public class DarwinMessenger implements IMessenger {
 
     }
 
-    private <T extends DataSource> void notififyCompletion(MessageTask<T> pFuture) {
+    private <T extends DataSource> void notififyCompletion(MessageTask pFuture) {
       ArrayList<CompletionListener> listeners;
       pFuture.aCompletionListener.onMessageCompletion(pFuture);
     }
@@ -120,7 +109,7 @@ public class DarwinMessenger implements IMessenger {
      * Add a notification to the message queue.
      * @param pFuture The future whose completion should be communicated.
      */
-    public void addNotification(MessageTask<?> pFuture) {
+    public void addNotification(MessageTask pFuture) {
       // aPendingNotifications is threadsafe!
       aPendingNotifications.add(pFuture);
 
@@ -129,7 +118,7 @@ public class DarwinMessenger implements IMessenger {
 
   }
 
-  private class MessageTask<T extends DataSource> implements Future<T>, Runnable {
+  private class MessageTask implements Future<DataSource>, Runnable {
 
     private URI aDestURL;
     private ISendableMessage aMessage;
@@ -148,6 +137,14 @@ public class DarwinMessenger implements IMessenger {
       aCompletionListener = pCompletionListener;
     }
 
+    /**
+     * Simple constructor that creates a future encapsulating the exception
+     * @param pE
+     */
+    public MessageTask(Exception pE) {
+      aError = pE;
+    }
+
     @Override
     public void run() {
       boolean cancelled;
@@ -161,8 +158,6 @@ public class DarwinMessenger implements IMessenger {
           synchronized(this) {
             aResult = result;
           }
-        } else {
-
         }
       } catch (MessagingException e) {
         Logger.getLogger(DarwinMessenger.class.getName()).log(Level.WARNING, "Error sending message",e);
@@ -252,43 +247,52 @@ public class DarwinMessenger implements IMessenger {
 
 
     @Override
-    public boolean cancel(boolean pMayInterruptIfRunning) {
+    public synchronized boolean cancel(boolean pMayInterruptIfRunning) {
       if (aCancelled) { return true; }
       if (! aStarted) {
         aCancelled = true;
+        return true;
       }
-      // TODO Auto-generated method stub
+      // TODO support interrupt running process
       return false;
     }
 
     @Override
     public synchronized boolean isCancelled() {
-      // TODO Auto-generated method stub
-      return false;
+      return aCancelled;
     }
 
     @Override
     public synchronized boolean isDone() {
-      // TODO Auto-generated method stub
-      return false;
+      return aCancelled || aResult!=null || aError!=null;
     }
 
     @Override
-    public synchronized T get() throws InterruptedException, ExecutionException {
+    public synchronized DataSource get() throws InterruptedException, ExecutionException {
       if (aCancelled) { throw new CancellationException(); }
       if (aError!=null) { throw new ExecutionException(aError); }
       if (aResult!=null) { return aResult; }
-
+      wait();
       // wait for the result
+      return aResult;
     }
 
     @Override
-    public synchronized T get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+    public synchronized DataSource get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+      if (aCancelled) { throw new CancellationException(); }
+      if (aError!=null) { throw new ExecutionException(aError); }
+      if (aResult!=null) { return aResult; }
       // TODO Auto-generated method stub
       return null;
     }
 
   }
+
+  ExecutorService aExecutor;
+  private Map<QName,Map<String, Endpoint>> aServices;
+
+  private MessageCompletionNotifier aNotifier;
+  
 
   private DarwinMessenger() {
     aExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
@@ -296,13 +300,8 @@ public class DarwinMessenger implements IMessenger {
     aNotifier.start();
   }
 
-  ExecutorService aExecutor;
-  private Map<QName,Map<String, Endpoint>> aServices;
 
-  private MessageCompletionNotifier aNotifier;
-
-
-  void notifyCompletionListener(MessageTask<?> pFuture) {
+  void notifyCompletionListener(MessageTask pFuture) {
     aNotifier.addNotification(pFuture);
   }
 
@@ -326,11 +325,24 @@ public class DarwinMessenger implements IMessenger {
   }
 
   @Override
-  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener) {
+  public  Future<DataSource> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener) {
     Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
 
     if (registeredEndpoint instanceof DirectEndpoint) {
-      return ((DirectEndpoint) registeredEndpoint).<T>deliverMessage(pMessage, pCompletionListener);
+      return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener);
+    }
+    
+    if (registeredEndpoint!=null) { // Direct delivery
+      if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
+        SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
+        Source resultSource;
+        try {
+          resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
+        } catch (Exception e) {
+          Future<DataSource> resultfuture = new MessageTask(e);
+          pCompletionListener.onMessageCompletion(resultfuture);
+        }
+      }
     }
 
     if (registeredEndpoint==null) {
