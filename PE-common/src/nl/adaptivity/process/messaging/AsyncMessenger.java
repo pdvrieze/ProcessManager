@@ -8,11 +8,15 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -27,14 +31,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
+import javax.xml.namespace.QName;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
-
-import nl.adaptivity.jbi.util.EndPointDescriptor;
+import nl.adaptivity.messaging.CompletionListener;
+import nl.adaptivity.messaging.DirectEndpoint;
+import nl.adaptivity.messaging.Endpoint;
+import nl.adaptivity.messaging.IMessenger;
+import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
 
@@ -43,10 +52,10 @@ import nl.adaptivity.util.HttpMessage;
  * A messenger class for sending and receiving messages.
  * This is a singleton class, and for a given classloader will always be the same instance.
  *
- * @author pdvrieze
+ * @author Paul de Vrieze
  * @todo Add the abiltiy to send directly to servlets on the same host.
  */
-public class AsyncMessenger {
+public class AsyncMessenger implements IMessenger {
 
   /**
    * How big should the worker thread pool be initially.
@@ -142,24 +151,6 @@ public class AsyncMessenger {
 
     }
 
-
-  }
-
-  /**
-   * Interface for classes that can receive completion messages from the {@link AsyncMessenger}. This happens
-   * in a separate thread.
-   * @author Paul de Vrieze
-   *
-   */
-  public interface CompletionListener {
-
-    /**
-     * Signify the completion of the task corresponding to the given future. Note that
-     * as the notification is done as the last part of the calling there future theoretically
-     * is not guaranteed to be complete.
-     * @param pFuture The future that is complete.
-     */
-    void onMessageCompletion(AsyncFuture pFuture);
 
   }
 
@@ -330,6 +321,7 @@ public class AsyncMessenger {
   private static class AsyncFutureImpl extends FutureTask<DataSource> implements AsyncFuture {
 
     private AsyncFutureCallable aCallable;
+    private boolean aCancelled;
 
     AsyncFutureImpl(AsyncMessenger pMessenger, ISendableMessage pMessage, long pHandle, EndPointDescriptor pLocalEndPoint, Principal pOwner) {
       this(pMessenger.new AsyncFutureCallable(pMessage, pHandle, pLocalEndPoint, pOwner));
@@ -361,7 +353,7 @@ public class AsyncMessenger {
       return aCallable.aOwner;
     }
 
-  }
+      }
 
   /** Let the class loader do the nasty synchronization for us, but still initialise ondemand. */
   private static class MessengerHolder {
@@ -373,29 +365,21 @@ public class AsyncMessenger {
 
   private MessageCompletionNotifier aNotifier;
 
-  /**
-   * Get the singleton instance. This also updates the base URL.
-   * @param pBaseUrl The url to resolve relative urls to.
-   * @return The singleton instance.
-   * @deprecated The parameter is ignored, just forwards {@link #getInstance()}
-   */
-  @Deprecated
-  public static AsyncMessenger getInstance(URL pBaseUrl) {
-    return getInstance();
-  }
+  private Map<QName,Map<String, Endpoint>> aServices;
 
   /**
    * Get the singleton instance. This also updates the base URL.
    * @return The singleton instance.
    */
-  public static AsyncMessenger getInstance() {
-    return MessengerHolder.globalMessenger;
+  public static void register() {
+    MessagingRegistry.registerMessenger(MessengerHolder.globalMessenger);
   }
 
   /**
    * Create the messenger.
    */
   private AsyncMessenger() {
+    aServices = new HashMap<QName, Map<String,Endpoint>>();
     aExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
     aListeners = new ArrayList<CompletionListener>();
     aNotifier = new MessageCompletionNotifier();
@@ -443,6 +427,53 @@ public class AsyncMessenger {
     AsyncFutureImpl future = new AsyncFutureImpl(this, pMessage, pHandle, pLocalEndPoint, owner);
     aExecutor.execute(future);
     return future;
+  }
+
+  @Override
+  public void registerEndpoint(QName pService, String pEndPoint, URI pTarget) {
+    registerEndpoint(new EndPointDescriptor(pService, pEndPoint, pTarget));
+  }
+
+  @Override
+  public void registerEndpoint(Endpoint pEndpoint) {
+    Map<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
+    if (service==null) {
+      service = new TreeMap<String, Endpoint>();
+      aServices.put(pEndpoint.getServiceName(), service);
+    }
+    if (service.containsKey(pEndpoint.getEndpointName())) {
+      service.remove(pEndpoint.getEndpointName());
+    }
+    service.put(pEndpoint.getEndpointName(), pEndpoint);
+  }
+
+  public Endpoint getEndpoint(QName pServiceName, String pEndpointName) {
+    Map<String, Endpoint> service = aServices.get(pServiceName);
+    if (service==null) { return null; }
+    return service.get(pEndpointName);
+  }
+
+  public Endpoint getEndpoint(Endpoint pEndpoint) {
+    Map<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
+    if (service==null) { return null; }
+    return service.get(pEndpoint.getServiceName());
+  }
+
+  @Override
+  public <T> Future<T> sendMessage(final ISendableMessage pMessage, CompletionListener pCompletionListener) {
+    Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
+
+    if (registeredEndpoint instanceof DirectEndpoint) {
+      return ((DirectEndpoint) registeredEndpoint).<T>deliverMessage(pMessage, pCompletionListener);
+    }
+
+    if (registeredEndpoint==null) {
+      registeredEndpoint = pMessage.getDestination();
+    }
+
+    final URI destURL = registeredEndpoint.getEndpointLocation();
+
+    return sendMessage(pMessage, pHandle, pLocalEndPoint, pOwner);
   }
 
 }
