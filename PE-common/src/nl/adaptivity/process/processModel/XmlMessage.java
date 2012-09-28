@@ -9,6 +9,7 @@
 package nl.adaptivity.process.processModel;
 
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,6 +33,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import nl.adaptivity.messaging.EndPointDescriptor;
+import nl.adaptivity.messaging.Endpoint;
 
 
 /**
@@ -156,6 +160,10 @@ public class XmlMessage {
         this.endpoint = value;
     }
 
+    public Endpoint getEndpointDescriptor() {
+      return new EndPointDescriptor(service, endpoint, URI.create(url));
+    }
+    
     /**
      * Gets the value of the operation property.
      *
@@ -271,7 +279,7 @@ public class XmlMessage {
         this.method = value;
     }
     
-    public String getType() {
+    public String getContentType() {
       if (type==null) {
         return "application/soap+xml";
       } else {
