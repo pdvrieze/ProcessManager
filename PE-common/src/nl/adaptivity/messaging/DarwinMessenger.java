@@ -3,25 +3,10 @@ package nl.adaptivity.messaging;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,9 +14,12 @@ import javax.activation.DataSource;
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
+
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
+import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
@@ -248,7 +236,11 @@ public class DarwinMessenger implements IMessenger {
             Logger.getLogger(DarwinMessenger.class.getName()).info(errorMessage);
             throw new HttpResponseException(httpConnection.getResponseCode(), errorMessage);
           }
-          return JAXB.unmarshal(httpConnection.getInputStream(), aReturnType);
+          if (aReturnType.isAssignableFrom(SourceDataSource.class)) {
+            return aReturnType.cast(new SourceDataSource(httpConnection.getContentType(), new StreamSource(httpConnection.getInputStream())));
+          } else {
+            return JAXB.unmarshal(httpConnection.getInputStream(), aReturnType);
+          }
 
         } finally {
           httpConnection.disconnect();
