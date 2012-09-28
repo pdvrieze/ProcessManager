@@ -1,16 +1,9 @@
 package nl.adaptivity.process.engine.servlet;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -26,40 +19,26 @@ import javax.servlet.ServletException;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.*;
+import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap;
-import net.devrieze.util.Tupple;
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.DarwinMessenger;
-import nl.adaptivity.messaging.EndPointDescriptor;
-import nl.adaptivity.messaging.Endpoint;
-import nl.adaptivity.messaging.ISendableMessage;
-import nl.adaptivity.messaging.MessagingRegistry;
+
+import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.HProcessInstance;
-import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -75,20 +54,11 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
-import nl.adaptivity.util.activation.Sources;
-
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 
-public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
+public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
 
+  
   private static final long serialVersionUID = -6277449163953383974L;
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
@@ -96,98 +66,97 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public static final URI MODIFY_NS = URI.create("http://adaptivity.nl/ProcessEngine/activity");
   public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS,"ProcessEngine");
 
-  static class NewServletMessage implements ISendableMessage {
+  private class MessagingCompletionListener implements CompletionListener {
+  
+    private final Handle<ProcessNodeInstance> aHandle;
+    private final Principal aOwner;
+
+    public MessagingCompletionListener(Handle<ProcessNodeInstance> pHandle, Principal pOwner) {
+      aHandle = pHandle;
+      aOwner = pOwner;
+    }
+
+    @Override
+    public void onMessageCompletion(Future<?> pFuture) {
+      @SuppressWarnings({ "rawtypes", "unchecked" })
+      Future<DataSource> future = ((Future) pFuture);
+      ServletProcessEngine.this.onMessageCompletion(future, aHandle, aOwner);
+    }
+  
+  }
+
+  static class NewServletMessage implements ISendableMessage, DataSource {
+
+//    private Endpoint aDestination;
+//    private String aMethod;
+//    private String aContentType;
+    private final Endpoint aLocalEndpoint;
+    private Principal aOwner;
+    private long aHandle;
+    private XmlMessage aMessage;
+
+    public NewServletMessage(XmlMessage pMessage, EndPointDescriptor pLocalEndPoint) {
+      this(pMessage.getMethod(), pMessage.getEndpointDescriptor(), pMessage.getContentType(), pLocalEndPoint);
+      aMessage = pMessage;
+    }
+    
+    @Deprecated
+    private NewServletMessage(String pMethod, Endpoint pDestination, String pContentType, Endpoint pLocalEndPoint) {
+//      aMethod = pMethod;
+//      aDestination = pDestination;
+//      aContentType = pContentType;
+      aLocalEndpoint = pLocalEndPoint;
+    }
 
     @Override
     public Endpoint getDestination() {
-      // TODO Auto-generated method stub
-      return null;
+      return aMessage.getEndpointDescriptor();
     }
 
     @Override
     public String getMethod() {
-      // TODO Auto-generated method stub
-      return null;
+      return aMessage.getMethod();
     }
 
     @Override
     public Collection<? extends IHeader> getHeaders() {
-      // TODO Auto-generated method stub
-      return null;
+      String contentType = aMessage.getContentType();
+      if (contentType==null) {
+        return Collections.emptyList();
+      } else {
+        return Collections.<IHeader>singletonList(new Header("Content-type", contentType));
+      }
     }
 
     @Override
     public DataSource getBodySource() {
-      // TODO Auto-generated method stub
-      return null;
+      return this;
     }
 
-  }
-
-  static class OldServletMessage {
-
-    private final QName aRemoteService;
-    private final String aRemoteEndpoint;
-    private final QName aOperation;
-    private Source aBody;
-    private final String aMethod;
-    private final String aUrl;
-    private final String aContentType;
-    private final EndPointDescriptor aReplies;
-
-    private OldServletMessage(XmlMessage pSource, EndPointDescriptor pReplies) {
-      this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl(), pSource.getType(), pReplies);
+    @Override
+    public String getContentType() {
+      return aMessage.getContentType();
     }
 
-
-    private OldServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl, String pContentType, EndPointDescriptor pReplies) {
-      aRemoteService = pService;
-      aRemoteEndpoint = pEndpoint;
-      aOperation = pOperation;
-      aBody = pBody;
-      aMethod = pMethod;
-      aUrl = pUrl;
-      aContentType = pContentType;
-      aReplies = pReplies;
-    }
-
-
-    public QName getService() {
-      return aRemoteService;
-    }
-
-
-    public String getEndpoint() {
-      return aRemoteEndpoint;
-    }
-
-
-    public QName getOperation() {
-      return aOperation;
-    }
-
-
-    public Source getContent() {
-      return aBody;
-    }
-
-
-    public void setHandle(long pHandle, Principal pOwner) {
+    @Override
+    public InputStream getInputStream() throws IOException {
+      Source messageBody = aMessage.getBodySource();
       try {
         XMLInputFactory xif = XMLInputFactory.newInstance();
-        if (aBody ==null) { throw new NullPointerException(); }
+        if (messageBody ==null) { throw new NullPointerException(); }
 
-        XMLEventReader xer = xif.createXMLEventReader(aBody);
+        XMLEventReader xer = xif.createXMLEventReader(messageBody);
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db;
-        try {
-          db = dbf.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-          throw new MyMessagingException(e);
-        }
-        DOMResult result = new DOMResult(db.newDocument());
+//        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+//        dbf.setNamespaceAware(true);
+//        DocumentBuilder db;
+//        try {
+//          db = dbf.newDocumentBuilder();
+//        } catch (ParserConfigurationException e) {
+//          throw new MyMessagingException(e);
+//        }
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        StreamResult result = new StreamResult(baos);
         XMLEventWriter xew = xof.createXMLEventWriter(result);
 
         while (xer.hasNext()) {
@@ -198,9 +167,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
             if (MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
               @SuppressWarnings("unchecked") Iterator<Attribute> attributes = se.getAttributes();
               if (eName.getLocalPart().equals("attribute")) {
-                writeAttribute(xer, attributes, xew, pHandle, pOwner);
+                writeAttribute(xer, attributes, xew, aHandle, aOwner);
               } else if (eName.getLocalPart().equals("element")) {
-                writeElement(xer, attributes, xew, pHandle);
+                writeElement(xer, attributes, xew, aHandle);
               } else {
                 throw new MyMessagingException("Unsupported activity modifier");
               }
@@ -245,13 +214,17 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
             }
           }
         }
-        aBody = new DOMSource(result.getNode());
+        return new ByteArrayInputStream(baos.toByteArray());
 
       } catch (FactoryConfigurationError e) {
         throw new MyMessagingException(e);
       } catch (XMLStreamException e) {
         throw new MyMessagingException(e);
       }
+
+    
+    
+    
     }
 
     private void writeElement(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException {
@@ -291,10 +264,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {
-            out.add(xef.createAttribute("serviceNS", aReplies.getServiceName().getNamespaceURI()));
-            out.add(xef.createAttribute("serviceLocalName", aReplies.getServiceName().getLocalPart()));
-            out.add(xef.createAttribute("endpointName", aReplies.getEndpointName()));
-            out.add(xef.createAttribute("endpointLocation", aReplies.getEndpointLocationString()));
+            out.add(xef.createAttribute("serviceNS", aLocalEndpoint.getServiceName().getNamespaceURI()));
+            out.add(xef.createAttribute("serviceLocalName", aLocalEndpoint.getServiceName().getLocalPart()));
+            out.add(xef.createAttribute("endpointName", aLocalEndpoint.getEndpointName()));
+            out.add(xef.createAttribute("endpointLocation", aLocalEndpoint.getEndpointLocation().toString()));
           }
 
           out.add(xef.createEndElement(qname1, namespaces.iterator()));
@@ -378,40 +351,25 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-
     @Override
-    public String getDestination() {
-      return aUrl;
-    }
-
-
-    @Override
-    public String getMethod() {
-      return aMethod;
+    public String getName() {
+      return null;
     }
 
     @Override
-    public boolean hasBody() {
-      return aBody!=null;
+    public OutputStream getOutputStream() throws IOException {
+      throw new UnsupportedOperationException("Can not write to messages through a stream");
     }
 
 
-    @Override
-    public Collection<Tupple<String, String>> getHeaders() {
-      return Collections.singletonList(Tupple.tupple("Content-Type", aContentType));
+    public void setHandle(long pHandle, Principal pOwner) {
+      aHandle = pHandle;
+      aOwner = pOwner;
     }
-
-
-    @Override
-    public void writeBody(OutputStream pOutputStream) throws IOException {
-      try {
-        Sources.writeToStream(aBody, pOutputStream);
-      } catch (TransformerException e) {
-        throw new IOException(e);
-      }
-    }
-
+    
+    
   }
+
   private Thread aThread;
   private ProcessEngine aProcessEngine;
 
@@ -497,16 +455,16 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
 
   @Override
-  public ServletMessage createMessage(XmlMessage pMessage) {
-    return new ServletMessage(pMessage, aLocalEndPoint);
+  public NewServletMessage createMessage(XmlMessage pMessage) {
+    return new NewServletMessage(pMessage, aLocalEndPoint);
   }
 
   @Override
-  public boolean sendMessage(ServletMessage pMessage, ProcessNodeInstance pInstance) {
+  public boolean sendMessage(NewServletMessage pMessage, ProcessNodeInstance pInstance) {
     long handle = aProcessEngine.registerMessage(pInstance);
     pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner());
 
-    aMessagingService.sendMessage(pMessage, handle, aLocalEndPoint, pInstance.getProcessInstance().getOwner());
+    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(HandleMap.<ProcessNodeInstance>handle(pMessage.aHandle), pMessage.aOwner), DataSource.class);
     return true;
   }
 
@@ -629,10 +587,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    * Handle the completing of sending a message and receiving some sort of reply. If the
    * reply is an ActivityResponse message we handle that specially.
    */
-  @Override
-  public void onMessageCompletion(Future<?> pFuture) {
+  public void onMessageCompletion(Future<DataSource> pFuture, Handle<ProcessNodeInstance> pHandle, Principal pOwner) {
     if (pFuture.isCancelled()) {
-      aProcessEngine.cancelledTask(pFuture.<ProcessNodeInstance>getHandle(), pFuture.getOwner());
+      aProcessEngine.cancelledTask(pHandle, pOwner);
     } else {
       try {
         DataSource result = pFuture.get();
@@ -641,7 +598,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           Element rootNode = domResult.getDocumentElement();
           // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
           if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
-            Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, Header.ELEMENTNAME);
+            Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
             rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
           }
           if (rootNode!=null) {
@@ -650,12 +607,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
               String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
               try {
                 TaskState taskState = TaskState.valueOf(taskStateAttr);
-                aProcessEngine.updateTaskState(pFuture.<ProcessNodeInstance>getHandle(), taskState, pFuture.getOwner());
+                aProcessEngine.updateTaskState(pHandle, taskState, pOwner);
                 return;
               } catch (NullPointerException e) {
                 // ignore
               } catch (IllegalArgumentException e) {
-                aProcessEngine.errorTask(pFuture.<ProcessNodeInstance>getHandle(), e, pFuture.getOwner());
+                aProcessEngine.errorTask(pHandle, e, pOwner);
               }
             }
           }
@@ -668,11 +625,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
         // By default assume that we have finished the task
-        aProcessEngine.finishedTask(pFuture.<ProcessNodeInstance>getHandle(), result, pFuture.getOwner());
+        aProcessEngine.finishedTask(pHandle, result, pOwner);
       } catch (ExecutionException e) {
-        aProcessEngine.errorTask(pFuture.<ProcessNodeInstance>getHandle(), e.getCause(), pFuture.getOwner());
+        aProcessEngine.errorTask(pHandle, e.getCause(), pOwner);
       } catch (InterruptedException e) {
-        aProcessEngine.cancelledTask(pFuture.<ProcessNodeInstance>getHandle(), pFuture.getOwner());
+        aProcessEngine.cancelledTask(pHandle, pOwner);
       }
     }
   }
