@@ -2,19 +2,18 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import java.security.Principal;
 import java.util.Collection;
+import java.util.concurrent.Future;
 
 import net.devrieze.util.HandleMap;
-import net.devrieze.util.Urls;
+import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.AsyncMessenger;
-import nl.adaptivity.process.messaging.AsyncMessenger.AsyncFuture;
-import nl.adaptivity.process.messaging.AsyncMessenger.CompletionListener;
 
 
 
 public class UserMessageService implements CompletionListener {
 
-  
+
   private static class InstantiationHelper {
 
     public static final UserMessageService INSTANCE = new UserMessageService();
@@ -27,17 +26,13 @@ public class UserMessageService implements CompletionListener {
 
   public UserMessageService() {
     tasks = new HandleMap<UserTask<?>>();
-    aContext = AsyncMessenger.getInstance(Urls.newURL("http://localhost:9080/"));
-    aContext.addCompletionListener(this);
-    
-    
+
 //    DummyTask task = new DummyTask("blabla");
 //    task.setHandle(1);
 //    tasks.add(task);
   }
 
   public boolean postTask(UserTask<?> pTask) {
-    pTask.setContext(getContext());
     return tasks.put(pTask) >= 0;
   }
 
@@ -84,9 +79,9 @@ public class UserMessageService implements CompletionListener {
   }
 
   @Override
-  public void onMessageCompletion(AsyncFuture pFuture) {
+  public void onMessageCompletion(Future<?> pFuture) {
     // TODO Auto-generated method stub
-    // 
+    //
   }
 
 }
