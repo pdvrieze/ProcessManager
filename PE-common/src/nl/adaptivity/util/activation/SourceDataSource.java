@@ -1,15 +1,11 @@
 package nl.adaptivity.util.activation;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.activation.DataSource;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.stream.StreamSource;
 
 
 public class SourceDataSource implements DataSource {
@@ -29,16 +25,7 @@ public class SourceDataSource implements DataSource {
 
   @Override
   public InputStream getInputStream() throws IOException {
-    if (aContent instanceof StreamSource) {
-      return ((StreamSource) aContent).getInputStream();
-    }
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try {
-      Sources.writeToStream(aContent, baos);
-    } catch (TransformerException e) {
-      throw new IOException(e);
-    }
-    return new ByteArrayInputStream(baos.toByteArray());
+    return Sources.toInputStream(aContent);
   }
 
   @Override
