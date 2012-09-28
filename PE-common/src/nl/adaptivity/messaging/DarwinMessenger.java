@@ -414,7 +414,7 @@ public class DarwinMessenger implements IMessenger {
     return service.get(pEndpoint.getServiceName());
   }
 
-  public void destroy() {
+  public void shutdown() {
     aNotifier.shutdown();
     aExecutor.shutdown();
     aServices=null;
