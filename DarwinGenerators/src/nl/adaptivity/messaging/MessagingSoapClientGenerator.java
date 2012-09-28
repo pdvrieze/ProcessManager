@@ -219,9 +219,9 @@ public class MessagingSoapClientGenerator {
         pOut.write("  private static final URI LOCATION = null;\n\n");
       }
       finalService = true;
-    } catch (ClassCastException e) {
-    } catch (InstantiationException e) {
-    } catch (IllegalAccessException e) {
+    } catch (ClassCastException e) { /* Ignore failure to instantiate. We just generate different code. */
+    } catch (InstantiationException e) { /* Ignore failure to instantiate. We just generate different code. */
+    } catch (IllegalAccessException e) { /* Ignore failure to instantiate. We just generate different code. */
       e.printStackTrace();
       System.exit(1);
     }
@@ -261,7 +261,7 @@ public class MessagingSoapClientGenerator {
   private static void writeMethod(Writer pOut, Method pMethod, WebMethod pAnnotation) throws IOException {
     String methodName = pAnnotation.operationName();
     String principalName = null;
-    if (methodName==null) { methodName = pMethod.getName(); }
+    if (methodName==null || methodName.length()==0) { methodName = pMethod.getName(); }
     pOut.write("  public static Future<");
     pOut.write(pMethod.getReturnType().getCanonicalName());
     pOut.write("> "); pOut.write(methodName); pOut.write("(");
@@ -281,14 +281,15 @@ public class MessagingSoapClientGenerator {
           }
           if (annotation instanceof RestParam) {
             RestParam restParam = (RestParam) annotation;
-            if(((RestParam) annotation).type()==ParamType.PRINCIPAL) {
+            if(restParam.type()==ParamType.PRINCIPAL) {
               // We nead a principal header
               isPrincipal = true;
-              if (name==null) { name="user"; }
+              if (name==null || name.length()==0) { name=restParam.name(); }
+              if (name==null || name.length()==0) { name="user"; }
             }
           }
         }
-        if (name==null) {
+        if (name==null||name.length()==0) {
           name = "param"+paramNo;
         }
         if (isPrincipal) {
