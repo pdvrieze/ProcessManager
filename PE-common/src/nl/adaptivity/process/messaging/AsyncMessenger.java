@@ -349,11 +349,6 @@ public class AsyncMessenger {
 
       }
 
-  /** Let the class loader do the nasty synchronization for us, but still initialise ondemand. */
-  private static class MessengerHolder {
-    static final AsyncMessenger globalMessenger = new AsyncMessenger();
-  }
-
   ExecutorService aExecutor;
   private Collection<CompletionListener> aListeners;
 
