@@ -16,10 +16,4 @@ public interface EndpointProvider {
    */
   Collection<GenericEndpoint> getEndpoints();
 
-  /**
-   * Set the messenger to use for outwards communication. 
-   * @param pMessenger The messenger.
-   */
-  void setContext(AsyncMessenger pMessenger);
-
 }
