@@ -546,8 +546,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public TaskState updateTaskStateSoap(
                    @WebParam(name = "handle", mode = Mode.IN) long pHandle,
                    @WebParam(name = "state", mode = Mode.IN) TaskState pNewState,
-                   @WebParam(name = "user", mode = Mode.IN) String pUser) {
-    return updateTaskState(pHandle, pNewState, new SimplePrincipal(pUser));
+                   @WebParam(name = "user", mode = Mode.IN) Principal pUser) {
+    return updateTaskState(pHandle, pNewState, pUser);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
