@@ -1,7 +1,5 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -9,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
 
+import javax.activation.DataSource;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
@@ -21,12 +20,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerException;
 
 import net.devrieze.util.Tripple;
-import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndPointDescriptor;
+import nl.adaptivity.messaging.Header;
 import nl.adaptivity.messaging.ISendableMessage;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -34,9 +32,10 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.ws.soap.SoapHelper;
 
+import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Node;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
@@ -114,32 +113,23 @@ public class InternalEndpoint implements GenericEndpoint {
       return new ISendableMessage() {
 
         @Override
-        public void writeBody(OutputStream pOutputStream) throws IOException {
-          try {
-            Sources.writeToStream(pMessageContent, pOutputStream);
-          } catch (TransformerException e) {
-            throw new IOException(e);
-          }
-        }
-
-        @Override
-        public boolean hasBody() {
-          return true;
-        }
-
-        @Override
         public String getMethod() {
           return "POST";
         }
 
         @Override
-        public Collection<Tupple<String, String>> getHeaders() {
-          return Collections.singletonList(Tupple.tupple("Content-Type", "application/soap+xml"));
+        public Collection<? extends IHeader> getHeaders() {
+          return Collections.singletonList(new Header("Content-Type", "application/soap+xml"));
         }
 
         @Override
-        public String getDestination() {
-          return aEndPoint.getEndpointLocationString();
+        public EndPointDescriptor getDestination() {
+          return aEndPoint;
+        }
+
+        @Override
+        public DataSource getBodySource() {
+          return new SourceDataSource(Envelope.MIMETYPE,pMessageContent);
         }
       };
     }
