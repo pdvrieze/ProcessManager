@@ -90,7 +90,7 @@ public class MessagingSoapClientGenerator {
         }
       }
     }
-    if (inClasses.size()==0 || outClass==null || pkg==null) {
+    if (inClasses.size()==0 || (inClasses.size()==1 && outClass==null) || pkg==null) {
       System.err.println("Not all three of inclass, outclass and package have been provided");
       showHelp();
       return;
