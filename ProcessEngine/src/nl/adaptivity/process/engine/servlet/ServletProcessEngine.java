@@ -5,7 +5,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -24,36 +29,41 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.*;
-import javax.xml.stream.events.*;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.CompletionListener;
+import nl.adaptivity.messaging.DarwinMessenger;
 import nl.adaptivity.messaging.EndPointDescriptor;
+import nl.adaptivity.messaging.Endpoint;
 import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.*;
+import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
-import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.ProcessModel;
@@ -67,8 +77,17 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
 
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
-public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.ServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
+
+public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, CompletionListener, GenericEndpoint {
 
   private static final long serialVersionUID = -6277449163953383974L;
 
@@ -77,7 +96,35 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public static final URI MODIFY_NS = URI.create("http://adaptivity.nl/ProcessEngine/activity");
   public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS,"ProcessEngine");
 
-  static class ServletMessage implements ISendableMessage{
+  static class NewServletMessage implements ISendableMessage {
+
+    @Override
+    public Endpoint getDestination() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public String getMethod() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Collection<? extends IHeader> getHeaders() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public DataSource getBodySource() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+  }
+
+  static class OldServletMessage {
 
     private final QName aRemoteService;
     private final String aRemoteEndpoint;
@@ -88,12 +135,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     private final String aContentType;
     private final EndPointDescriptor aReplies;
 
-    private ServletMessage(XmlMessage pSource, EndPointDescriptor pReplies) {
+    private OldServletMessage(XmlMessage pSource, EndPointDescriptor pReplies) {
       this(pSource.getService(), pSource.getEndpoint(), pSource.getOperation(), pSource.getBodySource(), pSource.getMethod(), pSource.getUrl(), pSource.getType(), pReplies);
     }
 
 
-    private ServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl, String pContentType, EndPointDescriptor pReplies) {
+    private OldServletMessage(QName pService, String pEndpoint, QName pOperation, Source pBody, String pMethod, String pUrl, String pContentType, EndPointDescriptor pReplies) {
       aRemoteService = pService;
       aRemoteEndpoint = pEndpoint;
       aOperation = pOperation;
@@ -368,8 +415,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   private Thread aThread;
   private ProcessEngine aProcessEngine;
 
-  private AsyncMessenger aMessagingService;
-
   private EndPointDescriptor aLocalEndPoint;
 
   /*
@@ -387,7 +432,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     if (aThread!=null) {
       aThread.interrupt();
     }
-    aMessagingService.destroy();
+    MessagingRegistry.getMessenger().shutdown();
   }
 
   @Override
@@ -444,9 +489,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       }
       aLocalEndPoint=new EndPointDescriptor(getServiceName(), getEndpointName(), localURL);
     }
-    aMessagingService = AsyncMessenger.getInstance();
-
-    aMessagingService.addCompletionListener(this);
+    DarwinMessenger.register();
   }
 
   /*
