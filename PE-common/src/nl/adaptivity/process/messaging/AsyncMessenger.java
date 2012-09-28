@@ -39,7 +39,7 @@ import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndPointDescriptor;
 import nl.adaptivity.messaging.Endpoint;
 import nl.adaptivity.messaging.ISendableMessage;
-import nl.adaptivity.messaging.ISendableMessage.Header;
+import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
@@ -241,7 +241,7 @@ public class AsyncMessenger {
         }
         httpConnection.setRequestMethod(method);
 
-        for(Header header: aMessage.getHeaders()) {
+        for(IHeader header: aMessage.getHeaders()) {
           httpConnection.addRequestProperty(header.getName(), header.getValue());
         }
         try {
