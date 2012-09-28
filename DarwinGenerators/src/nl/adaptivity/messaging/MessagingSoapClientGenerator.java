@@ -115,7 +115,7 @@ public class MessagingSoapClientGenerator {
       writeOutFile(inClasses.get(0), pkg, outClass, fs, outfile, urlclassloader);
     } else {
       for(String inClass: inClasses) {
-        String newOutClass = inClass.substring(inClass.lastIndexOf('.'))+"Client";
+        String newOutClass = inClass.substring(inClass.lastIndexOf('.')+1)+"Client";
         Path newOutFile=outfile.getParent().resolve(newOutClass+".java");
         writeOutFile(inClass, pkg, newOutClass, fs, newOutFile, urlclassloader);
       }
