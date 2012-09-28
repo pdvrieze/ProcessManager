@@ -4,10 +4,27 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.Principal;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,11 +34,13 @@ import javax.xml.namespace.QName;
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
-import net.devrieze.util.Tupple;
 import net.devrieze.util.security.SimplePrincipal;
-
-import nl.adaptivity.messaging.*;
+import nl.adaptivity.messaging.CompletionListener;
+import nl.adaptivity.messaging.EndPointDescriptor;
+import nl.adaptivity.messaging.Endpoint;
+import nl.adaptivity.messaging.ISendableMessage;
 import nl.adaptivity.messaging.ISendableMessage.Header;
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.HttpMessage;
 
@@ -343,14 +362,6 @@ public class AsyncMessenger {
   private Map<QName,Map<String, Endpoint>> aServices;
 
   /**
-   * Get the singleton instance. This also updates the base URL.
-   * @return The singleton instance.
-   */
-  public static void register() {
-    MessagingRegistry.registerMessenger(MessengerHolder.globalMessenger);
-  }
-
-  /**
    * Create the messenger.
    */
   private AsyncMessenger() {
@@ -404,24 +415,6 @@ public class AsyncMessenger {
     return future;
   }
 
-  @Override
-  public void registerEndpoint(QName pService, String pEndPoint, URI pTarget) {
-    registerEndpoint(new EndPointDescriptor(pService, pEndPoint, pTarget));
-  }
-
-  @Override
-  public void registerEndpoint(Endpoint pEndpoint) {
-    Map<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
-    if (service==null) {
-      service = new TreeMap<String, Endpoint>();
-      aServices.put(pEndpoint.getServiceName(), service);
-    }
-    if (service.containsKey(pEndpoint.getEndpointName())) {
-      service.remove(pEndpoint.getEndpointName());
-    }
-    service.put(pEndpoint.getEndpointName(), pEndpoint);
-  }
-
   public Endpoint getEndpoint(QName pServiceName, String pEndpointName) {
     Map<String, Endpoint> service = aServices.get(pServiceName);
     if (service==null) { return null; }
@@ -432,23 +425,6 @@ public class AsyncMessenger {
     Map<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
     if (service==null) { return null; }
     return service.get(pEndpoint.getServiceName());
-  }
-
-  @Override
-  public <T> Future<T> sendMessage(final ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
-    Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
-
-    if (registeredEndpoint instanceof DirectEndpoint) {
-      return ((DirectEndpoint) registeredEndpoint).<T>deliverMessage(pMessage, pCompletionListener, pReturnType);
-    }
-
-    if (registeredEndpoint==null) {
-      registeredEndpoint = pMessage.getDestination();
-    }
-
-    final URI destURL = registeredEndpoint.getEndpointLocation();
-
-    return sendMessage(pMessage, pHandle, pLocalEndPoint, pOwner);
   }
 
 }
