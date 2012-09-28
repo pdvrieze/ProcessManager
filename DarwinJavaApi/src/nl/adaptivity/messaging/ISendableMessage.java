@@ -18,7 +18,7 @@ public interface ISendableMessage {
    *
    * @author Paul de Vrieze
    */
-  public interface Header {
+  public interface IHeader {
 
     /**
      * Get the name of the header.
@@ -51,7 +51,7 @@ public interface ISendableMessage {
   String getMethod();
 
   /** Get the headers needing to be set on the request. */
-  Collection<? extends Header> getHeaders();
+  Collection<? extends IHeader> getHeaders();
 
   /**
    * Get the source that represents the body of the message.
