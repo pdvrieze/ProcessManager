@@ -117,7 +117,7 @@ public final class MessagingRegistry {
   }
 
   private static class StubMessenger implements IMessenger {
-    IMessenger aMessenger=null;
+    IMessenger aRealMessenger=null;
     Queue<MessengerCommand> aCommandQueue;
 
     StubMessenger() {
@@ -125,9 +125,9 @@ public final class MessagingRegistry {
     }
 
     public synchronized void setMessenger(IMessenger pMessenger) {
-      aMessenger = pMessenger;
+      aRealMessenger = pMessenger;
       for(MessengerCommand command: aCommandQueue) {
-        command.execute(aMessenger);
+        command.execute(aRealMessenger);
       }
       aCommandQueue=null; // We don't need it anymore, we'll just forward.
     }
@@ -135,7 +135,7 @@ public final class MessagingRegistry {
     @Override
     public void registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
       synchronized(this) {
-        if (aMessenger==null) {
+        if (aRealMessenger==null) {
           aCommandQueue.add(new MessengerCommand(){
 
             @Override
@@ -147,13 +147,13 @@ public final class MessagingRegistry {
           return;
         }
       }
-      aMessenger.registerEndpoint(pService, pEndPoint, pTarget);
+      aRealMessenger.registerEndpoint(pService, pEndPoint, pTarget);
     }
 
     @Override
     public void registerEndpoint(final Endpoint pEndpoint) {
       synchronized(this) {
-        if (aMessenger==null) {
+        if (aRealMessenger==null) {
           aCommandQueue.add(new MessengerCommand(){
 
             @Override
@@ -165,19 +165,24 @@ public final class MessagingRegistry {
           return;
         }
       }
-      aMessenger.registerEndpoint(pEndpoint);
+      aRealMessenger.registerEndpoint(pEndpoint);
     }
 
     @Override
     public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
       synchronized(this) {
-        if (aMessenger==null) {
+        if (aRealMessenger==null) {
           final WrappingFuture<T> future = new WrappingFuture<T>(pMessage, pCompletionListener, pReturnType);
           aCommandQueue.add(future);
           return future;
         }
       }
-      return aMessenger.sendMessage(pMessage, pCompletionListener, pReturnType);
+      return aRealMessenger.sendMessage(pMessage, pCompletionListener, pReturnType);
+    }
+
+    @Override
+    public void shutdown() {
+      System.err.println("Shutting down stub messenger. This should never happen. Do register an actual messenger!");
     }
 
   }
