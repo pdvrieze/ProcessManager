@@ -18,10 +18,7 @@ import java.util.List;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.RestoreAction;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
 
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
@@ -29,12 +26,12 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 public class MessagingSoapClientGenerator {
 
-  
+
   private static final class ParamInfo {
-    
+
     public final String name;
     public final Class<?> type;
-    
+
     public ParamInfo(Class<?> pType, String pName) {
       type = pType;
       name = pName;
@@ -146,7 +143,7 @@ public class MessagingSoapClientGenerator {
   private static URL[] getUrls(String pClassPath) {
     FileSystem fs = FileSystems.getDefault();
     List<URL> result = new ArrayList<>();
-    
+
     try {
       for(String element:pClassPath.split(":")) {
         try {
@@ -192,18 +189,19 @@ public class MessagingSoapClientGenerator {
 
     pOut.write("import java.net.URI;\n" +
                "import java.util.concurrent.Future;\n\n" +
-               
+
                "import javax.xml.bind.JAXBElement;\n" +
                "import javax.xml.bind.JAXBException;\n"+
                "import javax.xml.namespace.QName;\n" +
                "import javax.xml.transform.Source;\n\n" +
-               
+
                "import net.devrieze.util.Tripple;\n\n" +
-               
-    		   "import nl.adaptivity.jbi.util.EndPointDescriptor;\n" +
+
                "import nl.adaptivity.messaging.CompletionListener;\n" +
                "import nl.adaptivity.messaging.Endpoint;\n" +
+               "import nl.adaptivity.messaging.EndPointDescriptor;\n" +
                "import nl.adaptivity.messaging.MessagingRegistry;\n" +
+               "import nl.adaptivity.messaging.SendableSoapSource;\n" +
                "import nl.adaptivity.ws.soap.SoapHelper;\n\n");
 
     pOut.write("public class "); pOut.write(pOutClass); pOut.write(" {\n\n");
@@ -299,11 +297,11 @@ public class MessagingSoapClientGenerator {
           params.add(new ParamInfo(paramType, name));
         }
         if (firstParam) { firstParam=false; } else { pOut.write(", "); }
-        
+
         pOut.write(paramType.getCanonicalName());
         pOut.write(' ');
         pOut.write(name);
-  
+
         ++paramNo;
       }
     }
@@ -347,11 +345,14 @@ public class MessagingSoapClientGenerator {
       pOut.write("param"+i);
     }
     pOut.write(");\n\n");
-    
+
     pOut.write("    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);\n\n");
-    
-    pOut.write("    return MessagingRegistry.sendMessage(endpoint, message, completionListener);\n");
-    
+
+    pOut.write("    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ");
+    pOut.write(pMethod.getReturnType().getCanonicalName());
+
+    pOut.write(".class);\n");
+
     pOut.write("  }\n\n");
 
   }
