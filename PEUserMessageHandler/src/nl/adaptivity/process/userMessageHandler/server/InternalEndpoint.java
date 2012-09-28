@@ -13,30 +13,24 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
-import net.devrieze.util.Tripple;
+import org.w3.soapEnvelope.Envelope;
+
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.EndPointDescriptor;
 import nl.adaptivity.messaging.Header;
 import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
-import nl.adaptivity.process.messaging.AsyncMessenger;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.SourceDataSource;
-import nl.adaptivity.ws.soap.SoapHelper;
-
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Node;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
@@ -52,7 +46,6 @@ public class InternalEndpoint implements GenericEndpoint {
     private TaskState aState=TaskState.Sent;
     private String aSummary;
     private EndPointDescriptor aEndPoint = null;
-    private AsyncMessenger aContext;
     private Principal aOwner;
 
     public XmlTask() {
@@ -94,19 +87,12 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     private void updateRemoteTaskState(TaskState pState, Principal pUser) throws JAXBException, MyMessagingException {
-      @SuppressWarnings("unchecked")
-      Source messageContent = SoapHelper.createMessage(UPDATE_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle),
-                                                                              Tripple.<String, Class<?>, Object>tripple("state", TaskState.class, pState),
-                                                                                                             Tripple.<String, Class<?>, Object>tripple("user", String.class, pUser.getName()));
-      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null, pUser);
+      ServletProcessEngineClient.updateTaskState(aHandle, pState, pUser, null);
     }
 
     private void finishRemoteTask(Principal pUser) throws JAXBException, MyMessagingException {
-      @SuppressWarnings("unchecked")
-      Source messageContent = SoapHelper.createMessage(FINISH_OPERATION_NAME, Tripple.<String, Class<?>, Object>tripple("handle", long.class, aRemoteHandle),
-                                                                              Tripple.<String, Class<?>, Object>tripple("payload", Node.class, null),
-                                                                              Tripple.<String, Class<?>, Object>tripple("user", String.class, pUser.getName()));
-      aContext.sendMessage(createMessage(aRemoteHandle, messageContent), aHandle, null, pUser);
+      ServletProcessEngineClient.finishTask(aHandle, null, pUser, null); // Ignore completion???
+      // TODO Do something with reply!
     }
 
     private ISendableMessage createMessage(final long pRemoteHandle, final Source pMessageContent) {
@@ -167,16 +153,6 @@ public class InternalEndpoint implements GenericEndpoint {
     @Override
     public void setEndpoint(EndPointDescriptor pEndPoint) {
       aEndPoint = pEndPoint;
-    }
-
-    @Override
-    public void setContext(AsyncMessenger context) {
-      aContext = context;
-    }
-
-    @Override
-    public AsyncMessenger getContext() {
-      return aContext;
     }
 
     @Override

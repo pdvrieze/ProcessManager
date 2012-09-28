@@ -5,9 +5,9 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 import net.devrieze.util.HandleMap;
+
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.Task.TaskState;
-import nl.adaptivity.process.messaging.AsyncMessenger;
 
 
 
@@ -21,8 +21,6 @@ public class UserMessageService implements CompletionListener {
   }
 
   private HandleMap<UserTask<?>> tasks;
-
-  private AsyncMessenger aContext;
 
   public UserMessageService() {
     tasks = new HandleMap<UserTask<?>>();
@@ -63,19 +61,12 @@ public class UserMessageService implements CompletionListener {
     return TaskState.Taken;
   }
 
-  public AsyncMessenger getContext() {
-    return aContext;
-  }
-
   public static UserMessageService getInstance() {
     return InstantiationHelper.INSTANCE;
   }
 
-  public synchronized void destroy() {
-    if (aContext!=null) {
-      aContext.destroy();
-      aContext = null;
-    }
+  public void destroy() {
+    // For now do nothing. Put deinitialization here.
   }
 
   @Override
