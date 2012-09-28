@@ -1,5 +1,6 @@
 package nl.adaptivity.messaging;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -237,7 +238,9 @@ public class DarwinMessenger implements IMessenger {
             throw new HttpResponseException(httpConnection.getResponseCode(), errorMessage);
           }
           if (aReturnType.isAssignableFrom(SourceDataSource.class)) {
-            return aReturnType.cast(new SourceDataSource(httpConnection.getContentType(), new StreamSource(httpConnection.getInputStream())));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            InputStreamOutputStream.writeToOutputStream(httpConnection.getInputStream(), baos);
+            return aReturnType.cast(new SourceDataSource(httpConnection.getContentType(), new StreamSource(new ByteArrayInputStream(baos.toByteArray()))));
           } else {
             return JAXB.unmarshal(httpConnection.getInputStream(), aReturnType);
           }
