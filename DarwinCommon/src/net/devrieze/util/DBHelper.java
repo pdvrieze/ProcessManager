@@ -62,7 +62,13 @@ public class DBHelper {
     }
 
     DBStatementImpl(String pSQL, String pErrorMsg) throws SQLException {
-      if (DBHelper.this.aConnection==null || (!aConnection.isValid(1))) {
+      boolean connectionValid = false;
+      if (DBHelper.this.aConnection!=null) {
+        try {
+          connectionValid = aConnection.isValid(1);
+        } catch (AbstractMethodError e) { logWarning("We should use jdbc 4, not 3. isValid is missing"); }
+      }
+      if (!connectionValid) {
         if (SHARE_CONNECTIONS) {
           Connection connection = aDataSource.aConnectionMap.get(DBHelper.this.aKey);
           if (DBHelper.this.aConnection==null && connection!=null && connection.isValid(1)) {
