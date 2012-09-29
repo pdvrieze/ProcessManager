@@ -29,7 +29,7 @@ import nl.adaptivity.process.exec.Task;
  */
 @XmlRootElement(name = Activity.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = Activity.ELEMENTNAME+"Type", propOrder = { XmlImportType.ELEMENTNAME, XmlImportType.ELEMENTNAME, XmlMessage.ELEMENTNAME, "condition" })
+@XmlType(name = Activity.ELEMENTNAME+"Type", propOrder = { "imports", "exports", XmlMessage.ELEMENTNAME, "condition" })
 public class Activity extends ProcessNode{
 
   private static final long serialVersionUID = 282944120294737322L;
