@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 
@@ -190,14 +191,17 @@ public final class MessagingRegistry {
   private static IMessenger aMessenger;
 
   public static synchronized void registerMessenger(IMessenger pMessenger) {
-    if (pMessenger==null) { throw new NullPointerException("Null messengers are not allowed"); }
-    if (aMessenger instanceof StubMessenger) {
+    if (pMessenger==null) {
+      aMessenger = new StubMessenger();
+    } else if (aMessenger instanceof StubMessenger) {
       ((StubMessenger) aMessenger).setMessenger(pMessenger);
       aMessenger = pMessenger;
     } else if (aMessenger!=null) {
+      
       throw new IllegalStateException("It is not allowed to register multiple messengers");
     }
     aMessenger = pMessenger;
+    Logger.getAnonymousLogger().info("New messenger registered: "+aMessenger.getClass().getName());
   }
 
   public static synchronized IMessenger getMessenger() {
