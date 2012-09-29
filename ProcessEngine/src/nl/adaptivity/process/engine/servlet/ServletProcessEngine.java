@@ -447,7 +447,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       }
       aLocalEndPoint=new EndPointDescriptor(getServiceName(), getEndpointName(), localURL);
     }
-    DarwinMessenger.register();
+    MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 
   /*
@@ -508,9 +508,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method=HttpMethod.POST, path="/processModels")
   public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment, @RestParam(type=ParamType.PRINCIPAL)Principal pOwner) throws IOException {
-    if (pOwner==null) {
-      throw new MyMessagingException("Login required");
-    }
     XmlProcessModel xmlpm;
     try {
       xmlpm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
@@ -599,7 +596,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
           if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
             Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
-            rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+            if (header!=null) {
+              rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+            }
           }
           if (rootNode!=null) {
             // If we receive an ActivityResponse, treat that specially.
@@ -627,8 +626,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         // By default assume that we have finished the task
         aProcessEngine.finishedTask(pHandle, result, pOwner);
       } catch (ExecutionException e) {
+        getLogger().log(Level.INFO, "Task "+pHandle+": Error in messaging", e.getCause());
         aProcessEngine.errorTask(pHandle, e.getCause(), pOwner);
       } catch (InterruptedException e) {
+        getLogger().log(Level.INFO, "Task "+pHandle+": Interrupted", e);
         aProcessEngine.cancelledTask(pHandle, pOwner);
       }
     }
