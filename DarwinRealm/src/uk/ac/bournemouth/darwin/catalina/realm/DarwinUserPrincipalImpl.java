@@ -116,12 +116,14 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     
     // Instead of resetting the roles holder, just update the set to prevent database
     // roundtrips.
-    final Set<String> tmpRoles = aRoles;
-    aRoles=new HashSet<String>();
-    for(String role:tmpRoles) {
-      aRoles.add(pStringCache.lookup(role));
+    if (aRoles!=null) {
+      final Set<String> tmpRoles = aRoles;
+      aRoles=new HashSet<String>();
+      for(String role:tmpRoles) {
+        aRoles.add(pStringCache.lookup(role));
+      }
+      roles = null; // Just remove cache. This doesn't need database roundtrip
     }
-    roles = null; // Just remove cache. This doesn't need database roundtrip
     return this;
   }
   
