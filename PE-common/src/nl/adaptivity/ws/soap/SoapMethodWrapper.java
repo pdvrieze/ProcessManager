@@ -2,6 +2,7 @@ package nl.adaptivity.ws.soap;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.net.URI;
@@ -199,8 +200,36 @@ public class SoapMethodWrapper {
     if (aResult instanceof ActivityResponse) {
       ActivityResponse<?> activityResponse = (ActivityResponse<?>) aResult;
       params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue())};
-      headers = Collections.<Object>singletonList(activityResponse);
-    } else {    
+      headers = Collections.<Object>singletonList(aResult);
+    } else if ("nl.adaptivity.process.messaging.ActivityResponse".equals(aResult.getClass().getName())) {
+      /*
+       * If the ActivityResponse was created by a different classloader like
+       * when we directly invoke the endpoint through DarwinMessenger shortcut
+       * we will have to resort to reflection instead of direct invocation. This
+       * should still beat going through tcp-ip hand out.
+       */
+      
+      Class<?> returnType;
+      Object returnValue;
+      try {
+        returnType = (Class<?>) aResult.getClass().getMethod("getReturnType").invoke(aResult);
+        returnValue = aResult.getClass().getMethod("getReturnValue").invoke(aResult);
+      } catch (IllegalArgumentException e) {
+        throw new MyMessagingException(e);
+      } catch (SecurityException e) {
+        throw new MyMessagingException(e);
+      } catch (IllegalAccessException e) {
+        throw new MyMessagingException(e);
+      } catch (InvocationTargetException e) {
+        throw new MyMessagingException(e);
+      } catch (NoSuchMethodException e) {
+        throw new MyMessagingException(e);
+      }
+      params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", returnType, returnValue)};
+      headers = Collections.<Object>singletonList(aResult);
+      
+    } else {
+      
       params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", aMethod.getReturnType(), aResult)};
       headers = Collections.emptyList();
     }
