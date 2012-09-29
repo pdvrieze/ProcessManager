@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
     <wb-module deploy-name="PEUserMessageHandler">
         <wb-resource deploy-path="/" source-path="/war" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
@@ -6,6 +7,9 @@
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module archiveName="java-common.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/java-common/java-common">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="DarwinClients.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/DarwinClients/DarwinClients">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="PEUserMessageHandler"/>

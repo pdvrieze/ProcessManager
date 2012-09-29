@@ -5,6 +5,7 @@
 	<projects>
 		<project>PE-common</project>
 		<project>java-common</project>
+		<project>DarwinClients</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
