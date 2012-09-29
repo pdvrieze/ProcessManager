@@ -20,6 +20,7 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.DenyingSecurityProvider;
+import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 
@@ -52,7 +53,7 @@ public class ProcessEngine /* implements IProcessEngine*/ {
 
   private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
 
-  private SecurityProvider aSecurityProvider = new DenyingSecurityProvider();
+  private SecurityProvider aSecurityProvider = new PermissiveProvider();
 
   /**
    * Create a new process engine.
