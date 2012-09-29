@@ -24,6 +24,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndPointDescriptor;
 import nl.adaptivity.messaging.Header;
 import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -210,6 +211,7 @@ public class InternalEndpoint implements GenericEndpoint {
     } catch (URISyntaxException e) {
       throw new RuntimeException(e); // Should never happen
     }
+    MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 
   @WebMethod
