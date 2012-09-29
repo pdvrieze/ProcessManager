@@ -1,6 +1,7 @@
 package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
+import java.security.Principal;
 import java.util.*;
 
 import javax.xml.bind.*;
@@ -177,6 +178,8 @@ public class SoapHelper {
       Node param = (Node) pParam.getElem3();
       param = ownerDoc.importNode(param, true);
       wrapper.appendChild(param);
+    } else if (Principal.class.isAssignableFrom(paramType)) {
+      wrapper.appendChild(ownerDoc.createTextNode(((Principal)pParam.getElem3()).getName()));
     } else {
       Marshaller marshaller;
       {
