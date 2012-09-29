@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.*;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,7 +19,9 @@ import javax.xml.transform.stream.StreamSource;
 import net.devrieze.util.InputStreamOutputStream;
 
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
+import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.activation.SourceDataSource;
+import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
@@ -173,6 +174,7 @@ public class DarwinMessenger implements IMessenger {
         Logger.getLogger(DarwinMessenger.class.getName()).log(Level.WARNING, "Error sending message",e);
         throw e;
       } catch (Exception e) {
+        Logger.getLogger(DarwinMessenger.class.getName()).log(Level.WARNING, "Error sending message",e);
         synchronized(this) {
           aError = e;
         }
@@ -207,6 +209,12 @@ public class DarwinMessenger implements IMessenger {
           httpConnection.addRequestProperty(header.getName(), header.getValue());
           contenttypeset |= "Content-Type".equals(header.getName());
         }
+        if (hasPayload && (! contenttypeset)) { // Set the content type from the source if not yet set.
+          String contentType = aMessage.getBodySource().getContentType();
+          if (contentType!=null && contentType.length()>0) {
+            httpConnection.addRequestProperty("Content-Type", contentType);
+          }
+        }
         try {
           httpConnection.connect();
         } catch (ConnectException e) {
@@ -214,12 +222,6 @@ public class DarwinMessenger implements IMessenger {
         }
         try {
           if (hasPayload) {
-            if (! contenttypeset) { // Set the content type from the source if not yet set.
-              String contentType = aMessage.getBodySource().getContentType();
-              if (contentType!=null && contentType.length()>0) {
-                httpConnection.addRequestProperty("Content-Type", contentType);
-              }
-            }
 
             OutputStream out = httpConnection.getOutputStream();
 
@@ -318,9 +320,11 @@ public class DarwinMessenger implements IMessenger {
   }
 
   ExecutorService aExecutor;
-  private Map<QName,Map<String, Endpoint>> aServices;
+  private ConcurrentMap<QName,ConcurrentMap<String, Endpoint>> aServices;
 
   private MessageCompletionNotifier aNotifier;
+
+  private URI aLocalUrl;
 
   /**
    * Get the singleton instance. This also updates the base URL.
@@ -334,7 +338,33 @@ public class DarwinMessenger implements IMessenger {
   private DarwinMessenger() {
     aExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
     aNotifier = new MessageCompletionNotifier();
+    aServices = new ConcurrentHashMap<QName, ConcurrentMap<String,Endpoint>>();
     aNotifier.start();
+
+    String localUrl = System.getProperty("nl.adaptivity.messaging.localurl");
+
+    if (localUrl==null) {
+      StringBuilder msg = new StringBuilder();
+      msg.append("DarwinMessenger\n" +
+            "------------------------------------------------\n" +
+            "                    WARNING\n" +
+            "------------------------------------------------\n" +
+            "  Please set the nl.adaptivity.messaging.localurl property in\n" +
+            "  catalina.properties (or a method appropriate for a non-tomcat\n" +
+            "  container) to the base url used to contact the messenger by\n" +
+            "  other components of the system. The public base url can be set as:\n" +
+            "  nl.adaptivity.messaging.baseurl, this should be accessible by\n" +
+            "  all clients of the system.\n" +
+            "================================================");
+      Logger.getAnonymousLogger().warning(msg.toString());
+    } else {
+      try {
+        aLocalUrl = URI.create(localUrl);
+      } catch (IllegalArgumentException e) {
+        Logger.getAnonymousLogger().log(Level.SEVERE, "The given local url is not a valid uri.", e);
+      }
+    }
+
   }
 
 
@@ -349,10 +379,12 @@ public class DarwinMessenger implements IMessenger {
   }
 
   @Override
-  public void registerEndpoint(Endpoint pEndpoint) {
-    Map<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
+  public synchronized void registerEndpoint(Endpoint pEndpoint) {
+    // Note that even though it's a concurrent map we still need to synchronize to
+    // prevent race conditions with multiple registrations.
+    ConcurrentMap<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
     if (service==null) {
-      service = new TreeMap<String, Endpoint>();
+      service = new ConcurrentHashMap<String, Endpoint>();
       aServices.put(pEndpoint.getServiceName(), service);
     }
     if (service.containsKey(pEndpoint.getEndpointName())) {
@@ -369,7 +401,7 @@ public class DarwinMessenger implements IMessenger {
       return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
     }
 
-    if (registeredEndpoint!=null) { // Direct delivery
+    if (registeredEndpoint!=null) { // Direct delivery TODO make this work.
       if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
         SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
         Source resultSource;
@@ -377,10 +409,26 @@ public class DarwinMessenger implements IMessenger {
           resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
         } catch (Exception e) {
           Future<T> resultfuture = new MessageTask<T>(e);
-          pCompletionListener.onMessageCompletion(resultfuture);
+          if (pCompletionListener!=null) {
+            pCompletionListener.onMessageCompletion(resultfuture);
+          }
           return resultfuture;
         }
-        final MessageTask<T> resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
+
+        final MessageTask<T> resultfuture;
+        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
+          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          try {
+            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
+          } catch (IOException e) {
+            throw new MyMessagingException(e);
+          }
+          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+        } else {
+          resultfuture = new MessageTask<T>(JAXB.unmarshal(Sources.toInputStream(resultSource), pReturnType));
+        }
+
+//        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
         pCompletionListener.onMessageCompletion(resultfuture);
         return resultfuture;
       }
@@ -390,7 +438,12 @@ public class DarwinMessenger implements IMessenger {
       registeredEndpoint = pMessage.getDestination();
     }
 
-    final URI destURL = registeredEndpoint.getEndpointLocation();
+    final URI destURL;
+    if (aLocalUrl==null) {
+      destURL = registeredEndpoint.getEndpointLocation();
+    } else {
+      destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
+    }
 
     MessageTask<T> messageTask = new MessageTask<T>(destURL, pMessage, pCompletionListener, pReturnType);
     aExecutor.execute(messageTask);
@@ -406,10 +459,13 @@ public class DarwinMessenger implements IMessenger {
   public Endpoint getEndpoint(Endpoint pEndpoint) {
     Map<String, Endpoint> service = aServices.get(pEndpoint.getServiceName());
     if (service==null) { return null; }
-    return service.get(pEndpoint.getServiceName());
+
+    return service.get(pEndpoint.getEndpointName());
   }
 
+  @Override
   public void shutdown() {
+    MessagingRegistry.registerMessenger(null); // Unregister this messenger
     aNotifier.shutdown();
     aExecutor.shutdown();
     aServices=null;
