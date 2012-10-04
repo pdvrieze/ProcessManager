@@ -285,7 +285,7 @@ public class MessagingSoapClientGenerator {
               // We nead a principal header
               isPrincipal = true;
               if (name==null || name.length()==0) { name=restParam.name(); }
-              if (name==null || name.length()==0) { name="user"; }
+              if (name==null || name.length()==0) { name="principal"; }
             }
           }
         }
