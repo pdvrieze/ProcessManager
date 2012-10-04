@@ -429,7 +429,9 @@ public class DarwinMessenger implements IMessenger {
         }
 
 //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
-        pCompletionListener.onMessageCompletion(resultfuture);
+        if (pCompletionListener!=null) {
+          pCompletionListener.onMessageCompletion(resultfuture);
+        }
         return resultfuture;
       }
     }
