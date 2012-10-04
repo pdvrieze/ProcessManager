@@ -1,9 +1,6 @@
 package nl.adaptivity.util.activation;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -25,6 +22,13 @@ public final class Sources {
     identityTransformer.transform(pSource, outResult);
   }
 
+  public static void writeToWriter(Source pSource, Writer pWriter) throws TransformerException {
+    StreamResult outResult = new StreamResult(pWriter);
+    TransformerFactory factory = TransformerFactory.newInstance();
+    Transformer identityTransformer = factory.newTransformer();
+    identityTransformer.transform(pSource, outResult);
+  }
+
   public static InputStream toInputStream(Source pSource) {
     if (pSource instanceof StreamSource) {
       return ((StreamSource) pSource).getInputStream();
@@ -40,6 +44,22 @@ public final class Sources {
     }
     return new ByteArrayInputStream(baos.toByteArray());
 
+  }
+
+  public static Reader toReader(Source pSource) {
+    if (pSource instanceof StreamSource) {
+      return ((StreamSource) pSource).getReader();
+    }
+    if (pSource instanceof SAXSource) {
+      return new InputStreamReader(((SAXSource) pSource).getInputSource().getByteStream());
+    }
+    CharArrayWriter caw = new CharArrayWriter();
+    try {
+      Sources.writeToWriter(pSource, caw);
+    } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    }
+    return new CharArrayReader(caw.toCharArray());
   }
 
 }
