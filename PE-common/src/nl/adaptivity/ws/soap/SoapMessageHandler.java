@@ -67,7 +67,7 @@ public class SoapMessageHandler {
       pResponse.sendError(e.getResponseCode(), e.getMessage());
       return false;
     }
-    
+
     if (pResponse!=null) {
       SoapMethodWrapper.marshalResult(pResponse, result);
       return true;
@@ -77,14 +77,14 @@ public class SoapMessageHandler {
 
 
   public Source processMessage(DataSource pDataSource, Map<String, DataSource> pAttachments) throws IOException {
-    
+
     Source source;
     if (pDataSource instanceof Source) {
       source = (Source) pDataSource;
     } else {
       source = new StreamSource(pDataSource.getInputStream());
     }
-    
+
     return processSource(source, pAttachments);
   }
 
@@ -101,9 +101,9 @@ public class SoapMessageHandler {
     if (operationElem==null) {
       throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation not found");
     }
-    
+
     QName operation = new QName(operationElem.getNamespaceURI(), operationElem.getLocalName());
-    
+
     SoapMethodWrapper method = getMethodFor(operation, aTarget);
 
     if (method !=null) {
@@ -113,8 +113,8 @@ public class SoapMessageHandler {
     }
     throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation not found");
   }
-  
-  
+
+
   private SoapMethodWrapper getMethodFor(QName pOperation, Object target) {
 //    final Method[] candidates = target.getClass().getDeclaredMethods();
     Collection<Method> candidates = getCandidatesFor(target.getClass(), pOperation);
