@@ -337,7 +337,7 @@ public class MessagingSoapClientGenerator {
       pOut.write(appendString(new StringBuilder(), pMethod.getName()).append("), ").toString());
     }
     if (principalName!=null) {
-      pOut.write("java.util.Arrays.asList(new JAXBElement<String>(new QName(\"principal\"), String.class, "+principalName+".getName())), ");
+      pOut.write("java.util.Arrays.asList(new JAXBElement<String>(new QName(\"http://adaptivity.nl/ProcessEngine/\",\"principal\"), String.class, "+principalName+".getName())), ");
     }
     for(int i=0; i<params.size(); ++i) {
       if (i>0) {
