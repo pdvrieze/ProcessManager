@@ -197,11 +197,13 @@ public final class MessagingRegistry {
       ((StubMessenger) aMessenger).setMessenger(pMessenger);
       aMessenger = pMessenger;
     } else if (aMessenger!=null) {
-      
+
       throw new IllegalStateException("It is not allowed to register multiple messengers");
     }
     aMessenger = pMessenger;
-    Logger.getAnonymousLogger().info("New messenger registered: "+aMessenger.getClass().getName());
+    if (aMessenger!=null) {
+      Logger.getAnonymousLogger().info("New messenger registered: "+aMessenger.getClass().getName());
+    }
   }
 
   public static synchronized IMessenger getMessenger() {
