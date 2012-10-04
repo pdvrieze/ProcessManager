@@ -2,7 +2,6 @@ package nl.adaptivity.ws.soap;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.net.URI;
@@ -23,6 +22,7 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
+import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Node;
@@ -66,7 +66,7 @@ public class SoapMethodWrapper {
     processSoapHeader(pEnvelope.getHeader());
     URI es = pEnvelope.getEncodingStyle();
     if (es==null || es.equals(SOAP_ENCODING)) {
-      processSoapBody(pEnvelope.getBody(), pAttachments);
+      processSoapBody(pEnvelope, pAttachments);
     } else {
       throw new MyMessagingException("Ununderstood message body");
     }
@@ -83,14 +83,16 @@ public class SoapMethodWrapper {
     /* For now just ignore headers, i.e. none understood*/
   }
 
-  private void processSoapBody(org.w3.soapEnvelope.Body pBody, Map<String, DataSource> pAttachments) {
-    if (pBody.getAny().size()!=1) {
+  private void processSoapBody(org.w3.soapEnvelope.Envelope pEnvelope, Map<String, DataSource> pAttachments) {
+    Body body = pEnvelope.getBody();
+    if (body.getAny().size()!=1) {
       throw new MyMessagingException("Multiple body elements not expected");
     }
-    Node root = (Node) pBody.getAny().get(0);
+    Node root = (Node) body.getAny().get(0);
     assertRootNode(root);
 
     LinkedHashMap<String, Node> params = SoapHelper.getParamMap(root);
+    Map<String, Node> headers = SoapHelper.getHeaderMap(pEnvelope.getHeader());
 
     Class<?>[] parameterTypes = aMethod.getParameterTypes();
     Annotation[][] parameterAnnotations = aMethod.getParameterAnnotations();
@@ -105,7 +107,13 @@ public class SoapMethodWrapper {
       } else {
         name = annotation.name();
       }
-      Node value = params.remove(name);
+      Node value;
+      if (annotation!=null && annotation.header()) {
+        value = headers.remove(name);
+      } else {
+        value = params.remove(name);
+      }
+
       if (value==null) {
         throw new MyMessagingException("Parameter \""+name+"\" not found");
       }
@@ -208,7 +216,7 @@ public class SoapMethodWrapper {
        * we will have to resort to reflection instead of direct invocation. This
        * should still beat going through tcp-ip hand out.
        */
-      
+
       Class<?> returnType;
       Object returnValue;
       try {
@@ -227,9 +235,9 @@ public class SoapMethodWrapper {
       }
       params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", returnType, returnValue)};
       headers = Collections.<Object>singletonList(aResult);
-      
+
     } else {
-      
+
       params = new Tripple[]{ Tripple.tripple(SoapHelper.RESULT, String.class, "result"), Tripple.tripple("result", aMethod.getReturnType(), aResult)};
       headers = Collections.emptyList();
     }
