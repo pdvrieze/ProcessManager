@@ -14,9 +14,11 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
 import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
@@ -98,7 +100,12 @@ public class SoapHelper {
         try {
           Marshaller marshaller;
           {
-            JAXBContext context = JAXBContext.newInstance(headerElem.getClass());
+            final JAXBContext context;
+            if (headerElem instanceof JAXBElement) {
+              context = JAXBContext.newInstance();
+            } else {
+              context = JAXBContext.newInstance(headerElem.getClass());
+            }
             marshaller = context.createMarshaller();
           }
           marshaller.marshal(headerElem, header);
@@ -108,7 +115,7 @@ public class SoapHelper {
         }
       }
     }
-    
+
     return header;
   }
 
@@ -126,7 +133,7 @@ public class SoapHelper {
    */
   private static Element createBodyMessage(Element pBody, QName pOperationName) {
     Document pResultDoc = pBody.getOwnerDocument();
-    
+
     Element message = pResultDoc.createElementNS(pOperationName.getNamespaceURI(), XmlUtil.getQualifiedName(pOperationName));
 
     pBody.appendChild(message);
@@ -148,7 +155,7 @@ public class SoapHelper {
       wrapper.appendChild(ownerDoc.createTextNode(prefix+((CharSequence)pParam.getElem3()).toString()));
       return wrapper;
     }
-    
+
     Element wrapper = ownerDoc.createElementNS(pMessage.getNamespaceURI(), prefix+pParam.getElem1());
     wrapper.setPrefix(pMessage.getPrefix());
     pMessage.appendChild(wrapper);
@@ -205,12 +212,12 @@ public class SoapHelper {
     return pClass.cast(unMarshalNode(null, pClass, results.get(RESULT)));
   }
 
-  static LinkedHashMap<String, Node> getParamMap(Node root) {
+  static LinkedHashMap<String, Node> getParamMap(Node bodyParamRoot) {
     LinkedHashMap<String, Node> params;
     {
       params = new LinkedHashMap<String, Node>();
 
-      Node child = root.getFirstChild();
+      Node child = bodyParamRoot.getFirstChild();
       String returnName = null;
       while (child != null) {
         if (child.getNodeType()==Node.ELEMENT_NODE) {
@@ -238,6 +245,19 @@ public class SoapHelper {
     return params;
   }
 
+  public static Map<String, Node> getHeaderMap(Header pHeader) {
+    if (pHeader==null) { return Collections.emptyMap(); }
+    LinkedHashMap<String, Node> result = new LinkedHashMap<String, Node>();
+    for(Object o:pHeader.getAny()) {
+      if (o instanceof Node) {
+        Node n=(Node) o;
+        result.put(n.getLocalName(), n);
+      }
+
+    }
+    return result;
+  }
+
   static <T> T unMarshalNode(Method pMethod, Class<T> pClass, Node pAttrWrapper) {
     Node value = pAttrWrapper ==null ? null : pAttrWrapper.getFirstChild();
     Object result;
@@ -249,6 +269,16 @@ public class SoapHelper {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         final Object tmpResult = Enum.valueOf((Class) pClass, val);
         result = tmpResult;
+      } else if (CharSequence.class.isAssignableFrom(pClass) && (value instanceof Text)) {
+        if (pClass.isAssignableFrom(String.class)) {
+          result = ((Text) value).getData();
+        } else if (pClass.isAssignableFrom(StringBuilder.class)) {
+          String val = ((Text)value).getData();
+          result = new StringBuilder(val.length());
+          ((StringBuilder) result).append(val);
+        } else {
+          throw new UnsupportedOperationException("Can not unmarshal other strings than to string or stringbuilder");
+        }
       } else {
         if (value.getNextSibling()!=null) {
           throw new UnsupportedOperationException("Collection parameters not yet supported");
