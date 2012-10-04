@@ -22,7 +22,9 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.apache.catalina.ServerFactory;
 import org.apache.catalina.Service;
@@ -54,11 +56,12 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
+import nl.adaptivity.util.activation.Sources;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
 
-  
+
   private static final long serialVersionUID = -6277449163953383974L;
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
@@ -67,7 +70,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS,"ProcessEngine");
 
   private class MessagingCompletionListener implements CompletionListener {
-  
+
     private final Handle<ProcessNodeInstance> aHandle;
     private final Principal aOwner;
 
@@ -82,7 +85,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       Future<DataSource> future = ((Future) pFuture);
       ServletProcessEngine.this.onMessageCompletion(future, aHandle, aOwner);
     }
-  
+
   }
 
   static class NewServletMessage implements ISendableMessage, DataSource {
@@ -99,7 +102,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       this(pMessage.getMethod(), pMessage.getEndpointDescriptor(), pMessage.getContentType(), pLocalEndPoint);
       aMessage = pMessage;
     }
-    
+
     @Deprecated
     private NewServletMessage(String pMethod, Endpoint pDestination, String pContentType, Endpoint pLocalEndPoint) {
 //      aMethod = pMethod;
@@ -144,6 +147,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       try {
         XMLInputFactory xif = XMLInputFactory.newInstance();
         if (messageBody ==null) { throw new NullPointerException(); }
+
+        if (messageBody instanceof DOMSource) {
+          // For some reason jaxp doesn't work with domsources, so just wrap it.
+          Node dom= ((DOMSource) messageBody).getNode();
+          messageBody = new StreamSource(Sources.toReader(messageBody));
+        }
 
         XMLEventReader xer = xif.createXMLEventReader(messageBody);
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
@@ -222,9 +231,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         throw new MyMessagingException(e);
       }
 
-    
-    
-    
+
+
+
     }
 
     private void writeElement(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException {
@@ -366,8 +375,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       aHandle = pHandle;
       aOwner = pOwner;
     }
-    
-    
+
+
   }
 
   private Thread aThread;
@@ -559,7 +568,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public TaskState finishTaskSoap(
                    @WebParam(name="handle",mode=Mode.IN) long pHandle,
                    @WebParam(name="payload", mode=Mode.IN) Node pPayload,
-                   @WebParam(name="user", mode=Mode.IN) String pUser) {
+                   @WebParam(name="principal", mode=Mode.IN, header=true) String pUser) {
     return finishTask(pHandle, pPayload, new SimplePrincipal(pUser));
   }
 
