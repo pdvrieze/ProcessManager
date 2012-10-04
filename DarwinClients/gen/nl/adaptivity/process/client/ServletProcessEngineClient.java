@@ -60,7 +60,7 @@ public class ServletProcessEngineClient {
     final Tripple<String, Class<?>, Object> param1 = Tripple.<String, Class<?>, Object>tripple("payload", org.w3c.dom.Node.class, payload);
 
     @SuppressWarnings("unchecked")
-    Source message = SoapHelper.createMessage(new QName("finishTask"), java.util.Arrays.asList(new JAXBElement<String>(new QName("principal"), String.class, user.getName())), param0, param1);
+    Source message = SoapHelper.createMessage(new QName("finishTask"), java.util.Arrays.asList(new JAXBElement<String>(new QName("http://adaptivity.nl/ProcessEngine/","principal"), String.class, user.getName())), param0, param1);
 
     Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);
 
