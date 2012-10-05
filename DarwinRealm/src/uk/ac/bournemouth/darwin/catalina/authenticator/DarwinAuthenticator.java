@@ -26,9 +26,9 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 import uk.ac.bournemouth.darwin.html.util.DarwinHtml;
 
-import net.devrieze.util.DBHelper;
-import net.devrieze.util.DBHelper.DBQuery;
-import net.devrieze.util.StringAdapter;
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.StringAdapter;
+import net.devrieze.util.db.DBHelper.DBQuery;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {

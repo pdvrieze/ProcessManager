@@ -21,7 +21,7 @@ import org.apache.catalina.util.LifecycleSupport;
 
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
 
-import net.devrieze.util.DBHelper;
+import net.devrieze.util.db.DBHelper;
 
 
 public class DarwinRealm implements Realm, Lifecycle {

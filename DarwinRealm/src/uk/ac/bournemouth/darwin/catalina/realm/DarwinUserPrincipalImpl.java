@@ -8,9 +8,9 @@ import java.util.Set;
 
 import org.apache.catalina.Realm;
 
-import net.devrieze.util.DBHelper;
-import net.devrieze.util.DBHelper.DBQuery;
-import net.devrieze.util.StringAdapter;
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.StringAdapter;
+import net.devrieze.util.db.DBHelper.DBQuery;
 import net.devrieze.util.StringCache;
 
 
