@@ -21,7 +21,7 @@ public class BoxWidget extends Widget {
   @UiField
   DivElement boxSpan;
 
-  public BoxWidget(String pLabel) {
+  public BoxWidget(final String pLabel) {
     setElement(uiBinder.createAndBindUi(this));
     labelSpan.setInnerText(pLabel);
   }
@@ -29,12 +29,12 @@ public class BoxWidget extends Widget {
   public DivElement getBox() {
     return boxSpan;
   }
-  
+
   public String getLabel() {
     return labelSpan.getInnerHTML();
   }
-  
-  public void setLabel(String innerHTML) {
+
+  public void setLabel(final String innerHTML) {
     labelSpan.setInnerHTML(innerHTML);
   }
 

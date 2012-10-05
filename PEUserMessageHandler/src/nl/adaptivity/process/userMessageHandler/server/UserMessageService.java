@@ -10,7 +10,6 @@ import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.Task.TaskState;
 
 
-
 public class UserMessageService implements CompletionListener {
 
 
@@ -20,17 +19,17 @@ public class UserMessageService implements CompletionListener {
 
   }
 
-  private HandleMap<UserTask<?>> tasks;
+  private final HandleMap<UserTask<?>> tasks;
 
   public UserMessageService() {
     tasks = new HandleMap<UserTask<?>>();
 
-//    DummyTask task = new DummyTask("blabla");
-//    task.setHandle(1);
-//    tasks.add(task);
+    //    DummyTask task = new DummyTask("blabla");
+    //    task.setHandle(1);
+    //    tasks.add(task);
   }
 
-  public boolean postTask(UserTask<?> pTask) {
+  public boolean postTask(final UserTask<?> pTask) {
     return tasks.put(pTask) >= 0;
   }
 
@@ -38,25 +37,25 @@ public class UserMessageService implements CompletionListener {
     return tasks.toCollection();
   }
 
-  public TaskState finishTask(long pHandle, Principal pUser) {
+  public TaskState finishTask(final long pHandle, final Principal pUser) {
     final UserTask<?> task = getTask(pHandle);
     task.setState(TaskState.Complete, pUser);
-    if (task.getState()==TaskState.Complete|| task.getState()==TaskState.Failed) {
+    if ((task.getState() == TaskState.Complete) || (task.getState() == TaskState.Failed)) {
       tasks.remove(task);
     }
     return task.getState();
   }
 
-  private UserTask<?> getTask(long pHandle) {
+  private UserTask<?> getTask(final long pHandle) {
     return tasks.get(pHandle);
   }
 
-  public TaskState takeTask(long pHandle, Principal pUser) {
+  public TaskState takeTask(final long pHandle, final Principal pUser) {
     getTask(pHandle).setState(TaskState.Taken, pUser);
     return TaskState.Taken;
   }
 
-  public TaskState startTask(long pHandle, Principal pUser) {
+  public TaskState startTask(final long pHandle, final Principal pUser) {
     getTask(pHandle).setState(TaskState.Started, pUser);
     return TaskState.Taken;
   }
@@ -70,7 +69,7 @@ public class UserMessageService implements CompletionListener {
   }
 
   @Override
-  public void onMessageCompletion(Future<?> pFuture) {
+  public void onMessageCompletion(final Future<?> pFuture) {
     // TODO Auto-generated method stub
     //
   }

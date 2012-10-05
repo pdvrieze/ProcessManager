@@ -9,9 +9,9 @@ public class RemoteListException extends RequestException {
 
   private final int aStatusCode;
 
-  public RemoteListException(int pStatusCode, String pStatusText) {
-    super("Error ("+pStatusCode+"): "+pStatusText);
-    aStatusCode =pStatusCode;
+  public RemoteListException(final int pStatusCode, final String pStatusText) {
+    super("Error (" + pStatusCode + "): " + pStatusText);
+    aStatusCode = pStatusCode;
   }
 
   public int getStatusCode() {

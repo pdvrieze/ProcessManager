@@ -14,56 +14,58 @@ import com.google.gwt.xml.client.*;
 public class ProcessModel {
 
   static final String PROCESSMODEL_NS = "http://adaptivity.nl/ProcessEngine/";
-  private String aName;
+
+  private final String aName;
+
   private List<ProcessNode> aNodes;
 
-  public ProcessModel(String pName, List<ProcessNode> pNodes) {
+  public ProcessModel(final String pName, final List<ProcessNode> pNodes) {
     aName = pName;
     setNodes(pNodes);
   }
 
-  public static ProcessModel fromXml(Document pParse) {
-    Element root = pParse.getDocumentElement();
-    if (! XMLUtil.isTag(PROCESSMODEL_NS, "processModel", root)) {
+  public static ProcessModel fromXml(final Document pParse) {
+    final Element root = pParse.getDocumentElement();
+    if (!XMLUtil.isTag(PROCESSMODEL_NS, "processModel", root)) {
       return null;
     }
 
     String name = null;
 
     {
-      NamedNodeMap attrs = root.getAttributes();
-      int attrCount = attrs.getLength();
-      for (int i=0; i<attrCount; ++i) {
-        Attr attr = (Attr) attrs.item(i);
+      final NamedNodeMap attrs = root.getAttributes();
+      final int attrCount = attrs.getLength();
+      for (int i = 0; i < attrCount; ++i) {
+        final Attr attr = (Attr) attrs.item(i);
         if (XMLUtil.isNS(null, attr)) {
           if ("name".equals(attr.getName())) {
-            name=attr.getValue();
+            name = attr.getValue();
           } else {
-            GWT.log("Unsupported attribute in processModel "+attr.getName(), null);
+            GWT.log("Unsupported attribute in processModel " + attr.getName(), null);
           }
         }
       }
     }
 
 
-    Map<String, ProcessNode> map = new HashMap<String, ProcessNode>();
-    List<ProcessNode> nodes = new ArrayList<ProcessNode>();
+    final Map<String, ProcessNode> map = new HashMap<String, ProcessNode>();
+    final List<ProcessNode> nodes = new ArrayList<ProcessNode>();
 
-    for (Node child = root.getFirstChild(); child!=null; child = child.getNextSibling()) {
+    for (Node child = root.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (XMLUtil.isNS(PROCESSMODEL_NS, child)) {
 
         ProcessNode node = null;
         if (XMLUtil.isLocalPart("start", child)) {
-          node = StartNode.fromXml((Element)child);
+          node = StartNode.fromXml((Element) child);
         } else if (XMLUtil.isLocalPart("activity", child)) {
-          node = ActivityNode.fromXml((Element)child);
+          node = ActivityNode.fromXml((Element) child);
         } else if (XMLUtil.isLocalPart("end", child)) {
           node = EndNode.fromXml((Element) child);
         } else if (XMLUtil.isLocalPart("join", child)) {
           node = JoinNode.fromXml((Element) child);
         }
-        String id = node.getId();
-        if (id!=null && id.length()>0) {
+        final String id = node.getId();
+        if ((id != null) && (id.length() > 0)) {
           map.put(id, node);
         }
         nodes.add(node);
@@ -72,45 +74,45 @@ public class ProcessModel {
       }
     }
 
-    for(ProcessNode node: nodes) {
+    for (final ProcessNode node : nodes) {
       node.resolvePredecessors(map);
     }
 
     return new ProcessModel(name, nodes);
   }
 
-  public void setNodes(List<ProcessNode> nodes) {
+  public void setNodes(final List<ProcessNode> nodes) {
     aNodes = nodes;
   }
 
   public List<ProcessNode> getNodes() {
-    if (aNodes ==null) {
+    if (aNodes == null) {
       aNodes = new ArrayList<ProcessNode>(0);
     }
     return aNodes;
   }
 
   public void layout() {
-    for (ProcessNode node:aNodes) {
+    for (final ProcessNode node : aNodes) {
       node.unsetPos();
     }
-    int lowestY= 30;
-    for (ProcessNode node:aNodes) {
-      if (! node.hasPos()) {
+    int lowestY = 30;
+    for (final ProcessNode node : aNodes) {
+      if (!node.hasPos()) {
         lowestY = node.layout(30, lowestY, null, true);
         lowestY += 45;
       }
     }
-    int minX=Integer.MAX_VALUE;
+    int minX = Integer.MAX_VALUE;
     int minY = Integer.MAX_VALUE;
-    for (ProcessNode node: aNodes) {
+    for (final ProcessNode node : aNodes) {
       minX = Math.min(node.getX(), minX);
       minY = Math.min(node.getY(), minY);
     }
-    int offsetX = 30 - minX;
-    int offsetY = 30 - minY;
+    final int offsetX = 30 - minX;
+    final int offsetY = 30 - minY;
 
-    for (ProcessNode node: aNodes) {
+    for (final ProcessNode node : aNodes) {
       node.offset(offsetX, offsetY);
     }
   }

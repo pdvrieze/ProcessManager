@@ -17,39 +17,38 @@ import com.google.gwt.xml.client.XMLParser;
 public class RemoteListBox extends ControllingListBox implements RequestCallback {
 
 
-
-
   private static class ListElement {
 
     final String value;
+
     final String text;
 
-    public ListElement(String pValue, String pText) {
+    public ListElement(final String pValue, final String pText) {
       value = pValue;
       text = pText;
     }
 
   }
 
-  public static class UpdateEvent extends GwtEvent<UpdateEventHandler>{
+  public static class UpdateEvent extends GwtEvent<UpdateEventHandler> {
 
     private static Type<UpdateEventHandler> TYPE;
 
     private final Throwable aException;
 
-    public UpdateEvent(Throwable pException) {
+    public UpdateEvent(final Throwable pException) {
       aException = pException;
     }
 
     public static Type<UpdateEventHandler> getType() {
       if (TYPE == null) {
-        TYPE= new Type<UpdateEventHandler>();
+        TYPE = new Type<UpdateEventHandler>();
       }
       return TYPE;
     }
 
     @Override
-    protected void dispatch(UpdateEventHandler pHandler) {
+    protected void dispatch(final UpdateEventHandler pHandler) {
       pHandler.onUpdateRemoteList(this);
     }
 
@@ -59,7 +58,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
 
     public boolean isException() {
-      return aException!=null;
+      return aException != null;
     }
 
     public Throwable getException() {
@@ -68,31 +67,38 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
 
   }
 
-  public interface UpdateEventHandler extends EventHandler{
+  public interface UpdateEventHandler extends EventHandler {
 
     void onUpdateRemoteList(UpdateEvent pUpdateEvent);
 
   }
 
   private Method aMethod = RequestBuilder.GET;
+
   private String aUrl;
+
   private String aRootElement;
+
   private String aListElement;
+
   private String aTextElement;
+
   private String aValueElement;
+
   private String aNameSpace;
+
   private boolean aStarted = false;
 
-  public RemoteListBox(String pUrl) {
+  public RemoteListBox(final String pUrl) {
     aUrl = pUrl;
   }
 
   public void start() {
-    if (aRootElement == null || aListElement==null || aTextElement==null || aValueElement==null) {
+    if ((aRootElement == null) || (aListElement == null) || (aTextElement == null) || (aValueElement == null)) {
       throw new IllegalStateException("Can not start updating from a remote system when the proper properties for parsing the result are not set");
     }
     requestUpdate();
-    aStarted  = true;
+    aStarted = true;
   }
 
   public void update() {
@@ -106,21 +112,21 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   }
 
   private void requestUpdate() {
-    RequestBuilder rBuilder = new RequestBuilder(aMethod, getUrl());
+    final RequestBuilder rBuilder = new RequestBuilder(aMethod, getUrl());
 
     try {
       rBuilder.sendRequest(null, this);
-    } catch (RequestException e) {
+    } catch (final RequestException e) {
       fireUpdateError(e);
     }
   }
 
-  private void fireUpdateError(Throwable pException) {
+  private void fireUpdateError(final Throwable pException) {
     fireEvent(new UpdateEvent(pException));
-    GWT.log("Error: "+pException.getMessage(), pException);
+    GWT.log("Error: " + pException.getMessage(), pException);
   }
 
-  public void setMethod(Method method) {
+  public void setMethod(final Method method) {
     aMethod = method;
   }
 
@@ -128,7 +134,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     return aMethod;
   }
 
-  public void setUrl(String url) {
+  public void setUrl(final String url) {
     aUrl = url;
   }
 
@@ -140,7 +146,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     return aRootElement;
   }
 
-  public void setRootElement(String pRootElement) {
+  public void setRootElement(final String pRootElement) {
     aRootElement = pRootElement;
   }
 
@@ -148,7 +154,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     return aListElement;
   }
 
-  public void setListElement(String pListElement) {
+  public void setListElement(final String pListElement) {
     aListElement = pListElement;
   }
 
@@ -156,7 +162,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     return aTextElement;
   }
 
-  public void setTextElement(String pTextElement) {
+  public void setTextElement(final String pTextElement) {
     aTextElement = pTextElement;
   }
 
@@ -164,73 +170,73 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     return aValueElement;
   }
 
-  public void setValueElement(String pValueElement) {
+  public void setValueElement(final String pValueElement) {
     aValueElement = pValueElement;
   }
-  
-  public void setNameSpace(String pNameSpace) {
+
+  public void setNameSpace(final String pNameSpace) {
     aNameSpace = pNameSpace;
   }
-  
+
   public String getNameSpace() {
     return aNameSpace;
   }
 
-  public HandlerRegistration addUpdateEventHandler(UpdateEventHandler pHandler) {
+  public HandlerRegistration addUpdateEventHandler(final UpdateEventHandler pHandler) {
     return addHandler(pHandler, UpdateEvent.getType());
   }
 
   @Override
-  public void onError(Request pRequest, Throwable pException) {
+  public void onError(final Request pRequest, final Throwable pException) {
     fireUpdateError(pException);
   }
 
   @Override
-  public void onResponseReceived(Request pRequest, Response pResponse) {
+  public void onResponseReceived(final Request pRequest, final Response pResponse) {
     if (Response.SC_OK == pResponse.getStatusCode()) {
       updateList(asListElements(pResponse.getText()));
-    } else if (pResponse.getStatusCode()>=400){
-      fireUpdateError(new RemoteListException(pResponse.getStatusCode(), pResponse.getStatusText()+"["+pRequest.toString()+"]"));
+    } else if (pResponse.getStatusCode() >= 400) {
+      fireUpdateError(new RemoteListException(pResponse.getStatusCode(), pResponse.getStatusText() + "[" + pRequest.toString() + "]"));
     }
   }
 
-  private void updateList(List<ListElement> pListElements) {
-    int selectedIndex = getSelectedIndex();
-    String selected = selectedIndex>=0 ? getValue(selectedIndex) : null;
+  private void updateList(final List<ListElement> pListElements) {
+    final int selectedIndex = getSelectedIndex();
+    final String selected = selectedIndex >= 0 ? getValue(selectedIndex) : null;
     clear();
 
     int newSelected = -1;
-    int i=0;
-    for(ListElement ref:pListElements) {
+    int i = 0;
+    for (final ListElement ref : pListElements) {
       addItem(ref.text, ref.value);
       if (ref.value.equals(selected)) {
         newSelected = i;
       }
       ++i;
     }
-    if (newSelected>=0) {
+    if (newSelected >= 0) {
       setSelectedIndex(newSelected);
     }
   }
 
-  public void update(com.google.gwt.dom.client.Document pResults) {
+  public void update(final com.google.gwt.dom.client.Document pResults) {
     updateList(asListElements(pResults));
   }
 
 
-  private List<ListElement> asListElements(com.google.gwt.dom.client.Document myResponse) {
+  private List<ListElement> asListElements(final com.google.gwt.dom.client.Document myResponse) {
 
-    ArrayList<ListElement> result = new ArrayList<ListElement>();
+    final ArrayList<ListElement> result = new ArrayList<ListElement>();
 
-    com.google.gwt.dom.client.Node root = myResponse.getFirstChild();
+    final com.google.gwt.dom.client.Node root = myResponse.getFirstChild();
     if (localName(root.getNodeName()).equals(aRootElement)) {
       com.google.gwt.dom.client.Node child = root.getFirstChild();
-      while(child!=null) {
-        if (aListElement.equals(localName(child.getNodeName())) ){
+      while (child != null) {
+        if (aListElement.equals(localName(child.getNodeName()))) {
           final String text = XMLUtil.getParamText(child, aTextElement);
           final String value = XMLUtil.getParamText(child, aValueElement);
 
-          if (text!=null && value!=null) {
+          if ((text != null) && (value != null)) {
             result.add(new ListElement(value, text));
           }
         }
@@ -243,27 +249,29 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   }
 
 
-  private String localName(String pNodeName) {
-    int i=pNodeName.indexOf(':');
-    if (i<0) { return pNodeName; }
-    return pNodeName.substring(i+1);
+  private String localName(final String pNodeName) {
+    final int i = pNodeName.indexOf(':');
+    if (i < 0) {
+      return pNodeName;
+    }
+    return pNodeName.substring(i + 1);
   }
 
-  private List<ListElement> asListElements(String pText) {
+  private List<ListElement> asListElements(final String pText) {
     final Document myResponse;
 
     myResponse = XMLParser.parse(pText);
-    ArrayList<ListElement> result = new ArrayList<ListElement>();
+    final ArrayList<ListElement> result = new ArrayList<ListElement>();
 
-    Node root = myResponse.getFirstChild();
+    final Node root = myResponse.getFirstChild();
     if (localName(root.getNodeName()).equals(aRootElement)) {
       Node child = root.getFirstChild();
-      while(child!=null) {
-        if (aListElement.equals(localName(child.getNodeName())) ){
+      while (child != null) {
+        if (aListElement.equals(localName(child.getNodeName()))) {
           final String text = XMLUtil.getParamText(child, aTextElement);
           final String value = XMLUtil.getParamText(child, aValueElement);
 
-          if (text!=null && value!=null) {
+          if ((text != null) && (value != null)) {
             result.add(new ListElement(value, text));
           }
         }

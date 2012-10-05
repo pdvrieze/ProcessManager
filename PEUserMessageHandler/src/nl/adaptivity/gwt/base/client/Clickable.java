@@ -2,7 +2,6 @@ package nl.adaptivity.gwt.base.client;
 
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -12,10 +11,10 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class Clickable extends Widget {
 
-  public static Clickable wrap(Element pElement) {
+  public static Clickable wrap(final Element pElement) {
     assert Document.get().getBody().isOrHasChild(pElement);
 
-    Clickable clickable = new Clickable(pElement);
+    final Clickable clickable = new Clickable(pElement);
 
     clickable.onAttach();
 
@@ -25,18 +24,18 @@ public class Clickable extends Widget {
 
   }
 
-  public Clickable(Element pElement) {
+  public Clickable(final Element pElement) {
     setElement(pElement);
   }
 
-  public HandlerRegistration addClickHandler(ClickHandler pClickHandler) {
+  public HandlerRegistration addClickHandler(final ClickHandler pClickHandler) {
     return addDomHandler(pClickHandler, ClickEvent.getType());
   }
 
-  public static Clickable wrapNoAttach(Element pElement) {
+  public static Clickable wrapNoAttach(final Element pElement) {
     assert Document.get().getBody().isOrHasChild(pElement);
 
-    Clickable clickable = new Clickable(pElement);
+    final Clickable clickable = new Clickable(pElement);
     clickable.onAttach();
     return clickable;
   }

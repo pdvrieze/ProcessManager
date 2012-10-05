@@ -13,66 +13,76 @@ import com.google.gwt.xml.client.Node;
 
 public class ActivityNode extends ProcessNode {
 
-  private String aName;
+  private final String aName;
+
   private String aPredecessorId;
+
   private String aOperation;
+
   private String aServiceNS;
+
   private String aServiceName;
+
   private String aEndpoint;
+
   private List<Element> aImports;
+
   private List<Element> aExports;
+
   private String aCondition;
+
   private ProcessNode aPredecessor;
+
   private Set<ProcessNode> aSuccessors;
 
-  public ActivityNode(String pId, String pName, String pPredecessor) {
+  public ActivityNode(final String pId, final String pName, final String pPredecessor) {
     super(pId);
     aName = pName;
     aPredecessorId = pPredecessor;
   }
 
-  public static ActivityNode fromXml(Element pNode) {
+  public static ActivityNode fromXml(final Element pNode) {
     String id = null;
     String name = null;
     String predecessor = null;
     {
-      NamedNodeMap attrs = pNode.getAttributes();
-      int attrCount = attrs.getLength();
-      for (int i=0; i<attrCount; ++i) {
-        Attr attr = (Attr) attrs.item(i);
+      final NamedNodeMap attrs = pNode.getAttributes();
+      final int attrCount = attrs.getLength();
+      for (int i = 0; i < attrCount; ++i) {
+        final Attr attr = (Attr) attrs.item(i);
         if (XMLUtil.isNS(null, attr)) {
           if ("id".equals(attr.getName())) {
             id = attr.getValue();
           } else if ("predecessor".equals(attr.getName())) {
-            predecessor=attr.getValue();
+            predecessor = attr.getValue();
           } else if ("name".equals(attr.getName())) {
-            name=attr.getValue();
+            name = attr.getValue();
           } else {
-            GWT.log("Unsupported attribute in activitynode "+attr.getName(), null);
+            GWT.log("Unsupported attribute in activitynode " + attr.getName(), null);
           }
         }
       }
     }
 
-    ActivityNode result = new ActivityNode(id, name, predecessor);
+    final ActivityNode result = new ActivityNode(id, name, predecessor);
 
-    List<Element> imports = new ArrayList<Element>();
-    List<Element> exports = new ArrayList<Element>();
+    final List<Element> imports = new ArrayList<Element>();
+    final List<Element> exports = new ArrayList<Element>();
     Node message;
 
-    for (Node child = pNode.getFirstChild(); child!=null; child = child.getNextSibling()) {
+    for (Node child = pNode.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (XMLUtil.isNS(ProcessModel.PROCESSMODEL_NS, child)) {
 
         if (XMLUtil.isLocalPart("import", child)) {
-          imports.add(importFromXml((Element)child));
+          imports.add(importFromXml((Element) child));
         } else if (XMLUtil.isLocalPart("export", child)) {
-          exports.add(exportFromXml((Element)child));
+          exports.add(exportFromXml((Element) child));
         } else if (XMLUtil.isLocalPart("message", child)) {
           {
-            NamedNodeMap attrs = child.getAttributes();
-            int attrCnt = attrs.getLength();
-            for(int i = 0; i<attrCnt; ++i) {
-              Attr attr = (Attr) attrs.item(i);
+            final NamedNodeMap attrs = child.getAttributes();
+            final int attrCnt = attrs.getLength();
+            for (int i = 0; i < attrCnt; ++i) {
+              final Attr attr = (Attr) attrs.item(i);
               if (XMLUtil.isNS(null, attr)) {
                 if ("serviceNS".equals(attr.getName())) {
                   result.setServiceNS(attr.getValue());
@@ -92,12 +102,12 @@ public class ActivityNode extends ProcessNode {
           }
 
 
-          message = ((Element)child).getFirstChild();
-          if (message.getNextSibling()!=null) {
+          message = ((Element) child).getFirstChild();
+          if (message.getNextSibling() != null) {
             GWT.log("Too many children to activity message", null);
           }
         } else if (XMLUtil.isLocalPart("condition", child)) {
-          result.setCondition(conditionFromXml((Element)child));
+          result.setCondition(conditionFromXml((Element) child));
         }
       }
     }
@@ -107,50 +117,50 @@ public class ActivityNode extends ProcessNode {
     return result;
   }
 
-  private static String conditionFromXml(Element pElem) {
+  private static String conditionFromXml(final Element pElem) {
     return XMLUtil.getTextChildren(pElem);
   }
 
-  private static Element importFromXml(Element pChild) {
+  private static Element importFromXml(final Element pChild) {
     return pChild;
   }
 
-  private static Element exportFromXml(Element pChild) {
+  private static Element exportFromXml(final Element pChild) {
     return pChild;
   }
 
-  private void setExports(List<Element> pExports) {
+  private void setExports(final List<Element> pExports) {
     aExports = pExports;
   }
 
-  private void setImports(List<Element> pImports) {
+  private void setImports(final List<Element> pImports) {
     aImports = pImports;
   }
 
-  private void setCondition(String pCondition) {
+  private void setCondition(final String pCondition) {
     aCondition = pCondition;
   }
 
-  private void setOperation(String pValue) {
+  private void setOperation(final String pValue) {
     aOperation = pValue;
   }
 
-  private void setEndpoint(String pValue) {
+  private void setEndpoint(final String pValue) {
     aEndpoint = pValue;
   }
 
-  private void setServiceName(String pValue) {
+  private void setServiceName(final String pValue) {
     aServiceName = pValue;
   }
 
-  private void setServiceNS(String pValue) {
+  private void setServiceNS(final String pValue) {
     aServiceNS = pValue;
   }
 
   @Override
-  public void resolvePredecessors(Map<String, ProcessNode> pMap) {
-    ProcessNode predecessor = pMap.get(aPredecessorId);
-    if (predecessor !=null) {
+  public void resolvePredecessors(final Map<String, ProcessNode> pMap) {
+    final ProcessNode predecessor = pMap.get(aPredecessorId);
+    if (predecessor != null) {
       aPredecessorId = predecessor.getId();
       aPredecessor = predecessor;
       aPredecessor.ensureSuccessor(this);
@@ -158,14 +168,18 @@ public class ActivityNode extends ProcessNode {
   }
 
   @Override
-  public void ensureSuccessor(ProcessNode pNode) {
-    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
+  public void ensureSuccessor(final ProcessNode pNode) {
+    if (aSuccessors == null) {
+      aSuccessors = new LinkedHashSet<ProcessNode>();
+    }
     aSuccessors.add(pNode);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
+    if (aSuccessors == null) {
+      aSuccessors = new LinkedHashSet<ProcessNode>();
+    }
     return aSuccessors;
   }
 

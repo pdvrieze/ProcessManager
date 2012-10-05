@@ -10,26 +10,25 @@ import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.NamedNodeMap;
 
 
-
 public class StartNode extends ProcessNode {
 
   private Set<ProcessNode> aSuccessors;
 
-  public StartNode(String pId) {
+  public StartNode(final String pId) {
     super(pId);
   }
 
-  public static ProcessNode fromXml(Element pElement) {
+  public static ProcessNode fromXml(final Element pElement) {
     String id = null;
-    NamedNodeMap attrs = pElement.getAttributes();
-    int attrCount = attrs.getLength();
-    for (int i=0; i<attrCount; ++i) {
-      Attr attr = (Attr) attrs.item(i);
+    final NamedNodeMap attrs = pElement.getAttributes();
+    final int attrCount = attrs.getLength();
+    for (int i = 0; i < attrCount; ++i) {
+      final Attr attr = (Attr) attrs.item(i);
       if (XMLUtil.isNS(null, attr)) {
         if ("id".equals(attr.getName())) {
           id = attr.getValue();
         } else {
-          GWT.log("Unsupported attribute in startnode: "+attr.getName(), null);
+          GWT.log("Unsupported attribute in startnode: " + attr.getName(), null);
         }
       }
     }
@@ -37,19 +36,23 @@ public class StartNode extends ProcessNode {
   }
 
   @Override
-  public void resolvePredecessors(Map<String, ProcessNode> pMap) {
+  public void resolvePredecessors(final Map<String, ProcessNode> pMap) {
     // start node has no predecessors
   }
 
   @Override
-  public void ensureSuccessor(ProcessNode pNode) {
-    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
+  public void ensureSuccessor(final ProcessNode pNode) {
+    if (aSuccessors == null) {
+      aSuccessors = new LinkedHashSet<ProcessNode>();
+    }
     aSuccessors.add(pNode);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors==null) { aSuccessors = new LinkedHashSet<ProcessNode>(); }
+    if (aSuccessors == null) {
+      aSuccessors = new LinkedHashSet<ProcessNode>();
+    }
     return aSuccessors;
   }
 

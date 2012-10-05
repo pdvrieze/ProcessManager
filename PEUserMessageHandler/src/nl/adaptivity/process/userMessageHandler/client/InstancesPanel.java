@@ -12,18 +12,18 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class InstancesPanel extends ResizeComposite implements ClickHandler {
 
-  private static final String PROCESSINSTANCELISTURL = PEUserMessageHandler.BASEURL+"/ProcessEngine/processInstances";
+  private static final String PROCESSINSTANCELISTURL = PEUserMessageHandler.BASEURL + "/ProcessEngine/processInstances";
 
-  private RemoteListBox aInstanceListBox;
+  private final RemoteListBox aInstanceListBox;
 
-  private Button aShowInstanceStatusButton;
+  private final Button aShowInstanceStatusButton;
 
   private final Label aStatusLabel;
 
-  public InstancesPanel(Label pStatusLabel) {
+  public InstancesPanel(final Label pStatusLabel) {
     aStatusLabel = pStatusLabel;
-    SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
-//    hp1.addStyleName("tabPanel");
+    final SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
+    //    hp1.addStyleName("tabPanel");
 
     aInstanceListBox = new RemoteListBox(PROCESSINSTANCELISTURL);
     aInstanceListBox.setRootElement("processInstances");
@@ -36,7 +36,7 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
     aInstanceListBox.addStyleName("mhList");
     aInstanceListBox.addStyleName("tabContent");
 
-    VerticalPanel vp1 = new VerticalPanel();
+    final VerticalPanel vp1 = new VerticalPanel();
     root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
@@ -59,8 +59,8 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
    * @category event handler
    */
   @Override
-  public void onClick(ClickEvent pEvent) {
-    if (pEvent.getSource()==aShowInstanceStatusButton) {
+  public void onClick(final ClickEvent pEvent) {
+    if (pEvent.getSource() == aShowInstanceStatusButton) {
       showInstance();
     }
   }

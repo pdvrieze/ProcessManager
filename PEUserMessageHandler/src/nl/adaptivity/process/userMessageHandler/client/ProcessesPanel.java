@@ -28,9 +28,9 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
   private final class FileSubmitHandler implements SubmitCompleteHandler {
 
     @Override
-    public void onSubmitComplete(SubmitCompleteEvent pEvent) {
+    public void onSubmitComplete(final SubmitCompleteEvent pEvent) {
       aStatusLabel.setText("File submit complete!!");
-      com.google.gwt.dom.client.Document results = pEvent.getResults();
+      final com.google.gwt.dom.client.Document results = pEvent.getResults();
       if (results != null) {
         aProcessListBox.update(results);
       } else {
@@ -39,12 +39,16 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
     }
   }
 
-  private static final String PROCESSLISTURL = PEUserMessageHandler.BASEURL+"/ProcessEngine/processModels";
+  private static final String PROCESSLISTURL = PEUserMessageHandler.BASEURL + "/ProcessEngine/processModels";
 
   private Button aStartProcessButton;
+
   private RemoteListBox aProcessListBox;
+
   private MyFormPanel aProcessFileForm;
+
   private Button aProcessFileSubmitButton;
+
   private MyFileUpload aProcessUpload;
 
   private final Label aStatusLabel;
@@ -55,7 +59,7 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
   private VerticalPanel aLowerPanel;
 
-  private SplittedFillLeftPanel<Widget> aRoot;
+  private final SplittedFillLeftPanel<Widget> aRoot;
 
   private Button aEditProcessButton;
 
@@ -63,12 +67,12 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
   private Button aNewProcessButton;
 
-  public ProcessesPanel(Label pStatusLabel) {
+  public ProcessesPanel(final Label pStatusLabel) {
     aRoot = new SplittedFillLeftPanel<Widget>();
     aRoot.setTopLeftWidget(new HTML("Top Left"));
     aRoot.setRightWidget(new HTML("Right"));
 
-//    HorizontalSplitPanel mainPanel = new HorizontalSplitPanel();
+    //    HorizontalSplitPanel mainPanel = new HorizontalSplitPanel();
 
     aStatusLabel = pStatusLabel;
 
@@ -117,8 +121,8 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
   }
 
 
-  private Button createLeftButton(String pCaption, boolean pControlled) {
-    Button result = new Button(pCaption);
+  private Button createLeftButton(final String pCaption, final boolean pControlled) {
+    final Button result = new Button(pCaption);
     if (pControlled) {
       aProcessListBox.addControlledWidget(result);
     }
@@ -139,7 +143,7 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
     aFormPanel = new VerticalPanel();
     aProcessFileForm.setWidget(aFormPanel);
 
-    Label label = new Label();
+    final Label label = new Label();
     label.setText("Upload new model");
     aFormPanel.add(label);
 
@@ -156,11 +160,11 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
   private void startProcess() {
     final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
-    TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
+    final TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
     namePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
       @Override
-      public void onComplete(InputCompleteEvent pCompleteEvent) {
+      public void onComplete(final InputCompleteEvent pCompleteEvent) {
         if (pCompleteEvent.isSuccess()) {
           submitStartProcess(handle, pCompleteEvent.getNewValue());
         }
@@ -175,31 +179,31 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
   /**
    * @category action
    */
-  private void submitStartProcess(String pHandle, String pName) {
+  private void submitStartProcess(final String pHandle, final String pName) {
     aStatusLabel.setText("startProcess");
-    String url=PROCESSLISTURL+"/"+pHandle;
-    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, url);
+    final String url = PROCESSLISTURL + "/" + pHandle;
+    final RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, url);
     rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
-    String postData = "op=newInstance&name="+URL.encodeComponent(pName);
+    final String postData = "op=newInstance&name=" + URL.encodeComponent(pName);
 
     try {
       rb.sendRequest(postData, new RequestCallback() {
 
         @Override
-        public void onError(Request pRequest, Throwable pException) {
-          aStatusLabel.setText("Error ("+pException.getMessage()+")");
+        public void onError(final Request pRequest, final Throwable pException) {
+          aStatusLabel.setText("Error (" + pException.getMessage() + ")");
         }
 
         @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
+        public void onResponseReceived(final Request pRequest, final Response pResponse) {
           aStatusLabel.setText("Process instantiated");
           // TODO perhaps do something with this, but the instances are not visible from the tab
-//          aInstanceListBox.update();
+          //          aInstanceListBox.update();
         }
 
       });
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error ("+e.getMessage()+")");
+    } catch (final RequestException e) {
+      aStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
 
   }
@@ -218,8 +222,8 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    * @category event handler
    */
   @Override
-  public void onChange(ChangeEvent pEvent) {
-    if (pEvent.getSource()==aProcessUpload) {
+  public void onChange(final ChangeEvent pEvent) {
+    if (pEvent.getSource() == aProcessUpload) {
       changeProcessUpload();
     }
   }
@@ -228,27 +232,27 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    * @category event handler
    */
   @Override
-  public void onClick(ClickEvent pEvent) {
-    if (pEvent.getSource()==aStartProcessButton) {
+  public void onClick(final ClickEvent pEvent) {
+    if (pEvent.getSource() == aStartProcessButton) {
       startProcess();
-    } else if (pEvent.getSource()==aRenameProcessButton) {
+    } else if (pEvent.getSource() == aRenameProcessButton) {
       renameProcess();
-    } else if (pEvent.getSource()==aProcessFileSubmitButton) {
+    } else if (pEvent.getSource() == aProcessFileSubmitButton) {
       submitProcessFile();
-    } else if (pEvent.getSource()==aEditProcessButton) {
+    } else if (pEvent.getSource() == aEditProcessButton) {
       viewProcess();
-    } else if (pEvent.getSource()==aNewProcessButton) {
+    } else if (pEvent.getSource() == aNewProcessButton) {
       newProcess();
     }
   }
 
 
   private void newProcess() {
-    TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
+    final TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
     namePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
       @Override
-      public void onComplete(InputCompleteEvent pCompleteEvent) {
+      public void onComplete(final InputCompleteEvent pCompleteEvent) {
         if (pCompleteEvent.isSuccess()) {
           newProcess(pCompleteEvent.getNewValue());
         }
@@ -259,17 +263,17 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
   }
 
 
-  protected void newProcess(String pName) {
-    if (! aProcessEditPanel.isEditable()) {
+  protected void newProcess(final String pName) {
+    if (!aProcessEditPanel.isEditable()) {
       aProcessEditPanel = new ProcessEditPanel(true);
       aRoot.setRightWidget(aProcessEditPanel);
     }
     aProcessEditPanel.reset();
 
     aProcessListBox.setSelectedIndex(-1);
-    ArrayList<ProcessNode> list = new ArrayList<ProcessNode>();
+    final ArrayList<ProcessNode> list = new ArrayList<ProcessNode>();
     list.add(new StartNode("start"));
-    ProcessModel model = new ProcessModel(pName, list);
+    final ProcessModel model = new ProcessModel(pName, list);
     aProcessEditPanel.init(model);
   }
 
@@ -281,27 +285,27 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
     }
     aProcessEditPanel.reset();
     aStatusLabel.setText("startProcess");
-    String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
-    String URL=PROCESSLISTURL+"/"+handle;
-    RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, URL);
+    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    final String URL = PROCESSLISTURL + "/" + handle;
+    final RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, URL);
 
     try {
       rb.sendRequest(null, new RequestCallback() {
 
         @Override
-        public void onError(Request pRequest, Throwable pException) {
-          aStatusLabel.setText("Error ("+pException.getMessage()+")");
+        public void onError(final Request pRequest, final Throwable pException) {
+          aStatusLabel.setText("Error (" + pException.getMessage() + ")");
         }
 
         @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
+        public void onResponseReceived(final Request pRequest, final Response pResponse) {
           aStatusLabel.setText("Process received, loading...");
           aProcessEditPanel.init(pResponse);
         }
 
       });
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error ("+e.getMessage()+")");
+    } catch (final RequestException e) {
+      aStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
 
   }
@@ -309,13 +313,13 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
   private void renameProcess() {
     final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
-    TextInputPopup renamePopup = new TextInputPopup("Enter new name of the process", "Rename");
+    final TextInputPopup renamePopup = new TextInputPopup("Enter new name of the process", "Rename");
     renamePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
       @Override
-      public void onComplete(InputCompleteEvent pCompleteEvent) {
+      public void onComplete(final InputCompleteEvent pCompleteEvent) {
         if (pCompleteEvent.isSuccess()) {
-          aStatusLabel.setText("Rename process "+handle+" to "+pCompleteEvent.getNewValue());
+          aStatusLabel.setText("Rename process " + handle + " to " + pCompleteEvent.getNewValue());
           submitRenameProcess(handle, pCompleteEvent.getNewValue());
         }
       }
@@ -326,31 +330,31 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
   }
 
 
-  private void submitRenameProcess(String pHandle, String pNewValue) {
-    String url=PROCESSLISTURL+"/"+pHandle;
-    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, url);
+  private void submitRenameProcess(final String pHandle, final String pNewValue) {
+    final String url = PROCESSLISTURL + "/" + pHandle;
+    final RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, url);
     rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
     String postData;
-    postData = "name="+URL.encodeComponent(pNewValue);
+    postData = "name=" + URL.encodeComponent(pNewValue);
 
     try {
       rb.sendRequest(postData, new RequestCallback() {
 
         @Override
-        public void onError(Request pRequest, Throwable pException) {
-          aStatusLabel.setText("Error ("+pException.getMessage()+")");
+        public void onError(final Request pRequest, final Throwable pException) {
+          aStatusLabel.setText("Error (" + pException.getMessage() + ")");
         }
 
         @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
+        public void onResponseReceived(final Request pRequest, final Response pResponse) {
           aStatusLabel.setText("Process renamed");
           aProcessListBox.update();
         }
 
       });
-    } catch (RequestException e) {
+    } catch (final RequestException e) {
       GWT.log(e.getMessage(), e);
-      aStatusLabel.setText("Error ("+e.getMessage()+")");
+      aStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
   }
 
@@ -358,11 +362,11 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    * @category event handler
    */
   private void changeProcessUpload() {
-    aProcessFileSubmitButton.setEnabled(aProcessUpload.getFilename().length()>0);
+    aProcessFileSubmitButton.setEnabled(aProcessUpload.getFilename().length() > 0);
     aStatusLabel.setText("upload file changed");
   }
 
-  public void setHeight(int pHeight) {
+  public void setHeight(final int pHeight) {
     aRoot.setHeight(pHeight);
   }
 

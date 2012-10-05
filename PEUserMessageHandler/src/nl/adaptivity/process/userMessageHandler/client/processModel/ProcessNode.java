@@ -7,13 +7,18 @@ import java.util.Map;
 public abstract class ProcessNode {
 
   private static final int HORIZSEP = 100;
+
   private static final int VERTSEP = 60;
-  private String aId;
+
+  private final String aId;
+
   private boolean aPosSet = false;
+
   private int aX;
+
   private int aY;
 
-  protected ProcessNode(String pId) {
+  protected ProcessNode(final String pId) {
     aId = pId;
   }
 
@@ -37,28 +42,29 @@ public abstract class ProcessNode {
     return aPosSet;
   }
 
-  public int layout(int pX, int pY, ProcessNode pSource, boolean pForward) {
+  public int layout(final int pX, final int pY, final ProcessNode pSource, final boolean pForward) {
     if (aPosSet) {
-      boolean dx = false; boolean dy = false;
-      if (pX!=aX) {
+      boolean dx = false;
+      boolean dy = false;
+      if (pX != aX) {
         if (pForward) {
           if (pX > aX) {
             aX = pX;
             dx = true;
           } else { // pX < aX
-            aX -= (aX - pX)/2; // center
+            aX -= (aX - pX) / 2; // center
           }
         } else {
           if (pX < aX) {
             aX = pX;
             dx = true;
           } else { // pX > aX
-            aX += (pX - aX)/2; // center
+            aX += (pX - aX) / 2; // center
           }
         }
       }
       if (pY != aY) {
-        if (pY>aY) {
+        if (pY > aY) {
           aY = pY;
           dy = true;
         } else {
@@ -78,36 +84,35 @@ public abstract class ProcessNode {
       aPosSet = true;
       aX = pX;
       if (pForward) {
-        int cnt = getPredecessors().size();
+        final int cnt = getPredecessors().size();
         int index = -1;
         int i = 0;
-        for (ProcessNode n:getPredecessors()) {
-          if (n==pSource) {
+        for (final ProcessNode n : getPredecessors()) {
+          if (n == pSource) {
             index = i;
             break;
           }
           ++i;
         }
-        if (index>=0) {
-          aY = pY - ((index * VERTSEP)) + ((cnt-1)*VERTSEP/2);
+        if (index >= 0) {
+          aY = (pY - ((index * VERTSEP))) + (((cnt - 1) * VERTSEP) / 2);
         } else {
           aY = pY;
         }
       } else {
         aY = pY;
       }
-      return Math.max(layoutPredecessors(pSource),
-                      layoutSuccessors(pSource));
+      return Math.max(layoutPredecessors(pSource), layoutSuccessors(pSource));
     }
   }
 
-  private int layoutSuccessors(ProcessNode pSource) {
-    Collection<ProcessNode> successors = getSuccessors();
-    int posY = aY - (((successors.size()-1) * VERTSEP)/2);
-    int posX = aX + HORIZSEP;
+  private int layoutSuccessors(final ProcessNode pSource) {
+    final Collection<ProcessNode> successors = getSuccessors();
+    int posY = aY - (((successors.size() - 1) * VERTSEP) / 2);
+    final int posX = aX + HORIZSEP;
 
-    for (ProcessNode successor: successors) {
-      if (successor !=pSource) {
+    for (final ProcessNode successor : successors) {
+      if (successor != pSource) {
         successor.layout(posX, posY, this, true);
       }
       posY += VERTSEP;
@@ -115,13 +120,13 @@ public abstract class ProcessNode {
     return Math.min(aY, posY - VERTSEP);
   }
 
-  private int layoutPredecessors(ProcessNode pSource) {
-    Collection<ProcessNode> predecessors = getPredecessors();
-    int posY = aY - (((predecessors.size()-1) * VERTSEP)/2);
-    int posX = aX - HORIZSEP;
+  private int layoutPredecessors(final ProcessNode pSource) {
+    final Collection<ProcessNode> predecessors = getPredecessors();
+    int posY = aY - (((predecessors.size() - 1) * VERTSEP) / 2);
+    final int posX = aX - HORIZSEP;
 
-    for (ProcessNode predecessor: predecessors) {
-      if (predecessor !=pSource) {
+    for (final ProcessNode predecessor : predecessors) {
+      if (predecessor != pSource) {
         predecessor.layout(posX, posY, this, false);
       }
       posY += VERTSEP;
@@ -137,7 +142,7 @@ public abstract class ProcessNode {
     return aY;
   }
 
-  public void offset(int pOffsetX, int pOffsetY) {
+  public void offset(final int pOffsetX, final int pOffsetY) {
     aX += pOffsetX;
     aY += pOffsetY;
   }

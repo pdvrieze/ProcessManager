@@ -17,21 +17,21 @@ import com.google.gwt.user.client.ui.*;
 import com.google.gwt.user.client.ui.impl.FormPanelImplHost;
 
 
-public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
+public class MyFormPanel extends SimplePanel implements FormPanelImplHost {
 
   public static class ResetEvent extends GwtEvent<ResetHandler> {
-    
+
     private static Type<ResetHandler> TYPE;
-    
+
     static Type<ResetHandler> getType() {
       if (TYPE == null) {
-        TYPE= new Type<ResetHandler>();
+        TYPE = new Type<ResetHandler>();
       }
       return TYPE;
     }
 
     @Override
-    protected void dispatch(ResetHandler pHandler) {
+    protected void dispatch(final ResetHandler pHandler) {
       pHandler.onReset(this);
     }
 
@@ -39,9 +39,9 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     public com.google.gwt.event.shared.GwtEvent.Type<ResetHandler> getAssociatedType() {
       return getType();
     }
-    
+
   }
-  
+
   public interface ResetHandler extends EventHandler {
 
     void onReset(ResetEvent pResetEvent);
@@ -51,8 +51,8 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
   /**
    * Fired when a form has been submitted successfully.
    */
-  public static class SubmitCompleteEvent extends
-      GwtEvent<SubmitCompleteHandler> {
+  public static class SubmitCompleteEvent extends GwtEvent<SubmitCompleteHandler> {
+
     /**
      * The event type.
      */
@@ -70,14 +70,14 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
       return TYPE;
     }
 
-    private Document resultDoc;
+    private final Document resultDoc;
 
     /**
      * Create a submit complete event.
      * 
      * @param resultsDoc the results from submitting the form
      */
-    protected SubmitCompleteEvent(Document resultsDoc) {
+    protected SubmitCompleteEvent(final Document resultsDoc) {
       this.resultDoc = resultsDoc;
     }
 
@@ -99,7 +99,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     }
 
     @Override
-    protected void dispatch(SubmitCompleteHandler handler) {
+    protected void dispatch(final SubmitCompleteHandler handler) {
       handler.onSubmitComplete(this);
     }
   }
@@ -108,6 +108,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * Handler for {@link MyFormPanel.SubmitCompleteEvent} events.
    */
   public interface SubmitCompleteHandler extends EventHandler {
+
     /**
      * Fired when a form has been submitted successfully.
      * 
@@ -120,6 +121,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * Fired when the form is submitted.
    */
   public static class SubmitEvent extends GwtEvent<SubmitHandler> {
+
     /**
      * The event type.
      */
@@ -162,7 +164,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     }
 
     @Override
-    protected void dispatch(MyFormPanel.SubmitHandler handler) {
+    protected void dispatch(final MyFormPanel.SubmitHandler handler) {
       handler.onSubmit(this);
     }
 
@@ -173,7 +175,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
      * @deprecated Use {@link MyFormPanel.SubmitEvent#cancel()} instead
      */
     @Deprecated
-    void setCanceled(boolean canceled) {
+    void setCanceled(final boolean canceled) {
       this.canceled = canceled;
     }
   }
@@ -182,13 +184,13 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * Handler for {@link MyFormPanel.SubmitEvent} events.
    */
   public interface SubmitHandler extends EventHandler {
+
     /**
-     *Fired when the form is submitted.
-     * 
+     * Fired when the form is submitted.
      * <p>
-     * The MyFormPanel must <em>not</em> be detached (i.e. removed from its parent
-     * or otherwise disconnected from a {@link RootPanel}) until the submission
-     * is complete. Otherwise, notification of submission will fail.
+     * The MyFormPanel must <em>not</em> be detached (i.e. removed from its
+     * parent or otherwise disconnected from a {@link RootPanel}) until the
+     * submission is complete. Otherwise, notification of submission will fail.
      * </p>
      * 
      * @param event the event
@@ -223,15 +225,13 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
   public static final String METHOD_POST = "post";
 
   private static int formId = 0;
+
   private static MyFormPanelImpl impl = GWT.create(MyFormPanelImpl.class);
 
   /**
-   * Creates a MyFormPanel that wraps an existing &lt;form&gt; element.
-   * 
-   * This element must already be attached to the document. If the element is
-   * removed from the document, you must call
-   * {@link RootPanel#detachNow(Widget)}.
-   * 
+   * Creates a MyFormPanel that wraps an existing &lt;form&gt; element. This
+   * element must already be attached to the document. If the element is removed
+   * from the document, you must call {@link RootPanel#detachNow(Widget)}.
    * <p>
    * The specified form element's target attribute will not be set, and the
    * {@link FormSubmitCompleteEvent} will not be fired.
@@ -239,11 +239,11 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * 
    * @param element the element to be wrapped
    */
-  public static MyFormPanel wrap(Element element) {
+  public static MyFormPanel wrap(final Element element) {
     // Assert that the element is attached.
     assert Document.get().getBody().isOrHasChild(element);
 
-    MyFormPanel formPanel = new MyFormPanel(element);
+    final MyFormPanel formPanel = new MyFormPanel(element);
 
     // Mark it attached and remember it for cleanup.
     formPanel.onAttach();
@@ -253,12 +253,9 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
   }
 
   /**
-   * Creates a MyFormPanel that wraps an existing &lt;form&gt; element.
-   * 
-   * This element must already be attached to the document. If the element is
-   * removed from the document, you must call
-   * {@link RootPanel#detachNow(Widget)}.
-   * 
+   * Creates a MyFormPanel that wraps an existing &lt;form&gt; element. This
+   * element must already be attached to the document. If the element is removed
+   * from the document, you must call {@link RootPanel#detachNow(Widget)}.
    * <p>
    * If the createIFrame parameter is set to <code>true</code>, then the wrapped
    * form's target attribute will be set to a hidden iframe. If not, the form's
@@ -270,11 +267,11 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * @param createIFrame <code>true</code> to create an &lt;iframe&gt; element
    *          that will be targeted by this form
    */
-  public static MyFormPanel wrap(Element element, boolean createIFrame) {
+  public static MyFormPanel wrap(final Element element, final boolean createIFrame) {
     // Assert that the element is attached.
     assert Document.get().getBody().isOrHasChild(element);
 
-    MyFormPanel formPanel = new MyFormPanel(element, createIFrame);
+    final MyFormPanel formPanel = new MyFormPanel(element, createIFrame);
 
     // Mark it attached and remember it for cleanup.
     formPanel.onAttach();
@@ -284,20 +281,20 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
   }
 
   private String frameName;
+
   private Element synthesizedFrame;
 
   /**
    * Creates a new MyFormPanel. When created using this constructor, it will be
    * submitted to a hidden &lt;iframe&gt; element, and the results of the
    * submission made available via {@link SubmitCompleteHandler}.
-   * 
    * <p>
    * The back-end server is expected to respond with a content-type of
    * 'text/html', meaning that the text returned will be treated as HTML. If any
    * other content-type is specified by the server, then the result HTML sent in
    * the onFormSubmit event will be unpredictable across browsers, and the
-   * {@link SubmitCompleteHandler#onSubmitComplete(MyFormPanel.SubmitCompleteEvent) onSubmitComplete} event
-   * may not fire at all.
+   * {@link SubmitCompleteHandler#onSubmitComplete(MyFormPanel.SubmitCompleteEvent)
+   * onSubmitComplete} event may not fire at all.
    * </p>
    * 
    * @tip The initial implementation of MyFormPanel specified that the server
@@ -310,18 +307,17 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
   }
 
   /**
-   * Creates a MyFormPanel that targets a {@link NamedFrame}. The target frame is
-   * not physically attached to the form, and must therefore still be added to a
-   * panel elsewhere.
-   * 
+   * Creates a MyFormPanel that targets a {@link NamedFrame}. The target frame
+   * is not physically attached to the form, and must therefore still be added
+   * to a panel elsewhere.
    * <p>
-   * When the MyFormPanel targets an external frame in this way, it will not fire
-   * the FormSubmitComplete event.
+   * When the MyFormPanel targets an external frame in this way, it will not
+   * fire the FormSubmitComplete event.
    * </p>
    * 
    * @param frameTarget the {@link NamedFrame} to be targetted
    */
-  public MyFormPanel(NamedFrame frameTarget) {
+  public MyFormPanel(final NamedFrame frameTarget) {
     this(frameTarget.getName());
   }
 
@@ -329,17 +325,16 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * Creates a new MyFormPanel. When created using this constructor, it will be
    * submitted either by replacing the current page, or to the named
    * &lt;iframe&gt;.
-   * 
    * <p>
-   * When the MyFormPanel targets an external frame in this way, it will not fire
-   * the FormSubmitComplete event.
+   * When the MyFormPanel targets an external frame in this way, it will not
+   * fire the FormSubmitComplete event.
    * </p>
    * 
    * @param target the name of the &lt;iframe&gt; to receive the results of the
    *          submission, or <code>null</code> to specify that the current page
    *          be replaced
    */
-  public MyFormPanel(String target) {
+  public MyFormPanel(final String target) {
     super(Document.get().createFormElement());
     setTarget(target);
   }
@@ -347,7 +342,6 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
   /**
    * This constructor may be used by subclasses to explicitly use an existing
    * element. This element must be a &lt;form&gt; element.
-   * 
    * <p>
    * The specified form element's target attribute will not be set, and the
    * {@link FormSubmitCompleteEvent} will not be fired.
@@ -355,14 +349,13 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * 
    * @param element the element to be used
    */
-  protected MyFormPanel(Element element) {
+  protected MyFormPanel(final Element element) {
     this(element, false);
   }
 
   /**
    * This constructor may be used by subclasses to explicitly use an existing
    * element. This element must be a &lt;form&gt; element.
-   * 
    * <p>
    * If the createIFrame parameter is set to <code>true</code>, then the wrapped
    * form's target attribute will be set to a hidden iframe. If not, the form's
@@ -374,7 +367,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * @param createIFrame <code>true</code> to create an &lt;iframe&gt; element
    *          that will be targeted by this form
    */
-  protected MyFormPanel(Element element, boolean createIFrame) {
+  protected MyFormPanel(final Element element, final boolean createIFrame) {
     super(element);
     FormElement.as(element);
 
@@ -394,8 +387,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * @param handler the handler
    * @return the handler registration used to remove the handler
    */
-  public HandlerRegistration addSubmitCompleteHandler(
-      SubmitCompleteHandler handler) {
+  public HandlerRegistration addSubmitCompleteHandler(final SubmitCompleteHandler handler) {
     return addHandler(handler, SubmitCompleteEvent.getType());
   }
 
@@ -405,11 +397,11 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * @param handler the handler
    * @return the handler registration used to remove the handler
    */
-  public HandlerRegistration addSubmitHandler(SubmitHandler handler) {
+  public HandlerRegistration addSubmitHandler(final SubmitHandler handler) {
     return addHandler(handler, SubmitEvent.getType());
   }
 
-  public HandlerRegistration addResetHandler(ResetHandler pHandler) {
+  public HandlerRegistration addResetHandler(final ResetHandler pHandler) {
     return addHandler(pHandler, ResetEvent.getType());
   }
 
@@ -459,8 +451,9 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * 
    * @return true if the form is submitted, false if canceled
    */
+  @Override
   public boolean onFormSubmit() {
-    UncaughtExceptionHandler handler = GWT.getUncaughtExceptionHandler();
+    final UncaughtExceptionHandler handler = GWT.getUncaughtExceptionHandler();
     if (handler != null) {
       return onFormSubmitAndCatch(handler);
     } else {
@@ -468,8 +461,9 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     }
   }
 
+  @Override
   public void onFrameLoad() {
-    UncaughtExceptionHandler handler = GWT.getUncaughtExceptionHandler();
+    final UncaughtExceptionHandler handler = GWT.getUncaughtExceptionHandler();
     if (handler != null) {
       onFrameLoadAndCatch(handler);
     } else {
@@ -491,7 +485,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * 
    * @param url the form's action
    */
-  public void setAction(String url) {
+  public void setAction(final String url) {
     getFormElement().setAction(url);
   }
 
@@ -501,7 +495,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * 
    * @param encodingType the form's encoding
    */
-  public void setEncoding(String encodingType) {
+  public void setEncoding(final String encodingType) {
     impl.setEncoding(getElement(), encodingType);
   }
 
@@ -511,13 +505,12 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * 
    * @param method the form's method
    */
-  public void setMethod(String method) {
+  public void setMethod(final String method) {
     getFormElement().setMethod(method);
   }
 
   /**
    * Submits the form.
-   * 
    * <p>
    * The MyFormPanel must <em>not</em> be detached (i.e. removed from its parent
    * or otherwise disconnected from a {@link RootPanel}) until the submission is
@@ -576,9 +569,8 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     // the form will be submitted. We have to create the iframe using innerHTML,
     // because setting an iframe's 'name' property dynamically doesn't work on
     // most browsers.
-    Element dummy = Document.get().createDivElement();
-    dummy.setInnerHTML("<iframe src=\"javascript:''\" name='" + frameName
-        + "' style='position:absolute;width:0;height:0;border:0'>");
+    final Element dummy = Document.get().createDivElement();
+    dummy.setInnerHTML("<iframe src=\"javascript:''\" name='" + frameName + "' style='position:absolute;width:0;height:0;border:0'>");
 
     synthesizedFrame = dummy.getFirstChildElement();
   }
@@ -589,13 +581,13 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
    * @return true to continue, false if canceled
    */
   private boolean fireSubmitEvent() {
-    MyFormPanel.SubmitEvent event = new MyFormPanel.SubmitEvent();
+    final MyFormPanel.SubmitEvent event = new MyFormPanel.SubmitEvent();
     fireEvent(event);
     return !event.isCanceled();
   }
 
   private void fireResetEvent() {
-    MyFormPanel.ResetEvent event = new MyFormPanel.ResetEvent();
+    final MyFormPanel.ResetEvent event = new MyFormPanel.ResetEvent();
     fireEvent(event);
   }
 
@@ -603,10 +595,10 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     return getElement().cast();
   }
 
-  private boolean onFormSubmitAndCatch(UncaughtExceptionHandler handler) {
+  private boolean onFormSubmitAndCatch(final UncaughtExceptionHandler handler) {
     try {
       return onFormSubmitImpl();
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       handler.onUncaughtException(e);
       return false;
     }
@@ -619,10 +611,10 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     return fireSubmitEvent();
   }
 
-  private void onFrameLoadAndCatch(UncaughtExceptionHandler handler) {
+  private void onFrameLoadAndCatch(final UncaughtExceptionHandler handler) {
     try {
       onFrameLoadImpl();
-    } catch (Throwable e) {
+    } catch (final Throwable e) {
       handler.onUncaughtException(e);
     }
   }
@@ -633,13 +625,15 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost{
     // complete can cause some browsers (i.e. Mozilla) to go into an
     // 'infinite loading' state. See issue 916.
     DeferredCommand.addCommand(new Command() {
+
+      @Override
       public void execute() {
         fireEvent(new SubmitCompleteEvent(impl.getContents(synthesizedFrame)));
       }
     });
   }
 
-  private void setTarget(String target) {
+  private void setTarget(final String target) {
     getFormElement().setTarget(target);
   }
 

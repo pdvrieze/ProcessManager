@@ -18,15 +18,15 @@ public class ActionPanel {
   interface ActionPanelUiBinder extends UiBinder<Element, ActionPanel> { /**/}
 
   DivElement aDivElement;
-  
+
   public ActionPanel() {
-//    aDivElement = Document.get().createDivElement();
-//    setElement(aDivElement);
+    //    aDivElement = Document.get().createDivElement();
+    //    setElement(aDivElement);
   }
 
-  public static void load(CompletionListener pCompletionListener) {
-    RequestBuilder requestBuilder = new RequestBuilder(RequestBuilder.GET, "PEUserMessageHandler/actions");
-    
+  public static void load(final CompletionListener pCompletionListener) {
+    new RequestBuilder(RequestBuilder.GET, "PEUserMessageHandler/actions");
+
     // TODO Auto-generated method stub
     // 
     throw new UnsupportedOperationException("Not yet implemented");

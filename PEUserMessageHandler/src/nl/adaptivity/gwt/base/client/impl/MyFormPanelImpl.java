@@ -14,17 +14,17 @@ public class MyFormPanelImpl {
    * @return the response html
    */
   public native Document getContents(Element iframe) /*-{
-    try {
-      // Make sure the iframe's window & document are loaded.
-      if (!iframe.contentWindow || !iframe.contentWindow.document)
-        return null;
+                                                     try {
+                                                     // Make sure the iframe's window & document are loaded.
+                                                     if (!iframe.contentWindow || !iframe.contentWindow.document)
+                                                     return null;
 
-      // Get the body's entire inner HTML.
-      return iframe.contentWindow.document;
-    } catch (e) {
-      return null;
-    }
-  }-*/;
+                                                     // Get the body's entire inner HTML.
+                                                     return iframe.contentWindow.document;
+                                                     } catch (e) {
+                                                     return null;
+                                                     }
+                                                     }-*/;
 
   /**
    * Gets the form element's encoding.
@@ -33,10 +33,10 @@ public class MyFormPanelImpl {
    * @return the form's encoding type
    */
   public native String getEncoding(Element form) /*-{
-    // We can always get 'enctype', no matter which browser, because we set
-    // both 'encoding' and 'enctype' in setEncoding().
-    return form.enctype;
-  }-*/;
+                                                 // We can always get 'enctype', no matter which browser, because we set
+                                                 // both 'encoding' and 'enctype' in setEncoding().
+                                                 return form.enctype;
+                                                 }-*/;
 
   /**
    * Hooks the iframe's onLoad event and the form's onSubmit event.
@@ -45,27 +45,26 @@ public class MyFormPanelImpl {
    * @param form the form whose onSubmit event is to be hooked
    * @param listener the listener to receive notification
    */
-  public native void hookEvents(Element iframe, Element form,
-      FormPanelImplHost listener) /*-{
-    if (iframe) {
-      iframe.onload = function() {
-        // If there is no __formAction yet, this is a spurious onload
-        // generated when the iframe is first added to the DOM.
-        if (!iframe.__formAction)
-          return;
+  public native void hookEvents(Element iframe, Element form, FormPanelImplHost listener) /*-{
+                                                                                          if (iframe) {
+                                                                                          iframe.onload = function() {
+                                                                                          // If there is no __formAction yet, this is a spurious onload
+                                                                                          // generated when the iframe is first added to the DOM.
+                                                                                          if (!iframe.__formAction)
+                                                                                          return;
 
-        listener.@com.google.gwt.user.client.ui.impl.FormPanelImplHost::onFrameLoad()();
-      };
-    }
+                                                                                          listener.@com.google.gwt.user.client.ui.impl.FormPanelImplHost::onFrameLoad()();
+                                                                                          };
+                                                                                          }
 
-    form.onsubmit = function() {
-      // Hang on to the form's action url, needed in the
-      // onload/onreadystatechange handler.
-      if (iframe)
-        iframe.__formAction = form.action;
-      return listener.@com.google.gwt.user.client.ui.impl.FormPanelImplHost::onFormSubmit()();
-    };
-  }-*/;
+                                                                                          form.onsubmit = function() {
+                                                                                          // Hang on to the form's action url, needed in the
+                                                                                          // onload/onreadystatechange handler.
+                                                                                          if (iframe)
+                                                                                          iframe.__formAction = form.action;
+                                                                                          return listener.@com.google.gwt.user.client.ui.impl.FormPanelImplHost::onFormSubmit()();
+                                                                                          };
+                                                                                          }-*/;
 
   /**
    * Resets a form.
@@ -73,8 +72,8 @@ public class MyFormPanelImpl {
    * @param form the form to be reset
    */
   public native void reset(Element form) /*-{
-    form.reset();
-  }-*/;
+                                         form.reset();
+                                         }-*/;
 
   /**
    * Sets the form element's encoding.
@@ -83,10 +82,10 @@ public class MyFormPanelImpl {
    * @param encoding the new encoding type
    */
   public native void setEncoding(Element form, String encoding) /*-{
-    // To be safe, setting both.
-    form.enctype = encoding;
-    form.encoding = encoding;
-  }-*/;
+                                                                // To be safe, setting both.
+                                                                form.enctype = encoding;
+                                                                form.encoding = encoding;
+                                                                }-*/;
 
   /**
    * Submits a form.
@@ -95,12 +94,12 @@ public class MyFormPanelImpl {
    * @param iframe the iframe that is targetted, or <code>null</code>
    */
   public native void submit(Element form, Element iframe) /*-{
-    // Hang on to the form's action url, needed in the
-    // onload/onreadystatechange handler.
-    if (iframe)
-      iframe.__formAction = form.action;
-    form.submit();
-  }-*/;
+                                                          // Hang on to the form's action url, needed in the
+                                                          // onload/onreadystatechange handler.
+                                                          if (iframe)
+                                                          iframe.__formAction = form.action;
+                                                          form.submit();
+                                                          }-*/;
 
   /**
    * Unhooks the iframe's onLoad event.
@@ -109,8 +108,8 @@ public class MyFormPanelImpl {
    * @param form the form whose onSubmit event is to be unhooked
    */
   public native void unhookEvents(Element iframe, Element form) /*-{
-    if (iframe)
-      iframe.onload = null;
-    form.onsubmit = null;
-  }-*/;
+                                                                if (iframe)
+                                                                iframe.onload = null;
+                                                                form.onsubmit = null;
+                                                                }-*/;
 }

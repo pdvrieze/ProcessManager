@@ -7,18 +7,19 @@ import java.util.List;
 
 public class EditableProcessModel {
 
-  private ProcessModel aProcessModel;
+  private final ProcessModel aProcessModel;
+
   List<EditableProcessNode> aNodes;
 
-  public EditableProcessModel(ProcessModel pProcessModel) {
+  public EditableProcessModel(final ProcessModel pProcessModel) {
     aProcessModel = pProcessModel;
   }
 
   public Collection<EditableProcessNode> getNodes() {
-    if (aNodes==null) {
-      List<ProcessNode> nodes = aProcessModel.getNodes();
+    if (aNodes == null) {
+      final List<ProcessNode> nodes = aProcessModel.getNodes();
       aNodes = new ArrayList<EditableProcessNode>(nodes.size());
-      for(ProcessNode node: nodes) {
+      for (final ProcessNode node : nodes) {
         aNodes.add(EditableProcessNode.create(node));
       }
     }

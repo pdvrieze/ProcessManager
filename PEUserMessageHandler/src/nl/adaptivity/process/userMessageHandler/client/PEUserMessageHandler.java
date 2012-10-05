@@ -3,26 +3,13 @@ package nl.adaptivity.process.userMessageHandler.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Style.Unit;
-import com.google.gwt.event.logical.shared.ResizeEvent;
-import com.google.gwt.event.logical.shared.ResizeHandler;
-import com.google.gwt.event.logical.shared.SelectionEvent;
-import com.google.gwt.event.logical.shared.SelectionHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.logical.shared.*;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.ui.CheckBox;
-import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HTML;
-import com.google.gwt.user.client.ui.InlineLabel;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RootLayoutPanel;
-import com.google.gwt.user.client.ui.TabLayoutPanel;
-import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.user.client.ui.*;
 
 
 /**
@@ -31,10 +18,11 @@ import com.google.gwt.user.client.ui.Widget;
 public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<String>, SelectionHandler<Integer>, ResizeHandler {
 
   interface MyUiBinder extends UiBinder<Widget, PEUserMessageHandler> {
+
     MyUiBinder INSTANCE = GWT.create(MyUiBinder.class);
   }
 
-  static final String BASEURL = ""/*"http://localhost:8192/ProcessEngine/"*/;
+  static final String BASEURL = ""/* "http://localhost:8192/ProcessEngine/" */;
 
   private static final int REFRESH_INTERVAL = 2000;
 
@@ -61,32 +49,36 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   private FlowPanel aStatusPanel;
 
-  @UiField InlineLabel nStatusLabel;
-  @UiField CheckBox nRefreshCheckbox;
+  @UiField
+  InlineLabel nStatusLabel;
+
+  @UiField
+  CheckBox nRefreshCheckbox;
 
   /**
    * This is the entry point method.
+   * 
    * @category UI
    */
   @Override
   public void onModuleLoad() {
-    String initToken = History.getToken();
+    final String initToken = History.getToken();
     if (initToken.length() == 0) {
       History.newItem("Processes");
     }
 
-    Widget w = MyUiBinder.INSTANCE.createAndBindUi(this);
+    final Widget w = MyUiBinder.INSTANCE.createAndBindUi(this);
     aRootPanel = RootLayoutPanel.get();
     aRootPanel.add(w);
 
     aDockPanel = new DockLayoutPanel(Unit.PX);
     aDockPanel.addNorth(new HTML("<h1 class=\"title\">Process Engine Interface</h1>"), 25);
-//    aDockPanel.addStyleName("dockPanel");
+    //    aDockPanel.addStyleName("dockPanel");
     aRootPanel.add(aDockPanel);
 
     aTabPanel = new TabLayoutPanel(22, Unit.PX);
     aTabPanel.addStyleName("tabPanel");
-//    aDockPanel.setCellHeight(aTabPanel, "100%");
+    //    aDockPanel.setCellHeight(aTabPanel, "100%");
 
     aStatusLabel = new Label();
     aStatusLabel.setText("Initializing...");
@@ -114,7 +106,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     aRefreshCheckbox.addStyleName("statusPanel-right");
     aStatusPanel.add(aRefreshCheckbox);
 
-    if (! GWT.isScript()) {
+    if (!GWT.isScript()) {
       final Label label = new Label("Hosted mode");
       label.addStyleName("span");
       aStatusPanel.add(label);
@@ -122,17 +114,18 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
       aStatusPanel.add(new HTML("Status"));
     }
 
-//    aDockPanel.addSouth(new HTML("South"), 20);
+    //    aDockPanel.addSouth(new HTML("South"), 20);
     aDockPanel.addSouth(aStatusPanel, 20d);
-//    aDockPanel.setCellHeight(aTabPanel, "100%");
+    //    aDockPanel.setCellHeight(aTabPanel, "100%");
 
     aDockPanel.add(aTabPanel);
-//    aDockPanel.add(new HTML("Center"));
+    //    aDockPanel.add(new HTML("Center"));
 
-//    Window.addResizeHandler(this);
-//    onResize(null);
+    //    Window.addResizeHandler(this);
+    //    onResize(null);
 
-    Timer refreshTimer = new Timer() {
+    final Timer refreshTimer = new Timer() {
+
       @Override
       public void run() {
         refreshState();
@@ -180,15 +173,17 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     }
   }
 
-  /** Handle history
+  /**
+   * Handle history
+   * 
    * @category action
    */
   @Override
-  public void onValueChange(ValueChangeEvent<String> pEvent) {
+  public void onValueChange(final ValueChangeEvent<String> pEvent) {
     final String value = pEvent.getValue();
 
-    int c = aTabPanel.getWidgetCount();
-    for(int i = 0; i<c; ++i) {
+    final int c = aTabPanel.getWidgetCount();
+    for (int i = 0; i < c; ++i) {
       if (value.equals(aTabPanel.getTabWidget(i).getElement().getInnerText())) {
         aTabPanel.selectTab(i);
         break;
@@ -201,8 +196,8 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    * @category action
    */
   @Override
-  public void onSelection(SelectionEvent<Integer> pEvent) {
-    if (pEvent.getSource()==aTabPanel) {
+  public void onSelection(final SelectionEvent<Integer> pEvent) {
+    if (pEvent.getSource() == aTabPanel) {
       handleTabSelection(pEvent);
     }
   }
@@ -210,8 +205,8 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
   /**
    * @category action
    */
-  private void handleTabSelection(SelectionEvent<Integer> pEvent) {
-    String tabText = aTabPanel.getTabWidget(pEvent.getSelectedItem()).getElement().getInnerText();
+  private void handleTabSelection(final SelectionEvent<Integer> pEvent) {
+    final String tabText = aTabPanel.getTabWidget(pEvent.getSelectedItem()).getElement().getInnerText();
     History.newItem(tabText, false);
     if ("Processes".equals(tabText)) {
       aProcessesPanel.start();
@@ -231,20 +226,20 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
   }
 
   @Override
-  public void onResize(ResizeEvent pEvent) {
-//    int height = Window.getClientHeight();
-//    aRootPanel.setHeight((height-10)+"px");
-//    height -= 14; // margin
-//    height -= aStatusPanel.getOffsetHeight();
-//    aDockPanel.setHeight(height+"px");
-//    height -= aTabPanel.getTabBar().getOffsetHeight();
-//
-//    height -= 11; // arbitrary missing margin adjustment
-//    aTabPanel.getDeckPanel().setHeight(height+"px");
-//
-//    aProcessesPanel.setHeight(height);
-//    aInstancesPanel.setHeight(height+"px");
-//    aTasksPanel.setHeight(height+"px");
+  public void onResize(final ResizeEvent pEvent) {
+    //    int height = Window.getClientHeight();
+    //    aRootPanel.setHeight((height-10)+"px");
+    //    height -= 14; // margin
+    //    height -= aStatusPanel.getOffsetHeight();
+    //    aDockPanel.setHeight(height+"px");
+    //    height -= aTabPanel.getTabBar().getOffsetHeight();
+    //
+    //    height -= 11; // arbitrary missing margin adjustment
+    //    aTabPanel.getDeckPanel().setHeight(height+"px");
+    //
+    //    aProcessesPanel.setHeight(height);
+    //    aInstancesPanel.setHeight(height+"px");
+    //    aTasksPanel.setHeight(height+"px");
   }
 
 }

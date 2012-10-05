@@ -10,14 +10,16 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.user.client.ui.FocusWidget;
 import com.google.gwt.user.client.ui.ListBox;
 
+
 /**
- * A ListBox extension that controls widget enablement based on whether an item is selected.
+ * A ListBox extension that controls widget enablement based on whether an item
+ * is selected.
+ * 
  * @author Paul de Vrieze
- *
  */
 public class ControllingListBox extends ListBox implements ChangeHandler, IWidgetController {
 
-  private Collection<FocusWidget> aWidgetsToEnable;
+  private final Collection<FocusWidget> aWidgetsToEnable;
 
   public ControllingListBox() {
     setVisibleItemCount(10);
@@ -26,33 +28,41 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
   }
 
   @Override
-  public void onChange(ChangeEvent pEvent) {
-    boolean enabled = getSelectedIndex()>=0;
-    for (FocusWidget widget: aWidgetsToEnable) {
+  public void onChange(final ChangeEvent pEvent) {
+    final boolean enabled = getSelectedIndex() >= 0;
+    for (final FocusWidget widget : aWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }
 
-  /* (non-Javadoc)
-   * @see nl.adaptivity.gwt.ext.WidgetController#addControlledWidget(com.google.gwt.user.client.ui.FocusWidget)
+  /*
+   * (non-Javadoc)
+   * @see
+   * nl.adaptivity.gwt.ext.WidgetController#addControlledWidget(com.google.gwt
+   * .user.client.ui.FocusWidget)
    */
-  public void addControlledWidget(FocusWidget pWidget) {
-    pWidget.setEnabled(getSelectedIndex()>=0);
+  @Override
+  public void addControlledWidget(final FocusWidget pWidget) {
+    pWidget.setEnabled(getSelectedIndex() >= 0);
     aWidgetsToEnable.add(pWidget);
   }
 
-  /* (non-Javadoc)
-   * @see nl.adaptivity.gwt.ext.WidgetController#removeControlledWidget(com.google.gwt.user.client.ui.FocusWidget)
+  /*
+   * (non-Javadoc)
+   * @see
+   * nl.adaptivity.gwt.ext.WidgetController#removeControlledWidget(com.google
+   * .gwt.user.client.ui.FocusWidget)
    */
-  public boolean removeControlledWidget(FocusWidget pWidget) {
+  @Override
+  public boolean removeControlledWidget(final FocusWidget pWidget) {
     return aWidgetsToEnable.remove(pWidget);
   }
 
   @Override
-  public void setSelectedIndex(int pIndex) {
+  public void setSelectedIndex(final int pIndex) {
     super.setSelectedIndex(pIndex);
-    boolean enabled = pIndex>=0;
-    for (FocusWidget widget: aWidgetsToEnable) {
+    final boolean enabled = pIndex >= 0;
+    for (final FocusWidget widget : aWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }

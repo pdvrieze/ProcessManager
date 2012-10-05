@@ -16,20 +16,15 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
+import org.w3.soapEnvelope.Envelope;
+
 import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.EndPointDescriptor;
-import nl.adaptivity.messaging.Header;
-import nl.adaptivity.messaging.ISendableMessage;
-import nl.adaptivity.messaging.MessagingRegistry;
+
+import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -38,28 +33,28 @@ import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.SourceDataSource;
 
-import org.w3.soapEnvelope.Envelope;
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
 public class InternalEndpoint implements GenericEndpoint {
 
   public class TaskUpdateCompletionListener implements CompletionListener {
+
     XmlTask aTask;
 
-    public TaskUpdateCompletionListener(XmlTask pTask) {
+    public TaskUpdateCompletionListener(final XmlTask pTask) {
       aTask = pTask;
     }
 
     @Override
-    public void onMessageCompletion(Future<?> pFuture) {
+    public void onMessageCompletion(final Future<?> pFuture) {
       if (!pFuture.isCancelled()) {
         try {
-          TaskState result = (TaskState) pFuture.get();
+          final TaskState result = (TaskState) pFuture.get();
           aTask.aState = result;
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
           Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
-        } catch (ExecutionException e) {
+        } catch (final ExecutionException e) {
           Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e);
         }
       }
@@ -67,14 +62,20 @@ public class InternalEndpoint implements GenericEndpoint {
 
   }
 
-  @XmlRootElement(name="task")
+  @XmlRootElement(name = "task")
   @XmlAccessorType(XmlAccessType.NONE)
-  public static class XmlTask implements UserTask<XmlTask>{
+  public static class XmlTask implements UserTask<XmlTask> {
+
     private long aHandle;
+
     private long aRemoteHandle;
-    private TaskState aState=TaskState.Sent;
+
+    private TaskState aState = TaskState.Sent;
+
     private String aSummary;
+
     private EndPointDescriptor aEndPoint = null;
+
     private Principal aOwner;
 
     public XmlTask() {
@@ -82,7 +83,7 @@ public class InternalEndpoint implements GenericEndpoint {
       aRemoteHandle = -1;
     }
 
-    public XmlTask(long pHandle) {
+    public XmlTask(final long pHandle) {
       aHandle = pHandle;
     }
 
@@ -93,35 +94,35 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     @Override
-    public void setState(TaskState pNewState, Principal pUser) {
+    public void setState(final TaskState pNewState, final Principal pUser) {
       try {
         TaskState newState;
-        if (pNewState==TaskState.Complete) {
+        if (pNewState == TaskState.Complete) {
           newState = finishRemoteTask(pUser).get();
-//          newState = TaskState.Complete; // Use server state instead.
-        } else if (pNewState==TaskState.Acknowledged) {
+          //          newState = TaskState.Complete; // Use server state instead.
+        } else if (pNewState == TaskState.Acknowledged) {
           newState = pNewState; // Just shortcircuit. This is just record keeping
         } else {
           newState = updateRemoteTaskState(pNewState, pUser).get();
-//          newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
+          //          newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
         }
         aState = newState;
-      } catch (JAXBException e) {
+      } catch (final JAXBException e) {
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
-      } catch (MyMessagingException e) {
+      } catch (final MyMessagingException e) {
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
-      } catch (InterruptedException e) {
+      } catch (final InterruptedException e) {
         Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
-      } catch (ExecutionException e) {
+      } catch (final ExecutionException e) {
         Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e);
       }
     }
 
-    private Future<TaskState> updateRemoteTaskState(TaskState pState, Principal pUser) throws JAXBException, MyMessagingException {
+    private Future<TaskState> updateRemoteTaskState(final TaskState pState, final Principal pUser) throws JAXBException, MyMessagingException {
       return ServletProcessEngineClient.updateTaskState(aHandle, pState, pUser, null);
     }
 
-    private Future<TaskState> finishRemoteTask(Principal pUser) throws JAXBException, MyMessagingException {
+    private Future<TaskState> finishRemoteTask(final Principal pUser) throws JAXBException, MyMessagingException {
       return ServletProcessEngineClient.finishTask(aHandle, null, pUser, null); // Ignore completion???
       // TODO Do something with reply!
     }
@@ -146,14 +147,14 @@ public class InternalEndpoint implements GenericEndpoint {
 
         @Override
         public DataSource getBodySource() {
-          return new SourceDataSource(Envelope.MIMETYPE,pMessageContent);
+          return new SourceDataSource(Envelope.MIMETYPE, pMessageContent);
         }
       };
     }
 
-    @XmlAttribute(name="handle")
+    @XmlAttribute(name = "handle")
     @Override
-    public void setHandle(long pHandle) {
+    public void setHandle(final long pHandle) {
       aHandle = pHandle;
     }
 
@@ -162,8 +163,8 @@ public class InternalEndpoint implements GenericEndpoint {
       return aHandle;
     }
 
-    @XmlAttribute(name="remotehandle")
-    public void setRemoteHandle(long pHandle) {
+    @XmlAttribute(name = "remotehandle")
+    public void setRemoteHandle(final long pHandle) {
       aRemoteHandle = pHandle;
     }
 
@@ -171,18 +172,18 @@ public class InternalEndpoint implements GenericEndpoint {
       return aRemoteHandle;
     }
 
-    @XmlAttribute(name="summary")
+    @XmlAttribute(name = "summary")
     public String getSummary() {
       return aSummary;
     }
 
-    public void setSummary(String pSummary) {
+    public void setSummary(final String pSummary) {
       aSummary = pSummary;
     }
 
     /** Set the endpoint that is used for updating the task state */
     @Override
-    public void setEndpoint(EndPointDescriptor pEndPoint) {
+    public void setEndpoint(final EndPointDescriptor pEndPoint) {
       aEndPoint = pEndPoint;
     }
 
@@ -191,23 +192,26 @@ public class InternalEndpoint implements GenericEndpoint {
       return aOwner;
     }
 
-    public void setOwner(Principal pOwner) {
-      aOwner=pOwner;
+    public void setOwner(final Principal pOwner) {
+      aOwner = pOwner;
     }
 
-    @XmlAttribute(name="owner")
+    @XmlAttribute(name = "owner")
     String getOwnerString() {
       return aOwner.getName();
     }
 
-    void setOwnerString(String pOwner) {
+    void setOwnerString(final String pOwner) {
       aOwner = new SimplePrincipal(pOwner);
     }
   }
 
   private static final String ENDPOINT = "internal";
+
   public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
-  private UserMessageService aService;
+
+  private final UserMessageService aService;
+
   private URI aURI;
 
   public InternalEndpoint() {
@@ -225,7 +229,6 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
 
-
   @Override
   public URI getEndpointLocation() {
     // TODO Do this better
@@ -233,21 +236,21 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @Override
-  public void initEndpoint(ServletConfig pConfig) {
-    StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
+  public void initEndpoint(final ServletConfig pConfig) {
+    final StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
     path.append("/internal");
     try {
       aURI = new URI(null, null, path.toString(), null);
-    } catch (URISyntaxException e) {
+    } catch (final URISyntaxException e) {
       throw new RuntimeException(e); // Should never happen
     }
     MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name="replies", mode=Mode.IN) EndPointDescriptor pEndPoint, @WebParam(name="task", mode=Mode.IN) UserTask<?> pTask) {
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "replies", mode = Mode.IN) final EndPointDescriptor pEndPoint, @WebParam(name = "task", mode = Mode.IN) final UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
-    boolean result = aService.postTask(pTask);
+    final boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
     return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
   }

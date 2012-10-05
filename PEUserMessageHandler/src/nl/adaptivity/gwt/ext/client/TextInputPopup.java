@@ -19,10 +19,12 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
   }
 
   public static class InputCompleteEvent extends GwtEvent<InputCompleteHandler> {
+
     private static Type<InputCompleteHandler> TYPE;
+
     private final String aNewValue;
 
-    public InputCompleteEvent(String pNewValue, boolean pSuccess) {
+    public InputCompleteEvent(final String pNewValue, final boolean pSuccess) {
       if (pSuccess) {
         aNewValue = pNewValue;
       } else {
@@ -31,12 +33,14 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
     }
 
     public static Type<InputCompleteHandler> getType() {
-      if (TYPE==null) { TYPE = new Type<InputCompleteHandler>(); }
+      if (TYPE == null) {
+        TYPE = new Type<InputCompleteHandler>();
+      }
       return TYPE;
     }
 
     @Override
-    protected void dispatch(InputCompleteHandler pHandler) {
+    protected void dispatch(final InputCompleteHandler pHandler) {
       pHandler.onComplete(this);
     }
 
@@ -50,7 +54,7 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
     }
 
     public boolean isSuccess() {
-      return aNewValue!=null;
+      return aNewValue != null;
     }
 
   }
@@ -62,56 +66,62 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
   }
 
   private static final int BUTTONWIDTH = 100;
+
   private static final int HEIGHT = 200;
+
   private static final int WIDTH = 300;
+
   private Button aOkButton;
+
   private Button aCancelButton;
+
   private TextBox aInputField;
+
   private PopupState aState = PopupState.INITIALISED;
 
-  public TextInputPopup(String pQuery, String pOkButtonLabel) {
+  public TextInputPopup(final String pQuery, final String pOkButtonLabel) {
     super(true, true);
 
-    setWidth(WIDTH+"px");
-    setHeight(HEIGHT+"px");
-    int x = (Window.getClientWidth()-WIDTH)/2;
-    int y = (Window.getClientHeight()-HEIGHT)/2;
+    setWidth(WIDTH + "px");
+    setHeight(HEIGHT + "px");
+    final int x = (Window.getClientWidth() - WIDTH) / 2;
+    final int y = (Window.getClientHeight() - HEIGHT) / 2;
     setPopupPosition(x, y);
-    Widget content = getContentWidget(pQuery, pOkButtonLabel);
+    final Widget content = getContentWidget(pQuery, pOkButtonLabel);
     setWidget(content);
 
     aInputField.addKeyPressHandler(this);
   }
 
-  private Widget getContentWidget(String pQuery, String pOkButtonLabel) {
-    AbsolutePanel mainPanel = new AbsolutePanel();
-    VerticalPanel mainContent = new VerticalPanel();
+  private Widget getContentWidget(final String pQuery, final String pOkButtonLabel) {
+    final AbsolutePanel mainPanel = new AbsolutePanel();
+    final VerticalPanel mainContent = new VerticalPanel();
     mainContent.add(new Label(pQuery));
     aInputField = new TextBox();
     mainContent.add(aInputField);
     {
-      final int offsetWidth = (WIDTH*2)/3;
-      aInputField.setWidth(offsetWidth+"px");
-      int x = (WIDTH-offsetWidth)/2;
+      final int offsetWidth = (WIDTH * 2) / 3;
+      aInputField.setWidth(offsetWidth + "px");
+      final int x = (WIDTH - offsetWidth) / 2;
       final int offsetHeight = 38;
-      GWT.log("OffsetWidth: "+offsetWidth + " OffsetHeight: "+offsetHeight, null);
-      int y = (HEIGHT-offsetHeight)/2;
+      GWT.log("OffsetWidth: " + offsetWidth + " OffsetHeight: " + offsetHeight, null);
+      final int y = (HEIGHT - offsetHeight) / 2;
       mainPanel.add(mainContent, x, y);
     }
 
-    HorizontalPanel buttonPanel = new HorizontalPanel();
+    final HorizontalPanel buttonPanel = new HorizontalPanel();
     aOkButton = new Button(pOkButtonLabel);
-    aOkButton.setWidth(BUTTONWIDTH+"px");
+    aOkButton.setWidth(BUTTONWIDTH + "px");
     aOkButton.addClickHandler(this);
     aCancelButton = new Button("Cancel");
-    aCancelButton.setWidth(BUTTONWIDTH+"px");
+    aCancelButton.setWidth(BUTTONWIDTH + "px");
     aCancelButton.addClickHandler(this);
     buttonPanel.add(aOkButton);
     buttonPanel.add(aCancelButton);
 
     {
-      int x = WIDTH-(2*BUTTONWIDTH)-5;
-      int y = HEIGHT-28;
+      final int x = WIDTH - (2 * BUTTONWIDTH) - 5;
+      final int y = HEIGHT - 28;
       mainPanel.add(buttonPanel, x, y);
     }
 
@@ -126,10 +136,10 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
   }
 
   @Override
-  public void onClick(ClickEvent pEvent) {
-    if (pEvent.getSource()==aOkButton) {
+  public void onClick(final ClickEvent pEvent) {
+    if (pEvent.getSource() == aOkButton) {
       onComplete();
-    } else if (pEvent.getSource()==aCancelButton) {
+    } else if (pEvent.getSource() == aCancelButton) {
       onCancel();
     }
   }
@@ -147,11 +157,11 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
   }
 
   @Override
-  public void onKeyPress(KeyPressEvent pEvent) {
-    if (pEvent.getSource()==aInputField) {
-      if (pEvent.getCharCode()==KeyCodes.KEY_ENTER) {
+  public void onKeyPress(final KeyPressEvent pEvent) {
+    if (pEvent.getSource() == aInputField) {
+      if (pEvent.getCharCode() == KeyCodes.KEY_ENTER) {
         onComplete();
-      } else if (pEvent.getCharCode()==KeyCodes.KEY_ESCAPE) {
+      } else if (pEvent.getCharCode() == KeyCodes.KEY_ESCAPE) {
         onCancel();
       }
     }
@@ -161,16 +171,16 @@ public class TextInputPopup extends PopupPanel implements ClickHandler, KeyPress
     return aInputField.getValue();
   }
 
-  private void fireRenameHandler(String pNewValue, boolean pSuccess) {
+  private void fireRenameHandler(final String pNewValue, final boolean pSuccess) {
     fireEvent(new InputCompleteEvent(pNewValue, pSuccess));
   }
 
-  public HandlerRegistration addInputCompleteHandler(InputCompleteHandler pHandler) {
+  public HandlerRegistration addInputCompleteHandler(final InputCompleteHandler pHandler) {
     return addHandler(pHandler, InputCompleteEvent.getType());
   }
 
   public PopupState getState() {
-    return aState ;
+    return aState;
   }
 
 }

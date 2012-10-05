@@ -24,8 +24,11 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 public class ExternalEndpoint implements GenericEndpoint {
 
   public static final String ENDPOINT = "external";
+
   public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
+
   UserMessageService aService;
+
   private URI aURI;
 
   public ExternalEndpoint() {
@@ -48,34 +51,34 @@ public class ExternalEndpoint implements GenericEndpoint {
   }
 
   @Override
-  public void initEndpoint(ServletConfig pConfig) {
-    StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
+  public void initEndpoint(final ServletConfig pConfig) {
+    final StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
     path.append("/internal");
     try {
       aURI = new URI(null, null, path.toString(), null);
-    } catch (URISyntaxException e) {
+    } catch (final URISyntaxException e) {
       throw new RuntimeException(e); // Should never happen
     }
   }
 
-  @XmlElementWrapper(name="tasks", namespace=Constants.USER_MESSAGE_HANDLER_NS)
-  @RestMethod(method=HttpMethod.GET, path="/pendingTasks")
+  @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
+  @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
   public Collection<UserTask<?>> getPendingTasks() {
     return aService.getPendingTasks();
   }
 
-  @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Started"})
-  public Task.TaskState startTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle, @RestParam(type=ParamType.PRINCIPAL) Principal pUser) {
+  @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
+  public Task.TaskState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     return aService.startTask(Long.parseLong(pHandle), pUser);
   }
 
-  @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Taken"})
-  public Task.TaskState takeTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle, @RestParam(type=ParamType.PRINCIPAL) Principal pUser) {
+  @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
+  public Task.TaskState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     return aService.takeTask(Long.parseLong(pHandle), pUser);
   }
 
-  @RestMethod(method=HttpMethod.POST, path="/pendingTasks/${handle}", post={"state=Finished"})
-  public Task.TaskState finishTask(@RestParam(name="handle", type=ParamType.VAR) String pHandle, @RestParam(type=ParamType.PRINCIPAL) Principal pUser) {
+  @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
+  public Task.TaskState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     return aService.finishTask(Long.parseLong(pHandle), pUser);
   }
 

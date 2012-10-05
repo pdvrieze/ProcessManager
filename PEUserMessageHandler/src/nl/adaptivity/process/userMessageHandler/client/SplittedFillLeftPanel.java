@@ -6,16 +6,19 @@ import com.google.gwt.user.client.ui.*;
 public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
 
   private T aTopLeftWidget;
+
   private Widget aBottomLeftWidget;
+
   private int aMinTopHeight = 150;
-  private LayoutPanel aRightWidget;
+
+  private final LayoutPanel aRightWidget;
 
   public SplittedFillLeftPanel() {
     super();
     final SplitLayoutPanel root = new SplitLayoutPanel();
     initWidget(root);
 
-    VerticalPanel leftPanel = new VerticalPanel();
+    final VerticalPanel leftPanel = new VerticalPanel();
     leftPanel.setHeight("100%");
     leftPanel.setWidth("100%");
     root.addWest(leftPanel, 275d);
@@ -26,7 +29,7 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
 
     root.add(aRightWidget);
     root.setWidgetMinSize(leftPanel, 200);
-//    root.layout();
+    //    root.layout();
   }
 
   @Override
@@ -38,9 +41,9 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
     return (VerticalPanel) getWidget().getWidget(0);
   }
 
-  public void setTopLeftWidget(T pWidget) {
-    VerticalPanel leftPanel = getLeftPanel();
-    if (aTopLeftWidget!=null) {
+  public void setTopLeftWidget(final T pWidget) {
+    final VerticalPanel leftPanel = getLeftPanel();
+    if (aTopLeftWidget != null) {
       leftPanel.remove(aTopLeftWidget);
     }
     aTopLeftWidget = pWidget;
@@ -54,9 +57,9 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
     return aTopLeftWidget;
   }
 
-  public void setBottomLeftWidget(Widget pWidget) {
+  public void setBottomLeftWidget(final Widget pWidget) {
     final VerticalPanel leftPanel = getLeftPanel();
-    if (aBottomLeftWidget!=null) {
+    if (aBottomLeftWidget != null) {
       leftPanel.remove(aBottomLeftWidget);
     }
     aBottomLeftWidget = pWidget;
@@ -70,34 +73,34 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
   }
 
   public Widget getRightWidget() {
-    if (aRightWidget.getWidgetCount()<1) {
+    if (aRightWidget.getWidgetCount() < 1) {
       return null;
     }
     return aRightWidget.getWidget(0);
   }
 
-  public void setRightWidget(Widget pWidget) {
-    SplitLayoutPanel root = getWidget();
-    if (aRightWidget.getWidgetCount()>0) {
+  public void setRightWidget(final Widget pWidget) {
+    getWidget();
+    if (aRightWidget.getWidgetCount() > 0) {
       aRightWidget.remove(0);
     }
     aRightWidget.add(pWidget);
-//    Layer layer = aRightWidget.getLayer(pWidget);
+    //    Layer layer = aRightWidget.getLayer(pWidget);
   }
 
-  public void setHeight(int pHeight) {
+  public void setHeight(final int pHeight) {
     int height = pHeight;
     height -= aBottomLeftWidget.getOffsetHeight();
 
     height -= 5;
-    final int adjust = pHeight- height;
+    final int adjust = pHeight - height;
     final int listBoxHeight = Math.max(getMinTopHeight(), height);
-    aTopLeftWidget.setHeight(listBoxHeight+"px");
-    super.setHeight((listBoxHeight+adjust)+"px");
+    aTopLeftWidget.setHeight(listBoxHeight + "px");
+    super.setHeight((listBoxHeight + adjust) + "px");
 
   }
 
-  public void setMinTopHeight(int minTopHeight) {
+  public void setMinTopHeight(final int minTopHeight) {
     aMinTopHeight = minTopHeight;
   }
 

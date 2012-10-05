@@ -33,11 +33,11 @@ public class LoginContent extends Widget {
   InputElement redirect;
 
   public LoginContent() {
-    Document document = Document.get();
+    final Document document = Document.get();
     Element parentForm = document.getElementById("loginform");
-    if (parentForm!=null) {
+    if (parentForm != null) {
       parentForm = parentForm.cloneNode(true).cast();
-//      parentForm.removeFromParent();
+      //      parentForm.removeFromParent();
       parentForm.removeAttribute("style"); // Remove the display:hidden
       parentForm.removeAttribute("action");
       username = XMLUtil.descendentWithAttribute(parentForm, "name", "username").cast();

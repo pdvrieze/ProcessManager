@@ -13,20 +13,22 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class TasksPanel extends Composite implements ClickHandler {
 
-  private static final String TASKLISTURL = PEUserMessageHandler.BASEURL+"/PEUserMessageHandler/UserMessageService/pendingTasks";
+  private static final String TASKLISTURL = PEUserMessageHandler.BASEURL + "/PEUserMessageHandler/UserMessageService/pendingTasks";
 
-  private Button aStartTaskButton;
-  private Button aTakeTaskButton;
-  private Button aCompleteTaskButton;
+  private final Button aStartTaskButton;
+
+  private final Button aTakeTaskButton;
+
+  private final Button aCompleteTaskButton;
 
   private final Label aStatusLabel;
 
-  private RemoteListBox aTaskListBox;
+  private final RemoteListBox aTaskListBox;
 
-  public TasksPanel(Label pStatusLabel) {
+  public TasksPanel(final Label pStatusLabel) {
     aStatusLabel = pStatusLabel;
-    SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
-//    root.addStyleName("tabPanel");
+    final SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
+    //    root.addStyleName("tabPanel");
 
     aTaskListBox = new RemoteListBox(TASKLISTURL);
     aTaskListBox.addStyleName("mhList");
@@ -37,9 +39,9 @@ public class TasksPanel extends Composite implements ClickHandler {
     aTaskListBox.setListElement("task");
 
     root.setTopLeftWidget(aTaskListBox);
-//    aTaskListBox.addChangeHandler(this);
+    //    aTaskListBox.addChangeHandler(this);
 
-    VerticalPanel vp1 = new VerticalPanel();
+    final VerticalPanel vp1 = new VerticalPanel();
     root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
@@ -69,12 +71,12 @@ public class TasksPanel extends Composite implements ClickHandler {
    * @category event handler
    */
   @Override
-  public void onClick(ClickEvent pEvent) {
-    if (pEvent.getSource()==aStartTaskButton) {
+  public void onClick(final ClickEvent pEvent) {
+    if (pEvent.getSource() == aStartTaskButton) {
       startTask();
-    } else if (pEvent.getSource()==aTakeTaskButton){
+    } else if (pEvent.getSource() == aTakeTaskButton) {
       takeTask();
-    } else if (pEvent.getSource()==aCompleteTaskButton){
+    } else if (pEvent.getSource() == aCompleteTaskButton) {
       completeTask();
     }
   }
@@ -84,7 +86,7 @@ public class TasksPanel extends Composite implements ClickHandler {
    */
   private void startTask() {
     aStatusLabel.setText("startTask");
-    String newState = "Started";
+    final String newState = "Started";
     updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
   }
 
@@ -93,7 +95,7 @@ public class TasksPanel extends Composite implements ClickHandler {
    */
   private void takeTask() {
     aStatusLabel.setText("takeTask");
-    String newState = "Taken";
+    final String newState = "Taken";
     updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
   }
 
@@ -102,35 +104,35 @@ public class TasksPanel extends Composite implements ClickHandler {
    */
   private void completeTask() {
     aStatusLabel.setText("completeTask");
-    String newState = "Finished";
+    final String newState = "Finished";
     updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
   }
 
   /**
    * @category action
    */
-  private void updateTaskState(String newState, String handle) {
-    String URL=TASKLISTURL+"/"+handle;
-    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, URL);
+  private void updateTaskState(final String newState, final String handle) {
+    final String URL = TASKLISTURL + "/" + handle;
+    final RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, URL);
     rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
-    String postData = "state="+newState;
+    final String postData = "state=" + newState;
 
     try {
       rb.sendRequest(postData, new RequestCallback() {
 
         @Override
-        public void onError(Request pRequest, Throwable pException) {
-          aStatusLabel.setText("Error ("+pException.getMessage()+")");
+        public void onError(final Request pRequest, final Throwable pException) {
+          aStatusLabel.setText("Error (" + pException.getMessage() + ")");
         }
 
         @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
+        public void onResponseReceived(final Request pRequest, final Response pResponse) {
           aTaskListBox.update();
         }
 
       });
-    } catch (RequestException e) {
-      aStatusLabel.setText("Error ("+e.getMessage()+")");
+    } catch (final RequestException e) {
+      aStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
   }
 

@@ -15,15 +15,18 @@ import com.google.gwt.user.client.ui.FocusWidget;
 import com.google.gwt.user.client.ui.FormPanel;
 import com.google.gwt.user.client.ui.Widget;
 
+
 /**
  * An extended upload that can have a change handler.
+ * 
  * @author Paul de Vrieze
- *
  */
 public class MyFileUpload extends FileUpload implements IWidgetController, ChangeHandler, ResetHandler {
-  
+
   private Collection<FocusWidget> aWidgetsToEnable;
+
   private HandlerRegistration aResetHandler;
+
   private HandlerRegistration aChangeHandler;
 
   public MyFileUpload() {
@@ -32,48 +35,48 @@ public class MyFileUpload extends FileUpload implements IWidgetController, Chang
 
   private HandlerRegistration registerResetHandler() {
     Widget parent = getParent();
-    while(parent !=null && (! ((parent instanceof MyFormPanel) || (parent instanceof FormPanel)))) {
+    while ((parent != null) && (!((parent instanceof MyFormPanel) || (parent instanceof FormPanel)))) {
       parent = parent.getParent();
     }
     if (parent != null) {
       if (parent instanceof MyFormPanel) {
-        MyFormPanel form = (MyFormPanel) parent;
+        final MyFormPanel form = (MyFormPanel) parent;
         return form.addResetHandler(this);
-        
-      } else if (parent instanceof FormPanel){
+
+      } else if (parent instanceof FormPanel) {
         // Figure out if we can do something in this case
-//        FormPanel form = (FormPanel) parent;
-        
+        //        FormPanel form = (FormPanel) parent;
+
       }
     }
     return null;
   }
 
-  public MyFileUpload(Element pElement) {
+  public MyFileUpload(final Element pElement) {
     super(pElement);
   }
 
-  public HandlerRegistration registerChangeHandler(ChangeHandler pHandler) {
+  public HandlerRegistration registerChangeHandler(final ChangeHandler pHandler) {
     return addDomHandler(pHandler, ChangeEvent.getType());
   }
 
   @Override
-  public void addControlledWidget(FocusWidget pWidget) {
-    if (aWidgetsToEnable==null) {
-      aWidgetsToEnable= new ArrayList<FocusWidget>();
+  public void addControlledWidget(final FocusWidget pWidget) {
+    if (aWidgetsToEnable == null) {
+      aWidgetsToEnable = new ArrayList<FocusWidget>();
       aChangeHandler = registerChangeHandler(this);
       aResetHandler = registerResetHandler();
     }
     aWidgetsToEnable.add(pWidget);
-    pWidget.setEnabled(getFilename().length()>0);
+    pWidget.setEnabled(getFilename().length() > 0);
   }
 
   @Override
-  public boolean removeControlledWidget(FocusWidget pWidget) {
+  public boolean removeControlledWidget(final FocusWidget pWidget) {
     final boolean result = aWidgetsToEnable.remove(pWidget);
     if (result) {
-      if (aWidgetsToEnable.size()==0) {
-        aWidgetsToEnable=null;
+      if (aWidgetsToEnable.size() == 0) {
+        aWidgetsToEnable = null;
         aResetHandler.removeHandler();
         aChangeHandler.removeHandler();
       }
@@ -82,21 +85,21 @@ public class MyFileUpload extends FileUpload implements IWidgetController, Chang
   }
 
   @Override
-  public void onChange(ChangeEvent pEvent) {
+  public void onChange(final ChangeEvent pEvent) {
     refreshEnablement();
   }
 
   @Override
-  public void onReset(ResetEvent pResetEvent) {
-    
+  public void onReset(final ResetEvent pResetEvent) {
+
     refreshEnablement();
   }
 
   private void refreshEnablement() {
-    boolean enabled = getFilename().length()>0;
-    for(FocusWidget widget:aWidgetsToEnable) {
+    final boolean enabled = getFilename().length() > 0;
+    for (final FocusWidget widget : aWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }
-  
+
 }
