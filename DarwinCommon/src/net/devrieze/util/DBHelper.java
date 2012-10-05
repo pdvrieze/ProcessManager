@@ -1,6 +1,10 @@
 package net.devrieze.util;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,7 +17,7 @@ import javax.sql.DataSource;
 
 
 public class DBHelper {
-  
+
   private static final Level DETAIL_LOG_LEVEL = Level.INFO;
   private static final String LOGGER_NAME = "DBHelper";
 
@@ -21,15 +25,15 @@ public class DBHelper {
   private static class DataSourceWrapper {
     DataSource aDataSource;
     ConcurrentHashMap<Object, Connection> aConnectionMap;
-    
+
     DataSourceWrapper(DataSource pDataSource) {
       aDataSource = pDataSource;
       aConnectionMap = new ConcurrentHashMap<Object, Connection>(5);
     }
   }
-  
-  
-  
+
+
+
   public interface DBStatement {
 
     DBStatement addParam(int pColumn, String pValue);
@@ -54,9 +58,9 @@ public class DBHelper {
 
 
   private class DBStatementImpl implements DBStatement {
-    
+
     public PreparedStatement aSQLStatement;
-    
+
     public DBStatementImpl() {
       // Dud that doesn't do anything
     }
@@ -184,7 +188,7 @@ public class DBHelper {
         } catch (SQLException e2) {
           logWarning("Error closing prepared statement after error", e2);
         }
-          
+
         aSQLStatement = null;
         try {
           aConnection.rollback();
@@ -224,6 +228,9 @@ public class DBHelper {
 
     protected final void checkValid() {
       try {
+        if (aSQLStatement ==null) {
+          throw new IllegalStateException("No underlying statement");
+        }
         if (aSQLStatement.isClosed()) {
           throw new IllegalStateException("Trying to use a closed prepared statement");
         }
@@ -232,7 +239,7 @@ public class DBHelper {
         throw new RuntimeException(e);
       }
     }
-    
+
     @Override
     public void close() throws SQLException {
       if (aSQLStatement!=null) {
@@ -245,12 +252,12 @@ public class DBHelper {
     public StringCache getStringCache() {
       return aStringCache;
     }
-  
+
   }
 
 
   public interface DBQuery extends DBStatement {
-    
+
     @Override
     DBQuery addParam(int pColumn, String pValue);
     @Override
@@ -271,7 +278,7 @@ public class DBHelper {
     /** Execute the query and return the long value */
     Long longQuery();
   }
-  
+
   public class DBQueryImpl extends DBStatementImpl implements DBQuery {
 
     public DBQueryImpl() {
@@ -307,14 +314,14 @@ public class DBHelper {
         if (aSQLStatement==null) { return null; }
         ResultSet result = aSQLStatement.executeQuery();
         logWarnings("Prepared statement "+ aSQLStatement.toString(), aSQLStatement.getWarnings());
-        
+
         return result;
       } catch (SQLException e) {
         logException(aErrorMsg, e);
       }
       return null;
     }
-    
+
     @Override
     public boolean execQueryNotEmpty() {
       ResultSet rs = execQuery();
@@ -328,7 +335,7 @@ public class DBHelper {
         return false;
       }
     }
-    
+
     @Override
     public boolean execQueryEmpty() {
       ResultSet rs = execQuery();
@@ -394,20 +401,20 @@ public class DBHelper {
         return null; // No result, that is allowed, no warning
       }
       logWarnings("getSingleHelper resultset", rs.getWarnings());
-      if (rs.getObject(1)==null) { 
+      if (rs.getObject(1)==null) {
         logWarnings("getSingleHelper resultset", rs.getWarnings());
-        return null; 
+        return null;
       }
       logWarnings("getSingleHelper resultset", rs.getWarnings());
       return rs;
     }
-    
+
   }
-  
+
   public interface DBInsert extends DBStatement {
     @Override
     DBInsert addParam(int pColumn, String pValue);
-  
+
   }
 
 
@@ -426,7 +433,7 @@ public class DBHelper {
     public DBInsert addParam(int pColumn, String pValue) {
       return (DBInsert) super.addParam(pColumn, pValue);
     }
-    
+
   }
 
 
@@ -437,7 +444,7 @@ public class DBHelper {
     aDataSource = pDataSource;
     aKey = pKey!=null ? pKey : new Object();
   }
-  
+
   public static DBHelper dbHelper(String pResourceName, Object pKey) {
     if (aSourceMap==null) {
       synchronized (aShareLock) {
@@ -470,7 +477,7 @@ public class DBHelper {
     }
     return new DBHelper(dataSource, pKey);
   }
-  
+
   private static Logger getLogger() {
     return Logger.getLogger(LOGGER_NAME);
   }
@@ -493,7 +500,7 @@ public class DBHelper {
   public static void logException(final String pMsg, Throwable pE) {
     getLogger().log(Level.SEVERE, pMsg, pE);
   }
-  
+
   public DBQuery makeQuery(String pSQL) {
     return makeQuery(pSQL, null);
   }
@@ -555,14 +562,14 @@ public class DBHelper {
    */
   public void close() throws SQLException {
     getLogger().log(DETAIL_LOG_LEVEL, "Closing connection for key "+aKey);
-    if (aConnection!=null) { 
+    if (aConnection!=null) {
       if (! aConnection.isClosed()) {
         aConnection.close();
       }
     }
     else if (aDataSource!=null) {
       aConnection = aDataSource.aConnectionMap.get(aKey);
-      if (aConnection!=null) { 
+      if (aConnection!=null) {
         if (! aConnection.isClosed()) {
           aConnection.close();
         }
@@ -589,7 +596,7 @@ public class DBHelper {
             logException("Failure to close connection", e);
           }
           dataSource.aConnectionMap.remove(pReference);
-        } 
+        }
       }
     }
     getLogger().fine("Closed "+count+" connections for key "+pReference);
