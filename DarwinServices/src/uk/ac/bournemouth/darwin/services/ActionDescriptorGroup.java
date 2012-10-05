@@ -2,21 +2,19 @@ package uk.ac.bournemouth.darwin.services;
 
 import java.util.Collection;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.util.Constants;
 
+
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name="actionGroup", namespace=Constants.USER_MESSAGE_HANDLER_NS)
+@XmlRootElement(name = "actionGroup", namespace = Constants.USER_MESSAGE_HANDLER_NS)
 public class ActionDescriptorGroup {
-  @XmlAttribute(name="title")
+
+  @XmlAttribute(name = "title")
   String aTitle;
 
-  @XmlElement(name=ActionDescriptor.ELEMENTNAME)
+  @XmlElement(name = ActionDescriptor.ELEMENTNAME)
   Collection<ActionDescriptor> aActions;
 
 
@@ -25,7 +23,7 @@ public class ActionDescriptorGroup {
   }
 
 
-  public void setTitle(String pTitle) {
+  public void setTitle(final String pTitle) {
     aTitle = pTitle;
   }
 
@@ -35,7 +33,7 @@ public class ActionDescriptorGroup {
   }
 
 
-  public void setActions(Collection<ActionDescriptor> pActions) {
+  public void setActions(final Collection<ActionDescriptor> pActions) {
     aActions = pActions;
   }
 
