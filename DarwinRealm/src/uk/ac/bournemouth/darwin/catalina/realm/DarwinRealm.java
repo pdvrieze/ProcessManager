@@ -33,14 +33,14 @@ public class DarwinRealm implements Realm, Lifecycle {
   private static final String RESOURCE = DarwinAuthenticator.DBRESOURCE;
 
   private boolean aStarted = false;
-  
+
   /**
    * The lifecycle event support for this component.
    */
   protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
 
   private Container aContainer;
-  
+
   PropertyChangeSupport propChangeSupport = new PropertyChangeSupport(this);
 
 
@@ -51,39 +51,39 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public void setContainer(Container pContainer) {
-    Container oldContainer = aContainer;
+  public void setContainer(final Container pContainer) {
+    final Container oldContainer = aContainer;
     aContainer = pContainer;
     propChangeSupport.firePropertyChange("container", oldContainer, aContainer);
   }
 
 
   @Override
-  public void addPropertyChangeListener(PropertyChangeListener pListener) {
+  public void addPropertyChangeListener(final PropertyChangeListener pListener) {
     propChangeSupport.addPropertyChangeListener(pListener);
   }
 
 
   @Override
-  public Principal authenticate(String pUsername, String pCredentials) {
+  public Principal authenticate(final String pUsername, final String pCredentials) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
 
   @Override
-  public Principal authenticate(String pUsername, byte[] pCredentials) {
+  public Principal authenticate(final String pUsername, final byte[] pCredentials) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
 
   @Override
-  public Principal authenticate(String pUsername, String pDigest, String pNonce, String pNc, String pCnonce, String pQop, String pRealm, String pMd5a2) {
+  public Principal authenticate(final String pUsername, final String pDigest, final String pNonce, final String pNc, final String pCnonce, final String pQop, final String pRealm, final String pMd5a2) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
 
   @Override
-  public Principal authenticate(X509Certificate[] pCerts) {
+  public Principal authenticate(final X509Certificate[] pCerts) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
@@ -95,37 +95,41 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public SecurityConstraint[] findSecurityConstraints(Request pRequest, Context pContext) {
+  public SecurityConstraint[] findSecurityConstraints(final Request pRequest, final Context pContext) {
     ArrayList<SecurityConstraint> result;
-    
-    SecurityConstraint[] constraints = pContext.findConstraints();
-    if (constraints ==null || constraints.length==0) {
+
+    final SecurityConstraint[] constraints = pContext.findConstraints();
+    if ((constraints == null) || (constraints.length == 0)) {
       return null;
     }
-    
+
     // Check each defined security constraint
     String uri = pRequest.getRequestPathMB().toString();
     // Bug47080 - in rare cases this may be null
     // Mapper treats as '/' do the same to prevent NPE
     if (uri == null) {
-        uri = "/";
+      uri = "/";
     }
 
     // First try simple matches
     result = new ArrayList<SecurityConstraint>();
-    String method = pRequest.getMethod();
-    
+    final String method = pRequest.getMethod();
+
     {
-      boolean found=false;
-      for (SecurityConstraint constraint: constraints) {
-        SecurityCollection[] collections = constraint.findCollections();
-        if (collections==null || collections.length==0) { continue; }
-        for(SecurityCollection collection:collections) {
-          String[] patterns = collection.findPatterns();
-          if (patterns==null || patterns.length==0) { continue; }
-          for(String pattern:patterns) {
+      boolean found = false;
+      for (final SecurityConstraint constraint : constraints) {
+        final SecurityCollection[] collections = constraint.findCollections();
+        if ((collections == null) || (collections.length == 0)) {
+          continue;
+        }
+        for (final SecurityCollection collection : collections) {
+          final String[] patterns = collection.findPatterns();
+          if ((patterns == null) || (patterns.length == 0)) {
+            continue;
+          }
+          for (final String pattern : patterns) {
             if (uri.equals(pattern)) {
-              found=true;
+              found = true;
               if (collection.findMethod(method)) {
                 result.add(constraint);
               }
@@ -133,124 +137,139 @@ public class DarwinRealm implements Realm, Lifecycle {
           }
         }
       }
-      
+
       // Return on match
-      if (found) { return result.toArray(new SecurityConstraint[result.size()]); }
+      if (found) {
+        return result.toArray(new SecurityConstraint[result.size()]);
+      }
     }
-    
+
     { // Now try simple patterns.
       boolean found = false;
       int longest = -1;
-      for (SecurityConstraint constraint: constraints) {
-        SecurityCollection[] collections = constraint.findCollections();
-        if (collections==null || collections.length==0) { continue; }
-        for(SecurityCollection collection:collections) {
-          String[] patterns = collection.findPatterns();
-          if (patterns==null || patterns.length==0) { continue; }
+      for (final SecurityConstraint constraint : constraints) {
+        final SecurityCollection[] collections = constraint.findCollections();
+        if ((collections == null) || (collections.length == 0)) {
+          continue;
+        }
+        for (final SecurityCollection collection : collections) {
+          final String[] patterns = collection.findPatterns();
+          if ((patterns == null) || (patterns.length == 0)) {
+            continue;
+          }
           boolean matched = false;
           int length = -1;
-          for(String pattern:patterns) {
-            if(pattern.startsWith("/") && pattern.endsWith("/*") && 
-                pattern.length() >= longest) {
-              if(pattern.length() == 2) {
+          for (final String pattern : patterns) {
+            if (pattern.startsWith("/") && pattern.endsWith("/*") && (pattern.length() >= longest)) {
+              if (pattern.length() == 2) {
                 matched = true;
                 length = pattern.length();
-              } else if(pattern.regionMatches(0,uri,0, pattern.length()-1) ||
-                      (pattern.length()-2 == uri.length() &&
-                       pattern.regionMatches(0,uri,0, pattern.length()-2))) {
+              } else if (pattern.regionMatches(0, uri, 0, pattern.length() - 1)
+                  || (((pattern.length() - 2) == uri.length()) && pattern.regionMatches(0, uri, 0, pattern.length() - 2))) {
                 matched = true;
                 length = pattern.length();
               }
-              
+
             }
           }
           if (matched) {
-            if (length>longest) {
+            if (length > longest) {
               result.clear();
-              longest=length;
+              longest = length;
             }
             found = true;
-            if(collection.findMethod(method)) {
+            if (collection.findMethod(method)) {
               result.add(constraint);
             }
           }
         }
       }
       // Return on match
-      if (found) { return result.toArray(new SecurityConstraint[result.size()]); }
+      if (found) {
+        return result.toArray(new SecurityConstraint[result.size()]);
+      }
     }
 
     { // Now more complex patterns
-      boolean found=false;
-      for (SecurityConstraint constraint: constraints) {
-        SecurityCollection[] collections = constraint.findCollections();
-        if (collections==null || collections.length==0) { continue; }
+      boolean found = false;
+      for (final SecurityConstraint constraint : constraints) {
+        final SecurityCollection[] collections = constraint.findCollections();
+        if ((collections == null) || (collections.length == 0)) {
+          continue;
+        }
         SecurityCollection matchingCollection = null;
-        for(SecurityCollection collection:collections) {
-          String[] patterns = collection.findPatterns();
-          if (patterns==null || patterns.length==0) { continue; }
-          for(String pattern:patterns) {
-            if(pattern.startsWith("*.")){
-              int slash = uri.lastIndexOf("/");
-              int dot = uri.lastIndexOf(".");
-              if(slash >= 0 && dot > slash &&
-                    dot != uri.length()-1 &&
-                    uri.length()-dot == pattern.length()-1) {
-                if(pattern.regionMatches(1,uri,dot,uri.length()-dot)) {
+        for (final SecurityCollection collection : collections) {
+          final String[] patterns = collection.findPatterns();
+          if ((patterns == null) || (patterns.length == 0)) {
+            continue;
+          }
+          for (final String pattern : patterns) {
+            if (pattern.startsWith("*.")) {
+              final int slash = uri.lastIndexOf("/");
+              final int dot = uri.lastIndexOf(".");
+              if ((slash >= 0) && (dot > slash) && (dot != (uri.length() - 1)) && ((uri.length() - dot) == (pattern.length() - 1))) {
+                if (pattern.regionMatches(1, uri, dot, uri.length() - dot)) {
                   matchingCollection = collection;
                 }
               }
             }
           }
         }
-        if(matchingCollection!=null) {
-          found=true;
-          if(matchingCollection.findMethod(method)) {
+        if (matchingCollection != null) {
+          found = true;
+          if (matchingCollection.findMethod(method)) {
             result.add(constraint);
           }
-          
+
         }
       }
       // Return on match
-      if (found) { return result.toArray(new SecurityConstraint[result.size()]); }
+      if (found) {
+        return result.toArray(new SecurityConstraint[result.size()]);
+      }
     }
-    
+
     {
-      for (SecurityConstraint constraint: constraints) {
-        SecurityCollection[] collections = constraint.findCollections();
+      for (final SecurityConstraint constraint : constraints) {
+        final SecurityCollection[] collections = constraint.findCollections();
         boolean matched = false;
-        if (collections==null || collections.length==0) { continue; }
-        forCollection: for(SecurityCollection collection:collections) {
-          String[] patterns = collection.findPatterns();
-          if (patterns==null || patterns.length==0) { continue; }
-          for(String pattern:patterns) {
+        if ((collections == null) || (collections.length == 0)) {
+          continue;
+        }
+        forCollection: for (final SecurityCollection collection : collections) {
+          final String[] patterns = collection.findPatterns();
+          if ((patterns == null) || (patterns.length == 0)) {
+            continue;
+          }
+          for (final String pattern : patterns) {
             if ("/".equals(pattern)) {
-              matched=true;
+              matched = true;
               break forCollection;
             }
           }
-          
+
         }
         if (matched) {
           result.add(constraint);
         }
       }
     }
-    
+
     return result.toArray(new SecurityConstraint[result.size()]);
   }
 
 
   @Override
-  public boolean hasResourcePermission(Request pRequest, Response pResponse, SecurityConstraint[] pConstraints, Context pContext) throws IOException {
-    if (pConstraints == null || pConstraints.length == 0)
+  public boolean hasResourcePermission(final Request pRequest, final Response pResponse, final SecurityConstraint[] pConstraints, final Context pContext) throws IOException {
+    if ((pConstraints == null) || (pConstraints.length == 0)) {
       return (true);
+    }
 
 
     // Which user principal have we already authenticated?
-    Principal principal = pRequest.getPrincipal();
+    final Principal principal = pRequest.getPrincipal();
     boolean status = false;
-    for (SecurityConstraint constraint : pConstraints) {
+    for (final SecurityConstraint constraint : pConstraints) {
 
       String roles[];
       if (constraint.getAllRoles()) {
@@ -260,11 +279,12 @@ public class DarwinRealm implements Realm, Lifecycle {
         roles = constraint.findAuthRoles();
       }
 
-      if (roles == null)
+      if (roles == null) {
         roles = new String[0];
+      }
 
 
-      if (roles.length == 0 && !constraint.getAllRoles()) {
+      if ((roles.length == 0) && !constraint.getAllRoles()) {
         if (constraint.getAuthConstraint()) {
           status = false; // No listed roles means no access at all
           break;
@@ -274,8 +294,8 @@ public class DarwinRealm implements Realm, Lifecycle {
       } else if (principal == null) {
         // No user, no access
       } else {
-        for (int j = 0; j < roles.length; j++) {
-          if (hasRole(principal, roles[j])) {
+        for (final String role : roles) {
+          if (hasRole(principal, role)) {
             status = true;
           }
         }
@@ -291,29 +311,37 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public boolean hasUserDataPermission(Request pRequest, Response pResponse, SecurityConstraint[] pConstraints) throws IOException {
-    if (pConstraints==null || pConstraints.length==0) { return true; }
-    
-    for(SecurityConstraint constraint: pConstraints) {
-      String userConstraint = constraint.getUserConstraint();
-      if (userConstraint==null || "NONE".equals(userConstraint)) { return true; }
+  public boolean hasUserDataPermission(final Request pRequest, final Response pResponse, final SecurityConstraint[] pConstraints) throws IOException {
+    if ((pConstraints == null) || (pConstraints.length == 0)) {
+      return true;
     }
-    
-    if (pRequest.isSecure()) { return true; }
 
-    int redirectPort = pRequest.getConnector().getRedirectPort();
-    
-    if (redirectPort<=0) {
+    for (final SecurityConstraint constraint : pConstraints) {
+      final String userConstraint = constraint.getUserConstraint();
+      if ((userConstraint == null) || "NONE".equals(userConstraint)) {
+        return true;
+      }
+    }
+
+    if (pRequest.isSecure()) {
+      return true;
+    }
+
+    final int redirectPort = pRequest.getConnector().getRedirectPort();
+
+    if (redirectPort <= 0) {
       pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
       return false;
     }
-    
-    StringBuilder newUrl = new StringBuilder();
+
+    final StringBuilder newUrl = new StringBuilder();
     newUrl.append("https://").append(pRequest.getServerName());
-    if (redirectPort!=433) { newUrl.append(':').append(redirectPort); }
+    if (redirectPort != 433) {
+      newUrl.append(':').append(redirectPort);
+    }
     newUrl.append(pRequest.getRequestURI());
-    String queryString = pRequest.getQueryString();
-    if (queryString!=null && queryString.length()>0) {
+    final String queryString = pRequest.getQueryString();
+    if ((queryString != null) && (queryString.length() > 0)) {
       newUrl.append('?').append(queryString);
     }
     pResponse.sendRedirect(newUrl.toString());
@@ -322,7 +350,7 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public void removePropertyChangeListener(PropertyChangeListener pListener) {
+  public void removePropertyChangeListener(final PropertyChangeListener pListener) {
     propChangeSupport.removePropertyChangeListener(pListener);
   }
 
@@ -334,7 +362,7 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public boolean hasRole(Principal principal, String role) {
+  public boolean hasRole(Principal principal, final String role) {
     if (principal instanceof GenericPrincipal) {
       principal = ((GenericPrincipal) principal).getUserPrincipal();
     }
@@ -345,7 +373,7 @@ public class DarwinRealm implements Realm, Lifecycle {
     if (principal instanceof CoyotePrincipal) {
       // Look up this user in the UserDatabaseRealm.  The new
       // principal will contain UserDatabaseRealm role info.
-      DarwinUserPrincipalImpl p = getDarwinPrincipal(principal.getName());
+      final DarwinUserPrincipalImpl p = getDarwinPrincipal(principal.getName());
       if (p != null) {
         return p.hasRole(role);
       }
@@ -354,7 +382,7 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
 
-  private DarwinUserPrincipalImpl getDarwinPrincipal(String pName) {
+  private DarwinUserPrincipalImpl getDarwinPrincipal(final String pName) {
     return new DarwinUserPrincipalImpl(getDbHelper(), this, pName);
   }
 
@@ -365,10 +393,10 @@ public class DarwinRealm implements Realm, Lifecycle {
   private static String getDBResource() {
     return RESOURCE;
   }
-  
+
 
   @Override
-  public void addLifecycleListener(LifecycleListener pListener) {
+  public void addLifecycleListener(final LifecycleListener pListener) {
     aLifecycle.addLifecycleListener(pListener);
   }
 
@@ -378,13 +406,15 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
   @Override
-  public void removeLifecycleListener(LifecycleListener pListener) {
+  public void removeLifecycleListener(final LifecycleListener pListener) {
     aLifecycle.removeLifecycleListener(pListener);
   }
 
   @Override
   public void start() throws LifecycleException {
-    if (aStarted) throw new LifecycleException("Already started");
+    if (aStarted) {
+      throw new LifecycleException("Already started");
+    }
     aLifecycle.fireLifecycleEvent(START_EVENT, null);
     aStarted = true;
   }
@@ -396,6 +426,6 @@ public class DarwinRealm implements Realm, Lifecycle {
 
     DBHelper.closeConnections(this);
   }
- 
-  
+
+
 }

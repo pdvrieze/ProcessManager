@@ -14,13 +14,13 @@ import net.devrieze.util.StringAdapter;
 import net.devrieze.util.StringCache;
 
 
-
 public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements DarwinUserPrincipal {
 
   private static final String DOMAIN = "bournemouth.ac.uk";
-  private DBHelper aDbHelper;
 
-  public DarwinUserPrincipalImpl(DBHelper dbHelper, Realm pRealm, String pName) {
+  private final DBHelper aDbHelper;
+
+  public DarwinUserPrincipalImpl(final DBHelper dbHelper, final Realm pRealm, final String pName) {
     super(pRealm, pName);
     aDbHelper = dbHelper;
   }
@@ -28,22 +28,22 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   private Set<String> aRoles;
 
   /**
-   * Get a set of all the roles in the principal. Note that this will create
-   * a copy to allow concurrency and refreshes.
+   * Get a set of all the roles in the principal. Note that this will create a
+   * copy to allow concurrency and refreshes.
    */
   @Override
   public synchronized Set<? extends String> getRolesSet() {
     refreshIfNeeded();
     return Collections.unmodifiableSet(new HashSet<String>(aRoles));
   }
-  
+
   @Override
   public String[] getRoles() {
     Set<? extends String> lroles;
-    synchronized(this) {
+    synchronized (this) {
       refreshIfNeeded();
       lroles = aRoles;
-      if (roles==null && (aRoles!=null)) {
+      if ((roles == null) && (aRoles != null)) {
         roles = lroles.toArray(new String[lroles.size()]);
         Arrays.sort(roles);
       }
@@ -52,28 +52,31 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   }
 
   private synchronized void refreshIfNeeded() {
-    if (aRoles==null || needsRefresh()) {
+    if ((aRoles == null) || needsRefresh()) {
       aRoles = new HashSet<String>();
-      roles=null;
-      DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?");
+      roles = null;
+      final DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?");
       query.addParam(1, getName());
-      StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true);
-      for(String role: queryResult) {
+      final StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true);
+      for (final String role : queryResult) {
         aRoles.add(role);
       }
     }
   }
 
   @Override
-  public boolean hasRole(String pRole) {
-    if ("*".equals(pRole)) { return true; }
-    if (pRole == null) { return false; }
+  public boolean hasRole(final String pRole) {
+    if ("*".equals(pRole)) {
+      return true;
+    }
+    if (pRole == null) {
+      return false;
+    }
     refreshIfNeeded();
-    return aRoles!=null && aRoles.contains(pRole);
+    return (aRoles != null) && aRoles.contains(pRole);
   }
 
-  
-  
+
   @Override
   public Principal getUserPrincipal() {
     return this;
@@ -81,15 +84,14 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   @Override
   public String toString() {
-    StringBuilder result = new StringBuilder();
-    result.append("DarwinUserPrincipal[")
-          .append(getName());
+    final StringBuilder result = new StringBuilder();
+    result.append("DarwinUserPrincipal[").append(getName());
     refreshIfNeeded();
-    if (aRoles!=null) {
-      char sep='(';
-      for(String role:aRoles) {
+    if (aRoles != null) {
+      char sep = '(';
+      for (final String role : aRoles) {
         result.append(sep).append(role);
-        sep=',';
+        sep = ',';
       }
     }
     result.append("])");
@@ -99,7 +101,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   @Override
   public CharSequence getEmail() {
     final String lName = getName();
-    StringBuilder result=new StringBuilder(lName.length()+DOMAIN.length()+1);
+    final StringBuilder result = new StringBuilder(lName.length() + DOMAIN.length() + 1);
     result.append(lName).append('@').append(DOMAIN);
     return result;
   }
@@ -110,21 +112,21 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   }
 
   @Override
-  public synchronized Principal cacheStrings(StringCache pStringCache) {
-    name=pStringCache.lookup(this.name);
+  public synchronized Principal cacheStrings(final StringCache pStringCache) {
+    name = pStringCache.lookup(this.name);
     aDbHelper.setStringCache(pStringCache);
-    
+
     // Instead of resetting the roles holder, just update the set to prevent database
     // roundtrips.
-    if (aRoles!=null) {
+    if (aRoles != null) {
       final Set<String> tmpRoles = aRoles;
-      aRoles=new HashSet<String>();
-      for(String role:tmpRoles) {
+      aRoles = new HashSet<String>();
+      for (final String role : tmpRoles) {
         aRoles.add(pStringCache.lookup(role));
       }
       roles = null; // Just remove cache. This doesn't need database roundtrip
     }
     return this;
   }
-  
+
 }
