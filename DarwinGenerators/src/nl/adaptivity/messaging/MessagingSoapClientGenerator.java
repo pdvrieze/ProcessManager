@@ -24,6 +24,11 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 
+/**
+ * This class can automatically generate soap based clients for endpoints.
+ *
+ * @author Paul de Vrieze
+ */
 public class MessagingSoapClientGenerator {
 
 
