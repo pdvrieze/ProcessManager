@@ -1,4 +1,4 @@
-package net.devrieze.util;
+package net.devrieze.util.db;
 
 import java.util.Arrays;
 import java.util.Iterator;

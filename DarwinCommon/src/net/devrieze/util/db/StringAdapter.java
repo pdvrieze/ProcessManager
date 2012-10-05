@@ -1,9 +1,9 @@
-package net.devrieze.util;
+package net.devrieze.util.db;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import net.devrieze.util.DBHelper.DBStatement;
+import net.devrieze.util.db.DBHelper.DBStatement;
 
 
 public class StringAdapter extends ResultSetAdapter<String> {

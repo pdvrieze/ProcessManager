@@ -1,4 +1,4 @@
-package net.devrieze.util;
+package net.devrieze.util.db;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,6 +10,9 @@ import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
+import net.devrieze.util.CompoundException;
+import net.devrieze.util.StringCache;
 
 
 public class DBHelper {

@@ -1,4 +1,4 @@
-package net.devrieze.util;
+package net.devrieze.util.db;
 
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -6,7 +6,8 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Iterator;
 
-import net.devrieze.util.DBHelper.DBStatement;
+import net.devrieze.util.StringCache;
+import net.devrieze.util.db.DBHelper.DBStatement;
 
 
 public abstract class ResultSetAdapter<T> implements Iterable<T> {
