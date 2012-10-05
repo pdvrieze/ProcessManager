@@ -25,22 +25,24 @@ public interface DarwinPrincipal extends Principal {
    *         not.
    */
   boolean hasRole(String pRoleName);
-  
+
   /**
    * Get the email address of the user.
+   * 
    * @return The email address, or <code>null</code> if not known.
    */
   CharSequence getEmail();
 
 
   /**
-   * Get a set of the roles of the user. Note that changes to this will not be allowed,
-   * and in any case would not be reflected in the database.
+   * Get a set of the roles of the user. Note that changes to this will not be
+   * allowed, and in any case would not be reflected in the database.
+   * 
    * @return The set of roles.
    */
   public Set<? extends CharSequence> getRolesSet();
 
   Principal cacheStrings(StringCache pStringCache);
-  
-  
+
+
 }

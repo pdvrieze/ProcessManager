@@ -7,7 +7,7 @@ public class HttpResponseException extends MessagingException {
 
   private final int aCode;
 
-  public HttpResponseException(int pCode, String pMessage) {
+  public HttpResponseException(final int pCode, final String pMessage) {
     super(pMessage);
     aCode = pCode;
   }

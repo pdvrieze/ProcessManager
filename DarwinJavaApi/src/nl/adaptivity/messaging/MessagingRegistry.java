@@ -14,23 +14,29 @@ public final class MessagingRegistry {
 
   private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener {
 
-    private ISendableMessage aMessage;
-    private Future<T> aOrigin;
-    private boolean aCancelled = false;
-    private CompletionListener aCompletionListener;
-    private Class<T> aReturnType;
+    private final ISendableMessage aMessage;
 
-    public WrappingFuture(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
+    private Future<T> aOrigin;
+
+    private boolean aCancelled = false;
+
+    private final CompletionListener aCompletionListener;
+
+    private final Class<T> aReturnType;
+
+    public WrappingFuture(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
       aMessage = pMessage;
       aCompletionListener = pCompletionListener;
       aReturnType = pReturnType;
     }
 
     @Override
-    public synchronized boolean cancel(boolean pMayInterruptIfRunning) {
-      if (aOrigin==null) {
+    public synchronized boolean cancel(final boolean pMayInterruptIfRunning) {
+      if (aOrigin == null) {
         aCancelled = true;
-        if (aCompletionListener!=null) { aCompletionListener.onMessageCompletion(this); }
+        if (aCompletionListener != null) {
+          aCompletionListener.onMessageCompletion(this);
+        }
       } else {
         aCancelled = aOrigin.cancel(pMayInterruptIfRunning);
       }
@@ -39,7 +45,7 @@ public final class MessagingRegistry {
 
     @Override
     public synchronized boolean isCancelled() {
-      if (aOrigin!=null) {
+      if (aOrigin != null) {
         return aOrigin.isCancelled();
       }
       return aCancelled;
@@ -47,7 +53,7 @@ public final class MessagingRegistry {
 
     @Override
     public synchronized boolean isDone() {
-      if (aOrigin!=null) {
+      if (aOrigin != null) {
         return aOrigin.isDone();
       }
       return false || aCancelled;
@@ -55,7 +61,7 @@ public final class MessagingRegistry {
 
     @Override
     public synchronized T get() throws InterruptedException, ExecutionException {
-      while (aOrigin==null) {
+      while (aOrigin == null) {
         if (aCancelled) {
           throw new CancellationException();
         }
@@ -65,21 +71,21 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public synchronized T get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
-      if (aOrigin==null) {
-        long startTime = System.currentTimeMillis();
+    public synchronized T get(final long pTimeout, final TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+      if (aOrigin == null) {
+        final long startTime = System.currentTimeMillis();
         try {
-          if (pUnit==TimeUnit.NANOSECONDS) {
-            wait(pUnit.toMillis(pTimeout), (int) (pUnit.toNanos(pTimeout)%1000000));
+          if (pUnit == TimeUnit.NANOSECONDS) {
+            wait(pUnit.toMillis(pTimeout), (int) (pUnit.toNanos(pTimeout) % 1000000));
           } else {
             wait(pUnit.toMillis(pTimeout));
           }
-        } catch (InterruptedException e) {
-          if (aOrigin!=null) {
+        } catch (final InterruptedException e) {
+          if (aOrigin != null) {
             // Assume we are woken up because of the change not another interruption.
             final long currentTime = System.currentTimeMillis();
-            final long millisLeft = pUnit.toMillis(pTimeout)-(currentTime - startTime);
-            if (millisLeft>0) {
+            final long millisLeft = pUnit.toMillis(pTimeout) - (currentTime - startTime);
+            if (millisLeft > 0) {
               return aOrigin.get(millisLeft, TimeUnit.MILLISECONDS);
             } else {
               throw new TimeoutException();
@@ -97,16 +103,16 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public synchronized void execute(IMessenger pMessenger) {
-      if (! aCancelled) {
+    public synchronized void execute(final IMessenger pMessenger) {
+      if (!aCancelled) {
         aOrigin = pMessenger.sendMessage(aMessage, this, aReturnType);
       }
       notifyAll(); // Wake up all waiters (should be only one)
     }
 
     @Override
-    public void onMessageCompletion(Future<?> pFuture) {
-      if (aCompletionListener!=null) {
+    public void onMessageCompletion(final Future<?> pFuture) {
+      if (aCompletionListener != null) {
         aCompletionListener.onMessageCompletion(this);
       }
     }
@@ -114,33 +120,36 @@ public final class MessagingRegistry {
   }
 
   private static interface MessengerCommand {
+
     void execute(IMessenger pMessenger);
   }
 
   private static class StubMessenger implements IMessenger {
-    IMessenger aRealMessenger=null;
+
+    IMessenger aRealMessenger = null;
+
     Queue<MessengerCommand> aCommandQueue;
 
     StubMessenger() {
       aCommandQueue = new ArrayDeque<MessengerCommand>();
     }
 
-    public synchronized void setMessenger(IMessenger pMessenger) {
+    public synchronized void setMessenger(final IMessenger pMessenger) {
       aRealMessenger = pMessenger;
-      for(MessengerCommand command: aCommandQueue) {
+      for (final MessengerCommand command : aCommandQueue) {
         command.execute(aRealMessenger);
       }
-      aCommandQueue=null; // We don't need it anymore, we'll just forward.
+      aCommandQueue = null; // We don't need it anymore, we'll just forward.
     }
 
     @Override
     public void registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
-      synchronized(this) {
-        if (aRealMessenger==null) {
-          aCommandQueue.add(new MessengerCommand(){
+      synchronized (this) {
+        if (aRealMessenger == null) {
+          aCommandQueue.add(new MessengerCommand() {
 
             @Override
-            public void execute(IMessenger pMessenger) {
+            public void execute(final IMessenger pMessenger) {
               pMessenger.registerEndpoint(pService, pEndPoint, pTarget);
             }
 
@@ -153,12 +162,12 @@ public final class MessagingRegistry {
 
     @Override
     public void registerEndpoint(final Endpoint pEndpoint) {
-      synchronized(this) {
-        if (aRealMessenger==null) {
-          aCommandQueue.add(new MessengerCommand(){
+      synchronized (this) {
+        if (aRealMessenger == null) {
+          aCommandQueue.add(new MessengerCommand() {
 
             @Override
-            public void execute(IMessenger pMessenger) {
+            public void execute(final IMessenger pMessenger) {
               pMessenger.registerEndpoint(pEndpoint);
             }
 
@@ -171,8 +180,8 @@ public final class MessagingRegistry {
 
     @Override
     public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
-      synchronized(this) {
-        if (aRealMessenger==null) {
+      synchronized (this) {
+        if (aRealMessenger == null) {
           final WrappingFuture<T> future = new WrappingFuture<T>(pMessage, pCompletionListener, pReturnType);
           aCommandQueue.add(future);
           return future;
@@ -190,30 +199,30 @@ public final class MessagingRegistry {
 
   private static IMessenger aMessenger;
 
-  public static synchronized void registerMessenger(IMessenger pMessenger) {
-    if (pMessenger==null) {
+  public static synchronized void registerMessenger(final IMessenger pMessenger) {
+    if (pMessenger == null) {
       aMessenger = new StubMessenger();
     } else if (aMessenger instanceof StubMessenger) {
       ((StubMessenger) aMessenger).setMessenger(pMessenger);
       aMessenger = pMessenger;
-    } else if (aMessenger!=null) {
+    } else if (aMessenger != null) {
 
       throw new IllegalStateException("It is not allowed to register multiple messengers");
     }
     aMessenger = pMessenger;
-    if (aMessenger!=null) {
-      Logger.getAnonymousLogger().info("New messenger registered: "+aMessenger.getClass().getName());
+    if (aMessenger != null) {
+      Logger.getAnonymousLogger().info("New messenger registered: " + aMessenger.getClass().getName());
     }
   }
 
   public static synchronized IMessenger getMessenger() {
-    if (aMessenger==null) {
+    if (aMessenger == null) {
       aMessenger = new StubMessenger();
     }
     return aMessenger;
   }
 
-  public static <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
+  public static <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
     return getMessenger().sendMessage(pMessage, pCompletionListener, pReturnType);
   }
 
