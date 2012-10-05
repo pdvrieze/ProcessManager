@@ -45,6 +45,43 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
+  public void start() throws LifecycleException {
+    if (aStarted) {
+      throw new LifecycleException("Already started");
+    }
+    aLifecycle.fireLifecycleEvent(START_EVENT, null);
+    aStarted = true;
+  }
+
+
+  @Override
+  public void stop() throws LifecycleException {
+    aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
+    aStarted = false;
+  
+    DBHelper.closeConnections(this);
+  }
+
+
+  @Override
+  public void addLifecycleListener(final LifecycleListener pListener) {
+    aLifecycle.addLifecycleListener(pListener);
+  }
+
+
+  @Override
+  public LifecycleListener[] findLifecycleListeners() {
+    return aLifecycle.findLifecycleListeners();
+  }
+
+
+  @Override
+  public void removeLifecycleListener(final LifecycleListener pListener) {
+    aLifecycle.removeLifecycleListener(pListener);
+  }
+
+
+  @Override
   public Container getContainer() {
     return aContainer;
   }
@@ -386,45 +423,12 @@ public class DarwinRealm implements Realm, Lifecycle {
     return new DarwinUserPrincipalImpl(getDbHelper(), this, pName);
   }
 
-  public static DBHelper getDbHelper() {
+  private static DBHelper getDbHelper() {
     return DBHelper.dbHelper(getDBResource(), DarwinRealm.class);
   }
 
   private static String getDBResource() {
     return RESOURCE;
-  }
-
-
-  @Override
-  public void addLifecycleListener(final LifecycleListener pListener) {
-    aLifecycle.addLifecycleListener(pListener);
-  }
-
-  @Override
-  public LifecycleListener[] findLifecycleListeners() {
-    return aLifecycle.findLifecycleListeners();
-  }
-
-  @Override
-  public void removeLifecycleListener(final LifecycleListener pListener) {
-    aLifecycle.removeLifecycleListener(pListener);
-  }
-
-  @Override
-  public void start() throws LifecycleException {
-    if (aStarted) {
-      throw new LifecycleException("Already started");
-    }
-    aLifecycle.fireLifecycleEvent(START_EVENT, null);
-    aStarted = true;
-  }
-
-  @Override
-  public void stop() throws LifecycleException {
-    aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
-    aStarted = false;
-
-    DBHelper.closeConnections(this);
   }
 
 
