@@ -19,7 +19,9 @@ import javax.xml.transform.stream.StreamSource;
 import net.devrieze.util.InputStreamOutputStream;
 
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
+import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.activation.SourceDataSource;
+import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
@@ -423,18 +425,18 @@ public class DarwinMessenger implements IMessenger {
         }
 
         final MessageTask<T> resultfuture;
-        T resultval = SoapHelper.processResponse(pReturnType, resultSource);
-        resultfuture = new MessageTask<T>(resultval);
-//        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
-//          ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//          try {
-//            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
-//          } catch (IOException e) {
-//            throw new MyMessagingException(e);
-//          }
-//          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
-//        } else {
-//        }
+        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
+          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          try {
+            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
+          } catch (IOException e) {
+            throw new MyMessagingException(e);
+          }
+          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+        } else {
+          T resultval = SoapHelper.processResponse(pReturnType, resultSource);
+          resultfuture = new MessageTask<T>(resultval);
+        }
 
 //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
         if (pCompletionListener!=null) {
