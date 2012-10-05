@@ -5,6 +5,9 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
@@ -13,14 +16,16 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
-import org.w3.soapEnvelope.Envelope;
-
 import net.devrieze.util.security.SimplePrincipal;
-
+import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndPointDescriptor;
 import nl.adaptivity.messaging.Header;
 import nl.adaptivity.messaging.ISendableMessage;
@@ -33,15 +38,38 @@ import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.SourceDataSource;
 
+import org.w3.soapEnvelope.Envelope;
+
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
 public class InternalEndpoint implements GenericEndpoint {
 
+  public class TaskUpdateCompletionListener implements CompletionListener {
+    XmlTask aTask;
+
+    public TaskUpdateCompletionListener(XmlTask pTask) {
+      aTask = pTask;
+    }
+
+    @Override
+    public void onMessageCompletion(Future<?> pFuture) {
+      if (!pFuture.isCancelled()) {
+        try {
+          TaskState result = (TaskState) pFuture.get();
+          aTask.aState = result;
+        } catch (InterruptedException e) {
+          Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
+        } catch (ExecutionException e) {
+          Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e);
+        }
+      }
+    }
+
+  }
+
   @XmlRootElement(name="task")
   @XmlAccessorType(XmlAccessType.NONE)
   public static class XmlTask implements UserTask<XmlTask>{
-    private static final QName UPDATE_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "updateTaskState");
-    private static final QName FINISH_OPERATION_NAME = new QName("http://adaptivity.nl/ProcessEngine/", "finishTask");
     private long aHandle;
     private long aRemoteHandle;
     private TaskState aState=TaskState.Sent;
@@ -69,30 +97,32 @@ public class InternalEndpoint implements GenericEndpoint {
       try {
         TaskState newState;
         if (pNewState==TaskState.Complete) {
-          finishRemoteTask(pUser);
-          newState = TaskState.Complete; // Use server state instead.
+          newState = finishRemoteTask(pUser).get();
+//          newState = TaskState.Complete; // Use server state instead.
         } else if (pNewState==TaskState.Acknowledged) {
           newState = pNewState; // Just shortcircuit. This is just record keeping
         } else {
-          updateRemoteTaskState(pNewState, pUser);
-          newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
+          newState = updateRemoteTaskState(pNewState, pUser).get();
+//          newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
         }
         aState = newState;
       } catch (JAXBException e) {
-        e.printStackTrace();
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
       } catch (MyMessagingException e) {
-        e.printStackTrace();
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
+      } catch (InterruptedException e) {
+        Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
+      } catch (ExecutionException e) {
+        Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e);
       }
     }
 
-    private void updateRemoteTaskState(TaskState pState, Principal pUser) throws JAXBException, MyMessagingException {
-      ServletProcessEngineClient.updateTaskState(aHandle, pState, pUser, null);
+    private Future<TaskState> updateRemoteTaskState(TaskState pState, Principal pUser) throws JAXBException, MyMessagingException {
+      return ServletProcessEngineClient.updateTaskState(aHandle, pState, pUser, null);
     }
 
-    private void finishRemoteTask(Principal pUser) throws JAXBException, MyMessagingException {
-      ServletProcessEngineClient.finishTask(aHandle, null, pUser, null); // Ignore completion???
+    private Future<TaskState> finishRemoteTask(Principal pUser) throws JAXBException, MyMessagingException {
+      return ServletProcessEngineClient.finishTask(aHandle, null, pUser, null); // Ignore completion???
       // TODO Do something with reply!
     }
 
