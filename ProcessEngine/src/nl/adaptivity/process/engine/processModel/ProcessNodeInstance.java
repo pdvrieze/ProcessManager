@@ -14,33 +14,38 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 
 
-public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObject{
+public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObject {
 
   private final ProcessNode aNode;
+
   private Node aPayload;
+
   private final Collection<ProcessNodeInstance> aPredecessors;
 
-  private TaskState aState=null;
+  private TaskState aState = null;
+
   private long aHandle = -1;
+
   private final ProcessInstance aProcessInstance;
+
   private Throwable aFailureCause;
 
-  public ProcessNodeInstance(ProcessNode pNode, ProcessNodeInstance pPredecessor, ProcessInstance pProcessInstance) {
+  public ProcessNodeInstance(final ProcessNode pNode, final ProcessNodeInstance pPredecessor, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
     aPredecessors = Collections.singletonList(pPredecessor);
     aProcessInstance = pProcessInstance;
-    if (aPredecessors==null && ! (pNode instanceof StartNode)) {
+    if ((aPredecessors == null) && !(pNode instanceof StartNode)) {
       throw new NullPointerException();
     }
   }
 
-  protected ProcessNodeInstance(ProcessNode pNode, Collection<ProcessNodeInstance> pPredecessors, ProcessInstance pProcessInstance) {
+  protected ProcessNodeInstance(final ProcessNode pNode, final Collection<ProcessNodeInstance> pPredecessors, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
     aPredecessors = pPredecessors;
     aProcessInstance = pProcessInstance;
-    if (aPredecessors==null && ! (pNode instanceof StartNode)) {
+    if ((aPredecessors == null) && !(pNode instanceof StartNode)) {
       throw new NullPointerException();
     }
   }
@@ -63,15 +68,15 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObj
   }
 
   @Override
-  public void setState(TaskState pNewState) {
-    if (aState != null && aState.compareTo(pNewState)>0) {
-      throw new IllegalArgumentException("State can only be increased (was:"+aState+" new:"+pNewState);
+  public void setState(final TaskState pNewState) {
+    if ((aState != null) && (aState.compareTo(pNewState) > 0)) {
+      throw new IllegalArgumentException("State can only be increased (was:" + aState + " new:" + pNewState);
     }
     aState = pNewState;
   }
 
   @Override
-  public void setHandle(long pHandle) {
+  public void setHandle(final long pHandle) {
     aHandle = pHandle;
   }
 
@@ -80,22 +85,26 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObj
     return aHandle;
   }
 
-  public <T> boolean provideTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
+  @Override
+  public <T> boolean provideTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Sent);
     return aNode.provideTask(pMessageService, this);
   }
 
-  public <T> boolean takeTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
+  @Override
+  public <T> boolean takeTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Taken);
     return aNode.takeTask(pMessageService, this);
   }
 
-  public <T> boolean startTask(IMessageService<T, ProcessNodeInstance> pMessageService) {
+  @Override
+  public <T> boolean startTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Started);
     return aNode.startTask(pMessageService, this);
   }
 
-  public void finishTask(Node pPayload) {
+  @Override
+  public void finishTask(final Node pPayload) {
     setState(TaskState.Complete);
     aPayload = pPayload;
   }
@@ -107,7 +116,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObj
 
   @Override
   public String toString() {
-    return aNode.getClass().getSimpleName()+" ("+aState+")";
+    return aNode.getClass().getSimpleName() + " (" + aState + ")";
   }
 
   public ProcessInstance getProcessInstance() {
@@ -115,7 +124,7 @@ public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObj
   }
 
   @Override
-  public void failTask(Throwable pCause) {
+  public void failTask(final Throwable pCause) {
     setState(TaskState.Failed);
     aFailureCause = pCause;
   }

@@ -7,15 +7,15 @@ import nl.adaptivity.messaging.DarwinMessenger;
 import nl.adaptivity.messaging.MessagingRegistry;
 
 
-public class PEContextListener implements ServletContextListener{
+public class PEContextListener implements ServletContextListener {
 
   @Override
-  public void contextDestroyed(ServletContextEvent pSce) {
+  public void contextDestroyed(final ServletContextEvent pSce) {
     MessagingRegistry.getMessenger().shutdown();
   }
 
   @Override
-  public void contextInitialized(ServletContextEvent pSce) {
+  public void contextInitialized(final ServletContextEvent pSce) {
     DarwinMessenger.register();
   }
 

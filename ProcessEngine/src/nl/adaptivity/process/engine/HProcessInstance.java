@@ -9,7 +9,8 @@ import javax.xml.bind.annotation.XmlValue;
 
 import net.devrieze.util.HandleMap.Handle;
 
-@XmlRootElement(name="instanceHandle")
+
+@XmlRootElement(name = "instanceHandle")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class HProcessInstance implements Handle<ProcessInstance>, Serializable {
 
@@ -23,13 +24,13 @@ public final class HProcessInstance implements Handle<ProcessInstance>, Serializ
     setHandle(-1);
   }
 
-  public HProcessInstance(long pHandle) {
+  public HProcessInstance(final long pHandle) {
     setHandle(pHandle);
   }
 
   @Override
-  public boolean equals(Object pObj) {
-    return (pObj == this) || ((pObj instanceof HProcessInstance) && getHandle() == ((HProcessInstance) pObj).getHandle());
+  public boolean equals(final Object pObj) {
+    return (pObj == this) || ((pObj instanceof HProcessInstance) && (getHandle() == ((HProcessInstance) pObj).getHandle()));
   }
 
   @Override
@@ -37,11 +38,12 @@ public final class HProcessInstance implements Handle<ProcessInstance>, Serializ
     return (int) getHandle();
   }
 
+  @Override
   public long getHandle() {
     return aHandle;
   }
 
-  public void setHandle(long handle) {
+  public void setHandle(final long handle) {
     aHandle = handle;
   }
 

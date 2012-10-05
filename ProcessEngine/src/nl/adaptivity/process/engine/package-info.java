@@ -7,3 +7,4 @@
 
 @javax.xml.bind.annotation.XmlSchema(namespace = "http://adaptivity.nl/ProcessEngine/", elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package nl.adaptivity.process.engine;
+
