@@ -9,12 +9,12 @@ import nl.adaptivity.process.engine.NormalizedMessage;
 
 public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
-  
-  private class Entry implements Map.Entry<String, DataHandler>{
+
+  private class Entry implements Map.Entry<String, DataHandler> {
 
     private final String aKey;
 
-    public Entry(String pKey) {
+    public Entry(final String pKey) {
       aKey = pKey;
     }
 
@@ -29,22 +29,22 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     }
 
     @Override
-    public DataHandler setValue(DataHandler pValue) {
-      DataHandler result = aMessage.getAttachment(aKey);
+    public DataHandler setValue(final DataHandler pValue) {
+      final DataHandler result = aMessage.getAttachment(aKey);
       aMessage.addAttachment(aKey, pValue);
       return result;
     }
-    
+
   }
-  
+
   private class EntryIterator implements Iterator<Map.Entry<String, DataHandler>> {
-    
+
     private final Iterator<String> aBackingIterator;
 
     public EntryIterator() {
       aBackingIterator = aMessage.getAttachmentNames().iterator();
     }
-    
+
     @Override
     public boolean hasNext() {
       return aBackingIterator.hasNext();
@@ -52,10 +52,10 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
     @Override
     public Entry next() {
-      
+
       final String next = aBackingIterator.next();
-      Entry result = new Entry(next);
-      return result ;
+      final Entry result = new Entry(next);
+      return result;
     }
 
     @Override
@@ -68,10 +68,10 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   private class EntrySet extends AbstractSet<Map.Entry<String, DataHandler>> {
 
     @Override
-    public boolean remove(Object pO) {
+    public boolean remove(final Object pO) {
       if (pO instanceof Map.Entry) {
-        Map.Entry<?, ?> me = (Map.Entry<?, ?>) pO;
-        return AttachmentMap.this.remove(me.getKey())!=null;
+        final Map.Entry<?, ?> me = (Map.Entry<?, ?>) pO;
+        return AttachmentMap.this.remove(me.getKey()) != null;
       }
       return false;
     }
@@ -85,17 +85,17 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
     @Override
     public int size() {
-      if (aSize <0) {
-        aSize = aMessage.getAttachmentNames().size(); 
+      if (aSize < 0) {
+        aSize = aMessage.getAttachmentNames().size();
       }
       return aSize;
     }
 
     @Override
-    public boolean removeAll(Collection<?> pC) {
+    public boolean removeAll(final Collection<?> pC) {
       boolean result = false;
-      for(Object o:pC) {
-        result |=AttachmentMap.this.remove(o)!=null;
+      for (final Object o : pC) {
+        result |= AttachmentMap.this.remove(o) != null;
       }
       return result;
     }
@@ -104,7 +104,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
   private final NormalizedMessage aMessage;
 
-  public AttachmentMap(NormalizedMessage pMessage) {
+  public AttachmentMap(final NormalizedMessage pMessage) {
     aMessage = pMessage;
   }
 
@@ -114,12 +114,12 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   }
 
   @Override
-  public boolean containsKey(Object pKey) {
+  public boolean containsKey(final Object pKey) {
     return keySet().contains(pKey);
   }
 
   @Override
-  public DataHandler get(Object pKey) {
+  public DataHandler get(final Object pKey) {
     if (pKey instanceof String) {
       return aMessage.getAttachment((String) pKey);
     }
@@ -132,9 +132,9 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   }
 
   @Override
-  public DataHandler remove(Object pKey) {
+  public DataHandler remove(final Object pKey) {
     if (pKey instanceof String) {
-      DataHandler old = aMessage.getAttachment((String)pKey);
+      final DataHandler old = aMessage.getAttachment((String) pKey);
       aMessage.removeAttachment((String) pKey);
       return old;
     }

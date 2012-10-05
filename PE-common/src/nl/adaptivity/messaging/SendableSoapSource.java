@@ -16,14 +16,15 @@ import nl.adaptivity.util.activation.Sources;
 public class SendableSoapSource implements ISendableMessage, DataSource {
 
   private final Endpoint aDestination;
+
   private final Source aMessage;
 
-  public SendableSoapSource(Endpoint pDestination, Source pMessage) {
+  public SendableSoapSource(final Endpoint pDestination, final Source pMessage) {
     aDestination = pDestination;
     aMessage = pMessage;
-    
+
   }
-  
+
   @Override
   public Endpoint getDestination() {
     return aDestination;
@@ -51,10 +52,10 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
 
   @Override
   public InputStream getInputStream() throws IOException {
-    ByteArrayOutputStream boas = new ByteArrayOutputStream();
+    final ByteArrayOutputStream boas = new ByteArrayOutputStream();
     try {
       Sources.writeToStream(aMessage, boas);
-    } catch (TransformerException e) {
+    } catch (final TransformerException e) {
       throw new IOException(e);
     }
     return new ByteArrayInputStream(boas.toByteArray());

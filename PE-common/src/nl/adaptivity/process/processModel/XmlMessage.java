@@ -14,18 +14,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -39,9 +30,11 @@ import nl.adaptivity.messaging.Endpoint;
 
 
 /**
- * <p>Java class for Message complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for Message complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="Message">
@@ -60,253 +53,229 @@ import nl.adaptivity.messaging.Endpoint;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Message")
 public class XmlMessage {
 
-    public static final String ELEMENTNAME = "message";
-    protected QName service;
-    @XmlAttribute(name = "endpoint")
-    protected String endpoint;
-    @XmlAttribute(name = "operation")
-    protected QName operation;
-    @XmlAttribute(name = "url")
-    protected String url;
-    @XmlAttribute(name = "method")
-    protected String method;
-    @XmlAttribute(name = "type")
-    protected String type;
-    // These are managed on the methods.
-    @XmlTransient
-    private Node aBody;
-    @XmlTransient
-    private ArrayList<Object> aAny;
+  public static final String ELEMENTNAME = "message";
 
-    /**
-     * Gets the value of the service property.
-     *
-     * @return
-     *     possible object is
-     *     {@link QName }
-     *
-     */
-    @XmlAttribute(name="serviceName", required = true)
-    public String getServiceName() {
-      return service.getLocalPart();
+  protected QName service;
+
+  @XmlAttribute(name = "endpoint")
+  protected String endpoint;
+
+  @XmlAttribute(name = "operation")
+  protected QName operation;
+
+  @XmlAttribute(name = "url")
+  protected String url;
+
+  @XmlAttribute(name = "method")
+  protected String method;
+
+  @XmlAttribute(name = "type")
+  protected String type;
+
+  // These are managed on the methods.
+  @XmlTransient
+  private Node aBody;
+
+  @XmlTransient
+  private ArrayList<Object> aAny;
+
+  /**
+   * Gets the value of the service property.
+   * 
+   * @return possible object is {@link QName }
+   */
+  @XmlAttribute(name = "serviceName", required = true)
+  public String getServiceName() {
+    return service.getLocalPart();
+  }
+
+  public void setServiceName(final String pName) {
+    if (service == null) {
+      service = new QName(pName);
+    } else {
+      service = new QName(service.getNamespaceURI(), pName);
     }
+  }
 
-    public void setServiceName(String pName) {
-      if (service==null) {
-        service = new QName(pName);
-      } else {
-        service = new QName(service.getNamespaceURI(), pName);
+
+  @XmlAttribute(name = "serviceNS")
+  public String getServiceNS() {
+    return service.getNamespaceURI();
+  }
+
+  public void setServiceNS(final String pNamespace) {
+    if (service == null) {
+      service = new QName(pNamespace, "xx");
+    } else {
+      service = new QName(pNamespace, service.getLocalPart());
+    }
+  }
+
+  public QName getService() {
+    return service;
+  }
+
+  /**
+   * Sets the value of the service property.
+   * 
+   * @param value allowed object is {@link QName }
+   */
+  public void setService(final QName value) {
+    this.service = value;
+  }
+
+  /**
+   * Gets the value of the endpoint property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getEndpoint() {
+    return endpoint;
+  }
+
+  /**
+   * Sets the value of the endpoint property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setEndpoint(final String value) {
+    this.endpoint = value;
+  }
+
+  public Endpoint getEndpointDescriptor() {
+    return new EndPointDescriptor(service, endpoint, URI.create(url));
+  }
+
+  /**
+   * Gets the value of the operation property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public QName getOperation() {
+    return operation;
+  }
+
+  @XmlAnyElement(lax = true)
+  public Collection<Object> getAny() {
+    if (aAny == null) {
+      aAny = new ArrayList<Object>(1);
+      if (aBody != null) {
+        aAny.add(aBody);
+        aBody = null;
       }
     }
+    return aAny;
+  }
 
-    
-    @XmlAttribute(name="serviceNS")
-    public String getServiceNS() {
-      return service.getNamespaceURI();
-    }
-
-    public void setServiceNS(String pNamespace) {
-      if (service==null) {
-        service = new QName(pNamespace, "xx");
-      } else {
-        service = new QName(pNamespace, service.getLocalPart());
-      }
-    }
-
-    public QName getService() {
-        return service;
-    }
-
-    /**
-     * Sets the value of the service property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link QName }
-     *
-     */
-    public void setService(QName value) {
-        this.service = value;
-    }
-
-    /**
-     * Gets the value of the endpoint property.
-     *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
-     */
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    /**
-     * Sets the value of the endpoint property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
-     */
-    public void setEndpoint(String value) {
-        this.endpoint = value;
-    }
-
-    public Endpoint getEndpointDescriptor() {
-      return new EndPointDescriptor(service, endpoint, URI.create(url));
-    }
-    
-    /**
-     * Gets the value of the operation property.
-     *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
-     */
-    public QName getOperation() {
-        return operation;
-    }
-
-    @XmlAnyElement(lax=true)
-    public Collection<Object> getAny() {
-      if (aAny == null) {
-        aAny = new ArrayList<Object>(1);
-        if (aBody!=null) {
-          aAny.add(aBody);
-          aBody = null;
-        }
-      }
-      return aAny;
-    }
-
-    public Node getMessageBody() {
-      if (aBody ==null && aAny!=null) {
-        Iterator<Object> it = aAny.iterator();
-        while(it.hasNext()) {
-          Object next = it.next();
-          if ((next instanceof Element) || (next instanceof Document) || (next instanceof DocumentFragment)) {
-            if (aBody !=null) {
-              throw new IllegalStateException("Only one member allowed");
-            }
-            aBody = (Node) next;
+  public Node getMessageBody() {
+    if ((aBody == null) && (aAny != null)) {
+      final Iterator<Object> it = aAny.iterator();
+      while (it.hasNext()) {
+        final Object next = it.next();
+        if ((next instanceof Element) || (next instanceof Document) || (next instanceof DocumentFragment)) {
+          if (aBody != null) {
+            throw new IllegalStateException("Only one member allowed");
           }
-        }
-        if (aBody!=null) {
-          aAny = null;
+          aBody = (Node) next;
         }
       }
-
-      return aBody;
-    }
-
-    public void setMessageBody(Object o) {
-      if (o instanceof Node) {
-        aBody = (Node) o;
+      if (aBody != null) {
+        aAny = null;
       }
     }
 
-    /**
-     * Sets the value of the operation property.
-     *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
-     */
-    public void setOperation(QName value) {
-        this.operation = value;
-    }
+    return aBody;
+  }
 
-    public Source getBodySource() {
-      return new DOMSource(getMessageBody());
+  public void setMessageBody(final Object o) {
+    if (o instanceof Node) {
+      aBody = (Node) o;
     }
+  }
+
+  /**
+   * Sets the value of the operation property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setOperation(final QName value) {
+    this.operation = value;
+  }
+
+  public Source getBodySource() {
+    return new DOMSource(getMessageBody());
+  }
 
 
-    /**
-     * Gets the value of the url property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getUrl() {
-        return url;
-    }
+  /**
+   * Gets the value of the url property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getUrl() {
+    return url;
+  }
 
-    /**
-     * Sets the value of the url property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setUrl(String value) {
-        this.url = value;
-    }
+  /**
+   * Sets the value of the url property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setUrl(final String value) {
+    this.url = value;
+  }
 
-    /**
-     * Gets the value of the method property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getMethod() {
-        return method;
-    }
+  /**
+   * Gets the value of the method property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getMethod() {
+    return method;
+  }
 
-    /**
-     * Sets the value of the method property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setMethod(String value) {
-        this.method = value;
+  /**
+   * Sets the value of the method property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setMethod(final String value) {
+    this.method = value;
+  }
+
+  public String getContentType() {
+    if (type == null) {
+      return "application/soap+xml";
+    } else {
+      return type;
     }
-    
-    public String getContentType() {
-      if (type==null) {
-        return "application/soap+xml";
-      } else {
-        return type;
-      }
+  }
+
+  public void setType(final String pType) {
+    type = pType;
+  }
+
+  @Override
+  public String toString() {
+    final TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer t;
+    try {
+      t = tf.newTransformer();
+    } catch (final TransformerConfigurationException e) {
+      return super.toString();
     }
-    
-    public void setType(String pType) {
-      type = pType;
+    final StringWriter sw = new StringWriter();
+    final StreamResult sr = new StreamResult(sw);
+    try {
+      t.transform(getBodySource(), sr);
+    } catch (final TransformerException e) {
+      return super.toString();
     }
-    
-    @Override
-    public String toString() {
-      TransformerFactory tf = TransformerFactory.newInstance();
-      Transformer t;
-      try {
-        t = tf.newTransformer();
-      } catch (TransformerConfigurationException e) {
-        return super.toString();
-      }
-      StringWriter sw = new StringWriter();
-      StreamResult sr = new StreamResult(sw);
-      try {
-        t.transform(getBodySource(), sr);
-      } catch (TransformerException e) {
-        return super.toString();
-      }
-      return sw.toString();
-    }
+    return sw.toString();
+  }
 }

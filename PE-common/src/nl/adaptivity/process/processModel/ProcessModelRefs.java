@@ -9,46 +9,52 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="processModels")
+
+@XmlRootElement(name = "processModels")
 @XmlAccessorType(XmlAccessType.NONE)
 public class ProcessModelRefs implements Collection<ProcessModelRef> {
-  
+
   private Collection<ProcessModelRef> aCollection;
-  
+
   public ProcessModelRefs() {
     aCollection = new ArrayList<ProcessModelRef>();
   }
-  
-  public ProcessModelRefs(Collection<ProcessModelRef> pCollection) {
+
+  public ProcessModelRefs(final Collection<ProcessModelRef> pCollection) {
     aCollection = new ArrayList<ProcessModelRef>(pCollection.size());
     aCollection.addAll(pCollection);
   }
 
-  @XmlElement(name="processModel")
+  @XmlElement(name = "processModel")
   public Collection<ProcessModelRef> getElements() {
-    if (aCollection==null) {
+    if (aCollection == null) {
       aCollection = new ArrayList<ProcessModelRef>();
     }
     return aCollection;
   }
 
-  public boolean add(ProcessModelRef pE) {
+  @Override
+  public boolean add(final ProcessModelRef pE) {
     return aCollection.add(pE);
   }
 
-  public boolean addAll(Collection<? extends ProcessModelRef> pC) {
+  @Override
+  public boolean addAll(final Collection<? extends ProcessModelRef> pC) {
     return aCollection.addAll(pC);
   }
 
+  @Override
   public void clear() {
     aCollection.clear();
   }
 
-  public boolean contains(Object pO) {
+  @Override
+  public boolean contains(final Object pO) {
     return aCollection.contains(pO);
   }
 
-  public boolean containsAll(Collection<?> pC) {
+  @Override
+  public boolean containsAll(final Collection<?> pC) {
     return aCollection.containsAll(pC);
   }
 
@@ -57,35 +63,43 @@ public class ProcessModelRefs implements Collection<ProcessModelRef> {
     return aCollection.hashCode();
   }
 
+  @Override
   public boolean isEmpty() {
     return aCollection.isEmpty();
   }
 
+  @Override
   public Iterator<ProcessModelRef> iterator() {
     return aCollection.iterator();
   }
 
-  public boolean remove(Object pO) {
+  @Override
+  public boolean remove(final Object pO) {
     return aCollection.remove(pO);
   }
 
-  public boolean removeAll(Collection<?> pC) {
+  @Override
+  public boolean removeAll(final Collection<?> pC) {
     return aCollection.removeAll(pC);
   }
 
-  public boolean retainAll(Collection<?> pC) {
+  @Override
+  public boolean retainAll(final Collection<?> pC) {
     return aCollection.retainAll(pC);
   }
 
+  @Override
   public int size() {
     return aCollection.size();
   }
 
+  @Override
   public Object[] toArray() {
     return aCollection.toArray();
   }
 
-  public <T> T[] toArray(T[] pA) {
+  @Override
+  public <T> T[] toArray(final T[] pA) {
     return aCollection.toArray(pA);
   }
 

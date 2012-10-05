@@ -2,50 +2,50 @@ package nl.adaptivity.messaging;
 
 import java.net.URI;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
-import nl.adaptivity.messaging.Endpoint;
 
-@XmlRootElement(name="endpointDescriptor", namespace=EndPointDescriptor.MY_JBI_NS)
+@XmlRootElement(name = "endpointDescriptor", namespace = EndPointDescriptor.MY_JBI_NS)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(propOrder={"serviceNamespace", "serviceLocalName", "endpointName"})
+@XmlType(propOrder = { "serviceNamespace", "serviceLocalName", "endpointName" })
 public class EndPointDescriptor implements Endpoint {
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
+
   private String aServiceLocalName;
+
   private String aServiceNamespace;
+
   private String aEndpointName;
+
   private URI aEndpointLocation;
 
   public EndPointDescriptor() {}
 
-  public EndPointDescriptor(QName pServiceName, String pEndpointName, URI pEndpointLocation) {
+  public EndPointDescriptor(final QName pServiceName, final String pEndpointName, final URI pEndpointLocation) {
     aServiceLocalName = pServiceName.getLocalPart();
     aServiceNamespace = pServiceName.getNamespaceURI();
     aEndpointName = pEndpointName;
     aEndpointLocation = pEndpointLocation;
   }
 
-  @XmlAttribute(name="endpointName")
+  @Override
+  @XmlAttribute(name = "endpointName")
   public String getEndpointName() {
     return aEndpointName;
   }
 
-  public void setEndpointName(String endpointName) {
+  public void setEndpointName(final String endpointName) {
     aEndpointName = endpointName;
   }
 
-  @XmlAttribute(name="endpointLocation")
+  @XmlAttribute(name = "endpointLocation")
   public String getEndpointLocationString() {
     return aEndpointLocation.toString();
   }
 
-  public void setEndpointLocationString(String pLocation) {
+  public void setEndpointLocationString(final String pLocation) {
     aEndpointLocation = URI.create(pLocation);
   }
 
@@ -54,28 +54,29 @@ public class EndPointDescriptor implements Endpoint {
     return aEndpointLocation;
   }
 
-  public void setEndpointLocation(URI pLocation) {
+  public void setEndpointLocation(final URI pLocation) {
     aEndpointLocation = pLocation;
   }
 
-  @XmlAttribute(name="serviceLocalName")
+  @XmlAttribute(name = "serviceLocalName")
   public String getServiceLocalName() {
     return aServiceLocalName;
   }
 
-  public void setServiceLocalName(String localName) {
+  public void setServiceLocalName(final String localName) {
     aServiceLocalName = localName;
   }
 
-  @XmlAttribute(name="serviceNS")
+  @XmlAttribute(name = "serviceNS")
   public String getServiceNamespace() {
     return aServiceNamespace;
   }
 
-  public void setServiceNamespace(String serviceNamespace) {
+  public void setServiceNamespace(final String serviceNamespace) {
     aServiceNamespace = serviceNamespace;
   }
 
+  @Override
   public QName getServiceName() {
     return new QName(aServiceNamespace, aServiceLocalName);
   }

@@ -9,15 +9,15 @@ public class IllegalProcessModelException extends RuntimeException {
     super();
   }
 
-  public IllegalProcessModelException(String pMessage, Throwable pCause) {
+  public IllegalProcessModelException(final String pMessage, final Throwable pCause) {
     super(pMessage, pCause);
   }
 
-  public IllegalProcessModelException(String pMessage) {
+  public IllegalProcessModelException(final String pMessage) {
     super(pMessage);
   }
 
-  public IllegalProcessModelException(Throwable pCause) {
+  public IllegalProcessModelException(final Throwable pCause) {
     super(pCause);
   }
 

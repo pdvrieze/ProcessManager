@@ -15,48 +15,48 @@ public final class Sources {
 
   private Sources() {}
 
-  public static void writeToStream(Source pSource, OutputStream pOutputStream) throws TransformerException {
-    StreamResult outResult = new StreamResult(pOutputStream);
-    TransformerFactory factory = TransformerFactory.newInstance();
-    Transformer identityTransformer = factory.newTransformer();
+  public static void writeToStream(final Source pSource, final OutputStream pOutputStream) throws TransformerException {
+    final StreamResult outResult = new StreamResult(pOutputStream);
+    final TransformerFactory factory = TransformerFactory.newInstance();
+    final Transformer identityTransformer = factory.newTransformer();
     identityTransformer.transform(pSource, outResult);
   }
 
-  public static void writeToWriter(Source pSource, Writer pWriter) throws TransformerException {
-    StreamResult outResult = new StreamResult(pWriter);
-    TransformerFactory factory = TransformerFactory.newInstance();
-    Transformer identityTransformer = factory.newTransformer();
+  public static void writeToWriter(final Source pSource, final Writer pWriter) throws TransformerException {
+    final StreamResult outResult = new StreamResult(pWriter);
+    final TransformerFactory factory = TransformerFactory.newInstance();
+    final Transformer identityTransformer = factory.newTransformer();
     identityTransformer.transform(pSource, outResult);
   }
 
-  public static InputStream toInputStream(Source pSource) {
+  public static InputStream toInputStream(final Source pSource) {
     if (pSource instanceof StreamSource) {
       return ((StreamSource) pSource).getInputStream();
     }
     if (pSource instanceof SAXSource) {
       return ((SAXSource) pSource).getInputSource().getByteStream();
     }
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
       Sources.writeToStream(pSource, baos);
-    } catch (TransformerException e) {
+    } catch (final TransformerException e) {
       throw new RuntimeException(e);
     }
     return new ByteArrayInputStream(baos.toByteArray());
 
   }
 
-  public static Reader toReader(Source pSource) {
+  public static Reader toReader(final Source pSource) {
     if (pSource instanceof StreamSource) {
       return ((StreamSource) pSource).getReader();
     }
     if (pSource instanceof SAXSource) {
       return new InputStreamReader(((SAXSource) pSource).getInputSource().getByteStream());
     }
-    CharArrayWriter caw = new CharArrayWriter();
+    final CharArrayWriter caw = new CharArrayWriter();
     try {
       Sources.writeToWriter(pSource, caw);
-    } catch (TransformerException e) {
+    } catch (final TransformerException e) {
       throw new RuntimeException(e);
     }
     return new CharArrayReader(caw.toCharArray());

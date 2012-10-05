@@ -12,7 +12,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.Task;
 
 
-@XmlRootElement(name=StartNode.ELEMENTNAME)
+@XmlRootElement(name = StartNode.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNode extends ProcessNode {
 
@@ -27,11 +27,11 @@ public class StartNode extends ProcessNode {
   private List<XmlImportType> aImports;
 
   @Override
-  public boolean condition(Task<?> pInstance) {
+  public boolean condition(final Task<?> pInstance) {
     return true;
   }
 
-  @XmlElement(name="import")
+  @XmlElement(name = "import")
   public List<XmlImportType> getImport() {
     if (aImports == null) {
       aImports = new ArrayList<XmlImportType>();
@@ -40,17 +40,17 @@ public class StartNode extends ProcessNode {
   }
 
   @Override
-  public <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance) {
+  public <T, U extends Task<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 }

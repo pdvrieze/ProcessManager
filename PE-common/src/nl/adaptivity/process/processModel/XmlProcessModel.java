@@ -8,20 +8,9 @@
 
 package nl.adaptivity.process.processModel;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 
 /**
@@ -30,7 +19,7 @@ import javax.xml.bind.annotation.XmlType;
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- *
+ * 
  * <pre>
  * &lt;complexType name=&quot;TProcessModel&quot;&gt;
  *   &lt;complexContent&gt;
@@ -47,11 +36,12 @@ import javax.xml.bind.annotation.XmlType;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = XmlProcessModel.ELEMENTNAME+"Type", propOrder = { "nodes" })
+@XmlType(name = XmlProcessModel.ELEMENTNAME + "Type", propOrder = { "nodes" })
 @XmlRootElement(name = XmlProcessModel.ELEMENTNAME)
 public class XmlProcessModel {
 
   public static final String ELEMENTNAME = "processModel";
+
   public static final String ATTR_ROLES = "roles";
 
   public static final String ATTR_NAME = "name";
@@ -60,21 +50,23 @@ public class XmlProcessModel {
 
   }
 
-  public XmlProcessModel(ProcessModel m) {
+  public XmlProcessModel(final ProcessModel m) {
     nodes = Arrays.asList(m.getModelNodes());
     name = m.getName();
     owner = m.getOwner().getName();
     roles = m.getRoles();
   }
 
-  @XmlElementRefs( { @XmlElementRef(name = EndNode.ELEMENTNAME, type = EndNode.class), @XmlElementRef(name = Activity.ELEMENTNAME, type = Activity.class),
-                    @XmlElementRef(name = StartNode.ELEMENTNAME, type = StartNode.class), @XmlElementRef(name = Join.ELEMENTNAME, type = Join.class) })
+  @XmlElementRefs({ @XmlElementRef(name = EndNode.ELEMENTNAME, type = EndNode.class),
+                   @XmlElementRef(name = Activity.ELEMENTNAME, type = Activity.class),
+                   @XmlElementRef(name = StartNode.ELEMENTNAME, type = StartNode.class),
+                   @XmlElementRef(name = Join.ELEMENTNAME, type = Join.class) })
   private List<ProcessNode> nodes;
 
-  @XmlAttribute(name=ATTR_NAME)
+  @XmlAttribute(name = ATTR_NAME)
   private String name;
 
-  @XmlAttribute(name="owner")
+  @XmlAttribute(name = "owner")
   private String owner;
 
   private Set<String> roles;
@@ -88,7 +80,7 @@ public class XmlProcessModel {
    * for the startOrActivityOrJoin property.
    * <p>
    * For example, to add a new item, do as follows:
-   *
+   * 
    * <pre>
    * getStartOrActivityOrJoin().add(newItem);
    * </pre>
@@ -107,7 +99,7 @@ public class XmlProcessModel {
     return new ProcessModel(this);
   }
 
-  public void setName(String name) {
+  public void setName(final String name) {
     this.name = name;
   }
 
@@ -119,20 +111,24 @@ public class XmlProcessModel {
     return owner;
   }
 
-  public void setOwner(String pOwner) {
+  public void setOwner(final String pOwner) {
     owner = pOwner;
   }
 
   public Set<String> getRoles() {
-    if (roles==null) { roles = new HashSet<String>(); }
+    if (roles == null) {
+      roles = new HashSet<String>();
+    }
     return roles;
   }
 
-  @XmlAttribute(name=ATTR_ROLES)
+  @XmlAttribute(name = ATTR_ROLES)
   public String getRolesString() {
-    if (roles==null || roles.size()==0) { return null; }
-    StringBuilder result = new StringBuilder();
-    Iterator<String> iterator = roles.iterator();
+    if ((roles == null) || (roles.size() == 0)) {
+      return null;
+    }
+    final StringBuilder result = new StringBuilder();
+    final Iterator<String> iterator = roles.iterator();
     result.append(iterator.next());
     while (iterator.hasNext()) {
       result.append(',').append(iterator.next());
@@ -143,14 +139,16 @@ public class XmlProcessModel {
   /**
    * @todo Optimize this to use a cache of role names.
    */
-  public void setRolesString(String pRoles) {
+  public void setRolesString(final String pRoles) {
     roles = new HashSet<String>();
-    if (pRoles==null || pRoles.trim().length()==0) { return; }
-    int i=0;
-    int j=pRoles.indexOf(',');
-    while (j>=0) {
+    if ((pRoles == null) || (pRoles.trim().length() == 0)) {
+      return;
+    }
+    int i = 0;
+    int j = pRoles.indexOf(',');
+    while (j >= 0) {
       roles.add(pRoles.substring(i, j));
-      i=j+1;
+      i = j + 1;
       j = pRoles.indexOf(',', i);
     }
   }
