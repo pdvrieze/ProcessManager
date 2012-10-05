@@ -57,7 +57,12 @@ public class RestMessageHandler {
 
     if (method !=null) {
       method.unmarshalParams(httpMessage);
-      method.exec();
+      try {
+        method.exec();
+      } catch (RuntimeException e) {
+        pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        throw e;
+      }
       try {
         method.marshalResult(pRequest, pResponse);
       } catch (TransformerException e) {
@@ -103,7 +108,7 @@ public class RestMessageHandler {
     int postdiff = pBaseAnnotation.post().length - pAnnotation.post().length;
     int getdiff = pBaseAnnotation.get().length-pAnnotation.get().length;
     int querydiff = pBaseAnnotation.query().length-pAnnotation.query().length;
-    if ((postdiff<0 && getdiff<=0 && querydiff<=0) || 
+    if ((postdiff<0 && getdiff<=0 && querydiff<=0) ||
         (postdiff<=0 && getdiff<0 && querydiff<=0) ||
         (postdiff<=0 && getdiff<=0 && querydiff<0)) {
       return true;
