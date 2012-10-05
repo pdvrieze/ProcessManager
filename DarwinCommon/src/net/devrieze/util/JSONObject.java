@@ -6,13 +6,13 @@ import java.util.List;
 
 
 public abstract class JSONObject {
-  
-  
+
+
   public static class JSONString extends JSONObject {
 
     private final CharSequence aString;
 
-    public JSONString(CharSequence pString) {
+    public JSONString(final CharSequence pString) {
       aString = pString;
     }
 
@@ -22,11 +22,11 @@ public abstract class JSONObject {
     }
 
     @Override
-    public StringBuilder appendTo(StringBuilder pStringBuilder) {
-      final int len=aString.length();
+    public StringBuilder appendTo(final StringBuilder pStringBuilder) {
+      final int len = aString.length();
       pStringBuilder.append('"');
-      for(int i=0; i<len; ++i) {
-        char c = aString.charAt(i);
+      for (int i = 0; i < len; ++i) {
+        final char c = aString.charAt(i);
         switch (c) {
           case '"':
             pStringBuilder.append("\\\"");
@@ -59,11 +59,11 @@ public abstract class JSONObject {
 
   }
 
-  public static class JSONArray  extends JSONObject {
+  public static class JSONArray extends JSONObject {
 
     private final List<JSONObject> aItems;
 
-    private JSONArray(List<JSONObject> pItems) {
+    private JSONArray(final List<JSONObject> pItems) {
       aItems = pItems;
     }
 
@@ -73,11 +73,13 @@ public abstract class JSONObject {
     }
 
     @Override
-    public StringBuilder appendTo(StringBuilder stringBuilder) {
+    public StringBuilder appendTo(final StringBuilder stringBuilder) {
       stringBuilder.append('[');
-      for(Iterator<JSONObject> it=aItems.iterator(); it.hasNext();) {
+      for (final Iterator<JSONObject> it = aItems.iterator(); it.hasNext();) {
         it.next().appendTo(stringBuilder);
-        if (it.hasNext()) { stringBuilder.append(','); }
+        if (it.hasNext()) {
+          stringBuilder.append(',');
+        }
       }
       stringBuilder.append(']');
       return stringBuilder;
@@ -85,15 +87,15 @@ public abstract class JSONObject {
 
   }
 
-  public static JSONArray jsonArray(List<JSONObject> items) {
+  public static JSONArray jsonArray(final List<JSONObject> items) {
     return new JSONArray(items);
   }
-  
-  public static JSONArray jsonArray(JSONObject... items) {
-    return jsonArray(Arrays.asList(items)); 
+
+  public static JSONArray jsonArray(final JSONObject... items) {
+    return jsonArray(Arrays.asList(items));
   }
 
-  public static JSONString jsonString(CharSequence pString) {
+  public static JSONString jsonString(final CharSequence pString) {
     return new JSONString(pString);
   }
 

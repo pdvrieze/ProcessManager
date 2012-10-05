@@ -8,21 +8,21 @@ import net.devrieze.util.DBHelper.DBStatement;
 
 public class StringAdapter extends ResultSetAdapter<String> {
 
-  
+
   public class StringAdapterIterator extends SingletonAdapterIterator<String> {
 
-    public StringAdapterIterator(DBStatement pStatement, ResultSet pResultSet) {
+    public StringAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet) {
       super(pStatement, pResultSet);
     }
 
-    public StringAdapterIterator(DBStatement pStatement, ResultSet pResultSet, boolean pAutoClose) {
+    public StringAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet, final boolean pAutoClose) {
       super(pStatement, pResultSet, pAutoClose);
     }
 
     @Override
-    protected String doCreateElem(ResultSet pResultSet) throws SQLException {
+    protected String doCreateElem(final ResultSet pResultSet) throws SQLException {
       final String result;
-      if (getStringCache()==null) {
+      if (getStringCache() == null) {
         result = pResultSet.getString(1);
       } else {
         result = getStringCache().lookup(pResultSet.getString(1));
@@ -33,20 +33,20 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
   }
 
-  private boolean aAutoClose;
+  private final boolean aAutoClose;
 
-  public StringAdapter(DBStatement pStatement, ResultSet pResultSet) {
+  public StringAdapter(final DBStatement pStatement, final ResultSet pResultSet) {
     this(pStatement, pResultSet, false);
   }
 
-  public StringAdapter(DBStatement pStatement, ResultSet pResultSet, boolean pAutoClose) {
+  public StringAdapter(final DBStatement pStatement, final ResultSet pResultSet, final boolean pAutoClose) {
     super(pStatement, pResultSet);
     aAutoClose = pAutoClose;
   }
 
   @Override
   public StringAdapterIterator iterator() {
-    
+
     return new StringAdapterIterator(aStatement, aResultSet, aAutoClose);
   }
 
