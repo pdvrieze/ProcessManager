@@ -2,20 +2,9 @@ package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -24,18 +13,19 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import net.devrieze.util.Tripple;
-import net.devrieze.util.Types;
-import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.util.XmlUtil;
-
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import net.devrieze.util.Tripple;
+import net.devrieze.util.Types;
+import net.devrieze.util.security.SimplePrincipal;
+
+import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.util.XmlUtil;
 
 
 /**
@@ -306,9 +296,14 @@ public class SoapHelper {
           }
           Unmarshaller um = context.createUnmarshaller();
           if (pClass.isInterface()) {
-            result = um.unmarshal(value);
-            if (result instanceof JAXBElement) {
-              result = ((JAXBElement<?>)result).getValue();
+            if (value instanceof Text) {
+              result = ((Text) value).getData();
+            } else {
+              result = um.unmarshal(value);
+
+              if (result instanceof JAXBElement) {
+                result = ((JAXBElement<?>)result).getValue();
+              }
             }
           } else {
             final JAXBElement<?> umresult;
