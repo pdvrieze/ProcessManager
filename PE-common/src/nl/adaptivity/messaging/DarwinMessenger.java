@@ -4,26 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,10 +17,10 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
+
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
-import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.activation.SourceDataSource;
-import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
@@ -440,17 +423,18 @@ public class DarwinMessenger implements IMessenger {
         }
 
         final MessageTask<T> resultfuture;
-        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
-          ByteArrayOutputStream baos = new ByteArrayOutputStream();
-          try {
-            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
-          } catch (IOException e) {
-            throw new MyMessagingException(e);
-          }
-          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
-        } else {
-          resultfuture = new MessageTask<T>(JAXB.unmarshal(Sources.toInputStream(resultSource), pReturnType));
-        }
+        T resultval = SoapHelper.processResponse(pReturnType, resultSource);
+        resultfuture = new MessageTask<T>(resultval);
+//        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
+//          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//          try {
+//            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
+//          } catch (IOException e) {
+//            throw new MyMessagingException(e);
+//          }
+//          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+//        } else {
+//        }
 
 //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
         if (pCompletionListener!=null) {
