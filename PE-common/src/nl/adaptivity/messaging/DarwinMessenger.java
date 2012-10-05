@@ -4,9 +4,26 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,7 +34,6 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
-
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.activation.SourceDataSource;
@@ -57,6 +73,7 @@ public class DarwinMessenger implements IMessenger {
    */
   private static final long NOTIFICATIONPOLLTIMEOUTMS = 30000l; // Timeout polling for next message every 30 seconds
 
+  private static final Object NULL = new Object();
 
   /**
    * Helper thread that performs (in a single tread) all notifications of messaging completions.
@@ -117,6 +134,7 @@ public class DarwinMessenger implements IMessenger {
 
   }
 
+
   private class MessageTask<T> implements Future<T>, Runnable {
 
     private URI aDestURL;
@@ -152,7 +170,11 @@ public class DarwinMessenger implements IMessenger {
      * @param pUnmarshal
      */
     public MessageTask(T pResult) {
-      aResult=pResult;
+      if (pResult==null) {
+        aResult = (T) NULL;
+      } else {
+        aResult=pResult;
+      }
       aReturnType = null;
     }
 
@@ -282,6 +304,7 @@ public class DarwinMessenger implements IMessenger {
     public synchronized T get() throws InterruptedException, ExecutionException {
       if (aCancelled) { throw new CancellationException(); }
       if (aError!=null) { throw new ExecutionException(aError); }
+      if (aResult==NULL) { return null; }
       if (aResult!=null) { return aResult; }
       wait();
       // wait for the result
@@ -292,6 +315,7 @@ public class DarwinMessenger implements IMessenger {
     public synchronized T get(long pTimeout, TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
       if (aCancelled) { throw new CancellationException(); }
       if (aError!=null) { throw new ExecutionException(aError); }
+      if (aResult==NULL) { return null; }
       if (aResult!=null) { return aResult; }
       if (pTimeout==0) { throw new TimeoutException(); }
 
