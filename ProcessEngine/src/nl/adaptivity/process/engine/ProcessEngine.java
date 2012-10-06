@@ -6,14 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.activation.DataSource;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
@@ -22,12 +18,18 @@ import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
+import nl.adaptivity.messaging.HttpResponseException;
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRef;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 
 /**
@@ -58,7 +60,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Create a new process engine.
-   * 
+   *
    * @param pMessageService The service to use for actual sending of messages by
    *          activities.
    */
@@ -68,7 +70,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Get all process models loaded into the engine.
-   * 
+   *
    * @return The list of process models.
    */
   public Iterable<ProcessModel> getProcessModels() {
@@ -77,7 +79,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Add a process model to the engine.
-   * 
+   *
    * @param pPm The process model to add.
    * @return The processModel to add.
    */
@@ -96,7 +98,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Get the process model with the given handle.
-   * 
+   *
    * @param pHandle The handle to the process model.
    * @return The processModel.
    * @deprecated In favour of {@link #getProcessModel(HProcessModel)}
@@ -112,7 +114,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Get the process model with the given handle.
-   * 
+   *
    * @param pHandle The handle to the process model.
    * @return The processModel.
    */
@@ -126,7 +128,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Rename the process model with the given handle.
-   * 
+   *
    * @param pHandle The handle to use.
    * @param pName The process model
    */
@@ -142,7 +144,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Get all process instances owned by the user.
-   * 
+   *
    * @param pUser The current user in relation to whom we need to find the
    *          instances.
    * @return All instances.
@@ -159,7 +161,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Get all process instances visible to the user.
-   * 
+   *
    * @param pUser The current user in relation to whom we need to find the
    *          instances.
    * @return All instances.
@@ -177,7 +179,7 @@ public class ProcessEngine /* implements IProcessEngine */{
   /**
    * Get all process instances known. Note that most users should not have
    * permission to do this.
-   * 
+   *
    * @param pUser The user that wants to perform this action.
    * @return The instances.
    */
@@ -188,7 +190,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Create a new process instance started by this process.
-   * 
+   *
    * @param pModel The model to create and start an instance of.
    * @param pName The name of the new instance.
    * @param pPayload The payload representing the parameters for the process.
@@ -196,7 +198,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    */
   public HProcessInstance startProcess(final Principal pUser, final ProcessModel pModel, final String pName, final Node pPayload) {
     if (pUser == null) {
-      throw new MyMessagingException("Annonymous processes are not allowed");
+      throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous processes are not allowed");
     }
     aSecurityProvider.ensurePermission(ProcessModel.Permissions.INSTANTIATE, pUser);
     final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, this);
@@ -207,7 +209,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Convenience method to start a process based upon a process model handle.
-   * 
+   *
    * @param pProcessModel The process model to start a new instance for.
    * @param pName The name of the new instance.
    * @param pPayload The payload representing the parameters for the process.
@@ -219,7 +221,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Get the task with the given handle.
-   * 
+   *
    * @param pHandle The handle of the task.
    * @return The handle
    * @todo change the parameter to a handle object.
@@ -232,7 +234,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Finish the process instance.
-   * 
+   *
    * @param pProcessInstance The process instance to finish.
    * @todo evaluate whether this should not retain some results
    */
@@ -256,7 +258,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Update the state of the given task
-   * 
+   *
    * @param pHandle Handle to the process instance.
    * @param pNewState The new state
    * @return
@@ -310,7 +312,7 @@ public class ProcessEngine /* implements IProcessEngine */{
   /**
    * This method is primarilly a convenience method for
    * {@link #finishTask(Handle, Node)}.
-   * 
+   *
    * @param pHandle The handle to finish.
    * @param pResult The source that is parsed into DOM nodes and then passed on
    *          to {@link #finishTask(Handle, Node)}
@@ -320,7 +322,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     try {
       result = new InputSource(pResult.getInputStream());
     } catch (final IOException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     }
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     try {
@@ -329,11 +331,11 @@ public class ProcessEngine /* implements IProcessEngine */{
       finishTask(pHandle, xml, pUser);
 
     } catch (final ParserConfigurationException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final SAXException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final IOException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     }
 
   }
@@ -347,7 +349,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * Handle the fact that this task has been cancelled.
-   * 
+   *
    * @param pHandle
    */
   public void cancelledTask(final Handle<ProcessNodeInstance> pHandle, final Principal pUser) {
