@@ -3,9 +3,18 @@ package nl.adaptivity.ws.soap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
@@ -22,20 +31,19 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
-import org.w3.soapEnvelope.Body;
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
-
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
+
+import org.w3.soapEnvelope.Body;
+import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Node;
 
 
 public class SoapMethodWrapper {
