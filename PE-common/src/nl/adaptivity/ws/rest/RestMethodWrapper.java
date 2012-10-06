@@ -4,7 +4,12 @@ import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
@@ -29,20 +34,19 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Types;
-
-import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
 import nl.adaptivity.util.activation.Sources;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
 public class RestMethodWrapper {
@@ -167,14 +171,14 @@ public class RestMethodWrapper {
         try {
           return source.getInputStream();
         } catch (final IOException e) {
-          throw new MyMessagingException(e);
+          throw new MessagingException(e);
         }
       }
       try {
         // This will try to do magic to handle the data
         return new DataHandler(source).getContent();
       } catch (final IOException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       }
 
     }
@@ -239,12 +243,12 @@ public class RestMethodWrapper {
     try {
       aResult = aMethod.invoke(aOwner, aParams);
     } catch (final IllegalArgumentException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final IllegalAccessException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final InvocationTargetException e) {
       final Throwable cause = e.getCause();
-      throw new MyMessagingException(cause != null ? cause : e);
+      throw new MessagingException(cause != null ? cause : e);
     }
   }
 
@@ -257,7 +261,7 @@ public class RestMethodWrapper {
         setContentType(pResponse, "text/xml");
         Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
       } catch (final JAXBException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       }
     } else if (aResult instanceof Source) {
       setContentType(pResponse, "application/binary");// Unknown content type
@@ -270,28 +274,6 @@ public class RestMethodWrapper {
       if (annotation != null) {
         setContentType(pResponse, "text/xml");
         Sources.writeToStream(collectionToSource(aMethod.getGenericReturnType(), (Collection<?>) aResult, getQName(annotation)), pResponse.getOutputStream());
-        //
-        //
-        //        Collection<?> value = (Collection<?>) aResult;
-        //        Collection<JAXBElement<String>> value2 = new ArrayDeque<JAXBElement<String>>();
-        //        value2.add(new JAXBElement<String>(new QName("test"), String.class, "value1"));
-        //        value2.add(new JAXBElement<String>(new QName("test"), String.class, "value2"));
-        //        @SuppressWarnings("unchecked") Class<Collection<?>> declaredType = ((Class) aResult.getClass());
-        //        QName name = getQName(annotation);
-        //
-        //
-        //        JAXBElement<?> element = new JAXBElement<Collection<?>>(name, declaredType, value2);
-        //
-        //        element = (new JAXBCollectionWrapper((Collection<?>) aResult)).getJAXBElement(name);
-        //
-        //        try {
-        //          JAXBContext jaxbContext = newJAXBContext(JAXBCollectionWrapper.class, aResult.getClass());
-        ////          jaxbContext.createMarshaller().marshal(element, System.err);
-        //          pReply.setContent(new JAXBSource(jaxbContext, element));
-        //        } catch (JAXBException e) {
-        //          throw new MessagingException(e);
-        //        }
-
       }
     } else if (aResult instanceof CharSequence) {
       setContentType(pResponse, "text/plain");
@@ -306,7 +288,7 @@ public class RestMethodWrapper {
           Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
 
         } catch (final JAXBException e) {
-          throw new MyMessagingException(e);
+          throw new MessagingException(e);
         }
       }
     }
@@ -365,7 +347,7 @@ public class RestMethodWrapper {
       }
       return new JAXBSource(context, new JAXBCollectionWrapper(pResult, elementType).getJAXBElement(pName));
     } catch (final JAXBException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     }
   }
 

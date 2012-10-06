@@ -5,10 +5,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task;
 
 
@@ -19,7 +25,7 @@ import nl.adaptivity.process.exec.Task;
  * specially in later versions), or set interaction with the user. Services can
  * use the ActivityResponse soap header to indicate support for processes and
  * what the actual state of the task after return should be (instead of
- * 
+ *
  * @author Paul de Vrieze
  */
 @XmlRootElement(name = Activity.ELEMENTNAME)
@@ -49,7 +55,7 @@ public class Activity extends ProcessNode {
   /**
    * Create a new Activity. Note that activities can only have a a single
    * predecessor.
-   * 
+   *
    * @param pPredecessor The process node that starts immediately precedes this
    *          activity.
    */
@@ -65,7 +71,7 @@ public class Activity extends ProcessNode {
 
   /**
    * Get the name of the activity.
-   * 
+   *
    * @return The name
    */
   @XmlAttribute
@@ -78,7 +84,7 @@ public class Activity extends ProcessNode {
    * this needs to be unique for the process model at time of serialization, and
    * can not be null or an empty string. While in Java mode other nodes are
    * referred to by reference, not name.
-   * 
+   *
    * @param pName The name of the activity.
    */
   public void setName(final String pName) {
@@ -87,7 +93,7 @@ public class Activity extends ProcessNode {
 
   /**
    * Get the condition of the activity.
-   * 
+   *
    * @return The condition.
    */
   @XmlElement(name = ELEM_CONDITION)
@@ -97,7 +103,7 @@ public class Activity extends ProcessNode {
 
   /**
    * Set the condition that needs to be true to start this activity.
-   * 
+   *
    * @param pCondition The condition.
    */
   public void setCondition(final String pCondition) {
@@ -107,7 +113,7 @@ public class Activity extends ProcessNode {
   /**
    * Get the list of imports. The imports are provided to the message for use as
    * data parameters.
-   * 
+   *
    * @return The list of imports.
    */
   @XmlElement(name = XmlImportType.ELEMENTNAME)
@@ -118,7 +124,7 @@ public class Activity extends ProcessNode {
   /**
    * Set the import requirements for this activity. This will create a copy of
    * the parameter for safety.
-   * 
+   *
    * @param pImports The imports to set.
    */
   public void setImports(final Collection<XmlImportType> pImports) {
@@ -129,7 +135,7 @@ public class Activity extends ProcessNode {
   /**
    * Get the list of exports. Exports will allow storing the response of an
    * activity.
-   * 
+   *
    * @return The list of exports.
    */
   @XmlElement(name = XmlExportType.ELEMENTNAME)
@@ -140,7 +146,7 @@ public class Activity extends ProcessNode {
   /**
    * Set the export requirements for this activity. This will create a copy of
    * the parameter for safety.
-   * 
+   *
    * @param pExports The exports to set.
    */
   public void setExports(final Collection<XmlExportType> pExports) {
@@ -150,7 +156,7 @@ public class Activity extends ProcessNode {
 
   /**
    * Get the predecessor node for this activity.
-   * 
+   *
    * @return the predecessor
    */
   @XmlAttribute(name = ATTR_PREDECESSOR, required = true)
@@ -165,7 +171,7 @@ public class Activity extends ProcessNode {
 
   /**
    * Set the predecessor for this activity.
-   * 
+   *
    * @param predecessor The predecessor
    */
   public void setPredecessor(final ProcessNode predecessor) {
@@ -175,7 +181,7 @@ public class Activity extends ProcessNode {
   /**
    * Get the message of this activity. This provides all the information to be
    * able to actually invoke the service.
-   * 
+   *
    * @return The message.
    */
   @XmlElement(name = XmlMessage.ELEMENTNAME, required = true)
@@ -186,7 +192,7 @@ public class Activity extends ProcessNode {
   /**
    * Set the message of this activity. This encodes what actually needs to be
    * done when the activity is activated.
-   * 
+   *
    * @param message The message.
    */
   public void setMessage(final XmlMessage message) {
@@ -207,7 +213,7 @@ public class Activity extends ProcessNode {
   /**
    * This will actually take the message element, and send it through the
    * message service.
-   * 
+   *
    * @param pMessageService The message service to use to send the message.
    * @param pInstance The processInstance that represents the actual activity
    *          instance that the message responds to.
@@ -218,7 +224,7 @@ public class Activity extends ProcessNode {
     // TODO handle imports
     final T message = pMessageService.createMessage(aMessage);
     if (!pMessageService.sendMessage(message, pInstance)) {
-      pInstance.failTask(new MyMessagingException("Failure to send message"));
+      pInstance.failTask(new MessagingException("Failure to send message"));
     }
 
     return false;
@@ -227,7 +233,7 @@ public class Activity extends ProcessNode {
   /**
    * Take the task. Tasks are either process aware or finished when a reply is
    * received. In either case they should not be automatically taken.
-   * 
+   *
    * @return <code>false</code>
    */
   @Override
@@ -238,7 +244,7 @@ public class Activity extends ProcessNode {
   /**
    * Start the task. Tasks are either process aware or finished when a reply is
    * received. In either case they should not be automatically started.
-   * 
+   *
    * @return <code>false</code>
    */
   @Override

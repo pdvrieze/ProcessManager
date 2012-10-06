@@ -14,19 +14,28 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-import javax.xml.transform.*;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import nl.adaptivity.messaging.EndPointDescriptorImpl;
+import nl.adaptivity.messaging.EndpointDescriptor;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import nl.adaptivity.messaging.EndPointDescriptor;
-import nl.adaptivity.messaging.Endpoint;
 
 
 /**
@@ -35,7 +44,7 @@ import nl.adaptivity.messaging.Endpoint;
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="Message">
  *   &lt;complexContent>
@@ -86,7 +95,7 @@ public class XmlMessage {
 
   /**
    * Gets the value of the service property.
-   * 
+   *
    * @return possible object is {@link QName }
    */
   @XmlAttribute(name = "serviceName", required = true)
@@ -122,7 +131,7 @@ public class XmlMessage {
 
   /**
    * Sets the value of the service property.
-   * 
+   *
    * @param value allowed object is {@link QName }
    */
   public void setService(final QName value) {
@@ -131,7 +140,7 @@ public class XmlMessage {
 
   /**
    * Gets the value of the endpoint property.
-   * 
+   *
    * @return possible object is {@link String }
    */
   public String getEndpoint() {
@@ -140,20 +149,20 @@ public class XmlMessage {
 
   /**
    * Sets the value of the endpoint property.
-   * 
+   *
    * @param value allowed object is {@link String }
    */
   public void setEndpoint(final String value) {
     this.endpoint = value;
   }
 
-  public Endpoint getEndpointDescriptor() {
-    return new EndPointDescriptor(service, endpoint, URI.create(url));
+  public EndpointDescriptor getEndpointDescriptor() {
+    return new EndPointDescriptorImpl(service, endpoint, URI.create(url));
   }
 
   /**
    * Gets the value of the operation property.
-   * 
+   *
    * @return possible object is {@link String }
    */
   public QName getOperation() {
@@ -200,7 +209,7 @@ public class XmlMessage {
 
   /**
    * Sets the value of the operation property.
-   * 
+   *
    * @param value allowed object is {@link String }
    */
   public void setOperation(final QName value) {
@@ -214,7 +223,7 @@ public class XmlMessage {
 
   /**
    * Gets the value of the url property.
-   * 
+   *
    * @return possible object is {@link String }
    */
   public String getUrl() {
@@ -223,7 +232,7 @@ public class XmlMessage {
 
   /**
    * Sets the value of the url property.
-   * 
+   *
    * @param value allowed object is {@link String }
    */
   public void setUrl(final String value) {
@@ -232,7 +241,7 @@ public class XmlMessage {
 
   /**
    * Gets the value of the method property.
-   * 
+   *
    * @return possible object is {@link String }
    */
   public String getMethod() {
@@ -241,7 +250,7 @@ public class XmlMessage {
 
   /**
    * Sets the value of the method property.
-   * 
+   *
    * @param value allowed object is {@link String }
    */
   public void setMethod(final String value) {

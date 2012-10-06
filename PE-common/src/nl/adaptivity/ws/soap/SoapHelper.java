@@ -2,9 +2,20 @@ package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import javax.xml.bind.*;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -13,6 +24,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
+import net.devrieze.util.Tripple;
+import net.devrieze.util.Types;
+import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.util.XmlUtil;
+
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
@@ -20,17 +37,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import net.devrieze.util.Tripple;
-import net.devrieze.util.Types;
-import net.devrieze.util.security.SimplePrincipal;
-
-import nl.adaptivity.process.engine.MyMessagingException;
-import nl.adaptivity.util.XmlUtil;
-
 
 /**
  * Static helper method that helps with handling soap requests and responses.
- * 
+ *
  * @author Paul de Vrieze
  */
 public class SoapHelper {
@@ -50,7 +60,7 @@ public class SoapHelper {
   /**
    * Create a Source encapsulating a soap message for the given operation name
    * and parameters.
-   * 
+   *
    * @param pOperationName The name of the soap operation (name of the first
    *          child of the soap body)
    * @param pHeaders A list of optional headers to add to the message.
@@ -85,7 +95,7 @@ public class SoapHelper {
 
   /**
    * Create a SOAP envelope in the document and return the body element.
-   * 
+   *
    * @param pDoc The document that needs to contain the envelope.
    * @return The body element.
    */
@@ -119,7 +129,7 @@ public class SoapHelper {
           marshaller.marshal(headerElem, header);
 
         } catch (final JAXBException e) {
-          throw new MyMessagingException(e);
+          throw new MessagingException(e);
         }
       }
     }
@@ -135,7 +145,7 @@ public class SoapHelper {
 
   /**
    * Create the actual body of the SOAP message.
-   * 
+   *
    * @param pBody The body element in which the body needs to be embedded.
    * @param pOperationName The name of the wrapping name (the operation name).
    * @return
@@ -322,7 +332,7 @@ public class SoapHelper {
           }
 
         } catch (final JAXBException e) {
-          throw new MyMessagingException(e);
+          throw new MessagingException(e);
         }
       }
     } else {

@@ -35,8 +35,10 @@ import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
+import nl.adaptivity.messaging.HttpResponseException;
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.engine.MyMessagingException;
+import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
 
@@ -80,7 +82,7 @@ public class SoapMethodWrapper {
     if ((es == null) || es.equals(SOAP_ENCODING)) {
       processSoapBody(pEnvelope, pAttachments);
     } else {
-      throw new MyMessagingException("Ununderstood message body");
+      throw new MessagingFormatException("Ununderstood message body");
     }
   }
 
@@ -98,7 +100,7 @@ public class SoapMethodWrapper {
   private void processSoapBody(final org.w3.soapEnvelope.Envelope pEnvelope, final Map<String, DataSource> pAttachments) {
     final Body body = pEnvelope.getBody();
     if (body.getAny().size() != 1) {
-      throw new MyMessagingException("Multiple body elements not expected");
+      throw new MessagingFormatException("Multiple body elements not expected");
     }
     final Node root = (Node) body.getAny().get(0);
     assertRootNode(root);
@@ -127,7 +129,7 @@ public class SoapMethodWrapper {
       }
 
       if (value == null) {
-        throw new MyMessagingException("Parameter \"" + name + "\" not found");
+        throw new MessagingFormatException("Parameter \"" + name + "\" not found");
       }
       aParams[i] = SoapHelper.unMarshalNode(aMethod, parameterTypes[i], value);
 
@@ -141,17 +143,17 @@ public class SoapMethodWrapper {
     final WebMethod wm = aMethod.getAnnotation(WebMethod.class);
     if ((wm == null) || wm.operationName().equals("")) {
       if (!pRoot.getLocalName().equals(aMethod.getName())) {
-        throw new MyMessagingException("Root node does not correspond to operation name");
+        throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     } else {
       if (!pRoot.getLocalName().equals(wm.operationName())) {
-        throw new MyMessagingException("Root node does not correspond to operation name");
+        throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     }
     final WebService ws = aMethod.getDeclaringClass().getAnnotation(WebService.class);
     if (!((ws == null) || ws.targetNamespace().equals(""))) {
       if (!ws.targetNamespace().equals(pRoot.getNamespaceURI())) {
-        throw new MyMessagingException("Root node does not correspond to operation namespace");
+        throw new MessagingFormatException("Root node does not correspond to operation namespace");
       }
     }
   }
@@ -166,7 +168,7 @@ public class SoapMethodWrapper {
         try {
           return handler.getInputStream();
         } catch (final IOException e) {
-          throw new MyMessagingException(e);
+          throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
         }
       }
       if (DataSource.class.isAssignableFrom(pClass)) {
@@ -175,7 +177,7 @@ public class SoapMethodWrapper {
       try {
         return handler.getContent();
       } catch (final IOException e) {
-        throw new MyMessagingException(e);
+        throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
       }
 
     }
@@ -189,12 +191,12 @@ public class SoapMethodWrapper {
     try {
       aResult = aMethod.invoke(aOwner, aParams);
     } catch (final IllegalArgumentException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final IllegalAccessException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final InvocationTargetException e) {
       final Throwable cause = e.getCause();
-      throw new MyMessagingException(cause != null ? cause : e);
+      throw new MessagingException(cause != null ? cause : e);
     }
   }
 
@@ -203,9 +205,9 @@ public class SoapMethodWrapper {
     try {
       Sources.writeToStream(pSource, pResponse.getOutputStream());
     } catch (final TransformerException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     } catch (final IOException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     }
   }
 
@@ -236,15 +238,15 @@ public class SoapMethodWrapper {
         returnType = (Class<?>) aResult.getClass().getMethod("getReturnType").invoke(aResult);
         returnValue = aResult.getClass().getMethod("getReturnValue").invoke(aResult);
       } catch (final IllegalArgumentException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       } catch (final SecurityException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       } catch (final IllegalAccessException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       } catch (final InvocationTargetException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       } catch (final NoSuchMethodException e) {
-        throw new MyMessagingException(e);
+        throw new MessagingException(e);
       }
       params = new Tripple[] { Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", returnType, returnValue) };
@@ -259,7 +261,7 @@ public class SoapMethodWrapper {
     try {
       return SoapHelper.createMessage(new QName(aMethod.getName() + "Response"), headers, params);
     } catch (final JAXBException e) {
-      throw new MyMessagingException(e);
+      throw new MessagingException(e);
     }
   }
 
