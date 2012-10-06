@@ -13,10 +13,9 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
 import net.devrieze.util.Tripple;
-
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.Endpoint;
-import nl.adaptivity.messaging.EndPointDescriptor;
+import nl.adaptivity.messaging.EndPointDescriptorImpl;
+import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.messaging.SendableSoapSource;
 import nl.adaptivity.ws.soap.SoapHelper;
@@ -37,7 +36,7 @@ public class ServletProcessEngineClient {
     @SuppressWarnings("unchecked")
     Source message = SoapHelper.createMessage(new QName("updateTaskState"), param0, param1, param2);
 
-    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);
+    EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
     return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.Task.TaskState.class);
   }
@@ -50,7 +49,7 @@ public class ServletProcessEngineClient {
     @SuppressWarnings("unchecked")
     Source message = SoapHelper.createMessage(new QName("finishTask"), param0, param1, param2);
 
-    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);
+    EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
     return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.Task.TaskState.class);
   }
@@ -62,7 +61,7 @@ public class ServletProcessEngineClient {
     @SuppressWarnings("unchecked")
     Source message = SoapHelper.createMessage(new QName("finishTask"), java.util.Arrays.asList(new JAXBElement<String>(new QName("http://adaptivity.nl/ProcessEngine/","principal"), String.class, user.getName())), param0, param1);
 
-    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);
+    EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
     return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.Task.TaskState.class);
   }

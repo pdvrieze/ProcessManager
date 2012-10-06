@@ -7,16 +7,14 @@ package nl.adaptivity.process.client;
 import java.net.URI;
 import java.util.concurrent.Future;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
 import net.devrieze.util.Tripple;
-
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.Endpoint;
-import nl.adaptivity.messaging.EndPointDescriptor;
+import nl.adaptivity.messaging.EndPointDescriptorImpl;
+import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.messaging.SendableSoapSource;
 import nl.adaptivity.ws.soap.SoapHelper;
@@ -29,14 +27,14 @@ public class InternalEndpointClient {
 
   private InternalEndpointClient() { }
 
-  public static Future<nl.adaptivity.process.messaging.ActivityResponse> postTask(nl.adaptivity.messaging.EndPointDescriptor replies, nl.adaptivity.process.userMessageHandler.server.UserTask task, CompletionListener completionListener) throws JAXBException {
-    final Tripple<String, Class<?>, Object> param0 = Tripple.<String, Class<?>, Object>tripple("replies", nl.adaptivity.messaging.EndPointDescriptor.class, replies);
+  public static Future<nl.adaptivity.process.messaging.ActivityResponse> postTask(nl.adaptivity.messaging.EndpointDescriptor replies, nl.adaptivity.process.userMessageHandler.server.UserTask task, CompletionListener completionListener) throws JAXBException {
+    final Tripple<String, Class<?>, Object> param0 = Tripple.<String, Class<?>, Object>tripple("replies", nl.adaptivity.messaging.EndpointDescriptor.class, replies);
     final Tripple<String, Class<?>, Object> param1 = Tripple.<String, Class<?>, Object>tripple("task", nl.adaptivity.process.userMessageHandler.server.UserTask.class, task);
 
     @SuppressWarnings("unchecked")
     Source message = SoapHelper.createMessage(new QName(""), param0, param1);
 
-    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);
+    EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
     return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.messaging.ActivityResponse.class);
   }
