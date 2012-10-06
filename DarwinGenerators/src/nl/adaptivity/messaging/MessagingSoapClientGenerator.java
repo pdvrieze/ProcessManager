@@ -389,7 +389,7 @@ public class MessagingSoapClientGenerator {
     }
     pOut.write(");\n\n");
 
-    pOut.write("    Endpoint endpoint = new EndPointDescriptor(SERVICE, ENDPOINT, LOCATION);\n\n");
+    pOut.write("    EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);\n\n");
 
     pOut.write("    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ");
     pOut.write(pMethod.getReturnType().getCanonicalName());
