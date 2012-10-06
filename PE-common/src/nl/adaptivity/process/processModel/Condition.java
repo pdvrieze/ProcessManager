@@ -6,7 +6,7 @@ import nl.adaptivity.process.exec.Task;
 
 /**
  * Class encapsulating a condition.
- * @author pdvrieze
+ * @author Paul de Vrieze
  *
  */
 public class Condition implements Serializable{

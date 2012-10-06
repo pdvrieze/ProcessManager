@@ -24,7 +24,7 @@ import nl.adaptivity.process.exec.Task;
  * in later versions), or set interaction with the user. Services can use the ActivityResponse
  * soap header to indicate support for processes and what the actual state of the task
  * after return should be (instead of complete). 
- * @author pdvrieze
+ * @author Paul de Vrieze
  *
  */
 @XmlRootElement(name = Activity.ELEMENTNAME)
