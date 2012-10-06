@@ -4,9 +4,26 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,7 +34,6 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
-
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.util.activation.SourceDataSource;
@@ -75,7 +91,7 @@ public class DarwinMessenger implements IMessenger {
    * messaging completions. The notification can not be done on the sending
    * thread (deadlocks as that thread would be waiting for itself) and the
    * calling tread is unknown.
-   * 
+   *
    * @author Paul de Vrieze
    */
   private class MessageCompletionNotifier extends Thread {
@@ -127,7 +143,7 @@ public class DarwinMessenger implements IMessenger {
 
     /**
      * Add a notification to the message queue.
-     * 
+     *
      * @param pFuture The future whose completion should be communicated.
      */
     public void addNotification(final MessageTask<?> pFuture) {
@@ -185,7 +201,7 @@ public class DarwinMessenger implements IMessenger {
 
     /**
      * Simple constructor that creates a future encapsulating the exception
-     * 
+     *
      * @param pE
      */
     public MessageTask(final Exception pE) {
@@ -196,7 +212,7 @@ public class DarwinMessenger implements IMessenger {
     /**
      * Create a future that just contains the value without computation/ waiting
      * possible
-     * 
+     *
      * @param pUnmarshal
      */
     public MessageTask(final T pResult) {
@@ -408,7 +424,7 @@ public class DarwinMessenger implements IMessenger {
 
   /**
    * Get the singleton instance. This also updates the base URL.
-   * 
+   *
    * @return The singleton instance.
    */
   public static void register() {
@@ -482,6 +498,7 @@ public class DarwinMessenger implements IMessenger {
           try {
             resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
           } catch (final Exception e) {
+            final Future<T> resultfuture = new MessageTask<T>(e);
             if (pCompletionListener!=null) {
               pCompletionListener.onMessageCompletion(resultfuture);
             }
