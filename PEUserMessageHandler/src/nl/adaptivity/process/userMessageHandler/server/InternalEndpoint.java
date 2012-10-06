@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -16,22 +17,29 @@ import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
-import org.w3.soapEnvelope.Envelope;
-
 import net.devrieze.util.security.SimplePrincipal;
-
-import nl.adaptivity.messaging.*;
+import nl.adaptivity.messaging.CompletionListener;
+import nl.adaptivity.messaging.EndPointDescriptorImpl;
+import nl.adaptivity.messaging.Header;
+import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.engine.MyMessagingException;
 import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.SourceDataSource;
+
+import org.w3.soapEnvelope.Envelope;
 
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
@@ -74,7 +82,7 @@ public class InternalEndpoint implements GenericEndpoint {
 
     private String aSummary;
 
-    private EndPointDescriptor aEndPoint = null;
+    private EndPointDescriptorImpl aEndPoint = null;
 
     private Principal aOwner;
 
@@ -109,7 +117,7 @@ public class InternalEndpoint implements GenericEndpoint {
         aState = newState;
       } catch (final JAXBException e) {
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
-      } catch (final MyMessagingException e) {
+      } catch (final MessagingException e) {
         Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
       } catch (final InterruptedException e) {
         Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
@@ -118,38 +126,13 @@ public class InternalEndpoint implements GenericEndpoint {
       }
     }
 
-    private Future<TaskState> updateRemoteTaskState(final TaskState pState, final Principal pUser) throws JAXBException, MyMessagingException {
+    private Future<TaskState> updateRemoteTaskState(final TaskState pState, final Principal pUser) throws JAXBException, MessagingException {
       return ServletProcessEngineClient.updateTaskState(aHandle, pState, pUser, null);
     }
 
-    private Future<TaskState> finishRemoteTask(final Principal pUser) throws JAXBException, MyMessagingException {
+    private Future<TaskState> finishRemoteTask(final Principal pUser) throws JAXBException, MessagingException {
       return ServletProcessEngineClient.finishTask(aHandle, null, pUser, null); // Ignore completion???
       // TODO Do something with reply!
-    }
-
-    private ISendableMessage createMessage(final long pRemoteHandle, final Source pMessageContent) {
-      return new ISendableMessage() {
-
-        @Override
-        public String getMethod() {
-          return "POST";
-        }
-
-        @Override
-        public Collection<? extends IHeader> getHeaders() {
-          return Collections.singletonList(new Header("Content-Type", "application/soap+xml"));
-        }
-
-        @Override
-        public EndPointDescriptor getDestination() {
-          return aEndPoint;
-        }
-
-        @Override
-        public DataSource getBodySource() {
-          return new SourceDataSource(Envelope.MIMETYPE, pMessageContent);
-        }
-      };
     }
 
     @XmlAttribute(name = "handle")
@@ -183,7 +166,7 @@ public class InternalEndpoint implements GenericEndpoint {
 
     /** Set the endpoint that is used for updating the task state */
     @Override
-    public void setEndpoint(final EndPointDescriptor pEndPoint) {
+    public void setEndpoint(final EndPointDescriptorImpl pEndPoint) {
       aEndPoint = pEndPoint;
     }
 
@@ -248,7 +231,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "replies", mode = Mode.IN) final EndPointDescriptor pEndPoint, @WebParam(name = "task", mode = Mode.IN) final UserTask<?> pTask) {
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "replies", mode = Mode.IN) final EndPointDescriptorImpl pEndPoint, @WebParam(name = "task", mode = Mode.IN) final UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     final boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
