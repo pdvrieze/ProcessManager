@@ -160,7 +160,13 @@ public class DarwinMessenger implements IMessenger {
 
   }
 
-
+  /**
+   * Future that encapsulates a future that represents the sending of a message.
+   * This is a message that
+   * @author Paul de Vrieze
+   *
+   * @param <T>
+   */
   private class MessageTask<T> implements Future<T>, Runnable {
 
     private URI aDestURL;
