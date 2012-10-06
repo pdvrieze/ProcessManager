@@ -41,6 +41,11 @@ import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 
+/**
+ * Messenger to use in the darwin project.
+ *
+ * @author Paul de Vrieze
+ */
 public class DarwinMessenger implements IMessenger {
 
   /**
@@ -73,19 +78,33 @@ public class DarwinMessenger implements IMessenger {
    */
   private static final long NOTIFICATIONPOLLTIMEOUTMS = 30000l; // Timeout polling for next message every 30 seconds
 
+
+  /**
+   * Marker object for null results.
+   */
   private static final Object NULL = new Object();
 
   /**
-   * Helper thread that performs (in a single tread) all notifications of messaging completions.
-   * The notification can not be done on the sending thread (deadlocks as that thread would be waiting for itself) and the calling tread is unknown.
+   * Helper thread that performs (in a single tread) all notifications of
+   * messaging completions. The notification can not be done on the sending
+   * thread (deadlocks as that thread would be waiting for itself) and the
+   * calling tread is unknown.
+   *
    * @author Paul de Vrieze
    */
   private class MessageCompletionNotifier extends Thread {
 
+    /**
+     * Queue containing the notifications still to be sent. This is internally
+     * synchronized so doesn't need to be manually synchronized.
+     */
     private final BlockingQueue<MessageTask<?>> aPendingNotifications;
     private volatile boolean aFinished = false;
 
 
+    /**
+     * Create a new notifier.
+     */
     public MessageCompletionNotifier() {
       super(NOTIFIERTHREADNAME);
       this.setDaemon(true); // This is just a helper thread, don't block cleanup.
@@ -109,12 +128,9 @@ public class DarwinMessenger implements IMessenger {
 
     }
 
-    private <T extends DataSource> void notififyCompletion(MessageTask<?> pFuture) {
-      pFuture.aCompletionListener.onMessageCompletion(pFuture);
-    }
-
     /**
-     * Allow for shutting down the thread.
+     * Allow for shutting down the thread. As aFinished is volatile, this should
+     * not need further synchronization.
      */
     public void shutdown() {
       aFinished = true;
@@ -123,12 +139,22 @@ public class DarwinMessenger implements IMessenger {
 
     /**
      * Add a notification to the message queue.
+     *
      * @param pFuture The future whose completion should be communicated.
      */
     public void addNotification(MessageTask<?> pFuture) {
       // aPendingNotifications is threadsafe!
       aPendingNotifications.add(pFuture);
 
+    }
+
+    /**
+     * Helper method to notify of future completion.
+     *
+     * @param pFuture The future to notify completion of.
+     */
+    private <T extends DataSource> void notififyCompletion(MessageTask<?> pFuture) {
+      pFuture.aCompletionListener.onMessageCompletion(pFuture);
     }
 
 
@@ -392,15 +418,11 @@ public class DarwinMessenger implements IMessenger {
   }
 
 
-  void notifyCompletionListener(MessageTask<?> pFuture) {
-    aNotifier.addNotification(pFuture);
-  }
-
-
   @Override
   public void registerEndpoint(QName pService, String pEndPoint, URI pTarget) {
     registerEndpoint(new EndPointDescriptor(pService, pEndPoint, pTarget));
   }
+
 
   @Override
   public synchronized void registerEndpoint(Endpoint pEndpoint) {
@@ -417,64 +439,80 @@ public class DarwinMessenger implements IMessenger {
     service.put(pEndpoint.getEndpointName(), pEndpoint);
   }
 
+
   @Override
-  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
-    Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
+    public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType) {
+      Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
 
-    if (registeredEndpoint instanceof DirectEndpoint) {
-      return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
-    }
+      if (registeredEndpoint instanceof DirectEndpoint) {
+        return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
+      }
 
-    if (registeredEndpoint!=null) { // Direct delivery TODO make this work.
-      if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
-        SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
-        Source resultSource;
-        try {
-          resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
-        } catch (Exception e) {
-          Future<T> resultfuture = new MessageTask<T>(e);
+      if (registeredEndpoint!=null) { // Direct delivery TODO make this work.
+        if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
+          SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
+          Source resultSource;
+          try {
+            resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
+          } catch (Exception e) {
+            Future<T> resultfuture = new MessageTask<T>(e);
+            if (pCompletionListener!=null) {
+              pCompletionListener.onMessageCompletion(resultfuture);
+            }
+            return resultfuture;
+          }
+
+          final MessageTask<T> resultfuture;
+          if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            try {
+              InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
+            } catch (IOException e) {
+              throw new MyMessagingException(e);
+            }
+            resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+          } else {
+            resultfuture = new MessageTask<T>(JAXB.unmarshal(Sources.toInputStream(resultSource), pReturnType));
+          }
+
+  //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
           if (pCompletionListener!=null) {
             pCompletionListener.onMessageCompletion(resultfuture);
           }
           return resultfuture;
         }
-
-        final MessageTask<T> resultfuture;
-        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
-          ByteArrayOutputStream baos = new ByteArrayOutputStream();
-          try {
-            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
-          } catch (IOException e) {
-            throw new MyMessagingException(e);
-          }
-          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
-        } else {
-          resultfuture = new MessageTask<T>(JAXB.unmarshal(Sources.toInputStream(resultSource), pReturnType));
-        }
-
-//        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
-        if (pCompletionListener!=null) {
-          pCompletionListener.onMessageCompletion(resultfuture);
-        }
-        return resultfuture;
       }
+
+      if (registeredEndpoint==null) {
+        registeredEndpoint = pMessage.getDestination();
+      }
+
+      final URI destURL;
+      if (aLocalUrl==null) {
+        destURL = registeredEndpoint.getEndpointLocation();
+      } else {
+        destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
+      }
+
+      MessageTask<T> messageTask = new MessageTask<T>(destURL, pMessage, pCompletionListener, pReturnType);
+      aExecutor.execute(messageTask);
+      return messageTask;
     }
 
-    if (registeredEndpoint==null) {
-      registeredEndpoint = pMessage.getDestination();
-    }
 
-    final URI destURL;
-    if (aLocalUrl==null) {
-      destURL = registeredEndpoint.getEndpointLocation();
-    } else {
-      destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
-    }
-
-    MessageTask<T> messageTask = new MessageTask<T>(destURL, pMessage, pCompletionListener, pReturnType);
-    aExecutor.execute(messageTask);
-    return messageTask;
+  @Override
+  public void shutdown() {
+    MessagingRegistry.registerMessenger(null); // Unregister this messenger
+    aNotifier.shutdown();
+    aExecutor.shutdown();
+    aServices=null;
   }
+
+
+  void notifyCompletionListener(MessageTask<?> pFuture) {
+    aNotifier.addNotification(pFuture);
+  }
+
 
   public Endpoint getEndpoint(QName pServiceName, String pEndpointName) {
     Map<String, Endpoint> service = aServices.get(pServiceName);
@@ -487,14 +525,6 @@ public class DarwinMessenger implements IMessenger {
     if (service==null) { return null; }
 
     return service.get(pEndpoint.getEndpointName());
-  }
-
-  @Override
-  public void shutdown() {
-    MessagingRegistry.registerMessenger(null); // Unregister this messenger
-    aNotifier.shutdown();
-    aExecutor.shutdown();
-    aServices=null;
   }
 
 }
