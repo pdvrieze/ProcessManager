@@ -1,6 +1,7 @@
 package nl.adaptivity.messaging;
 
 import java.util.Collection;
+import java.util.Map;
 
 import javax.activation.DataSource;
 
@@ -41,7 +42,7 @@ public interface ISendableMessage {
    *
    * @return the url to open. Can be partial!
    */
-  Endpoint getDestination();
+  EndpointDescriptor getDestination();
 
   /**
    * What method should be used for the message.
@@ -62,5 +63,7 @@ public interface ISendableMessage {
    *         {@link #getHeaders()}
    */
   DataSource getBodySource();
+
+  Map<String, DataSource> getAttachments();
 
 }

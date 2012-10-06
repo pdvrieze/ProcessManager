@@ -16,6 +16,16 @@ public class HttpResponseException extends MessagingException {
     aCode = pCode;
   }
 
+  public HttpResponseException(int pCode, Throwable pCause) {
+    super(pCause);
+    aCode = pCode;
+  }
+
+  public HttpResponseException(int pCode, String pMessage, Throwable pCause) {
+    super(pMessage, pCause);
+    aCode = pCode;
+  }
+
   public int getResponseCode() {
     return aCode;
   }

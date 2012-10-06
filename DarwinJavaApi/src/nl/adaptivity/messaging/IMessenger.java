@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
 public interface IMessenger {
 
   /**
-   * Register an endpoint. This will only work for external endpoint.
+   * Register an endpoint.
    *
    * @param pService The service to register.
    * @param endPoint The endpoint within the service.
@@ -30,7 +30,7 @@ public interface IMessenger {
    *
    * @param pEndpoint
    */
-  public void registerEndpoint(Endpoint pEndpoint);
+  public void registerEndpoint(EndpointDescriptor pEndpoint);
 
   /**
    * Send a message using the messenger. Sending is an asynchronous process and

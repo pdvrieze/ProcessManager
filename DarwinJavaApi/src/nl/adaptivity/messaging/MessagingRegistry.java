@@ -3,7 +3,11 @@ package nl.adaptivity.messaging;
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
@@ -204,7 +208,7 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public void registerEndpoint(final Endpoint pEndpoint) {
+    public void registerEndpoint(final EndpointDescriptor pEndpoint) {
       synchronized (this) {
         if (aRealMessenger == null) {
           aCommandQueue.add(new MessengerCommand() {
