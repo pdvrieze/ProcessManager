@@ -167,8 +167,8 @@ public class DarwinMessenger implements IMessenger {
   /**
    * Future that encapsulates a future that represents the sending of a message.
    * This is a message that
-   * @author Paul de Vrieze
    *
+   * @author Paul de Vrieze
    * @param <T>
    */
   private class MessageTask<T> implements Future<T>, Runnable {
@@ -484,64 +484,64 @@ public class DarwinMessenger implements IMessenger {
 
 
   @Override
-    public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
-      Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
+  public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
+    Endpoint registeredEndpoint = getEndpoint(pMessage.getDestination());
 
-      if (registeredEndpoint instanceof DirectEndpoint) {
-        return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
-      }
+    if (registeredEndpoint instanceof DirectEndpoint) {
+      return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
+    }
 
-      if (registeredEndpoint!=null) { // Direct delivery TODO make this work.
-        if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
-          final SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
-          Source resultSource;
-          try {
-            resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
-          } catch (final Exception e) {
-            final Future<T> resultfuture = new MessageTask<T>(e);
-            if (pCompletionListener!=null) {
-              pCompletionListener.onMessageCompletion(resultfuture);
-            }
-            return resultfuture;
-          }
-
-          final MessageTask<T> resultfuture;
-          if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            try {
-              InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
-            } catch (final IOException e) {
-              throw new MyMessagingException(e);
-            }
-            resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
-          } else {
-            final T resultval = SoapHelper.processResponse(pReturnType, resultSource);
-            resultfuture = new MessageTask<T>(resultval);
-          }
-
-  //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
-          if (pCompletionListener!=null) {
+    if (registeredEndpoint != null) { // Direct delivery TODO make this work.
+      if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
+        final SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
+        Source resultSource;
+        try {
+          resultSource = handler.processMessage(pMessage.getBodySource(), null); // TODO do something with attachments
+        } catch (final Exception e) {
+          final Future<T> resultfuture = new MessageTask<T>(e);
+          if (pCompletionListener != null) {
             pCompletionListener.onMessageCompletion(resultfuture);
           }
           return resultfuture;
         }
-      }
 
-      if (registeredEndpoint==null) {
-        registeredEndpoint = pMessage.getDestination();
-      }
+        final MessageTask<T> resultfuture;
+        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
+          final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          try {
+            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
+          } catch (final IOException e) {
+            throw new MyMessagingException(e);
+          }
+          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+        } else {
+          final T resultval = SoapHelper.processResponse(pReturnType, resultSource);
+          resultfuture = new MessageTask<T>(resultval);
+        }
 
-      final URI destURL;
-      if (aLocalUrl==null) {
-        destURL = registeredEndpoint.getEndpointLocation();
-      } else {
-        destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
+        //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
+        if (pCompletionListener != null) {
+          pCompletionListener.onMessageCompletion(resultfuture);
+        }
+        return resultfuture;
       }
+    }
+
+    if (registeredEndpoint == null) {
+      registeredEndpoint = pMessage.getDestination();
+    }
+
+    final URI destURL;
+    if (aLocalUrl == null) {
+      destURL = registeredEndpoint.getEndpointLocation();
+    } else {
+      destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
+    }
 
     final MessageTask<T> messageTask = new MessageTask<T>(destURL, pMessage, pCompletionListener, pReturnType);
-      aExecutor.execute(messageTask);
-      return messageTask;
-    }
+    aExecutor.execute(messageTask);
+    return messageTask;
+  }
 
 
   @Override
@@ -560,7 +560,9 @@ public class DarwinMessenger implements IMessenger {
 
   public Endpoint getEndpoint(final QName pServiceName, final String pEndpointName) {
     Map<String, Endpoint> service = aServices.get(pServiceName);
-    if (service==null) { return null; }
+    if (service == null) {
+      return null;
+    }
     return service.get(pEndpointName);
   }
 
