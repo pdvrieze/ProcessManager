@@ -3,10 +3,11 @@ package nl.adaptivity.messaging;
 
 public class Header implements nl.adaptivity.messaging.ISendableMessage.IHeader {
 
-  private String aName;
-  private String aValue;
+  private final String aName;
 
-  public Header(String pName, String pValue) {
+  private final String aValue;
+
+  public Header(final String pName, final String pValue) {
     aName = pName;
     aValue = pValue;
   }

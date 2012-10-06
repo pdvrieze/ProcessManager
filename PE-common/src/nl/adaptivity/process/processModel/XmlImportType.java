@@ -15,9 +15,11 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ImportType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for ImportType complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="ImportType">
@@ -29,66 +31,53 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ImportType")
 public class XmlImportType {
-  
+
   public static final String ELEMENTNAME = "import";
 
-    private String name;
-    private String path;
+  private String name;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    @XmlAttribute(required = true)
-    public String getName() {
-        return name;
-    }
+  private String path;
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+  /**
+   * Gets the value of the name property.
+   * 
+   * @return possible object is {@link String }
+   */
+  @XmlAttribute(required = true)
+  public String getName() {
+    return name;
+  }
 
-    /**
-     * Gets the value of the path property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    @XmlAttribute
-    public String getPath() {
-        return path;
-    }
+  /**
+   * Sets the value of the name property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setName(final String value) {
+    this.name = value;
+  }
 
-    /**
-     * Sets the value of the path property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setPath(String value) {
-        this.path = value;
-    }
+  /**
+   * Gets the value of the path property.
+   * 
+   * @return possible object is {@link String }
+   */
+  @XmlAttribute
+  public String getPath() {
+    return path;
+  }
+
+  /**
+   * Sets the value of the path property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setPath(final String value) {
+    this.path = value;
+  }
 
 }

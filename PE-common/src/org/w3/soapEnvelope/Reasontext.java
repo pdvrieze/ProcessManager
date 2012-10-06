@@ -8,17 +8,15 @@
 
 package org.w3.soapEnvelope;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
+import javax.xml.bind.annotation.*;
 
 
 /**
- * <p>Java class for reasontext complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for reasontext complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="reasontext">
@@ -29,66 +27,51 @@ import javax.xml.bind.annotation.XmlValue;
  *   &lt;/simpleContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "reasontext", propOrder = {
-    "value"
-})
+@XmlType(name = "reasontext", propOrder = { "value" })
 public class Reasontext {
 
-    @XmlValue
-    protected String value;
-    @XmlAttribute(namespace = "http://www.w3.org/XML/1998/namespace", required = true)
-    protected String lang;
+  @XmlValue
+  protected String value;
 
-    /**
-     * Gets the value of the value property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getValue() {
-        return value;
-    }
+  @XmlAttribute(namespace = "http://www.w3.org/XML/1998/namespace", required = true)
+  protected String lang;
 
-    /**
-     * Sets the value of the value property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setValue(String value) {
-        this.value = value;
-    }
+  /**
+   * Gets the value of the value property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getValue() {
+    return value;
+  }
 
-    /**
-     * Gets the value of the lang property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getLang() {
-        return lang;
-    }
+  /**
+   * Sets the value of the value property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setValue(final String value) {
+    this.value = value;
+  }
 
-    /**
-     * Sets the value of the lang property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setLang(String value) {
-        this.lang = value;
-    }
+  /**
+   * Gets the value of the lang property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getLang() {
+    return lang;
+  }
+
+  /**
+   * Sets the value of the lang property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setLang(final String value) {
+    this.lang = value;
+  }
 
 }

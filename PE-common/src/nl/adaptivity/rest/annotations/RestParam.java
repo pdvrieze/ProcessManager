@@ -5,11 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
+@Target({ ElementType.PARAMETER, ElementType.LOCAL_VARIABLE })
 public @interface RestParam {
 
-  
+
   public enum ParamType {
     QUERY,
     POST,
@@ -21,9 +22,9 @@ public @interface RestParam {
   }
 
   String name() default "";
-  
+
   ParamType type() default ParamType.QUERY;
-  
-  String xpath() default ""; 
+
+  String xpath() default "";
 
 }

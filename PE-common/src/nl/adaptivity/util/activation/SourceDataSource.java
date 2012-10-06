@@ -11,9 +11,10 @@ import javax.xml.transform.Source;
 public class SourceDataSource implements DataSource {
 
   private final String aContentType;
-  private Source aContent;
 
-  public SourceDataSource(String pContentType, Source pContent) {
+  private final Source aContent;
+
+  public SourceDataSource(final String pContentType, final Source pContent) {
     aContentType = pContentType;
     aContent = pContent;
   }

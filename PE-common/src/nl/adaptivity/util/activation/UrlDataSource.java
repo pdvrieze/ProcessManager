@@ -17,13 +17,14 @@ public class UrlDataSource implements DataSource {
   private static MimetypesFileTypeMap _mimeMap;
 
   private final String aContentType;
+
   private final URL aURL;
 
   private final InputStream aInputStream;
 
   private final Map<String, List<String>> aHeaders;
 
-  public UrlDataSource(URL pFinalUrl) throws IOException {
+  public UrlDataSource(final URL pFinalUrl) throws IOException {
     URLConnection connection;
     connection = pFinalUrl.openConnection();
     {
@@ -37,7 +38,7 @@ public class UrlDataSource implements DataSource {
 
     aInputStream = connection.getInputStream();
 
-    aHeaders= connection.getHeaderFields();
+    aHeaders = connection.getHeaderFields();
 
     aURL = pFinalUrl;
   }
@@ -63,20 +64,20 @@ public class UrlDataSource implements DataSource {
 
   }
 
-  private static String getMimeTypeForFileName(String pFileName) {
-    if (_mimeMap==null) {
+  private static String getMimeTypeForFileName(final String pFileName) {
+    if (_mimeMap == null) {
       _mimeMap = new MimetypesFileTypeMap();
       _mimeMap.addMimeTypes("text/css css\ntext/html htm html shtml\nimage/png png\n");
     }
     return _mimeMap.getContentType(pFileName);
   }
 
-  private static String fileName(String pPath) {
-    int i = pPath.lastIndexOf('/');
-    if (i<0) {
+  private static String fileName(final String pPath) {
+    final int i = pPath.lastIndexOf('/');
+    if (i < 0) {
       return pPath;
     }
-    return pPath.substring(i+1);
+    return pPath.substring(i + 1);
   }
 
   public Map<String, List<String>> getHeaders() {

@@ -8,7 +8,7 @@ import nl.adaptivity.messaging.EndPointDescriptor;
 import nl.adaptivity.process.exec.Task.TaskState;
 
 
-public interface UserTask <T extends UserTask<T>> extends HandleAware<T>{
+public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
   public TaskState getState();
 

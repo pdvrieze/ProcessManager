@@ -15,11 +15,13 @@ import javax.xml.bind.annotation.*;
 
 
 /**
- * May contain literal elements as content. In that case only the paramName attribute is used.
- * 
- * <p>Java class for ExportType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * May contain literal elements as content. In that case only the paramName
+ * attribute is used.
+ * <p>
+ * Java class for ExportType complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="ExportType">
@@ -36,153 +38,124 @@ import javax.xml.bind.annotation.*;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ExportType", propOrder = {
-    "content"
-})
+@XmlType(name = "ExportType", propOrder = { "content" })
 public class XmlExportType {
 
-    public static final String ELEMENTNAME = "export";
-    
-    @XmlMixed
-    @XmlAnyElement(lax = true)
-    protected List<Object> content;
-    @XmlAttribute
-    protected String node;
-    @XmlAttribute
-    protected String name;
-    @XmlAttribute(required = true)
-    protected String paramName;
-    @XmlAttribute
-    protected String path;
+  public static final String ELEMENTNAME = "export";
 
-    /**
-     * May contain literal elements as content. In that case only the paramName attribute is used.Gets the value of the content property.
-     * 
-     * <p>
-     * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
-     * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the content property.
-     * 
-     * <p>
-     * For example, to add a new item, do as follows:
-     * <pre>
-     *    getContent().add(newItem);
-     * </pre>
-     * 
-     * 
-     * <p>
-     * Objects of the following type(s) are allowed in the list
-     * {@link Object }
-     * {@link String }
-     * 
-     * 
-     */
-    public List<Object> getContent() {
-        if (content == null) {
-            content = new ArrayList<Object>();
-        }
-        return this.content;
-    }
+  @XmlMixed
+  @XmlAnyElement(lax = true)
+  protected List<Object> content;
 
-    /**
-     * Gets the value of the node property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getNode() {
-        return node;
-    }
+  @XmlAttribute
+  protected String node;
 
-    /**
-     * Sets the value of the node property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setNode(String value) {
-        this.node = value;
-    }
+  @XmlAttribute
+  protected String name;
 
-    /**
-     * Gets the value of the name property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getName() {
-        return name;
-    }
+  @XmlAttribute(required = true)
+  protected String paramName;
 
-    /**
-     * Sets the value of the name property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setName(String value) {
-        this.name = value;
-    }
+  @XmlAttribute
+  protected String path;
 
-    /**
-     * Gets the value of the paramName property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getParamName() {
-        return paramName;
+  /**
+   * May contain literal elements as content. In that case only the paramName
+   * attribute is used.Gets the value of the content property.
+   * <p>
+   * This accessor method returns a reference to the live list, not a snapshot.
+   * Therefore any modification you make to the returned list will be present
+   * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
+   * for the content property.
+   * <p>
+   * For example, to add a new item, do as follows:
+   * 
+   * <pre>
+   * getContent().add(newItem);
+   * </pre>
+   * <p>
+   * Objects of the following type(s) are allowed in the list {@link Object }
+   * {@link String }
+   */
+  public List<Object> getContent() {
+    if (content == null) {
+      content = new ArrayList<Object>();
     }
+    return this.content;
+  }
 
-    /**
-     * Sets the value of the paramName property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setParamName(String value) {
-        this.paramName = value;
-    }
+  /**
+   * Gets the value of the node property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getNode() {
+    return node;
+  }
 
-    /**
-     * Gets the value of the path property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getPath() {
-        return path;
-    }
+  /**
+   * Sets the value of the node property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setNode(final String value) {
+    this.node = value;
+  }
 
-    /**
-     * Sets the value of the path property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setPath(String value) {
-        this.path = value;
-    }
+  /**
+   * Gets the value of the name property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * Sets the value of the name property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setName(final String value) {
+    this.name = value;
+  }
+
+  /**
+   * Gets the value of the paramName property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getParamName() {
+    return paramName;
+  }
+
+  /**
+   * Sets the value of the paramName property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setParamName(final String value) {
+    this.paramName = value;
+  }
+
+  /**
+   * Gets the value of the path property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getPath() {
+    return path;
+  }
+
+  /**
+   * Sets the value of the path property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setPath(final String value) {
+    this.path = value;
+  }
 
 }

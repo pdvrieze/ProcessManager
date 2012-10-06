@@ -16,9 +16,11 @@ import javax.xml.namespace.QName;
 
 
 /**
- * <p>Java class for NotUnderstoodType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for NotUnderstoodType complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="NotUnderstoodType">
@@ -29,38 +31,30 @@ import javax.xml.namespace.QName;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "NotUnderstoodType")
 public class NotUnderstoodType {
 
-    @XmlAttribute(required = true)
-    protected QName qname;
+  @XmlAttribute(required = true)
+  protected QName qname;
 
-    /**
-     * Gets the value of the qname property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link QName }
-     *     
-     */
-    public QName getQname() {
-        return qname;
-    }
+  /**
+   * Gets the value of the qname property.
+   * 
+   * @return possible object is {@link QName }
+   */
+  public QName getQname() {
+    return qname;
+  }
 
-    /**
-     * Sets the value of the qname property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link QName }
-     *     
-     */
-    public void setQname(QName value) {
-        this.qname = value;
-    }
+  /**
+   * Sets the value of the qname property.
+   * 
+   * @param value allowed object is {@link QName }
+   */
+  public void setQname(final QName value) {
+    this.qname = value;
+  }
 
 }

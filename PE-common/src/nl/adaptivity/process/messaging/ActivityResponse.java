@@ -16,16 +16,19 @@ import nl.adaptivity.ws.soap.SoapHelper;
 
 
 /**
- * <p>The ActivityResponse type is a class that helps with process aware methods.
- * When returning this class from a method this signifies to the {@link SoapHelper} that
- * the method is ProcessAware, and wraps an actual return value. The activityResponse is communicated
- * through the header.</p>
- * 
- * <p>When used by JAXB, instances will result in the right header that signifies task
- * awareness to the process engine. This allows responding to a SOAP message to not signify task
- * completion.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * The ActivityResponse type is a class that helps with process aware methods.
+ * When returning this class from a method this signifies to the
+ * {@link SoapHelper} that the method is ProcessAware, and wraps an actual
+ * return value. The activityResponse is communicated through the header.
+ * </p>
+ * <p>
+ * When used by JAXB, instances will result in the right header that signifies
+ * task awareness to the process engine. This allows responding to a SOAP
+ * message to not signify task completion.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="ActivityResponseType">
@@ -49,106 +52,109 @@ import nl.adaptivity.ws.soap.SoapHelper;
  * &lt;/complexType>
  * </pre>
  * 
- * 
- * @param <T> The type of the actual return value returned in the result of the SOAP message.
+ * @param <T> The type of the actual return value returned in the result of the
+ *          SOAP message.
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = ActivityResponse.ELEMENTNAME+"Type")
-@XmlRootElement(name=ActivityResponse.ELEMENTNAME, namespace = ActivityResponse.NAMESPACE)
-public class ActivityResponse<T>  {
+@XmlType(name = ActivityResponse.ELEMENTNAME + "Type")
+@XmlRootElement(name = ActivityResponse.ELEMENTNAME, namespace = ActivityResponse.NAMESPACE)
+public class ActivityResponse<T> {
 
-    public static final String NAMESPACE = ProcessConsts.Engine.NAMESPACE;
-    public static final String ELEMENTNAME = "ActivityResponse";
-    public static final String ATTRTASKSTATE = "taskState";
+  public static final String NAMESPACE = ProcessConsts.Engine.NAMESPACE;
 
-    private T aReturnValue;
-    private Class<T> aReturnType;
-    
-    
-    @XmlTransient
-    private TaskState aTaskState;
+  public static final String ELEMENTNAME = "ActivityResponse";
 
-    /** Default constructor for jaxb use */
-    protected ActivityResponse() {}
-    
-    /**
-     * Create a new ActivityResponse.
-     * @param pTaskState The state of the task requested.
-     * @param pReturnType The actual return type of the method.
-     * @param pReturnValue The value to return.
-     */
-    protected ActivityResponse(TaskState pTaskState, Class<T> pReturnType, T pReturnValue) {
-      aTaskState = pTaskState;
-      aReturnType = pReturnType;
-      aReturnValue = pReturnValue;
-    }
+  public static final String ATTRTASKSTATE = "taskState";
 
-    /**
-     * Static helper factory for creating a new ActivityResponse.
-     * @param pTaskState The state of the task requested.
-     * @param pReturnType The actual return type of the method.
-     * @param pReturnValue The value to return.
-     * @return
-     */
-    public static <V> ActivityResponse<V> create(TaskState pTaskState, Class<V> pReturnType, V pReturnValue) {
-      return new ActivityResponse<V>(pTaskState, pReturnType, pReturnValue);
-    }
-    
-    /**
-     * Gets the value of the taskState property.
-     * 
-     * @return the name of the {@link TaskState}
-     *     
-     */
-    @XmlAttribute(name = ATTRTASKSTATE)
-    public String getTaskStateString() {
-        return aTaskState.name();
-    }
-    
-    /**
-     * Gets the value of the taskState property.
-     * 
-     * @return the task state.
-     *     
-     */
-    public TaskState getTaskState() {
-      return aTaskState;
-    }
+  private T aReturnValue;
 
-    /**
-     * Sets the value of the taskState property.
-     * 
-     * @param value the new task state.
-     *     
-     */
-    public void setTaskStateString(String value) {
-        aTaskState = TaskState.valueOf(value);
-    }
+  private Class<T> aReturnType;
 
-    /**
-     * Sets the value of the taskState property.
-     * 
-     * @param pTaskState the new task state.
-     *     
-     */
-    public void setTaskState(TaskState pTaskState) {
-      aTaskState = pTaskState;
-    }
-    
-    /**
-     * Get the embedded return type.
-     * @return The embedded return type.
-     */
-    public Class<T> getReturnType() {
-      return aReturnType;
-    }
-    
-    /**
-     * Get the actual return value.
-     * @return The actual return value.
-     */
-    public T getReturnValue() {
-      return aReturnValue;
-    }
+
+  @XmlTransient
+  private TaskState aTaskState;
+
+  /** Default constructor for jaxb use */
+  protected ActivityResponse() {}
+
+  /**
+   * Create a new ActivityResponse.
+   * 
+   * @param pTaskState The state of the task requested.
+   * @param pReturnType The actual return type of the method.
+   * @param pReturnValue The value to return.
+   */
+  protected ActivityResponse(final TaskState pTaskState, final Class<T> pReturnType, final T pReturnValue) {
+    aTaskState = pTaskState;
+    aReturnType = pReturnType;
+    aReturnValue = pReturnValue;
+  }
+
+  /**
+   * Static helper factory for creating a new ActivityResponse.
+   * 
+   * @param pTaskState The state of the task requested.
+   * @param pReturnType The actual return type of the method.
+   * @param pReturnValue The value to return.
+   * @return
+   */
+  public static <V> ActivityResponse<V> create(final TaskState pTaskState, final Class<V> pReturnType, final V pReturnValue) {
+    return new ActivityResponse<V>(pTaskState, pReturnType, pReturnValue);
+  }
+
+  /**
+   * Gets the value of the taskState property.
+   * 
+   * @return the name of the {@link TaskState}
+   */
+  @XmlAttribute(name = ATTRTASKSTATE)
+  public String getTaskStateString() {
+    return aTaskState.name();
+  }
+
+  /**
+   * Gets the value of the taskState property.
+   * 
+   * @return the task state.
+   */
+  public TaskState getTaskState() {
+    return aTaskState;
+  }
+
+  /**
+   * Sets the value of the taskState property.
+   * 
+   * @param value the new task state.
+   */
+  public void setTaskStateString(final String value) {
+    aTaskState = TaskState.valueOf(value);
+  }
+
+  /**
+   * Sets the value of the taskState property.
+   * 
+   * @param pTaskState the new task state.
+   */
+  public void setTaskState(final TaskState pTaskState) {
+    aTaskState = pTaskState;
+  }
+
+  /**
+   * Get the embedded return type.
+   * 
+   * @return The embedded return type.
+   */
+  public Class<T> getReturnType() {
+    return aReturnType;
+  }
+
+  /**
+   * Get the actual return value.
+   * 
+   * @return The actual return value.
+   */
+  public T getReturnValue() {
+    return aReturnValue;
+  }
 
 }

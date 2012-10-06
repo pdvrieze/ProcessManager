@@ -8,21 +8,16 @@
 
 package org.w3.soapEnvelope;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 
 /**
- * 
- * 	    Fault reporting structure
- * 	  
- * 
- * <p>Java class for Fault complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * Fault reporting structure
+ * <p>
+ * Java class for Fault complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="Fault">
@@ -39,150 +34,116 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Fault", propOrder = {
-    "code",
-    "reason",
-    "node",
-    "role",
-    "detail"
-})
+@XmlType(name = "Fault", propOrder = { "code", "reason", "node", "role", "detail" })
 public class Fault {
 
-    @XmlElement(name = "Code", required = true)
-    protected Faultcode code;
-    @XmlElement(name = "Reason", required = true)
-    protected Faultreason reason;
-    @XmlElement(name = "Node")
-    @XmlSchemaType(name = "anyURI")
-    protected String node;
-    @XmlElement(name = "Role")
-    @XmlSchemaType(name = "anyURI")
-    protected String role;
-    @XmlElement(name = "Detail")
-    protected Detail detail;
+  @XmlElement(name = "Code", required = true)
+  protected Faultcode code;
 
-    /**
-     * Gets the value of the code property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Faultcode }
-     *     
-     */
-    public Faultcode getCode() {
-        return code;
-    }
+  @XmlElement(name = "Reason", required = true)
+  protected Faultreason reason;
 
-    /**
-     * Sets the value of the code property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Faultcode }
-     *     
-     */
-    public void setCode(Faultcode value) {
-        this.code = value;
-    }
+  @XmlElement(name = "Node")
+  @XmlSchemaType(name = "anyURI")
+  protected String node;
 
-    /**
-     * Gets the value of the reason property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Faultreason }
-     *     
-     */
-    public Faultreason getReason() {
-        return reason;
-    }
+  @XmlElement(name = "Role")
+  @XmlSchemaType(name = "anyURI")
+  protected String role;
 
-    /**
-     * Sets the value of the reason property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Faultreason }
-     *     
-     */
-    public void setReason(Faultreason value) {
-        this.reason = value;
-    }
+  @XmlElement(name = "Detail")
+  protected Detail detail;
 
-    /**
-     * Gets the value of the node property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getNode() {
-        return node;
-    }
+  /**
+   * Gets the value of the code property.
+   * 
+   * @return possible object is {@link Faultcode }
+   */
+  public Faultcode getCode() {
+    return code;
+  }
 
-    /**
-     * Sets the value of the node property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setNode(String value) {
-        this.node = value;
-    }
+  /**
+   * Sets the value of the code property.
+   * 
+   * @param value allowed object is {@link Faultcode }
+   */
+  public void setCode(final Faultcode value) {
+    this.code = value;
+  }
 
-    /**
-     * Gets the value of the role property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getRole() {
-        return role;
-    }
+  /**
+   * Gets the value of the reason property.
+   * 
+   * @return possible object is {@link Faultreason }
+   */
+  public Faultreason getReason() {
+    return reason;
+  }
 
-    /**
-     * Sets the value of the role property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setRole(String value) {
-        this.role = value;
-    }
+  /**
+   * Sets the value of the reason property.
+   * 
+   * @param value allowed object is {@link Faultreason }
+   */
+  public void setReason(final Faultreason value) {
+    this.reason = value;
+  }
 
-    /**
-     * Gets the value of the detail property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Detail }
-     *     
-     */
-    public Detail getDetail() {
-        return detail;
-    }
+  /**
+   * Gets the value of the node property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getNode() {
+    return node;
+  }
 
-    /**
-     * Sets the value of the detail property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Detail }
-     *     
-     */
-    public void setDetail(Detail value) {
-        this.detail = value;
-    }
+  /**
+   * Sets the value of the node property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setNode(final String value) {
+    this.node = value;
+  }
+
+  /**
+   * Gets the value of the role property.
+   * 
+   * @return possible object is {@link String }
+   */
+  public String getRole() {
+    return role;
+  }
+
+  /**
+   * Sets the value of the role property.
+   * 
+   * @param value allowed object is {@link String }
+   */
+  public void setRole(final String value) {
+    this.role = value;
+  }
+
+  /**
+   * Gets the value of the detail property.
+   * 
+   * @return possible object is {@link Detail }
+   */
+  public Detail getDetail() {
+    return detail;
+  }
+
+  /**
+   * Sets the value of the detail property.
+   * 
+   * @param value allowed object is {@link Detail }
+   */
+  public void setDetail(final Detail value) {
+    this.detail = value;
+  }
 
 }

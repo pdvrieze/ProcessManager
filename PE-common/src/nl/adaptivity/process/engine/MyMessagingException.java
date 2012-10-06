@@ -5,15 +5,15 @@ public class MyMessagingException extends RuntimeException {
 
   private static final long serialVersionUID = -2048040838045843869L;
 
-  public MyMessagingException(String pMessage) {
+  public MyMessagingException(final String pMessage) {
     super(pMessage);
   }
 
-  public MyMessagingException(Throwable pCause) {
+  public MyMessagingException(final Throwable pCause) {
     super(pCause);
   }
 
-  public MyMessagingException(String pMessage, Throwable pCause) {
+  public MyMessagingException(final String pMessage, final Throwable pCause) {
     super(pMessage, pCause);
   }
 

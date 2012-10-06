@@ -21,68 +21,75 @@ import nl.adaptivity.process.processModel.ProcessModel.PMXmlAdapter;
 /**
  * A class representing a process model. This is too complex to directly support
  * JAXB serialization, so the {@link ProcessModelXmlAdapter} does that.
- *
+ * 
  * @author Paul de Vrieze
  */
 @XmlJavaTypeAdapter(PMXmlAdapter.class)
 public class ProcessModel implements HandleAware<ProcessModel>, Serializable, SecureObject {
-  
+
   static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModel> {
 
     @Override
-    public ProcessModel unmarshal(XmlProcessModel pV) throws Exception {
+    public ProcessModel unmarshal(final XmlProcessModel pV) throws Exception {
       return pV.toProcessModel();
     }
 
     @Override
-    public XmlProcessModel marshal(ProcessModel pV) throws Exception {
+    public XmlProcessModel marshal(final ProcessModel pV) throws Exception {
       return new XmlProcessModel(pV);
     }
-    
+
   }
-  
-  public enum Permissions implements SecurityProvider.Permission{
+
+  public enum Permissions implements SecurityProvider.Permission {
     INSTANTIATE;
   }
 
   private static final long serialVersionUID = -4199223546188994559L;
+
   private Collection<StartNode> aStartNodes;
+
   private int aEndNodeCount;
+
   private String aName;
+
   private long aHandle;
+
   private Principal aOwner;
+
   private Set<String> aRoles;
 
   /**
    * Create a new processModel based on the given endnodes. These endnodes must
    * have proper predecessors set, and end with {@link StartNode StartNodes}
-   *
+   * 
    * @param pEndNodes The endnodes
    */
-  public ProcessModel(Collection<EndNode> pEndNodes) {
+  public ProcessModel(final Collection<EndNode> pEndNodes) {
     aStartNodes = reverseGraph(pEndNodes);
     aEndNodeCount = pEndNodes.size();
   }
 
   /**
-   * Create a new processModel based on the given endnodes. This is a convenience
-   * constructor. These endnodes must have proper predecessors set, and end with
-   * {@link StartNode StartNodes}
-   *
+   * Create a new processModel based on the given endnodes. This is a
+   * convenience constructor. These endnodes must have proper predecessors set,
+   * and end with {@link StartNode StartNodes}
+   * 
    * @param pEndNodes The endnodes
    */
-  public ProcessModel(EndNode... pEndNodes) {
+  public ProcessModel(final EndNode... pEndNodes) {
     this(Arrays.asList(pEndNodes));
   }
 
   /**
    * Create a processModel out of the given xml representation.
+   * 
    * @param pXmlModel The xml representation to base the model on.
    */
-  public ProcessModel(XmlProcessModel pXmlModel) {
-    Collection<EndNode> endNodes = new ArrayList<EndNode>();
+  public ProcessModel(final XmlProcessModel pXmlModel) {
+    final Collection<EndNode> endNodes = new ArrayList<EndNode>();
 
-    for(ProcessNode node:pXmlModel.getNodes()) {
+    for (final ProcessNode node : pXmlModel.getNodes()) {
       if (node instanceof EndNode) {
         endNodes.add((EndNode) node);
       }
@@ -92,39 +99,42 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
     aStartNodes = reverseGraph(endNodes);
     setName(pXmlModel.getName());
-    String owner = pXmlModel.getOwner();
-    aOwner = owner == null? null : new SimplePrincipal(pXmlModel.getOwner());
+    final String owner = pXmlModel.getOwner();
+    aOwner = owner == null ? null : new SimplePrincipal(pXmlModel.getOwner());
   }
 
   /**
    * Helper method that reverses the process model based on the set of endnodes.
+   * 
    * @param pEndNodes The endnodes to base the model on.
    * @return A collection of startNodes.
    */
-  private static Collection<StartNode> reverseGraph(Collection<EndNode> pEndNodes) {
-    Collection<StartNode> resultList = new ArrayList<StartNode>();
-    for (EndNode endNode:pEndNodes) {
+  private static Collection<StartNode> reverseGraph(final Collection<EndNode> pEndNodes) {
+    final Collection<StartNode> resultList = new ArrayList<StartNode>();
+    for (final EndNode endNode : pEndNodes) {
       reverseGraph(resultList, endNode);
     }
     return resultList;
   }
 
   /**
-   * Helper method for {@link #reverseGraph(Collection)} That does the actual reversing.
-   * Note that predecessors will also be updated to add the node they are predecessors to.
+   * Helper method for {@link #reverseGraph(Collection)} That does the actual
+   * reversing. Note that predecessors will also be updated to add the node they
+   * are predecessors to.
+   * 
    * @param pResultList The collection in which start nodes need to be stored.
    * @param pNode The node to do the reversion from.
    */
-  private static void reverseGraph(Collection<StartNode> pResultList, ProcessNode pNode) {
-    Collection<ProcessNode> previous = pNode.getPredecessors();
-    for(ProcessNode prev: previous) {
+  private static void reverseGraph(final Collection<StartNode> pResultList, final ProcessNode pNode) {
+    final Collection<ProcessNode> previous = pNode.getPredecessors();
+    for (final ProcessNode prev : previous) {
       if (prev instanceof StartNode) {
-        if (prev.getSuccessors()==null) {
+        if (prev.getSuccessors() == null) {
           prev.addSuccessor(pNode);
         }
         pResultList.add((StartNode) prev);
       } else {
-        if (prev.getSuccessors()==null || prev.getSuccessors().size()==0){
+        if ((prev.getSuccessors() == null) || (prev.getSuccessors().size() == 0)) {
           prev.addSuccessor(pNode);
           reverseGraph(pResultList, prev);
         } else {
@@ -136,15 +146,14 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get an array of all process nodes in the model. Used by XmlProcessModel
-   *
+   * 
    * @return An array of all nodes.
-   *
    */
   ProcessNode[] getModelNodes() {
-    Collection<ProcessNode> list = new ArrayList<ProcessNode>();
-    HashSet<String> seen = new HashSet<String>();
+    final Collection<ProcessNode> list = new ArrayList<ProcessNode>();
+    final HashSet<String> seen = new HashSet<String>();
     if (aStartNodes != null) {
-      for (StartNode node : aStartNodes) {
+      for (final StartNode node : aStartNodes) {
         extractElements(list, seen, node);
       }
     }
@@ -152,15 +161,16 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
   }
 
   /**
-   * Set the process nodes for the model. This will actually just retrieve
-   * the {@link EndNode}s and sets the model accordingly. This does mean that
-   * only passing {@link EndNode}s will have the same result, and the other nodes
+   * Set the process nodes for the model. This will actually just retrieve the
+   * {@link EndNode}s and sets the model accordingly. This does mean that only
+   * passing {@link EndNode}s will have the same result, and the other nodes
    * will be pulled in.
+   * 
    * @param pProcessNodes The process nodes to base the model on.
    */
-  public void setModelNodes(ProcessNode[] pProcessNodes) {
-    ArrayList<EndNode> endNodes = new ArrayList<EndNode>();
-    for(ProcessNode n:pProcessNodes) {
+  public void setModelNodes(final ProcessNode[] pProcessNodes) {
+    final ArrayList<EndNode> endNodes = new ArrayList<EndNode>();
+    for (final ProcessNode n : pProcessNodes) {
       if (n instanceof EndNode) {
         endNodes.add((EndNode) n);
       }
@@ -171,23 +181,27 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Helper method that helps enumerating all elements in the model
+   * 
    * @param pTo The collection that will contain the result.
-   * @param pSeen A set of process names that have already been seen (and should not be added again.
-   * @param pNode The node to start extraction from. This will go on to the successors.
+   * @param pSeen A set of process names that have already been seen (and should
+   *          not be added again.
+   * @param pNode The node to start extraction from. This will go on to the
+   *          successors.
    */
-  private static void extractElements(Collection<ProcessNode> pTo, HashSet<String> pSeen, ProcessNode pNode) {
+  private static void extractElements(final Collection<ProcessNode> pTo, final HashSet<String> pSeen, final ProcessNode pNode) {
     if (pSeen.contains(pNode.getId())) {
       return;
     }
     pTo.add(pNode);
     pSeen.add(pNode.getId());
-    for(ProcessNode node:pNode.getSuccessors()) {
+    for (final ProcessNode node : pNode.getSuccessors()) {
       extractElements(pTo, pSeen, node);
     }
   }
 
   /**
    * Get the startnodes for this model.
+   * 
    * @return The start nodes.
    */
   public Collection<StartNode> getStartNodes() {
@@ -196,6 +210,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get the amount of end nodes in the model
+   * 
    * @return The amount of end nodes.
    */
   public int getEndNodeCount() {
@@ -204,6 +219,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get the name of the model.
+   * 
    * @return
    */
   public String getName() {
@@ -212,9 +228,10 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Set the name of the model.
+   * 
    * @param name The name
    */
-  public void setName(String name) {
+  public void setName(final String name) {
     aName = name;
   }
 
@@ -230,12 +247,13 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * Set the handle for this model.
    */
   @Override
-  public void setHandle(long pHandle) {
+  public void setHandle(final long pHandle) {
     aHandle = pHandle;
   }
 
   /**
    * Get a reference node for this model.
+   * 
    * @return A reference node.
    */
   public ProcessModelRef getRef() {
@@ -247,31 +265,32 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
   }
 
   /**
-   *
    * @param pOwner
    * @return
    * @todo add security checks.
    */
-  public void setOwner(Principal pOwner) {
+  public void setOwner(final Principal pOwner) {
     aOwner = pOwner;
   }
 
   public Set<String> getRoles() {
-    if (aRoles ==null) { aRoles = new HashSet<String>(); }
+    if (aRoles == null) {
+      aRoles = new HashSet<String>();
+    }
     return aRoles;
   }
 
-  public void cacheStrings(StringCache pStringCache) {
+  public void cacheStrings(final StringCache pStringCache) {
     if (aOwner instanceof SimplePrincipal) {
       aOwner = new SimplePrincipal(pStringCache.lookup(aOwner.getName()));
     } else if (aOwner instanceof DarwinPrincipal) {
       aOwner = ((DarwinPrincipal) aOwner).cacheStrings(pStringCache);
     }
     aName = pStringCache.lookup(aName);
-    if (aRoles!=null && aRoles.size()>0) {
-      Set<String> roles = aRoles;
-      aRoles = new HashSet<String>(aRoles.size()+(aRoles.size()>>1));
-      for(String role:roles) {
+    if ((aRoles != null) && (aRoles.size() > 0)) {
+      final Set<String> roles = aRoles;
+      aRoles = new HashSet<String>(aRoles.size() + (aRoles.size() >> 1));
+      for (final String role : roles) {
         aRoles.add(pStringCache.lookup(role));
       }
     }

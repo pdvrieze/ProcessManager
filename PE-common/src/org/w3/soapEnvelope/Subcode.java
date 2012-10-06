@@ -16,9 +16,11 @@ import javax.xml.namespace.QName;
 
 
 /**
- * <p>Java class for subcode complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
+ * <p>
+ * Java class for subcode complex type.
+ * <p>
+ * The following schema fragment specifies the expected content contained within
+ * this class.
  * 
  * <pre>
  * &lt;complexType name="subcode">
@@ -32,67 +34,51 @@ import javax.xml.namespace.QName;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "subcode", propOrder = {
-    "value",
-    "subcode"
-})
+@XmlType(name = "subcode", propOrder = { "value", "subcode" })
 public class Subcode {
 
-    @XmlElement(name = "Value", required = true)
-    protected QName value;
-    @XmlElement(name = "Subcode")
-    protected Subcode subcode;
+  @XmlElement(name = "Value", required = true)
+  protected QName value;
 
-    /**
-     * Gets the value of the value property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link QName }
-     *     
-     */
-    public QName getValue() {
-        return value;
-    }
+  @XmlElement(name = "Subcode")
+  protected Subcode subcode;
 
-    /**
-     * Sets the value of the value property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link QName }
-     *     
-     */
-    public void setValue(QName value) {
-        this.value = value;
-    }
+  /**
+   * Gets the value of the value property.
+   * 
+   * @return possible object is {@link QName }
+   */
+  public QName getValue() {
+    return value;
+  }
 
-    /**
-     * Gets the value of the subcode property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Subcode }
-     *     
-     */
-    public Subcode getSubcode() {
-        return subcode;
-    }
+  /**
+   * Sets the value of the value property.
+   * 
+   * @param value allowed object is {@link QName }
+   */
+  public void setValue(final QName value) {
+    this.value = value;
+  }
 
-    /**
-     * Sets the value of the subcode property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Subcode }
-     *     
-     */
-    public void setSubcode(Subcode value) {
-        this.subcode = value;
-    }
+  /**
+   * Gets the value of the subcode property.
+   * 
+   * @return possible object is {@link Subcode }
+   */
+  public Subcode getSubcode() {
+    return subcode;
+  }
+
+  /**
+   * Sets the value of the subcode property.
+   * 
+   * @param value allowed object is {@link Subcode }
+   */
+  public void setSubcode(final Subcode value) {
+    this.subcode = value;
+  }
 
 }
