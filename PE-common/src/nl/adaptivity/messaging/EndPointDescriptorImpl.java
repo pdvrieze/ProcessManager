@@ -2,14 +2,17 @@ package nl.adaptivity.messaging;
 
 import java.net.URI;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 
+/**
+ * Simple pojo implementation of {@link EndpointDescriptor} that supports
+ * serialization through {@link JAXB}.
+ *
+ * @author Paul de Vrieze
+ */
 @XmlRootElement(name = "endpointDescriptor", namespace = EndPointDescriptorImpl.MY_JBI_NS)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(propOrder = { "serviceNamespace", "serviceLocalName", "endpointName" })
@@ -45,11 +48,11 @@ public class EndPointDescriptorImpl implements EndpointDescriptor {
   }
 
   @XmlAttribute(name = "endpointLocation")
-  public String getEndpointLocationString() {
+  String getEndpointLocationString() {
     return aEndpointLocation.toString();
   }
 
-  public void setEndpointLocationString(final String pLocation) {
+  void setEndpointLocationString(final String pLocation) {
     aEndpointLocation = URI.create(pLocation);
   }
 
@@ -63,20 +66,20 @@ public class EndPointDescriptorImpl implements EndpointDescriptor {
   }
 
   @XmlAttribute(name = "serviceLocalName")
-  public String getServiceLocalName() {
+  String getServiceLocalName() {
     return aServiceLocalName;
   }
 
-  public void setServiceLocalName(final String localName) {
+  void setServiceLocalName(final String localName) {
     aServiceLocalName = localName;
   }
 
   @XmlAttribute(name = "serviceNS")
-  public String getServiceNamespace() {
+  String getServiceNamespace() {
     return aServiceNamespace;
   }
 
-  public void setServiceNamespace(final String serviceNamespace) {
+  void setServiceNamespace(final String serviceNamespace) {
     aServiceNamespace = serviceNamespace;
   }
 
