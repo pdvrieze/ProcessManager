@@ -4,27 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RunnableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,6 +17,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
+
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.util.activation.Sources;
@@ -522,7 +505,21 @@ public class DarwinMessenger implements IMessenger {
     service.put(pEndpoint.getEndpointName(), pEndpoint);
   }
 
-
+  /**
+   * <p>
+   * {@inheritDoc} The implementation will look up the endpoint registered for
+   * the destination of the message. Only when none has been registered will it
+   * attempt to use the url for the message.
+   * </p>
+   * <p>
+   * For registered endpoints if they implement {@link DirectEndpoint} the
+   * message will be directly delivered to the endpoind through the
+   * {@link DirectEndpoint#deliverMessage(ISendableMessage, CompletionListener, Class)
+   * deliverMessage} method. Otherwhise if the endpoint implements
+   * {@link Endpoint} the system will use reflection to directly invoke the
+   * appropriate soap methods on the endpoint.
+   * </p>
+   */
   @Override
   public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
     EndpointDescriptor registeredEndpoint = getEndpoint(pMessage.getDestination());
@@ -583,7 +580,9 @@ public class DarwinMessenger implements IMessenger {
     return messageTask;
   }
 
-
+  /**
+   * Shut down the messenger. This will also unregister the messenger with the registry.
+   */
   @Override
   public void shutdown() {
     MessagingRegistry.registerMessenger(null); // Unregister this messenger
