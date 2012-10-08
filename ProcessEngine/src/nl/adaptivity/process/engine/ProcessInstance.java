@@ -82,6 +82,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final Collection<ProcessNodeInstance> aThreads;
 
+  private final Collection<ProcessNodeInstance> aEndResults;
+
   private HashMap<Join, JoinInstance> aJoins;
 
   private long aHandle;
@@ -105,6 +107,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       aThreads.add(instance);
     }
     aJoins = new HashMap<Join, JoinInstance>();
+    aEndResults = new ArrayList<ProcessNodeInstance>();
   }
 
   public synchronized void finish() {
@@ -115,13 +118,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   private int getFinishedCount() {
-    int count = 0;
-    for(ProcessNodeInstance thread:aThreads) {
-      if (thread.getNode() instanceof EndNode) {
-        ++count;
-      }
-    }
-    return count;
+    return aEndResults.size();
   }
 
   public synchronized JoinInstance getJoinInstance(final Join pJoin, final ProcessNodeInstance pPredecessor) {
@@ -207,13 +204,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public synchronized void finishTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Node pPayload) {
     pNode.finishTask(pPayload);
     if (pNode.getNode() instanceof EndNode) {
-      finish();
+      aEndResults.add(pNode);
       aThreads.remove(pNode);
+      finish();
     } else {
       aThreads.remove(pNode);
       final List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
       for (final ProcessNode successorNode : pNode.getNode().getSuccessors()) {
-        final ProcessNodeInstance instance = getProcessInstance(pNode, successorNode);
+        final ProcessNodeInstance instance = getProcessNodeInstance(pNode, successorNode);
         aThreads.add(instance);
         startedTasks.add(instance);
       }
@@ -223,7 +221,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private ProcessNodeInstance getProcessInstance(final ProcessNodeInstance pPredecessor, final ProcessNode pNode) {
+  private ProcessNodeInstance getProcessNodeInstance(final ProcessNodeInstance pPredecessor, final ProcessNode pNode) {
     if (pNode instanceof Join) {
       final Join join = (Join) pNode;
       if (aJoins == null) {
