@@ -11,7 +11,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-import net.devrieze.util.DBHandleMap;
+import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.DBHandleMap.ElementFactory;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.SecurityProvider;
@@ -20,7 +20,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.processModel.ProcessModel;
 
 
-public class ProcessInstanceMap extends DBHandleMap<ProcessInstance> implements ElementFactory<ProcessInstance> {
+public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> implements ElementFactory<ProcessInstance> {
 
   private static final String TABLE = "processinstances";
   private static final String COL_HANDLE = "pihandle";
