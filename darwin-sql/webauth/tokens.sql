@@ -6,7 +6,7 @@ CREATE TABLE `tokens` (
   `ip` varchar(24) NOT NULL,
   `keyid` int(11),
   `token` varchar(45) NOT NULL,
-  `epoch` int(11) NOT NULL,
+  `epoch` bigint NOT NULL,
   PRIMARY KEY (`tokenid`),
   FOREIGN KEY (`user`) REFERENCES `users` (`user`),
   FOREIGN KEY (`keyid`) REFERENCES `pubkeys` (`keyid`)
