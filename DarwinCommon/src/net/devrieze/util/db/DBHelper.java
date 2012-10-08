@@ -86,7 +86,17 @@ public class DBHelper {
       if (!connectionValid) {
         if (SHARE_CONNECTIONS) {
           final Connection connection = aDataSource.aConnectionMap.get(DBHelper.this.aKey);
-          if ((DBHelper.this.aConnection == null) && (connection != null) && connection.isValid(1)) {
+          try {
+            if (connection!=null) {
+              connectionValid = connection.isValid(1);
+            } else {
+              connectionValid = false;
+            }
+          } catch (final AbstractMethodError e) {
+            logWarning("We should use jdbc 4, not 3. isValid is missing");
+            connectionValid = false;
+          }
+          if ((DBHelper.this.aConnection == null) && (connection != null) && connectionValid) {
             DBHelper.this.aConnection = connection;
           } else {
             aDataSource.aConnectionMap.remove(DBHelper.this.aKey);
@@ -583,7 +593,7 @@ public class DBHelper {
   /**
    * Close the underlying connection for this helper. A new connection will
    * automatically be established when needed.
-   * 
+   *
    * @throws SQLException
    */
   public void close() throws SQLException {
@@ -659,7 +669,7 @@ public class DBHelper {
 
   /**
    * Set a string cache to reset strings from.
-   * 
+   *
    * @param pStringCache The string cache.
    */
   public void setStringCache(final StringCache pStringCache) {
