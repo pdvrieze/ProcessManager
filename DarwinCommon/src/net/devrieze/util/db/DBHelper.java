@@ -81,19 +81,26 @@ public class DBHelper {
           connectionValid = aConnection.isValid(1);
         } catch (final AbstractMethodError e) {
           logWarning("We should use jdbc 4, not 3. isValid is missing");
+          try {
+            aConnection.close();
+          } catch (SQLException ex) { /* Ignore problems closing connection */ }
+          aConnection = null;
         }
       }
       if (!connectionValid) {
         if (SHARE_CONNECTIONS) {
           final Connection connection = aDataSource.aConnectionMap.get(DBHelper.this.aKey);
-          try {
-            if (connection!=null) {
+          if (connection!=null) {
+            try {
               connectionValid = connection.isValid(1);
-            } else {
+            } catch (final AbstractMethodError e) {
+              logWarning("We should use jdbc 4, not 3. isValid is missing");
               connectionValid = false;
+              try {
+                connection.close();
+              } catch (SQLException ex) { /* Ignore problems closing connection */ }
             }
-          } catch (final AbstractMethodError e) {
-            logWarning("We should use jdbc 4, not 3. isValid is missing");
+          } else {
             connectionValid = false;
           }
           if ((DBHelper.this.aConnection == null) && (connection != null) && connectionValid) {
