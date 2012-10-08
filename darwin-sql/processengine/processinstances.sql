@@ -5,6 +5,7 @@ DROP TABLE `nodedata`;
 CREATE TABLE `processinstances` (
   `pihandle` BIGINT NOT NULL AUTO_INCREMENT,
   `owner` varchar(30) NOT NULL,
+  `name` varchar(50),
   `pmhandle` BIGINT NOT NULL,
   INDEX ( `owner` ),
   PRIMARY KEY ( `pihandle` ),
