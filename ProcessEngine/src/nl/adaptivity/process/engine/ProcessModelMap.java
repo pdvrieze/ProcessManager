@@ -17,6 +17,7 @@ import javax.xml.bind.JAXB;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.DBHandleMap.ElementFactory;
+import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.processModel.ProcessModel;
@@ -25,16 +26,18 @@ import nl.adaptivity.process.processModel.XmlProcessModel;
 
 public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> implements ElementFactory<ProcessModel> {
 
-  private static final String TABLE = "processmodelss";
+  private static final String TABLE = "processmodels";
   private static final String COL_HANDLE = "pmhandle";
   private static final String COL_OWNER = "owner";
   private static final String COL_MODEL = "model";
   private int aColNoOwner;
   private int aColNoModel;
   private int aColNoHandle;
+  private final StringCache aStringCache;
 
-  public ProcessModelMap(String pResourceName) {
+  public ProcessModelMap(String pResourceName, StringCache pStringCache) {
     super(resourceNameToDataSource(pResourceName), null, TABLE, COL_HANDLE);
+    aStringCache = pStringCache;
   }
 
   private static DataSource resourceNameToDataSource(String pResourceName) {
@@ -47,15 +50,16 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> implements
 
   @Override
   public ProcessModel create(ResultSet pRow) throws SQLException {
-    Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
+    Principal owner = new SimplePrincipal(aStringCache.lookup(pRow.getString(aColNoOwner)));
     Reader modelReader = pRow.getCharacterStream(aColNoModel);
     long handle = pRow.getLong(aColNoHandle);
 
     XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
     ProcessModel result = xmlModel.toProcessModel();
 
-    result.setOwner(owner);
     result.setHandle(handle);
+    result.cacheStrings(aStringCache);
+    result.setOwner(owner);
     return result;
   }
 
