@@ -5,13 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
@@ -98,7 +92,7 @@ public class Activity extends ProcessNode {
    */
   @XmlElement(name = ELEM_CONDITION)
   public String getCondition() {
-    return aCondition.toString();
+    return aCondition==null ? null : aCondition.toString();
   }
 
   /**
@@ -107,7 +101,7 @@ public class Activity extends ProcessNode {
    * @param pCondition The condition.
    */
   public void setCondition(final String pCondition) {
-    aCondition = new Condition(pCondition);
+    aCondition = pCondition==null ? null : new Condition(pCondition);
   }
 
   /**
