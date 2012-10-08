@@ -5,7 +5,7 @@ DROP TABLE `pmroles`;
 CREATE TABLE `processmodels` (
   `pmhandle` INT NOT NULL AUTO_INCREMENT,
   `owner` varchar(30) NOT NULL,
-  `model` MEDIUMBLOB,
+  `model` MEDIUMTEXT,
   INDEX ( `owner` ),
   PRIMARY KEY ( `pmhandle` )
 ) ENGINE=InnoDB CHARSET=utf8;
