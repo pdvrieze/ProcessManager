@@ -47,15 +47,15 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   }
 
-  private final HandleMap<ProcessInstance> aInstanceMap = new ProcessInstanceMap(this, DBRESOURCENAME);
+  private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
+
+  private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<ProcessInstance>();
 
   private final HandleMap<ProcessNodeInstance> aTaskMap = new MemHandleMap<ProcessNodeInstance>();
 
-  private final HandleMap<ProcessModel> aProcessModels = new MemHandleMap<ProcessModel>();
+  private final HandleMap<ProcessModel> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
-
-  private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
 
   private SecurityProvider aSecurityProvider = new PermissiveProvider();
 
