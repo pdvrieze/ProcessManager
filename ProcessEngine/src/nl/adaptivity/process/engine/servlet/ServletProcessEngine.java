@@ -1,20 +1,9 @@
 package nl.adaptivity.process.engine.servlet;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -31,39 +20,19 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
+import javax.xml.stream.*;
+import javax.xml.stream.events.*;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.EndPointDescriptorImpl;
-import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.messaging.Header;
-import nl.adaptivity.messaging.HttpResponseException;
-import nl.adaptivity.messaging.ISendableMessage;
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.messaging.MessagingRegistry;
+import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.HProcessInstance;
-import nl.adaptivity.process.engine.MessagingFormatException;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -509,7 +478,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     final long handle = aProcessEngine.registerMessage(pInstance);
     pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner());
 
-    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(HandleMap.<ProcessNodeInstance> handle(pMessage.aHandle), pMessage.aOwner), DataSource.class);
+    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(MemHandleMap.<ProcessNodeInstance> handle(pMessage.aHandle), pMessage.aOwner), DataSource.class);
     return true;
   }
 
@@ -578,12 +547,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
   public HProcessInstance startProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
-    return aProcessEngine.startProcess(pOwner, HandleMap.<ProcessModel> handle(pHandle), pName, null);
+    return aProcessEngine.startProcess(pOwner, MemHandleMap.<ProcessModel> handle(pHandle), pName, null);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    aProcessEngine.renameProcessModel(pUser, HandleMap.<ProcessModel> handle(pHandle), pName);
+    aProcessEngine.renameProcessModel(pUser, MemHandleMap.<ProcessModel> handle(pHandle), pName);
   }
 
   @WebMethod(operationName = "updateTaskState")
@@ -593,7 +562,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
   public TaskState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "state", type = ParamType.QUERY) final TaskState pNewState, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.updateTaskState(HandleMap.<ProcessNodeInstance> handle(pHandle), pNewState, pUser);
+    return aProcessEngine.updateTaskState(MemHandleMap.<ProcessNodeInstance> handle(pHandle), pNewState, pUser);
   }
 
   @WebMethod(operationName = "finishTask")
@@ -604,14 +573,14 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @WebMethod(operationName = "finishTask")
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state=Complete" })
   public TaskState finishTask(@WebParam(name = "handle", mode = Mode.IN) @RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @WebParam(name = "payload", mode = Mode.IN) @RestParam(name = "payload", type = ParamType.QUERY) final Node pPayload, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.finishTask(HandleMap.<ProcessNodeInstance> handle(pHandle), pPayload, pUser);
+    return aProcessEngine.finishTask(MemHandleMap.<ProcessNodeInstance> handle(pHandle), pPayload, pUser);
   }
 
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
     try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(HandleMap.<ProcessModel> handle(pHandle), pUser));
+      return new XmlProcessModel(aProcessEngine.getProcessModel(MemHandleMap.<ProcessModel> handle(pHandle), pUser));
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }

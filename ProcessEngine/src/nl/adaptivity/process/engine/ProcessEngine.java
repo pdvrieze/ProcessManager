@@ -13,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.PermissiveProvider;
@@ -46,11 +47,11 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   }
 
-  private final HandleMap<ProcessInstance> aInstanceMap = new HandleMap<ProcessInstance>();
+  private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<ProcessInstance>();
 
-  private final HandleMap<ProcessNodeInstance> aTaskMap = new HandleMap<ProcessNodeInstance>();
+  private final HandleMap<ProcessNodeInstance> aTaskMap = new MemHandleMap<ProcessNodeInstance>();
 
-  private final HandleMap<ProcessModel> aProcessModels = new HandleMap<ProcessModel>();
+  private final HandleMap<ProcessModel> aProcessModels = new MemHandleMap<ProcessModel>();
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
