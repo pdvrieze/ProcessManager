@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 import net.devrieze.util.HandleMap;
+import net.devrieze.util.MemHandleMap;
 
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.Task.TaskState;
@@ -22,7 +23,7 @@ public class UserMessageService implements CompletionListener {
   private final HandleMap<UserTask<?>> tasks;
 
   public UserMessageService() {
-    tasks = new HandleMap<UserTask<?>>();
+    tasks = new MemHandleMap<UserTask<?>>();
 
     //    DummyTask task = new DummyTask("blabla");
     //    task.setHandle(1);
