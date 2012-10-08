@@ -3,7 +3,7 @@ DROP TABLE `pmusers`;
 DROP TABLE `pmroles`;
 
 CREATE TABLE `processmodels` (
-  `pmhandle` INT NOT NULL AUTO_INCREMENT,
+  `pmhandle` BIGINT NOT NULL AUTO_INCREMENT,
   `owner` varchar(30) NOT NULL,
   `model` MEDIUMTEXT,
   INDEX ( `owner` ),
@@ -11,7 +11,7 @@ CREATE TABLE `processmodels` (
 ) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE `pmusers` (
-  `pmhandle` INT NOT NULL,
+  `pmhandle` BIGINT NOT NULL,
   `user` varchar(30) NOT NULL,
   PRIMARY KEY ( `pmhandle`, `user` ),
   FOREIGN KEY ( `pmhandle` ) REFERENCES `processmodels` ( `pmhandle` )
@@ -19,7 +19,7 @@ CREATE TABLE `pmusers` (
 
 
 CREATE TABLE `pmroles` (
-  `pmhandle` INT NOT NULL,
+  `pmhandle` BIGINT NOT NULL,
   `role` varchar(30) NOT NULL,
   PRIMARY KEY ( `pmhandle`, `role` ),
   FOREIGN KEY ( `pmhandle` ) REFERENCES `processmodels` ( `pmhandle` )

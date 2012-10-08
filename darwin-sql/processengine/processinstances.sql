@@ -5,7 +5,7 @@ DROP TABLE `nodedata`;
 CREATE TABLE `processinstances` (
   `pihandle` BIGINT NOT NULL AUTO_INCREMENT,
   `owner` varchar(30) NOT NULL,
-  `pmhandle` INT NOT NULL,
+  `pmhandle` BIGINT NOT NULL,
   INDEX ( `owner` ),
   PRIMARY KEY ( `pihandle` ),
   FOREIGN KEY ( `pmhandle` ) REFERENCES `processmodels` ( `pmhandle` )
