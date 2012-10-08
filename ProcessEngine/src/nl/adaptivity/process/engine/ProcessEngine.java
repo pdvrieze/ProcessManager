@@ -11,14 +11,17 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.devrieze.util.HandleMap;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import net.devrieze.util.*;
 import net.devrieze.util.HandleMap.Handle;
-import net.devrieze.util.MemHandleMap;
-import net.devrieze.util.StringCache;
-import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
@@ -27,16 +30,13 @@ import nl.adaptivity.process.exec.Task.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRef;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
 public class ProcessEngine /* implements IProcessEngine */{
+
+  public static final String DBRESOURCENAME="java:/comp/env/jdbc/processengine";
 
 
   public enum Permissions implements SecurityProvider.Permission {
@@ -47,7 +47,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   }
 
-  private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<ProcessInstance>();
+  private final HandleMap<ProcessInstance> aInstanceMap = new ProcessInstanceMap(this, DBRESOURCENAME);
 
   private final HandleMap<ProcessNodeInstance> aTaskMap = new MemHandleMap<ProcessNodeInstance>();
 

@@ -82,8 +82,6 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final Collection<ProcessNodeInstance> aThreads;
 
-  private int aFinished = 0;
-
   private HashMap<Join, JoinInstance> aJoins;
 
   private long aHandle;
@@ -110,10 +108,20 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public synchronized void finish() {
-    aFinished++;
+    int aFinished = getFinishedCount();
     if (aFinished >= aProcessModel.getEndNodeCount()) {
       aEngine.finishInstance(this);
     }
+  }
+
+  private int getFinishedCount() {
+    int count = 0;
+    for(ProcessNodeInstance thread:aThreads) {
+      if (thread.getNode() instanceof EndNode) {
+        ++count;
+      }
+    }
+    return count;
   }
 
   public synchronized JoinInstance getJoinInstance(final Join pJoin, final ProcessNodeInstance pPredecessor) {
@@ -158,6 +166,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public ProcessInstanceRef getRef() {
     return new ProcessInstanceRef(this);
+  }
+
+  public ProcessModel getProcessModel() {
+    return aProcessModel;
   }
 
   public Node getPayload() {
