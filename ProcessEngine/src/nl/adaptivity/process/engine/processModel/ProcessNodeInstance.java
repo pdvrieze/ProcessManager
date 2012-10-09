@@ -9,12 +9,12 @@ import net.devrieze.util.security.SecureObject;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 
 
-public class ProcessNodeInstance implements Task<ProcessNodeInstance>, SecureObject {
+public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
 
   private final ProcessNode aNode;
 

@@ -26,7 +26,7 @@ import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRef;
 
@@ -51,7 +51,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<ProcessInstance>();
 
-  private final HandleMap<ProcessNodeInstance> aTaskMap = new MemHandleMap<ProcessNodeInstance>();
+  private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new MemHandleMap<ProcessNodeInstance>();
 
   private final HandleMap<ProcessModel> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
 
@@ -227,8 +227,8 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return The handle
    * @todo change the parameter to a handle object.
    */
-  public ProcessNodeInstance getTask(final long pHandle, final Principal pUser) {
-    final ProcessNodeInstance result = aTaskMap.get(pHandle);
+  public ProcessNodeInstance getNodeInstance(final long pHandle, final Principal pUser) {
+    final ProcessNodeInstance result = aNodeInstanceMap.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
     return result;
   }
@@ -251,8 +251,8 @@ public class ProcessEngine /* implements IProcessEngine */{
     for (final ProcessInstance instance : aInstanceMap) {
       aInstanceMap.remove(instance);
     }
-    for (final ProcessNodeInstance task : aTaskMap) {
-      aTaskMap.remove(task);
+    for (final ProcessNodeInstance task : aNodeInstanceMap) {
+      aNodeInstanceMap.remove(task);
     }
   }
 
@@ -265,7 +265,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return
    */
   public TaskState updateTaskState(final Handle<ProcessNodeInstance> pHandle, final TaskState pNewState, final Principal pUser) {
-    final ProcessNodeInstance task = aTaskMap.get(pHandle);
+    final ProcessNodeInstance task = aNodeInstanceMap.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
     final ProcessInstance pi = task.getProcessInstance();
     synchronized (pi) {
@@ -297,14 +297,14 @@ public class ProcessEngine /* implements IProcessEngine */{
   }
 
   public TaskState finishTask(final Handle<ProcessNodeInstance> pHandle, final Node pPayload, final Principal pUser) {
-    final ProcessNodeInstance task = aTaskMap.get(pHandle);
+    final ProcessNodeInstance task = aNodeInstanceMap.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
     final ProcessInstance pi = task.getProcessInstance();
     synchronized (pi) {
       pi.finishTask(aMessageService, task, pPayload);
       final TaskState newState = task.getState();
       if (newState == TaskState.Complete) {
-        aTaskMap.remove(task);
+        aNodeInstanceMap.remove(task);
       }
       return newState;
     }
@@ -345,7 +345,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     if (pInstance.getHandle() >= 0) {
       throw new IllegalArgumentException("Process node already registered");
     }
-    return aTaskMap.put(pInstance);
+    return aNodeInstanceMap.put(pInstance);
   }
 
   /**
@@ -358,7 +358,7 @@ public class ProcessEngine /* implements IProcessEngine */{
   }
 
   public void errorTask(final Handle<ProcessNodeInstance> pHandle, final Throwable pCause, final Principal pUser) {
-    final ProcessNodeInstance task = aTaskMap.get(pHandle);
+    final ProcessNodeInstance task = aNodeInstanceMap.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
     final ProcessInstance pi = task.getProcessInstance();
     pi.failTask(aMessageService, task, pCause);
