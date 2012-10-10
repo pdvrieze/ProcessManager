@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecurityProvider;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
@@ -124,7 +125,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public synchronized JoinInstance getJoinInstance(final Join pJoin, final ProcessNodeInstance pPredecessor) {
     JoinInstance result = aJoins.get(pJoin);
     if (result == null) {
-      final Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pJoin.getPredecessors().size());
+      final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>(pJoin.getPredecessors().size());
       predecessors.add(pPredecessor);
       result = new JoinInstance(pJoin, predecessors, this);
       aJoins.put(pJoin, result);
@@ -230,7 +231,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       JoinInstance instance = aJoins.get(join);
       if (instance == null) {
 
-        final Collection<ProcessNodeInstance> predecessors = new ArrayList<ProcessNodeInstance>(pNode.getPredecessors().size());
+        final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>(pNode.getPredecessors().size());
         predecessors.add(pPredecessor);
         instance = new JoinInstance(join, predecessors, this);
         aJoins.put(join, instance);
@@ -267,23 +268,25 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return activePredecesors;
   }
 
-  public synchronized Collection<ProcessNodeInstance> getDirectSuccessors(final ProcessNodeInstance pPredecessor) {
-    final ArrayList<ProcessNodeInstance> result = new ArrayList<ProcessNodeInstance>(pPredecessor.getNode().getSuccessors().size());
+  public synchronized Collection<? extends Handle<? extends ProcessNodeInstance>> getDirectSuccessors(final ProcessNodeInstance pPredecessor) {
+    final ArrayList<Handle<? extends ProcessNodeInstance>> result = new ArrayList<Handle<? extends ProcessNodeInstance>>(pPredecessor.getNode().getSuccessors().size());
     for (final ProcessNodeInstance candidate : aThreads) {
       addDirectSuccessor(result, candidate, pPredecessor);
     }
     return result;
   }
 
-  private void addDirectSuccessor(final ArrayList<ProcessNodeInstance> pResult, final ProcessNodeInstance pCandidate, final ProcessNodeInstance pPredecessor) {
+  private void addDirectSuccessor(final ArrayList<Handle<? extends ProcessNodeInstance>> pResult, ProcessNodeInstance pCandidate, final Handle<? extends ProcessNodeInstance> pPredecessor) {
     // First look for this node, before diving into it's children
-    for (final ProcessNodeInstance node : pCandidate.getDirectPredecessors()) {
-      if (node == pPredecessor) {
+    for (final Handle<? extends ProcessNodeInstance> node : pCandidate.getDirectPredecessors()) {
+      if (node.getHandle() == pPredecessor.getHandle()) {
         pResult.add(pCandidate);
         return; // Assume that there is no further "successor" down the chain
       }
     }
-    for (final ProcessNodeInstance node : pCandidate.getDirectPredecessors()) {
+    for (final Handle<? extends ProcessNodeInstance> hnode : pCandidate.getDirectPredecessors()) {
+      // Use the fact that we start with a proper node to get the engine and get the actual node based on the handle (which might be a node itself)
+      ProcessNodeInstance node = pCandidate.getProcessInstance().getEngine().getNodeInstance(hnode.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
       addDirectSuccessor(pResult, node, pPredecessor);
     }
   }

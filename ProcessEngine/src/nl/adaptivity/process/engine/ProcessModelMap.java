@@ -9,14 +9,13 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXB;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.processModel.ProcessModel;
@@ -67,21 +66,17 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
     }
 
     @Override
-    public void initResultSet(ResultSetMetaData pMetaData) {
-      try {
-        final int columnCount = pMetaData.getColumnCount();
-        for (int i=1; i<=columnCount;++i) {
-          String colName = pMetaData.getColumnName(i);
-          if (COL_HANDLE.equals(colName)) {
-            aColNoHandle = i;
-          } else if (COL_OWNER.equals(colName)) {
-            aColNoOwner = i;
-          } else if (COL_MODEL.equals(colName)) {
-            aColNoModel = i;
-          } // ignore other columns
-        }
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
+    public void initResultSet(ResultSetMetaData pMetaData) throws SQLException {
+      final int columnCount = pMetaData.getColumnCount();
+      for (int i=1; i<=columnCount;++i) {
+        String colName = pMetaData.getColumnName(i);
+        if (COL_HANDLE.equals(colName)) {
+          aColNoHandle = i;
+        } else if (COL_OWNER.equals(colName)) {
+          aColNoOwner = i;
+        } else if (COL_MODEL.equals(colName)) {
+          aColNoModel = i;
+        } // ignore other columns
       }
     }
 
@@ -155,15 +150,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
   }
 
   public ProcessModelMap(String pResourceName, StringCache pStringCache) {
-    super(resourceNameToDataSource(pResourceName), new ProcessModelFactory(pStringCache));
-  }
-
-  private static DataSource resourceNameToDataSource(String pResourceName) {
-    try {
-      return (DataSource) new InitialContext().lookup(pResourceName);
-    } catch (NamingException e) {
-      throw new RuntimeException(e);
-    }
+    super(DbSet.resourceNameToDataSource(pResourceName), new ProcessModelFactory(pStringCache));
   }
 
 }

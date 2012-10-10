@@ -184,7 +184,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pUser The user that wants to perform this action.
    * @return The instances.
    */
-  public Iterable<ProcessInstance> getAllProcessInstances(final Principal pUser) {
+  public HandleMap<ProcessInstance> getAllProcessInstances(final Principal pUser) {
     aSecurityProvider.ensurePermission(Permissions.VIEW_ALL_INSTANCES, pUser);
     return aInstanceMap;
   }

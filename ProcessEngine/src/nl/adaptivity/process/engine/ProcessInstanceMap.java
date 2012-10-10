@@ -7,43 +7,36 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
 import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.DBHandleMap.ElementFactory;
 import net.devrieze.util.MemHandleMap;
+import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.processModel.ProcessModel;
 
 
-public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> implements ElementFactory<ProcessInstance> {
+public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   private static final String TABLE = "processinstances";
   private static final String COL_HANDLE = "pihandle";
   private static final String COL_OWNER = "owner";
   private static final String COL_NAME = "name";
   private static final String COL_HPROCESSMODEL = "pmhandle";
-  private int aColNoHandle;
-  private int aColNoOwner;
-  private int aColNoHProcessModel;
-  private int aColNoName;
-  private final ProcessEngine aProcessEngine;
 
-  public ProcessInstanceMap(ProcessEngine pProcessEngine, String pResourceName) {
-    super(resourceNameToDataSource(pResourceName), null, TABLE, COL_HANDLE);
-    aProcessEngine = pProcessEngine;
+  static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
+
+    private int aColNoHandle;
+    private int aColNoOwner;
+    private int aColNoHProcessModel;
+    private int aColNoName;
+    private final ProcessEngine aProcessEngine;
+
   }
 
-  private static DataSource resourceNameToDataSource(String pResourceName) {
-    try {
-      return (DataSource) new InitialContext().lookup(pResourceName);
-    } catch (NamingException e) {
-      throw new RuntimeException(e);
-    }
+  public ProcessInstanceMap(ProcessEngine pProcessEngine, String pResourceName) {
+    super(resourceNameToDataSource(pResourceName), null);
+    aProcessEngine = pProcessEngine;
   }
 
   @Override

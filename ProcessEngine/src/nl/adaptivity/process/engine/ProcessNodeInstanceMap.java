@@ -1,63 +1,44 @@
 package nl.adaptivity.process.engine;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.Arrays;
+import java.sql.*;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.DBHandleMap.ElementFactory;
+import net.devrieze.util.StringCache;
+import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DbSet;
+import net.devrieze.util.security.SecurityProvider;
+
+import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
 
 
-public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance> implements ElementFactory<ProcessNodeInstance> {
+public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance> {
 
   private static final String TABLE = "processnodeinstances";
   private static final String COL_HANDLE = "pnihandle";
   private static final String COL_NODEID = "nodeid";
   private static final String COL_HPROCESSINSTANCE = "pihandle";
-  private int aColNoHandle;
-  private int aColNoHPredecessor;
-  private int aColNoHProcessInstance;
-  private int aColNoNodeId;
-  private final ProcessEngine aProcessEngine;
 
-  public ProcessNodeInstanceMap(ProcessEngine pProcessEngine, String pResourceName) {
-    super(resourceNameToDataSource(pResourceName), null, TABLE, COL_HANDLE);
-    aProcessEngine = pProcessEngine;
-  }
+  static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance> {
 
-  private static DataSource resourceNameToDataSource(String pResourceName) {
-    try {
-      return (DataSource) new InitialContext().lookup(pResourceName);
-    } catch (NamingException e) {
-      throw new RuntimeException(e);
+    private int aColNoHandle;
+    private int aColNoHProcessInstance;
+    private int aColNoNodeId;
+
+    private final StringCache aStringCache;
+    private final ProcessEngine aProcessEngine;
+
+    public ProcessNodeInstanceFactory(ProcessEngine pProcessEngine, StringCache pStringCache) {
+      aProcessEngine = pProcessEngine;
+      aStringCache = pStringCache;
     }
-  }
 
-  @Override
-  public ProcessNodeInstance create(ResultSet pRow) throws SQLException {
-    throw new UnsupportedOperationException("Not yet implemented");
-//    Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
-//    Handle<ProcessModel> hProcessModel = MemHandleMap.handle(pRow.getLong(aColNoHProcessModel));
-//    ProcessModel processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
-//    String instancename = pRow.getString(aColNoName);
-//    long piHandle = pRow.getLong(aColNoHandle);
-//
-//    final ProcessNodeInstance result = new ProcessNodeInstance(owner, processModel, instancename, aProcessEngine);
-//    result.setHandle(piHandle);
-//    return result;
-
-  }
-
-  @Override
-  public void init(ResultSetMetaData pMetaData) {
-    try {
+    @Override
+    public void initResultSet(ResultSetMetaData pMetaData) throws SQLException {
       final int columnCount = pMetaData.getColumnCount();
       for (int i=1; i<=columnCount;++i) {
         String colName = pMetaData.getColumnName(i);
@@ -69,25 +50,116 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
           aColNoHProcessInstance = i;
         } // ignore other columns
       }
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
     }
+
+    @Override
+    public CharSequence getHandleCondition(long pElement) {
+      return COL_HANDLE+" = ?";
+    }
+
+    @Override
+    public int setHandleParams(PreparedStatement pStatement, long pHandle, int pOffset) throws SQLException {
+      pStatement.setLong(pOffset, pHandle);
+      return 1;
+    }
+
+    @Override
+    public CharSequence getTableName() {
+      return TABLE;
+    }
+
+    @Override
+    public int setFilterParams(PreparedStatement pStatement, int pOffset) throws SQLException {
+      throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public ProcessNodeInstance create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
+      long hProcessInstance = pRow.getLong(aColNoHProcessInstance);
+      ProcessInstance processInstance = aProcessEngine.getAllProcessInstances(SecurityProvider.SYSTEMPRINCIPAL).get(hProcessInstance);
+
+      String nodeId = aStringCache.lookup(pRow.getString(aColNoNodeId));
+      ProcessNode node = processInstance.getProcessModel().getNode(nodeId);
+
+      long handle = pRow.getLong(aColNoHandle);
+
+      ProcessNodeInstance result;
+      if (node instanceof Join) {
+        result =  new JoinInstance((Join) node, processInstance);
+      } else {
+        result = new ProcessNodeInstance(node, processInstance);
+      }
+      result.setHandle(handle);
+      return result;
+    }
+
+    @Override
+    public CharSequence getPrimaryKeyCondition(ProcessNodeInstance pObject) {
+      return getHandleCondition(pObject.getHandle());
+    }
+
+    @Override
+    public int setPrimaryKeyParams(PreparedStatement pStatement, ProcessNodeInstance pObject, int pOffset) throws SQLException {
+      return setHandleParams(pStatement, pObject.getHandle(), pOffset);
+    }
+
+    @Override
+    public ProcessNodeInstance asInstance(Object pO) {
+      if (pO instanceof ProcessNodeInstance) {
+        return (ProcessNodeInstance) pO;
+      }
+      return null;
+    }
+
+    @Override
+    public CharSequence getCreateColumns() {
+      return COL_NODEID+", "+COL_HPROCESSINSTANCE;
+    }
+
+    @Override
+    public CharSequence getCreateParamHolders() {
+      return "?, ?";
+    }
+
+    @Override
+    public int setStoreParams(PreparedStatement pStatement, ProcessNodeInstance pElement, int pOffset) throws SQLException {
+      pStatement.setString(pOffset, pElement.getNode().getId());
+      pStatement.setLong(pOffset+1, pElement.getProcessInstance().getHandle());
+      return 2;
+    }
+
+    @Override
+    public void postStore(Connection pConnection) throws SQLException {
+      // TODO Auto-generated method stub
+      // super.postStore(pConnection);
+      throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void preRemove(Connection pConnection, long pHandle) throws SQLException {
+      // TODO Auto-generated method stub
+      // super.preRemove(pConnection, pHandle);
+      throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void preRemove(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+      preRemove(pConnection, pElement.getHandle());
+    }
+
+    @Override
+    public void preClear(Connection pConnection) throws SQLException {
+      // TODO Auto-generated method stub
+      // super.preClear(pConnection);
+      throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+
+
   }
 
-  @Override
-  public boolean isInstance(Object pObject) {
-    return pObject instanceof ProcessInstance;
-  }
-
-  @Override
-  public Iterable<String> getInsertColumns() {
-    return Arrays.asList(COL_NODEID, COL_HPROCESSINSTANCE);
-  }
-
-  @Override
-  public void insertColumnValues(PreparedStatement pStatement, ProcessNodeInstance pElement) throws SQLException {
-    pStatement.setString(1, pElement.getNode().getId());
-    pStatement.setLong(2, pElement.getProcessInstance().getHandle());
+  public ProcessNodeInstanceMap(String pResourceName, ProcessEngine pProcessEngine, StringCache pStringCache) {
+    super(DbSet.resourceNameToDataSource(pResourceName), new ProcessNodeInstanceFactory(pProcessEngine, pStringCache));
   }
 
 }
