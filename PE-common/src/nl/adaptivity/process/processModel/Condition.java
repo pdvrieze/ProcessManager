@@ -2,7 +2,7 @@ package nl.adaptivity.process.processModel;
 
 import java.io.Serializable;
 
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 
 /**
@@ -26,7 +26,7 @@ public class Condition implements Serializable {
    * @param pInstance The instance to use to evaluate against.
    * @return <code>true</code>
    */
-  public boolean eval(final Task<?> pInstance) {
+  public boolean eval(final IProcessNodeInstance<?> pInstance) {
     return true;
   }
 

@@ -8,7 +8,7 @@ import java.util.List;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 
 @XmlRootElement(name = EndNode.ELEMENTNAME)
@@ -29,7 +29,7 @@ public class EndNode extends ProcessNode {
   public static final String ELEMENTNAME = "end";
 
   @Override
-  public boolean condition(final Task<?> pInstance) {
+  public boolean condition(final IProcessNodeInstance<?> pInstance) {
     return true;
   }
 
@@ -61,17 +61,17 @@ public class EndNode extends ProcessNode {
   }
 
   @Override
-  public <T, U extends Task<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     //    pProcessInstance.finish();
     return true;
   }

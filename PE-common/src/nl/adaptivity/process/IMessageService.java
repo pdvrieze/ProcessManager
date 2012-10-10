@@ -1,6 +1,6 @@
 package nl.adaptivity.process;
 
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.XmlMessage;
 
 
@@ -12,7 +12,7 @@ import nl.adaptivity.process.processModel.XmlMessage;
  * @param <U> The task that the message corresponds to. This allows for messages
  *          to be linked to tasks.
  */
-public interface IMessageService<T, U extends Task<U>> {
+public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
 
   /**
    * Create a message.

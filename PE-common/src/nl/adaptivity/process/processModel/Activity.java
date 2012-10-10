@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 
 /**
@@ -197,7 +197,7 @@ public class Activity extends ProcessNode {
    * Determine whether the process can start.
    */
   @Override
-  public boolean condition(final Task<?> pInstance) {
+  public boolean condition(final IProcessNodeInstance<?> pInstance) {
     if (aCondition == null) {
       return true;
     }
@@ -214,7 +214,7 @@ public class Activity extends ProcessNode {
    * @todo handle imports.
    */
   @Override
-  public <T, U extends Task<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     // TODO handle imports
     final T message = pMessageService.createMessage(aMessage);
     if (!pMessageService.sendMessage(message, pInstance)) {
@@ -231,7 +231,7 @@ public class Activity extends ProcessNode {
    * @return <code>false</code>
    */
   @Override
-  public <T, U extends Task<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return false;
   }
 
@@ -242,7 +242,7 @@ public class Activity extends ProcessNode {
    * @return <code>false</code>
    */
   @Override
-  public <T, U extends Task<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return false;
   }
 

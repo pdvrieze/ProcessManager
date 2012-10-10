@@ -15,7 +15,7 @@ import nl.adaptivity.process.IMessageService;
  * @author Paul de Vrieze
  * @param <V> The actual type of the implementing class.
  */
-public interface Task<V extends Task<V>> extends HandleAware<V> {
+public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends HandleAware<V> {
 
   /**
    * Enumeration representing the various states a task can be in.

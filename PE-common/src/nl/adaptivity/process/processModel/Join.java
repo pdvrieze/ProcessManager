@@ -7,7 +7,7 @@ import java.util.Collection;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 
 @XmlRootElement(name = Join.ELEMENTNAME)
@@ -59,7 +59,7 @@ public class Join extends ProcessNode {
   }
 
   @Override
-  public boolean condition(final Task<?> pInstance) {
+  public boolean condition(final IProcessNodeInstance<?> pInstance) {
     return true;
   }
 
@@ -100,17 +100,17 @@ public class Join extends ProcessNode {
   }
 
   @Override
-  public <T, U extends Task<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 
   @Override
-  public <T, U extends Task<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 

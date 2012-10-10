@@ -12,7 +12,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import net.devrieze.util.IdFactory;
 
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.Task;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -88,7 +88,7 @@ public abstract class ProcessNode implements Serializable {
    * @return <code>true</code> if the node can be started, <code>false</code> if
    *         not.
    */
-  public abstract boolean condition(Task<?> pInstance);
+  public abstract boolean condition(IProcessNodeInstance<?> pInstance);
 
   @Deprecated
   public void skip() {
@@ -119,7 +119,7 @@ public abstract class ProcessNode implements Serializable {
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract <T, U extends Task<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance);
 
   /**
    * Take action to accept the task (but not start it yet)
@@ -128,9 +128,9 @@ public abstract class ProcessNode implements Serializable {
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */
-  public abstract <T, U extends Task<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance);
 
-  public abstract <T, U extends Task<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance);
 
   @Override
   public String toString() {

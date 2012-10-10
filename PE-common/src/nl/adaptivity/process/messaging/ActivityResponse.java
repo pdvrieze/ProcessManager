@@ -11,7 +11,7 @@ package nl.adaptivity.process.messaging;
 import javax.xml.bind.annotation.*;
 
 import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.ws.soap.SoapHelper;
 
 

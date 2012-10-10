@@ -5,7 +5,7 @@ import java.security.Principal;
 import net.devrieze.util.HandleMap.HandleAware;
 
 import nl.adaptivity.messaging.EndPointDescriptorImpl;
-import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
 
 public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
