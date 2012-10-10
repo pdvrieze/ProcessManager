@@ -13,11 +13,8 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
 import net.devrieze.util.Tripple;
-import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.EndPointDescriptorImpl;
-import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.messaging.MessagingRegistry;
-import nl.adaptivity.messaging.SendableSoapSource;
+
+import nl.adaptivity.messaging.*;
 import nl.adaptivity.ws.soap.SoapHelper;
 
 public class ServletProcessEngineClient {
@@ -28,9 +25,9 @@ public class ServletProcessEngineClient {
 
   private ServletProcessEngineClient() { }
 
-  public static Future<nl.adaptivity.process.exec.Task.TaskState> updateTaskState(long handle, nl.adaptivity.process.exec.Task.TaskState state, java.security.Principal user, CompletionListener completionListener) throws JAXBException {
+  public static Future<nl.adaptivity.process.exec.IProcessNodeInstance.TaskState> updateTaskState(long handle, nl.adaptivity.process.exec.IProcessNodeInstance.TaskState state, java.security.Principal user, CompletionListener completionListener) throws JAXBException {
     final Tripple<String, Class<?>, Object> param0 = Tripple.<String, Class<?>, Object>tripple("handle", long.class, handle);
-    final Tripple<String, Class<?>, Object> param1 = Tripple.<String, Class<?>, Object>tripple("state", nl.adaptivity.process.exec.Task.TaskState.class, state);
+    final Tripple<String, Class<?>, Object> param1 = Tripple.<String, Class<?>, Object>tripple("state", nl.adaptivity.process.exec.IProcessNodeInstance.TaskState.class, state);
     final Tripple<String, Class<?>, Object> param2 = Tripple.<String, Class<?>, Object>tripple("user", java.security.Principal.class, user);
 
     @SuppressWarnings("unchecked")
@@ -38,10 +35,10 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.Task.TaskState.class);
+    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.IProcessNodeInstance.TaskState.class);
   }
 
-  public static Future<nl.adaptivity.process.exec.Task.TaskState> finishTask(long handle, org.w3c.dom.Node payload, java.lang.String user, CompletionListener completionListener) throws JAXBException {
+  public static Future<nl.adaptivity.process.exec.IProcessNodeInstance.TaskState> finishTask(long handle, org.w3c.dom.Node payload, java.lang.String user, CompletionListener completionListener) throws JAXBException {
     final Tripple<String, Class<?>, Object> param0 = Tripple.<String, Class<?>, Object>tripple("handle", long.class, handle);
     final Tripple<String, Class<?>, Object> param1 = Tripple.<String, Class<?>, Object>tripple("payload", org.w3c.dom.Node.class, payload);
     final Tripple<String, Class<?>, Object> param2 = Tripple.<String, Class<?>, Object>tripple("user", java.lang.String.class, user);
@@ -51,10 +48,10 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.Task.TaskState.class);
+    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.IProcessNodeInstance.TaskState.class);
   }
 
-  public static Future<nl.adaptivity.process.exec.Task.TaskState> finishTask(long handle, org.w3c.dom.Node payload, java.security.Principal user, CompletionListener completionListener) throws JAXBException {
+  public static Future<nl.adaptivity.process.exec.IProcessNodeInstance.TaskState> finishTask(long handle, org.w3c.dom.Node payload, java.security.Principal user, CompletionListener completionListener) throws JAXBException {
     final Tripple<String, Class<?>, Object> param0 = Tripple.<String, Class<?>, Object>tripple("handle", long.class, handle);
     final Tripple<String, Class<?>, Object> param1 = Tripple.<String, Class<?>, Object>tripple("payload", org.w3c.dom.Node.class, payload);
 
@@ -63,7 +60,7 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.Task.TaskState.class);
+    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, nl.adaptivity.process.exec.IProcessNodeInstance.TaskState.class);
   }
 
 }
