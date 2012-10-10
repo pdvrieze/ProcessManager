@@ -33,7 +33,7 @@ import nl.adaptivity.messaging.ISendableMessage;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;

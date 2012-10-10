@@ -8,7 +8,7 @@ import net.devrieze.util.HandleMap;
 import net.devrieze.util.MemHandleMap;
 
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.process.exec.Task.TaskState;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
 
 public class UserMessageService implements CompletionListener {
