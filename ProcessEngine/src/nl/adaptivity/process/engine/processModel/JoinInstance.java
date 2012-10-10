@@ -2,6 +2,9 @@ package nl.adaptivity.process.engine.processModel;
 
 import java.util.Collection;
 
+import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.processModel.Join;
@@ -9,15 +12,25 @@ import nl.adaptivity.process.processModel.Join;
 
 public class JoinInstance extends ProcessNodeInstance {
 
-  public JoinInstance(final Join pNode, final Collection<ProcessNodeInstance> pPredecessors, final ProcessInstance pProcessInstance) {
+  public JoinInstance(final Join pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
     super(pNode, pPredecessors, pProcessInstance);
-    for (final ProcessNodeInstance predecessor : pPredecessors) {
+    for (final Handle<? extends ProcessNodeInstance> hpredecessor : pPredecessors) {
+      ProcessNodeInstance predecessor = pProcessInstance.getEngine().getNodeInstance(hpredecessor.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
       if (predecessor.getState() == TaskState.Complete) {
         aComplete += 1;
       } else {
         aSkipped += 1;
       }
     }
+  }
+
+  /**
+   * Constructor for ProcessNodeInstanceMap.
+   * @param pNode
+   * @param pProcessInstance
+   */
+  public JoinInstance(Join pNode, ProcessInstance pProcessInstance) {
+    super(pNode, pProcessInstance);
   }
 
   private int aComplete = 0;
@@ -85,9 +98,10 @@ public class JoinInstance extends ProcessNodeInstance {
     if (!isFinished()) {
       return getNode().provideTask(pMessageService, this);
     }
-    final Collection<ProcessNodeInstance> directSuccessors = getProcessInstance().getDirectSuccessors(this);
+    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(this);
     boolean canAdd = false;
-    for (final ProcessNodeInstance directSuccessor : directSuccessors) {
+    for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
+      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(hDirectSuccessor.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
       if ((directSuccessor.getState() == TaskState.Started) || (directSuccessor.getState() == TaskState.Complete)) {
         canAdd = false;
         break;
@@ -101,9 +115,10 @@ public class JoinInstance extends ProcessNodeInstance {
     if (!isFinished()) {
       return true;
     }
-    final Collection<ProcessNodeInstance> directSuccessors = getProcessInstance().getDirectSuccessors(this);
+    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(this);
     boolean canAdd = false;
-    for (final ProcessNodeInstance directSuccessor : directSuccessors) {
+    for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
+      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(hDirectSuccessor.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
       if ((directSuccessor.getState() == TaskState.Started) || (directSuccessor.getState() == TaskState.Complete)) {
         canAdd = false;
         break;

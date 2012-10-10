@@ -1,10 +1,12 @@
 package nl.adaptivity.process.engine.processModel;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
 import org.w3c.dom.Node;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SecureObject;
 
 import nl.adaptivity.process.IMessageService;
@@ -20,7 +22,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Node aPayload;
 
-  private final Collection<ProcessNodeInstance> aPredecessors;
+  private Collection<Handle<? extends ProcessNodeInstance>> aPredecessors;
 
   private TaskState aState = null;
 
@@ -30,24 +32,29 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Throwable aFailureCause;
 
-  public ProcessNodeInstance(final ProcessNode pNode, final ProcessNodeInstance pPredecessor, final ProcessInstance pProcessInstance) {
+  public ProcessNodeInstance(final ProcessNode pNode, final Handle<? extends ProcessNodeInstance> pPredecessor, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
-    aPredecessors = Collections.singletonList(pPredecessor);
+    aPredecessors = Collections.<Handle<? extends ProcessNodeInstance>>singletonList(pPredecessor);
     aProcessInstance = pProcessInstance;
-    if ((aPredecessors == null) && !(pNode instanceof StartNode)) {
+    if ((pPredecessor == null) && !(pNode instanceof StartNode)) {
       throw new NullPointerException();
     }
   }
 
-  protected ProcessNodeInstance(final ProcessNode pNode, final Collection<ProcessNodeInstance> pPredecessors, final ProcessInstance pProcessInstance) {
+  protected ProcessNodeInstance(final ProcessNode pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
-    aPredecessors = pPredecessors;
+    aPredecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>(pPredecessors);
     aProcessInstance = pProcessInstance;
-    if ((aPredecessors == null) && !(pNode instanceof StartNode)) {
-      throw new NullPointerException();
+    if (((aPredecessors == null) || (aPredecessors.size()==0)) && !(pNode instanceof StartNode)) {
+      throw new NullPointerException("Non-start-node process node instances need predecessors");
     }
+  }
+
+  public ProcessNodeInstance(ProcessNode pNode, ProcessInstance pProcessInstance) {
+    aNode = pNode;
+    aProcessInstance = pProcessInstance;
   }
 
   public ProcessNode getNode() {
@@ -58,7 +65,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return aPayload;
   }
 
-  public Collection<ProcessNodeInstance> getDirectPredecessors() {
+  public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
     return aPredecessors;
   }
 
