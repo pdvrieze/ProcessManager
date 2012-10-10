@@ -21,7 +21,7 @@ import nl.adaptivity.process.processModel.ProcessModel.PMXmlAdapter;
 /**
  * A class representing a process model. This is too complex to directly support
  * JAXB serialization, so the {@link ProcessModelXmlAdapter} does that.
- * 
+ *
  * @author Paul de Vrieze
  */
 @XmlJavaTypeAdapter(PMXmlAdapter.class)
@@ -62,7 +62,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
   /**
    * Create a new processModel based on the given endnodes. These endnodes must
    * have proper predecessors set, and end with {@link StartNode StartNodes}
-   * 
+   *
    * @param pEndNodes The endnodes
    */
   public ProcessModel(final Collection<EndNode> pEndNodes) {
@@ -74,7 +74,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * Create a new processModel based on the given endnodes. This is a
    * convenience constructor. These endnodes must have proper predecessors set,
    * and end with {@link StartNode StartNodes}
-   * 
+   *
    * @param pEndNodes The endnodes
    */
   public ProcessModel(final EndNode... pEndNodes) {
@@ -83,7 +83,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Create a processModel out of the given xml representation.
-   * 
+   *
    * @param pXmlModel The xml representation to base the model on.
    */
   public ProcessModel(final XmlProcessModel pXmlModel) {
@@ -105,7 +105,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Helper method that reverses the process model based on the set of endnodes.
-   * 
+   *
    * @param pEndNodes The endnodes to base the model on.
    * @return A collection of startNodes.
    */
@@ -121,7 +121,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * Helper method for {@link #reverseGraph(Collection)} That does the actual
    * reversing. Note that predecessors will also be updated to add the node they
    * are predecessors to.
-   * 
+   *
    * @param pResultList The collection in which start nodes need to be stored.
    * @param pNode The node to do the reversion from.
    */
@@ -146,7 +146,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get an array of all process nodes in the model. Used by XmlProcessModel
-   * 
+   *
    * @return An array of all nodes.
    */
   ProcessNode[] getModelNodes() {
@@ -165,7 +165,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * {@link EndNode}s and sets the model accordingly. This does mean that only
    * passing {@link EndNode}s will have the same result, and the other nodes
    * will be pulled in.
-   * 
+   *
    * @param pProcessNodes The process nodes to base the model on.
    */
   public void setModelNodes(final ProcessNode[] pProcessNodes) {
@@ -181,7 +181,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Helper method that helps enumerating all elements in the model
-   * 
+   *
    * @param pTo The collection that will contain the result.
    * @param pSeen A set of process names that have already been seen (and should
    *          not be added again.
@@ -201,7 +201,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get the startnodes for this model.
-   * 
+   *
    * @return The start nodes.
    */
   public Collection<StartNode> getStartNodes() {
@@ -210,7 +210,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get the amount of end nodes in the model
-   * 
+   *
    * @return The amount of end nodes.
    */
   public int getEndNodeCount() {
@@ -219,7 +219,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get the name of the model.
-   * 
+   *
    * @return
    */
   public String getName() {
@@ -228,7 +228,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Set the name of the model.
-   * 
+   *
    * @param name The name
    */
   public void setName(final String name) {
@@ -253,7 +253,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   /**
    * Get a reference node for this model.
-   * 
+   *
    * @return A reference node.
    */
   public ProcessModelRef getRef() {
@@ -294,6 +294,35 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
         aRoles.add(pStringCache.lookup(role));
       }
     }
+  }
+
+  /**
+   * Get the process node with the given id.
+   * @param pNodeId The node id to look up.
+   * @return The process node with the id.
+   */
+  public ProcessNode getNode(String pNodeId) {
+    for(StartNode startNode: aStartNodes) {
+      ProcessNode result = getNode(startNode, pNodeId);
+      if (result!=null) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Recursive helper for {@link #getNode(String)}
+   */
+  private static ProcessNode getNode(ProcessNode pBaseNode, String pNodeId) {
+    if (pBaseNode.getId().equals(pNodeId)) { return pBaseNode; }
+    for(ProcessNode node: pBaseNode.getSuccessors()) {
+      ProcessNode result = getNode(node, pNodeId);
+      if (result!=null) {
+        return result;
+      }
+    }
+    return null;
   }
 
 }
