@@ -43,7 +43,7 @@ public class LoginContent extends Widget {
       username = XMLUtil.descendentWithAttribute(parentForm, "name", "username").cast();
       password = XMLUtil.descendentWithAttribute(parentForm, "name", "password").cast();
       login = XMLUtil.descendentWithAttribute(parentForm, "name", "login").cast();
-      login.setAttribute("type", "button");
+      login.setAttribute("type", "submit");
       cancel = XMLUtil.descendentWithAttribute(parentForm, "name", "cancel").cast();
       setElement(parentForm);
     } else {
