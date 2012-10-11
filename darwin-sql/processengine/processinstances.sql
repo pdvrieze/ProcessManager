@@ -16,9 +16,17 @@ CREATE TABLE `processnodeinstances` (
   `pnihandle` BIGINT NOT NULL AUTO_INCREMENT,
   `pihandle` BIGINT NOT NULL,
   `nodeid` VARCHAR(30) NOT NULL,
-  `predecessor` BIGINT,
+  `state` VARCHAR(30) DEFAULT 'Sent',
   PRIMARY KEY ( `pnihandle` ),
-  FOREIGN KEY ( `predecessor` ) REFERENCES `processnodeinstances` ( `pnihandle` )
+  FOREIGN KEY ( `pihandle` ) REFERENCES `processinstances` ( `pihandle` )
+) ENGINE=InnoDB CHARSET=utf8;
+
+CREATE TABLE `pnipredecessors` (
+  `pnihandle` BIGINT NOT NULL,
+  `predecessor` BIGINT NOT NULL,
+  PRIMARY KEY ( `pnihandle`, `predecessors` ),
+  FOREIGN KEY ( `predecessor` ) REFERENCES `processnodeinstances` ( `pnihandle` ),
+  FOREIGN KEY ( `pnihandle` ) REFERENCES `processnodeinstances` ( `pnihandle` )
 ) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE `nodedata` (
@@ -27,5 +35,5 @@ CREATE TABLE `nodedata` (
   `data` TEXT NOT NULL,
   PRIMARY KEY ( `name`, `pnihandle` ),
   FOREIGN KEY ( `pnihandle` ) REFERENCES `processnodeinstances` ( `pnihandle` )
-  
+
 ) ENGINE=InnoDB CHARSET=utf8;
