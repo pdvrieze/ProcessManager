@@ -151,6 +151,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public void preRemove(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+
       preRemove(pConnection, pElement.getHandle());
     }
 
