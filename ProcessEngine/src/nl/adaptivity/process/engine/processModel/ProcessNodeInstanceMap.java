@@ -151,11 +151,16 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public CharSequence getCreateColumns() {
+      return COL_HANDLE+", "+COL_NODEID+", "+COL_HPROCESSINSTANCE+", "+COL_STATE;
+    }
+
+    @Override
+    public CharSequence getStoreColumns() {
       return COL_NODEID+", "+COL_HPROCESSINSTANCE+", "+COL_STATE;
     }
 
     @Override
-    public CharSequence getCreateParamHolders() {
+    public CharSequence getStoreParamHolders() {
       return "?, ?, ?";
     }
 

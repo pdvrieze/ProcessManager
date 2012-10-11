@@ -116,12 +116,17 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
 
     @Override
     public CharSequence getCreateColumns() {
-      return COL_OWNER + ", " + COL_MODEL;
+      return COL_HANDLE+", "+COL_OWNER + ", " + COL_MODEL;
     }
 
     @Override
-    public CharSequence getCreateParamHolders() {
+    public CharSequence getStoreParamHolders() {
       return "?, ?";
+    }
+
+    @Override
+    public CharSequence getStoreColumns() {
+      return COL_OWNER + ", " + COL_MODEL;
     }
 
     @Override
