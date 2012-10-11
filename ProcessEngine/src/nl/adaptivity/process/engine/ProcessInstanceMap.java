@@ -5,7 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.Arrays;
+
+import javax.sql.DataSource;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.MemHandleMap;
@@ -32,30 +33,12 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     private int aColNoName;
     private final ProcessEngine aProcessEngine;
 
-  }
+    public ProcessInstanceElementFactory(ProcessEngine pProcessEngine) {
+      aProcessEngine = pProcessEngine;
+    }
 
-  public ProcessInstanceMap(ProcessEngine pProcessEngine, String pResourceName) {
-    super(resourceNameToDataSource(pResourceName), null);
-    aProcessEngine = pProcessEngine;
-  }
-
-  @Override
-  public ProcessInstance create(ResultSet pRow) throws SQLException {
-    Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
-    Handle<ProcessModel> hProcessModel = MemHandleMap.handle(pRow.getLong(aColNoHProcessModel));
-    ProcessModel processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
-    String instancename = pRow.getString(aColNoName);
-    long piHandle = pRow.getLong(aColNoHandle);
-
-    final ProcessInstance result = new ProcessInstance(owner, processModel, instancename, aProcessEngine);
-    result.setHandle(piHandle);
-    return result;
-
-  }
-
-  @Override
-  public void init(ResultSetMetaData pMetaData) {
-    try {
+    @Override
+    public void initResultSet(ResultSetMetaData pMetaData) throws SQLException {
       final int columnCount = pMetaData.getColumnCount();
       for (int i=1; i<=columnCount;++i) {
         String colName = pMetaData.getColumnName(i);
@@ -69,25 +52,87 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
           aColNoName = i;
         } // ignore other columns
       }
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
     }
+
+    @Override
+    public CharSequence getHandleCondition(long pElement) {
+      return COL_HANDLE+" = ?";
+    }
+
+    @Override
+    public int setHandleParams(PreparedStatement pStatement, long pHandle, int pOffset) throws SQLException {
+      pStatement.setLong(pOffset, pHandle);
+      return 1;
+    }
+
+    @Override
+    public CharSequence getTableName() {
+      return TABLE;
+    }
+
+    @Override
+    public int setFilterParams(PreparedStatement pStatement, int pOffset) throws SQLException {
+      throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public ProcessInstance create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
+      Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
+      Handle<ProcessModel> hProcessModel = MemHandleMap.handle(pRow.getLong(aColNoHProcessModel));
+      ProcessModel processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
+      String instancename = pRow.getString(aColNoName);
+      long piHandle = pRow.getLong(aColNoHandle);
+
+      final ProcessInstance result = new ProcessInstance(owner, processModel, instancename, aProcessEngine);
+      result.setHandle(piHandle);
+      return result;
+    }
+
+    @Override
+    public CharSequence getPrimaryKeyCondition(ProcessInstance pObject) {
+      return getHandleCondition(pObject.getHandle());
+    }
+
+    @Override
+    public int setPrimaryKeyParams(PreparedStatement pStatement, ProcessInstance pObject, int pOffset) throws SQLException {
+      return setHandleParams(pStatement, pObject.getHandle(), pOffset);
+    }
+
+    @Override
+    public ProcessInstance asInstance(Object pO) {
+      if (pO instanceof ProcessInstance) {
+        return (ProcessInstance) pO;
+      }
+      return null;
+    }
+
+    @Override
+    public CharSequence getCreateColumns() {
+      return COL_HANDLE+", "+COL_HPROCESSMODEL+", "+COL_NAME+", "+COL_OWNER;
+    }
+
+    @Override
+    public CharSequence getStoreColumns() {
+      return COL_HPROCESSMODEL+", "+COL_NAME+", "+COL_OWNER;
+    }
+
+    @Override
+    public CharSequence getStoreParamHolders() {
+      return "?, ?, ?";
+    }
+
+    @Override
+    public int setStoreParams(PreparedStatement pStatement, ProcessInstance pElement, int pOffset) throws SQLException {
+      pStatement.setLong(pOffset, pElement.getProcessModel().getHandle());
+      pStatement.setString(pOffset+1, COL_NAME);
+      pStatement.setString(pOffset+2, pElement.getOwner().getName());
+      return 3;
+    }
+
   }
 
-  @Override
-  public boolean isInstance(Object pObject) {
-    return pObject instanceof ProcessInstance;
-  }
-
-  @Override
-  public Iterable<String> getInsertColumns() {
-    return Arrays.asList(COL_OWNER, COL_HPROCESSMODEL);
-  }
-
-  @Override
-  public void insertColumnValues(PreparedStatement pStatement, ProcessInstance pElement) throws SQLException {
-    pStatement.setString(1, pElement.getOwner().getName());
-    pStatement.setLong(2, pElement.getProcessModel().getHandle());
+  public ProcessInstanceMap(ProcessEngine pProcessEngine, String pResourceName) {
+    super(resourceNameToDataSource(pResourceName), new ProcessInstanceElementFactory(pProcessEngine));
   }
 
 }
