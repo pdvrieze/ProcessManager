@@ -1,4 +1,4 @@
-package nl.adaptivity.process.engine;
+package nl.adaptivity.process.engine.processModel;
 
 import java.sql.*;
 
@@ -9,9 +9,9 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SecurityProvider;
-
-import nl.adaptivity.process.engine.processModel.JoinInstance;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 
@@ -21,6 +21,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
   private static final String TABLE = "processnodeinstances";
   private static final String COL_HANDLE = "pnihandle";
   private static final String COL_NODEID = "nodeid";
+  private static final String COL_STATE = "state";
   private static final String COL_HPROCESSINSTANCE = "pihandle";
 
   static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance> {
@@ -28,6 +29,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     private int aColNoHandle;
     private int aColNoHProcessInstance;
     private int aColNoNodeId;
+    private int aColNoState;
 
     private final StringCache aStringCache;
     private final ProcessEngine aProcessEngine;
@@ -46,6 +48,8 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
           aColNoHandle = i;
         } else if (COL_NODEID.equals(colName)) {
           aColNoNodeId = i;
+        } else if (COL_STATE.equals(colName)) {
+          aColNoState = i;
         } else if (COL_HPROCESSINSTANCE.equals(colName)) {
           aColNoHProcessInstance = i;
         } // ignore other columns
@@ -83,11 +87,13 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
       long handle = pRow.getLong(aColNoHandle);
 
+      TaskState state = TaskState.valueOf(pRow.getString(aColNoState));
+
       ProcessNodeInstance result;
       if (node instanceof Join) {
-        result =  new JoinInstance((Join) node, processInstance);
+        result =  new JoinInstance((Join) node, processInstance, state);
       } else {
-        result = new ProcessNodeInstance(node, processInstance);
+        result = new ProcessNodeInstance(node, processInstance, state);
       }
       result.setHandle(handle);
       return result;
@@ -113,19 +119,20 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public CharSequence getCreateColumns() {
-      return COL_NODEID+", "+COL_HPROCESSINSTANCE;
+      return COL_NODEID+", "+COL_HPROCESSINSTANCE+", "+COL_STATE;
     }
 
     @Override
     public CharSequence getCreateParamHolders() {
-      return "?, ?";
+      return "?, ?, ?";
     }
 
     @Override
     public int setStoreParams(PreparedStatement pStatement, ProcessNodeInstance pElement, int pOffset) throws SQLException {
       pStatement.setString(pOffset, pElement.getNode().getId());
       pStatement.setLong(pOffset+1, pElement.getProcessInstance().getHandle());
-      return 2;
+      pStatement.setString(pOffset+1, pElement.getState().name());
+      return 3;
     }
 
     @Override

@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.processModel.Join;
@@ -29,8 +28,8 @@ public class JoinInstance extends ProcessNodeInstance {
    * @param pNode
    * @param pProcessInstance
    */
-  public JoinInstance(Join pNode, ProcessInstance pProcessInstance) {
-    super(pNode, pProcessInstance);
+  JoinInstance(Join pNode, ProcessInstance pProcessInstance, TaskState pState) {
+    super(pNode, pProcessInstance, pState);
   }
 
   private int aComplete = 0;

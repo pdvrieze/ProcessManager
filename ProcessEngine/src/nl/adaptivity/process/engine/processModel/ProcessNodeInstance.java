@@ -4,16 +4,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SecureObject;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+
+import org.w3c.dom.Node;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -52,9 +51,10 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  public ProcessNodeInstance(ProcessNode pNode, ProcessInstance pProcessInstance) {
+  ProcessNodeInstance(ProcessNode pNode, ProcessInstance pProcessInstance, TaskState pState) {
     aNode = pNode;
     aProcessInstance = pProcessInstance;
+    aState = pState;
   }
 
   public ProcessNode getNode() {
