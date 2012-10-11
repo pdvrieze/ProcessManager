@@ -1,14 +1,18 @@
 package nl.adaptivity.process.engine.processModel;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
 
 import net.devrieze.util.CachingDBHandleMap;
+import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -22,7 +26,10 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
   private static final String COL_HANDLE = "pnihandle";
   private static final String COL_NODEID = "nodeid";
   private static final String COL_STATE = "state";
+  public static final String COL_PREDECESSOR = "predecessor";
   private static final String COL_HPROCESSINSTANCE = "pihandle";
+  public static final String TABLE_PREDECESSORS = "pnipredecessors";
+  public static final String TABLE_NODEDATA = "nodedata";
 
   static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance> {
 
@@ -99,6 +106,31 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       return result;
     }
 
+
+
+    @Override
+    public void postCreate(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+      List<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>();
+      PreparedStatement statement = pConnection.prepareStatement("SELECT `"+COL_PREDECESSOR+"` FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;");
+      try {
+        if(statement.execute()) {
+          ResultSet resultset = statement.getResultSet();
+          try {
+            while(resultset.next()) {
+              Handle<? extends ProcessNodeInstance> predecessor = MemHandleMap.handle(resultset.getLong(1));
+              predecessors.add(predecessor);
+            }
+          } finally {
+            resultset.close();
+          }
+        }
+      } finally {
+        statement.close();
+      }
+      pElement.getDirectPredecessors().clear();
+      pElement.getDirectPredecessors().addAll(predecessors);
+    }
+
     @Override
     public CharSequence getPrimaryKeyCondition(ProcessNodeInstance pObject) {
       return getHandleCondition(pObject.getHandle());
@@ -136,30 +168,77 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public void postStore(Connection pConnection) throws SQLException {
-      // TODO Auto-generated method stub
-      // super.postStore(pConnection);
-      throw new UnsupportedOperationException("Not yet implemented");
+    public void postStore(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+      PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );");
+      long handle = pElement.getHandle();
+      try {
+        for(Handle<? extends ProcessNodeInstance> predecessor:pElement.getDirectPredecessors()) {
+          statement.setLong(1, handle);
+          statement.setLong(2, predecessor.getHandle());
+          statement.addBatch();
+        }
+        statement.executeBatch();
+      } finally {
+        statement.close();
+      }
     }
 
     @Override
     public void preRemove(Connection pConnection, long pHandle) throws SQLException {
-      // TODO Auto-generated method stub
-      // super.preRemove(pConnection, pHandle);
-      throw new UnsupportedOperationException("Not yet implemented");
+      PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;");
+      try {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      } finally {
+        statement.close();
+      }
+      statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` ?;");
+      try {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      } finally {
+        statement.close();
+      }
     }
 
     @Override
     public void preRemove(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
-
       preRemove(pConnection, pElement.getHandle());
     }
 
     @Override
     public void preClear(Connection pConnection) throws SQLException {
-      // TODO Auto-generated method stub
-      // super.preClear(pConnection);
-      throw new UnsupportedOperationException("Not yet implemented");
+      CharSequence filter = getFilterExpression();
+      {
+        final String sql;
+        if (filter==null || filter.length()==0) {
+          sql= "DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"`);";
+        } else {
+          sql= "DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"` WHERE "+filter+");";
+        }
+        PreparedStatement statement = pConnection.prepareStatement(sql);
+        try {
+          setFilterParams(statement, 1);
+          statement.executeUpdate();
+        } finally {
+          statement.close();
+        }
+      }
+      {
+        final String sql;
+        if (filter==null || filter.length()==0) {
+          sql= "DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"`);";
+        } else {
+          sql= "DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"` WHERE "+filter+");";
+        }
+        PreparedStatement statement = pConnection.prepareStatement(sql);
+        try {
+          setFilterParams(statement, 1);
+          statement.executeUpdate();
+        } finally {
+          statement.close();
+        }
+      }
     }
 
 
