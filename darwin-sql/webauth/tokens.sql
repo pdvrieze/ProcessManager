@@ -11,3 +11,5 @@ CREATE TABLE `tokens` (
   FOREIGN KEY (`user`) REFERENCES `users` (`user`),
   FOREIGN KEY (`keyid`) REFERENCES `pubkeys` (`keyid`)
 ) ENGINE=InnoDB CHARSET=utf8;
+
+GRANT DELETE ON `tokens` TO `webauth`@`localhost`;
