@@ -1,10 +1,9 @@
 package nl.adaptivity.process.engine;
 
 import java.security.Principal;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -13,17 +12,18 @@ import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.processModel.ProcessModel;
 
 
 public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
-  private static final String TABLE = "processinstances";
-  private static final String COL_HANDLE = "pihandle";
-  private static final String COL_OWNER = "owner";
-  private static final String COL_NAME = "name";
-  private static final String COL_HPROCESSMODEL = "pmhandle";
+  public static final String TABLE = "processinstances";
+  public static final String COL_HANDLE = "pihandle";
+  public static final String COL_OWNER = "owner";
+  public static final String COL_NAME = "name";
+  public static final String COL_HPROCESSMODEL = "pmhandle";
 
   static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
 
@@ -83,9 +83,34 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
 
-      final ProcessInstance result = new ProcessInstance(owner, processModel, instancename, aProcessEngine);
-      result.setHandle(piHandle);
+      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, aProcessEngine);
       return result;
+    }
+
+    @Override
+    public void postCreate(Connection pConnection, ProcessInstance pElement) throws SQLException {
+      PreparedStatement statement = pConnection.prepareStatement(
+          "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
+          " FROM "+ProcessNodeInstanceMap.TABLE+
+          " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? AND "+
+          ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );");
+      List<Handle<ProcessNodeInstance>> handles = new ArrayList<Handle<ProcessNodeInstance>>();
+      try {
+        if (statement.execute()) {
+          ResultSet resultset = statement.getResultSet();
+          try {
+            while (resultset.next()) {
+              handles.add(MemHandleMap.<ProcessNodeInstance>handle(resultset.getLong(1)));
+            }
+          } finally {
+            resultset.close();
+          }
+        }
+
+      } finally {
+        statement.close();
+      }
+      pElement.setThreads(handles);
     }
 
     @Override
