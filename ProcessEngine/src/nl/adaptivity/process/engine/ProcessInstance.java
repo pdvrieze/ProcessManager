@@ -9,17 +9,16 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
+
+import org.w3c.dom.Node;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject {
@@ -96,6 +95,22 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   private final String aName;
 
   private final Principal aOwner;
+
+  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModel pProcessModel, final String pName, final ProcessEngine pEngine) {
+    aProcessModel = pProcessModel;
+    aOwner = pOwner;
+    aEngine = pEngine;
+    aName =pName;
+    aThreads = new LinkedList<ProcessNodeInstance>();
+    aJoins = new HashMap<Join, JoinInstance>();
+    aEndResults = new ArrayList<ProcessNodeInstance>();
+  }
+
+  void setThreads(final Collection<? extends Handle<? extends ProcessNodeInstance>> pThreads) {
+    for(Handle<? extends ProcessNodeInstance> thread:pThreads) {
+      aThreads.add(aEngine.getNodeInstance(thread.getHandle(), SecurityProvider.SYSTEMPRINCIPAL));
+    }
+  }
 
   public ProcessInstance(final Principal pOwner, final ProcessModel pProcessModel, final String pName, final ProcessEngine pEngine) {
     aProcessModel = pProcessModel;
