@@ -12,7 +12,6 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -22,12 +21,12 @@ import nl.adaptivity.process.processModel.ProcessNode;
 
 public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance> {
 
-  private static final String TABLE = "processnodeinstances";
-  private static final String COL_HANDLE = "pnihandle";
-  private static final String COL_NODEID = "nodeid";
-  private static final String COL_STATE = "state";
+  public static final String TABLE = "processnodeinstances";
+  public static final String COL_HANDLE = "pnihandle";
+  public static final String COL_NODEID = "nodeid";
+  public static final String COL_STATE = "state";
   public static final String COL_PREDECESSOR = "predecessor";
-  private static final String COL_HPROCESSINSTANCE = "pihandle";
+  public static final String COL_HPROCESSINSTANCE = "pihandle";
   public static final String TABLE_PREDECESSORS = "pnipredecessors";
   public static final String TABLE_NODEDATA = "nodedata";
 
