@@ -23,6 +23,8 @@ import com.google.gwt.user.client.ui.*;
 
 public class Darwin implements EntryPoint {
 
+  private static final String LOGIN_LOCATION = "/accounts/login.php";
+
   private class LoginReceivedCallback implements RequestCallback {
 
     @Override
@@ -78,8 +80,8 @@ public class Darwin implements EntryPoint {
       final InputElement password = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "password"));
 
       RequestBuilder rBuilder;
-      rBuilder = new RequestBuilder(RequestBuilder.POST, "/accounts/login");
-      rBuilder.setHeader("Accept", "application/binary");
+      rBuilder = new RequestBuilder(RequestBuilder.POST, LOGIN_LOCATION);
+      rBuilder.setHeader("Accept", "text/plain");
       rBuilder.setHeader("Content-Type", "application/x-www-form-urlencoded");
       final String postData = "username=" + URL.encode(username.getValue()) + "&password=" + URL.encode(password.getValue());
       try {
