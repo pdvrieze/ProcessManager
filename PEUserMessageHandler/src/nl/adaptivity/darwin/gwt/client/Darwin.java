@@ -149,16 +149,20 @@ public class Darwin implements EntryPoint {
 
     @Override
     public void onResponseReceived(final Request pRequest, final Response pResponse) {
-      final String text = pResponse.getText();
-      aMenu.setInnerHTML(text);
-      Element childElement = aMenu.getFirstChildElement();
-      if (childElement!=null && childElement.getNodeName().equalsIgnoreCase("menu")) {
-        while(childElement.getChildCount()>0) {
-          aMenu.appendChild(childElement.getChild(0));
+      if(pResponse.getStatusCode()>=200 && pResponse.getStatusCode()<300) {
+        final String text = pResponse.getText();
+        aMenu.setInnerHTML(text);
+        Element childElement = aMenu.getFirstChildElement();
+        if (childElement!=null && childElement.getNodeName().equalsIgnoreCase("menu")) {
+          while(childElement.getChildCount()>0) {
+            aMenu.appendChild(childElement.getChild(0));
+          }
+          aMenu.removeChild(childElement);
         }
-        aMenu.removeChild(childElement);
+        updateMenuElements();
+      } else {
+        log("Error updating the menu ["+pResponse.getStatusCode()+" "+pResponse.getStatusText());
       }
-      updateMenuElements();
     }
 
     @Override
@@ -335,24 +339,25 @@ public class Darwin implements EntryPoint {
   }
 
   private void setPresentationPanel() {
-    showBanner();
-    GWT.runAsync(new RunAsyncCallback() {
-
-      @Override
-      public void onSuccess() {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new PresentationPanel());
-
-      }
-
-      @Override
-      public void onFailure(Throwable pReason) {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Could not load presentation module"));
-      }
-    });
+    aContentPanel.add(new PresentationPanel(aUsername));
+//    showBanner();
+//    GWT.runAsync(new RunAsyncCallback() {
+//
+//      @Override
+//      public void onSuccess() {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new PresentationPanel());
+//
+//      }
+//
+//      @Override
+//      public void onFailure(Throwable pReason) {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new Label("Could not load presentation module"));
+//      }
+//    });
   }
 
   private void setInboxPanel() {
