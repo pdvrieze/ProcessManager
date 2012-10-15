@@ -151,6 +151,13 @@ public class Darwin implements EntryPoint {
     public void onResponseReceived(final Request pRequest, final Response pResponse) {
       final String text = pResponse.getText();
       aMenu.setInnerHTML(text);
+      Element childElement = aMenu.getFirstChildElement();
+      if (childElement!=null && childElement.getNodeName().equalsIgnoreCase("menu")) {
+        while(childElement.getChildCount()>0) {
+          aMenu.appendChild(childElement.getChild(0));
+        }
+        aMenu.removeChild(childElement);
+      }
       updateMenuElements();
     }
 
