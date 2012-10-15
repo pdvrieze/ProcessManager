@@ -329,14 +329,39 @@ public class Darwin implements EntryPoint {
       setProcessesPanel();
     } else if (aLocation.equals("/about")) {
       setAboutPanel();
+    } else if (aLocation.equals("/presentations")) {
+      setPresentationPanel();
     }
   }
 
-  private void setInboxPanel() {
+  private void setPresentationPanel() {
+    showBanner();
     GWT.runAsync(new RunAsyncCallback() {
 
       @Override
       public void onSuccess() {
+        hideBanner();
+        aContentPanel.clear();
+        aContentPanel.add(new PresentationPanel());
+
+      }
+
+      @Override
+      public void onFailure(Throwable pReason) {
+        hideBanner();
+        aContentPanel.clear();
+        aContentPanel.add(new Label("Could not load presentation module"));
+      }
+    });
+  }
+
+  private void setInboxPanel() {
+    showBanner();
+    GWT.runAsync(new RunAsyncCallback() {
+
+      @Override
+      public void onSuccess() {
+        hideBanner();
         aContentPanel.clear();
         aContentPanel.add(new Label("Inbox Panel"));
         aContentLayoutPanel = null;
@@ -344,6 +369,7 @@ public class Darwin implements EntryPoint {
 
       @Override
       public void onFailure(final Throwable pReason) {
+        hideBanner();
         aContentPanel.clear();
         aContentPanel.add(new Label("Could not load inbox panel module"));
       }
@@ -351,16 +377,19 @@ public class Darwin implements EntryPoint {
   }
 
   private void setProcessesPanel() {
+    showBanner();
     GWT.runAsync(new RunAsyncCallback() {
 
       @Override
       public void onSuccess() {
+        hideBanner();
         aContentPanel.clear();
         aContentPanel.add(new AboutPanel());
       }
 
       @Override
       public void onFailure(final Throwable pReason) {
+        hideBanner();
         aContentPanel.clear();
         aContentPanel.add(new Label("Could not load about page module"));
       }
@@ -368,18 +397,21 @@ public class Darwin implements EntryPoint {
   }
 
   private void setActionPanel() {
+    showBanner();
     ActionPanel.load(getCompletionListener());
 
     GWT.runAsync(new RunAsyncCallback() {
 
       @Override
       public void onSuccess() {
+        hideBanner();
         aContentPanel.clear();
         aContentPanel.add(new Label("Action Panel"));
       }
 
       @Override
       public void onFailure(final Throwable pReason) {
+        hideBanner();
         aContentPanel.clear();
         aContentPanel.add(new Label("Could not load action panel module"));
       }
@@ -402,20 +434,25 @@ public class Darwin implements EntryPoint {
   }
 
   private void setAboutPanel() {
-    GWT.runAsync(new RunAsyncCallback() {
-
-      @Override
-      public void onSuccess() {
-        aContentPanel.clear();
-        aContentPanel.add(new AboutPanel());
-      }
-
-      @Override
-      public void onFailure(final Throwable pReason) {
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Could not load about page module"));
-      }
-    });
+    aContentPanel.clear();
+    aContentPanel.add(new AboutPanel());
+//    showBanner();
+//    GWT.runAsync(new RunAsyncCallback() {
+//
+//      @Override
+//      public void onSuccess() {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new AboutPanel());
+//      }
+//
+//      @Override
+//      public void onFailure(final Throwable pReason) {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new Label("Could not load about page module"));
+//      }
+//    });
   }
 
 

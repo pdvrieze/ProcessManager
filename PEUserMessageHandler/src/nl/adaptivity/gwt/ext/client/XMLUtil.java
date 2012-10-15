@@ -244,4 +244,12 @@ public class XMLUtil {
     return null;
   }
 
+  public static String localName(String pNodeName) {
+    final int i = pNodeName.indexOf(':');
+    if (i < 0) {
+      return pNodeName;
+    }
+    return pNodeName.substring(i + 1);
+  }
+
 }
