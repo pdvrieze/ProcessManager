@@ -104,7 +104,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   }
 
   private void addCandidatePanel(Element pCandidates) {
-    contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>");
+    contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>\n<div>Please use the control key to select all group members</div>\n");
 
     aCandidates = new ArrayList<Candidate>();
     for(Node candidate=pCandidates.getFirstChild(); candidate!=null; candidate = candidate.getNextSibling()) {
@@ -168,17 +168,38 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     RequestBuilder rb=new RequestBuilder(RequestBuilder.POST, PRESENTATION_GROUP_LOCATION);
     rb.setHeader("Content-Type", "text/xml");
     try {
-      rb.sendRequest(group.toString(), this);
+      rb.sendRequest(group.toSafeHtml().asString(), this);
     } catch (RequestException e) {
       aFeedbackLabel.setText("Failure to submit group change!");
       GWT.log("Failure to submit group change", e);
     }
   }
 
-  private void addGroupPanel(Element pRoot) {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
+  private void addGroupPanel(Element pGroup) {
+    aCandidates = new ArrayList<Candidate>();
+
+    SafeHtmlBuilder members = new SafeHtmlBuilder();
+    members.appendHtmlConstant("<h3>You have selected your group</h3>\n<div class=\"wsgroup\">Your group consists of: ");
+    boolean first = true;
+
+    for(Node member=pGroup.getFirstChild(); member!=null; member = member.getNextSibling()) {
+      if (XMLUtil.isLocalPart("member", member)) {
+        Element elem = (Element) member;
+        String fullname = XMLUtil.getAttributeValue(elem, "fullname");
+        String username = XMLUtil.getTextChildren(elem);
+        if (first) { first = false; } else {
+          members.appendHtmlConstant(", ");
+        }
+        members.appendHtmlConstant("<span class=\"fullname\">");
+        members.appendEscaped(fullname);
+        members.appendHtmlConstant("</span> (<span class=\"username\">);");
+        members.appendEscaped(username);
+        members.appendHtmlConstant("</span>\n");
+      }
+    }
+    members.appendHtmlConstant("</div>");
+
+    contentHolder.getElement().setInnerHTML(members.toSafeHtml().asString());
   }
 
   @Override

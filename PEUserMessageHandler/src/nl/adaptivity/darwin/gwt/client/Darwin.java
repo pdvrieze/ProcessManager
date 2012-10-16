@@ -50,6 +50,7 @@ public class Darwin implements EntryPoint {
         closeDialogs();
         updateLoginPanel();
         requestRefreshMenu();
+        navigateTo("/", true);
       } else if ("error".equals(result)) {
         closeDialogs();
         error("Error validating login: " + payload, null);
@@ -218,7 +219,7 @@ public class Darwin implements EntryPoint {
 
     final Document document = Document.get();
     aMenu = (DivElement) document.getElementById("menu");
-    aLocation = "/";
+    aLocation = History.getToken();
     final Element usernameSpan = document.getElementById("username");
     if (usernameSpan != null) {
       aUsername = usernameSpan.getInnerText();
@@ -402,25 +403,25 @@ public class Darwin implements EntryPoint {
   }
 
   private void setActionPanel() {
-    showBanner();
-    ActionPanel.load(getCompletionListener());
-
-    GWT.runAsync(new RunAsyncCallback() {
-
-      @Override
-      public void onSuccess() {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Action Panel"));
-      }
-
-      @Override
-      public void onFailure(final Throwable pReason) {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Could not load action panel module"));
-      }
-    });
+//    showBanner();
+//    ActionPanel.load(getCompletionListener());
+//
+//    GWT.runAsync(new RunAsyncCallback() {
+//
+//      @Override
+//      public void onSuccess() {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new Label("Action Panel"));
+//      }
+//
+//      @Override
+//      public void onFailure(final Throwable pReason) {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new Label("Could not load action panel module"));
+//      }
+//    });
   }
 
   private CompletionListener getCompletionListener() {
