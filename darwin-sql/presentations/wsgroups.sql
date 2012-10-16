@@ -1,6 +1,6 @@
+DROP TABLE members;
 DROP TABLE wsgroups;
 DROP TABLE slots;
-DROP TABLE members;
 
 CREATE TABLE `slots` (
   `slot` INT NOT NULL AUTO_INCREMENT,
