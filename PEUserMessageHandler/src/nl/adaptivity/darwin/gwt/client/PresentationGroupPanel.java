@@ -99,11 +99,13 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
         aFeedbackLabel.setText("Error setting group: "+XMLUtil.getTextChildren(root));
       }
     } else {
+      contentHolder.clear();
       contentHolder.getElement().setInnerHTML("Response to group info query not understood");
     }
   }
 
   private void addCandidatePanel(Element pCandidates) {
+    contentHolder.clear();
     contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>\n<div>Please use the control key to select all group members</div>\n");
 
     aCandidates = new ArrayList<Candidate>();
@@ -116,8 +118,9 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
       }
     }
     aCandidateList = new CellList<Candidate>(new CandidateCell());
-    aCandidateList.setRowCount(aCandidates.size());
+    aCandidateList.setRowCount(aCandidates.size(), true); // We are exact
     aCandidateList.setRowData(aCandidates);
+    aCandidateList.setPageSize(30);
     aCandidateList.setTitle("Select a presentation group mate");
     aCandidateSelectionModel = new MultiSelectionModel<Candidate>();
     aCandidateList.setSelectionModel(aCandidateSelectionModel);
@@ -127,7 +130,10 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
       }
     }
 
-    contentHolder.add(aCandidateList);
+    ScrollPanel scrollPanel = new ScrollPanel(aCandidateList);
+    scrollPanel.setHeight("70%");
+
+    contentHolder.add(scrollPanel);
 
     if (aFeedbackLabel==null) {
       aFeedbackLabel = new Label();
@@ -199,6 +205,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
     members.appendHtmlConstant("</div>");
 
+    contentHolder.clear();
     contentHolder.getElement().setInnerHTML(members.toSafeHtml().asString());
   }
 

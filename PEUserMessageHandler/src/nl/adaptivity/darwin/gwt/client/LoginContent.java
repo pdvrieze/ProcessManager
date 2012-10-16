@@ -34,16 +34,19 @@ public class LoginContent extends Widget {
 
   public LoginContent() {
     final Document document = Document.get();
-    Element parentForm = document.getElementById("loginform");
+    Element parentForm = document.getElementById("xloginform");
     if (parentForm != null) {
       parentForm = parentForm.cloneNode(true).cast();
+      parentForm.setId("loginform");
       //      parentForm.removeFromParent();
       parentForm.removeAttribute("style"); // Remove the display:hidden
       parentForm.removeAttribute("action");
-      username = XMLUtil.descendentWithAttribute(parentForm, "name", "username").cast();
-      password = XMLUtil.descendentWithAttribute(parentForm, "name", "password").cast();
+      username = XMLUtil.descendentWithAttribute(parentForm, "name", "xusername").cast();
+      username.setName("username");
+      password = XMLUtil.descendentWithAttribute(parentForm, "name", "xpassword").cast();
+      password.setName("password");
+
       login = XMLUtil.descendentWithAttribute(parentForm, "name", "login").cast();
-      login.setAttribute("type", "submit");
       cancel = XMLUtil.descendentWithAttribute(parentForm, "name", "cancel").cast();
       setElement(parentForm);
     } else {

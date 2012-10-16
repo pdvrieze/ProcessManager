@@ -6,7 +6,6 @@ import nl.adaptivity.gwt.ext.client.XMLUtil;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.RunAsyncCallback;
 import com.google.gwt.dom.client.*;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -31,10 +30,15 @@ public class Darwin implements EntryPoint {
     public void onResponseReceived(final Request pRequest, final Response pResponse) {
       final String text = pResponse.getText();
       final int cpos = text.indexOf(':');
+      final int eolpos = text.indexOf('\n', cpos);
       String result, payload;
       if (cpos >= 0) {
         result = text.substring(0, cpos);
-        payload = text.substring(cpos + 1);
+        if (eolpos>=0) {
+          payload = text.substring(cpos + 1, eolpos);
+        } else {
+          payload = text.substring(cpos + 1);
+        }
       } else {
         result = text;
         payload = null;
@@ -228,7 +232,7 @@ public class Darwin implements EntryPoint {
     }
     aContentPanel = RootPanel.get("content");
 
-    updateContentTab();
+    showBanner();
 
     requestRefreshMenu();
 
@@ -238,7 +242,7 @@ public class Darwin implements EntryPoint {
 
     aBanner = document.getElementById("banner");
 
-    hideBanner();
+    showBanner();
   }
 
   private void hideBanner() {
@@ -326,6 +330,23 @@ public class Darwin implements EntryPoint {
   }
 
   private void updateContentTab() {
+    hideBanner();
+    String location = null;
+    String firstlocation=null;
+    for(Element menuitem=aMenu.getFirstChildElement();menuitem!=null; menuitem=menuitem.getNextSiblingElement()) {
+      String href = menuitem.getAttribute("href");
+      if (href!=null && href.length()>0) {
+        if (location==null) {
+          location = menuitem.getAttribute("href");
+        } else if (href.equals(aLocation)) {
+          location = aLocation;
+        }
+      }
+    }
+    if (location!=null && (!aLocation.equals(location))) {
+      aLocation=location;
+    }
+
     if (aLocation.equals("/")) {
       setInboxPanel();
     } else if (aLocation.equals("/actions")) {
@@ -340,6 +361,7 @@ public class Darwin implements EntryPoint {
   }
 
   private void setPresentationPanel() {
+    aContentPanel.clear();
     aContentPanel.add(new PresentationPanel(aUsername));
 //    showBanner();
 //    GWT.runAsync(new RunAsyncCallback() {
@@ -362,47 +384,35 @@ public class Darwin implements EntryPoint {
   }
 
   private void setInboxPanel() {
-    showBanner();
-    GWT.runAsync(new RunAsyncCallback() {
-
-      @Override
-      public void onSuccess() {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Inbox Panel"));
-        aContentLayoutPanel = null;
-      }
-
-      @Override
-      public void onFailure(final Throwable pReason) {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Could not load inbox panel module"));
-      }
-    });
+    aContentPanel.clear();
+    aContentPanel.add(new Label("Inbox Panel - work in progress"));
   }
 
   private void setProcessesPanel() {
-    showBanner();
-    GWT.runAsync(new RunAsyncCallback() {
-
-      @Override
-      public void onSuccess() {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new AboutPanel());
-      }
-
-      @Override
-      public void onFailure(final Throwable pReason) {
-        hideBanner();
-        aContentPanel.clear();
-        aContentPanel.add(new Label("Could not load about page module"));
-      }
-    });
+    aContentPanel.clear();
+    aContentPanel.add(new Label("Processes Panel - work in progress"));
+//    showBanner();
+//    GWT.runAsync(new RunAsyncCallback() {
+//
+//      @Override
+//      public void onSuccess() {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new AboutPanel());
+//      }
+//
+//      @Override
+//      public void onFailure(final Throwable pReason) {
+//        hideBanner();
+//        aContentPanel.clear();
+//        aContentPanel.add(new Label("Could not load about page module"));
+//      }
+//    });
   }
 
   private void setActionPanel() {
+    aContentPanel.clear();
+    aContentPanel.add(new Label("ActionPanel - work in progress"));
 //    showBanner();
 //    ActionPanel.load(getCompletionListener());
 //
@@ -473,6 +483,7 @@ public class Darwin implements EntryPoint {
       final InlineLabel l = InlineLabel.wrap(item);
       l.addClickHandler(aMenuClickHandler);
     }
+    updateContentTab();
   }
 
   private void updateLogin(final Document document) {
