@@ -373,14 +373,14 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
   public void updateSlotClicked() {
     Slot selected = aSlotSelectionModel.getSelectedObject();
-    if (selected==null) {
-      aFeedbackLabel.setText("Please select a slot");
-      return;
-    }
 
     SafeHtmlBuilder data = new SafeHtmlBuilder();
-    data.appendHtmlConstant("<slot handle=\""+selected.getHSlot()+"\">")
-        .appendEscaped(aTopicEditBox.getText())
+    if (selected==null) {
+      data.appendHtmlConstant("<slot>");
+    } else {
+      data.appendHtmlConstant("<slot handle=\""+selected.getHSlot()+"\">");
+    }
+    data.appendEscaped(aTopicEditBox.getText())
         .appendHtmlConstant("</slot>");
 
     RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, SLOT_LOCATION);
