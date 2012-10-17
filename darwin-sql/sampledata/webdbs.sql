@@ -589,6 +589,69 @@ CREATE TABLE `members` (
   CONSTRAINT `members_ibfk_1` FOREIGN KEY (`hgroup`) REFERENCES `wsgroups` (`hgroup`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+LOCK TABLES `slots` WRITE;
+INSERT IGNORE INTO `slots` (`description`, `date`) VALUES
+  ( 'Oct 23, slot 1', '2012-10-23' ),
+  ( 'Oct 23, slot 2', '2012-10-23' ),
+  ( 'Oct 23, slot 3', '2012-10-23' ),
+  ( 'Oct 23, slot 4', '2012-10-23' ),
+  ( 'Oct 26, slot 1', '2012-10-26' ),
+  ( 'Oct 26, slot 2', '2012-10-26' ),
+  ( 'Oct 26, slot 3', '2012-10-26' ),
+  ( 'Oct 26, slot 4', '2012-10-26' ),
+  ( 'Oct 30, slot 1', '2012-10-30' ),
+  ( 'Oct 30, slot 2', '2012-10-30' ),
+  ( 'Oct 30, slot 3', '2012-10-30' ),
+  ( 'Oct 30, slot 4', '2012-10-30' ),
+  ( 'Nov 2, slot 1', '2012-11-02' ),
+  ( 'Nov 2, slot 2', '2012-11-02' ),
+  ( 'Nov 2, slot 3', '2012-11-02' ),
+  ( 'Nov 2, slot 4', '2012-11-02' ),
+  ( 'Nov 6, slot 1', '2012-11-06' ),
+  ( 'Nov 6, slot 2', '2012-11-06' ),
+  ( 'Nov 6, slot 3', '2012-11-06' ),
+  ( 'Nov 6, slot 4', '2012-11-06' ),
+  ( 'Nov 9, slot 1', '2012-11-09' ),
+  ( 'Nov 9, slot 2', '2012-11-09' ),
+  ( 'Nov 9, slot 3', '2012-11-09' ),
+  ( 'Nov 9, slot 4', '2012-11-09' ),
+  ( 'Nov 13, slot 1', '2012-11-13' ),
+  ( 'Nov 13, slot 2', '2012-11-13' ),
+  ( 'Nov 13, slot 3', '2012-11-13' ),
+  ( 'Nov 13, slot 4', '2012-11-13' ),
+  ( 'Nov 16, slot 1', '2012-11-16' ),
+  ( 'Nov 16, slot 2', '2012-11-16' ),
+  ( 'Nov 16, slot 3', '2012-11-16' ),
+  ( 'Nov 16, slot 4', '2012-11-16' ),
+  
+  ( 'Nov 20, slot 1', '2012-11-20' ),
+  ( 'Nov 20, slot 2', '2012-11-20' ),
+  ( 'Nov 20, slot 3', '2012-11-20' ),
+  ( 'Nov 20, slot 4', '2012-11-20' ),
+  ( 'Nov 23, slot 1', '2012-11-23' ),
+  ( 'Nov 23, slot 2', '2012-11-23' ),
+  ( 'Nov 23, slot 3', '2012-11-23' ),
+  ( 'Nov 23, slot 4', '2012-11-23' ),
+  ( 'Nov 27, slot 1', '2012-11-27' ),
+  ( 'Nov 27, slot 2', '2012-11-27' ),
+  ( 'Nov 27, slot 3', '2012-11-27' ),
+  ( 'Nov 30, slot 1', '2012-11-30' ),
+  ( 'Nov 30, slot 2', '2012-11-30' ),
+  ( 'Nov 30, slot 3', '2012-11-30' ),
+  ( 'Dec 4, slot 1', '2012-12-04' ),
+  ( 'Dec 4, slot 2', '2012-12-04' ),
+  ( 'Dec 4, slot 3', '2012-12-04' ),
+  ( 'Dec 7, slot 1', '2012-12-07' ),
+  ( 'Dec 7, slot 2', '2012-12-07' ),
+  ( 'Dec 7, slot 3', '2012-12-07' ),
+  ( 'Dec 11, slot 1', '2012-12-11' ),
+  ( 'Dec 11, slot 2', '2012-12-11' ),
+  ( 'Dec 11, slot 3', '2012-12-11' ),
+  ( 'Dec 14, slot 1', '2012-12-14' ),
+  ( 'Dec 14, slot 2', '2012-12-14' ),
+  ( 'Dec 14, slot 3', '2012-12-14' );
+UNLOCK TABLES;
+
 --
 -- Dumping data for table `wsgroups`
 --
@@ -607,7 +670,6 @@ UNLOCK TABLES;
 --
 
 LOCK TABLES `members` WRITE;
-/*!40000 ALTER TABLE `members` DISABLE KEYS */;
 INSERT INTO `members` VALUES
   ('i7920257',1),
   ('i7983627',1),
@@ -619,5 +681,6 @@ INSERT INTO `members` VALUES
   ('i7991489',4),
   ('i7910183',5),
   ('i7970477',5);
-/*!40000 ALTER TABLE `members` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
