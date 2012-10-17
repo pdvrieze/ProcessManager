@@ -9,6 +9,7 @@ import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.http.client.*;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -16,6 +17,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.cellview.client.CellList;
 import com.google.gwt.user.client.ui.*;
 import com.google.gwt.view.client.MultiSelectionModel;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.Node;
@@ -26,6 +28,28 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
 
 
+
+
+
+  private class SlotUpdateHandler implements ClickHandler {
+
+    @Override
+    public void onClick(ClickEvent pEvent) {
+      updateSlotClicked();
+    }
+
+  }
+
+  private static class SlotCell extends AbstractCell<Slot> {
+
+    @Override
+    public void render(com.google.gwt.cell.client.Cell.Context pContext, Slot pValue, SafeHtmlBuilder pSb) {
+      pSb.appendHtmlConstant("<div class='slotcell'>");
+      pSb.appendEscaped(pValue.getDescription());
+      pSb.appendHtmlConstant("</div>");
+    }
+
+  }
 
   private static class Slot {
 
@@ -100,7 +124,8 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   private String aSlotDate;
   private TextBox aTopicEditBox;
   private ScrollPanel aSlotChoiceContainer;
-
+  private HandlerRegistration aUpdateSlotHandlerRegistration;
+  private SingleSelectionModel<Slot> aSlotSelectionModel;
   public PresentationGroupPanel() {
     initWidget(uiBinder.createAndBindUi(this));
     RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, PRESENTATION_GROUP_LOCATION);
@@ -135,7 +160,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
   private void addCandidatePanel(Element pCandidates) {
     contentHolder.clear();
-    contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>\n<div>Please use the control key to select all group members</div>\n");
+    contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>\n<div style=\"margin-bottom: 1ex\">Please use the control key to select all group members (you have already been selected)</div>\n");
 
     aCandidates = new ArrayList<Candidate>();
     for(Node candidate=pCandidates.getFirstChild(); candidate!=null; candidate = candidate.getNextSibling()) {
@@ -149,7 +174,6 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     aCandidateList = new CellList<Candidate>(new CandidateCell());
     aCandidateList.setRowCount(aCandidates.size(), true); // We are exact
     aCandidateList.setRowData(aCandidates);
-    aCandidateList.setPageSize(30);
     aCandidateList.setTitle("Select a presentation group mate");
     aCandidateSelectionModel = new MultiSelectionModel<Candidate>();
     aCandidateList.setSelectionModel(aCandidateSelectionModel);
@@ -160,7 +184,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
 
     ScrollPanel scrollPanel = new ScrollPanel(aCandidateList);
-    scrollPanel.setHeight("30em");
+    scrollPanel.setStylePrimaryName("userchoicescrollcontainer");
 
     contentHolder.add(scrollPanel);
 
@@ -219,6 +243,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
       aSlotDesc = pGroup.getAttribute("slotdesc");
       aSlotDate = pGroup.getAttribute("slotdate");
     }
+    String topic = XMLUtil.getAttributeValue(pGroup, "topic");
 
     SafeHtmlBuilder members = new SafeHtmlBuilder();
     members.appendHtmlConstant("<h3>You have selected your group</h3>\n<div class=\"wsgroup\">Your group consists of: ");
@@ -242,27 +267,36 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     members.appendHtmlConstant("</div>");
 
     contentHolder.clear();
+    contentHolder.addStyleName("presentationContentHolder");
+
     contentHolder.getElement().setInnerHTML(members.toSafeHtml().asString());
 
-    VerticalPanel vpanel = new VerticalPanel();
-    Label label1 = new Label("Please update your group information");
+    FlowPanel vpanel = new FlowPanel();
+    Label label1 = new Label("This is your group information, please update it as needed");
     label1.setStyleName("groupeditpanelhead");
     vpanel.add(label1);
 
-    FlowPanel topicedit = new FlowPanel();
-    Label topicLabel = new Label("Presentation topic");
+    Label topicLabel = new Label("Presentation topic: ");
+    topicLabel.setStyleName("gwttextboxlabel");
     aTopicEditBox = new TextBox();
-    topicedit.add(topicLabel);
-    topicedit.add(aTopicEditBox);
-    vpanel.add(topicedit);
+    aTopicEditBox.setWidth("40em");
+    if (topic!=null) {
+      aTopicEditBox.setText(topic);
+    }
+    {
+      HorizontalPanel hpanel = new HorizontalPanel();
+      hpanel.add(topicLabel);
+      hpanel.add(aTopicEditBox);
+      vpanel.add(hpanel);
+    }
 
     Label slotChoiceLabel = new Label("Choose your slot");
     slotChoiceLabel.setStyleName("groupeditpanelhead");
     vpanel.add(slotChoiceLabel);
 
     aSlotChoiceContainer = new ScrollPanel();
-    aSlotChoiceContainer.setHeight("30em");
     aSlotChoiceContainer.setWidget(new WaitWidget());
+    aSlotChoiceContainer.setStylePrimaryName("slotchoicescrollcontainer");
     vpanel.add(aSlotChoiceContainer);
 
     RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, SLOT_LOCATION);
@@ -272,7 +306,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
         @Override
         public void onResponseReceived(Request pRequest, Response pResponse) {
-          handleSlotResponse(pRequest, pResponse);
+          handleSlotResponse(pResponse);
         }
 
         @Override
@@ -286,10 +320,22 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
       aSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
     }
 
+    Button updateButton = new Button("Update");
+    aUpdateSlotHandlerRegistration = updateButton.addClickHandler(new SlotUpdateHandler());
 
+    vpanel.add(updateButton);
+
+    if (aFeedbackLabel==null) {
+      aFeedbackLabel = new Label();
+    } else {
+      aFeedbackLabel.removeFromParent();
+    }
+    vpanel.add(aFeedbackLabel);
+
+    contentHolder.add(vpanel);
   }
 
-  protected void handleSlotResponse(Request pRequest, Response pResponse) {
+  protected void handleSlotResponse(Response pResponse) {
     if (pResponse.getStatusCode()<200 || pResponse.getStatusCode()>=300) {
       aSlotChoiceContainer.setWidget(new Label("Failure to get available slots ("+pResponse.getStatusCode()+": "+pResponse.getStatusText()+")"));
       return;
@@ -297,18 +343,74 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     Document xmlResponse = XMLParser.parse(pResponse.getText());
     Element root = xmlResponse.getDocumentElement();
 
+    Slot currentSlot=null;
+
     List<Slot> slots = new ArrayList<Slot>();
     for(Node member=root.getFirstChild(); member!=null; member = member.getNextSibling()) {
       if (XMLUtil.isLocalPart("slot", member)) {
         Element elem = (Element) member;
         long hSlot = XMLUtil.getLongAttr(elem, "handle", -1);
         String description = XMLUtil.getAttributeValue(elem, "description");
-        slots.add(new Slot(hSlot, description));
+        Slot slot = new Slot(hSlot, description);
+        if (hSlot==aSlotHandle) {
+          currentSlot = slot;
+        }
+        slots.add(slot);
       }
     }
 
+    CellList<Slot> slotChoiceList = new CellList<PresentationGroupPanel.Slot>(new SlotCell());
+    aSlotSelectionModel = new SingleSelectionModel<Slot>();
+    slotChoiceList.setSelectionModel(aSlotSelectionModel);
+    slotChoiceList.setRowData(slots);
+    if (currentSlot!=null) { aSlotSelectionModel.setSelected(currentSlot, true); }
 
 
+
+    aSlotChoiceContainer.setWidget(slotChoiceList);
+
+  }
+
+  public void updateSlotClicked() {
+    Slot selected = aSlotSelectionModel.getSelectedObject();
+    if (selected==null) {
+      aFeedbackLabel.setText("Please select a slot");
+      return;
+    }
+
+    SafeHtmlBuilder data = new SafeHtmlBuilder();
+    data.appendHtmlConstant("<slot handle=\""+selected.getHSlot()+"\">")
+        .appendEscaped(aTopicEditBox.getText())
+        .appendHtmlConstant("</slot>");
+
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, SLOT_LOCATION);
+    rb.setHeader("Content-Type", "text/xml");
+    try {
+      rb.sendRequest(data.toSafeHtml().asString(), new RequestCallback() {
+
+        @Override
+        public void onResponseReceived(Request pRequest, Response pResponse) {
+          Document xmlResponse = XMLParser.parse(pResponse.getText());
+          Element root = xmlResponse.getDocumentElement();
+          if (XMLUtil.isLocalPart("error", root)) {
+            aFeedbackLabel.setText("Error: "+XMLUtil.getTextChildren(root));
+          } else if (XMLUtil.isLocalPart("group", root)) {
+            aTopicEditBox.setText(XMLUtil.getAttributeValue(root, "topic"));
+            aSlotHandle = XMLUtil.getLongAttr(root, "slot", -1);
+            aFeedbackLabel.setText("Information updated");
+          }
+       }
+
+        @Override
+        public void onError(Request pRequest, Throwable pException) {
+          aFeedbackLabel.setText("Error requesting update: "+pException.getMessage());
+          GWT.log("Error requesting update", pException);
+        }
+      });
+    } catch (RequestException e) {
+      aFeedbackLabel.setText("Error requesting update: "+e.getMessage());
+      GWT.log("Error requesting update", e);
+    }
   }
 
   @Override

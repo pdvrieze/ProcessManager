@@ -3,12 +3,13 @@
   xmlns:g="urn:import:com.google.gwt.user.client.ui"
   xmlns:my="urn:import:nl.adaptivity.darwin.gwt.client">
   <ui:style>
-    .important {
-      font-weight: bold;
-    }
+    .presentationContainer {
+	     margin: 0px auto;
+	     width: 90%;
+	  }
   </ui:style>
-  <g:VerticalPanel>
+  <g:FlowPanel stylePrimaryName="{style.presentationContainer}">
     <my:PresentationGroupPanel ui:field="groupPanel"></my:PresentationGroupPanel>
   
-  </g:VerticalPanel>
+  </g:FlowPanel>
 </ui:UiBinder>
