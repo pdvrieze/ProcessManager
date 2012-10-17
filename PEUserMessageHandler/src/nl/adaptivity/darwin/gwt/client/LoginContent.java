@@ -42,8 +42,14 @@ public class LoginContent extends Widget {
       parentForm.removeAttribute("style"); // Remove the display:hidden
       parentForm.removeAttribute("action");
       username = XMLUtil.descendentWithAttribute(parentForm, "name", "xusername").cast();
+      if (username==null) {
+        username = XMLUtil.descendentWithAttribute(parentForm, "name", "username").cast();
+      }
       username.setName("username");
       password = XMLUtil.descendentWithAttribute(parentForm, "name", "xpassword").cast();
+      if (password==null) {
+        password = XMLUtil.descendentWithAttribute(parentForm, "name", "password").cast();
+      }
       password.setName("password");
 
       login = XMLUtil.descendentWithAttribute(parentForm, "name", "login").cast();
