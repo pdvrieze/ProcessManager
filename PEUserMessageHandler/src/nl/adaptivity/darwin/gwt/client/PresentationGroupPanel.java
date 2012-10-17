@@ -1,6 +1,7 @@
 package nl.adaptivity.darwin.gwt.client;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
@@ -24,6 +25,27 @@ import com.google.gwt.xml.client.XMLParser;
 public class PresentationGroupPanel extends Composite implements RequestCallback {
 
 
+
+
+  private static class Slot {
+
+    private final long aHSlot;
+    private final String aDescription;
+
+    public Slot(long pHSlot, String pDescription) {
+      aHSlot = pHSlot;
+      aDescription = pDescription;
+    }
+
+    public long getHSlot() {
+      return aHSlot;
+    }
+
+    public String getDescription() {
+      return aDescription;
+    }
+
+  }
 
   private static class CandidateCell extends AbstractCell<Candidate> {
 
@@ -59,6 +81,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   }
 
   private static final String PRESENTATION_GROUP_LOCATION = "/common/wsgroup.php";
+  private static final String SLOT_LOCATION = "/common/wsslots.php";
   private static PresentationGroupPanelUiBinder uiBinder = GWT.create(PresentationGroupPanelUiBinder.class);
 
   interface PresentationGroupPanelUiBinder extends UiBinder<Widget, PresentationGroupPanel> {/* uibinder */}
@@ -71,6 +94,12 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   private Label aFeedbackLabel;
   private MultiSelectionModel<Candidate> aCandidateSelectionModel;
   private String aUsername;
+  private long aGroupHandle;
+  private String aSlotDesc;
+  private long aSlotHandle;
+  private String aSlotDate;
+  private TextBox aTopicEditBox;
+  private ScrollPanel aSlotChoiceContainer;
 
   public PresentationGroupPanel() {
     initWidget(uiBinder.createAndBindUi(this));
@@ -131,7 +160,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
 
     ScrollPanel scrollPanel = new ScrollPanel(aCandidateList);
-    scrollPanel.setHeight("70%");
+    scrollPanel.setHeight("30em");
 
     contentHolder.add(scrollPanel);
 
@@ -184,6 +213,13 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   private void addGroupPanel(Element pGroup) {
     aCandidates = new ArrayList<Candidate>();
 
+    aGroupHandle = XMLUtil.getLongAttr(pGroup, "handle", -1);
+    aSlotHandle = XMLUtil.getLongAttr(pGroup, "slot", -1);
+    if (aSlotHandle>=0) {
+      aSlotDesc = pGroup.getAttribute("slotdesc");
+      aSlotDate = pGroup.getAttribute("slotdate");
+    }
+
     SafeHtmlBuilder members = new SafeHtmlBuilder();
     members.appendHtmlConstant("<h3>You have selected your group</h3>\n<div class=\"wsgroup\">Your group consists of: ");
     boolean first = true;
@@ -198,15 +234,81 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
         }
         members.appendHtmlConstant("<span class=\"fullname\">");
         members.appendEscaped(fullname);
-        members.appendHtmlConstant("</span> (<span class=\"username\">);");
+        members.appendHtmlConstant("</span> (<span class=\"username\">");
         members.appendEscaped(username);
-        members.appendHtmlConstant("</span>\n");
+        members.appendHtmlConstant(")</span>\n");
       }
     }
     members.appendHtmlConstant("</div>");
 
     contentHolder.clear();
     contentHolder.getElement().setInnerHTML(members.toSafeHtml().asString());
+
+    VerticalPanel vpanel = new VerticalPanel();
+    Label label1 = new Label("Please update your group information");
+    label1.setStyleName("groupeditpanelhead");
+    vpanel.add(label1);
+
+    FlowPanel topicedit = new FlowPanel();
+    Label topicLabel = new Label("Presentation topic");
+    aTopicEditBox = new TextBox();
+    topicedit.add(topicLabel);
+    topicedit.add(aTopicEditBox);
+    vpanel.add(topicedit);
+
+    Label slotChoiceLabel = new Label("Choose your slot");
+    slotChoiceLabel.setStyleName("groupeditpanelhead");
+    vpanel.add(slotChoiceLabel);
+
+    aSlotChoiceContainer = new ScrollPanel();
+    aSlotChoiceContainer.setHeight("30em");
+    aSlotChoiceContainer.setWidget(new WaitWidget());
+    vpanel.add(aSlotChoiceContainer);
+
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, SLOT_LOCATION);
+
+    try {
+      rb.sendRequest(null, new RequestCallback() {
+
+        @Override
+        public void onResponseReceived(Request pRequest, Response pResponse) {
+          handleSlotResponse(pRequest, pResponse);
+        }
+
+        @Override
+        public void onError(Request pRequest, Throwable pException) {
+          GWT.log("Error getting available slots", pException);
+          aSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
+        }
+      });
+    } catch (RequestException e) {
+      GWT.log("Error getting available slots", e);
+      aSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
+    }
+
+
+  }
+
+  protected void handleSlotResponse(Request pRequest, Response pResponse) {
+    if (pResponse.getStatusCode()<200 || pResponse.getStatusCode()>=300) {
+      aSlotChoiceContainer.setWidget(new Label("Failure to get available slots ("+pResponse.getStatusCode()+": "+pResponse.getStatusText()+")"));
+      return;
+    }
+    Document xmlResponse = XMLParser.parse(pResponse.getText());
+    Element root = xmlResponse.getDocumentElement();
+
+    List<Slot> slots = new ArrayList<Slot>();
+    for(Node member=root.getFirstChild(); member!=null; member = member.getNextSibling()) {
+      if (XMLUtil.isLocalPart("slot", member)) {
+        Element elem = (Element) member;
+        long hSlot = XMLUtil.getLongAttr(elem, "handle", -1);
+        String description = XMLUtil.getAttributeValue(elem, "description");
+        slots.add(new Slot(hSlot, description));
+      }
+    }
+
+
+
   }
 
   @Override

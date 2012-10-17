@@ -252,4 +252,16 @@ public class XMLUtil {
     return pNodeName.substring(i + 1);
   }
 
+  public static long getLongAttr(Element pOwner, String pAttribute, long pDefault) {
+    String a = pOwner.getAttribute(pAttribute);
+    if (a!=null) {
+      try {
+        return Long.parseLong(a);
+      } catch (NumberFormatException e) {
+        return pDefault;
+      }
+    }
+    return pDefault;
+  }
+
 }
