@@ -13,6 +13,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.StringAdapter;
+
 import org.apache.catalina.*;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -25,10 +29,6 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 import uk.ac.bournemouth.darwin.html.util.DarwinHtml;
-
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.DBHelper.DBQuery;
-import net.devrieze.util.db.StringAdapter;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
@@ -116,10 +116,10 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
     final Realm realm = aContext.getRealm();
     if (realm != null) {
-      logInfo("This context has an authentication realm, enforce the constraints");
+      logFine("This context has an authentication realm, enforce the constraints");
       final SecurityConstraint[] constraints = realm.findSecurityConstraints(pRequest, aContext);
       if (constraints == null) {
-        logInfo("Realm has no constraints, calling next in chain");
+        logFine("Realm has no constraints, calling next in chain");
         // Unconstrained
         getNext().invoke(pRequest, pResponse);
         return;
@@ -233,7 +233,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     try {
       DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
       if (principal != null) {
-        logFine("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
+        logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
         pRequest.setAuthType(AUTHTYPE);
         pRequest.setUserPrincipal(principal);
         return AuthResult.AUTHENTICATED;
@@ -269,6 +269,8 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
               break;
             }
           }
+        } else {
+          logFine("No authentication cookie found");
         }
       } catch (final SQLException e) {
         logError("Error while verifying cookie in database", e);
@@ -276,7 +278,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         return AuthResult.ERROR;
       }
       if (user != null) {
-        logFine("Authenticated user " + user);
+        logInfo("Authenticated user " + user);
         pRequest.setAuthType(AUTHTYPE);
         principal = getDarwinPrincipal(db, pRequest.getContext().getRealm(), user);
         pRequest.setUserPrincipal(principal);
