@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build">
-  <property name="classpath" value="../DarwinCommon/bin:../DarwinCommon/trunk/bin:../DarwinJavaApi/trunk/bin:../DarwinJavaApi/bin:/usr/share/tomcat-6/lib/catalina.jar:/usr/share/tomcat-6/lib/tomcat-coyote.jar" />
+  <property name="classpath" value="../DarwinCommon/bin:../DarwinCommon/trunk/bin:../DarwinJavaApi/trunk/bin:../DarwinJavaApi/bin:../JavaCommonApi/trunk/bin:/usr/share/tomcat-6/lib/catalina.jar:/usr/share/tomcat-6/lib/tomcat-coyote.jar" />
 
   <target name="javadoc">
     <mkdir dir="doc" />
@@ -23,7 +23,7 @@
     </copy>
   </target>
   <target name="jar" depends="release">
-    <jar destfile="DarwinRealm-1.0.jar" basedir="release">
+    <jar destfile="DarwinRealm-1.0.1.jar" basedir="release">
     </jar>
   </target>
   <target name="debugjar" depends="build">
