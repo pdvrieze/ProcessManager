@@ -641,7 +641,7 @@ public class DBHelper {
         }
       }
     }
-    getLogger().fine("Closed " + count + " connections for key " + pReference);
+    getLogger().log(DETAIL_LOG_LEVEL, "Closed " + count + " connections for key " + pReference);
   }
 
   public static void closeAllConnections(final String pDbResource) {
@@ -664,7 +664,7 @@ public class DBHelper {
         aSourceMap.remove(pDbResource);
       }
     }
-    getLogger().fine("Closed " + count + " connections for resource " + pDbResource);
+    getLogger().log(DETAIL_LOG_LEVEL, "Closed " + count + " connections for resource " + pDbResource);
     if (exceptions != null) {
       if (exceptions.size() == 1) {
         throw new RuntimeException(exceptions.get(0));
