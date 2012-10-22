@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build">
-	<target name="javadoc">
-		<javadoc access="package" author="true" classpath="." destdir="doc" doctitle="java-common" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.catalina.realm" source="1.6" sourcepath="src" splitindex="true" use="true" version="true">
+  <property name="classpath" value="../JavaCommonApi/trunk/bin" />
+    
+ 	<target name="javadoc">
+		<javadoc access="package" author="true"  classpath="${classpath}" destdir="doc" doctitle="java-common" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.catalina.realm" source="1.6" sourcepath="src" splitindex="true" use="true" version="true">
 			<link href="http://download.oracle.com/javase/6/docs/api/" />
 		</javadoc>
 	</target>
 	<target name="build">
 		<mkdir dir="build" />
-		<javac srcdir="src" destdir="build" classpath="." debug="on" source="1.6" target="1.6" />
+		<javac srcdir="src" destdir="build"  classpath="${classpath}" debug="on" source="1.6" target="1.6" />
 	</target>
 	<target name="release">
 		<mkdir dir="release" />
-		<javac srcdir="src" destdir="release" classpath="." debug="off" source="1.6" target="1.6" />
+		<javac srcdir="src" destdir="release"  classpath="${classpath}" debug="off" source="1.6" target="1.6" />
 	</target>
 	<target name="jar" depends="release">
 		<jar destfile="DarwinJavaApi-1.1.jar" basedir="release">
