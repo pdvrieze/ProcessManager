@@ -1,11 +1,7 @@
 package net.devrieze.util.db;
 
 import java.io.Closeable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLWarning;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +49,7 @@ public class DBHelper implements Closeable{
 
     boolean execCommit();
 
+    @Override
     void close();
 
     StringCache getStringCache();
@@ -524,13 +521,18 @@ public class DBHelper implements Closeable{
   private final DataSourceWrapper aDataSource;
 
   private StringCache aStringCache;
-  
+
   private List<DBStatement> aStatements;
 
   private DBHelper(final DataSourceWrapper pDataSource, final Object pKey) {
     aDataSource = pDataSource;
     aKey = pKey != null ? pKey : new Object();
     aStatements = new ArrayList<DBStatement>();
+  }
+
+  @Deprecated
+  public static DBHelper dbHelper(final String pResourceName, final Object pKey) {
+    return getDbHelper(pResourceName, pKey);
   }
 
   public static DBHelper getDbHelper(final String pResourceName, final Object pKey) {
@@ -654,6 +656,7 @@ public class DBHelper implements Closeable{
    * Close the underlying connection for this helper. A new connection will
    * automatically be established when needed.
    */
+  @Override
   public void close() {
     getLogger().log(DETAIL_LOG_LEVEL, "Closing connection for key " + aKey);
     try {
