@@ -522,7 +522,7 @@ public class DBHelper implements Closeable{
 
   private StringCache aStringCache;
 
-  private List<DBStatement> aStatements;
+  private volatile List<DBStatement> aStatements;
 
   private DBHelper(final DataSourceWrapper pDataSource, final Object pKey) {
     aDataSource = pDataSource;
