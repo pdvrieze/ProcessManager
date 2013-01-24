@@ -10,7 +10,7 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.DBHelper.DBStatement;
 
 
-public abstract class ResultSetAdapter<T> implements Iterable<T> {
+public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T>*/ {
 
 
   public abstract static class ResultSetAdapterIterator<T> implements Iterator<T> {
@@ -182,15 +182,16 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
   }
 
   public void close() {
-    if (aResultSet != null) {
-      try {
-        aResultSet.close();
-        DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
-      } catch (final SQLException e) {
-        DBHelper.logException("Error closing resultset", e);
-      }
-      aResultSet = null;
-    }
+//    if (aResultSet != null) {
+//      try {
+//        aResultSet.close();
+//        DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
+//      } catch (final SQLException e) {
+//        DBHelper.logException("Error closing resultset", e);
+//      }
+//      aResultSet = null;
+//    }
+    closeStatement();
   }
 
   public void closeStatement() {
@@ -210,6 +211,12 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
       aStatement = null;
     }
   }
+  
+  public void closeAll() {
+    DBStatement statement = aStatement; //needed as closeStatement nulls this
+    closeStatement();
+    statement.closeHelper();
+  }
 
   protected ResultSet aResultSet;
 
@@ -222,4 +229,13 @@ public abstract class ResultSetAdapter<T> implements Iterable<T> {
 
   @Override
   public abstract ResultSetAdapterIterator<T> iterator();
+  
+  public Iterable<T> all() {
+    return new Iterable<T>() {
+
+      @Override
+      public Iterator<T> iterator() {
+        return ResultSetAdapter.this.iterator();
+      }};
+  }
 }
