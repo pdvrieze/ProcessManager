@@ -8,10 +8,10 @@ import java.util.Set;
 
 import org.apache.catalina.Realm;
 
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.StringAdapter;
-import net.devrieze.util.db.DBHelper.DBQuery;
 import net.devrieze.util.StringCache;
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.StringAdapter;
 
 
 public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements DarwinUserPrincipal {
@@ -58,8 +58,12 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
       final DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?");
       query.addParam(1, getName());
       final StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true);
-      for (final String role : queryResult) {
-        aRoles.add(role);
+      try {
+        for (final String role : queryResult.all()) {
+          aRoles.add(role);
+        }
+      } finally {
+        queryResult.close();
       }
     }
   }

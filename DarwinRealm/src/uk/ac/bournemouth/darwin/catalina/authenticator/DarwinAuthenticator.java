@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,10 +11,6 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.DBHelper.DBQuery;
-import net.devrieze.util.db.StringAdapter;
 
 import org.apache.catalina.*;
 import org.apache.catalina.connector.Request;
@@ -28,7 +23,10 @@ import org.apache.catalina.valves.ValveBase;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
-import uk.ac.bournemouth.darwin.html.util.DarwinHtml;
+
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.StringAdapter;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
@@ -99,12 +97,8 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
 
-    try {
-      if (aDb != null) {
-        aDb.close();
-      }
-    } catch (final SQLException e) {
-      throw new LifecycleException(e);
+    if (aDb != null) {
+      aDb.close();
     }
     aDb = null;
   }
@@ -194,11 +188,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     try {
       return getDarwinPrincipal(db, null, pUser);
     } finally {
-      try {
-        db.close();
-      } catch (final SQLException e) {
-        throw new RuntimeException(e);
-      }
+      db.close();
     }
   }
 
@@ -241,41 +231,35 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
 
       String user = null;
-      try {
-        final Cookie[] cookies = pRequest.getCookies();
-        if (cookies != null) {
-          for (final Cookie cookie : cookies) {
-            if ("DWNID".equals(cookie.getName())) {
-              final String requestIp = pRequest.getRemoteAddr();
-              logFine("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
-              final DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()");
-              try {
-                query.addParam(1, requestIp);
-                query.addParam(2, cookie.getValue());
-                final ResultSet result = query.execQuery();
-                if (result != null) {
-                  final Iterator<String> it = (new StringAdapter(query, result, false)).iterator();
+      final Cookie[] cookies = pRequest.getCookies();
+      if (cookies != null) {
+        for (final Cookie cookie : cookies) {
+          if ("DWNID".equals(cookie.getName())) {
+            final String requestIp = pRequest.getRemoteAddr();
+            logFine("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
+            final DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()");
+            try {
+              query.addParam(1, requestIp);
+              query.addParam(2, cookie.getValue());
+              final ResultSet result = query.execQuery();
+              if (result != null) {
+                final Iterator<String> it = (new StringAdapter(query, result, false)).iterator();
 
-                  if (it.hasNext()) {
-                    user = it.next();
-                  } else {
-                    logFine("Expired cookie: '" + cookie.getValue() + '\'');
-                    return AuthResult.EXPIRED;
-                  }
+                if (it.hasNext()) {
+                  user = it.next();
+                } else {
+                  logFine("Expired cookie: '" + cookie.getValue() + '\'');
+                  return AuthResult.EXPIRED;
                 }
-              } finally {
-                query.close();
               }
-              break;
+            } finally {
+              query.close();
             }
+            break;
           }
-        } else {
-          logFine("No authentication cookie found");
         }
-      } catch (final SQLException e) {
-        logError("Error while verifying cookie in database", e);
-        DarwinHtml.writeError(pResponse, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error while authenticating", e);
-        return AuthResult.ERROR;
+      } else {
+        logFine("No authentication cookie found");
       }
       if (user != null) {
         logInfo("Authenticated user " + user);
@@ -285,12 +269,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         return AuthResult.AUTHENTICATED;
       }
     } finally {
-      try {
-        db.close();
-      } catch (final SQLException e) {
-        logError("Error closing database connection", e);
-        aDb = null;
-      }
+      db.close();
     }
     return AuthResult.LOGIN_NEEDED;
   }
