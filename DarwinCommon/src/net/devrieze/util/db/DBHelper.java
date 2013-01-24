@@ -522,7 +522,7 @@ public class DBHelper implements Closeable{
 
   private StringCache aStringCache;
 
-  private volatile List<DBStatement> aStatements;
+  private List<DBStatement> aStatements;
 
   private DBHelper(final DataSourceWrapper pDataSource, final Object pKey) {
     aDataSource = pDataSource;
@@ -609,6 +609,7 @@ public class DBHelper implements Closeable{
   }
 
   private <T extends DBStatement> T recordStatement(T statement) {
+    if (aStatements==null) {aStatements = new ArrayList<DBHelper.DBStatement>(); }
     aStatements.add(statement);
     return statement;
   }
