@@ -1,57 +1,49 @@
-<!DOCTYPE HTML>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!-- The HTML 4.01 Transitional DOCTYPE declaration-->
+<!-- above set at the top of the file will set     -->
+<!-- the browser's rendering engine into           -->
+<!-- "Quirks Mode". Replacing this declaration     -->
+<!-- with a "Standards Mode" doctype is supported, -->
+<!-- but may lead to some differences in layout.   -->
+
 <html>
-<head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <link rel="stylesheet" href="../css/darwin.css" />
-  <link type="text/css" rel="stylesheet" href="PEUserMessageHandler.css">
-  
-  <!--                                           -->
-  <!-- Any title is fine                         -->
-  <!--                                           -->
-  <title>Process Engine Interface</title>
-  
-  <!--                                           -->
-  <!-- This script loads your compiled module.   -->
-  <!-- If you add any GWT meta tags, they must   -->
-  <!-- be added before this line.                -->
-  <!--                                           -->
-  <script type="text/javascript" language="javascript"
-   src="peusermessagehandler/peusermessagehandler.nocache.js"></script>
-</head>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
+    <!--                                                               -->
+    <!-- Consider inlining CSS to reduce the number of requested files -->
+    <!--                                                               -->
+    <link type="text/css" rel="stylesheet" href="PEUserMessageHandler.css">
 
-<body>
-  <!-- OPTIONAL: include this if you want history support -->
-  <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1'
-   style="position: absolute; width: 0; height: 0; border: 0"></iframe>
- 
-  <div id="top">
-    <h1 id="header">
-     <a href="../" id="logo">Darwin</a><span id="title">Welcome - Login
-      successful</span>
-    </h1>
-    <div id="menu">
-     <span class="menuitem">Inbox</span> <span class="menuitem">Actions</span> <span
-      class="menuitem">Processes</span> <span class="menuitem">Forms</span>
-    </div>
-    <div id="login">
-      <a
-       href="../accounts/login.php" id="logout">login</a>
-    </div>
-    <div id="content">
-      <noscript>
-        <div
-         style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
-         Your web browser must have JavaScript enabled in order for this application
-         to display correctly.</div>
-      </noscript>
-  
-    </div>
-  </div>
-  <!--
-         -->
-  <div id="footer">
-    <span id="divider"></span>Darwin is a Bournemouth University Project
-  </div>
-</body>
+    <!--                                           -->
+    <!-- Any title is fine                         -->
+    <!--                                           -->
+    <title>Process Engine Interface</title>
+    
+    <!--                                           -->
+    <!-- This script loads your compiled module.   -->
+    <!-- If you add any GWT meta tags, they must   -->
+    <!-- be added before this line.                -->
+    <!--                                           -->
+    <script type="text/javascript" language="javascript" src="peusermessagehandler/peusermessagehandler.nocache.js"></script>
+  </head>
+
+  <!--                                           -->
+  <!-- The body can have arbitrary html, or      -->
+  <!-- you can leave the body empty if you want  -->
+  <!-- to create a completely dynamic UI.        -->
+  <!--                                           -->
+  <body>
+
+    <!-- OPTIONAL: include this if you want history support -->
+    <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
+    
+    <!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
+    <noscript>
+      <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+        Your web browser must have JavaScript enabled
+        in order for this application to display correctly.
+      </div>
+    </noscript>
+  </body>
 </html>
