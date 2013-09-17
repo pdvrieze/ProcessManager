@@ -11,6 +11,7 @@
     <input type='hidden' name="redirect" ui:field="redirect" value="/"/>
     <input type='button' value='Cancel' ui:field="cancel"/>
     <input type='submit' value='Log in' ui:field="login"/></span>
+  <div id='forgotpasswd'><a href='/accounts/resetpasswd'>Forgot password</a></div>
   </form>
 <!-- 
 		<table style='border:none'>
