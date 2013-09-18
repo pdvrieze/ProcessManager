@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
  *
  */
 @XmlRegistry
-@SuppressWarnings("static-method")
+@SuppressWarnings({"static-method", "unused"})
 public class ObjectFactory {
 
     private final static QName _ProcessModel_QNAME = new QName("http://adaptivity.nl/ProcessEngine/", "processModel");
