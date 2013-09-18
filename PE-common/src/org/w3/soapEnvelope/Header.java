@@ -13,7 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyAttribute;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
@@ -27,7 +31,7 @@ import org.w3c.dom.Element;
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="Header">
  *   &lt;complexContent>
@@ -51,7 +55,7 @@ public class Header {
   protected List<Object> any;
 
   @XmlAnyAttribute
-  private final Map<QName, String> otherAttributes = new HashMap<QName, String>();
+  private final Map<QName, String> otherAttributes = new HashMap<>();
 
   /**
    * Gets the value of the any property.
@@ -62,7 +66,7 @@ public class Header {
    * for the any property.
    * <p>
    * For example, to add a new item, do as follows:
-   * 
+   *
    * <pre>
    * getAny().add(newItem);
    * </pre>
@@ -72,7 +76,7 @@ public class Header {
    */
   public List<Object> getAny() {
     if (any == null) {
-      any = new ArrayList<Object>();
+      any = new ArrayList<>();
     }
     return this.any;
   }
@@ -85,7 +89,7 @@ public class Header {
    * value of the attribute. the map returned by this method is live, and you
    * can add new attribute by updating the map directly. Because of this design,
    * there's no setter.
-   * 
+   *
    * @return always non-null
    */
   public Map<QName, String> getOtherAttributes() {

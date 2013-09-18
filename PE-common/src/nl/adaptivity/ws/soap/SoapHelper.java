@@ -24,18 +24,19 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import net.devrieze.util.Tripple;
-import net.devrieze.util.Types;
-import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.util.XmlUtil;
-
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import net.devrieze.util.Tripple;
+import net.devrieze.util.Types;
+import net.devrieze.util.security.SimplePrincipal;
+
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.util.XmlUtil;
 
 
 /**
@@ -53,7 +54,7 @@ public class SoapHelper {
 
   private SoapHelper() {}
 
-  public static <T> Source createMessage(final QName pOperationName, final Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
+  public static Source createMessage(final QName pOperationName, final List<Tripple<String, ? extends Class<? extends Object>, ?>> pParams) throws JAXBException {
     return createMessage(pOperationName, null, pParams);
   }
 
@@ -68,7 +69,7 @@ public class SoapHelper {
    * @return a Source that encapsulates the message.
    * @throws JAXBException
    */
-  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final Tripple<String, Class<?>, Object>... pParams) throws JAXBException {
+  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final List<Tripple<String, ? extends Class<? extends Object>, ?>> pParams) throws JAXBException {
     DocumentBuilder db;
     {
       final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -87,7 +88,7 @@ public class SoapHelper {
     }
     final Element body = createSoapBody(envelope);
     final Element message = createBodyMessage(body, pOperationName);
-    for (final Tripple<String, Class<?>, Object> param : pParams) {
+    for (final Tripple<String, ? extends Class<?>, ?> param : pParams) {
       addParam(message, param);
     }
     return new DOMSource(resultDoc);
@@ -159,7 +160,7 @@ public class SoapHelper {
     return message;
   }
 
-  private static Element addParam(final Element pMessage, final Tripple<String, Class<?>, Object> pParam) throws JAXBException {
+  private static Element addParam(final Element pMessage, final Tripple<String, ? extends Class<?>, ?> pParam) throws JAXBException {
     final Document ownerDoc = pMessage.getOwnerDocument();
     String prefix;
     if ((pMessage.getPrefix() != null) && (pMessage.getPrefix().length() > 0)) {
@@ -186,7 +187,7 @@ public class SoapHelper {
       wrapper.appendChild(ownerDoc.createTextNode(pParam.getElem3().toString()));
     } else if (Collection.class.isAssignableFrom(paramType)) {
       final Collection<?> params = (Collection<?>) pParam.getElem3();
-      final Set<Class<?>> paramTypes = new HashSet<Class<?>>();
+      final Set<Class<?>> paramTypes = new HashSet<>();
       {
         for (final Object elem : params) {
           paramTypes.add(elem.getClass());
@@ -234,7 +235,7 @@ public class SoapHelper {
   static LinkedHashMap<String, Node> getParamMap(final Node bodyParamRoot) {
     LinkedHashMap<String, Node> params;
     {
-      params = new LinkedHashMap<String, Node>();
+      params = new LinkedHashMap<>();
 
       Node child = bodyParamRoot.getFirstChild();
       String returnName = null;
@@ -268,7 +269,7 @@ public class SoapHelper {
     if (pHeader == null) {
       return Collections.emptyMap();
     }
-    final LinkedHashMap<String, Node> result = new LinkedHashMap<String, Node>();
+    final LinkedHashMap<String, Node> result = new LinkedHashMap<>();
     for (final Object o : pHeader.getAny()) {
       if (o instanceof Node) {
         final Node n = (Node) o;

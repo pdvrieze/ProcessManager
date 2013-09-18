@@ -6,7 +6,6 @@ import javax.activation.DataHandler;
 import javax.xml.transform.Source;
 
 
-@Deprecated
 public interface NormalizedMessage {
 
   Source getContent();

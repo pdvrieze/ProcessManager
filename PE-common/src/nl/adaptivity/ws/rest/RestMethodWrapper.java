@@ -34,9 +34,13 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Types;
+
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -44,9 +48,6 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
 import nl.adaptivity.util.activation.Sources;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
 public class RestMethodWrapper {
@@ -158,7 +159,7 @@ public class RestMethodWrapper {
     return result;
   }
 
-  private Object getAttachment(final Class<?> pClass, final String pName, final HttpMessage pMessage) {
+  private static Object getAttachment(final Class<?> pClass, final String pName, final HttpMessage pMessage) {
     final DataSource source = pMessage.getAttachment(pName);
     if (source != null) {
       if (DataHandler.class.isAssignableFrom(pClass)) {
@@ -185,15 +186,15 @@ public class RestMethodWrapper {
     return null;
   }
 
-  private Object getParamGet(final String pName, final HttpMessage pMessage) {
+  private static Object getParamGet(final String pName, final HttpMessage pMessage) {
     return pMessage.getQuery(pName);
   }
 
-  private Object getParamPost(final String pName, final HttpMessage pMessage) {
+  private static Object getParamPost(final String pName, final HttpMessage pMessage) {
     return pMessage.getPost(pName);
   }
 
-  private <T> T getParamXPath(final Class<T> pClass, final String pXpath, final Body pBody) {
+  private static <T> T getParamXPath(final Class<T> pClass, final String pXpath, final Body pBody) {
     boolean jaxb;
     if (CharSequence.class.isAssignableFrom(pClass)) {
       jaxb = false;
@@ -217,11 +218,11 @@ public class RestMethodWrapper {
 
   }
 
-  private String nodeToString(final Node pNode) {
+  private static String nodeToString(final Node pNode) {
     return pNode.getTextContent();
   }
 
-  private Node xpathMatch(final Node pN, final String pXpath) {
+  private static Node xpathMatch(final Node pN, final String pXpath) {
     final XPathFactory factory = XPathFactory.newInstance();
     final XPath xpath = factory.newXPath();
     NodeList result;
@@ -252,7 +253,15 @@ public class RestMethodWrapper {
     }
   }
 
-  public void marshalResult(final HttpMessage pRequest, final HttpServletResponse pResponse) throws TransformerException, IOException {
+  /**
+   * @deprecated use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored
+   */
+  @Deprecated
+  public void marshalResult(@SuppressWarnings("unused") final HttpMessage pRequest, final HttpServletResponse pResponse) throws TransformerException, IOException {
+    marshalResult(pResponse);
+  }
+
+  public void marshalResult(final HttpServletResponse pResponse) throws TransformerException, IOException {
     final XmlRootElement xmlRootElement = aResult == null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
     if (xmlRootElement != null) {
       try {

@@ -2,7 +2,11 @@ package nl.adaptivity.ws.soap;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.activation.DataSource;
@@ -36,7 +40,7 @@ public class SoapMessageHandler {
 
   public static SoapMessageHandler newInstance(final Object pTarget) {
     if (aInstances == null) {
-      aInstances = new ConcurrentHashMap<Object, SoapMessageHandler>();
+      aInstances = new ConcurrentHashMap<>();
       final SoapMessageHandler instance = new SoapMessageHandler(pTarget);
       aInstances.put(pTarget, instance);
       return instance;
@@ -136,7 +140,7 @@ public class SoapMessageHandler {
 
   private Collection<Method> getCandidatesFor(final Class<? extends Object> pClass, final QName pOperation) {
     if (cache == null) {
-      cache = new HashMap<Class<?>, PrefixMap<Method>>();
+      cache = new HashMap<>();
     }
     PrefixMap<Method> v = cache.get(pClass);
     if (v == null) {
@@ -148,11 +152,11 @@ public class SoapMessageHandler {
       return Collections.emptyList();
     }
 
-    return new ValueCollection<Method>(w);
+    return new ValueCollection<>(w);
   }
 
-  private PrefixMap<Method> createCacheElem(final Class<? extends Object> pClass) {
-    final PrefixMap<Method> result = new PrefixMap<Method>();
+  private static PrefixMap<Method> createCacheElem(final Class<? extends Object> pClass) {
+    final PrefixMap<Method> result = new PrefixMap<>();
     final Method[] methods = pClass.getDeclaredMethods();
 
     for (final Method m : methods) {

@@ -5,7 +5,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
@@ -122,8 +128,7 @@ public class Activity extends ProcessNode {
    * @param pImports The imports to set.
    */
   public void setImports(final Collection<XmlImportType> pImports) {
-    aImports = new ArrayList<XmlImportType>(pImports.size());
-    aImports.addAll(pImports);
+    aImports = new ArrayList<>(pImports);
   }
 
   /**
@@ -144,8 +149,7 @@ public class Activity extends ProcessNode {
    * @param pExports The exports to set.
    */
   public void setExports(final Collection<XmlExportType> pExports) {
-    aExports = new ArrayList<XmlExportType>(pExports.size());
-    aExports.addAll(pExports);
+    aExports = new ArrayList<>(pExports);
   }
 
   /**

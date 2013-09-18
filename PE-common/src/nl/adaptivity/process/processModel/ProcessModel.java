@@ -2,7 +2,12 @@ package nl.adaptivity.process.processModel;
 
 import java.io.Serializable;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -87,7 +92,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * @param pXmlModel The xml representation to base the model on.
    */
   public ProcessModel(final XmlProcessModel pXmlModel) {
-    final Collection<EndNode> endNodes = new ArrayList<EndNode>();
+    final Collection<EndNode> endNodes = new ArrayList<>();
 
     for (final ProcessNode node : pXmlModel.getNodes()) {
       if (node instanceof EndNode) {
@@ -110,7 +115,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * @return A collection of startNodes.
    */
   private static Collection<StartNode> reverseGraph(final Collection<EndNode> pEndNodes) {
-    final Collection<StartNode> resultList = new ArrayList<StartNode>();
+    final Collection<StartNode> resultList = new ArrayList<>();
     for (final EndNode endNode : pEndNodes) {
       reverseGraph(resultList, endNode);
     }
@@ -150,8 +155,8 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * @return An array of all nodes.
    */
   ProcessNode[] getModelNodes() {
-    final Collection<ProcessNode> list = new ArrayList<ProcessNode>();
-    final HashSet<String> seen = new HashSet<String>();
+    final Collection<ProcessNode> list = new ArrayList<>();
+    final HashSet<String> seen = new HashSet<>();
     if (aStartNodes != null) {
       for (final StartNode node : aStartNodes) {
         extractElements(list, seen, node);
@@ -169,7 +174,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * @param pProcessNodes The process nodes to base the model on.
    */
   public void setModelNodes(final ProcessNode[] pProcessNodes) {
-    final ArrayList<EndNode> endNodes = new ArrayList<EndNode>();
+    final ArrayList<EndNode> endNodes = new ArrayList<>();
     for (final ProcessNode n : pProcessNodes) {
       if (n instanceof EndNode) {
         endNodes.add((EndNode) n);
@@ -275,7 +280,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
 
   public Set<String> getRoles() {
     if (aRoles == null) {
-      aRoles = new HashSet<String>();
+      aRoles = new HashSet<>();
     }
     return aRoles;
   }
@@ -289,7 +294,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
     aName = pStringCache.lookup(aName);
     if ((aRoles != null) && (aRoles.size() > 0)) {
       final Set<String> roles = aRoles;
-      aRoles = new HashSet<String>(aRoles.size() + (aRoles.size() >> 1));
+      aRoles = new HashSet<>(aRoles.size() + (aRoles.size() >> 1));
       for (final String role : roles) {
         aRoles.add(pStringCache.lookup(role));
       }

@@ -29,13 +29,13 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import nl.adaptivity.messaging.EndpointDescriptorImpl;
-import nl.adaptivity.messaging.EndpointDescriptor;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
 
 
 /**
@@ -172,7 +172,7 @@ public class XmlMessage {
   @XmlAnyElement(lax = true)
   public Collection<Object> getAny() {
     if (aAny == null) {
-      aAny = new ArrayList<Object>(1);
+      aAny = new ArrayList<>(1);
       if (aBody != null) {
         aAny.add(aBody);
         aBody = null;

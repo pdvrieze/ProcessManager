@@ -1,6 +1,11 @@
 package nl.adaptivity.util.activation;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.AbstractSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import javax.activation.DataHandler;
 

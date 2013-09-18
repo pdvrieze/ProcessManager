@@ -4,13 +4,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.*;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.activation.DataSource;
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
@@ -94,7 +99,7 @@ public class DarwinMessenger implements IMessenger {
     public MessageCompletionNotifier() {
       super(NOTIFIERTHREADNAME);
       this.setDaemon(true); // This is just a helper thread, don't block cleanup.
-      aPendingNotifications = new LinkedBlockingQueue<MessageTask<?>>(CONCURRENTCAPACITY);
+      aPendingNotifications = new LinkedBlockingQueue<>(CONCURRENTCAPACITY);
     }
 
     /**
@@ -140,7 +145,7 @@ public class DarwinMessenger implements IMessenger {
      *
      * @param pFuture The future to notify completion of.
      */
-    private <T extends DataSource> void notififyCompletion(final MessageTask<?> pFuture) {
+    private void notififyCompletion(final MessageTask<?> pFuture) {
       pFuture.aCompletionListener.onMessageCompletion(pFuture);
     }
 
@@ -302,13 +307,8 @@ public class DarwinMessenger implements IMessenger {
         }
         try {
           if (hasPayload) {
-
-            final OutputStream out = httpConnection.getOutputStream();
-
-            try {
+            try(final OutputStream out = httpConnection.getOutputStream()) {
               InputStreamOutputStream.writeToOutputStream(aMessage.getBodySource().getInputStream(), out);
-            } finally {
-              out.close();
             }
           }
           aResponseCode = httpConnection.getResponseCode();
@@ -375,7 +375,8 @@ public class DarwinMessenger implements IMessenger {
       if (aResult == NULL) {
         return null;
       }
-      if (aResult != null) {
+      if (aResult != null)
+      {
         return aResult;
       }
       wait();
@@ -458,7 +459,7 @@ public class DarwinMessenger implements IMessenger {
   private DarwinMessenger() {
     aExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
     aNotifier = new MessageCompletionNotifier();
-    aServices = new ConcurrentHashMap<QName, ConcurrentMap<String, EndpointDescriptor>>();
+    aServices = new ConcurrentHashMap<>();
     aNotifier.start();
 
     final String localUrl = System.getProperty("nl.adaptivity.messaging.localurl");
@@ -496,7 +497,7 @@ public class DarwinMessenger implements IMessenger {
     // prevent race conditions with multiple registrations.
     ConcurrentMap<String, EndpointDescriptor> service = aServices.get(pEndpoint.getServiceName());
     if (service == null) {
-      service = new ConcurrentHashMap<String, EndpointDescriptor>();
+      service = new ConcurrentHashMap<>();
       aServices.put(pEndpoint.getServiceName(), service);
     }
     if (service.containsKey(pEndpoint.getEndpointName())) {
@@ -535,7 +536,7 @@ public class DarwinMessenger implements IMessenger {
         try {
           resultSource = handler.processMessage(pMessage.getBodySource(), pMessage.getAttachments());
         } catch (final Exception e) {
-          final Future<T> resultfuture = new MessageTask<T>(e);
+          final Future<T> resultfuture = new MessageTask<>(e);
           if (pCompletionListener != null) {
             pCompletionListener.onMessageCompletion(resultfuture);
           }
@@ -550,10 +551,10 @@ public class DarwinMessenger implements IMessenger {
           } catch (final IOException e) {
             throw new MessagingException(e);
           }
-          resultfuture = new MessageTask<T>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+          resultfuture = new MessageTask<>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
         } else {
           final T resultval = SoapHelper.processResponse(pReturnType, resultSource);
-          resultfuture = new MessageTask<T>(resultval);
+          resultfuture = new MessageTask<>(resultval);
         }
 
         //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
@@ -575,7 +576,7 @@ public class DarwinMessenger implements IMessenger {
       destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
     }
 
-    final MessageTask<T> messageTask = new MessageTask<T>(destURL, pMessage, pCompletionListener, pReturnType);
+    final MessageTask<T> messageTask = new MessageTask<>(destURL, pMessage, pCompletionListener, pReturnType);
     aExecutor.execute(messageTask);
     return messageTask;
   }

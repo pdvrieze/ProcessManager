@@ -20,7 +20,7 @@ import nl.adaptivity.ws.soap.SoapMessageHandler;
 
 /**
  * A servlet that serves up web services provided by a {@link GenericEndpoint}
- * 
+ *
  * @author Paul de Vrieze
  */
 public class EndpointServlet extends HttpServlet {
@@ -49,7 +49,7 @@ public class EndpointServlet extends HttpServlet {
 
   /**
    * A constructor for subclasses that provide an endpoint to use.
-   * 
+   *
    * @param pEndpoint The endpoint to provide.
    */
   protected EndpointServlet(final GenericEndpoint pEndpoint) {
@@ -101,7 +101,7 @@ public class EndpointServlet extends HttpServlet {
    * the Content-Type header deterimine whether it's a rest or soap request, and
    * use a {@link SoapMessageHandler} or {@link RestMessageHandler} to actually
    * process the message.
-   * 
+   *
    * @param pMethod The HTTP method invoked.
    * @param pRequest The request.
    * @param pResponse The response object on which responses are written.
@@ -141,7 +141,7 @@ public class EndpointServlet extends HttpServlet {
    * Override this to override the endpoint used by this servlet to serve
    * connections. In most cases it's better to provide the endpoint to the
    * constructor instead, or as a servlet parameter.
-   * 
+   *
    * @return A GenericEndpoint that implements the needed services.
    * @see {@link #init(ServletConfig)}
    */
@@ -153,7 +153,7 @@ public class EndpointServlet extends HttpServlet {
    * Get a soap handler that does the work for us. As the handler caches objects
    * instead of repeatedly using reflection it needs to be an object and is not
    * just a set of static methods.
-   * 
+   *
    * @return The soap handler.
    */
   private SoapMessageHandler getSoapMessageHandler() {
@@ -171,7 +171,7 @@ public class EndpointServlet extends HttpServlet {
    * Get a rest handler that does the work for us. As the handler caches objects
    * instead of repeatedly using reflection it needs to be an object and is not
    * just a set of static methods.
-   * 
+   *
    * @return The rest handler.
    */
   private RestMessageHandler getRestMessageHandler() {
@@ -188,10 +188,10 @@ public class EndpointServlet extends HttpServlet {
 
   /**
    * Get a logger object for this servlet.
-   * 
+   *
    * @return A logger to use to log messages.
    */
-  private Logger getLogger() {
+  private static Logger getLogger() {
     return Logger.getLogger(LOGGER_NAME);
   }
 

@@ -12,7 +12,13 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyAttribute;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 
@@ -22,7 +28,7 @@ import javax.xml.namespace.QName;
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="Envelope">
  *   &lt;complexContent>
@@ -55,13 +61,13 @@ public class Envelope {
   protected Body body;
 
   @XmlAnyAttribute
-  private final Map<QName, String> otherAttributes = new HashMap<QName, String>();
+  private final Map<QName, String> otherAttributes = new HashMap<>();
 
   private URI encodingStyle;
 
   /**
    * Gets the value of the header property.
-   * 
+   *
    * @return possible object is {@link Header }
    */
   public Header getHeader() {
@@ -70,7 +76,7 @@ public class Envelope {
 
   /**
    * Sets the value of the header property.
-   * 
+   *
    * @param value allowed object is {@link Header }
    */
   public void setHeader(final Header value) {
@@ -79,7 +85,7 @@ public class Envelope {
 
   /**
    * Gets the value of the body property.
-   * 
+   *
    * @return possible object is {@link Body }
    */
   public Body getBody() {
@@ -88,7 +94,7 @@ public class Envelope {
 
   /**
    * Sets the value of the body property.
-   * 
+   *
    * @param value allowed object is {@link Body }
    */
   public void setBody(final Body value) {
@@ -103,7 +109,7 @@ public class Envelope {
    * value of the attribute. the map returned by this method is live, and you
    * can add new attribute by updating the map directly. Because of this design,
    * there's no setter.
-   * 
+   *
    * @return always non-null
    */
   public Map<QName, String> getOtherAttributes() {

@@ -1,6 +1,12 @@
 package nl.adaptivity.util;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.Principal;
 import java.util.*;
@@ -10,7 +16,14 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
@@ -227,7 +240,7 @@ public class HttpMessage {
     @Override
     public boolean add(final Query pE) {
       if (aMap == null) {
-        aMap = new HashMap<String, String>();
+        aMap = new HashMap<>();
       }
       return aMap.put(pE.getKey(), pE.getValue()) != null;
     }
@@ -366,6 +379,7 @@ public class HttpMessage {
       } else if (isMultipart) {
         aAttachments = HttpRequest.parseMultipartFormdata(pRequest.getInputStream(), HttpRequest.mimeType(pRequest.getContentType()), null);
       } else {
+        @SuppressWarnings("resource")
         final ByteArrayOutputStream baos = getBody(pRequest);
 
         final Document xml;
@@ -375,7 +389,7 @@ public class HttpMessage {
           addByteContent(baos.toByteArray(), pRequest.getContentType());
         } else {
           aBody = new Body();
-          aBody.elements = new ArrayList<Object>(1);
+          aBody.elements = new ArrayList<>(1);
           aBody.elements.add(xml.getDocumentElement());
         }
 
@@ -388,8 +402,8 @@ public class HttpMessage {
    */
 
   @SuppressWarnings("unchecked")
-  private Map<String, List<String>> getHeaders(final HttpServletRequest pRequest) {
-    final Map<String, List<String>> result = new HashMap<String, List<String>>();
+  private static Map<String, List<String>> getHeaders(final HttpServletRequest pRequest) {
+    final Map<String, List<String>> result = new HashMap<>();
     for (final String name : Iterators.<String> toIterable(pRequest.getHeaderNames())) {
       final List<String> values = Iterators.<String> toList(pRequest.getHeaders(name));
       result.put(name, values);
@@ -398,7 +412,7 @@ public class HttpMessage {
   }
 
   private static Map<String, String> toQueries(final String pQueryString) {
-    final Map<String, String> result = new HashMap<String, String>();
+    final Map<String, String> result = new HashMap<>();
 
     if (pQueryString == null) {
       return result;
@@ -457,10 +471,11 @@ public class HttpMessage {
       final int contentLength = pRequest.getContentLength();
       baos = contentLength > 0 ? new ByteArrayOutputStream(contentLength) : new ByteArrayOutputStream();
       final byte[] buffer = new byte[0xfffff];
-      final ServletInputStream is = pRequest.getInputStream();
-      int i;
-      while ((i = is.read(buffer)) >= 0) {
-        baos.write(buffer, 0, i);
+      try (final ServletInputStream is = pRequest.getInputStream()) {
+        int i;
+        while ((i = is.read(buffer)) >= 0) {
+          baos.write(buffer, 0, i);
+        }
       }
     }
     return baos;
@@ -523,7 +538,7 @@ public class HttpMessage {
   @XmlElement(name = "query", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getQueries() {
     if (aQueries == null) {
-      aQueries = new HashMap<String, String>();
+      aQueries = new HashMap<>();
     }
     return new QueryMapCollection(aQueries);
   }
@@ -531,7 +546,7 @@ public class HttpMessage {
   @XmlElement(name = "post", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getPost() {
     if (aPost == null) {
-      aPost = new HashMap<String, String>();
+      aPost = new HashMap<>();
     }
     return new QueryMapCollection(aPost);
   }
@@ -547,7 +562,7 @@ public class HttpMessage {
 
   public Collection<ByteContentDataSource> getByteContent() {
     if (aByteContent == null) {
-      aByteContent = new ArrayList<ByteContentDataSource>();
+      aByteContent = new ArrayList<>();
     }
     return aByteContent;
   }

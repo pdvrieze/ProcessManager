@@ -34,7 +34,7 @@ public class StartNode extends ProcessNode {
   @XmlElement(name = "import")
   public List<XmlImportType> getImport() {
     if (aImports == null) {
-      aImports = new ArrayList<XmlImportType>();
+      aImports = new ArrayList<>();
     }
     return this.aImports;
   }

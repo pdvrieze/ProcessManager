@@ -20,12 +20,17 @@ public class Condition implements Serializable {
     aCondition = pCondition;
   }
 
+  public String getCondition() {
+    return aCondition;
+  }
+
   /**
    * Evaluate the condition.
-   * 
+   *
    * @param pInstance The instance to use to evaluate against.
    * @return <code>true</code>
    */
+  @SuppressWarnings("static-method")
   public boolean eval(final IProcessNodeInstance<?> pInstance) {
     return true;
   }

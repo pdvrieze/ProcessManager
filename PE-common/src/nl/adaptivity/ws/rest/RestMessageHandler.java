@@ -2,7 +2,11 @@ package nl.adaptivity.ws.rest;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +30,7 @@ public class RestMessageHandler {
 
   public static RestMessageHandler newInstance(final Object pTarget) {
     if (aInstances == null) {
-      aInstances = new ConcurrentHashMap<Object, RestMessageHandler>();
+      aInstances = new ConcurrentHashMap<>();
       final RestMessageHandler instance = new RestMessageHandler(pTarget);
       aInstances.put(pTarget, instance);
       return instance;
@@ -63,7 +67,7 @@ public class RestMessageHandler {
         throw e;
       }
       try {
-        method.marshalResult(pRequest, pResponse);
+        method.marshalResult(pResponse);
       } catch (final TransformerException e) {
         throw new IOException(e);
       }
@@ -84,7 +88,7 @@ public class RestMessageHandler {
     RestMethod resultAnnotation = null;
     for (final Method candidate : candidates) {
       final RestMethod annotation = candidate.getAnnotation(RestMethod.class);
-      final Map<String, String> pathParams = new HashMap<String, String>();
+      final Map<String, String> pathParams = new HashMap<>();
 
       if ((annotation != null) && (annotation.method() == pHttpMethod)
           && pathFits(pathParams, annotation.path(), pHttpMessage.getRequestPath())
@@ -101,7 +105,7 @@ public class RestMessageHandler {
   }
 
 
-  private boolean isMoreSpecificThan(final RestMethod pBaseAnnotation, final RestMethod pAnnotation) {
+  private static boolean isMoreSpecificThan(final RestMethod pBaseAnnotation, final RestMethod pAnnotation) {
     // TODO more sophisticated filtering
     if (pBaseAnnotation.path().length() < pAnnotation.path().length()) {
       return true;
@@ -119,7 +123,7 @@ public class RestMessageHandler {
   private Collection<Method> getCandidatesFor(final HttpMethod pHttpMethod, final String pPathInfo) {
     final Class<? extends Object> targetClass = aTarget.getClass();
     if (cache == null) {
-      cache = new HashMap<Class<?>, EnumMap<HttpMethod, PrefixMap<Method>>>();
+      cache = new HashMap<>();
     }
     EnumMap<HttpMethod, PrefixMap<Method>> v = cache.get(targetClass);
     if (v == null) {
@@ -134,8 +138,8 @@ public class RestMessageHandler {
     return w.getPrefixValues(pPathInfo);
   }
 
-  private EnumMap<HttpMethod, PrefixMap<Method>> createCacheElem(final Class<? extends Object> pClass) {
-    final EnumMap<HttpMethod, PrefixMap<Method>> result = new EnumMap<HttpMethod, PrefixMap<Method>>(HttpMethod.class);
+  private static EnumMap<HttpMethod, PrefixMap<Method>> createCacheElem(final Class<? extends Object> pClass) {
+    final EnumMap<HttpMethod, PrefixMap<Method>> result = new EnumMap<>(HttpMethod.class);
     final Method[] methods = pClass.getDeclaredMethods();
 
     for (final Method m : methods) {
@@ -145,7 +149,7 @@ public class RestMessageHandler {
         final HttpMethod operation = annotation.method();
         PrefixMap<Method> x = result.get(operation);
         if (x == null) {
-          x = new PrefixMap<Method>();
+          x = new PrefixMap<>();
           result.put(operation, x);
         }
         x.put(prefix, m);
@@ -154,7 +158,7 @@ public class RestMessageHandler {
     return result;
   }
 
-  private String getPrefix(final String pPath) {
+  private static String getPrefix(final String pPath) {
     int i = pPath.indexOf('$');
     int j = 0;
     StringBuilder result = null;
@@ -310,7 +314,7 @@ public class RestMessageHandler {
     final Collection<Method> candidates = getCandidatesFor(pHttpMethod, pRequest.getRequestPath());
     for (final Method candidate : candidates) {
       final RestMethod annotation = candidate.getAnnotation(RestMethod.class);
-      final Map<String, String> pathParams = new HashMap<String, String>();
+      final Map<String, String> pathParams = new HashMap<>();
 
       if ((annotation != null) && (annotation.method() == pHttpMethod)
           && pathFits(pathParams, annotation.path(), pRequest.getRequestPath())

@@ -4,7 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlIDREF;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -77,7 +83,7 @@ public class Join extends ProcessNode {
   @XmlIDREF
   public Collection<Object> getPred() {
     if (aPred == null) {
-      aPred = new ArrayList<Object>();
+      aPred = new ArrayList<>();
     }
     return aPred;
   }

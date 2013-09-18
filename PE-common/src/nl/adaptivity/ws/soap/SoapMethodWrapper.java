@@ -1,51 +1,41 @@
 package nl.adaptivity.ws.soap;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
 import java.net.URI;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
-
-import net.devrieze.util.Annotations;
-import net.devrieze.util.JAXBCollectionWrapper;
-import net.devrieze.util.Tripple;
-import net.devrieze.util.Types;
-import nl.adaptivity.messaging.HttpResponseException;
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.engine.MessagingFormatException;
-import nl.adaptivity.process.messaging.ActivityResponse;
-import nl.adaptivity.util.activation.Sources;
 
 import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Node;
+
+import net.devrieze.util.Annotations;
+import net.devrieze.util.Tripple;
+
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.engine.MessagingFormatException;
+import nl.adaptivity.process.messaging.ActivityResponse;
+import nl.adaptivity.util.activation.Sources;
 
 
 public class SoapMethodWrapper {
@@ -86,18 +76,18 @@ public class SoapMethodWrapper {
     }
   }
 
-  private void ensureNoUnunderstoodHeaders(final Envelope pEnvelope) {
+  private void ensureNoUnunderstoodHeaders(@SuppressWarnings("unused") final Envelope pEnvelope) {
     // TODO Auto-generated method stub
     //
   }
 
-  private void processSoapHeader(final Header pHeader) {
+  private void processSoapHeader(@SuppressWarnings("unused") final Header pHeader) {
     // TODO Auto-generated method stub
     //
     /* For now just ignore headers, i.e. none understood */
   }
 
-  private void processSoapBody(final org.w3.soapEnvelope.Envelope pEnvelope, final Map<String, DataSource> pAttachments) {
+  private void processSoapBody(final org.w3.soapEnvelope.Envelope pEnvelope, @SuppressWarnings("unused") final Map<String, DataSource> pAttachments) {
     final Body body = pEnvelope.getBody();
     if (body.getAny().size() != 1) {
       throw new MessagingFormatException("Multiple body elements not expected");
@@ -158,32 +148,6 @@ public class SoapMethodWrapper {
     }
   }
 
-  private Object getAttachment(final Class<?> pClass, final String pName, final Map<String, DataHandler> pAttachments) {
-    final DataHandler handler = pAttachments.get(pName);
-    if (handler != null) {
-      if (DataHandler.class.isAssignableFrom(pClass)) {
-        return handler;
-      }
-      if (InputStream.class.isAssignableFrom(pClass)) {
-        try {
-          return handler.getInputStream();
-        } catch (final IOException e) {
-          throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
-        }
-      }
-      if (DataSource.class.isAssignableFrom(pClass)) {
-        return handler.getDataSource();
-      }
-      try {
-        return handler.getContent();
-      } catch (final IOException e) {
-        throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
-      }
-
-    }
-    return null;
-  }
-
   public void exec() {
     if (aParams == null) {
       throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
@@ -211,18 +175,17 @@ public class SoapMethodWrapper {
     }
   }
 
-  @SuppressWarnings("unchecked")
   public Source getResultSource() {
     if (aResult instanceof Source) {
       return (Source) aResult;
     }
 
-    Tripple<String, Class<?>, Object>[] params;
+    List<Tripple<String, ? extends Class<? extends Object>, ?>> params;
     List<Object> headers;
     if (aResult instanceof ActivityResponse) {
       final ActivityResponse<?> activityResponse = (ActivityResponse<?>) aResult;
-      params = new Tripple[] { Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                              Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) };
+      params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
+                              Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) );
       headers = Collections.<Object> singletonList(aResult);
     } else if ("nl.adaptivity.process.messaging.ActivityResponse".equals(aResult.getClass().getName())) {
       /*
@@ -248,14 +211,14 @@ public class SoapMethodWrapper {
       } catch (final NoSuchMethodException e) {
         throw new MessagingException(e);
       }
-      params = new Tripple[] { Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                              Tripple.tripple("result", returnType, returnValue) };
+      params = Arrays.asList( Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
+                              Tripple.tripple("result", returnType, returnValue) );
       headers = Collections.<Object> singletonList(aResult);
 
     } else {
 
-      params = new Tripple[] { Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                              Tripple.tripple("result", aMethod.getReturnType(), aResult) };
+      params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
+                              Tripple.tripple("result", aMethod.getReturnType(), aResult));
       headers = Collections.emptyList();
     }
     try {
@@ -267,57 +230,6 @@ public class SoapMethodWrapper {
 
   public Object getResult() {
     return aResult;
-  }
-
-  private JAXBCollectionWrapper wrapCollection(final Type pType, final Collection<?> pCollection) {
-    final JAXBCollectionWrapper collectionWrapper;
-    {
-      final Class<?> rawType;
-      if (pType instanceof ParameterizedType) {
-        final ParameterizedType returnType = (ParameterizedType) pType;
-        rawType = (Class<?>) returnType.getRawType();
-      } else if (pType instanceof Class<?>) {
-        rawType = (Class<?>) pType;
-      } else if (pType instanceof WildcardType) {
-        final Type[] UpperBounds = ((WildcardType) pType).getUpperBounds();
-        if (UpperBounds.length > 0) {
-          rawType = (Class<?>) UpperBounds[0];
-        } else {
-          rawType = Object.class;
-        }
-      } else if (pType instanceof TypeVariable) {
-        final Type[] UpperBounds = ((TypeVariable<?>) pType).getBounds();
-        if (UpperBounds.length > 0) {
-          rawType = (Class<?>) UpperBounds[0];
-        } else {
-          rawType = Object.class;
-        }
-      } else {
-        throw new IllegalArgumentException("Unsupported type variable");
-      }
-      Class<?> elementType = null;
-      if (Collection.class.isAssignableFrom(rawType)) {
-        final Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pType);
-        elementType = Types.toRawType(paramTypes[0]);
-        if (elementType.isInterface()) {
-          // interfaces not supported by jaxb
-          elementType = Types.commonAncestor(pCollection);
-        }
-      } else {
-        elementType = Types.commonAncestor(pCollection);
-      }
-      collectionWrapper = new JAXBCollectionWrapper(pCollection, elementType);
-    }
-    return collectionWrapper;
-  }
-
-  private static QName getQName(final XmlElementWrapper pAnnotation) {
-    String nameSpace = pAnnotation.namespace();
-    if ("##default".equals(nameSpace)) {
-      nameSpace = XMLConstants.NULL_NS_URI;
-    }
-    final String localName = pAnnotation.name();
-    return new QName(nameSpace, localName, XMLConstants.DEFAULT_NS_PREFIX);
   }
 
 }

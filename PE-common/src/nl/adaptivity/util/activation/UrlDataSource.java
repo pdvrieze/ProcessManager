@@ -72,14 +72,6 @@ public class UrlDataSource implements DataSource {
     return _mimeMap.getContentType(pFileName);
   }
 
-  private static String fileName(final String pPath) {
-    final int i = pPath.lastIndexOf('/');
-    if (i < 0) {
-      return pPath;
-    }
-    return pPath.substring(i + 1);
-  }
-
   public Map<String, List<String>> getHeaders() {
     return aHeaders;
   }

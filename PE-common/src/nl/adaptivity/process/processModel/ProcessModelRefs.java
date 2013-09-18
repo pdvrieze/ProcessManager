@@ -17,18 +17,18 @@ public class ProcessModelRefs implements Collection<ProcessModelRef> {
   private Collection<ProcessModelRef> aCollection;
 
   public ProcessModelRefs() {
-    aCollection = new ArrayList<ProcessModelRef>();
+    aCollection = new ArrayList<>();
   }
 
   public ProcessModelRefs(final Collection<ProcessModelRef> pCollection) {
-    aCollection = new ArrayList<ProcessModelRef>(pCollection.size());
+    aCollection = new ArrayList<>(pCollection.size());
     aCollection.addAll(pCollection);
   }
 
   @XmlElement(name = "processModel")
   public Collection<ProcessModelRef> getElements() {
     if (aCollection == null) {
-      aCollection = new ArrayList<ProcessModelRef>();
+      aCollection = new ArrayList<>();
     }
     return aCollection;
   }

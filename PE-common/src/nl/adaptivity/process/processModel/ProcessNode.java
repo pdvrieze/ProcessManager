@@ -5,7 +5,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlID;
+import javax.xml.bind.annotation.XmlSchemaType;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -55,7 +61,7 @@ public abstract class ProcessNode implements Serializable {
 
   public Collection<ProcessNode> getPredecessors() {
     if (aPredecessors == null) {
-      aPredecessors = new ArrayList<ProcessNode>();
+      aPredecessors = new ArrayList<>();
     }
     return aPredecessors;
   }
@@ -72,7 +78,7 @@ public abstract class ProcessNode implements Serializable {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
     if (aSuccessors == null) {
-      aSuccessors = new ArrayList<ProcessNode>(1);
+      aSuccessors = new ArrayList<>(1);
     }
     aSuccessors.add(pNode);
   }
@@ -83,7 +89,7 @@ public abstract class ProcessNode implements Serializable {
 
   /**
    * Should this node be able to be provided?
-   * 
+   *
    * @param The instance against which the condition should be evaluated.
    * @return <code>true</code> if the node can be started, <code>false</code> if
    *         not.
@@ -114,8 +120,8 @@ public abstract class ProcessNode implements Serializable {
 
   /**
    * Take action to make task available
-   * 
-   * @param pMessageService TODO
+   *
+   * @param pMessageService The message service to use for the communication.
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
@@ -123,8 +129,8 @@ public abstract class ProcessNode implements Serializable {
 
   /**
    * Take action to accept the task (but not start it yet)
-   * 
-   * @param pMessageService TODO
+   *
+   * @param pMessageService The message service to use for the communication.
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */

@@ -8,9 +8,20 @@
 
 package nl.adaptivity.process.processModel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -19,7 +30,7 @@ import javax.xml.bind.annotation.*;
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name=&quot;TProcessModel&quot;&gt;
  *   &lt;complexContent&gt;
@@ -80,7 +91,7 @@ public class XmlProcessModel {
    * for the startOrActivityOrJoin property.
    * <p>
    * For example, to add a new item, do as follows:
-   * 
+   *
    * <pre>
    * getStartOrActivityOrJoin().add(newItem);
    * </pre>
@@ -90,7 +101,7 @@ public class XmlProcessModel {
    */
   public List<ProcessNode> getNodes() {
     if (nodes == null) {
-      nodes = new ArrayList<ProcessNode>();
+      nodes = new ArrayList<>();
     }
     return this.nodes;
   }
@@ -117,7 +128,7 @@ public class XmlProcessModel {
 
   public Set<String> getRoles() {
     if (roles == null) {
-      roles = new HashSet<String>();
+      roles = new HashSet<>();
     }
     return roles;
   }
@@ -140,7 +151,7 @@ public class XmlProcessModel {
    * @todo Optimize this to use a cache of role names.
    */
   public void setRolesString(final String pRoles) {
-    roles = new HashSet<String>();
+    roles = new HashSet<>();
     if ((pRoles == null) || (pRoles.trim().length() == 0)) {
       return;
     }
