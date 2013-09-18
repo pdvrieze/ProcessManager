@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build">
+	<property name="classpath" value="/usr/share/tomcat-servlet-api-2.5/lib/jsp-api.jar:/usr/share/tomcat-servlet-api-2.5/lib/servlet-api.jar:../../JavaCommonApi/trunk/bin:../JavaCommonApi/bin:../:../PE-common/bin:../../PE-common/trunk/bin:../../darwin/projects/DarwinJavaApi/trunk/bin:../java-common/bin"/>
+
+	<target name="javadoc">
+    <mkdir dir="doc" />
+		<javadoc access="package" author="true" classpath="${classpath}" destdir="doc" doctitle="java-common" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.html.util,net.devrieze.util" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
+			<link href="http://download.oracle.com/javase/7/docs/api/" />
+		</javadoc>
+	</target>
+	<target name="generate">
+	    <java classpath="../DarwinGenerators/bin" classname="nl.adaptivity.messaging.MessagingSoapClientGenerator">
+	        <arg value="-cp"/>
+	        <arg value="../ProcessEngine/bin:${classpath}"/>
+	        <arg value="-out"/>
+			<arg value="ServletProcessEngineClient"/>
+			<arg value="-package"/>
+			<arg value="nl.adaptivity.process.client"/>
+			<arg value="-dstdir"/>
+			<arg value="gen/"/>
+			<arg value="nl.adaptivity.process.engine.servlet.ServletProcessEngine"/>
+			
+	    </java>
+	</target>
+	<target name="build" depends="generate">
+		<mkdir dir="build" />
+		<javac srcdir="src" destdir="build" classpath="${classpath}" debug="on" source="1.7" target="1.7" />
+	</target>
+	<target name="release" depends="generate">
+		<mkdir dir="release" />
+		<javac srcdir="src" destdir="release" classpath="${classpath}" debug="off" source="1.7" target="1.7" />
+	</target>
+	<target name="jar" depends="release">
+		<jar destfile="DarwinClients-1.0.0.jar" basedir="release">
+		</jar>
+	</target>
+	<target name="debugjar" depends="build">
+		<jar destfile="DarwinClients-1.0.0.jar" basedir="build">
+		</jar>
+	</target>
+
+</project>
