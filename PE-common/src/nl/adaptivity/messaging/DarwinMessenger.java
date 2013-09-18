@@ -486,7 +486,7 @@ public class DarwinMessenger implements IMessenger {
 
   @Override
   public void registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
-    registerEndpoint(new EndPointDescriptorImpl(pService, pEndPoint, pTarget));
+    registerEndpoint(new EndpointDescriptorImpl(pService, pEndPoint, pTarget));
   }
 
 

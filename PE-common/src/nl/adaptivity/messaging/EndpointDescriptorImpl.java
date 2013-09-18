@@ -13,10 +13,10 @@ import javax.xml.namespace.QName;
  *
  * @author Paul de Vrieze
  */
-@XmlRootElement(name = "endpointDescriptor", namespace = EndPointDescriptorImpl.MY_JBI_NS)
+@XmlRootElement(name = "endpointDescriptor", namespace = EndpointDescriptorImpl.MY_JBI_NS)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(propOrder = { "serviceNamespace", "serviceLocalName", "endpointName" })
-public class EndPointDescriptorImpl implements EndpointDescriptor {
+public class EndpointDescriptorImpl implements EndpointDescriptor {
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
 
@@ -28,9 +28,9 @@ public class EndPointDescriptorImpl implements EndpointDescriptor {
 
   private URI aEndpointLocation;
 
-  public EndPointDescriptorImpl() {}
+  public EndpointDescriptorImpl() {}
 
-  public EndPointDescriptorImpl(final QName pServiceName, final String pEndpointName, final URI pEndpointLocation) {
+  public EndpointDescriptorImpl(final QName pServiceName, final String pEndpointName, final URI pEndpointLocation) {
     aServiceLocalName = pServiceName.getLocalPart();
     aServiceNamespace = pServiceName.getNamespaceURI();
     aEndpointName = pEndpointName;

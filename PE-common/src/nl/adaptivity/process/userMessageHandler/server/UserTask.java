@@ -4,7 +4,7 @@ import java.security.Principal;
 
 import net.devrieze.util.HandleMap.HandleAware;
 
-import nl.adaptivity.messaging.EndPointDescriptorImpl;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
 
@@ -14,7 +14,7 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
   public void setState(TaskState aNewState, Principal pUser);
 
-  public void setEndpoint(EndPointDescriptorImpl pEndPoint);
+  public void setEndpoint(EndpointDescriptorImpl pEndPoint);
 
   public Principal getOwner();
 

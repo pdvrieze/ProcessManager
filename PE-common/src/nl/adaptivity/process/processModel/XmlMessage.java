@@ -29,7 +29,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import nl.adaptivity.messaging.EndPointDescriptorImpl;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.EndpointDescriptor;
 
 import org.w3c.dom.Document;
@@ -157,7 +157,7 @@ public class XmlMessage {
   }
 
   public EndpointDescriptor getEndpointDescriptor() {
-    return new EndPointDescriptorImpl(service, endpoint, URI.create(url));
+    return new EndpointDescriptorImpl(service, endpoint, URI.create(url));
   }
 
   /**
