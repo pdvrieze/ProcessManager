@@ -88,7 +88,7 @@ public class MessagingSoapClientGenerator {
           break;
         }
         case "-cp": {
-          if ("." != cp) {
+          if (!".".equals(cp)) {
             showHelp();
             return;
           }
@@ -96,7 +96,7 @@ public class MessagingSoapClientGenerator {
           break;
         }
         case "-dstdir": {
-          if ("." != dstdir) {
+          if (! ".".equals(dstdir)) {
             showHelp();
             return;
           }
