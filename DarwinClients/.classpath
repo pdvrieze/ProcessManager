@@ -8,13 +8,13 @@
 			<attribute name="owner.project.facets" value="jst.utility"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/oracle-jdk-bin-1.7">
+	<classpathentry combineaccessrules="false" kind="src" path="/DarwinJavaApi"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/java-common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/PE-common"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/oracle-jdk-1.7">
 		<attributes>
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/DarwinJavaApi"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/java-common"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/PE-common"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
