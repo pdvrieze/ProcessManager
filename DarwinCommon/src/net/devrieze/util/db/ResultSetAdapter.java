@@ -181,16 +181,8 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
   }
 
+  @Override
   public void close() {
-//    if (aResultSet != null) {
-//      try {
-//        aResultSet.close();
-//        DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
-//      } catch (final SQLException e) {
-//        DBHelper.logException("Error closing resultset", e);
-//      }
-//      aResultSet = null;
-//    }
     closeStatement();
   }
 
@@ -211,7 +203,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       aStatement = null;
     }
   }
-  
+
   public void closeAll() {
     DBStatement statement = aStatement; //needed as closeStatement nulls this
     closeStatement();
@@ -229,7 +221,8 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
   @Override
   public abstract ResultSetAdapterIterator<T> iterator();
-  
+
+  @Override
   public Iterable<T> all() {
     return new Iterable<T>() {
 

@@ -12,13 +12,10 @@ public class DarwinHtml {
     pResponse.setStatus(pStatus);
     pResponse.setContentType("text/html");
     try {
-      final PrintWriter out = pResponse.getWriter();
-      try {
+      try (final PrintWriter out = pResponse.getWriter()){
         writeDarwinHeader(out, pTitle);
         writeStackTrace(out, pError);
         writeDarwinFooter(out);
-      } finally {
-        out.close();
       }
     } catch (final IOException e) {
       pResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

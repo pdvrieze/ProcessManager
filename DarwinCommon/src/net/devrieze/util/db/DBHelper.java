@@ -35,7 +35,7 @@ public class DBHelper implements AutoCloseable{
 
     DataSourceWrapper(final DataSource pDataSource) {
       aDataSource = pDataSource;
-      aConnectionMap = new ConcurrentHashMap<Object, Connection>(5);
+      aConnectionMap = new ConcurrentHashMap<>(5);
     }
   }
 
@@ -307,7 +307,7 @@ public class DBHelper implements AutoCloseable{
 
     public DBQueryImpl(final String pSQL, final String pErrorMsg) throws SQLException {
       super(pSQL, pErrorMsg);
-      aResultSets = new ArrayList<ResultSet>();
+      aResultSets = new ArrayList<>();
     }
 
     @Override
@@ -347,8 +347,8 @@ public class DBHelper implements AutoCloseable{
 
     @Override
     public boolean execQueryNotEmpty() {
-      final ResultSet rs = execQuery();
-      try {
+
+      try (final ResultSet rs = execQuery()) {
         if (rs == null) {
           return false;
         }
@@ -358,21 +358,12 @@ public class DBHelper implements AutoCloseable{
       } catch (final SQLException e) {
         logException("Error processing result set", e);
         return false;
-      } finally {
-        if (rs!=null) {
-          try {
-            rs.close();
-          } catch (SQLException e) {
-            logException("Failure closing resultset", e);
-          }
-        }
       }
     }
 
     @Override
     public boolean execQueryEmpty() {
-      final ResultSet rs = execQuery();
-      try {
+      try (final ResultSet rs = execQuery()){
         if (rs == null) {
           return true;
         }
@@ -382,35 +373,17 @@ public class DBHelper implements AutoCloseable{
       } catch (final SQLException e) {
         logException("Error processing result set", e);
         return true;
-      } finally {
-        if (rs!=null) {
-          try {
-            rs.close();
-          } catch (SQLException e) {
-            logException("Failure closing resultset", e);
-          }
-        }
       }
     }
 
     @Override
     public Integer intQuery() {
       try {
-        ResultSet rs=null;
-        try {
-           rs = getSingleHelper();
-          return rs == null ? null : rs.getInt(1);
+        try (ResultSet rs=getSingleHelper()){
+          return rs == null ? null : Integer.valueOf(rs.getInt(1));
         } catch (final SQLException e) {
           logException("Error processing result set", e);
           return null;
-        } finally {
-          if (rs!=null) {
-            try {
-              rs.close();
-            } catch (SQLException e) {
-              logException("Failure closing resultset", e);
-            }
-          }
         }
       } finally {
         close();
@@ -420,21 +393,11 @@ public class DBHelper implements AutoCloseable{
     @Override
     public Long longQuery() {
       try {
-        ResultSet rs = null;
-        try {
-          rs = getSingleHelper();
-          return rs == null ? null : rs.getLong(1);
+        try (ResultSet rs = getSingleHelper()){
+          return rs == null ? null : Long.valueOf(rs.getLong(1));
         } catch (final SQLException e) {
           logException("Error processing result set", e);
           return null;
-        } finally {
-          if (rs!=null) {
-            try {
-              rs.close();
-            } catch (SQLException e) {
-              logException("Failure closing resultset", e);
-            }
-          }
         }
       } finally {
         close();
@@ -442,6 +405,7 @@ public class DBHelper implements AutoCloseable{
     }
 
     private ResultSet getSingleHelper() throws SQLException {
+      @SuppressWarnings("resource")
       final ResultSet rs = execQuery();
       if (rs == null) {
         return null;
@@ -532,7 +496,7 @@ public class DBHelper implements AutoCloseable{
   private DBHelper(final DataSourceWrapper pDataSource, final Object pKey) {
     aDataSource = pDataSource;
     aKey = pKey != null ? pKey : new Object();
-    aStatements = new ArrayList<DBStatement>();
+    aStatements = new ArrayList<>();
   }
 
   /**
@@ -547,7 +511,7 @@ public class DBHelper implements AutoCloseable{
     if (aSourceMap == null) {
       synchronized (aShareLock) {
         if (aSourceMap == null) {
-          aSourceMap = new ConcurrentHashMap<String, DataSourceWrapper>();
+          aSourceMap = new ConcurrentHashMap<>();
         }
       }
     }
@@ -605,6 +569,7 @@ public class DBHelper implements AutoCloseable{
     return makeQuery(pSQL, null);
   }
 
+  @SuppressWarnings("resource")
   public DBQuery makeQuery(final String pSQL, final String pErrorMsg) {
     try {
       if (aDataSource != null) {
@@ -617,7 +582,7 @@ public class DBHelper implements AutoCloseable{
   }
 
   private <T extends DBStatement> T recordStatement(T statement) {
-    if (aStatements==null) {aStatements = new ArrayList<DBHelper.DBStatement>(); }
+    if (aStatements==null) {aStatements = new ArrayList<>(); }
     aStatements.add(statement);
     return statement;
   }
@@ -626,6 +591,7 @@ public class DBHelper implements AutoCloseable{
     return makeInsert(pSQL, null);
   }
 
+  @SuppressWarnings("resource")
   public DBInsert makeInsert(final String pSQL, final String pErrorMsg) {
     try {
       if (aDataSource != null) {
@@ -705,13 +671,12 @@ public class DBHelper implements AutoCloseable{
     int count = 0;
     synchronized (aShareLock) {
       for (final DataSourceWrapper dataSource : aSourceMap.values()) {
+        @SuppressWarnings("resource")
         final Connection conn = dataSource.aConnectionMap.get(pReference);
         if (conn != null) {
           ++count;
           try {
-            if (!conn.isClosed()) {
-              conn.close();
-            }
+            conn.close();
           } catch (final SQLException e) {
             logException("Failure to close connection", e);
           }
@@ -734,7 +699,7 @@ public class DBHelper implements AutoCloseable{
             connection.close();
           } catch (final SQLException e) {
             if (exceptions == null) {
-              exceptions = new ArrayList<SQLException>();
+              exceptions = new ArrayList<>();
             }
             exceptions.add(e);
           }
