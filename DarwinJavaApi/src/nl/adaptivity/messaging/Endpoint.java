@@ -12,5 +12,6 @@ import javax.jws.WebMethod;
  * @author Paul de Vrieze
  */
 public interface Endpoint extends EndpointDescriptor {
-
+  // This is a marker interface that shares the methods with descriptor
+  // and can be self-describing, but can actually handle being an endpoint
 }

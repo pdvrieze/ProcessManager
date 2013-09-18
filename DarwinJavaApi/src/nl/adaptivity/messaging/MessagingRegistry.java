@@ -178,7 +178,7 @@ public final class MessagingRegistry {
     Queue<MessengerCommand> aCommandQueue;
 
     StubMessenger() {
-      aCommandQueue = new ArrayDeque<MessengerCommand>();
+      aCommandQueue = new ArrayDeque<>();
     }
 
     public synchronized void setMessenger(final IMessenger pMessenger) {
@@ -229,7 +229,7 @@ public final class MessagingRegistry {
     public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
       synchronized (this) {
         if (aRealMessenger == null) {
-          final WrappingFuture<T> future = new WrappingFuture<T>(pMessage, pCompletionListener, pReturnType);
+          final WrappingFuture<T> future = new WrappingFuture<>(pMessage, pCompletionListener, pReturnType);
           aCommandQueue.add(future);
           return future;
         }
