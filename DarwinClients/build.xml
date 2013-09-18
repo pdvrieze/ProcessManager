@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build">
-	<property name="classpath" value="/usr/share/tomcat-servlet-api-2.5/lib/jsp-api.jar:/usr/share/tomcat-servlet-api-2.5/lib/servlet-api.jar:../../JavaCommonApi/trunk/bin:../JavaCommonApi/bin:../:../PE-common/bin:../../PE-common/trunk/bin:../../darwin/projects/DarwinJavaApi/trunk/bin:../java-common/bin"/>
+	<property name="classpath" value="../DarwinJavaApi/bin:../JavaCommonApi/bin:../PE-common/bin:../java-common/bin:/usr/share/tomcat-servlet-api-2.5/lib/jsp-api.jar:/usr/share/tomcat-servlet-api-2.5/lib/servlet-api.jar"/>
 
 	<target name="javadoc">
     <mkdir dir="doc" />
@@ -9,16 +9,15 @@
 		</javadoc>
 	</target>
 	<target name="generate">
-	    <java classpath="../DarwinGenerators/bin" classname="nl.adaptivity.messaging.MessagingSoapClientGenerator">
+	    <java classpath="../DarwinGenerators/bin:${classpath}" classname="nl.adaptivity.messaging.MessagingSoapClientGenerator" fork="true">
 	        <arg value="-cp"/>
-	        <arg value="../ProcessEngine/bin:${classpath}"/>
-	        <arg value="-out"/>
-			<arg value="ServletProcessEngineClient"/>
-			<arg value="-package"/>
-			<arg value="nl.adaptivity.process.client"/>
-			<arg value="-dstdir"/>
-			<arg value="gen/"/>
-			<arg value="nl.adaptivity.process.engine.servlet.ServletProcessEngine"/>
+	        <arg value="../PEUserMessageHandler/war/WEB-INF/classes:../ProcessEngine/bin"/>
+    			<arg value="-package"/>
+    			<arg value="nl.adaptivity.process.client"/>
+    			<arg value="-dstdir"/>
+    			<arg value="gen/"/>
+          <arg value="nl.adaptivity.process.userMessageHandler.server.InternalEndpoint"/>
+    			<arg value="nl.adaptivity.process.engine.servlet.ServletProcessEngine"/>
 			
 	    </java>
 	</target>
