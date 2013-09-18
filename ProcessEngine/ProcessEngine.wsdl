@@ -3,8 +3,10 @@
 	xmlns:pe="http://www.adaptivity.nl/ProcessEngine2/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ProcessEngine"
 	xmlns:tns="http://adaptivity.nl/ProcessEngine/"
-	targetNamespace="http://adaptivity.nl/ProcessEngine/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
-	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xsd1="http://adaptivity.nl/ProcessEngine/">
+	targetNamespace="http://adaptivity.nl/ProcessEngine/"
+	xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" 
+	xmlns:xsd1="http://adaptivity.nl/ProcessEngine/">
     <wsdl:import namespace="http://adaptivity.nl/ProcessEngine/" location="ProcessEngine.xsd"></wsdl:import>
     <wsdl:types>
 		</wsdl:types>
