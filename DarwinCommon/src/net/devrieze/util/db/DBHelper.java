@@ -1,7 +1,10 @@
 package net.devrieze.util.db;
 
-import java.io.Closeable;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +20,7 @@ import net.devrieze.util.CompoundException;
 import net.devrieze.util.StringCache;
 
 
-public class DBHelper implements Closeable{
+public class DBHelper implements AutoCloseable{
 
   private static final Level DETAIL_LOG_LEVEL = Level.INFO;
 
@@ -37,7 +40,7 @@ public class DBHelper implements Closeable{
   }
 
 
-  public interface DBStatement extends Closeable {
+  public interface DBStatement extends AutoCloseable {
 
     DBStatement addParam(int pColumn, String pValue);
 
@@ -425,10 +428,12 @@ public class DBHelper implements Closeable{
           logException("Error processing result set", e);
           return null;
         } finally {
-          try {
-            rs.close();
-          } catch (SQLException e) {
-            logException("Failure closing resultset", e);
+          if (rs!=null) {
+            try {
+              rs.close();
+            } catch (SQLException e) {
+              logException("Failure closing resultset", e);
+            }
           }
         }
       } finally {
@@ -530,6 +535,9 @@ public class DBHelper implements Closeable{
     aStatements = new ArrayList<DBStatement>();
   }
 
+  /**
+   * @deprecated use {@link #getDbHelper(String, Object)}
+   */
   @Deprecated
   public static DBHelper dbHelper(final String pResourceName, final Object pKey) {
     return getDbHelper(pResourceName, pKey);
