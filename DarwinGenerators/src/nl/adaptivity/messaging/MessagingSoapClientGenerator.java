@@ -5,7 +5,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -36,9 +42,9 @@ public class MessagingSoapClientGenerator {
 
     public final String name;
 
-    public final Class<?> type;
+    public final Type type;
 
-    public ParamInfo(final Class<?> pType, final String pName) {
+    public ParamInfo(final Type pType, final String pName) {
       type = pType;
       name = pName;
     }
@@ -114,29 +120,35 @@ public class MessagingSoapClientGenerator {
       return;
     }
     final FileSystem fs = FileSystems.getDefault();
+    try {
+  
+      final String pkgdir = pkg.replaceAll("\\.", fs.getSeparator());
+      final String classfilename = outClass + ".java";
+      final Path outfile = fs.getPath(dstdir, pkgdir, classfilename);
 
-    final String pkgdir = pkg.replaceAll("\\.", fs.getSeparator());
-    final String classfilename = outClass + ".java";
-    final Path outfile = fs.getPath(dstdir, pkgdir, classfilename);
-    // Ensure the parent directory of the outfile exists.
-    if (!outfile.getParent().toFile().mkdirs()) {
-      if (!outfile.getParent().toFile().exists()) {
-        System.err.println("Could not create the directory " + outfile.getParent());
-        System.exit(2);
+      // Ensure the parent directory of the outfile exists.
+      if (!outfile.getParent().toFile().mkdirs()) {
+        if (!outfile.getParent().toFile().exists()) {
+          System.err.println("Could not create the directory " + outfile.getParent());
+          System.exit(2);
+        }
       }
-    }
 
-    URLClassLoader urlclassloader;
-    urlclassloader = URLClassLoader.newInstance(getUrls(cp));
-
-    if (inClasses.size() == 1) {
-      writeOutFile(inClasses.get(0), pkg, outClass, fs, outfile, urlclassloader);
-    } else {
-      for (final String inClass : inClasses) {
-        final String newOutClass = inClass.substring(inClass.lastIndexOf('.') + 1) + "Client";
-        final Path newOutFile = outfile.getParent().resolve(newOutClass + ".java");
-        writeOutFile(inClass, pkg, newOutClass, fs, newOutFile, urlclassloader);
+      try (URLClassLoader urlclassloader = URLClassLoader.newInstance(getUrls(cp))) {
+    
+        if (inClasses.size() == 1) {
+          writeOutFile(inClasses.get(0), pkg, outClass, fs, outfile, urlclassloader);
+        } else {
+          for (final String inClass : inClasses) {
+            final String newOutClass = inClass.substring(inClass.lastIndexOf('.') + 1) + "Client";
+            final Path newOutFile = outfile.getParent().resolve(newOutClass + ".java");
+            writeOutFile(inClass, pkg, newOutClass, fs, newOutFile, urlclassloader);
+          }
+        }
       }
+    } catch (IOException e) {
+      e.printStackTrace();
+      System.exit(3);
     }
 
   }
@@ -158,18 +170,21 @@ public class MessagingSoapClientGenerator {
     }
   }
 
+  @SuppressWarnings("resource")
   private static URL[] getUrls(final String pClassPath) {
     final FileSystem fs = FileSystems.getDefault();
     final List<URL> result = new ArrayList<>();
 
     try {
       for (final String element : pClassPath.split(":")) {
-        try {
-          final URI uri = URI.create(element);
-          result.add(uri.toURL());
-        } catch (final IllegalArgumentException e) {
-          final Path file = fs.getPath(element);
-          result.add(file.normalize().toUri().toURL());
+        if (element.length()>0) {
+          try {
+            final URI uri = URI.create(element);
+            result.add(uri.toURL());
+          } catch (final IllegalArgumentException e) {
+            final Path file = fs.getPath(element);
+            result.add(file.normalize().toUri().toURL());
+          }
         }
       }
     } catch (final MalformedURLException e) {
@@ -177,6 +192,7 @@ public class MessagingSoapClientGenerator {
       e.printStackTrace();
     }
     return result.toArray(new URL[result.size()]);
+    
   }
 
   private static void showHelp() {
@@ -190,18 +206,17 @@ public class MessagingSoapClientGenerator {
   }
 
   private static void generateJava(final Path pOutfile, final Class<?> pEndpointClass, final String pPkgname, final String pOutClass) throws IOException {
-    final Writer out = new BufferedWriter(new FileWriter(pOutfile.toFile()));
-    try {
+    try (final Writer out = new BufferedWriter(new FileWriter(pOutfile.toFile()))) {
       generateJava(out, pEndpointClass, pPkgname, pOutClass);
-    } finally {
-      out.close();
     }
   }
 
   private static void generateJava(final Writer pOut, final Class<?> pEndpointClass, final String pPkgname, final String pOutClass) throws IOException {
-    pOut.write("/*\n");
-    pOut.write(" * Generated by MessagingSoapClientGenerator.\n");
-    pOut.write(" */\n\n");
+    pOut.write(  "/*\n");
+    pOut.write(  " * Generated by MessagingSoapClientGenerator.\n");
+    pOut.write(  " * Source class: ");
+    pOut.write(    pEndpointClass.getCanonicalName());
+    pOut.write("\n */\n\n");
 
     pOut.write("package ");
     pOut.write(pPkgname);
@@ -235,22 +250,11 @@ public class MessagingSoapClientGenerator {
         pOut.write("  private static final URI LOCATION = null;\n\n");
       }
       finalService = true;
-    } catch (final ClassCastException e) { /*
+    } catch (final ClassCastException | InstantiationException | IllegalAccessException e ) { /*
                                             * Ignore failure to instantiate. We
                                             * just generate different code.
                                             */
-    } catch (final InstantiationException e) { /*
-                                                * Ignore failure to instantiate.
-                                                * We just generate different
-                                                * code.
-                                                */
-    } catch (final IllegalAccessException e) { /*
-                                                * Ignore failure to instantiate.
-                                                * We just generate different
-                                                * code.
-                                                */
       e.printStackTrace();
-      System.exit(1);
     }
     if (!finalService) {
       pOut.write("  private static QName SERVICE = null;\n");
@@ -293,8 +297,11 @@ public class MessagingSoapClientGenerator {
     if ((methodName == null) || (methodName.length() == 0)) {
       methodName = pMethod.getName();
     }
-    pOut.write("  public static Future<");
-    pOut.write(pMethod.getReturnType().getCanonicalName());
+    pOut.write("  public static");
+    writeTypeParams(pOut, pMethod.getTypeParameters());
+    pOut.write(" Future<");
+    Type returnType = pMethod.getGenericReturnType();
+    writeType(pOut, returnType);
     pOut.write("> ");
     pOut.write(methodName);
     pOut.write("(");
@@ -302,7 +309,7 @@ public class MessagingSoapClientGenerator {
     final List<ParamInfo> params = new ArrayList<>();
     {
       int paramNo = 0;
-      for (final Class<?> paramType : pMethod.getParameterTypes()) {
+      for (final Type paramType : pMethod.getGenericParameterTypes()) {
         String name = null;
         boolean isPrincipal = false;
         for (final Annotation annotation : pMethod.getParameterAnnotations()[paramNo]) {
@@ -339,8 +346,7 @@ public class MessagingSoapClientGenerator {
         } else {
           pOut.write(", ");
         }
-
-        pOut.write(paramType.getCanonicalName());
+        writeType(pOut, paramType);
         pOut.write(' ');
         pOut.write(name);
 
@@ -353,13 +359,14 @@ public class MessagingSoapClientGenerator {
       for (final ParamInfo param : params) {
         pOut.write("    final Tripple<String, Class<?>, Object> param" + paramNo + " = Tripple.<String, Class<?>, Object>tripple(");
         pOut.write(appendString(new StringBuilder(), param.name).append(", ").toString());
-        if (param.type.isArray()) {
+        Class<?> rawtype = getRawType(param.type);
+        if (rawtype.isArray()) {
           pOut.write("Array.class, ");
         } else {
-          if (param.type.isPrimitive()) {
-            pOut.write(param.type.getSimpleName());
+          if (rawtype.isPrimitive()) {
+            pOut.write(rawtype.getSimpleName());
           } else {
-            pOut.write(param.type.getCanonicalName());
+            pOut.write(rawtype.getCanonicalName());
           }
           pOut.write(".class, ");
         }
@@ -392,12 +399,115 @@ public class MessagingSoapClientGenerator {
     pOut.write("    EndpointDescriptor endpoint = new EndPointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);\n\n");
 
     pOut.write("    return MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ");
-    pOut.write(pMethod.getReturnType().getCanonicalName());
+    pOut.write(getRawType(returnType).getCanonicalName());
 
     pOut.write(".class);\n");
 
     pOut.write("  }\n\n");
 
+  }
+
+  private static Class<?> getRawType(Type pType) {
+    if (pType instanceof Class) {
+      return (Class<?>) pType;
+    } else if (pType instanceof ParameterizedType) {
+      return getRawType(((ParameterizedType) pType).getRawType());
+    } else if (pType instanceof GenericArrayType) {
+      final Class<?> componentType = getRawType(((GenericArrayType) pType).getGenericComponentType());
+      return Array.newInstance(componentType, 0).getClass();
+    } else if (pType instanceof TypeVariable<?>) {
+      for(Type bound:((TypeVariable<?>)pType).getBounds()) {
+        return getRawType(bound);
+      }
+      return Object.class;
+    } else if (pType instanceof WildcardType) {
+      for(Type bound:((WildcardType)pType).getUpperBounds()) {
+        return getRawType(bound);
+      }
+      return Object.class;
+      
+    }
+    return null;
+  }
+
+  private static void writeType(Writer pOut, Type pType) throws IOException {
+    if (pType instanceof ParameterizedType) {
+      ParameterizedType type = (ParameterizedType) pType;
+      writeType(pOut, type.getRawType());
+      writeTypes(pOut, type.getActualTypeArguments());
+    } else if (pType instanceof GenericArrayType) {
+      GenericArrayType type = (GenericArrayType) pType;
+      writeType(pOut,type.getGenericComponentType());
+      pOut.write("[]"); // TODO handle varargs
+    } else if (pType instanceof TypeVariable<?>) {
+      TypeVariable<?> type = (TypeVariable<?>) pType;
+      pOut.write(type.getName());
+    } else if (pType instanceof WildcardType) {
+      WildcardType type = (WildcardType) pType;
+      pOut.write('?'); 
+      {
+        Type[] lower = type.getLowerBounds();
+        if (lower.length>0) {
+          pOut.write(" super ");
+          boolean first = true;
+          for(Type b:lower) {
+            if (first) { first = false; } else { pOut.write(" & "); }
+            writeType(pOut, b);
+          }
+        }
+      }
+      {
+        Type[] upper = type.getUpperBounds();
+        if (!(upper.length==0 || (upper.length==1 && Object.class.equals(upper[0])))) {
+          pOut.write(" extends ");
+          boolean first = true;
+          for(Type b:upper) {
+            if (first) { first = false; } else { pOut.write(" & "); }
+            writeType(pOut, b);
+          }
+          
+        }
+      }
+    } else if (pType instanceof Class) {
+      pOut.write(((Class<?>)pType).getCanonicalName());
+    } else {
+      throw new IllegalArgumentException("Type parameter of type "+pType.getClass().getCanonicalName()+" not supported");
+    }
+  }
+
+  private static void writeTypes(Writer pOut, Type[] pTypes) throws IOException {
+    if (pTypes.length>0) {
+      pOut.write('<');
+      writeType(pOut, pTypes[0]);
+      for(int i=1; i< pTypes.length;++i) {
+        pOut.write(',');
+        writeType(pOut, pTypes[i]);
+      }
+      pOut.write('>');
+    }
+    
+  }
+  
+  private static void writeTypeParams(Writer pOut, TypeVariable<Method>[] pParams) throws IOException {
+    if (pParams.length>0) {
+      pOut.write('<');
+      boolean first = true;
+      for(TypeVariable<Method> param: pParams) {
+        if (first) { first = false; } else { pOut.write(", "); }
+        pOut.write(param.getName());
+        if (param.getBounds().length>0 && 
+            (! (param.getBounds().length==1 && Object.class.equals(param.getBounds()[0])))) {
+          pOut.write(" extends ");
+          boolean boundFirst =true;
+          for(Type bound: param.getBounds()) {
+            if (boundFirst) { boundFirst = false; } else { pOut.write(" & "); }
+            writeType(pOut, bound);
+          }
+        }
+      }
+      pOut.write('>');
+    }
+    
   }
 
   private static String qnamestring(final QName pQName) {
