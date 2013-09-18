@@ -2,6 +2,7 @@ package nl.adaptivity.process.engine;
 
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
+import java.io.IOException;
 import java.io.Reader;
 import java.security.Principal;
 import java.sql.PreparedStatement;
@@ -81,18 +82,19 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
     }
 
     @Override
-    public ProcessModel create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
+    public ProcessModel create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException, IOException {
       Principal owner = new SimplePrincipal(aStringCache.lookup(pRow.getString(aColNoOwner)));
-      Reader modelReader = pRow.getCharacterStream(aColNoModel);
-      long handle = pRow.getLong(aColNoHandle);
+      try(Reader modelReader = pRow.getCharacterStream(aColNoModel)) {
+        long handle = pRow.getLong(aColNoHandle);
 
-      XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
-      ProcessModel result = xmlModel.toProcessModel();
+        XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
+        ProcessModel result = xmlModel.toProcessModel();
 
-      result.setHandle(handle);
-      result.cacheStrings(aStringCache);
-      result.setOwner(owner);
-      return result;
+        result.setHandle(handle);
+        result.cacheStrings(aStringCache);
+        result.setOwner(owner);
+        return result;
+      }
     }
 
     @Override

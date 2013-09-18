@@ -1,9 +1,20 @@
 package nl.adaptivity.process.engine.servlet;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -20,19 +31,48 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
-import javax.xml.stream.*;
-import javax.xml.stream.events.*;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.messaging.*;
+
+import nl.adaptivity.messaging.CompletionListener;
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
+import nl.adaptivity.messaging.Header;
+import nl.adaptivity.messaging.HttpResponseException;
+import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.*;
+import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.process.engine.MessagingFormatException;
+import nl.adaptivity.process.engine.ProcessEngine;
+import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -49,14 +89,6 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
-
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
@@ -106,15 +138,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     private XmlMessage aMessage;
 
     public NewServletMessage(final XmlMessage pMessage, final EndpointDescriptor pLocalEndPoint) {
-      this(pMessage.getMethod(), pMessage.getEndpointDescriptor(), pMessage.getContentType(), pLocalEndPoint);
       aMessage = pMessage;
-    }
-
-    @Deprecated
-    private NewServletMessage(final String pMethod, final EndpointDescriptor pDestination, final String pContentType, final EndpointDescriptor pLocalEndPoint) {
-      //      aMethod = pMethod;
-      //      aDestination = pDestination;
-      //      aContentType = pContentType;
       aLocalEndpoint = pLocalEndPoint;
     }
 
@@ -172,6 +196,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         //        } catch (ParserConfigurationException e) {
         //          throw new MyMessagingException(e);
         //        }
+        @SuppressWarnings("resource")
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final StreamResult result = new StreamResult(baos);
         final XMLEventWriter xew = xof.createXMLEventWriter(result);
@@ -189,6 +214,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
               } else if (eName.getLocalPart().equals("element")) {
                 writeElement(xer, attributes, xew, aHandle);
               } else {
+                baos.reset(); baos.close();
                 throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
               }
             } else {
@@ -227,6 +253,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
                   errorMessage.append("</").append(event.asEndElement().getName()).append('>');
                 }
                 getLogger().log(Level.WARNING, errorMessage.toString(), e);
+                baos.reset(); baos.close();
                 throw e;
               }
             }
@@ -296,7 +323,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    private void writeAttribute(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out, final long pHandle, final Principal pOwner) throws XMLStreamException {
+    private static void writeAttribute(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out, final long pHandle, final Principal pOwner) throws XMLStreamException {
       String valueName = null;
       String paramName = null;
       {
@@ -386,7 +413,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   private ProcessEngine aProcessEngine;
 
-  private EndPointDescriptorImpl aLocalEndPoint;
+  private EndpointDescriptorImpl aLocalEndPoint;
 
   /*
    * Servlet methods
@@ -459,7 +486,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       } else {
         localURL = URI.create("http://" + hostname + ":" + port + pConfig.getServletContext().getContextPath());
       }
-      aLocalEndPoint = new EndPointDescriptorImpl(getServiceName(), getEndpointName(), localURL);
+      aLocalEndPoint = new EndpointDescriptorImpl(getServiceName(), getEndpointName(), localURL);
     }
     MessagingRegistry.getMessenger().registerEndpoint(this);
   }
@@ -512,7 +539,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @XmlElementWrapper(name = "processInstances", namespace = PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
     final Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(pOwner);
-    final Collection<ProcessInstanceRef> list = new ArrayList<ProcessInstanceRef>();
+    final Collection<ProcessInstanceRef> list = new ArrayList<>();
     for (final ProcessInstance pi : processInstances) {
       list.add(pi.getRef());
     }

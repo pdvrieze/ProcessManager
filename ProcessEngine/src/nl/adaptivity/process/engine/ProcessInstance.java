@@ -2,23 +2,32 @@ package nl.adaptivity.process.engine;
 
 import java.io.Serializable;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.processModel.*;
-
-import org.w3c.dom.Node;
+import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject {
@@ -97,13 +106,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   private final Principal aOwner;
 
   ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModel pProcessModel, final String pName, final ProcessEngine pEngine) {
+    aHandle = pHandle;
     aProcessModel = pProcessModel;
     aOwner = pOwner;
     aEngine = pEngine;
     aName =pName;
-    aThreads = new LinkedList<ProcessNodeInstance>();
-    aJoins = new HashMap<Join, JoinInstance>();
-    aEndResults = new ArrayList<ProcessNodeInstance>();
+    aThreads = new LinkedList<>();
+    aJoins = new HashMap<>();
+    aEndResults = new ArrayList<>();
   }
 
   void setThreads(final Collection<? extends Handle<? extends ProcessNodeInstance>> pThreads) {
@@ -116,14 +126,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aProcessModel = pProcessModel;
     aName = pName;
     aEngine = pEngine;
-    aThreads = new LinkedList<ProcessNodeInstance>();
+    aThreads = new LinkedList<>();
     aOwner = pOwner;
     for (final StartNode node : aProcessModel.getStartNodes()) {
       final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
       aThreads.add(instance);
     }
-    aJoins = new HashMap<Join, JoinInstance>();
-    aEndResults = new ArrayList<ProcessNodeInstance>();
+    aJoins = new HashMap<>();
+    aEndResults = new ArrayList<>();
   }
 
   public synchronized void finish() {
@@ -140,7 +150,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public synchronized JoinInstance getJoinInstance(final Join pJoin, final ProcessNodeInstance pPredecessor) {
     JoinInstance result = aJoins.get(pJoin);
     if (result == null) {
-      final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>(pJoin.getPredecessors().size());
+      final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(pJoin.getPredecessors().size());
       predecessors.add(pPredecessor);
       result = new JoinInstance(pJoin, predecessors, this);
       aJoins.put(pJoin, result);
@@ -225,7 +235,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       finish();
     } else {
       aThreads.remove(pNode);
-      final List<ProcessNodeInstance> startedTasks = new ArrayList<ProcessNodeInstance>(pNode.getNode().getSuccessors().size());
+      final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
       for (final ProcessNode successorNode : pNode.getNode().getSuccessors()) {
         final ProcessNodeInstance instance = getProcessNodeInstance(pNode, successorNode);
         aThreads.add(instance);
@@ -241,12 +251,12 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     if (pNode instanceof Join) {
       final Join join = (Join) pNode;
       if (aJoins == null) {
-        aJoins = new HashMap<Join, JoinInstance>();
+        aJoins = new HashMap<>();
       }
       JoinInstance instance = aJoins.get(join);
       if (instance == null) {
 
-        final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>(pNode.getPredecessors().size());
+        final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(pNode.getPredecessors().size());
         predecessors.add(pPredecessor);
         instance = new JoinInstance(join, predecessors, this);
         aJoins.put(join, instance);
@@ -260,21 +270,18 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  @Deprecated
-  public void failTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) {
-    pNode.failTask(null);
-  }
-
-  public synchronized void failTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Throwable pCause) {
+  @SuppressWarnings("static-method")
+  public synchronized void failTask(@SuppressWarnings("unused") final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Throwable pCause) {
     pNode.failTask(pCause);
   }
 
-  public synchronized void cancelTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) {
+  @SuppressWarnings("static-method")
+  public synchronized void cancelTask(@SuppressWarnings("unused") final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) {
     pNode.cancelTask();
   }
 
   public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(final Join pJoin) {
-    final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<ProcessNodeInstance>(Math.min(pJoin.getPredecessors().size(), aThreads.size()));
+    final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<>(Math.min(pJoin.getPredecessors().size(), aThreads.size()));
     for (final ProcessNodeInstance node : aThreads) {
       if (node.getNode().isPredecessorOf(pJoin)) {
         activePredecesors.add(node);
@@ -284,7 +291,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public synchronized Collection<? extends Handle<? extends ProcessNodeInstance>> getDirectSuccessors(final ProcessNodeInstance pPredecessor) {
-    final ArrayList<Handle<? extends ProcessNodeInstance>> result = new ArrayList<Handle<? extends ProcessNodeInstance>>(pPredecessor.getNode().getSuccessors().size());
+    final ArrayList<Handle<? extends ProcessNodeInstance>> result = new ArrayList<>(pPredecessor.getNode().getSuccessors().size());
     for (final ProcessNodeInstance candidate : aThreads) {
       addDirectSuccessor(result, candidate, pPredecessor);
     }

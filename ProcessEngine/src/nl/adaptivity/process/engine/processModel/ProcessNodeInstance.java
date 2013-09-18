@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SecureObject;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
-
-import org.w3c.dom.Node;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -44,7 +45,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   protected ProcessNodeInstance(final ProcessNode pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
-    aPredecessors = new ArrayList<Handle<? extends ProcessNodeInstance>>(pPredecessors);
+    aPredecessors = new ArrayList<>(pPredecessors);
     aProcessInstance = pProcessInstance;
     if (((aPredecessors == null) || (aPredecessors.size()==0)) && !(pNode instanceof StartNode)) {
       throw new NullPointerException("Non-start-node process node instances need predecessors");
@@ -67,6 +68,10 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
     return aPredecessors;
+  }
+
+  public Throwable getFailureCause() {
+    return aFailureCause;
   }
 
   @Override

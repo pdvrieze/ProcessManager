@@ -1,7 +1,11 @@
 package nl.adaptivity.process.engine;
 
 import java.security.Principal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +16,7 @@ import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.processModel.ProcessModel;
@@ -27,6 +32,10 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
 
+    private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
+    " FROM "+ProcessNodeInstanceMap.TABLE+
+    " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? AND "+
+    ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );";
     private int aColNoHandle;
     private int aColNoOwner;
     private int aColNoHProcessModel;
@@ -89,28 +98,17 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public void postCreate(Connection pConnection, ProcessInstance pElement) throws SQLException {
-      PreparedStatement statement = pConnection.prepareStatement(
-          "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
-          " FROM "+ProcessNodeInstanceMap.TABLE+
-          " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? AND "+
-          ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );");
-      List<Handle<ProcessNodeInstance>> handles = new ArrayList<Handle<ProcessNodeInstance>>();
-      try {
+      try (PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE)) {
+        List<Handle<ProcessNodeInstance>> handles = new ArrayList<>();
         if (statement.execute()) {
-          ResultSet resultset = statement.getResultSet();
-          try {
+          try (ResultSet resultset = statement.getResultSet()){
             while (resultset.next()) {
               handles.add(MemHandleMap.<ProcessNodeInstance>handle(resultset.getLong(1)));
             }
-          } finally {
-            resultset.close();
           }
         }
-
-      } finally {
-        statement.close();
+        pElement.setThreads(handles);
       }
-      pElement.setThreads(handles);
     }
 
     @Override

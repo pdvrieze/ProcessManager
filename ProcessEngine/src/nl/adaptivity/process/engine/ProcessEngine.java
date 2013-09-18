@@ -16,8 +16,11 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import net.devrieze.util.*;
+import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.MemHandleMap;
+import net.devrieze.util.StringCache;
+import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
@@ -49,9 +52,9 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
 
-  private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<ProcessInstance>();
+  private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<>();
 
-  private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new MemHandleMap<ProcessNodeInstance>();
+  private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new MemHandleMap<>();
 
   private final HandleMap<ProcessModel> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
 
@@ -151,7 +154,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return All instances.
    */
   public Iterable<ProcessInstance> getOwnedProcessInstances(final Principal pUser) {
-    final List<ProcessInstance> result = new ArrayList<ProcessInstance>();
+    final List<ProcessInstance> result = new ArrayList<>();
     for (final ProcessInstance instance : aInstanceMap) {
       if (instance.getOwner().getName().equals(pUser.getName())) {
         result.add(instance);
@@ -168,7 +171,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return All instances.
    */
   public Iterable<ProcessInstance> getVisibleProcessInstances(final Principal pUser) {
-    final List<ProcessInstance> result = new ArrayList<ProcessInstance>();
+    final List<ProcessInstance> result = new ArrayList<>();
     for (final ProcessInstance instance : aInstanceMap) {
       if (aSecurityProvider.hasPermission(SecureObject.Permissions.READ, pUser, instance)) {
         result.add(instance);
@@ -284,7 +287,7 @@ public class ProcessEngine /* implements IProcessEngine */{
         case Complete:
           throw new IllegalArgumentException("Finishing a task must be done by a separate method");
         case Failed:
-          pi.failTask(aMessageService, task);
+          pi.failTask(aMessageService, task, null);
           break;
         case Cancelled:
           pi.cancelTask(aMessageService, task);
