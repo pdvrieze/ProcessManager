@@ -3,15 +3,11 @@ package nl.adaptivity.process.userMessageHandler.server;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.activation.DataSource;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
@@ -23,13 +19,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
 
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.messaging.EndPointDescriptorImpl;
-import nl.adaptivity.messaging.Header;
-import nl.adaptivity.messaging.ISendableMessage;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
@@ -37,9 +31,6 @@ import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.activation.SourceDataSource;
-
-import org.w3.soapEnvelope.Envelope;
 
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
@@ -82,7 +73,7 @@ public class InternalEndpoint implements GenericEndpoint {
 
     private String aSummary;
 
-    private EndPointDescriptorImpl aEndPoint = null;
+    private EndpointDescriptorImpl aEndPoint = null;
 
     private Principal aOwner;
 
@@ -166,7 +157,7 @@ public class InternalEndpoint implements GenericEndpoint {
 
     /** Set the endpoint that is used for updating the task state */
     @Override
-    public void setEndpoint(final EndPointDescriptorImpl pEndPoint) {
+    public void setEndpoint(final EndpointDescriptorImpl pEndPoint) {
       aEndPoint = pEndPoint;
     }
 
@@ -231,7 +222,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "replies", mode = Mode.IN) final EndPointDescriptorImpl pEndPoint, @WebParam(name = "task", mode = Mode.IN) final UserTask<?> pTask) {
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "replies", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "task", mode = Mode.IN) final UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     final boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged

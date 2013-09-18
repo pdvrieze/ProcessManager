@@ -8,7 +8,11 @@ import java.util.Map;
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.xml.client.*;
+import com.google.gwt.xml.client.Attr;
+import com.google.gwt.xml.client.Document;
+import com.google.gwt.xml.client.Element;
+import com.google.gwt.xml.client.NamedNodeMap;
+import com.google.gwt.xml.client.Node;
 
 
 public class ProcessModel {
@@ -64,7 +68,7 @@ public class ProcessModel {
         } else if (XMLUtil.isLocalPart("join", child)) {
           node = JoinNode.fromXml((Element) child);
         }
-        final String id = node.getId();
+        final String id = node==null ? null : node.getId();
         if ((id != null) && (id.length() > 0)) {
           map.put(id, node);
         }
