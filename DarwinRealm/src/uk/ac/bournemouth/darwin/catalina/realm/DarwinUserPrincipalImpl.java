@@ -6,12 +6,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.catalina.Realm;
-
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.DBHelper;
 import net.devrieze.util.db.DBHelper.DBQuery;
 import net.devrieze.util.db.StringAdapter;
+
+import org.apache.catalina.Realm;
 
 
 public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements DarwinUserPrincipal {

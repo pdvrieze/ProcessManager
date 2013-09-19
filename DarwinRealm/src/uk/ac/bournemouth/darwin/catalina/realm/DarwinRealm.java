@@ -10,7 +10,14 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.catalina.*;
+import net.devrieze.util.db.DBHelper;
+
+import org.apache.catalina.Container;
+import org.apache.catalina.Context;
+import org.apache.catalina.Lifecycle;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleListener;
+import org.apache.catalina.Realm;
 import org.apache.catalina.connector.CoyotePrincipal;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -20,8 +27,6 @@ import org.apache.catalina.realm.GenericPrincipal;
 import org.apache.catalina.util.LifecycleSupport;
 
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
-
-import net.devrieze.util.db.DBHelper;
 
 
 public class DarwinRealm implements Realm, Lifecycle {
@@ -58,7 +63,7 @@ public class DarwinRealm implements Realm, Lifecycle {
   public void stop() throws LifecycleException {
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
-  
+
     DBHelper.closeConnections(this);
   }
 
@@ -424,7 +429,7 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
   private static DBHelper getDbHelper() {
-    return DBHelper.dbHelper(getDBResource(), DarwinRealm.class);
+    return DBHelper.getDbHelper(getDBResource(), DarwinRealm.class);
   }
 
   private static String getDBResource() {

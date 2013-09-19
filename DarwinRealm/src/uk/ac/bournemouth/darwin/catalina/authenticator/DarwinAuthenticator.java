@@ -12,7 +12,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.catalina.*;
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.StringAdapter;
+
+import org.apache.catalina.Authenticator;
+import org.apache.catalina.Container;
+import org.apache.catalina.Context;
+import org.apache.catalina.Lifecycle;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.LifecycleListener;
+import org.apache.catalina.Realm;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.deploy.LoginConfig;
@@ -24,13 +34,11 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.DBHelper.DBQuery;
-import net.devrieze.util.db.StringAdapter;
-
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
 
+
+  private static final String QUERY_USER_FROM_DWNID = "SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()";
 
   private enum AuthResult {
     AUTHENTICATED,
@@ -184,19 +192,17 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   public static DarwinPrincipal getPrincipal(final String pUser) {
-    final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class);
-    try {
+    try(final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class)) {
       return getDarwinPrincipal(db, null, pUser);
-    } finally {
-      db.close();
     }
   }
 
   public static DarwinPrincipal asDarwinPrincipal(final Principal pUser) {
-    final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class);
-    final Realm realm = null;
-
-    return toDarwinPrincipal(db, realm, pUser);
+    try (final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class)) {
+      final Realm realm = null;
+  
+      return toDarwinPrincipal(db, realm, pUser);
+    }
   }
 
   private static DarwinUserPrincipal getDarwinPrincipal(final DBHelper pDbHelper, final Realm pRealm, final String pUserName) {
@@ -214,13 +220,12 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   static DBHelper getUserDatabase(final Request pRequest) {
-    return DBHelper.dbHelper(DBRESOURCE, pRequest);
+    return DBHelper.getDbHelper(DBRESOURCE, pRequest);
   }
 
 
   private AuthResult authenticate(final Request pRequest, final Response pResponse) {
-    final DBHelper db = getDatabase();
-    try {
+    try (final DBHelper db = getDatabase()){
       DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
       if (principal != null) {
         logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
@@ -237,8 +242,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
           if ("DWNID".equals(cookie.getName())) {
             final String requestIp = pRequest.getRemoteAddr();
             logFine("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
-            final DBQuery query = db.makeQuery("SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()");
-            try {
+            try (final DBQuery query = db.makeQuery(QUERY_USER_FROM_DWNID)){
               query.addParam(1, requestIp);
               query.addParam(2, cookie.getValue());
               final ResultSet result = query.execQuery();
@@ -252,8 +256,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
                   return AuthResult.EXPIRED;
                 }
               }
-            } finally {
-              query.close();
             }
             break;
           }
@@ -268,8 +270,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         pRequest.setUserPrincipal(principal);
         return AuthResult.AUTHENTICATED;
       }
-    } finally {
-      db.close();
     }
     return AuthResult.LOGIN_NEEDED;
   }
@@ -282,7 +282,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   private static DBHelper getDatabaseStatic(final Object pKey) {
-    return DBHelper.dbHelper(DBRESOURCE, pKey);
+    return DBHelper.getDbHelper(DBRESOURCE, pKey);
   }
 
   private void denyPermission(final Response pResponse) throws IOException {
