@@ -31,6 +31,7 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 
 import net.devrieze.annotations.NotNull;
+import net.devrieze.annotations.Nullable;
 import net.devrieze.util.db.DBHelper;
 import net.devrieze.util.db.DBHelper.DBQuery;
 import net.devrieze.util.db.StringAdapter;
@@ -60,10 +61,13 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   /**
    * The lifecycle event support for this component.
    */
+  @NotNull
   protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
 
+  @Nullable
   private DBHelper aDb;
 
+  @Nullable
   private Context aContext;
 
   private String aLoginPage = "/accounts/login";
@@ -118,10 +122,11 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
     final AuthResult authresult = authenticate(pRequest);
 
-    final Realm realm = aContext.getRealm();
+    final Context context = this.aContext;
+    final Realm realm = context == null ? null : context.getRealm();
     if (realm != null) {
       logFine("This context has an authentication realm, enforce the constraints");
-      final SecurityConstraint[] constraints = realm.findSecurityConstraints(pRequest, aContext);
+      final SecurityConstraint[] constraints = realm.findSecurityConstraints(pRequest, context);
       if (constraints == null) {
         logFine("Realm has no constraints, calling next in chain");
         // Unconstrained
@@ -148,7 +153,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       }
 
       if (authRequired) {
-        if ((authresult == AuthResult.AUTHENTICATED) && realm.hasResourcePermission(pRequest, pResponse, constraints, aContext)) {
+        if ((authresult == AuthResult.AUTHENTICATED) && realm.hasResourcePermission(pRequest, pResponse, constraints, context)) {
           getNext().invoke(pRequest, pResponse);
           return;
         } else if (authresult == AuthResult.AUTHENTICATED) { // We are authenticated, but the wrong user.
@@ -157,7 +162,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         } else {
           if (authresult != AuthResult.ERROR) {
             // Not logged in yet. So go to login page.
-            final LoginConfig loginConfig = aContext.getLoginConfig();
+            final LoginConfig loginConfig = context == null ? null : context.getLoginConfig();
             String loginpage = loginConfig != null ? loginConfig.getLoginPage() : null;
             if (loginpage == null) {
               loginpage = aLoginPage;
