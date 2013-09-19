@@ -6,6 +6,10 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Iterator;
 
+import static net.devrieze.util.Annotations.*;
+
+import net.devrieze.annotations.NotNull;
+import net.devrieze.annotations.Nullable;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.DBHelper.DBStatement;
 
@@ -15,8 +19,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
   public abstract static class ResultSetAdapterIterator<T> implements Iterator<T> {
 
+    @Nullable
     private ResultSet aResultSet;
 
+    @Nullable
     private DBStatement aStatement;
 
     private final boolean aAutoClose;
@@ -25,6 +31,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
     private boolean aInitialized = false;
 
+    @NotNull
     private StringCache aStringCache;
 
     public ResultSetAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet) {
@@ -46,7 +53,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
           final ResultSetMetaData metadata = aResultSet.getMetaData();
           DBHelper.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet.getWarnings());
           for (int i = 1; i <= metadata.getColumnCount(); ++i) {
-            doRegisterColumn(i, metadata.getColumnName(i));
+            doRegisterColumn(i, notNull(metadata.getColumnName(i)));
           }
           aInitialized = true;
         } catch (final SQLException e) {
@@ -57,21 +64,22 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
     }
 
-    protected abstract void doRegisterColumn(int pI, String pColumnName);
+    protected abstract void doRegisterColumn(int pI, @NotNull String pColumnName);
 
-    abstract protected T doCreateElem(ResultSet pResultSet) throws SQLException;
+    abstract protected T doCreateElem(@NotNull ResultSet pResultSet) throws SQLException;
 
     @Override
     public final boolean hasNext() {
       if (!aInitialized) {
         init();
       }
-      if (aResultSet == null) {
+      final ResultSet resultSet = this.aResultSet;
+      if (resultSet == null) {
         return false;
       }
       try {
-        aPeeked = aResultSet.next();
-        DBHelper.logWarnings("Getting a peek at next row in resultset", aResultSet.getWarnings());
+        aPeeked = resultSet.next();
+        DBHelper.logWarnings("Getting a peek at next row in resultset", resultSet.getWarnings());
         if (aAutoClose && !aPeeked) {
           closeStatement();
         }
@@ -84,8 +92,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     }
 
     @Override
+    @Nullable
     public final T next() {
-      if (aResultSet == null) {
+      final ResultSet resultSet = this.aResultSet;
+      if (resultSet == null) {
         throw new IllegalStateException("Trying to access a null resultset");
       }
       if (!aInitialized) {
@@ -93,16 +103,16 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
       try {
         if (!aPeeked) {
-          if (!aResultSet.next()) {
+          if (!resultSet.next()) {
             closeStatement();
-            DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", aResultSet.getWarnings());
+            DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet.getWarnings());
             throw new IllegalStateException("Trying to go beyond the last element");
           }
-          DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", aResultSet.getWarnings());
+          DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet.getWarnings());
         }
         aPeeked = false;
 
-        return doCreateElem(aResultSet);
+        return doCreateElem(resultSet);
 
       } catch (final SQLException e) {
         closeStatement();
@@ -112,12 +122,13 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
     @Override
     public final void remove() {
-      if (!aInitialized) {
+      final ResultSet resultSet = this.aResultSet;
+      if ((!aInitialized) || (resultSet==null)) {
         throw new IllegalStateException("Trying to remove an element before reading the iterator");
       }
       try {
-        aResultSet.deleteRow();
-        DBHelper.logWarnings("Deleting a row in ResultSetAdapter", aResultSet.getWarnings());
+        resultSet.deleteRow();
+        DBHelper.logWarnings("Deleting a row in ResultSetAdapter", resultSet.getWarnings());
       } catch (final SQLFeatureNotSupportedException e) {
         throw new UnsupportedOperationException(e);
       } catch (final SQLException e) {
@@ -139,10 +150,11 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     }
 
     public void closeStatement() {
-      if (aResultSet != null) {
+      final ResultSet resultSet = this.aResultSet;
+      if (resultSet != null) {
         try {
           try {
-            aResultSet.close();
+            resultSet.close();
           } finally {
             if (aStatement != null) {
               aStatement.close();
@@ -156,6 +168,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
     }
 
+    @NotNull
     protected StringCache getStringCache() {
       return aStringCache;
     }
@@ -173,7 +186,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     }
 
     @Override
-    protected void doRegisterColumn(final int pIndex, final String pColumnName) {
+    protected void doRegisterColumn(final int pIndex, @NotNull final String pColumnName) {
       if (pIndex != 1) {
         throw new IllegalArgumentException("Singleton adapters can not be created for result sets with more than one columns");
       }
@@ -187,10 +200,11 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   }
 
   public void closeStatement() {
-    if (aResultSet != null) {
+    final ResultSet resultSet = this.aResultSet;
+    if (resultSet != null) {
       try {
         try {
-          aResultSet.close();
+          resultSet.close();
         } finally {
           if (aStatement != null) {
             aStatement.close();
@@ -205,13 +219,17 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   }
 
   public void closeAll() {
-    DBStatement statement = aStatement; //needed as closeStatement nulls this
+    final DBStatement statement = aStatement; //needed as closeStatement nulls this
+    if (statement!=null) {
+      statement.closeHelper();
+    }
     closeStatement();
-    statement.closeHelper();
   }
 
+  @Nullable
   protected ResultSet aResultSet;
 
+  @Nullable
   protected DBStatement aStatement;
 
   protected ResultSetAdapter(final DBStatement pStatement, final ResultSet pResultSet) {
@@ -220,9 +238,11 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   }
 
   @Override
+  @NotNull
   public abstract ResultSetAdapterIterator<T> iterator();
 
   @Override
+  @NotNull
   public Iterable<T> all() {
     return new Iterable<T>() {
 

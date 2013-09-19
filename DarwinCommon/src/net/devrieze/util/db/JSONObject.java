@@ -4,25 +4,32 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static net.devrieze.util.Annotations.*;
+
+import net.devrieze.annotations.NotNull;
+
 
 public abstract class JSONObject {
 
 
   public static class JSONString extends JSONObject {
 
+    @NotNull
     private final CharSequence aString;
 
-    public JSONString(final CharSequence pString) {
+    public JSONString(@NotNull final CharSequence pString) {
       aString = pString;
     }
 
     @Override
+    @NotNull
     public CharSequence getValue() {
       return aString;
     }
 
     @Override
-    public StringBuilder appendTo(final StringBuilder pStringBuilder) {
+    @NotNull
+    public StringBuilder appendTo(@NotNull final StringBuilder pStringBuilder) {
       final int len = aString.length();
       pStringBuilder.append('"');
       for (int i = 0; i < len; ++i) {
@@ -61,19 +68,22 @@ public abstract class JSONObject {
 
   public static class JSONArray extends JSONObject {
 
+    @NotNull
     private final List<JSONObject> aItems;
 
-    private JSONArray(final List<JSONObject> pItems) {
+    private JSONArray(@NotNull final List<JSONObject> pItems) {
       aItems = pItems;
     }
 
     @Override
+    @NotNull
     public List<JSONObject> getValue() {
       return aItems;
     }
 
     @Override
-    public StringBuilder appendTo(final StringBuilder stringBuilder) {
+    @NotNull
+    public StringBuilder appendTo(@NotNull final StringBuilder stringBuilder) {
       stringBuilder.append('[');
       for (final Iterator<JSONObject> it = aItems.iterator(); it.hasNext();) {
         it.next().appendTo(stringBuilder);
@@ -87,23 +97,26 @@ public abstract class JSONObject {
 
   }
 
-  public static JSONArray jsonArray(final List<JSONObject> items) {
+  public static JSONArray jsonArray(@NotNull final List<JSONObject> items) {
     return new JSONArray(items);
   }
 
   public static JSONArray jsonArray(final JSONObject... items) {
-    return jsonArray(Arrays.asList(items));
+    return jsonArray(notNull(Arrays.asList(items)));
   }
 
-  public static JSONString jsonString(final CharSequence pString) {
+  public static JSONString jsonString(@NotNull final CharSequence pString) {
     return new JSONString(pString);
   }
 
   public abstract Object getValue();
 
-  public abstract StringBuilder appendTo(StringBuilder stringBuilder);
+  @NotNull
+  public abstract StringBuilder appendTo(@NotNull StringBuilder stringBuilder);
 
+  @SuppressWarnings("null")
   @Override
+  @NotNull
   public String toString() {
     return appendTo(new StringBuilder()).toString();
   }
