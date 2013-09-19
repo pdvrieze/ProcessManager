@@ -10,7 +10,7 @@ public class AboutPanel extends Widget {
 
   private static AboutPanelUiBinder uiBinder = GWT.create(AboutPanelUiBinder.class);
 
-  interface AboutPanelUiBinder extends UiBinder<Element, AboutPanel> {}
+  interface AboutPanelUiBinder extends UiBinder<Element, AboutPanel> { /*uibinder*/}
 
   public AboutPanel() {
     setElement(uiBinder.createAndBindUi(this));

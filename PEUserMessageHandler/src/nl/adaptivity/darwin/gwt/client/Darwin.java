@@ -6,18 +6,34 @@ import nl.adaptivity.gwt.ext.client.XMLUtil;
 
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.*;
+import com.google.gwt.dom.client.DivElement;
+import com.google.gwt.dom.client.Document;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.EventTarget;
+import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.http.client.*;
+import com.google.gwt.http.client.Request;
+import com.google.gwt.http.client.RequestBuilder;
+import com.google.gwt.http.client.RequestCallback;
+import com.google.gwt.http.client.RequestException;
+import com.google.gwt.http.client.Response;
+import com.google.gwt.http.client.URL;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.ui.*;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.InlineLabel;
+import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.ResizeLayoutPanel;
+import com.google.gwt.user.client.ui.RootPanel;
+import com.google.gwt.user.client.ui.UIObject;
+import com.google.gwt.user.client.ui.Widget;
 
 
 public class Darwin implements EntryPoint {
@@ -332,7 +348,6 @@ public class Darwin implements EntryPoint {
   private void updateContentTab() {
     hideBanner();
     String location = null;
-    String firstlocation=null;
     for(Element menuitem=aMenu.getFirstChildElement();menuitem!=null; menuitem=menuitem.getNextSiblingElement()) {
       String href = menuitem.getAttribute("href");
       if (href!=null && href.length()>0) {
@@ -518,11 +533,11 @@ public class Darwin implements EntryPoint {
     }
   }
 
-  private void log(final String pMessage, final Throwable pThrowable) {
+  private static void log(final String pMessage, final Throwable pThrowable) {
     GWT.log(pMessage, pThrowable);
   }
 
-  private void log(final String pMessage) {
+  private static void log(final String pMessage) {
     GWT.log(pMessage);
   }
 
