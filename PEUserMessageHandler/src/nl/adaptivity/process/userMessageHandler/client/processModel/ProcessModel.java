@@ -63,8 +63,10 @@ public class ProcessModel {
           node = EndNode.fromXml((Element) child);
         } else if (XMLUtil.isLocalPart("join", child)) {
           node = JoinNode.fromXml((Element) child);
+        } else {
+          throw new IllegalStateException("This code should not be reached");
         }
-        final String id = node.getId();
+        final String id = node==null ? null : node.getId();
         if ((id != null) && (id.length() > 0)) {
           map.put(id, node);
         }
