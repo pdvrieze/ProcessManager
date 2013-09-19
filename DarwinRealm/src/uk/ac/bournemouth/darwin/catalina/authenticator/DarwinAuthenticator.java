@@ -39,6 +39,7 @@ import net.devrieze.util.db.StringAdapter;
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
 
 
+  @NotNull
   private static final String QUERY_USER_FROM_DWNID = "SELECT user FROM tokens WHERE ip=? AND token=? AND (epoch + 1800) > UNIX_TIMESTAMP()";
 
   private enum AuthResult {
