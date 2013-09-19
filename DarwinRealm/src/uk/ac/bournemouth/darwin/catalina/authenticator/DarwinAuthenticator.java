@@ -4,17 +4,13 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.DBHelper.DBQuery;
-import net.devrieze.util.db.StringAdapter;
 
 import org.apache.catalina.Authenticator;
 import org.apache.catalina.Container;
@@ -33,6 +29,11 @@ import org.apache.catalina.valves.ValveBase;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
+
+import net.devrieze.annotations.NotNull;
+import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.StringAdapter;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
@@ -114,7 +115,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   @Override
   public void invoke(final Request pRequest, final Response pResponse) throws IOException, ServletException {
 
-    final AuthResult authresult = authenticate(pRequest, pResponse);
+    final AuthResult authresult = authenticate(pRequest);
 
     final Realm realm = aContext.getRealm();
     if (realm != null) {
@@ -200,7 +201,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   public static DarwinPrincipal asDarwinPrincipal(final Principal pUser) {
     try (final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class)) {
       final Realm realm = null;
-  
+
       return toDarwinPrincipal(db, realm, pUser);
     }
   }
@@ -223,8 +224,8 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     return DBHelper.getDbHelper(DBRESOURCE, pRequest);
   }
 
-
-  private AuthResult authenticate(final Request pRequest, final Response pResponse) {
+  @NotNull
+  private AuthResult authenticate(final Request pRequest) {
     try (final DBHelper db = getDatabase()){
       DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
       if (principal != null) {
@@ -245,16 +246,20 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
             try (final DBQuery query = db.makeQuery(QUERY_USER_FROM_DWNID)){
               query.addParam(1, requestIp);
               query.addParam(2, cookie.getValue());
-              final ResultSet result = query.execQuery();
-              if (result != null) {
-                final Iterator<String> it = (new StringAdapter(query, result, false)).iterator();
-
-                if (it.hasNext()) {
-                  user = it.next();
-                } else {
-                  logFine("Expired cookie: '" + cookie.getValue() + '\'');
-                  return AuthResult.EXPIRED;
+              try(final ResultSet result = query.execQuery()) {
+                if (result != null) {
+                  try(StringAdapter adapter = new StringAdapter(query, result, false)) {
+                    final Iterator<String> it = adapter.iterator();
+                    if (it.hasNext()) {
+                      user = it.next();
+                    } else {
+                      logFine("Expired cookie: '" + cookie.getValue() + '\'');
+                      return AuthResult.EXPIRED;
+                    }
+                  }
                 }
+              } catch (SQLException e) {
+                throw new RuntimeException(e);
               }
             }
             break;
@@ -285,23 +290,19 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     return DBHelper.getDbHelper(DBRESOURCE, pKey);
   }
 
-  private void denyPermission(final Response pResponse) throws IOException {
+  private static void denyPermission(final Response pResponse) throws IOException {
     pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
   }
 
-  private Logger getLogger() {
+  private static Logger getLogger() {
     return Logger.getLogger(LOGGERNAME);
   }
 
-  private void logError(final String pMessage, final Throwable pException) {
-    getLogger().log(Level.SEVERE, pMessage, pException);
-  }
-
-  private void logFine(final String pString) {
+  private static void logFine(final String pString) {
     getLogger().fine(pString);
   }
 
-  private void logInfo(final String pMessage) {
+  private static void logInfo(final String pMessage) {
     getLogger().info(pMessage);
   }
 

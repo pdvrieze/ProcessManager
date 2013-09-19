@@ -10,8 +10,6 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletResponse;
 
-import net.devrieze.util.db.DBHelper;
-
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
 import org.apache.catalina.Lifecycle;
@@ -28,11 +26,14 @@ import org.apache.catalina.util.LifecycleSupport;
 
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
 
+import net.devrieze.util.db.DBHelper;
+
 
 public class DarwinRealm implements Realm, Lifecycle {
 
   private static final String INFO = "uk.ac.bournemouth.darwin.catalina.realm.DarwinRealm/1.0";
 
+  @SuppressWarnings("unused")
   private static final String NAME = "DarwinRealm";
 
   private static final String RESOURCE = DarwinAuthenticator.DBRESOURCE;
@@ -154,7 +155,7 @@ public class DarwinRealm implements Realm, Lifecycle {
     }
 
     // First try simple matches
-    result = new ArrayList<SecurityConstraint>();
+    result = new ArrayList<>();
     final String method = pRequest.getMethod();
 
     {
@@ -404,12 +405,15 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public boolean hasRole(Principal principal, final String role) {
-    if (principal instanceof GenericPrincipal) {
-      principal = ((GenericPrincipal) principal).getUserPrincipal();
-    }
-    if (principal instanceof GenericPrincipal) {
-      return ((GenericPrincipal) principal).hasRole(role);
+  public boolean hasRole(Principal pPrincipal, final String role) {
+    final Principal principal;
+    if (pPrincipal instanceof GenericPrincipal) {
+      principal = ((GenericPrincipal) pPrincipal).getUserPrincipal();
+      if (principal instanceof GenericPrincipal) {
+        return ((GenericPrincipal) principal).hasRole(role);
+      }
+    } else {
+      principal = pPrincipal;
     }
 
     if (principal instanceof CoyotePrincipal) {
