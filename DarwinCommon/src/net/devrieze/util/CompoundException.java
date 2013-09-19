@@ -3,27 +3,31 @@ package net.devrieze.util;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Objects;
+
+import net.devrieze.annotations.NotNull;
 
 
 public class CompoundException extends RuntimeException {
 
   private static final long serialVersionUID = -395370803660462253L;
 
+  @NotNull
   private final List<? extends Throwable> aCauses;
 
   private int replayPos = 0;
 
-  public CompoundException(final List<? extends Exception> pCauses) {
+  public CompoundException(@NotNull final List<? extends Exception> pCauses) {
     super("Multiple exceptions occurred");
     aCauses = pCauses;
   }
 
-  public <T extends Throwable> void replayNext(final Class<T> pClass) throws T {
+  public <T extends Throwable> void replayNext(@NotNull final Class<T> pClass) throws T {
     final int pos = replayPos;
     replayPos++;
     if (pos < aCauses.size()) {
       final Throwable e = aCauses.get(pos);
-      if ((pClass != null) && pClass.isInstance(e)) {
+      if (pClass.isInstance(e)) {
         throw pClass.cast(e);
       }
       throw new RuntimeException(e);
@@ -32,7 +36,6 @@ public class CompoundException extends RuntimeException {
 
   @Override
   public String getMessage() {
-    // TODO Auto-generated method stub
     return super.getMessage();
   }
 
@@ -43,7 +46,7 @@ public class CompoundException extends RuntimeException {
 
   @Override
   public void printStackTrace(final PrintStream s) {
-    synchronized (s) {
+    synchronized (Objects.requireNonNull(s)) {
       s.println(this);
       for (int i = 0; i < aCauses.size(); ++i) {
         if (i >= 1) {
@@ -67,7 +70,7 @@ public class CompoundException extends RuntimeException {
     }
   }
 
-  private static void printStackTraceAsCause(final PrintStream s, final int i, final Throwable pCause) {
+  private static void printStackTraceAsCause(@NotNull final PrintStream s, final int i, @NotNull final Throwable pCause) {
     final Throwable cause = pCause;
     s.print("Cause ");
     s.print(i);
@@ -86,7 +89,7 @@ public class CompoundException extends RuntimeException {
 
   @Override
   public void printStackTrace(final PrintWriter s) {
-    synchronized (s) {
+    synchronized (Objects.requireNonNull(s)) {
       s.println(this);
       for (int i = 0; i < aCauses.size(); ++i) {
         if (i >= 1) {
