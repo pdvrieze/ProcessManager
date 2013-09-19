@@ -3,6 +3,8 @@ package net.devrieze.util.db;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import net.devrieze.annotations.NotNull;
+import net.devrieze.annotations.Nullable;
 import net.devrieze.util.db.DBHelper.DBStatement;
 
 
@@ -20,13 +22,9 @@ public class StringAdapter extends ResultSetAdapter<String> {
     }
 
     @Override
+    @Nullable
     protected String doCreateElem(final ResultSet pResultSet) throws SQLException {
-      final String result;
-      if (getStringCache() == null) {
-        result = pResultSet.getString(1);
-      } else {
-        result = getStringCache().lookup(pResultSet.getString(1));
-      }
+      final String result = getStringCache().lookup(pResultSet.getString(1));
       DBHelper.logWarnings("Reading string out of resultset", pResultSet.getWarnings());
       return result;
     }
@@ -45,6 +43,7 @@ public class StringAdapter extends ResultSetAdapter<String> {
   }
 
   @Override
+  @NotNull
   public StringAdapterIterator iterator() {
 
     return new StringAdapterIterator(aStatement, aResultSet, aAutoClose);
