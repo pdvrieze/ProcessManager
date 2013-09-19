@@ -270,12 +270,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  @SuppressWarnings("static-method")
   public synchronized void failTask(@SuppressWarnings("unused") final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Throwable pCause) {
     pNode.failTask(pCause);
   }
 
-  @SuppressWarnings("static-method")
   public synchronized void cancelTask(@SuppressWarnings("unused") final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) {
     pNode.cancelTask();
   }
