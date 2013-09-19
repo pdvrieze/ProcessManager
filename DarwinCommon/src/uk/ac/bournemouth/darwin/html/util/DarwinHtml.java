@@ -5,14 +5,19 @@ import java.io.PrintWriter;
 
 import javax.servlet.http.HttpServletResponse;
 
+import static net.devrieze.util.Annotations.*;
+
+import net.devrieze.annotations.NotNull;
+import net.devrieze.annotations.Nullable;
+
 
 public class DarwinHtml {
 
-  public static void writeError(final HttpServletResponse pResponse, final int pStatus, final String pTitle, final Throwable pError) {
+  public static void writeError(@NotNull final HttpServletResponse pResponse, final int pStatus, @NotNull final String pTitle, final Throwable pError) {
     pResponse.setStatus(pStatus);
     pResponse.setContentType("text/html");
     try {
-      try (final PrintWriter out = pResponse.getWriter()){
+      try (@NotNull final PrintWriter out = notNull(pResponse.getWriter())){
         writeDarwinHeader(out, pTitle);
         writeStackTrace(out, pError);
         writeDarwinFooter(out);
@@ -23,7 +28,7 @@ public class DarwinHtml {
     }
   }
 
-  private static void writeStackTrace(final PrintWriter pOut, final Throwable pError) {
+  private static void writeStackTrace(@NotNull final PrintWriter pOut, @Nullable final Throwable pError) {
     Throwable th = pError;
     pOut.println("<p>");
     while (th != null) {
@@ -45,7 +50,7 @@ public class DarwinHtml {
     pOut.println("</p>");
   }
 
-  private static void writeDarwinFooter(final PrintWriter pOut) {
+  private static void writeDarwinFooter(@NotNull final PrintWriter pOut) {
     pOut.println("    </div>");
     pOut.println("    </div><!--");
     pOut.println("    --><div id=\"footer\"><span id=\"divider\"></span>Darwin is a Bournemouth University Project</div>");
@@ -53,7 +58,7 @@ public class DarwinHtml {
     pOut.println("</html>");
   }
 
-  private static void writeDarwinHeader(final PrintWriter pOut, final String pTitle) {
+  private static void writeDarwinHeader(@NotNull final PrintWriter pOut, @NotNull final String pTitle) {
     pOut.println("<!DOCTYPE html>");
     pOut.println("<html>");
     pOut.println("  <head>");
