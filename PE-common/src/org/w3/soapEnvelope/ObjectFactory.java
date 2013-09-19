@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
  * methods for each of these are provided in this class.
  */
 @XmlRegistry
-@SuppressWarnings("static-method")
 public class ObjectFactory {
 
   private final static QName _Envelope_QNAME = new QName("http://www.w3.org/2003/05/soap-envelope", "Envelope");
