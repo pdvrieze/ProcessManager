@@ -573,7 +573,6 @@ public class DBHelper implements AutoCloseable{
     return new DBHelper(dataSource, pKey);
   }
 
-  @SuppressWarnings("null")
   @NotNull
   private static Logger getLogger() {
     return Logger.getLogger(LOGGER_NAME);

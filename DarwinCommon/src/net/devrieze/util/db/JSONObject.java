@@ -114,7 +114,6 @@ public abstract class JSONObject {
   @NotNull
   public abstract StringBuilder appendTo(@NotNull StringBuilder stringBuilder);
 
-  @SuppressWarnings("null")
   @Override
   @NotNull
   public String toString() {
