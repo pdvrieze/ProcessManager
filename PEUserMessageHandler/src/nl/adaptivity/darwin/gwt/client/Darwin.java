@@ -22,6 +22,7 @@ import com.google.gwt.http.client.RequestCallback;
 import com.google.gwt.http.client.RequestException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.http.client.URL;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
@@ -29,12 +30,15 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ResizeLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.xml.client.Node;
+import com.google.gwt.xml.client.XMLParser;
 
 
 public class Darwin implements EntryPoint {
@@ -194,6 +198,58 @@ public class Darwin implements EntryPoint {
 
   }
 
+  private class ContentPanelCallback implements RequestCallback {
+
+    @Override
+    public void onResponseReceived(Request pRequest, Response pResponse) {
+      int statusCode = pResponse.getStatusCode();
+      if (statusCode==401) {
+        hideBanner();
+        loginDialog(); // just return
+        return;
+      } else if (statusCode>=400 || statusCode<200) {
+        hideBanner();
+        error("Failure to load panel: "+statusCode, null);
+        return;
+      }
+      hideBanner();
+      final String text = pResponse.getText();
+      com.google.gwt.xml.client.Document response = XMLParser.parse(text);
+      com.google.gwt.xml.client.Element root = response.getDocumentElement();
+      SafeHtml title=null;
+      SafeHtml body=null;
+      for(Node childNode = root.getFirstChild(); childNode!=null; childNode = childNode.getNextSibling()) {
+        if (childNode.getNodeType()==Node.ELEMENT_NODE) {
+          com.google.gwt.xml.client.Element element = (com.google.gwt.xml.client.Element)childNode;
+          if (title!=null) {
+            title = GwtXmlUtil.getTextContent(element);
+          } else {
+            try {
+              body = GwtXmlUtil.serialize(element.getChildNodes());
+            } catch (IllegalArgumentException e) {
+              error("Failure to load page", e);
+            }
+          }
+        }
+
+      }
+      if (title!=null) {
+        Document.get().setTitle(title.asString());
+        aBanner.setInnerSafeHtml(title);
+      }
+      if (body!=null) {
+        aContentPanel.add(new HTMLPanel(body));
+      }
+    }
+
+    @Override
+    public void onError(Request pRequest, Throwable pException) {
+      hideBanner();
+      error("The requested location is not available", pException);
+    }
+
+  }
+
   @UiTemplate("darwindialog.ui.xml")
   interface DarwinDialogBinder extends UiBinder<Widget, Darwin> { /*
                                                                    * gwt
@@ -347,7 +403,6 @@ public class Darwin implements EntryPoint {
   }
 
   private void updateContentTab() {
-    hideBanner();
     for(Element menuitem=aMenu.getFirstChildElement();menuitem!=null; menuitem=menuitem.getNextSiblingElement()) {
       String href = menuitem.getAttribute("href");
       if (href!=null && href.length()>0) {
@@ -360,15 +415,33 @@ public class Darwin implements EntryPoint {
     }
 
     if (aLocation.equals("/")) {
+      hideBanner();
       setInboxPanel();
     } else if (aLocation.equals("/actions")) {
+      hideBanner();
       setActionPanel();
     } else if (aLocation.equals("/processes")) {
+      hideBanner();
       setProcessesPanel();
     } else if (aLocation.equals("/about")) {
+      hideBanner();
       setAboutPanel();
     } else if (aLocation.equals("/presentations")) {
+      hideBanner();
       setPresentationPanel();
+    } else {
+      RequestBuilder rBuilder;
+      rBuilder = new RequestBuilder(RequestBuilder.GET, aLocation);
+      rBuilder.setHeader("Accept", "text/xml");
+      rBuilder.setHeader("X-Darwin", "nochrome");
+      try {
+        rBuilder.sendRequest(null, new ContentPanelCallback());
+      } catch (final RequestException e) {
+        error("Could load requested content", e);
+        closeDialogs();
+      }
+
+
     }
   }
 
@@ -510,7 +583,7 @@ public class Darwin implements EntryPoint {
 
     final DivElement loginPanel = document.getElementById("login").cast();
     if (aUsername != null) {
-      loginPanel.setInnerHTML("<span id=\"username\">" + aUsername + "</span><a id=\"logout\">logout</a>");
+      loginPanel.setInnerHTML("<a href=\"#/accounts/myaccount\" id=\"username\">" + aUsername + "</a><a id=\"logout\">logout</a>");
     } else {
       loginPanel.setInnerHTML("<a id=\"logout\">login</a>");
     }
