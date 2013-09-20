@@ -18,7 +18,7 @@ public class ServicesEndpoint {
   @XmlElementWrapper(name = "actionsGroups", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/actions")
   public Collection<ActionDescriptorGroup> getAvailableActions(@RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    final ArrayList<ActionDescriptorGroup> result = new ArrayList<ActionDescriptorGroup>();
+    final ArrayList<ActionDescriptorGroup> result = new ArrayList<>();
 
     // TODO actually get some actions out of the database and process model database.
 
