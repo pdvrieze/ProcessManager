@@ -1,10 +1,16 @@
 package net.devrieze.util;
 
-import net.devrieze.annotations.NotNull;
+import net.devrieze.annotations.Nullable;
+
 
 
 public interface StringCache {
 
-  public String lookup(@NotNull String pString);
+  /**
+   * Look up a string in the cache for string reuse.
+   * @param pString <code>null</code> parameters will always return null
+   * @return
+   */
+  public String lookup(@Nullable String pString);
 
 }
