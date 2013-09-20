@@ -26,6 +26,7 @@ import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.InlineLabel;
@@ -233,7 +234,7 @@ public class Darwin implements EntryPoint {
   public void onModuleLoad() {
     final String initToken = History.getToken();
     if (initToken.length() == 0) {
-      History.newItem("/", false);
+      History.newItem(Window.Location.getPath(), false);
     }
 
 
@@ -347,19 +348,15 @@ public class Darwin implements EntryPoint {
 
   private void updateContentTab() {
     hideBanner();
-    String location = null;
     for(Element menuitem=aMenu.getFirstChildElement();menuitem!=null; menuitem=menuitem.getNextSiblingElement()) {
       String href = menuitem.getAttribute("href");
       if (href!=null && href.length()>0) {
-        if (location==null) {
-          location = menuitem.getAttribute("href");
-        } else if (href.equals(aLocation)) {
-          location = aLocation;
+        if (href.equals(aLocation)) {
+          menuitem.addClassName("active");
+        } else {
+          menuitem.removeClassName("active");
         }
       }
-    }
-    if (location!=null && (!aLocation.equals(location))) {
-      aLocation=location;
     }
 
     if (aLocation.equals("/")) {
