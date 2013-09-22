@@ -212,6 +212,7 @@ public class Darwin implements EntryPoint {
         error("Failure to load panel: "+statusCode, null);
         return;
       }
+      aContentPanel.clear();
       hideBanner();
       final String text = pResponse.getText();
       com.google.gwt.xml.client.Document response = XMLParser.parse(text);
@@ -430,6 +431,8 @@ public class Darwin implements EntryPoint {
       hideBanner();
       setPresentationPanel();
     } else {
+      aContentPanel.clear();
+      aContentPanel.add(new Label("Loading..."));
       RequestBuilder rBuilder;
       rBuilder = new RequestBuilder(RequestBuilder.GET, aLocation);
       rBuilder.setHeader("Accept", "text/xml");
@@ -448,24 +451,6 @@ public class Darwin implements EntryPoint {
   private void setPresentationPanel() {
     aContentPanel.clear();
     aContentPanel.add(new PresentationPanel(aUsername));
-//    showBanner();
-//    GWT.runAsync(new RunAsyncCallback() {
-//
-//      @Override
-//      public void onSuccess() {
-//        hideBanner();
-//        aContentPanel.clear();
-//        aContentPanel.add(new PresentationPanel());
-//
-//      }
-//
-//      @Override
-//      public void onFailure(Throwable pReason) {
-//        hideBanner();
-//        aContentPanel.clear();
-//        aContentPanel.add(new Label("Could not load presentation module"));
-//      }
-//    });
   }
 
   private void setInboxPanel() {
@@ -476,47 +461,11 @@ public class Darwin implements EntryPoint {
   private void setProcessesPanel() {
     aContentPanel.clear();
     aContentPanel.add(new Label("Processes Panel - work in progress"));
-//    showBanner();
-//    GWT.runAsync(new RunAsyncCallback() {
-//
-//      @Override
-//      public void onSuccess() {
-//        hideBanner();
-//        aContentPanel.clear();
-//        aContentPanel.add(new AboutPanel());
-//      }
-//
-//      @Override
-//      public void onFailure(final Throwable pReason) {
-//        hideBanner();
-//        aContentPanel.clear();
-//        aContentPanel.add(new Label("Could not load about page module"));
-//      }
-//    });
   }
 
   private void setActionPanel() {
     aContentPanel.clear();
     aContentPanel.add(new Label("ActionPanel - work in progress"));
-//    showBanner();
-//    ActionPanel.load(getCompletionListener());
-//
-//    GWT.runAsync(new RunAsyncCallback() {
-//
-//      @Override
-//      public void onSuccess() {
-//        hideBanner();
-//        aContentPanel.clear();
-//        aContentPanel.add(new Label("Action Panel"));
-//      }
-//
-//      @Override
-//      public void onFailure(final Throwable pReason) {
-//        hideBanner();
-//        aContentPanel.clear();
-//        aContentPanel.add(new Label("Could not load action panel module"));
-//      }
-//    });
   }
 
   private CompletionListener getCompletionListener() {
