@@ -28,12 +28,12 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiTemplate;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ResizeLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.Widget;
@@ -44,6 +44,11 @@ import com.google.gwt.xml.client.XMLParser;
 public class Darwin implements EntryPoint {
 
   private static final String LOGIN_LOCATION = "/accounts/login.php";
+
+  private static final String[] INLINEPREFIXES = new String[] {
+    "/accounts/chpasswd",
+    "/accounts/myaccount"
+  };
 
   private class LoginReceivedCallback implements RequestCallback {
 
@@ -69,12 +74,12 @@ public class Darwin implements EntryPoint {
         aUsername = payload;
         closeDialogs();
         updateLoginPanel();
-        requestRefreshMenu();
+        requestRefreshMenu(aLocation);
       } else if ("logout".equals(result)) {
         aUsername = null;
         closeDialogs();
         updateLoginPanel();
-        requestRefreshMenu();
+        requestRefreshMenu(aLocation);
         navigateTo("/", true);
       } else if ("error".equals(result)) {
         closeDialogs();
@@ -161,12 +166,19 @@ public class Darwin implements EntryPoint {
 
   }
 
-  private class MenuClickHandler implements ClickHandler {
+  private class LinkClickHandler implements ClickHandler {
 
     @Override
     public void onClick(final ClickEvent pEvent) {
       final EventTarget target = pEvent.getNativeEvent().getEventTarget();
-      navigateTo(target.<Element> cast().getAttribute("href"), true);
+      String href = target.<Element> cast().getAttribute("href");
+      // handle urls to virtual pages
+      if (href!=null && href.startsWith("/#")) {
+        href=href.substring(2);
+      }
+      navigateTo(href, true);
+      pEvent.preventDefault();
+      pEvent.stopPropagation();
     }
 
   }
@@ -187,7 +199,7 @@ public class Darwin implements EntryPoint {
         }
         updateMenuElements();
       } else {
-        log("Error updating the menu ["+pResponse.getStatusCode()+" "+pResponse.getStatusText());
+        log("Error updating the menu ["+pResponse.getStatusCode()+" "+pResponse.getStatusText()+']');
       }
     }
 
@@ -222,7 +234,7 @@ public class Darwin implements EntryPoint {
       for(Node childNode = root.getFirstChild(); childNode!=null; childNode = childNode.getNextSibling()) {
         if (childNode.getNodeType()==Node.ELEMENT_NODE) {
           com.google.gwt.xml.client.Element element = (com.google.gwt.xml.client.Element)childNode;
-          if (title!=null) {
+          if (title==null) {
             title = GwtXmlUtil.getTextContent(element);
           } else {
             try {
@@ -235,7 +247,7 @@ public class Darwin implements EntryPoint {
 
       }
       if (title!=null) {
-        Document.get().setTitle(title.asString());
+        com.google.gwt.dom.client.Document.get().setTitle(title.asString());
         aBanner.setInnerSafeHtml(title);
       }
       if (body!=null) {
@@ -269,9 +281,7 @@ public class Darwin implements EntryPoint {
 
   private RootPanel aContentPanel;
 
-  private ResizeLayoutPanel aContentLayoutPanel;
-
-  private ClickHandler aMenuClickHandler;
+  private ClickHandler aLinkClickHandler;
 
   @UiField
   Label dialogTitle;
@@ -285,6 +295,8 @@ public class Darwin implements EntryPoint {
 
   private HandlerRegistration aLoginoutRegistration;
 
+  private HandlerRegistration aUsernameRegistration;
+
   private Element aBanner;
 
   @Override
@@ -297,7 +309,7 @@ public class Darwin implements EntryPoint {
 
     final Document document = Document.get();
     aMenu = (DivElement) document.getElementById("menu");
-    aLocation = History.getToken();
+    String newLocation = History.getToken();
     final Element usernameSpan = document.getElementById("username");
     if (usernameSpan != null) {
       aUsername = usernameSpan.getInnerText();
@@ -306,19 +318,28 @@ public class Darwin implements EntryPoint {
     }
     aContentPanel = RootPanel.get("content");
 
-    showBanner();
+    requestRefreshMenu(newLocation);
+    
+    updateMenuElements();
 
-    requestRefreshMenu();
-
-    updateLogin(document);
+    registerLoginPanel(document);
 
     History.addValueChangeHandler(new HistoryChangeHandler());
 
     aBanner = document.getElementById("banner");
 
-    showBanner();
+    // This is not a page that already has it's content.
+    if (asInlineLocation(newLocation)==null) {
+      showBanner();
+      navigateTo(newLocation, false);
+    } else {
+      aLocation = newLocation;
+    }
   }
 
+  /**
+   * @category ui_elements
+   */
   private void hideBanner() {
     // Remove the banner
     if (aBanner != null) {
@@ -326,12 +347,27 @@ public class Darwin implements EntryPoint {
     }
   }
 
+  /**
+   * @category ui_elements
+   */
   private void showBanner() {
     if (aBanner != null) {
       aBanner.removeAttribute("style");
     }
   }
 
+  /**
+   * @category ui_elements
+   */
+  private void modalDialog(final String pString) {
+    final Button closeButton = new Button("Ok");
+    closeButton.addClickHandler(aDialogCloseHandler);
+    dialog("Message", new Label(pString), closeButton);
+  }
+
+  /**
+   * @category error_handling
+   */
   public void error(final String pMessage, final Throwable pException) {
     GWT.log("Error: " + pMessage, pException);
     String message;
@@ -359,16 +395,16 @@ public class Darwin implements EntryPoint {
     //    aLoginContent.redirect.setValue(Window.Location.getHref());
   }
 
-  private void modalDialog(final String pString) {
-    final Button closeButton = new Button("Ok");
-    closeButton.addClickHandler(aDialogCloseHandler);
-    dialog("Message", new Label(pString), closeButton);
-  }
-
+  /**
+   * @category ui_elements
+   */
   private void updateDialogTitle(final String pString) {
     dialogTitle.setText(pString);
   }
 
+  /**
+   * @category ui_elements
+   */
   private void dialog(final String pTitle, final Widget... pContents) {
     final Widget dialog = darwinDialogBinder.createAndBindUi(this);
     dialogTitle.setText(pTitle);
@@ -394,57 +430,98 @@ public class Darwin implements EntryPoint {
   }
 
   public void navigateTo(final String pNewLocation, final boolean addHistory) {
-    if (!aLocation.equals(pNewLocation)) {
-      aLocation = pNewLocation;
-      updateContentTab();
+    if ((aLocation==null && pNewLocation!=null) || (aLocation!=null && !aLocation.equals(pNewLocation))) {
+      if (aLocation!=null && aLocation.startsWith("/accounts/myaccount")) {
+        aLocation = pNewLocation;
+        updateLoginPanel();
+      } else {
+        aLocation = pNewLocation;
+      }
+      updateMenuTabs();
+      
+      if (aLocation.equals("/")|| aLocation.equals("") || aLocation==null) {
+        hideBanner();
+        setInboxPanel();
+      } else if (aLocation.equals("/actions")) {
+        hideBanner();
+        setActionPanel();
+      } else if (aLocation.equals("/processes")) {
+        hideBanner();
+        setProcessesPanel();
+      } else if (aLocation.equals("/about")) {
+        hideBanner();
+        setAboutPanel();
+      } else if (aLocation.equals("/presentations")) {
+        hideBanner();
+        setPresentationPanel();
+      } else { 
+        String location = asInlineLocation(aLocation);
+        if (location!=null){
+          aLocation = location;
+          aContentPanel.clear();
+          aContentPanel.add(new Label("Loading..."));
+          RequestBuilder rBuilder;
+          rBuilder = new RequestBuilder(RequestBuilder.GET, location);
+          rBuilder.setHeader("Accept", "text/xml");
+          rBuilder.setHeader("X-Darwin", "nochrome");
+          try {
+            rBuilder.sendRequest(null, new ContentPanelCallback());
+          } catch (final RequestException e) {
+            error("Could load requested content", e);
+            closeDialogs();
+          }
+      
+      
+        } else {
+          hideBanner(); // whatever we do, hide the banner
+        }
+      }
       if (addHistory) {
-        History.newItem(pNewLocation, false);
+        History.newItem(aLocation, false);
       }
     }
   }
 
-  private void updateContentTab() {
+  private void updateMenuTabs() {
     for(Element menuitem=aMenu.getFirstChildElement();menuitem!=null; menuitem=menuitem.getNextSiblingElement()) {
-      String href = menuitem.getAttribute("href");
-      if (href!=null && href.length()>0) {
-        if (href.equals(aLocation)) {
-          menuitem.addClassName("active");
-        } else {
-          menuitem.removeClassName("active");
-        }
+      updateLinkItem(menuitem);
+    }
+  }
+
+  private static String asInlineLocation(String pLocation) {
+    for(String prefix:INLINEPREFIXES) {
+      if (pLocation.startsWith(prefix)) {
+        return prefix;
       }
     }
+    return null;
+  }
 
-    if (aLocation.equals("/")) {
-      hideBanner();
-      setInboxPanel();
-    } else if (aLocation.equals("/actions")) {
-      hideBanner();
-      setActionPanel();
-    } else if (aLocation.equals("/processes")) {
-      hideBanner();
-      setProcessesPanel();
-    } else if (aLocation.equals("/about")) {
-      hideBanner();
-      setAboutPanel();
-    } else if (aLocation.equals("/presentations")) {
-      hideBanner();
-      setPresentationPanel();
-    } else {
-      aContentPanel.clear();
-      aContentPanel.add(new Label("Loading..."));
-      RequestBuilder rBuilder;
-      rBuilder = new RequestBuilder(RequestBuilder.GET, aLocation);
-      rBuilder.setHeader("Accept", "text/xml");
-      rBuilder.setHeader("X-Darwin", "nochrome");
-      try {
-        rBuilder.sendRequest(null, new ContentPanelCallback());
-      } catch (final RequestException e) {
-        error("Could load requested content", e);
-        closeDialogs();
+  private void updateLinkItem(Element menuitem) {
+    String href = menuitem.getAttribute("href");
+    if (href!=null && href.length()>0) {
+      if (href.startsWith("/#")) {
+        href=href.substring(2);
       }
+      if (href.equals(aLocation)) {
+        menuitem.addClassName("active");
+      } else {
+        menuitem.removeClassName("active");
+      }
+    }
+  }
 
-
+  /**
+   * Make the menu elements active and add an onClick Listener.
+   */
+  public void updateMenuElements() {
+    if (aLinkClickHandler == null) {
+      aLinkClickHandler = new LinkClickHandler();
+    }
+    for (Element item = aMenu.getFirstChildElement(); item != null; item = item.getNextSiblingElement()) {
+      final Anchor l = Anchor.wrap(item);
+      l.addClickHandler(aLinkClickHandler);
+      updateLinkItem(item);
     }
   }
 
@@ -466,21 +543,6 @@ public class Darwin implements EntryPoint {
   private void setActionPanel() {
     aContentPanel.clear();
     aContentPanel.add(new Label("ActionPanel - work in progress"));
-  }
-
-  private CompletionListener getCompletionListener() {
-    return new CompletionListener() {
-
-      @Override
-      public void onCompletion(final UIObject pWidget) {
-        hideBanner();
-        if (pWidget instanceof Widget) {
-          aContentPanel.add((Widget) pWidget);
-        } else {
-          aContentPanel.getElement().appendChild(pWidget.getElement());
-        }
-      }
-    };
   }
 
   private void setAboutPanel() {
@@ -506,45 +568,56 @@ public class Darwin implements EntryPoint {
   }
 
 
-  /**
-   * Make the menu elements active and add an onClick Listener.
-   */
-  public void updateMenuElements() {
-    if (aMenuClickHandler == null) {
-      aMenuClickHandler = new MenuClickHandler();
+  private void registerLoginPanel(final Document document) {
+    Element logout = document.getElementById("logout");
+    if (logout!=null) {
+      final Clickable loginout = Clickable.wrap(logout);
+      loginout.getElement().removeAttribute("href");
+      aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
+    } else {
+      aLoginoutRegistration = null;
     }
-    for (Element item = aMenu.getFirstChildElement(); item != null; item = item.getNextSiblingElement()) {
-      final InlineLabel l = InlineLabel.wrap(item);
-      l.addClickHandler(aMenuClickHandler);
+    
+    Element username = document.getElementById("username");
+    if (username!=null) {
+      aUsernameRegistration = Clickable.wrapNoAttach(username).addClickHandler(aLinkClickHandler);
+    } else {
+      aUsernameRegistration = null;
     }
-    updateContentTab();
   }
 
-  private void updateLogin(final Document document) {
-    final Clickable loginout = Clickable.wrap(document.getElementById("logout"));
-    loginout.getElement().removeAttribute("href");
-    aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
+  private void unregisterLoginPanel() {
+    if (aLoginoutRegistration!=null) {
+      aLoginoutRegistration.removeHandler();
+    }
+    if (aUsernameRegistration!=null) {
+      aUsernameRegistration.removeHandler();
+    }
   }
+    
 
   private void updateLoginPanel() {
-    aLoginoutRegistration.removeHandler();
     final Document document = Document.get();
+    unregisterLoginPanel();
 
     final DivElement loginPanel = document.getElementById("login").cast();
     if (aUsername != null) {
-      loginPanel.setInnerHTML("<a href=\"#/accounts/myaccount\" id=\"username\">" + aUsername + "</a><a id=\"logout\">logout</a>");
+      if (aLocation.startsWith("/accounts/myaccount")) {
+        loginPanel.setInnerHTML("<a href=\"/accounts/myaccount\" class=\"active\" id=\"username\">" + aUsername + "</a><a id=\"logout\">logout</a>");
+      } else {
+        loginPanel.setInnerHTML("<a href=\"/accounts/myaccount\" id=\"username\">" + aUsername + "</a><a id=\"logout\">logout</a>");
+      }
     } else {
       loginPanel.setInnerHTML("<a id=\"logout\">login</a>");
+      aUsernameRegistration = null;
     }
-    final Clickable loginout = Clickable.wrap(document.getElementById("logout"));
-    aLoginoutRegistration = loginout.addClickHandler(new LoginoutClickHandler());
-
+    registerLoginPanel(document);
   }
 
 
-  private void requestRefreshMenu() {
+  private void requestRefreshMenu(String pLocation) {
     RequestBuilder rBuilder;
-    rBuilder = new RequestBuilder(RequestBuilder.GET, "/common/menu.php?location=" + URL.encode(aLocation));
+    rBuilder = new RequestBuilder(RequestBuilder.GET, "/common/menu.php?location=" + URL.encode(pLocation));
     try {
       rBuilder.sendRequest(null, new MenuReceivedCallback());
     } catch (final RequestException e) {
