@@ -81,9 +81,11 @@
 
 	<xsd:complexType name="ProcessModelNode" abstract="true">
 		<xsd:attribute name="id" type="xsd:ID"></xsd:attribute>
+		<xsd:attribute name="x" type="xsd:double" use="optional"></xsd:attribute>
+		<xsd:attribute name="y" type="xsd:double" use="optional"></xsd:attribute>
 	</xsd:complexType>
 
-    <xsd:complexType name="MessageType" mixed="true">
+	<xsd:complexType name="MessageType" mixed="true">
     	<xsd:sequence>
     		<xsd:any minOccurs="0" maxOccurs="unbounded"></xsd:any>
     	</xsd:sequence></xsd:complexType>
