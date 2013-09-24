@@ -17,7 +17,6 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 public class StartNode extends ProcessNode {
 
   public StartNode() {
-    super((ProcessNode) null);
   }
 
   private static final long serialVersionUID = 7779338146413772452L;
@@ -32,7 +31,7 @@ public class StartNode extends ProcessNode {
   }
 
   @XmlElement(name = "import")
-  public List<XmlImportType> getImport() {
+  public List<XmlImportType> getImports() {
     if (aImports == null) {
       aImports = new ArrayList<>();
     }

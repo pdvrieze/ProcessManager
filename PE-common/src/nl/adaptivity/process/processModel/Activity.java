@@ -3,6 +3,7 @@ package nl.adaptivity.process.processModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -60,7 +61,7 @@ public class Activity extends ProcessNode {
    *          activity.
    */
   public Activity(final ProcessNode pPredecessor) {
-    super(pPredecessor);
+    super(Collections.singletonList(pPredecessor));
   }
 
   /**

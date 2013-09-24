@@ -70,9 +70,14 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    *
    * @param pEndNodes The endnodes
    */
-  public ProcessModel(final Collection<EndNode> pEndNodes) {
+  public ProcessModel(final Collection<? extends EndNode> pEndNodes) {
     aStartNodes = reverseGraph(pEndNodes);
     aEndNodeCount = pEndNodes.size();
+  }
+
+  protected ProcessModel(final Collection<? extends StartNode> pStartNodes, int pEndNodeCount) {
+    aStartNodes = new ArrayList(pStartNodes);
+    aEndNodeCount = pEndNodeCount;
   }
 
   /**
@@ -114,7 +119,7 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
    * @param pEndNodes The endnodes to base the model on.
    * @return A collection of startNodes.
    */
-  private static Collection<StartNode> reverseGraph(final Collection<EndNode> pEndNodes) {
+  private static Collection<StartNode> reverseGraph(final Collection<? extends EndNode> pEndNodes) {
     final Collection<StartNode> resultList = new ArrayList<>();
     for (final EndNode endNode : pEndNodes) {
       reverseGraph(resultList, endNode);

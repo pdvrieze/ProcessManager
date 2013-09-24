@@ -2,7 +2,6 @@ package nl.adaptivity.process.processModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -15,8 +14,10 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.IdFactory;
 
+import nl.adaptivity.diagram.Positioned;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 
@@ -24,7 +25,7 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ Join.class, Activity.class, EndNode.class, StartNode.class })
-public abstract class ProcessNode implements Serializable {
+public abstract class ProcessNode implements Serializable, Positioned {
 
   private static final long serialVersionUID = -7745019972129682199L;
 
@@ -34,20 +35,13 @@ public abstract class ProcessNode implements Serializable {
 
   private String aId;
 
+  private double aX=Double.NaN;
+  private double aY=Double.NaN;
+
   protected ProcessNode() {
 
   }
 
-  protected ProcessNode(final ProcessNode pPrevious) {
-    if (pPrevious == null) {
-      if (!((this instanceof StartNode) || (this instanceof Join))) {
-        throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
-      }
-      setPredecessors(Arrays.asList(new ProcessNode[0]));
-    } else {
-      setPredecessors(Arrays.asList(pPrevious));
-    }
-  }
 
   public ProcessNode(final Collection<ProcessNode> pPredecessors) {
     if ((pPredecessors.size() < 1) && (!(this instanceof StartNode))) {
@@ -66,11 +60,11 @@ public abstract class ProcessNode implements Serializable {
     return aPredecessors;
   }
 
-  public void setPredecessors(final Collection<ProcessNode> predecessors) {
+  public void setPredecessors(final Collection<? extends ProcessNode> predecessors) {
     if (aPredecessors != null) {
       throw new UnsupportedOperationException("Not allowed to change predecessors");
     }
-    aPredecessors = predecessors;
+    aPredecessors = CollectionUtil.copy(predecessors);
   }
 
   public void addSuccessor(final ProcessNode pNode) {
@@ -116,6 +110,26 @@ public abstract class ProcessNode implements Serializable {
 
   public void setId(final String id) {
     aId = id;
+  }
+
+  @XmlAttribute(name="x")
+  @Override
+  public double getX() {
+    return aX;
+  }
+
+  public void setX(double pX) {
+    aX = pX;
+  }
+
+  @XmlAttribute(name="y")
+  @Override
+  public double getY() {
+    return aY;
+  }
+
+  public void setY(double pY) {
+    aY = pY;
   }
 
   /**
