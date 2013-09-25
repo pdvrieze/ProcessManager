@@ -16,19 +16,23 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.engine.ActivityImpl;
+import nl.adaptivity.process.processModel.engine.EndNodeImpl;
+import nl.adaptivity.process.processModel.engine.JoinImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import android.util.Log;
 
 
 public class PMParser {
 
 
-  private static class RefNode extends ProcessNode {
+  private static class RefNode extends ProcessNodeImpl {
 
     private static final long serialVersionUID = 6250389309360094282L;
     final String aRef;
@@ -78,7 +82,7 @@ public class PMParser {
             nodes.put(node.getId(), node);
           }
         }
-        final ProcessModel result = new ProcessModel(getEndNodes(nodes));
+        final ProcessModelImpl result = new ProcessModelImpl(getEndNodes(nodes));
         result.setName(modelName);
         return result;
 
@@ -141,14 +145,14 @@ public class PMParser {
   }
 
   private static ProcessNode parseStart(XmlPullParser pIn, Map<String, ProcessNode> pNodes) throws XmlPullParserException, IOException {
-    StartNode result = new StartNode();
+    StartNodeImpl result = new StartNodeImpl();
     parseCommon(pIn, pNodes, result);
     if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
   private static ProcessNode parseActivity(XmlPullParser pIn, Map<String, ProcessNode> pNodes) throws XmlPullParserException, IOException {
-    Activity result = new Activity();
+    ActivityImpl result = new ActivityImpl();
     parseCommon(pIn, pNodes, result);
     String name = pIn.getAttributeValue(null, "name");
     if (name!=null && name.length()>0) {
@@ -179,7 +183,7 @@ public class PMParser {
   }
 
   private static ProcessNode parseJoin(XmlPullParser pIn, Map<String, ProcessNode> pNodes) throws XmlPullParserException, IOException {
-    Join result = new Join();
+    JoinImpl result = new JoinImpl();
     parseCommon(pIn, pNodes, result);
     parseJoinAttrs(pIn, result);
     List<ProcessNode> predecessors = new ArrayList<ProcessNode>();
@@ -218,13 +222,13 @@ public class PMParser {
   }
 
   private static ProcessNode parseEnd(XmlPullParser pIn, Map<String, ProcessNode> pNodes) throws XmlPullParserException, IOException {
-    EndNode result = new EndNode();
+    EndNodeImpl result = new EndNodeImpl();
     parseCommon(pIn, pNodes, result);
     if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static void parseCommon(XmlPullParser pIn, Map<String, ProcessNode> pNodes, ProcessNode pNode) {
+  private static void parseCommon(XmlPullParser pIn, Map<String, ProcessNode> pNodes, ProcessNodeImpl pNode) {
     for(int i=0; i< pIn.getAttributeCount();++i) {
       if (pIn.getAttributeNamespace(i)==null) {
         final String aname = pIn.getAttributeName(i);
