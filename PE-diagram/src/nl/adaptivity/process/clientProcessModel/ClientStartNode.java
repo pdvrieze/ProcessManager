@@ -10,12 +10,11 @@ import java.util.Set;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlImportType;
+import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
 
 public class ClientStartNode extends ClientProcessNode implements StartNode {
 
   private Set<ProcessNode> aSuccessors;
-  private List<XmlImportType> aImports;
-
   public ClientStartNode() {
     super();
   }
@@ -33,6 +32,11 @@ public class ClientStartNode extends ClientProcessNode implements StartNode {
       aSuccessors = new LinkedHashSet<ProcessNode>();
     }
     aSuccessors.add(pNode);
+  }
+
+  @Override
+  public List<XmlImportType> getImports() {
+    return super.getImports();
   }
 
   @Override
@@ -54,6 +58,11 @@ public class ClientStartNode extends ClientProcessNode implements StartNode {
   }
 
   @Override
+  protected void setPredecessor(ProcessNode pPredecessor) {
+    throw new UnsupportedOperationException("Start nodes have no predecessors");
+  }
+
+  @Override
   public boolean isPredecessorOf(ProcessNode pNode) {
     // TODO Auto-generated method stub
     // return false;
@@ -61,29 +70,21 @@ public class ClientStartNode extends ClientProcessNode implements StartNode {
   }
 
   @Override
-  public List<XmlImportType> getImports() {
-    return aImports;
-  }
-
-  @Override
-  public void setSuccessors(Collection<? extends ProcessNode> pSuccessors) {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  @Override
-  protected void setPredecessor(ProcessNode pPredecessor) {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  @Override
   protected void setSuccessor(ProcessNode pSuccessor) {
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
+    if (aSuccessors==null) {
+      aSuccessors = new ProcessNodeSet(1);
+    } else {
+      aSuccessors.clear();
+    }
+    aSuccessors.add(pSuccessor);
+  }
+
+  @Override
+  public void addSuccessor(ProcessNode pNode) {
+    if (aSuccessors==null) {
+      aSuccessors = new ProcessNodeSet(1);
+    }
+    aSuccessors.add(pNode);
   }
 
 }

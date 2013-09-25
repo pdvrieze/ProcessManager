@@ -20,48 +20,46 @@ public class ClientProcessModel implements ProcessModel{
 
   private final String aName;
 
-  private List<ProcessNode> aNodes;
+  private List<ClientProcessNode> aNodes;
 
-  public ClientProcessModel(final String pName, final Collection<? extends ProcessNode> pNodes) {
+  public ClientProcessModel(final String pName, final Collection<? extends ClientProcessNode> pNodes) {
     aName = pName;
     setNodes(pNodes);
   }
 
-  public void setNodes(final Collection<? extends ProcessNode> nodes) {
+  public void setNodes(final Collection<? extends ClientProcessNode> nodes) {
     aNodes = CollectionUtil.copy(nodes);
   }
 
-  public List<ProcessNode> getNodes() {
+  public List<ClientProcessNode> getNodes() {
     if (aNodes == null) {
-      aNodes = new ArrayList<ProcessNode>(0);
+      aNodes = new ArrayList<ClientProcessNode>(0);
     }
     return aNodes;
   }
-//
-//  public void layout() {
-//    for (final ProcessNode node : aNodes) {
-//      node.unsetPos();
-//    }
-//    int lowestY = 30;
-//    for (final ClientProcessNode node : aNodes) {
-//      if (!node.hasPos()) {
-//        lowestY = node.layout(30, lowestY, null, true);
-//        lowestY += 45;
-//      }
-//    }
-//    int minX = Integer.MAX_VALUE;
-//    int minY = Integer.MAX_VALUE;
-//    for (final ClientProcessNode node : aNodes) {
-//      minX = Math.min(node.getX(), minX);
-//      minY = Math.min(node.getY(), minY);
-//    }
-//    final int offsetX = 30 - minX;
-//    final int offsetY = 30 - minY;
-//
-//    for (final ProcessNode node : aNodes) {
-//      node.offset(offsetX, offsetY);
-//    }
-//  }
+
+  public void layout() {
+    int lowestY = 30;
+    for (final ClientProcessNode node : aNodes) {
+      if (node.getX()==Double.NaN || node.getY()==Double.NaN) {
+        lowestY = node.layout(30, lowestY, null, true);
+        lowestY += 45;
+      }
+    }
+    double minX = Double.MAX_VALUE;
+    double minY = Double.MAX_VALUE;
+    for (final ClientProcessNode node : aNodes) {
+      minX = Math.min(node.getX(), minX);
+      minY = Math.min(node.getY(), minY);
+    }
+    final double offsetX = 30 - minX;
+    final double offsetY = 30 - minY;
+
+    for (final ClientProcessNode node : aNodes) {
+      node.setX(node.getX()+offsetX);
+      node.setY(node.getY()+offsetY);
+    }
+  }
 
   @Override
   public int getEndNodeCount() {

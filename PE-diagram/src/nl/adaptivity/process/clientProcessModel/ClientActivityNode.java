@@ -20,23 +20,23 @@ public class ClientActivityNode extends ClientProcessNode implements Activity {
 
   private String aCondition;
 
-  private ProcessNode aPredecessor;
+  private ClientProcessNode aPredecessor;
 
-  private Set<ProcessNode> aSuccessors;
+  private Set<ClientProcessNode> aSuccessors;
 
   private XmlMessage aMessage;
 
   @Override
-  public Set<ProcessNode> getSuccessors() {
+  public Set<? extends ClientProcessNode> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+      aSuccessors = new LinkedHashSet<ClientProcessNode>();
     }
     return aSuccessors;
   }
 
 
   @Override
-  public Set<ProcessNode> getPredecessors() {
+  public Set<? extends ClientProcessNode> getPredecessors() {
     return Collections.singleton(aPredecessor);
   }
 
@@ -74,7 +74,7 @@ public class ClientActivityNode extends ClientProcessNode implements Activity {
 
   @Override
   public void setPredecessor(ProcessNode pPredecessor) {
-    aPredecessor = pPredecessor;
+    aPredecessor = (ClientProcessNode) pPredecessor;
   }
 
   @Override
@@ -90,12 +90,21 @@ public class ClientActivityNode extends ClientProcessNode implements Activity {
   @Override
   protected void setSuccessor(ProcessNode pSuccessor) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet(1);
+      aSuccessors = new ProcessNodeSet<ClientProcessNode>(1);
     } else {
       aSuccessors.clear();
     }
-    aSuccessors.add(pSuccessor);
+    aSuccessors.add((ClientProcessNode) pSuccessor);
   }
+
+  @Override
+  public void addSuccessor(ProcessNode pNode) {
+    if (aSuccessors==null) {
+      aSuccessors = new ProcessNodeSet<ClientProcessNode>(1);
+    }
+    aSuccessors.add((ClientProcessNode) pNode);
+  }
+
 
   @Override
   public List<XmlImportType> getImports() {

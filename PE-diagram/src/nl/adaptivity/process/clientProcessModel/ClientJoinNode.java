@@ -7,6 +7,7 @@ import java.util.Set;
 
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
 
 
 public class ClientJoinNode extends ClientProcessNode implements Join {
@@ -56,6 +57,14 @@ public class ClientJoinNode extends ClientProcessNode implements Join {
       aSuccessors.clear();
     }
 
+    aSuccessors.add(pNode);
+  }
+
+  @Override
+  public void addSuccessor(ProcessNode pNode) {
+    if (aSuccessors==null) {
+      aSuccessors = new ProcessNodeSet(1);
+    }
     aSuccessors.add(pNode);
   }
 

@@ -12,15 +12,20 @@ import nl.adaptivity.process.processModel.XmlExportType;
 
 public class ClientEndNode extends ClientProcessNode implements EndNode {
 
-  private ProcessNode aPredecessor;
+  private ClientProcessNode aPredecessor;
 
   @Override
-  public Set<ProcessNode> getSuccessors() {
+  public Set<? extends ClientProcessNode> getSuccessors() {
     return Collections.emptySet();
   }
 
   @Override
   public void setSuccessor(ProcessNode pNode) {
+    throw new UnsupportedOperationException("end nodes never have successors");
+  }
+
+  @Override
+  public void addSuccessor(ProcessNode pNode) {
     throw new UnsupportedOperationException("end nodes never have successors");
   }
 
@@ -42,7 +47,7 @@ public class ClientEndNode extends ClientProcessNode implements EndNode {
   }
 
   @Override
-  public Set<ProcessNode> getPredecessors() {
+  public Set<? extends ClientProcessNode> getPredecessors() {
     return Collections.singleton(aPredecessor);
   }
 
@@ -53,7 +58,7 @@ public class ClientEndNode extends ClientProcessNode implements EndNode {
 
   @Override
   public void setPredecessor(ProcessNode pPredecessor) {
-    aPredecessor = pPredecessor;
+    aPredecessor = (ClientProcessNode) pPredecessor;
   }
 
 }
