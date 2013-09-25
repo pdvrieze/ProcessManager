@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,14 +13,11 @@ import java.util.Set;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
-
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.process.processModel.ProcessModel.PMXmlAdapter;
 
 
@@ -63,6 +61,16 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
   private Principal aOwner;
 
   private Set<String> aRoles;
+
+  private static Class<?> _cls_darwin_principal;
+  
+  static {
+    try {
+      _cls_darwin_principal = ClassLoader.getSystemClassLoader().loadClass("uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal");
+    } catch (ClassNotFoundException e) {
+      _cls_darwin_principal = null;
+    }
+  }
 
   /**
    * Create a new processModel based on the given endnodes. These endnodes must
@@ -293,8 +301,17 @@ public class ProcessModel implements HandleAware<ProcessModel>, Serializable, Se
   public void cacheStrings(final StringCache pStringCache) {
     if (aOwner instanceof SimplePrincipal) {
       aOwner = new SimplePrincipal(pStringCache.lookup(aOwner.getName()));
-    } else if (aOwner instanceof DarwinPrincipal) {
-      aOwner = ((DarwinPrincipal) aOwner).cacheStrings(pStringCache);
+    } else if (_cls_darwin_principal!=null) { 
+      if (_cls_darwin_principal.isInstance(aOwner)) {
+        try {
+          Method cacheStrings = _cls_darwin_principal.getMethod("cacheStrings", StringCache.class);
+          if (cacheStrings!=null) {
+            aOwner = (Principal) cacheStrings.invoke(aOwner, pStringCache);
+          }
+        } catch (Exception e) {
+          // Ignore
+        }
+      }
     }
     aName = pStringCache.lookup(aName);
     if ((aRoles != null) && (aRoles.size() > 0)) {
