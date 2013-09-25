@@ -154,19 +154,19 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @param pNode The node to do the reversion from.
    */
   private static void reverseGraph(final Collection<? super StartNode> pResultList, final ProcessNode pNode) {
-    final Collection<ProcessNode> previous = pNode.getPredecessors();
+    final Collection<? extends ProcessNode> previous = pNode.getPredecessors();
     for (final ProcessNode prev : previous) {
       if (prev instanceof StartNode) {
         if (prev.getSuccessors() == null) {
-          prev.getSuccessors().add(pNode);
+          prev.setSuccessors(Collections.singleton(pNode));
         }
         pResultList.add((StartNode) prev);
       } else {
         if ((prev.getSuccessors() == null) || (prev.getSuccessors().size() == 0)) {
-          prev.getSuccessors().add(pNode);
+          prev.setSuccessors(Collections.singleton(pNode));
           reverseGraph(pResultList, prev);
         } else {
-          prev.getSuccessors().add(pNode);
+          prev.addSuccessor(pNode);
         }
       }
     }

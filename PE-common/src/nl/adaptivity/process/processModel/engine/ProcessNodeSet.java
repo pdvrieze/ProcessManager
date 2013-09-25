@@ -5,7 +5,7 @@ import net.devrieze.util.AbstractReadMap;
 import nl.adaptivity.process.processModel.ProcessNode;
 
 
-public class ProcessNodeSet extends AbstractReadMap<String, ProcessNode, ProcessNode> {
+public class ProcessNodeSet<T extends ProcessNode> extends AbstractReadMap<String, T, ProcessNode> {
 
 
   public ProcessNodeSet() {
@@ -16,7 +16,7 @@ public class ProcessNodeSet extends AbstractReadMap<String, ProcessNode, Process
     super(pSize, false);
   }
 
-  public ProcessNodeSet(Iterable<? extends ProcessNode> pCollection) {
+  public ProcessNodeSet(Iterable<? extends T> pCollection) {
     super(pCollection, false);
   }
 

@@ -8,11 +8,13 @@ import nl.adaptivity.diagram.Positioned;
 
 public interface ProcessNode extends Positioned {
 
-  public Set<ProcessNode> getPredecessors();
+  public Set<? extends ProcessNode> getPredecessors();
 
   public void setPredecessors(Collection<? extends ProcessNode> predecessors);
 
-  public Set<ProcessNode> getSuccessors();
+  public void addSuccessor(ProcessNode pNode);
+
+  public Set<? extends ProcessNode> getSuccessors();
 
   public void setSuccessors(Collection<? extends ProcessNode> pSuccessors);
 
