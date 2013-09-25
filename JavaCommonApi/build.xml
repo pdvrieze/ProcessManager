@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build">
 	<target name="javadoc">
-		<javadoc access="package" author="true" classpath="." destdir="doc" doctitle="java-common" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.catalina.realm" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
+		<javadoc access="package" author="true" classpath="." destdir="doc" doctitle="JavaCommonApi" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.catalina.realm" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
 			<link href="http://download.oracle.com/javase/7/docs/api/" />
 		</javadoc>
 	</target>
