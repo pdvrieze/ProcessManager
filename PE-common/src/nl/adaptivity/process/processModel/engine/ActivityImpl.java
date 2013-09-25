@@ -123,7 +123,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity {
    * @see nl.adaptivity.process.processModel.IActivity#setImports(java.util.Collection)
    */
   @Override
-  public void setImports(final Collection<XmlImportType> pImports) {
+  public void setImports(final Collection<? extends XmlImportType> pImports) {
     aImports = new ArrayList<>(pImports);
   }
 
@@ -140,7 +140,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity {
    * @see nl.adaptivity.process.processModel.IActivity#setExports(java.util.Collection)
    */
   @Override
-  public void setExports(final Collection<XmlExportType> pExports) {
+  public void setExports(final Collection<? extends XmlExportType> pExports) {
     aExports = new ArrayList<>(pExports);
   }
 

@@ -80,7 +80,6 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
    */
-  @Override
   public void addSuccessor(final ProcessNode pNode) {
     if (pNode == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
@@ -90,6 +89,16 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
     }
     aSuccessors.add(pNode);
   }
+
+
+
+  @Override
+  public void setSuccessors(Collection<? extends ProcessNode> pSuccessors) {
+    for(ProcessNode n: pSuccessors) {
+      addSuccessor(n);
+    }
+  }
+
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#getSuccessors()

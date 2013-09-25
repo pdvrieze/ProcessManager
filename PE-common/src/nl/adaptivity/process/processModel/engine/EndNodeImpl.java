@@ -78,6 +78,11 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode {
     return aExports;
   }
 
+  @Override
+  public void setExports(Collection<? extends XmlExportType> pExports) {
+    aExports = new ArrayList<>(pExports);
+  }
+
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.EndNode#getSuccessors()
    */

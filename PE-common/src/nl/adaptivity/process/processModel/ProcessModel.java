@@ -36,4 +36,6 @@ public interface ProcessModel {
 
   public Set<String> getRoles();
 
+  public Collection<StartNode> getStartNodes();
+
 }

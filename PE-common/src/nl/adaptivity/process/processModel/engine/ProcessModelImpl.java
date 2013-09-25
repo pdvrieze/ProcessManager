@@ -158,15 +158,15 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
     for (final ProcessNode prev : previous) {
       if (prev instanceof StartNode) {
         if (prev.getSuccessors() == null) {
-          prev.addSuccessor(pNode);
+          prev.getSuccessors().add(pNode);
         }
         pResultList.add((StartNode) prev);
       } else {
         if ((prev.getSuccessors() == null) || (prev.getSuccessors().size() == 0)) {
-          prev.addSuccessor(pNode);
+          prev.getSuccessors().add(pNode);
           reverseGraph(pResultList, prev);
         } else {
-          prev.addSuccessor(pNode);
+          prev.getSuccessors().add(pNode);
         }
       }
     }
@@ -233,6 +233,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    *
    * @return The start nodes.
    */
+  @Override
   public Collection<StartNode> getStartNodes() {
     return Collections.unmodifiableCollection(aStartNodes);
   }

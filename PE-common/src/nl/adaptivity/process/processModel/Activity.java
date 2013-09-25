@@ -51,7 +51,7 @@ public interface Activity extends ProcessNode {
    *
    * @param pImports The imports to set.
    */
-  public abstract void setImports(Collection<XmlImportType> pImports);
+  public abstract void setImports(Collection<? extends XmlImportType> pImports);
 
   /**
    * Get the list of exports. Exports will allow storing the response of an
@@ -67,7 +67,7 @@ public interface Activity extends ProcessNode {
    *
    * @param pExports The exports to set.
    */
-  public abstract void setExports(Collection<XmlExportType> pExports);
+  public abstract void setExports(Collection<? extends XmlExportType> pExports);
 
   /**
    * Get the predecessor node for this activity.

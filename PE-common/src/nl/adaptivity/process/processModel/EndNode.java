@@ -1,10 +1,13 @@
 package nl.adaptivity.process.processModel;
 
+import java.util.Collection;
 import java.util.List;
 
 
 public interface EndNode extends ProcessNode{
-  public abstract List<XmlExportType> getExports();
+  void setExports(Collection<? extends XmlExportType> pExports);
+
+  List<XmlExportType> getExports();
 
   ProcessNode getPredecessor();
 
