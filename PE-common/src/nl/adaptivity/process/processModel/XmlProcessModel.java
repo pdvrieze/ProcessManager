@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import nl.adaptivity.process.processModel.engine.ActivityImpl;
+
 
 /**
  * <p>
@@ -68,11 +70,11 @@ public class XmlProcessModel {
     roles = m.getRoles();
   }
 
-  @XmlElementRefs({ @XmlElementRef(name = EndNode.ELEMENTNAME, type = EndNode.class),
-                   @XmlElementRef(name = Activity.ELEMENTNAME, type = Activity.class),
+  @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
+                   @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
                    @XmlElementRef(name = StartNode.ELEMENTNAME, type = StartNode.class),
                    @XmlElementRef(name = Join.ELEMENTNAME, type = Join.class) })
-  private List<ProcessNode> nodes;
+  private List<ProcessNodeImpl> nodes;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
@@ -96,10 +98,10 @@ public class XmlProcessModel {
    * getStartOrActivityOrJoin().add(newItem);
    * </pre>
    * <p>
-   * Objects of the following type(s) are allowed in the list {@link EndNode }
-   * {@link Activity } {@link StartNode } {@link Join }
+   * Objects of the following type(s) are allowed in the list {@link EndNodeImpl }
+   * {@link ActivityImpl } {@link StartNode } {@link Join }
    */
-  public List<ProcessNode> getNodes() {
+  public List<ProcessNodeImpl> getNodes() {
     if (nodes == null) {
       nodes = new ArrayList<>();
     }

@@ -19,7 +19,7 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 @XmlRootElement(name = Join.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
-public class Join extends ProcessNode {
+public class Join extends ProcessNodeImpl {
 
   private static final long serialVersionUID = -8598245023280025173L;
 
@@ -31,7 +31,7 @@ public class Join extends ProcessNode {
 
   private ArrayList<Object> aPred;
 
-  public Join(final Collection<ProcessNode> pNodes, final int pMin, final int pMax) {
+  public Join(final Collection<ProcessNodeImpl> pNodes, final int pMin, final int pMax) {
     super(pNodes);
     setMin(pMin);
     setMax(Math.min(pNodes.size(), pMax));
@@ -42,7 +42,7 @@ public class Join extends ProcessNode {
 
   public Join() {}
 
-  public static Join andJoin(final ProcessNode... pNodes) {
+  public static Join andJoin(final ProcessNodeImpl... pNodes) {
     return new Join(Arrays.asList(pNodes), pNodes.length, pNodes.length);
   }
 
@@ -91,12 +91,12 @@ public class Join extends ProcessNode {
   @XmlElement(name = "predecessor")
   @XmlIDREF
   @Override
-  public Collection<ProcessNode> getPredecessors() {
+  public Collection<ProcessNodeImpl> getPredecessors() {
     if (aPred != null) {
-      final Collection<ProcessNode> pred = super.getPredecessors();
+      final Collection<ProcessNodeImpl> pred = super.getPredecessors();
       for (final Object o : aPred) {
         if (o instanceof ProcessNode) {
-          pred.add((ProcessNode) o);
+          pred.add((ProcessNodeImpl) o);
         }
       }
       aPred = null;

@@ -14,7 +14,7 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 @XmlRootElement(name = StartNode.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class StartNode extends ProcessNode {
+public class StartNode extends ProcessNodeImpl {
 
   public StartNode() {
   }
