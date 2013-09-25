@@ -20,7 +20,6 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.XmlExportType;
 import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -152,7 +151,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity {
   @XmlAttribute(name = ATTR_PREDECESSOR, required = true)
   @XmlIDREF
   public ProcessNode getPredecessor() {
-    final Collection<ProcessNodeImpl> ps = getPredecessors();
+    final Collection<ProcessNode> ps = getPredecessors();
     if ((ps == null) || (ps.size() != 1)) {
       return null;
     }
@@ -163,7 +162,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity {
    * @see nl.adaptivity.process.processModel.IActivity#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public void setPredecessor(final ProcessNodeImpl predecessor) {
+  public void setPredecessor(final ProcessNode predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
 

@@ -3,8 +3,6 @@ package nl.adaptivity.process.processModel;
 import java.util.Collection;
 import java.util.List;
 
-import nl.adaptivity.diagram.Positioned;
-
 
 public interface Activity extends ProcessNode {
 
@@ -83,7 +81,7 @@ public interface Activity extends ProcessNode {
    *
    * @param predecessor The predecessor
    */
-  public abstract void setPredecessor(ProcessNodeImpl predecessor);
+  public abstract void setPredecessor(ProcessNode predecessor);
 
   /**
    * Get the message of this activity. This provides all the information to be

@@ -9,7 +9,6 @@
 package nl.adaptivity.process.processModel;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +22,13 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import net.devrieze.util.CollectionUtil;
+
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
+import nl.adaptivity.process.processModel.engine.EndNodeImpl;
+import nl.adaptivity.process.processModel.engine.JoinImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 
 
 /**
@@ -64,7 +69,7 @@ public class XmlProcessModel {
   }
 
   public XmlProcessModel(final ProcessModel m) {
-    nodes = Arrays.asList(m.getModelNodes());
+    nodes = CollectionUtil.copy(m.getModelNodes());
     name = m.getName();
     owner = m.getOwner().getName();
     roles = m.getRoles();
@@ -72,9 +77,9 @@ public class XmlProcessModel {
 
   @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
                    @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
-                   @XmlElementRef(name = StartNode.ELEMENTNAME, type = StartNode.class),
-                   @XmlElementRef(name = Join.ELEMENTNAME, type = Join.class) })
-  private List<ProcessNodeImpl> nodes;
+                   @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
+                   @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class) })
+  private List<? extends ProcessNode> nodes;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
@@ -101,15 +106,15 @@ public class XmlProcessModel {
    * Objects of the following type(s) are allowed in the list {@link EndNodeImpl }
    * {@link ActivityImpl } {@link StartNode } {@link Join }
    */
-  public List<ProcessNodeImpl> getNodes() {
+  public List<? extends ProcessNode> getNodes() {
     if (nodes == null) {
       nodes = new ArrayList<>();
     }
     return this.nodes;
   }
 
-  public ProcessModel toProcessModel() {
-    return new ProcessModel(this);
+  public ProcessModelImpl toProcessModel() {
+    return new ProcessModelImpl(this);
   }
 
   public void setName(final String name) {

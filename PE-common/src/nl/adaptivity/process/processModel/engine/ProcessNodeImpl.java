@@ -1,8 +1,8 @@
-package nl.adaptivity.process.processModel;
+package nl.adaptivity.process.processModel.engine;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -14,24 +14,26 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.IdFactory;
-import nl.adaptivity.diagram.Positioned;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.engine.ActivityImpl;
+import nl.adaptivity.process.processModel.IllegalProcessModelException;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ Join.class, ActivityImpl.class, EndNodeImpl.class, StartNode.class })
-public abstract class ProcessNodeImpl implements Serializable, Positioned, ProcessNode {
+public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
 
   private static final long serialVersionUID = -7745019972129682199L;
 
-  private Collection<ProcessNode> aPredecessors;
+  private Set<ProcessNode> aPredecessors;
 
-  private Collection<ProcessNode> aSuccessors = null;
+  private Set<ProcessNode> aSuccessors = null;
 
   private String aId;
 
@@ -57,9 +59,9 @@ public abstract class ProcessNodeImpl implements Serializable, Positioned, Proce
    * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
    */
   @Override
-  public Collection<ProcessNodeImpl> getPredecessors() {
+  public Set<ProcessNode> getPredecessors() {
     if (aPredecessors == null) {
-      aPredecessors = new ArrayList<>();
+      aPredecessors = new ProcessNodeSet();
     }
     return aPredecessors;
   }
@@ -68,11 +70,11 @@ public abstract class ProcessNodeImpl implements Serializable, Positioned, Proce
    * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
    */
   @Override
-  public void setPredecessors(final Collection<? extends ProcessNodeImpl> predecessors) {
+  public void setPredecessors(final Collection<? extends ProcessNode> predecessors) {
     if (aPredecessors != null) {
       throw new UnsupportedOperationException("Not allowed to change predecessors");
     }
-    aPredecessors = CollectionUtil.copy(predecessors);
+    aPredecessors = new ProcessNodeSet(predecessors);
   }
 
   /* (non-Javadoc)
@@ -84,7 +86,7 @@ public abstract class ProcessNodeImpl implements Serializable, Positioned, Proce
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
     if (aSuccessors == null) {
-      aSuccessors = new ArrayList<>(1);
+      aSuccessors = new ProcessNodeSet(1);
     }
     aSuccessors.add(pNode);
   }
@@ -93,7 +95,7 @@ public abstract class ProcessNodeImpl implements Serializable, Positioned, Proce
    * @see nl.adaptivity.process.processModel.ProcessNode#getSuccessors()
    */
   @Override
-  public Collection<ProcessNodeImpl> getSuccessors() {
+  public Set<ProcessNode> getSuccessors() {
     return aSuccessors;
   }
 

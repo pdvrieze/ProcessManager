@@ -1,19 +1,20 @@
 package nl.adaptivity.process.processModel;
 
 import java.util.Collection;
+import java.util.Set;
 
 import nl.adaptivity.diagram.Positioned;
 
 
 public interface ProcessNode extends Positioned {
 
-  public abstract Collection<ProcessNodeImpl> getPredecessors();
+  public abstract Set<ProcessNode> getPredecessors();
 
   public abstract void setPredecessors(Collection<? extends ProcessNode> predecessors);
 
   public abstract void addSuccessor(ProcessNode pNode);
 
-  public abstract Collection<ProcessNode> getSuccessors();
+  public abstract Set<ProcessNode> getSuccessors();
 
   public abstract String getId();
 

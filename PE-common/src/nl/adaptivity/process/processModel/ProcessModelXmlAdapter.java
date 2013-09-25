@@ -2,6 +2,8 @@ package nl.adaptivity.process.processModel;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+
 
 public class ProcessModelXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModel> {
 
@@ -12,7 +14,7 @@ public class ProcessModelXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessM
 
   @Override
   public ProcessModel unmarshal(final XmlProcessModel pModel) throws Exception {
-    return new ProcessModel(pModel);
+    return new ProcessModelImpl(pModel);
   }
 
 }
