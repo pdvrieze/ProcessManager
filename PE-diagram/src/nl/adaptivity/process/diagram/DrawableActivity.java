@@ -4,11 +4,11 @@ import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Color;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.ActivityImpl;
 
 
 
-public class DrawableActivity extends Activity implements Drawable {
+public class DrawableActivity extends ActivityImpl implements Drawable {
 
   private static final long serialVersionUID = 2566853039695562412L;
 
@@ -28,7 +28,7 @@ public class DrawableActivity extends Activity implements Drawable {
     pCanvas.drawRoundRect(getBounds(), ACTIVITYROUNDX, ACTIVITYROUNDY, aBlack);
   }
 
-  public static DrawableActivity from(Activity pElem) {
+  public static DrawableActivity from(ActivityImpl pElem) {
     DrawableActivity result = new DrawableActivity();
     copyProcessNodeAttrs(pElem, result);
     result.setName(pElem.getName());

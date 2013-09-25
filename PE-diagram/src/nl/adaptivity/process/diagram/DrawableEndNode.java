@@ -4,11 +4,11 @@ import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Color;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.EndNodeImpl;
 
 
 
-public class DrawableEndNode extends EndNode implements Drawable {
+public class DrawableEndNode extends EndNodeImpl implements Drawable {
 
   private static final long serialVersionUID = 5460487346845175577L;
 
@@ -26,7 +26,7 @@ public class DrawableEndNode extends EndNode implements Drawable {
     pCanvas.drawFilledCircle(getX(), getY(), ENDNODEINNERRRADIUS, aBlack);
   }
 
-  public static DrawableEndNode from(EndNode pElem) {
+  public static DrawableEndNode from(EndNodeImpl pElem) {
     DrawableEndNode result = new DrawableEndNode();
     copyProcessNodeAttrs(pElem, result);
     return result;
