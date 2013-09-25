@@ -50,5 +50,19 @@
 		<jar destfile="PE-diagram-1.0.0.jar" basedir="build">
 		</jar>
 	</target>
+  <target name="PMjar" depends="build">
+    <property name="proguard.jar" location="/opt/android-sdk-update-manager/tools/proguard/lib/proguard.jar" />
+    <taskdef name="proguard" classname="proguard.ant.ProGuardTask" classpath="${proguard.jar}" />
+    <proguard>
+      -injars       "build"
+      -outjars      ../PMEditor/libs/PE-diagram-1.0.0.jar
+      -target 1.6
+      -ignorewarnings
+      -dontobfuscate
+      -dontoptimize
+      -dontshrink
+    </proguard>
+    
+  </target>
 
 </project>

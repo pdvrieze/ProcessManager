@@ -2,13 +2,13 @@ package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Color;
-import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.processModel.ActivityImpl;
+import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
+import nl.adaptivity.process.processModel.engine.ActivityImpl;
 
 
 
-public class DrawableActivity extends ActivityImpl implements Drawable {
+public class DrawableActivity extends ClientActivityNode implements DrawableProcessNode {
 
   private static final long serialVersionUID = 2566853039695562412L;
 

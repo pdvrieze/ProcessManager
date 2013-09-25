@@ -2,13 +2,13 @@ package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Color;
-import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.processModel.EndNodeImpl;
+import nl.adaptivity.process.clientProcessModel.ClientEndNode;
+import nl.adaptivity.process.processModel.EndNode;
 
 
 
-public class DrawableEndNode extends EndNodeImpl implements Drawable {
+public class DrawableEndNode extends ClientEndNode implements DrawableProcessNode {
 
   private static final long serialVersionUID = 5460487346845175577L;
 
@@ -26,7 +26,7 @@ public class DrawableEndNode extends EndNodeImpl implements Drawable {
     pCanvas.drawFilledCircle(getX(), getY(), ENDNODEINNERRRADIUS, aBlack);
   }
 
-  public static DrawableEndNode from(EndNodeImpl pElem) {
+  public static DrawableEndNode from(EndNode pElem) {
     DrawableEndNode result = new DrawableEndNode();
     copyProcessNodeAttrs(pElem, result);
     return result;
