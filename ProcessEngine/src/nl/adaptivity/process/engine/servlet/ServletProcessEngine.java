@@ -83,6 +83,7 @@ import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -527,7 +528,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public ProcessModelRefs getProcesModelRefs() {
-    final Iterable<ProcessModel> processModels = aProcessEngine.getProcessModels();
+    final Iterable<ProcessModelImpl> processModels = aProcessEngine.getProcessModels();
     final ProcessModelRefs list = new ProcessModelRefs();
     for (final ProcessModel pm : processModels) {
       list.add(pm.getRef());
@@ -555,7 +556,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       throw e;
     }
     if (xmlpm != null) {
-      final ProcessModel processModel = xmlpm.toProcessModel();
+      final ProcessModelImpl processModel = xmlpm.toProcessModel();
       aProcessEngine.addProcessModel(processModel, pOwner);
     }
 
@@ -574,12 +575,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
   public HProcessInstance startProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
-    return aProcessEngine.startProcess(pOwner, MemHandleMap.<ProcessModel> handle(pHandle), pName, null);
+    return aProcessEngine.startProcess(pOwner, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName, null);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    aProcessEngine.renameProcessModel(pUser, MemHandleMap.<ProcessModel> handle(pHandle), pName);
+    aProcessEngine.renameProcessModel(pUser, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName);
   }
 
   @WebMethod(operationName = "updateTaskState")
@@ -607,7 +608,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
     try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(MemHandleMap.<ProcessModel> handle(pHandle), pUser));
+      return new XmlProcessModel(aProcessEngine.getProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser));
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }

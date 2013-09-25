@@ -19,11 +19,11 @@ import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SimplePrincipal;
 
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.XmlProcessModel;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 
-public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
+public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
 
   private static final String TABLE = "processmodels";
@@ -34,7 +34,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
 
   private static final String COL_MODEL = "model";
 
-  static class ProcessModelFactory extends AbstractElementFactory<ProcessModel> {
+  static class ProcessModelFactory extends AbstractElementFactory<ProcessModelImpl> {
 
     private int aColNoOwner;
     private int aColNoModel;
@@ -82,13 +82,13 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
     }
 
     @Override
-    public ProcessModel create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException, IOException {
+    public ProcessModelImpl create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException, IOException {
       Principal owner = new SimplePrincipal(aStringCache.lookup(pRow.getString(aColNoOwner)));
       try(Reader modelReader = pRow.getCharacterStream(aColNoModel)) {
         long handle = pRow.getLong(aColNoHandle);
 
         XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
-        ProcessModel result = xmlModel.toProcessModel();
+        ProcessModelImpl result = xmlModel.toProcessModel();
 
         result.setHandle(handle);
         result.cacheStrings(aStringCache);
@@ -98,19 +98,19 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(ProcessModel pObject) {
+    public CharSequence getPrimaryKeyCondition(ProcessModelImpl pObject) {
       return getHandleCondition(pObject.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement pStatement, ProcessModel pElement, int pOffset) throws SQLException {
+    public int setPrimaryKeyParams(PreparedStatement pStatement, ProcessModelImpl pElement, int pOffset) throws SQLException {
       return setHandleParams(pStatement, pElement.getHandle(), pOffset);
     }
 
     @Override
-    public ProcessModel asInstance(Object pObject) {
-      if (pObject instanceof ProcessModel) {
-        return (ProcessModel) pObject;
+    public ProcessModelImpl asInstance(Object pObject) {
+      if (pObject instanceof ProcessModelImpl) {
+        return (ProcessModelImpl) pObject;
       } else {
         return null;
       }
@@ -132,7 +132,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModel> {
     }
 
     @Override
-    public int setStoreParams(PreparedStatement pStatement, ProcessModel pElement, int pOffset) throws SQLException {
+    public int setStoreParams(PreparedStatement pStatement, ProcessModelImpl pElement, int pOffset) throws SQLException {
       pStatement.setString(pOffset, pElement.getOwner().getName());
 
       // TODO see if this can be done in a streaming way.

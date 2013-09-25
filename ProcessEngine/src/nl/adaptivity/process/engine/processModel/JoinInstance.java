@@ -4,14 +4,15 @@ import java.util.Collection;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.engine.JoinImpl;
 
 
 public class JoinInstance extends ProcessNodeInstance {
 
-  public JoinInstance(final Join pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
+  public JoinInstance(final JoinImpl pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
     super(pNode, pPredecessors, pProcessInstance);
     for (final Handle<? extends ProcessNodeInstance> hpredecessor : pPredecessors) {
       ProcessNodeInstance predecessor = pProcessInstance.getEngine().getNodeInstance(hpredecessor.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
@@ -28,7 +29,7 @@ public class JoinInstance extends ProcessNodeInstance {
    * @param pNode
    * @param pProcessInstance
    */
-  JoinInstance(Join pNode, ProcessInstance pProcessInstance, TaskState pState) {
+  JoinInstance(JoinImpl pNode, ProcessInstance pProcessInstance, TaskState pState) {
     super(pNode, pProcessInstance, pState);
   }
 
@@ -53,8 +54,8 @@ public class JoinInstance extends ProcessNodeInstance {
   }
 
   @Override
-  public Join getNode() {
-    return (Join) super.getNode();
+  public JoinImpl getNode() {
+    return (JoinImpl) super.getNode();
   }
 
   public boolean addPredecessor(final ProcessNodeInstance pPredecessor) {
@@ -76,7 +77,7 @@ public class JoinInstance extends ProcessNodeInstance {
 
   @Override
   public <T> boolean startTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
-    final Join join = getNode();
+    final JoinImpl join = getNode();
     if (join.startTask(pMessageService, this)) {
       if (getTotal() == join.getPredecessors().size()) {
         return true;

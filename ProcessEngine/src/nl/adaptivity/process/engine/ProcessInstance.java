@@ -25,9 +25,12 @@ import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.engine.JoinImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject {
@@ -87,7 +90,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private static final long serialVersionUID = 1145452195455018306L;
 
-  private final ProcessModel aProcessModel;
+  private final ProcessModelImpl aProcessModel;
 
   private final Collection<ProcessNodeInstance> aThreads;
 
@@ -105,7 +108,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final Principal aOwner;
 
-  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModel pProcessModel, final String pName, final ProcessEngine pEngine) {
+  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final ProcessEngine pEngine) {
     aHandle = pHandle;
     aProcessModel = pProcessModel;
     aOwner = pOwner;
@@ -122,14 +125,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  public ProcessInstance(final Principal pOwner, final ProcessModel pProcessModel, final String pName, final ProcessEngine pEngine) {
+  public ProcessInstance(final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final ProcessEngine pEngine) {
     aProcessModel = pProcessModel;
     aName = pName;
     aEngine = pEngine;
     aThreads = new LinkedList<>();
     aOwner = pOwner;
     for (final StartNode node : aProcessModel.getStartNodes()) {
-      final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
+      final ProcessNodeInstance instance = new ProcessNodeInstance((StartNodeImpl) node, null, this);
       aThreads.add(instance);
     }
     aJoins = new HashMap<>();
@@ -147,7 +150,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return aEndResults.size();
   }
 
-  public synchronized JoinInstance getJoinInstance(final Join pJoin, final ProcessNodeInstance pPredecessor) {
+  public synchronized JoinInstance getJoinInstance(final JoinImpl pJoin, final ProcessNodeInstance pPredecessor) {
     JoinInstance result = aJoins.get(pJoin);
     if (result == null) {
       final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(pJoin.getPredecessors().size());
@@ -191,7 +194,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return new ProcessInstanceRef(this);
   }
 
-  public ProcessModel getProcessModel() {
+  public ProcessModelImpl getProcessModel() {
     return aProcessModel;
   }
 
@@ -249,7 +252,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private ProcessNodeInstance getProcessNodeInstance(final ProcessNodeInstance pPredecessor, final ProcessNode pNode) {
     if (pNode instanceof Join) {
-      final Join join = (Join) pNode;
+      final JoinImpl join = (JoinImpl) pNode;
       if (aJoins == null) {
         aJoins = new HashMap<>();
       }
@@ -266,7 +269,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       return instance;
 
     } else {
-      return new ProcessNodeInstance(pNode, pPredecessor, this);
+      return new ProcessNodeInstance((ProcessNodeImpl) pNode, pPredecessor, this);
     }
   }
 

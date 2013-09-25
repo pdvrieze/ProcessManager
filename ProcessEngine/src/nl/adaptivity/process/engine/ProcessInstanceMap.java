@@ -19,7 +19,7 @@ import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
-import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 
 public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
@@ -87,8 +87,8 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     @Override
     public ProcessInstance create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
       Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
-      Handle<ProcessModel> hProcessModel = MemHandleMap.handle(pRow.getLong(aColNoHProcessModel));
-      ProcessModel processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
+      Handle<ProcessModelImpl> hProcessModel = MemHandleMap.handle(pRow.getLong(aColNoHProcessModel));
+      ProcessModelImpl processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
 

@@ -20,8 +20,9 @@ import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.engine.JoinImpl;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
 
 public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance> {
@@ -102,10 +103,10 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       TaskState state = TaskState.valueOf(pRow.getString(aColNoState));
 
       ProcessNodeInstance result;
-      if (node instanceof Join) {
-        result =  new JoinInstance((Join) node, processInstance, state);
+      if (node instanceof JoinImpl) {
+        result =  new JoinInstance((JoinImpl) node, processInstance, state);
       } else {
-        result = new ProcessNodeInstance(node, processInstance, state);
+        result = new ProcessNodeInstance((ProcessNodeImpl) node, processInstance, state);
       }
       result.setHandle(handle);
       return result;

@@ -14,11 +14,12 @@ import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
 
-  private final ProcessNode aNode;
+  private final ProcessNodeImpl aNode;
 
   private Node aPayload;
 
@@ -32,7 +33,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Throwable aFailureCause;
 
-  public ProcessNodeInstance(final ProcessNode pNode, final Handle<? extends ProcessNodeInstance> pPredecessor, final ProcessInstance pProcessInstance) {
+  public ProcessNodeInstance(final ProcessNodeImpl pNode, final Handle<? extends ProcessNodeInstance> pPredecessor, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
     aPredecessors = Collections.<Handle<? extends ProcessNodeInstance>>singletonList(pPredecessor);
@@ -42,7 +43,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  protected ProcessNodeInstance(final ProcessNode pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
+  protected ProcessNodeInstance(final ProcessNodeImpl pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
     aPredecessors = new ArrayList<>(pPredecessors);
@@ -52,7 +53,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  ProcessNodeInstance(ProcessNode pNode, ProcessInstance pProcessInstance, TaskState pState) {
+  ProcessNodeInstance(ProcessNodeImpl pNode, ProcessInstance pProcessInstance, TaskState pState) {
     aNode = pNode;
     aProcessInstance = pProcessInstance;
     aState = pState;

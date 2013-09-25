@@ -32,6 +32,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 
 /**
@@ -56,7 +57,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new MemHandleMap<>();
 
-  private final HandleMap<ProcessModel> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
+  private final HandleMap<ProcessModelImpl> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
@@ -77,7 +78,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    *
    * @return The list of process models.
    */
-  public Iterable<ProcessModel> getProcessModels() {
+  public Iterable<ProcessModelImpl> getProcessModels() {
     return aProcessModels;
   }
 
@@ -87,7 +88,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pPm The process model to add.
    * @return The processModel to add.
    */
-  public ProcessModelRef addProcessModel(final ProcessModel pPm, final Principal pUser) {
+  public ProcessModelRef addProcessModel(final ProcessModelImpl pPm, final Principal pUser) {
     aSecurityProvider.ensurePermission(Permissions.ADD_MODEL, pUser);
 
     if (pPm.getOwner() == null) {
@@ -109,7 +110,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    */
   @Deprecated
   public ProcessModel getProcessModel(final long pHandle, final Principal pUser) {
-    final ProcessModel result = aProcessModels.get(pHandle);
+    final ProcessModelImpl result = aProcessModels.get(pHandle);
     if (result != null) {
       aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
     }
@@ -122,8 +123,8 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pHandle The handle to the process model.
    * @return The processModel.
    */
-  public ProcessModel getProcessModel(final Handle<ProcessModel> pHandle, final Principal pUser) {
-    final ProcessModel result = aProcessModels.get(pHandle);
+  public ProcessModelImpl getProcessModel(final Handle<? extends ProcessModelImpl> pHandle, final Principal pUser) {
+    final ProcessModelImpl result = aProcessModels.get(pHandle);
     if (result != null) {
       aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
     }
@@ -136,8 +137,8 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pHandle The handle to use.
    * @param pName The process model
    */
-  public void renameProcessModel(final Principal pUser, final Handle<ProcessModel> pHandle, final String pName) {
-    final ProcessModel pm = aProcessModels.get(pHandle);
+  public void renameProcessModel(final Principal pUser, final Handle<? extends ProcessModelImpl> pHandle, final String pName) {
+    final ProcessModelImpl pm = aProcessModels.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, pUser, pm);
     pm.setName(pName);
   }
@@ -200,11 +201,11 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    */
-  public HProcessInstance startProcess(final Principal pUser, final ProcessModel pModel, final String pName, final Node pPayload) {
+  public HProcessInstance startProcess(final Principal pUser, final ProcessModelImpl pModel, final String pName, final Node pPayload) {
     if (pUser == null) {
       throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous processes are not allowed");
     }
-    aSecurityProvider.ensurePermission(ProcessModel.Permissions.INSTANTIATE, pUser);
+    aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
     final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, this);
     final HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.start(aMessageService, pPayload);
@@ -219,7 +220,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    */
-  public HProcessInstance startProcess(final Principal pUser, final Handle<ProcessModel> pProcessModel, final String pName, final Node pPayload) {
+  public HProcessInstance startProcess(final Principal pUser, final Handle<? extends ProcessModelImpl> pProcessModel, final String pName, final Node pPayload) {
     return startProcess(pUser, aProcessModels.get(pProcessModel), pName, pPayload);
   }
 
