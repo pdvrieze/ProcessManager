@@ -4,6 +4,7 @@ import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -11,6 +12,7 @@ import android.view.View;
 public class DiagramView extends View {
 
   private Diagram aDiagram;
+  private Paint aRed;
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
@@ -35,9 +37,19 @@ public class DiagramView extends View {
   @Override
   public void draw(Canvas pCanvas) {
     super.draw(pCanvas);
-    final Rectangle clipBounds = new Rectangle(0d, 0d, getHeight(), getWidth());
-    final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
-    getDiagram().draw(canvas, clipBounds);
+    if (aRed==null) {
+      aRed = new Paint();
+      aRed.setARGB(255, 255, 0, 0);
+    }
+    pCanvas.drawLine(200, 0, 0, 200, aRed);
+    
+    if (aDiagram!=null) {
+      final Rectangle clipBounds = new Rectangle(0d, 0d, getHeight(), getWidth());
+      final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
+      aDiagram.draw(canvas, clipBounds);
+    } else {
+      pCanvas.drawCircle(100, 100, 75, aRed);
+    }
   }
 
 }

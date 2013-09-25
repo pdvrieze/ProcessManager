@@ -108,10 +108,11 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
   public Color newColor(int pR, int pG, int pB, int pA) {
     // TODO cache this some way
     Paint paint = new Paint();
-    paint.setColor(android.graphics.Color.argb(pA, pR, pG, pB));
+    paint.setARGB(pA, pR, pG, pB);
+    paint.setStyle(Style.STROKE);
 
     // TODO make this configurable
-    paint.setStrokeWidth(1f);
+//    paint.setStrokeWidth(1f);
 
     return new AndroidColor(paint);
   }

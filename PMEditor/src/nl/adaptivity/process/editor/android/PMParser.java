@@ -154,8 +154,28 @@ public class PMParser {
     if (name!=null && name.length()>0) {
       result.setName(name);
     }
-    if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
+    for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
+      switch (type) {
+      case START_TAG:
+        parseUnknownTag(pIn);
+        break;
+      default:
+          // ignore
+      }
+    }
     return result;
+  }
+
+  private static void parseUnknownTag(XmlPullParser pIn) throws XmlPullParserException, IOException {
+    for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
+      switch (type) {
+      case START_TAG:
+        parseUnknownTag(pIn);
+        break;
+      default:
+          // ignore
+      }
+    }
   }
 
   private static ProcessNode parseJoin(XmlPullParser pIn, Map<String, ProcessNode> pNodes) throws XmlPullParserException, IOException {
@@ -181,8 +201,6 @@ public class PMParser {
       predecessors.add(getPredecessor(name.toString(), pNodes));
     }
 
-
-    if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
