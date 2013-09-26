@@ -83,12 +83,12 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Color pColor) {
-      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx, pRy, pColor);
+      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pColor);
     }
 
     @Override
     public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Color pColor) {
-      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx, pRy, pColor);
+      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pColor);
     }
 
   }
