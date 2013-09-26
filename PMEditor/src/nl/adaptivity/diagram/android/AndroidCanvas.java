@@ -17,14 +17,14 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
 
     public OffsetCanvas(OffsetCanvas pBase, Rectangle pArea, double pScale) {
-      aXOffset = pBase.aXOffset + pArea.left;
-      aYOffset = pBase.aYOffset + pArea.top;
+      aXOffset = (pBase.aXOffset + pArea.left)*pScale;
+      aYOffset = (pBase.aYOffset + pArea.top)*pScale;
       aScale = pBase.aScale*pScale;
     }
 
     public OffsetCanvas(Rectangle pArea, double pScale) {
-      aXOffset = pArea.left;
-      aYOffset = pArea.top;
+      aXOffset = pArea.left* pScale;
+      aYOffset = pArea.top* pScale;
       aScale = pScale;
     }
 
@@ -42,12 +42,12 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawCircle(double pX, double pY, double pRadius, Color pColor) {
-      AndroidCanvas.this.drawCircle(pX*aScale+aXOffset, pY*aScale*aYOffset, pRadius*aScale, pColor);
+      AndroidCanvas.this.drawCircle((pX+aXOffset)*aScale, (pY + aYOffset) * aScale, pRadius*aScale, pColor);
     }
 
     @Override
     public void drawFilledCircle(double pX, double pY, double pRadius, Color pColor) {
-      AndroidCanvas.this.drawFilledCircle(pX*aScale+aXOffset, pY*aScale*aYOffset, pRadius*aScale, pColor);
+      AndroidCanvas.this.drawFilledCircle((pX + aXOffset) * aScale, (pY + aYOffset) * aScale, pRadius*aScale, pColor);
     }
 
     @Override
@@ -74,9 +74,9 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
       double[] result = new double[pPoints.length];
       final int len = pPoints.length-1;
       for(int i=0; i<len;++i) {
-        result[i] = pPoints[i]*aScale+aXOffset;
+        result[i] = (pPoints[i]+aXOffset)*aScale;
         ++i;
-        result[i] = pPoints[i]*aScale+aYOffset;
+        result[i] = (pPoints[i]+aYOffset)*aScale;
       }
       return result;
     }

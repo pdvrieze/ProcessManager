@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -25,7 +27,6 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.processModel.Join;
 import android.util.Log;
-
 import static org.xmlpull.v1.XmlPullParser.*;
 
 public class PMParser {
@@ -91,16 +92,18 @@ public class PMParser {
       in.setInput(pIn, "utf-8");
 
       if(in.nextTag()==START_TAG && NS_PROCESSMODEL.equals(in.getNamespace()) && "processModel".equals(in.getName())){
-        String modelName = in.getAttributeValue(null, "name");
-        Map<String, DrawableProcessNode> nodes = new HashMap<String, DrawableProcessNode>();
+        ArrayList<DrawableProcessNode> modelElems = new ArrayList<DrawableProcessNode>();
+        String modelName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
+        Map<String, DrawableProcessNode> nodeMap = new HashMap<String, DrawableProcessNode>();
         for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
 
-          DrawableProcessNode node = parseNode(in, nodes);
+          DrawableProcessNode node = parseNode(in, nodeMap);
+          modelElems.add(node);
           if (node.getId()!=null) {
-            nodes.put(node.getId(), node);
+            nodeMap.put(node.getId(), node);
           }
         }
-        return new DrawableProcessModel(modelName, nodes.values());
+        return new DrawableProcessModel(modelName, modelElems);
 
       } else {
         return null;
@@ -170,7 +173,7 @@ public class PMParser {
   private static DrawableProcessNode parseActivity(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
     DrawableActivity result = new DrawableActivity();
     parseCommon(pIn, pNodes, result);
-    String name = pIn.getAttributeValue(null, "name");
+    String name = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
     if (name!=null && name.length()>0) {
       result.setName(name);
     }
@@ -226,7 +229,7 @@ public class PMParser {
 
   private static void parseJoinAttrs(XmlPullParser pIn, DrawableJoin pNode) {
     for(int i=0; i< pIn.getAttributeCount();++i) {
-      if (pIn.getAttributeNamespace(i)==null) {
+      if (XMLConstants.NULL_NS_URI.equals(pIn.getAttributeNamespace(i))) {
         final String aname = pIn.getAttributeName(i);
         if ("min".equals(aname)) {
           pNode.setMin(Integer.parseInt(pIn.getAttributeValue(i)));
@@ -246,7 +249,7 @@ public class PMParser {
 
   private static void parseCommon(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, DrawableProcessNode pNode) {
     for(int i=0; i< pIn.getAttributeCount();++i) {
-      if (pIn.getAttributeNamespace(i)==null) {
+      if (XMLConstants.NULL_NS_URI.equals(pIn.getAttributeNamespace(i))) {
         final String aname = pIn.getAttributeName(i);
         if ("x".equals(aname)) {
           pNode.setX(Double.parseDouble(pIn.getAttributeValue(i)));

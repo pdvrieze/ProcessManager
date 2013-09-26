@@ -23,9 +23,10 @@ public class PMEditor extends Activity {
     diagramView1 = (DiagramView) findViewById(R.id.diagramView1);
     final InputStream file = getResources().openRawResource(R.raw.processmodel);
     try {
-      ProcessModel pm = PMParser.parseProcessModel(file);
+      DrawableProcessModel pm = PMParser.parseProcessModel(file);
       if (pm!=null) {
-        diagramView1.setDiagram(new DrawableProcessModel(pm));
+        pm.setScale(4d);
+        diagramView1.setDiagram(pm);
       }
     } finally {
       try {
