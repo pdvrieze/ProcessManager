@@ -16,13 +16,12 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessNode;
 
 
 @XmlRootElement(name = JoinImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
-public class JoinImpl extends ProcessNodeImpl implements Join {
+public class JoinImpl extends ProcessNodeImpl implements Join<ProcessNodeImpl> {
 
   private static final long serialVersionUID = -8598245023280025173L;
 
@@ -32,7 +31,7 @@ public class JoinImpl extends ProcessNodeImpl implements Join {
 
   private int aMax;
 
-  private Set<ProcessNode> aPred;
+  private Set<ProcessNodeImpl> aPred;
 
   public JoinImpl(final Collection<ProcessNodeImpl> pNodes, final int pMin, final int pMax) {
     super(pNodes);
@@ -45,7 +44,7 @@ public class JoinImpl extends ProcessNodeImpl implements Join {
 
   public JoinImpl() {}
 
-  public static Join andJoin(final ProcessNodeImpl... pNodes) {
+  public static JoinImpl andJoin(final ProcessNodeImpl... pNodes) {
     return new JoinImpl(Arrays.asList(pNodes), pNodes.length, pNodes.length);
   }
 
@@ -102,9 +101,9 @@ public class JoinImpl extends ProcessNodeImpl implements Join {
   @Deprecated
   @XmlElement(name = "predecessor")
   @XmlIDREF
-  public Set<ProcessNode> getPred() {
+  public Set<ProcessNodeImpl> getPred() {
     if (aPred == null) {
-      aPred = new ProcessNodeSet();
+      aPred = new ProcessNodeSet<>();
     }
     return aPred;
   }
@@ -112,16 +111,10 @@ public class JoinImpl extends ProcessNodeImpl implements Join {
   @XmlElement(name = "predecessor")
   @XmlIDREF
   @Override
-  public Set<ProcessNode> getPredecessors() {
+  public Set<? extends ProcessNodeImpl> getPredecessors() {
     if (aPred != null) {
-      final Set<ProcessNode> pred = super.getPredecessors();
-      for (final Object o : aPred) {
-        if (o instanceof ProcessNode) {
-          pred.add((ProcessNodeImpl) o);
-        }
-      }
+      setPredecessors(aPred);
       aPred = null;
-      return pred;
     }
     return super.getPredecessors();
   }

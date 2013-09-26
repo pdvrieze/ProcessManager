@@ -16,7 +16,7 @@ import nl.adaptivity.process.processModel.XmlImportType;
 
 @XmlRootElement(name = StartNodeImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class StartNodeImpl extends ProcessNodeImpl implements StartNode {
+public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl> {
 
   public StartNodeImpl() {
   }

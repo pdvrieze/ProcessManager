@@ -27,13 +27,13 @@ import nl.adaptivity.process.processModel.StartNode;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ Join.class, ActivityImpl.class, EndNodeImpl.class, StartNode.class })
-public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
+public abstract class ProcessNodeImpl implements Serializable, ProcessNode<ProcessNodeImpl> {
 
   private static final long serialVersionUID = -7745019972129682199L;
 
-  private Set<ProcessNode> aPredecessors;
+  private Set<ProcessNodeImpl> aPredecessors;
 
-  private Set<ProcessNode> aSuccessors = null;
+  private Set<ProcessNodeImpl> aSuccessors = null;
 
   private String aId;
 
@@ -59,9 +59,9 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
    * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
    */
   @Override
-  public Set<ProcessNode> getPredecessors() {
+  public Set<? extends ProcessNodeImpl> getPredecessors() {
     if (aPredecessors == null) {
-      aPredecessors = new ProcessNodeSet();
+      aPredecessors = new ProcessNodeSet<>();
     }
     return aPredecessors;
   }
@@ -70,22 +70,23 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
    * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
    */
   @Override
-  public void setPredecessors(final Collection<? extends ProcessNode> predecessors) {
+  public void setPredecessors(final Collection<? extends ProcessNodeImpl> predecessors) {
     if (aPredecessors != null) {
       throw new UnsupportedOperationException("Not allowed to change predecessors");
     }
-    aPredecessors = new ProcessNodeSet(predecessors);
+    aPredecessors = new ProcessNodeSet<>(predecessors);
   }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
    */
-  public void addSuccessor(final ProcessNode pNode) {
+  @Override
+  public void addSuccessor(final ProcessNodeImpl pNode) {
     if (pNode == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
     if (aSuccessors == null) {
-      aSuccessors = new ProcessNodeSet(1);
+      aSuccessors = new ProcessNodeSet<>(1);
     }
     aSuccessors.add(pNode);
   }
@@ -93,8 +94,8 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
 
 
   @Override
-  public void setSuccessors(Collection<? extends ProcessNode> pSuccessors) {
-    for(ProcessNode n: pSuccessors) {
+  public void setSuccessors(Collection<? extends ProcessNodeImpl> pSuccessors) {
+    for(ProcessNodeImpl n: pSuccessors) {
       addSuccessor(n);
     }
   }
@@ -104,7 +105,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
    * @see nl.adaptivity.process.processModel.ProcessNode#getSuccessors()
    */
   @Override
-  public Set<ProcessNode> getSuccessors() {
+  public Set<? extends ProcessNodeImpl> getSuccessors() {
     return aSuccessors;
   }
 
@@ -192,7 +193,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
     }
     if (this.getPredecessors().size() > 1) {
       result.append(", pred={");
-      for (final ProcessNode pred : getPredecessors()) {
+      for (final ProcessNodeImpl pred : getPredecessors()) {
         result.append(pred.getId()).append(", ");
       }
       if (result.charAt(result.length() - 2) == ',') {
@@ -210,8 +211,8 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode {
    * @see nl.adaptivity.process.processModel.ProcessNode#isPredecessorOf(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public boolean isPredecessorOf(final ProcessNode pNode) {
-    for (final ProcessNode pred : pNode.getPredecessors()) {
+  public boolean isPredecessorOf(final ProcessNodeImpl pNode) {
+    for (final ProcessNodeImpl pred : pNode.getPredecessors()) {
       if (pred == pNode) {
         return true;
       }

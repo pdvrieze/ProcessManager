@@ -20,7 +20,6 @@ import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 
-import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRef;
 import nl.adaptivity.process.processModel.ProcessModelXmlAdapter;
@@ -60,7 +59,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
 
   private static final long serialVersionUID = -4199223546188994559L;
 
-  private Collection<StartNode> aStartNodes;
+  private Collection<StartNodeImpl> aStartNodes;
 
   private int aEndNodeCount;
 
@@ -88,13 +87,13 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    *
    * @param pEndNodes The endnodes
    */
-  public ProcessModelImpl(final Collection<? extends EndNode> pEndNodes) {
+  public ProcessModelImpl(final Collection<? extends EndNodeImpl> pEndNodes) {
     aStartNodes = reverseGraph(pEndNodes);
     aEndNodeCount = pEndNodes.size();
   }
 
-  protected ProcessModelImpl(final Collection<? extends StartNode> pStartNodes, int pEndNodeCount) {
-    aStartNodes = new ArrayList<StartNode>(pStartNodes);
+  protected ProcessModelImpl(final Collection<? extends StartNodeImpl> pStartNodes, int pEndNodeCount) {
+    aStartNodes = new ArrayList<>(pStartNodes);
     aEndNodeCount = pEndNodeCount;
   }
 
@@ -105,7 +104,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    *
    * @param pEndNodes The endnodes
    */
-  public ProcessModelImpl(final EndNode... pEndNodes) {
+  public ProcessModelImpl(final EndNodeImpl... pEndNodes) {
     this(Arrays.asList(pEndNodes));
   }
 
@@ -137,9 +136,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @param pEndNodes The endnodes to base the model on.
    * @return A collection of startNodes.
    */
-  private static Collection<StartNode> reverseGraph(final Collection<? extends EndNode> pEndNodes) {
-    final Collection<StartNode> resultList = new ArrayList<>();
-    for (final EndNode endNode : pEndNodes) {
+  private static Collection<StartNodeImpl> reverseGraph(final Collection<? extends EndNodeImpl> pEndNodes) {
+    final Collection<StartNodeImpl> resultList = new ArrayList<>();
+    for (final EndNodeImpl endNode : pEndNodes) {
       reverseGraph(resultList, endNode);
     }
     return resultList;
@@ -153,14 +152,14 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @param pResultList The collection in which start nodes need to be stored.
    * @param pNode The node to do the reversion from.
    */
-  private static void reverseGraph(final Collection<? super StartNode> pResultList, final ProcessNode pNode) {
-    final Collection<? extends ProcessNode> previous = pNode.getPredecessors();
-    for (final ProcessNode prev : previous) {
-      if (prev instanceof StartNode) {
+  private static void reverseGraph(final Collection<? super StartNodeImpl> pResultList, final ProcessNodeImpl pNode) {
+    final Collection<? extends ProcessNodeImpl> previous = pNode.getPredecessors();
+    for (final ProcessNodeImpl prev : previous) {
+      if (prev instanceof StartNodeImpl) {
         if (prev.getSuccessors() == null) {
           prev.setSuccessors(Collections.singleton(pNode));
         }
-        pResultList.add((StartNode) prev);
+        pResultList.add((StartNodeImpl) prev);
       } else {
         if ((prev.getSuccessors() == null) || (prev.getSuccessors().size() == 0)) {
           prev.setSuccessors(Collections.singleton(pNode));
@@ -178,15 +177,15 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @return An array of all nodes.
    */
   @Override
-  public Collection<? extends ProcessNode> getModelNodes() {
-    final List<ProcessNode> list = new ArrayList<>();
+  public Collection<? extends ProcessNodeImpl> getModelNodes() {
+    final List<ProcessNodeImpl> list = new ArrayList<>();
     final HashSet<String> seen = new HashSet<String>();
     if (aStartNodes != null) {
-      for (final StartNode node : aStartNodes) {
+      for (final StartNodeImpl node : aStartNodes) {
         extractElements(list, seen, node);
       }
     }
-    return Collections.<ProcessNode>unmodifiableList(list);
+    return Collections.<ProcessNodeImpl>unmodifiableList(list);
   }
 
   /**
@@ -197,11 +196,11 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    *
    * @param pProcessNodes The process nodes to base the model on.
    */
-  public void setModelNodes(final Collection<? extends ProcessNode> pProcessNodes) {
-    final ArrayList<EndNode> endNodes = new ArrayList<EndNode>();
-    for (final ProcessNode n : pProcessNodes) {
-      if (n instanceof EndNode) {
-        endNodes.add((EndNode) n);
+  public void setModelNodes(final Collection<? extends ProcessNodeImpl> pProcessNodes) {
+    final ArrayList<EndNodeImpl> endNodes = new ArrayList<EndNodeImpl>();
+    for (final ProcessNodeImpl n : pProcessNodes) {
+      if (n instanceof EndNodeImpl) {
+        endNodes.add((EndNodeImpl) n);
       }
     }
     aStartNodes = reverseGraph(endNodes);
@@ -217,13 +216,13 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @param pNode The node to start extraction from. This will go on to the
    *          successors.
    */
-  private static void extractElements(final Collection<? super ProcessNode> pTo, final HashSet<String> pSeen, final ProcessNode pNode) {
+  private static void extractElements(final Collection<? super ProcessNodeImpl> pTo, final HashSet<String> pSeen, final ProcessNodeImpl pNode) {
     if (pSeen.contains(pNode.getId())) {
       return;
     }
     pTo.add(pNode);
     pSeen.add(pNode.getId());
-    for (final ProcessNode node : pNode.getSuccessors()) {
+    for (final ProcessNodeImpl node : pNode.getSuccessors()) {
       extractElements(pTo, pSeen, node);
     }
   }
@@ -234,7 +233,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @return The start nodes.
    */
   @Override
-  public Collection<StartNode> getStartNodes() {
+  public Collection<StartNodeImpl> getStartNodes() {
     return Collections.unmodifiableCollection(aStartNodes);
   }
 
@@ -340,9 +339,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
    */
   @Override
-  public ProcessNode getNode(String pNodeId) {
-    for(StartNode startNode: aStartNodes) {
-      ProcessNode result = getNode(startNode, pNodeId);
+  public ProcessNodeImpl getNode(String pNodeId) {
+    for(StartNodeImpl startNode: aStartNodes) {
+      ProcessNodeImpl result = getNode(startNode, pNodeId);
       if (result!=null) {
         return result;
       }
@@ -353,10 +352,10 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   /**
    * Recursive helper for {@link #getNode(String)}
    */
-  private static ProcessNode getNode(ProcessNode pBaseNode, String pNodeId) {
+  private static ProcessNodeImpl getNode(ProcessNodeImpl pBaseNode, String pNodeId) {
     if (pBaseNode.getId().equals(pNodeId)) { return pBaseNode; }
-    for(ProcessNode node: pBaseNode.getSuccessors()) {
-      ProcessNode result = getNode(node, pNodeId);
+    for(ProcessNodeImpl node: pBaseNode.getSuccessors()) {
+      ProcessNodeImpl result = getNode(node, pNodeId);
       if (result!=null) {
         return result;
       }

@@ -19,7 +19,6 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.Condition;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -38,7 +37,7 @@ import nl.adaptivity.process.processModel.XmlMessage;
 @XmlRootElement(name = ActivityImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = ActivityImpl.ELEMENTNAME + "Type", propOrder = { "imports", "exports", XmlMessage.ELEMENTNAME, "condition" })
-public class ActivityImpl extends ProcessNodeImpl implements Activity {
+public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl> {
 
   private static final long serialVersionUID = 282944120294737322L;
 
@@ -150,8 +149,8 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity {
   @Override
   @XmlAttribute(name = ATTR_PREDECESSOR, required = true)
   @XmlIDREF
-  public ProcessNode getPredecessor() {
-    final Collection<ProcessNode> ps = getPredecessors();
+  public ProcessNodeImpl getPredecessor() {
+    final Collection<? extends ProcessNodeImpl> ps = getPredecessors();
     if ((ps == null) || (ps.size() != 1)) {
       return null;
     }
@@ -162,7 +161,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity {
    * @see nl.adaptivity.process.processModel.IActivity#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public void setPredecessor(final ProcessNode predecessor) {
+  public void setPredecessor(final ProcessNodeImpl predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
 

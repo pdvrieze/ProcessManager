@@ -6,20 +6,20 @@ import java.util.Set;
 import nl.adaptivity.diagram.Positioned;
 
 
-public interface ProcessNode extends Positioned {
+public interface ProcessNode<T extends ProcessNode> extends Positioned {
 
-  public Set<? extends ProcessNode> getPredecessors();
+  public Set<? extends T> getPredecessors();
 
-  public void setPredecessors(Collection<? extends ProcessNode> predecessors);
+  public void setPredecessors(Collection<? extends T> predecessors);
 
-  public void addSuccessor(ProcessNode pNode);
+  public void addSuccessor(T pNode);
 
-  public Set<? extends ProcessNode> getSuccessors();
+  public Set<? extends T> getSuccessors();
 
-  public void setSuccessors(Collection<? extends ProcessNode> pSuccessors);
+  public void setSuccessors(Collection<? extends T> pSuccessors);
 
   public String getId();
 
-  public boolean isPredecessorOf(ProcessNode pNode);
+  public boolean isPredecessorOf(T pNode);
 
 }

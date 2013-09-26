@@ -18,14 +18,13 @@ import javax.xml.bind.annotation.XmlType;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 
 
 @XmlRootElement(name = EndNodeImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "EndNode")
-public class EndNodeImpl extends ProcessNodeImpl implements EndNode {
+public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl> {
 
   private List<XmlExportType> aExports;
 
@@ -50,8 +49,8 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode {
   @Override
   @XmlAttribute(name = "predecessor", required = true)
   @XmlIDREF
-  public ProcessNode getPredecessor() {
-    final Collection<ProcessNode> ps = getPredecessors();
+  public ProcessNodeImpl getPredecessor() {
+    final Collection<? extends ProcessNodeImpl> ps = getPredecessors();
     if ((ps == null) || (ps.size() != 1)) {
       return null;
     }
@@ -62,7 +61,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode {
    * @see nl.adaptivity.process.processModel.EndNode#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public void setPredecessor(final ProcessNode predecessor) {
+  public void setPredecessor(final ProcessNodeImpl predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
 
@@ -87,7 +86,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode {
    * @see nl.adaptivity.process.processModel.EndNode#getSuccessors()
    */
   @Override
-  public Set<ProcessNode> getSuccessors() {
+  public Set<? extends ProcessNodeImpl> getSuccessors() {
     return Collections.emptySet();
   }
 

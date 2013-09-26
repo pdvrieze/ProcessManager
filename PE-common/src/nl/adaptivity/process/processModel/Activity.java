@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 
-public interface Activity extends ProcessNode {
+public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
 
   /**
    * Get the name of the activity.
@@ -74,14 +74,14 @@ public interface Activity extends ProcessNode {
    *
    * @return the predecessor
    */
-  public abstract ProcessNode getPredecessor();
+  public abstract T getPredecessor();
 
   /**
    * Set the predecessor for this activity.
    *
    * @param predecessor The predecessor
    */
-  public abstract void setPredecessor(ProcessNode predecessor);
+  public abstract void setPredecessor(T predecessor);
 
   /**
    * Get the message of this activity. This provides all the information to be

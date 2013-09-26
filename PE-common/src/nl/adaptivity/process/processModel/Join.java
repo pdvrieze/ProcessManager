@@ -2,7 +2,7 @@ package nl.adaptivity.process.processModel;
 
 
 
-public interface Join extends ProcessNode {
+public interface Join<T extends ProcessNode<T>> extends ProcessNode<T> {
 
   public void setMax(int max);
 

@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.List;
 
 
-public interface EndNode extends ProcessNode{
+public interface EndNode<T extends ProcessNode<T>> extends ProcessNode<T>{
   void setExports(Collection<? extends XmlExportType> pExports);
 
   List<XmlExportType> getExports();
 
-  ProcessNode getPredecessor();
+  T getPredecessor();
 
-  void setPredecessor(ProcessNode pPredecessor);
+  void setPredecessor(T pPredecessor);
 
 }

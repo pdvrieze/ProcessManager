@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Set;
 
 
-public interface ProcessModel {
+public interface ProcessModel<T extends ProcessNode<T>> {
 
   /**
    * Get the amount of end nodes in the model
@@ -26,9 +26,9 @@ public interface ProcessModel {
    * @param pNodeId The node id to look up.
    * @return The process node with the id.
    */
-  public ProcessNode getNode(String pNodeId);
+  public T getNode(String pNodeId);
 
-  public Collection<? extends ProcessNode> getModelNodes();
+  public Collection<? extends T> getModelNodes();
 
   public String getName();
 
@@ -36,6 +36,6 @@ public interface ProcessModel {
 
   public Set<String> getRoles();
 
-  public Collection<StartNode> getStartNodes();
+  public Collection<? extends StartNode<T>> getStartNodes();
 
 }
