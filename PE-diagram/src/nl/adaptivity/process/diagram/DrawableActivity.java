@@ -12,18 +12,20 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   private Color aBlack;
   private Color aWhite;
+  private static Rectangle _bounds;
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-(ACTIVITYWIDTH/2), getY()-(ACTIVITYHEIGHT/2), ACTIVITYHEIGHT, ACTIVITYWIDTH);
+    return new Rectangle(getX()-(ACTIVITYWIDTH/2), getY()-(ACTIVITYHEIGHT/2), ACTIVITYWIDTH, ACTIVITYHEIGHT);
   }
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
     if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
-    pCanvas.drawFilledRoundRect(getBounds(), ACTIVITYROUNDX, ACTIVITYROUNDY, aWhite);
-    pCanvas.drawRoundRect(getBounds(), ACTIVITYROUNDX, ACTIVITYROUNDY, aBlack);
+    if (_bounds==null) { _bounds = new Rectangle(0,0, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
+    pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, aWhite);
+    pCanvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, aBlack);
   }
 
   public static DrawableActivity from(Activity<?> pElem) {

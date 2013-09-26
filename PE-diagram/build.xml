@@ -63,7 +63,11 @@
       -dontoptimize
       -dontshrink
     </proguard>
-    
+    <zip destfile="../PMEditor/libs/src/PE-diagram-1.0.0-src.zip">
+      <fileset dir="src"/>
+      <fileset dir="../PE-common/src"/>
+      <fileset dir="../java-common/src"/>
+    </zip>
   </target>
 
 </project>

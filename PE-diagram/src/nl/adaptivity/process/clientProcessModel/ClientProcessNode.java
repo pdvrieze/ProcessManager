@@ -124,7 +124,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
           aY = pY;
           dy = true;
         } else {
-
+          aY -= (aY - pY)/2;
         }
       }
       if (dx || dy) {

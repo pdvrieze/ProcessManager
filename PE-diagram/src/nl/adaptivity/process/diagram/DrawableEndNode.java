@@ -14,14 +14,14 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getY()-ENDNODEOUTERRADIUS, getX()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2, ENDNODEOUTERRADIUS*2);
+    return new Rectangle(getX()-ENDNODEOUTERRADIUS, getY()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2, ENDNODEOUTERRADIUS*2);
   }
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
-    pCanvas.drawFilledCircle(getX(), getY(), ENDNODEOUTERRADIUS, aBlack);
-    pCanvas.drawFilledCircle(getX(), getY(), ENDNODEINNERRRADIUS, aBlack);
+    pCanvas.drawCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, aBlack);
+    pCanvas.drawFilledCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEINNERRRADIUS, aBlack);
   }
 
   public static DrawableEndNode from(EndNode<?> pElem) {

@@ -20,7 +20,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
-    pCanvas.drawFilledCircle(getX(), getY(), STARTNODERADIUS, aBlack);
+    pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, aBlack);
   }
 
   public static DrawableStartNode from(StartNode<?> pN) {

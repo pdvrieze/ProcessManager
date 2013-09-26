@@ -29,13 +29,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     aNodes = CollectionUtil.copy(nodes);
   }
 
-  public List<T> getNodes() {
-    if (aNodes == null) {
-      aNodes = new ArrayList<T>(0);
-    }
-    return aNodes;
-  }
-
   public void layout() {
     double lowestY = 30;
     for (final T node : aNodes) {
@@ -75,7 +68,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   @Override
   public T getNode(String pNodeId) {
-    for(T n: getNodes()) {
+    for(T n: getModelNodes()) {
       if (pNodeId.equals(n.getId())) {
         return n;
       }
@@ -85,9 +78,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   @Override
   public Collection<? extends T> getModelNodes() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+    if (aNodes == null) {
+      aNodes = new ArrayList<T>(0);
+    }
+    return aNodes;
   }
 
   @Override
@@ -112,7 +106,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   @Override
   public Collection<? extends ClientStartNode<T>> getStartNodes() {
     List<ClientStartNode<T>> result = new ArrayList<ClientStartNode<T>>();
-    for(T n:getNodes()) {
+    for(T n:getModelNodes()) {
       if (n instanceof ClientStartNode) {
         result.add((ClientStartNode<T>) n);
       }

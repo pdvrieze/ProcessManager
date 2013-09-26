@@ -27,19 +27,21 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double ENDNODEINNERRRADIUS=6d;
   public static final double ACTIVITYWIDTH=32d;
   public static final double ACTIVITYHEIGHT=ACTIVITYWIDTH;
-  public static final double ACTIVITYROUNDX=ACTIVITYWIDTH/8d;
-  public static final double ACTIVITYROUNDY=ACTIVITYHEIGHT/8d;
+  public static final double ACTIVITYROUNDX=ACTIVITYWIDTH/4d;
+  public static final double ACTIVITYROUNDY=ACTIVITYHEIGHT/4d;
   public static final double JOINWIDTH=24d;
   public static final double JOINHEIGHT=JOINWIDTH;
 
-  private double aScale = 1;
+  private double aScale = 1d;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
+    layout();
   }
 
   public DrawableProcessModel(String pName, Collection<? extends DrawableProcessNode> pNodes) {
     super(pName, pNodes);
+    layout();
   }
 
   private static Collection<? extends DrawableProcessNode> getDrawableNodes(Collection<? extends StartNode<?>> pStartNodes) {
@@ -56,7 +58,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       if (node instanceof EndNode<?>) {
         pSet.add((EndNode<?>) node);
       }
-      getDrawableNodes(pSet, ((EndNode<?>)node).getSuccessors());
+      getDrawableNodes(pSet, node.getSuccessors());
 
     }
     return pSet;
@@ -104,31 +106,26 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return new Rectangle(0, 0, 200, 200);
   }
 
-  @Override
-  public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    System.err.println("THIS SHOULD BE SEEN");
-    Set<DrawableProcessNode> seenNodes = new HashSet<DrawableProcessNode>();
-    for(DrawableProcessNode node:getStartNodes()) {
-      System.err.println("Adding node: ["+node.getClass().getSimpleName()+"] "+node.getId());
-      if(seenNodes.add(node)) {
-        addSuccessors(seenNodes,node);
-      }
-    }
-    for(DrawableProcessNode node: seenNodes) {
-      System.err.println("Drawing node "+node.getId());
-      // TODO actually support clipbounds
-      node.draw(pCanvas.childCanvas(node.getBounds(), aScale ), null);
-    }
-    Color color = pCanvas.newColor(255, 0, 0, 255);
-    pCanvas.drawCircle(200, 200, 150, color);
-    pCanvas.drawPath(new double[]{0,0,200,200}, color);
+
+  public double getScale() {
+    return aScale;
   }
 
-  private void addSuccessors(Set<DrawableProcessNode> pSeenNodes, DrawableProcessNode pNode) {
-    for(DrawableProcessNode n:pNode.getSuccessors()) {
-      if(pSeenNodes.add(n)) {
-        addSuccessors(pSeenNodes, n);
-      }
+
+  public void setScale(double pScale) {
+    aScale = pScale;
+  }
+
+  @Override
+  public void draw(Canvas pCanvas, Rectangle pClipBounds) {
+    Canvas canvas = pCanvas.childCanvas(getBounds(), aScale);
+    Color red = canvas.newColor(255, 0, 0, 255);
+    for(DrawableProcessNode node:getModelNodes()) {
+      System.err.println("Drawing "+ node.getClass().getSimpleName()+" "+node.getId()+ "("+node.getX()+", "+node.getY()+")");
+      // TODO actually support clipbounds
+
+      node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
+      canvas.drawFilledCircle(node.getX(), node.getY(), 1.5d, red);
     }
   }
 

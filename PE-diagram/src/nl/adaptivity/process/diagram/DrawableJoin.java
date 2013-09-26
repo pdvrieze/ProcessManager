@@ -17,7 +17,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   public Rectangle getBounds() {
     double dx = JOINWIDTH/2;
     double dy = JOINHEIGHT/2;
-    return new Rectangle(getY()-dy, getX()-dx, JOINWIDTH, JOINHEIGHT);
+    return new Rectangle(getX()-dx, getY()-dy, JOINHEIGHT, JOINWIDTH);
   }
 
   @Override
@@ -27,11 +27,11 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
     if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
     if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
     double[] points = new double[] {
-      getX()-dx,getY(),
-      getX(), getY()-dy,
-      getX()+dx, getY(),
-      getX(), getY()+dy,
-      getX()-dx, getY()
+      0,dy,
+      dx, 0,
+      JOINWIDTH, dy,
+      dx, JOINHEIGHT,
+      0, dy
     };
     pCanvas.drawFilledPath(points, aWhite);
     pCanvas.drawPath(points, aBlack);
