@@ -11,12 +11,12 @@ import nl.adaptivity.diagram.Color;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.engine.ActivityImpl;
 
 
 
@@ -36,6 +36,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
+  }
+
+  public DrawableProcessModel(String pName, Collection<? extends DrawableProcessNode> pNodes) {
+    super(pName, pNodes);
   }
 
   private static Collection<? extends DrawableProcessNode> getDrawableNodes(Collection<? extends StartNode<?>> pStartNodes) {
@@ -82,8 +86,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       throw new IllegalArgumentException("EndNodes should not see this function");
     } else if (pElem instanceof Join) {
       return DrawableJoin.from((Join<?>) pElem);
-    } else if (pElem instanceof ActivityImpl) {
-      return DrawableActivity.from((ActivityImpl) pElem);
+    } else if (pElem instanceof Activity) {
+      return DrawableActivity.from((Activity<?>) pElem);
     } else {
       throw new UnsupportedOperationException("Unsupported subclass to ProcessNode");
     }

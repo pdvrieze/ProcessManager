@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.XmlExportType;
-import nl.adaptivity.process.processModel.XmlImportType;
-import nl.adaptivity.process.processModel.XmlMessage;
-import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlMessage;
 
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
@@ -23,7 +23,7 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private Set<T> aSuccessors;
 
-  private XmlMessage aMessage;
+  private IXmlMessage aMessage;
 
   @Override
   public Set<? extends T> getSuccessors() {
@@ -77,12 +77,12 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public XmlMessage getMessage() {
+  public IXmlMessage getMessage() {
     return aMessage;
   }
 
   @Override
-  public void setMessage(XmlMessage pMessage) {
+  public void setMessage(IXmlMessage pMessage) {
     aMessage = pMessage;
   }
 
@@ -106,22 +106,22 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
 
   @Override
-  public List<XmlImportType> getImports() {
+  public List<IXmlImportType> getImports() {
     return super.getImports();
   }
 
   @Override
-  public void setImports(Collection<? extends XmlImportType> pImports) {
+  public void setImports(Collection<? extends IXmlImportType> pImports) {
     super.setImports(pImports);
   }
 
   @Override
-  public List<XmlExportType> getExports() {
+  public List<IXmlExportType> getExports() {
     return super.getExports();
   }
 
   @Override
-  public void setExports(Collection<? extends XmlExportType> pExports) {
+  public void setExports(Collection<? extends IXmlExportType> pExports) {
     super.setExports(pExports);
   }
 

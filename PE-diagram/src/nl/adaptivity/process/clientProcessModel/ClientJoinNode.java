@@ -6,7 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
 public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Join<T> {

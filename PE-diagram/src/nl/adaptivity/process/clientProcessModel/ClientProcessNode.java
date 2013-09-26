@@ -6,8 +6,8 @@ import java.util.Set;
 
 import net.devrieze.util.CollectionUtil;
 
-import nl.adaptivity.process.processModel.XmlExportType;
-import nl.adaptivity.process.processModel.XmlImportType;
+import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlImportType;
 
 
 public abstract class ClientProcessNode<T extends IClientProcessNode<T>> implements IClientProcessNode<T>{
@@ -24,9 +24,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private double aY;
 
-  private List<XmlImportType> aImports;
+  private List<IXmlImportType> aImports;
 
-  private List<XmlExportType> aExports;;
+  private List<IXmlExportType> aExports;;
 
   protected ClientProcessNode() {
 
@@ -73,19 +73,19 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   @Override
   public abstract Set<? extends T> getSuccessors();
 
-  protected List<XmlImportType> getImports() {
+  protected List<IXmlImportType> getImports() {
     return aImports;
   }
 
-  protected void setImports(Collection<? extends XmlImportType> pImports) {
+  protected void setImports(Collection<? extends IXmlImportType> pImports) {
     aImports = CollectionUtil.copy(pImports);
   }
 
-  protected List<XmlExportType> getExports() {
+  protected List<IXmlExportType> getExports() {
     return aExports;
   }
 
-  protected void setExports(Collection<? extends XmlExportType> pExports) {
+  protected void setExports(Collection<? extends IXmlExportType> pExports) {
     aExports = CollectionUtil.copy(pExports);
   }
 

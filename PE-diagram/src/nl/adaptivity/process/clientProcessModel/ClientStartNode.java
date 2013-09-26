@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlImportType;
-import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
+import nl.adaptivity.process.processModel.IXmlImportType;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
@@ -34,7 +34,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  public List<XmlImportType> getImports() {
+  public List<IXmlImportType> getImports() {
     return super.getImports();
   }
 

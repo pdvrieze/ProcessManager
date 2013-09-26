@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.XmlExportType;
+import nl.adaptivity.process.processModel.IXmlExportType;
 
 
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
@@ -36,12 +36,12 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public List<XmlExportType> getExports() {
+  public List<IXmlExportType> getExports() {
     return super.getExports();
   }
 
   @Override
-  public void setExports(Collection<? extends XmlExportType> pExports) {
+  public void setExports(Collection<? extends IXmlExportType> pExports) {
     super.setExports(pExports);
   }
 

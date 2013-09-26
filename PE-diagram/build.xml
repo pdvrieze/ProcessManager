@@ -56,6 +56,7 @@
     <proguard>
       -injars       "build"
       -outjars      ../PMEditor/libs/PE-diagram-1.0.0.jar
+      -libraryjars /opt/android-sdk-update-manager/platforms/android-18/android.jar
       -target 1.6
       -ignorewarnings
       -dontobfuscate

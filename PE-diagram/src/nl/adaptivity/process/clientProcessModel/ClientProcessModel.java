@@ -9,7 +9,7 @@ import java.util.Set;
 import net.devrieze.util.CollectionUtil;
 
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessModelRef;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 
 
 public class ClientProcessModel<T extends IClientProcessNode<T>> implements ProcessModel<T>{
@@ -67,7 +67,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
-  public ProcessModelRef getRef() {
+  public IProcessModelRef<T> getRef() {
     // TODO Auto-generated method stub
     // return null;
     throw new UnsupportedOperationException("Not yet implemented");

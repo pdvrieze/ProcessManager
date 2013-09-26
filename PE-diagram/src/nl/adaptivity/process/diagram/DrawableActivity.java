@@ -4,7 +4,7 @@ import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Color;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
-import nl.adaptivity.process.processModel.engine.ActivityImpl;
+import nl.adaptivity.process.processModel.Activity;
 
 
 
@@ -26,7 +26,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     pCanvas.drawRoundRect(getBounds(), ACTIVITYROUNDX, ACTIVITYROUNDY, aBlack);
   }
 
-  public static DrawableActivity from(ActivityImpl pElem) {
+  public static DrawableActivity from(Activity<?> pElem) {
     DrawableActivity result = new DrawableActivity();
     copyProcessNodeAttrs(pElem, result);
     result.setName(pElem.getName());
