@@ -8,7 +8,7 @@ public final class Rectangle {
   public final double width;
   public final double height;
 
-  public Rectangle(double top, double left, double height, double width) {
+  public Rectangle(double left, double top, double width, double height) {
     this.top = top;
     this.left = left;
     this.height = height;
@@ -40,7 +40,12 @@ public final class Rectangle {
   }
 
   public Rectangle offsetScaled(double pXOffset, double pYOffset, double pScale) {
-    return new Rectangle(top*pScale+pXOffset, left*pScale+pYOffset, width*pScale, height*pScale);
+    return new Rectangle((left+pXOffset)*pScale, (top+pYOffset)*pScale, width*pScale, height*pScale);
+  }
+
+  @Override
+  public String toString() {
+    return "Rectangle [l=" + left + ", t=" + top + ", w=" + width + ", h=" + height + "]";
   }
 
 }
