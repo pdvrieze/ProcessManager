@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ImportType")
-public class XmlImportType {
+public class XmlImportType implements IXmlImportType {
 
   public static final String ELEMENTNAME = "import";
 
@@ -42,40 +42,36 @@ public class XmlImportType {
 
   private String path;
 
-  /**
-   * Gets the value of the name property.
-   * 
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlImportType#getName()
    */
+  @Override
   @XmlAttribute(required = true)
   public String getName() {
     return name;
   }
 
-  /**
-   * Sets the value of the name property.
-   * 
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlImportType#setName(java.lang.String)
    */
+  @Override
   public void setName(final String value) {
     this.name = value;
   }
 
-  /**
-   * Gets the value of the path property.
-   * 
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlImportType#getPath()
    */
+  @Override
   @XmlAttribute
   public String getPath() {
     return path;
   }
 
-  /**
-   * Sets the value of the path property.
-   * 
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlImportType#setPath(java.lang.String)
    */
+  @Override
   public void setPath(final String value) {
     this.path = value;
   }

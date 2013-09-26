@@ -9,24 +9,26 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+
 
 @XmlRootElement(name = "processModels")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModelRefs implements Collection<ProcessModelRef> {
+public class ProcessModelRefs<T extends ProcessNode<T>> implements Collection<IProcessModelRef<? extends T>> {
 
-  private Collection<ProcessModelRef> aCollection;
+  private Collection<IProcessModelRef<? extends T>> aCollection;
 
   public ProcessModelRefs() {
     aCollection = new ArrayList<>();
   }
 
-  public ProcessModelRefs(final Collection<ProcessModelRef> pCollection) {
+  public ProcessModelRefs(final Collection<? extends IProcessModelRef<? extends T>> pCollection) {
     aCollection = new ArrayList<>(pCollection.size());
     aCollection.addAll(pCollection);
   }
 
   @XmlElement(name = "processModel")
-  public Collection<ProcessModelRef> getElements() {
+  public Collection<IProcessModelRef<? extends T>> getElements() {
     if (aCollection == null) {
       aCollection = new ArrayList<>();
     }
@@ -34,12 +36,12 @@ public class ProcessModelRefs implements Collection<ProcessModelRef> {
   }
 
   @Override
-  public boolean add(final ProcessModelRef pE) {
+  public boolean add(final IProcessModelRef<? extends T> pE) {
     return aCollection.add(pE);
   }
 
   @Override
-  public boolean addAll(final Collection<? extends ProcessModelRef> pC) {
+  public boolean addAll(final Collection<? extends IProcessModelRef<? extends T>> pC) {
     return aCollection.addAll(pC);
   }
 
@@ -69,7 +71,7 @@ public class ProcessModelRefs implements Collection<ProcessModelRef> {
   }
 
   @Override
-  public Iterator<ProcessModelRef> iterator() {
+  public Iterator<IProcessModelRef<? extends T>> iterator() {
     return aCollection.iterator();
   }
 
@@ -99,7 +101,7 @@ public class ProcessModelRefs implements Collection<ProcessModelRef> {
   }
 
   @Override
-  public <T> T[] toArray(final T[] pA) {
+  public <U> U[] toArray(final U[] pA) {
     return aCollection.toArray(pA);
   }
 

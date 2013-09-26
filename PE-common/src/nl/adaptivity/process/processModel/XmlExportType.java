@@ -46,7 +46,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ExportType", propOrder = { "content" })
-public class XmlExportType {
+public class XmlExportType implements IXmlExportType {
 
   public static final String ELEMENTNAME = "export";
 
@@ -66,24 +66,10 @@ public class XmlExportType {
   @XmlAttribute
   protected String path;
 
-  /**
-   * May contain literal elements as content. In that case only the paramName
-   * attribute is used.Gets the value of the content property.
-   * <p>
-   * This accessor method returns a reference to the live list, not a snapshot.
-   * Therefore any modification you make to the returned list will be present
-   * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
-   * for the content property.
-   * <p>
-   * For example, to add a new item, do as follows:
-   *
-   * <pre>
-   * getContent().add(newItem);
-   * </pre>
-   * <p>
-   * Objects of the following type(s) are allowed in the list {@link Object }
-   * {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#getContent()
    */
+  @Override
   public List<Object> getContent() {
     if (content == null) {
       content = new ArrayList<>();
@@ -91,74 +77,66 @@ public class XmlExportType {
     return this.content;
   }
 
-  /**
-   * Gets the value of the node property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#getNode()
    */
+  @Override
   public String getNode() {
     return node;
   }
 
-  /**
-   * Sets the value of the node property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#setNode(java.lang.String)
    */
+  @Override
   public void setNode(final String value) {
     this.node = value;
   }
 
-  /**
-   * Gets the value of the name property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#getName()
    */
+  @Override
   public String getName() {
     return name;
   }
 
-  /**
-   * Sets the value of the name property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#setName(java.lang.String)
    */
+  @Override
   public void setName(final String value) {
     this.name = value;
   }
 
-  /**
-   * Gets the value of the paramName property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#getParamName()
    */
+  @Override
   public String getParamName() {
     return paramName;
   }
 
-  /**
-   * Sets the value of the paramName property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#setParamName(java.lang.String)
    */
+  @Override
   public void setParamName(final String value) {
     this.paramName = value;
   }
 
-  /**
-   * Gets the value of the path property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#getPath()
    */
+  @Override
   public String getPath() {
     return path;
   }
 
-  /**
-   * Sets the value of the path property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#setPath(java.lang.String)
    */
+  @Override
   public void setPath(final String value) {
     this.path = value;
   }

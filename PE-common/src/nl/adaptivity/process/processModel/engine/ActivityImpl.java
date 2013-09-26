@@ -18,7 +18,9 @@ import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.Condition;
+import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlExportType;
 import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -50,13 +52,13 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
   private String aName;
 
-  private Condition aCondition;
+  private ConditionImpl aCondition;
 
-  private List<XmlImportType> aImports;
+  private List<IXmlImportType> aImports;
 
-  private List<XmlExportType> aExports;
+  private List<IXmlExportType> aExports;
 
-  private XmlMessage aMessage;
+  private IXmlMessage aMessage;
 
   /**
    * Create a new Activity. Note that activities can only have a a single
@@ -106,7 +108,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   public void setCondition(final String pCondition) {
-    aCondition = pCondition==null ? null : new Condition(pCondition);
+    aCondition = pCondition==null ? null : new ConditionImpl(pCondition);
   }
 
   /* (non-Javadoc)
@@ -114,7 +116,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   @XmlElement(name = XmlImportType.ELEMENTNAME)
-  public List<XmlImportType> getImports() {
+  public List<IXmlImportType> getImports() {
     return aImports;
   }
 
@@ -122,7 +124,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#setImports(java.util.Collection)
    */
   @Override
-  public void setImports(final Collection<? extends XmlImportType> pImports) {
+  public void setImports(final Collection<? extends IXmlImportType> pImports) {
     aImports = new ArrayList<>(pImports);
   }
 
@@ -131,7 +133,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   @XmlElement(name = XmlExportType.ELEMENTNAME)
-  public List<XmlExportType> getExports() {
+  public List<IXmlExportType> getExports() {
     return aExports;
   }
 
@@ -139,7 +141,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#setExports(java.util.Collection)
    */
   @Override
-  public void setExports(final Collection<? extends XmlExportType> pExports) {
+  public void setExports(final Collection<? extends IXmlExportType> pExports) {
     aExports = new ArrayList<>(pExports);
   }
 
@@ -170,7 +172,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   @XmlElement(name = XmlMessage.ELEMENTNAME, required = true)
-  public XmlMessage getMessage() {
+  public IXmlMessage getMessage() {
     return aMessage;
   }
 
@@ -178,7 +180,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#setMessage(nl.adaptivity.process.processModel.XmlMessage)
    */
   @Override
-  public void setMessage(final XmlMessage message) {
+  public void setMessage(final IXmlMessage message) {
     aMessage = message;
   }
 

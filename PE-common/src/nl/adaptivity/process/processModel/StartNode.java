@@ -5,6 +5,6 @@ import java.util.List;
 
 public interface StartNode<T extends ProcessNode<T>> extends ProcessNode<T>{
 
-  public List<XmlImportType> getImports();
+  public List<IXmlImportType> getImports();
 
 }

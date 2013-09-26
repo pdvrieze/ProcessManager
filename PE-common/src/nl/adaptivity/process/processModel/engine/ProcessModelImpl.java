@@ -21,7 +21,6 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessModelRef;
 import nl.adaptivity.process.processModel.ProcessModelXmlAdapter;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
@@ -37,7 +36,7 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
  */
 @XmlJavaTypeAdapter(PMXmlAdapter.class)
 @SuppressWarnings("unused")
-public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializable, SecureObject, ProcessModel {
+public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
 
   static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModelImpl> {
 
@@ -116,7 +115,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   public ProcessModelImpl(final XmlProcessModel pXmlModel) {
     final Collection<EndNodeImpl> endNodes = new ArrayList<>();
 
-    for (final ProcessNode node : pXmlModel.getNodes()) {
+    for (final ProcessNodeImpl node : pXmlModel.getNodes()) {
       if (node instanceof EndNodeImpl) {
         endNodes.add((EndNodeImpl) node);
       }
@@ -284,7 +283,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
    */
   @Override
-  public ProcessModelRef getRef() {
+  public IProcessModelRef<ProcessNodeImpl> getRef() {
     return new ProcessModelRef(getName(), aHandle);
   }
 

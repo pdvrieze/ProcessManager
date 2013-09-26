@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlImportType;
+import nl.adaptivity.process.processModel.IXmlImportType;
 
 
 @XmlRootElement(name = StartNodeImpl.ELEMENTNAME)
@@ -25,7 +25,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
   public static final String ELEMENTNAME = "start";
 
-  private List<XmlImportType> aImports;
+  private List<IXmlImportType> aImports;
 
   @Override
   public boolean condition(final IProcessNodeInstance<?> pInstance) {
@@ -37,7 +37,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
    */
   @Override
   @XmlElement(name = "import")
-  public List<XmlImportType> getImports() {
+  public List<IXmlImportType> getImports() {
     if (aImports == null) {
       aImports = new ArrayList<>();
     }

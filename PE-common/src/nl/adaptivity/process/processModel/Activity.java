@@ -43,7 +43,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of imports.
    */
-  public abstract List<XmlImportType> getImports();
+  public abstract List<IXmlImportType> getImports();
 
   /**
    * Set the import requirements for this activity. This will create a copy of
@@ -51,7 +51,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pImports The imports to set.
    */
-  public abstract void setImports(Collection<? extends XmlImportType> pImports);
+  public abstract void setImports(Collection<? extends IXmlImportType> pImports);
 
   /**
    * Get the list of exports. Exports will allow storing the response of an
@@ -59,7 +59,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of exports.
    */
-  public abstract List<XmlExportType> getExports();
+  public abstract List<IXmlExportType> getExports();
 
   /**
    * Set the export requirements for this activity. This will create a copy of
@@ -67,7 +67,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pExports The exports to set.
    */
-  public abstract void setExports(Collection<? extends XmlExportType> pExports);
+  public abstract void setExports(Collection<? extends IXmlExportType> pExports);
 
   /**
    * Get the predecessor node for this activity.
@@ -89,7 +89,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The message.
    */
-  public abstract XmlMessage getMessage();
+  public abstract IXmlMessage getMessage();
 
   /**
    * Set the message of this activity. This encodes what actually needs to be
@@ -97,6 +97,6 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param message The message.
    */
-  public abstract void setMessage(XmlMessage message);
+  public abstract void setMessage(IXmlMessage message);
 
 }

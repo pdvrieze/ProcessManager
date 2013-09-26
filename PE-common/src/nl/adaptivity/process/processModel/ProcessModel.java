@@ -4,6 +4,8 @@ import java.security.Principal;
 import java.util.Collection;
 import java.util.Set;
 
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+
 
 public interface ProcessModel<T extends ProcessNode<T>> {
 
@@ -19,7 +21,7 @@ public interface ProcessModel<T extends ProcessNode<T>> {
    *
    * @return A reference node.
    */
-  public ProcessModelRef getRef();
+  public IProcessModelRef<T> getRef();
 
   /**
    * Get the process node with the given id.

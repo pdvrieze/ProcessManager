@@ -16,6 +16,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
 @XmlRootElement(name = JoinImpl.ELEMENTNAME)

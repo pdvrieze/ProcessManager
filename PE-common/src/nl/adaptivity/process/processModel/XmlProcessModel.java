@@ -28,6 +28,7 @@ import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 
 
@@ -68,7 +69,7 @@ public class XmlProcessModel {
 
   }
 
-  public XmlProcessModel(final ProcessModel m) {
+  public XmlProcessModel(final ProcessModel<? extends ProcessNodeImpl> m) {
     nodes = CollectionUtil.copy(m.getModelNodes());
     name = m.getName();
     owner = m.getOwner().getName();
@@ -79,7 +80,7 @@ public class XmlProcessModel {
                    @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
                    @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
                    @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class) })
-  private List<? extends ProcessNode> nodes;
+  private List<? extends ProcessNodeImpl> nodes;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
@@ -106,7 +107,7 @@ public class XmlProcessModel {
    * Objects of the following type(s) are allowed in the list {@link EndNodeImpl }
    * {@link ActivityImpl } {@link StartNode } {@link Join }
    */
-  public List<? extends ProcessNode> getNodes() {
+  public List<? extends ProcessNodeImpl> getNodes() {
     if (nodes == null) {
       nodes = new ArrayList<>();
     }

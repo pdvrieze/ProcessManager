@@ -1,11 +1,9 @@
-package nl.adaptivity.process.processModel.engine;
+package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.AbstractReadMap;
 
-import nl.adaptivity.process.processModel.ProcessNode;
 
-
-public class ProcessNodeSet<T extends ProcessNode> extends AbstractReadMap<String, T, ProcessNode> {
+public class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractReadMap<String, T, ProcessNode<T>> {
 
 
   public ProcessNodeSet() {
@@ -21,14 +19,15 @@ public class ProcessNodeSet<T extends ProcessNode> extends AbstractReadMap<Strin
   }
 
   @Override
-  protected String getKey(ProcessNode pValue) {
+  protected String getKey(ProcessNode<T> pValue) {
     return pValue.getId();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  protected ProcessNode asElement(Object pObject) {
+  protected ProcessNode<T> asElement(Object pObject) {
     if (pObject instanceof ProcessNode) {
-      return (ProcessNode) pObject;
+      return (ProcessNode<T>) pObject;
     }
     return null;
   }

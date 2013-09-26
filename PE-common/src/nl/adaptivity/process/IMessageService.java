@@ -1,7 +1,7 @@
 package nl.adaptivity.process;
 
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.processModel.IXmlMessage;
 
 
 /**
@@ -20,13 +20,13 @@ public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
    * @param pMessage The message to create (for later sending)
    * @return The sendable message that can be sent.
    */
-  T createMessage(XmlMessage pMessage);
+  T createMessage(IXmlMessage pMessage);
 
   /**
    * Send a message.
    * 
    * @param pMessage The message to send. (Created by
-   *          {@link #createMessage(XmlMessage)}).
+   *          {@link #createMessage(IXmlMessage)}).
    * @param pInstance The task instance to link the sending to.
    * @return <code>true</code> on success, <code>false</code> on failure.
    */

@@ -1,14 +1,12 @@
-package nl.adaptivity.process.processModel;
+package nl.adaptivity.process.processModel.engine;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
-import net.devrieze.util.HandleMap.Handle;
-
 
 @XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModelRef implements Handle<ProcessModel> {
+public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
 
   private String aName;
 
@@ -25,6 +23,7 @@ public class ProcessModelRef implements Handle<ProcessModel> {
     aName = name;
   }
 
+  @Override
   @XmlAttribute(required = true)
   public String getName() {
     return aName;

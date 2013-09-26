@@ -65,7 +65,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Message")
-public class XmlMessage {
+public class XmlMessage implements IXmlMessage {
 
   public static final String ELEMENTNAME = "message";
 
@@ -93,16 +93,19 @@ public class XmlMessage {
   @XmlTransient
   private ArrayList<Object> aAny;
 
-  /**
-   * Gets the value of the service property.
-   *
-   * @return possible object is {@link QName }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getServiceName()
    */
+  @Override
   @XmlAttribute(name = "serviceName", required = true)
   public String getServiceName() {
     return service.getLocalPart();
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setServiceName(java.lang.String)
+   */
+  @Override
   public void setServiceName(final String pName) {
     if (service == null) {
       service = new QName(pName);
@@ -112,11 +115,19 @@ public class XmlMessage {
   }
 
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getServiceNS()
+   */
+  @Override
   @XmlAttribute(name = "serviceNS")
   public String getServiceNS() {
     return service.getNamespaceURI();
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setServiceNS(java.lang.String)
+   */
+  @Override
   public void setServiceNS(final String pNamespace) {
     if (service == null) {
       service = new QName(pNamespace, "xx");
@@ -125,50 +136,58 @@ public class XmlMessage {
     }
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getService()
+   */
+  @Override
   public QName getService() {
     return service;
   }
 
-  /**
-   * Sets the value of the service property.
-   *
-   * @param value allowed object is {@link QName }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setService(javax.xml.namespace.QName)
    */
+  @Override
   public void setService(final QName value) {
     this.service = value;
   }
 
-  /**
-   * Gets the value of the endpoint property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getEndpoint()
    */
+  @Override
   public String getEndpoint() {
     return endpoint;
   }
 
-  /**
-   * Sets the value of the endpoint property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setEndpoint(java.lang.String)
    */
+  @Override
   public void setEndpoint(final String value) {
     this.endpoint = value;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getEndpointDescriptor()
+   */
+  @Override
   public EndpointDescriptor getEndpointDescriptor() {
     return new EndpointDescriptorImpl(service, endpoint, URI.create(url));
   }
 
-  /**
-   * Gets the value of the operation property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getOperation()
    */
+  @Override
   public QName getOperation() {
     return operation;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getAny()
+   */
+  @Override
   @XmlAnyElement(lax = true)
   public Collection<Object> getAny() {
     if (aAny == null) {
@@ -181,6 +200,10 @@ public class XmlMessage {
     return aAny;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getMessageBody()
+   */
+  @Override
   public Node getMessageBody() {
     if ((aBody == null) && (aAny != null)) {
       final Iterator<Object> it = aAny.iterator();
@@ -201,62 +224,69 @@ public class XmlMessage {
     return aBody;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setMessageBody(java.lang.Object)
+   */
+  @Override
   public void setMessageBody(final Object o) {
     if (o instanceof Node) {
       aBody = (Node) o;
     }
   }
 
-  /**
-   * Sets the value of the operation property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setOperation(javax.xml.namespace.QName)
    */
+  @Override
   public void setOperation(final QName value) {
     this.operation = value;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getBodySource()
+   */
+  @Override
   public Source getBodySource() {
     return new DOMSource(getMessageBody());
   }
 
 
-  /**
-   * Gets the value of the url property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getUrl()
    */
+  @Override
   public String getUrl() {
     return url;
   }
 
-  /**
-   * Sets the value of the url property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setUrl(java.lang.String)
    */
+  @Override
   public void setUrl(final String value) {
     this.url = value;
   }
 
-  /**
-   * Gets the value of the method property.
-   *
-   * @return possible object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getMethod()
    */
+  @Override
   public String getMethod() {
     return method;
   }
 
-  /**
-   * Sets the value of the method property.
-   *
-   * @param value allowed object is {@link String }
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setMethod(java.lang.String)
    */
+  @Override
   public void setMethod(final String value) {
     this.method = value;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#getContentType()
+   */
+  @Override
   public String getContentType() {
     if (type == null) {
       return "application/soap+xml";
@@ -265,10 +295,17 @@ public class XmlMessage {
     }
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#setType(java.lang.String)
+   */
+  @Override
   public void setType(final String pType) {
     type = pType;
   }
 
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlMessage#toString()
+   */
   @Override
   public String toString() {
     final TransformerFactory tf = TransformerFactory.newInstance();
