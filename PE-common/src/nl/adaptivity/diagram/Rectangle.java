@@ -39,6 +39,14 @@ public final class Rectangle {
     return (float) height;
   }
 
+  /**
+   * Create an offsetted rectangle. The offsets should not be prescaled. They will be scaled in the method.
+   * The scaling is from the top left of the rectangle.
+   * @param pXOffset The x offset.
+   * @param pYOffset The y offset.
+   * @param pScale The scaling needed.
+   * @return A new rectangle that is moved from the original one.
+   */
   public Rectangle offsetScaled(double pXOffset, double pYOffset, double pScale) {
     return new Rectangle((left+pXOffset)*pScale, (top+pYOffset)*pScale, width*pScale, height*pScale);
   }
