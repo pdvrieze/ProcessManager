@@ -104,7 +104,7 @@ public class JoinImpl extends ProcessNodeImpl implements Join<ProcessNodeImpl> {
   @XmlIDREF
   public Set<ProcessNodeImpl> getPred() {
     if (aPred == null) {
-      aPred = new ProcessNodeSet<>();
+      aPred = ProcessNodeSet.processNodeSet();
     }
     return aPred;
   }

@@ -32,9 +32,9 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
   private static final long serialVersionUID = -7745019972129682199L;
 
-  private Set<ProcessNodeImpl> aPredecessors;
+  private ProcessNodeSet<ProcessNodeImpl> aPredecessors;
 
-  private Set<ProcessNodeImpl> aSuccessors = null;
+  private ProcessNodeSet<ProcessNodeImpl> aSuccessors = null;
 
   private String aId;
 
@@ -62,7 +62,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   @Override
   public Set<? extends ProcessNodeImpl> getPredecessors() {
     if (aPredecessors == null) {
-      aPredecessors = new ProcessNodeSet<>();
+      aPredecessors = ProcessNodeSet.processNodeSet();
     }
     return aPredecessors;
   }
@@ -75,7 +75,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     if (aPredecessors != null) {
       throw new UnsupportedOperationException("Not allowed to change predecessors");
     }
-    aPredecessors = new ProcessNodeSet<>(predecessors);
+    aPredecessors = ProcessNodeSet.processNodeSet(predecessors);
   }
 
   /* (non-Javadoc)
@@ -87,7 +87,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
     if (aSuccessors == null) {
-      aSuccessors = new ProcessNodeSet<>(1);
+      aSuccessors = ProcessNodeSet.processNodeSet(1);
     }
     aSuccessors.add(pNode);
   }
