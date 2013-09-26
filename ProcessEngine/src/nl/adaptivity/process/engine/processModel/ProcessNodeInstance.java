@@ -12,7 +12,6 @@ import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
@@ -59,7 +58,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     aState = pState;
   }
 
-  public ProcessNode getNode() {
+  public ProcessNodeImpl getNode() {
     return aNode;
   }
 
@@ -99,19 +98,19 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public <T> boolean provideTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
+  public <U> boolean provideTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Sent);
     return aNode.provideTask(pMessageService, this);
   }
 
   @Override
-  public <T> boolean takeTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
+  public <U> boolean takeTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Taken);
     return aNode.takeTask(pMessageService, this);
   }
 
   @Override
-  public <T> boolean startTask(final IMessageService<T, ProcessNodeInstance> pMessageService) {
+  public <U> boolean startTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Started);
     return aNode.startTask(pMessageService, this);
   }

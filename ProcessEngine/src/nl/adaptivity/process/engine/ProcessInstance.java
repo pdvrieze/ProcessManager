@@ -24,9 +24,6 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
@@ -96,7 +93,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final Collection<ProcessNodeInstance> aEndResults;
 
-  private HashMap<Join, JoinInstance> aJoins;
+  private HashMap<JoinImpl, JoinInstance> aJoins;
 
   private long aHandle;
 
@@ -131,8 +128,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aEngine = pEngine;
     aThreads = new LinkedList<>();
     aOwner = pOwner;
-    for (final StartNode node : aProcessModel.getStartNodes()) {
-      final ProcessNodeInstance instance = new ProcessNodeInstance((StartNodeImpl) node, null, this);
+    for (final StartNodeImpl node : aProcessModel.getStartNodes()) {
+      final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
       aThreads.add(instance);
     }
     aJoins = new HashMap<>();
@@ -239,7 +236,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     } else {
       aThreads.remove(pNode);
       final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
-      for (final ProcessNode successorNode : pNode.getNode().getSuccessors()) {
+      for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
         final ProcessNodeInstance instance = getProcessNodeInstance(pNode, successorNode);
         aThreads.add(instance);
         startedTasks.add(instance);
@@ -250,8 +247,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private ProcessNodeInstance getProcessNodeInstance(final ProcessNodeInstance pPredecessor, final ProcessNode pNode) {
-    if (pNode instanceof Join) {
+  private ProcessNodeInstance getProcessNodeInstance(final ProcessNodeInstance pPredecessor, final ProcessNodeImpl pNode) {
+    if (pNode instanceof JoinImpl) {
       final JoinImpl join = (JoinImpl) pNode;
       if (aJoins == null) {
         aJoins = new HashMap<>();
@@ -269,7 +266,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       return instance;
 
     } else {
-      return new ProcessNodeInstance((ProcessNodeImpl) pNode, pPredecessor, this);
+      return new ProcessNodeInstance(pNode, pPredecessor, this);
     }
   }
 
@@ -281,7 +278,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     pNode.cancelTask();
   }
 
-  public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(final Join pJoin) {
+  public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(final JoinImpl pJoin) {
     final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<>(Math.min(pJoin.getPredecessors().size(), aThreads.size()));
     for (final ProcessNodeInstance node : aThreads) {
       if (node.getNode().isPredecessorOf(pJoin)) {
