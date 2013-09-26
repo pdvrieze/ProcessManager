@@ -81,7 +81,7 @@ import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
-import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.rest.annotations.RestMethod;
@@ -136,9 +136,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     private long aHandle;
 
-    private XmlMessage aMessage;
+    private IXmlMessage aMessage;
 
-    public NewServletMessage(final XmlMessage pMessage, final EndpointDescriptor pLocalEndPoint) {
+    public NewServletMessage(final IXmlMessage pMessage, final EndpointDescriptor pLocalEndPoint) {
       aMessage = pMessage;
       aLocalEndpoint = pLocalEndPoint;
     }
@@ -497,7 +497,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
 
   @Override
-  public NewServletMessage createMessage(final XmlMessage pMessage) {
+  public NewServletMessage createMessage(final IXmlMessage pMessage) {
     return new NewServletMessage(pMessage, aLocalEndPoint);
   }
 
