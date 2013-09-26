@@ -8,9 +8,7 @@ import nl.adaptivity.process.processModel.engine.ActivityImpl;
 
 
 
-public class DrawableActivity extends ClientActivityNode implements DrawableProcessNode {
-
-  private static final long serialVersionUID = 2566853039695562412L;
+public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> implements DrawableProcessNode {
 
   private Color aBlack;
   private Color aWhite;

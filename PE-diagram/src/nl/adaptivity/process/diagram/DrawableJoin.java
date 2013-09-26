@@ -8,9 +8,7 @@ import nl.adaptivity.process.processModel.Join;
 
 
 
-public class DrawableJoin extends ClientJoinNode implements DrawableProcessNode {
-
-  private static final long serialVersionUID = 1515121146796084920L;
+public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements DrawableProcessNode {
 
   private Color aBlack;
   private Color aWhite;
@@ -39,7 +37,7 @@ public class DrawableJoin extends ClientJoinNode implements DrawableProcessNode 
     pCanvas.drawPath(points, aBlack);
   }
 
-  public static DrawableJoin from(Join pElem) {
+  public static DrawableJoin from(Join<?> pElem) {
     DrawableJoin result = new DrawableJoin();
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());

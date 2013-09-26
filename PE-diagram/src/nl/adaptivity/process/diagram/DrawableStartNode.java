@@ -8,9 +8,7 @@ import nl.adaptivity.process.processModel.StartNode;
 
 
 
-public class DrawableStartNode extends ClientStartNode implements DrawableProcessNode{
-
-  private static final long serialVersionUID = -410112626126356463L;
+public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
 
   private Color aBlack;
 
@@ -25,7 +23,7 @@ public class DrawableStartNode extends ClientStartNode implements DrawableProces
     pCanvas.drawFilledCircle(getX(), getY(), STARTNODERADIUS, aBlack);
   }
 
-  public static DrawableStartNode from(StartNode pN) {
+  public static DrawableStartNode from(StartNode<?> pN) {
     DrawableStartNode result = new DrawableStartNode();
     copyProcessNodeAttrs(pN, result);
     result.getImports().clear();

@@ -6,13 +6,11 @@ import java.util.Set;
 
 import net.devrieze.util.CollectionUtil;
 
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 import nl.adaptivity.process.processModel.XmlImportType;
 
 
-public abstract class ClientProcessNode implements ProcessNode{
+public abstract class ClientProcessNode<T extends IClientProcessNode<T>> implements IClientProcessNode<T>{
 
   private static final int HORIZSEP = 100;
 
@@ -48,32 +46,32 @@ public abstract class ClientProcessNode implements ProcessNode{
   }
 
   @Override
-  public void setPredecessors(Collection<? extends ProcessNode> pPredecessors) {
+  public void setPredecessors(Collection<? extends T> pPredecessors) {
     if (pPredecessors.size()!=1) {
       throw new IllegalArgumentException();
     }
     setPredecessor(pPredecessors.iterator().next());
   }
 
-  protected abstract void setPredecessor(ProcessNode pPredecessor);
+  protected abstract void setPredecessor(T pPredecessor);
 
   @Override
-  public void setSuccessors(Collection<? extends ProcessNode> pSuccessors) {
+  public void setSuccessors(Collection<? extends T> pSuccessors) {
     if (pSuccessors.size()!=1) {
       throw new IllegalArgumentException();
     }
     setSuccessor(pSuccessors.iterator().next());
   }
 
-  protected abstract void setSuccessor(ProcessNode pSuccessor);
+  protected abstract void setSuccessor(T pSuccessor);
 
 
 
   @Override
-  public abstract Set<? extends ClientProcessNode> getPredecessors();
+  public abstract Set<? extends T> getPredecessors();
 
   @Override
-  public abstract Set<? extends ClientProcessNode> getSuccessors();
+  public abstract Set<? extends T> getSuccessors();
 
   protected List<XmlImportType> getImports() {
     return aImports;
@@ -99,7 +97,8 @@ public abstract class ClientProcessNode implements ProcessNode{
     return aPosSet;
   }
 
-  public double layout(final double pX, final double pY, final ClientProcessNode pSource, final boolean pForward) {
+  @Override
+  public double layout(final double pX, final double pY, final IClientProcessNode<?> pSource, final boolean pForward) {
     if (aPosSet) {
       boolean dx = false;
       boolean dy = false;
@@ -144,7 +143,7 @@ public abstract class ClientProcessNode implements ProcessNode{
         final int cnt = getPredecessors().size();
         int index = -1;
         int i = 0;
-        for (final ProcessNode n : getPredecessors()) {
+        for (final T n : getPredecessors()) {
           if (n == pSource) {
             index = i;
             break;
@@ -163,12 +162,12 @@ public abstract class ClientProcessNode implements ProcessNode{
     }
   }
 
-  private double layoutSuccessors(final ProcessNode pSource) {
-    final Collection<DrawableProcessNode> successors = getSuccessors();
+  private double layoutSuccessors(final IClientProcessNode<?> pSource) {
+    final Collection<? extends T> successors = getSuccessors();
     double posY = aY - (((successors.size() - 1) * VERTSEP) / 2);
     final double posX = aX + HORIZSEP;
 
-    for (final ProcessNode successor : successors) {
+    for (final IClientProcessNode<?> successor : successors) {
       if (successor != pSource) {
         successor.layout(posX, posY, this, true);
       }
@@ -177,12 +176,12 @@ public abstract class ClientProcessNode implements ProcessNode{
     return Math.min(aY, posY - VERTSEP);
   }
 
-  private double layoutPredecessors(final ProcessNode pSource) {
-    final Collection<ProcessNode> predecessors = getPredecessors();
-    int posY = aY - (((predecessors.size() - 1) * VERTSEP) / 2);
-    final int posX = aX - HORIZSEP;
+  private double layoutPredecessors(final IClientProcessNode<?> pSource) {
+    final Set<? extends T> predecessors = getPredecessors();
+    double posY = aY - (((predecessors.size() - 1) * VERTSEP) / 2);
+    final double posX = aX - HORIZSEP;
 
-    for (final ProcessNode predecessor : predecessors) {
+    for (final T predecessor : predecessors) {
       if (predecessor != pSource) {
         predecessor.layout(posX, posY, this, false);
       }
@@ -201,10 +200,12 @@ public abstract class ClientProcessNode implements ProcessNode{
     return aY;
   }
 
+  @Override
   public void setX(double pX) {
     aX = pX;
   }
 
+  @Override
   public void setY(double pY) {
     aY = pY;
   }

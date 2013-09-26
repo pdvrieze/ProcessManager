@@ -6,42 +6,41 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
 
 
-public class ClientJoinNode extends ClientProcessNode implements Join {
+public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Join<T> {
 
-  private Set<ProcessNode> aPredecessors;
+  private Set<T> aPredecessors;
 
-  private Set<ProcessNode> aSuccessors;
+  private Set<T> aSuccessors;
 
   private int aMin;
 
   private int aMax;
 
   @Override
-  public Set<ProcessNode> getSuccessors() {
+  public Set<T> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+      aSuccessors = new LinkedHashSet<T>();
     }
     return aSuccessors;
   }
 
   @Override
-  public Set<ProcessNode> getPredecessors() {
+  public Set<T> getPredecessors() {
     return aPredecessors;
   }
 
   @Override
-  public void setPredecessors(Collection<? extends ProcessNode> pPredecessors) {
-    aPredecessors = new HashSet<ProcessNode>(pPredecessors);
+  public void setPredecessors(Collection<? extends T> pPredecessors) {
+    aPredecessors = new HashSet<T>(pPredecessors);
   }
 
   @Override
-  protected void setPredecessor(ProcessNode pPredecessor) {
+  protected void setPredecessor(T pPredecessor) {
     if (aPredecessors==null) {
-      aPredecessors = new HashSet<ProcessNode>(1);
+      aPredecessors = new HashSet<T>(1);
     } else {
       aPredecessors.clear();
     }
@@ -50,9 +49,9 @@ public class ClientJoinNode extends ClientProcessNode implements Join {
   }
 
   @Override
-  public void setSuccessor(ProcessNode pNode) {
+  public void setSuccessor(T pNode) {
     if (aSuccessors==null) {
-      aSuccessors = new HashSet<ProcessNode>(1);
+      aSuccessors = new HashSet<T>(1);
     } else {
       aSuccessors.clear();
     }
@@ -61,15 +60,15 @@ public class ClientJoinNode extends ClientProcessNode implements Join {
   }
 
   @Override
-  public void addSuccessor(ProcessNode pNode) {
+  public void addSuccessor(T pNode) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet(1);
+      aSuccessors = new ProcessNodeSet<T>(1);
     }
     aSuccessors.add(pNode);
   }
 
   @Override
-  public boolean isPredecessorOf(ProcessNode pNode) {
+  public boolean isPredecessorOf(T pNode) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");

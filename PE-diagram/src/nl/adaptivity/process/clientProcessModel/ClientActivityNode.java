@@ -7,41 +7,40 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
 
 
-public class ClientActivityNode extends ClientProcessNode implements Activity {
+public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
 
   private String aName;
 
   private String aCondition;
 
-  private ClientProcessNode aPredecessor;
+  private T aPredecessor;
 
-  private Set<ClientProcessNode> aSuccessors;
+  private Set<T> aSuccessors;
 
   private XmlMessage aMessage;
 
   @Override
-  public Set<? extends ClientProcessNode> getSuccessors() {
+  public Set<? extends T> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ClientProcessNode>();
+      aSuccessors = new LinkedHashSet<T>();
     }
     return aSuccessors;
   }
 
 
   @Override
-  public Set<? extends ClientProcessNode> getPredecessors() {
+  public Set<? extends T> getPredecessors() {
     return Collections.singleton(aPredecessor);
   }
 
   @Override
-  public boolean isPredecessorOf(ProcessNode pNode) {
+  public boolean isPredecessorOf(T pNode) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
@@ -68,13 +67,13 @@ public class ClientActivityNode extends ClientProcessNode implements Activity {
   }
 
   @Override
-  public ProcessNode getPredecessor() {
+  public T getPredecessor() {
     return aPredecessor;
   }
 
   @Override
-  public void setPredecessor(ProcessNode pPredecessor) {
-    aPredecessor = (ClientProcessNode) pPredecessor;
+  public void setPredecessor(T pPredecessor) {
+    aPredecessor = pPredecessor;
   }
 
   @Override
@@ -88,21 +87,21 @@ public class ClientActivityNode extends ClientProcessNode implements Activity {
   }
 
   @Override
-  protected void setSuccessor(ProcessNode pSuccessor) {
+  protected void setSuccessor(T pSuccessor) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet<ClientProcessNode>(1);
+      aSuccessors = new ProcessNodeSet<T>(1);
     } else {
       aSuccessors.clear();
     }
-    aSuccessors.add((ClientProcessNode) pSuccessor);
+    aSuccessors.add(pSuccessor);
   }
 
   @Override
-  public void addSuccessor(ProcessNode pNode) {
+  public void addSuccessor(T pNode) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet<ClientProcessNode>(1);
+      aSuccessors = new ProcessNodeSet<T>(1);
     }
-    aSuccessors.add((ClientProcessNode) pNode);
+    aSuccessors.add(pNode);
   }
 
 

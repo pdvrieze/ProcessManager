@@ -7,14 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.engine.ProcessNodeSet;
 
-public class ClientStartNode extends ClientProcessNode implements StartNode {
+public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
-  private Set<ProcessNode> aSuccessors;
+  private Set<T> aSuccessors;
   public ClientStartNode() {
     super();
   }
@@ -23,13 +22,13 @@ public class ClientStartNode extends ClientProcessNode implements StartNode {
     super(pId);
   }
 
-  private void resolvePredecessors(final Map<String, ProcessNode> pMap) {
+  private void resolvePredecessors(final Map<String, T> pMap) {
     // start node has no predecessors
   }
 
-  private void ensureSuccessor(final ProcessNode pNode) {
+  private void ensureSuccessor(final T pNode) {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+      aSuccessors = new LinkedHashSet<T>();
     }
     aSuccessors.add(pNode);
   }
@@ -40,39 +39,39 @@ public class ClientStartNode extends ClientProcessNode implements StartNode {
   }
 
   @Override
-  public Set<ProcessNode> getSuccessors() {
+  public Set<T> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+      aSuccessors = new LinkedHashSet<T>();
     }
     return aSuccessors;
   }
 
   @Override
-  public Set<ProcessNode> getPredecessors() {
+  public Set<T> getPredecessors() {
     return Collections.emptySet();
   }
 
   @Override
-  public void setPredecessors(Collection<? extends ProcessNode> pPredecessors) {
+  public void setPredecessors(Collection<? extends T> pPredecessors) {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override
-  protected void setPredecessor(ProcessNode pPredecessor) {
+  protected void setPredecessor(T pPredecessor) {
     throw new UnsupportedOperationException("Start nodes have no predecessors");
   }
 
   @Override
-  public boolean isPredecessorOf(ProcessNode pNode) {
+  public boolean isPredecessorOf(T pNode) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override
-  protected void setSuccessor(ProcessNode pSuccessor) {
+  protected void setSuccessor(T pSuccessor) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet(1);
+      aSuccessors = new ProcessNodeSet<T>(1);
     } else {
       aSuccessors.clear();
     }
@@ -80,9 +79,9 @@ public class ClientStartNode extends ClientProcessNode implements StartNode {
   }
 
   @Override
-  public void addSuccessor(ProcessNode pNode) {
+  public void addSuccessor(T pNode) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet(1);
+      aSuccessors = new ProcessNodeSet<T>(1);
     }
     aSuccessors.add(pNode);
   }

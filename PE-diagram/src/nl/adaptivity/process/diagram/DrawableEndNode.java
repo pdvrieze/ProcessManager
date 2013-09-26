@@ -8,9 +8,7 @@ import nl.adaptivity.process.processModel.EndNode;
 
 
 
-public class DrawableEndNode extends ClientEndNode implements DrawableProcessNode {
-
-  private static final long serialVersionUID = 5460487346845175577L;
+public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implements DrawableProcessNode {
 
   private Color aBlack;
 
@@ -26,7 +24,7 @@ public class DrawableEndNode extends ClientEndNode implements DrawableProcessNod
     pCanvas.drawFilledCircle(getX(), getY(), ENDNODEINNERRRADIUS, aBlack);
   }
 
-  public static DrawableEndNode from(EndNode pElem) {
+  public static DrawableEndNode from(EndNode<?> pElem) {
     DrawableEndNode result = new DrawableEndNode();
     copyProcessNodeAttrs(pElem, result);
     return result;

@@ -6,31 +6,30 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 
 
-public class ClientEndNode extends ClientProcessNode implements EndNode {
+public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
 
-  private ClientProcessNode aPredecessor;
+  private T aPredecessor;
 
   @Override
-  public Set<? extends ClientProcessNode> getSuccessors() {
+  public Set<? extends T> getSuccessors() {
     return Collections.emptySet();
   }
 
   @Override
-  public void setSuccessor(ProcessNode pNode) {
+  public void setSuccessor(T pNode) {
     throw new UnsupportedOperationException("end nodes never have successors");
   }
 
   @Override
-  public void addSuccessor(ProcessNode pNode) {
+  public void addSuccessor(T pNode) {
     throw new UnsupportedOperationException("end nodes never have successors");
   }
 
   @Override
-  public boolean isPredecessorOf(ProcessNode pNode) {
+  public boolean isPredecessorOf(T pNode) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
@@ -47,18 +46,18 @@ public class ClientEndNode extends ClientProcessNode implements EndNode {
   }
 
   @Override
-  public Set<? extends ClientProcessNode> getPredecessors() {
+  public Set<? extends T> getPredecessors() {
     return Collections.singleton(aPredecessor);
   }
 
   @Override
-  public ProcessNode getPredecessor() {
+  public T getPredecessor() {
     return aPredecessor;
   }
 
   @Override
-  public void setPredecessor(ProcessNode pPredecessor) {
-    aPredecessor = (ClientProcessNode) pPredecessor;
+  public void setPredecessor(T pPredecessor) {
+    aPredecessor = pPredecessor;
   }
 
 }

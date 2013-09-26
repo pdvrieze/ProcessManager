@@ -1,15 +1,11 @@
 package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.clientProcessModel.IClientProcessNode;
 
 
-public interface DrawableProcessNode extends ProcessNode, Drawable {
+public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessNode>, Drawable {
 
   void setId(String pId);
-
-  void setX(double pX);
-
-  void setY(double pY);
 
 }
