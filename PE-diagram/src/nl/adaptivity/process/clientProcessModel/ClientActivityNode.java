@@ -1,16 +1,13 @@
 package nl.adaptivity.process.clientProcessModel;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
@@ -21,22 +18,22 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private T aPredecessor;
 
-  private Set<T> aSuccessors;
+  private ProcessNodeSet<T> aSuccessors;
 
   private IXmlMessage aMessage;
 
   @Override
-  public Set<? extends T> getSuccessors() {
+  public ProcessNodeSet<? extends T> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<T>();
+      aSuccessors = new ProcessNodeSet<T>();
     }
     return aSuccessors;
   }
 
 
   @Override
-  public Set<? extends T> getPredecessors() {
-    return Collections.singleton(aPredecessor);
+  public ProcessNodeSet<? extends T> getPredecessors() {
+    return new ProcessNodeSet<T>();
   }
 
   @Override

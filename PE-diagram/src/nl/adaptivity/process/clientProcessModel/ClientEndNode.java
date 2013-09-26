@@ -1,21 +1,20 @@
 package nl.adaptivity.process.clientProcessModel;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
 
-  private T aPredecessor;
+  private ProcessNodeSet<T> aPredecessor = ProcessNodeSet.singleton();
 
   @Override
-  public Set<? extends T> getSuccessors() {
-    return Collections.emptySet();
+  public ProcessNodeSet<? extends T> getSuccessors() {
+    return ProcessNodeSet.empty();
   }
 
   @Override
@@ -46,18 +45,19 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public Set<? extends T> getPredecessors() {
-    return Collections.singleton(aPredecessor);
-  }
-
-  @Override
-  public T getPredecessor() {
+  public ProcessNodeSet<? extends T> getPredecessors() {
     return aPredecessor;
   }
 
   @Override
+  public T getPredecessor() {
+    return aPredecessor.size()==0 ? null : aPredecessor.get(0);
+  }
+
+  @Override
   public void setPredecessor(T pPredecessor) {
-    aPredecessor = pPredecessor;
+    aPredecessor.clear();
+    aPredecessor.add(pPredecessor);
   }
 
 }

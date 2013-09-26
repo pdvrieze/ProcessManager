@@ -1,19 +1,16 @@
 package nl.adaptivity.process.clientProcessModel;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.IXmlImportType;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
-  private Set<T> aSuccessors;
+  private ProcessNodeSet<T> aSuccessors;
   public ClientStartNode() {
     super();
   }
@@ -28,7 +25,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
 
   private void ensureSuccessor(final T pNode) {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<T>();
+      aSuccessors = ProcessNodeSet.processNodeSet();
     }
     aSuccessors.add(pNode);
   }
@@ -39,16 +36,16 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  public Set<T> getSuccessors() {
+  public ProcessNodeSet<T> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<T>();
+      aSuccessors = ProcessNodeSet.processNodeSet();
     }
     return aSuccessors;
   }
 
   @Override
-  public Set<T> getPredecessors() {
-    return Collections.emptySet();
+  public ProcessNodeSet<T> getPredecessors() {
+    return ProcessNodeSet.empty();
   }
 
   @Override
@@ -71,7 +68,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   @Override
   protected void setSuccessor(T pSuccessor) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet<T>(1);
+      aSuccessors = ProcessNodeSet.processNodeSet(1);
     } else {
       aSuccessors.clear();
     }
@@ -81,7 +78,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   @Override
   public void addSuccessor(T pNode) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet<T>(1);
+      aSuccessors = ProcessNodeSet.processNodeSet(1);
     }
     aSuccessors.add(pNode);
   }

@@ -2,12 +2,12 @@ package nl.adaptivity.process.clientProcessModel;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import net.devrieze.util.CollectionUtil;
 
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
 public abstract class ClientProcessNode<T extends IClientProcessNode<T>> implements IClientProcessNode<T>{
@@ -18,11 +18,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private String aId;
 
-  private boolean aPosSet = false;
+  private double aX=Double.NaN;
 
-  private double aX;
-
-  private double aY;
+  private double aY=Double.NaN;
 
   private List<IXmlImportType> aImports;
 
@@ -68,10 +66,10 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
 
   @Override
-  public abstract Set<? extends T> getPredecessors();
+  public abstract ProcessNodeSet<? extends T> getPredecessors();
 
   @Override
-  public abstract Set<? extends T> getSuccessors();
+  public abstract ProcessNodeSet<? extends T> getSuccessors();
 
   protected List<IXmlImportType> getImports() {
     return aImports;
@@ -90,104 +88,12 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   public void unsetPos() {
-    aPosSet = false;
+    aX = Double.NaN;
+    aY = Double.NaN;
   }
 
   public boolean hasPos() {
-    return aPosSet;
-  }
-
-  @Override
-  public double layout(final double pX, final double pY, final IClientProcessNode<?> pSource, final boolean pForward) {
-    if (aPosSet) {
-      boolean dx = false;
-      boolean dy = false;
-      if (pX != aX) {
-        if (pForward) {
-          if (pX > aX) {
-            aX = pX;
-            dx = true;
-          } else { // pX < aX
-            aX -= (aX - pX) / 2; // center
-          }
-        } else {
-          if (pX < aX) {
-            aX = pX;
-            dx = true;
-          } else { // pX > aX
-            aX += (pX - aX) / 2; // center
-          }
-        }
-      }
-      if (pY != aY) {
-        if (pY > aY) {
-          aY = pY;
-          dy = true;
-        } else {
-          aY -= (aY - pY)/2;
-        }
-      }
-      if (dx || dy) {
-        if (pForward) {
-          return Math.max(aY, layoutSuccessors(this));
-        } else {
-          return Math.max(layoutPredecessors(this), aY);
-        }
-      }
-      return aY;
-
-    } else {
-      aPosSet = true;
-      aX = pX;
-      if (pForward) {
-        final int cnt = getPredecessors().size();
-        int index = -1;
-        int i = 0;
-        for (final T n : getPredecessors()) {
-          if (n == pSource) {
-            index = i;
-            break;
-          }
-          ++i;
-        }
-        if (index >= 0) {
-          aY = (pY - ((index * VERTSEP))) + (((cnt - 1) * VERTSEP) / 2);
-        } else {
-          aY = pY;
-        }
-      } else {
-        aY = pY;
-      }
-      return Math.max(layoutPredecessors(pSource), layoutSuccessors(pSource));
-    }
-  }
-
-  private double layoutSuccessors(final IClientProcessNode<?> pSource) {
-    final Collection<? extends T> successors = getSuccessors();
-    double posY = aY - (((successors.size() - 1) * VERTSEP) / 2);
-    final double posX = aX + HORIZSEP;
-
-    for (final IClientProcessNode<?> successor : successors) {
-      if (successor != pSource) {
-        successor.layout(posX, posY, this, true);
-      }
-      posY += VERTSEP;
-    }
-    return Math.min(aY, posY - VERTSEP);
-  }
-
-  private double layoutPredecessors(final IClientProcessNode<?> pSource) {
-    final Set<? extends T> predecessors = getPredecessors();
-    double posY = aY - (((predecessors.size() - 1) * VERTSEP) / 2);
-    final double posX = aX - HORIZSEP;
-
-    for (final T predecessor : predecessors) {
-      if (predecessor != pSource) {
-        predecessor.layout(posX, posY, this, false);
-      }
-      posY += VERTSEP;
-    }
-    return Math.min(aY, posY - VERTSEP);
+    return aX!=Double.NaN && aY!=Double.NaN;
   }
 
   @Override
