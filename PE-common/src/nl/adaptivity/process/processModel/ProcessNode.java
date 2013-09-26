@@ -6,7 +6,7 @@ import java.util.Set;
 import nl.adaptivity.diagram.Positioned;
 
 
-public interface ProcessNode<T extends ProcessNode> extends Positioned {
+public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
 
   public Set<? extends T> getPredecessors();
 
