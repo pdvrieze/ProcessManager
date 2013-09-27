@@ -31,11 +31,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double ACTIVITYROUNDY=ACTIVITYHEIGHT/4d;
   public static final double JOINWIDTH=24d;
   public static final double JOINHEIGHT=JOINWIDTH;
+  private static final double DEFAULT_HORIZ_SEPARATION = 40d;
+  private static final double DEFAULT_VERT_SEPARATION = 30d;
+  private static final double STROKEWIDTH = 1d;
 
   private double aScale = 1d;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
+    setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
+    setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
+    setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
+    setVertSeparation(DEFAULT_VERT_SEPARATION);
     layout();
   }
 
