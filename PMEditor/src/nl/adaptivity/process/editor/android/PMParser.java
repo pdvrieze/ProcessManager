@@ -227,6 +227,7 @@ public class PMParser {
       }
       predecessors.add(getPredecessor(name.toString(), pNodes));
     }
+    result.setPredecessors(predecessors);
 
     return result;
   }
