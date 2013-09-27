@@ -4,7 +4,7 @@
 
 	<target name="javadoc">
     <mkdir dir="doc" />
-		<javadoc access="package" author="true" classpath="${classpath}" destdir="doc" doctitle="java-common" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.html.util,net.devrieze.util" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
+		<javadoc access="package" author="true" classpath="${classpath}" destdir="doc" doctitle="DarwinCommon" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" packagenames="uk.ac.bournemouth.darwin.html.util,net.devrieze.util" source="1.7" sourcepath="src" splitindex="true" use="true" version="true">
 			<link href="http://download.oracle.com/javase/7/docs/api/" />
 		</javadoc>
 	</target>
