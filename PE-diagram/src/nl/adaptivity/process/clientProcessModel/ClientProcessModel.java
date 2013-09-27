@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 import net.devrieze.util.CollectionUtil;
+
 import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Point;
-import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
@@ -49,7 +49,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   public void layout() {
     for (final T node : aNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
-        layoutNode(node, true); // always force as that should be slightly more efficient
+        layoutNode(node, false); // always force as that should be slightly more efficient
       }
     }
     double minX = Double.MAX_VALUE;
@@ -75,15 +75,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     List<Point> abovePoints = getAbovePoints(pNode);
     List<Point> rightPoints = getRightPoints(pNode);
     List<Point> belowPoints = getBelowPoints(pNode);
-    
+
     double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
     double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
     double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
     double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
-    
+
     double x = pNode.getX();
     double y = pNode.getY();
-    
+
     if (leftPoints.isEmpty()) {
       if (rightPoints.isEmpty()) {
         if (force || Double.isNaN(x)|| x<minX || x>maxX) {
@@ -102,7 +102,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
             }
           }
         }
-        
+
       } else { // leftPoints empty, rightPoints not empty
         if (force || Double.isNaN(y)|| y<minY || y>maxY) {
           y = Math.max(minY, averageY(rightPoints));
@@ -346,7 +346,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           if (sibling==pNode) {
             break;
           } else {
-            result.add(pNode);
+            result.add(sibling);
           }
         }
       }
@@ -357,7 +357,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           if (sibling==pNode) {
             break;
           } else {
-            result.add(pNode);
+            result.add(sibling);
           }
         }
       }
@@ -374,7 +374,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           if (sibling==pNode) {
             following = true;
           } else if (following){
-            result.add(pNode);
+            result.add(sibling);
           }
         }
       }
@@ -386,7 +386,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           if (sibling==pNode) {
             following = true;
           } else if (following){
-            result.add(pNode);
+            result.add(sibling);
           }
         }
       }
@@ -405,9 +405,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   @Override
   public IProcessModelRef<T> getRef() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+    throw new UnsupportedOperationException("Not implemented");
   }
 
   @Override
