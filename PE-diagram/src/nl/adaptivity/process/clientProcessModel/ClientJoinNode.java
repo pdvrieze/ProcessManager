@@ -26,6 +26,9 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProce
 
   @Override
   public ProcessNodeSet<T> getPredecessors() {
+    if (aPredecessors==null) {
+      aPredecessors = ProcessNodeSet.processNodeSet();
+    }
     return aPredecessors;
   }
 
