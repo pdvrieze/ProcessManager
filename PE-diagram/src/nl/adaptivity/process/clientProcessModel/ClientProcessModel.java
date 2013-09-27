@@ -46,6 +46,148 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     aNodes = CollectionUtil.copy(nodes);
   }
 
+
+  public double getVertSeparation() {
+    return aVertSeparation;
+  }
+
+
+  public void setVertSeparation(double pVertSeparation) {
+    aVertSeparation = pVertSeparation;
+  }
+
+
+  public double getHorizSeparation() {
+    return aHorizSeparation;
+  }
+
+
+  public void setHorizSeparation(double pHorizSeparation) {
+    aHorizSeparation = pHorizSeparation;
+  }
+
+
+  public double getTopPadding() {
+    return aTopPadding;
+  }
+
+
+  public void setTopPadding(double pTopPadding) {
+    aTopPadding = pTopPadding;
+  }
+
+
+  public double getLeftPadding() {
+    return aLeftPadding;
+  }
+
+
+  public void setLeftPadding(double pLeftPadding) {
+    aLeftPadding = pLeftPadding;
+  }
+
+
+  public double getBottomPadding() {
+    return aBottomPadding;
+  }
+
+
+  public void setBottomPadding(double pBottomPadding) {
+    aBottomPadding = pBottomPadding;
+  }
+
+
+  public double getRightPadding() {
+    return aRightPadding;
+  }
+
+
+  public void setRightPadding(double pRightPadding) {
+    aRightPadding = pRightPadding;
+  }
+
+
+  public double getDefaultNodeWidth() {
+    return aDefaultNodeWidth;
+  }
+
+
+  public void setDefaultNodeWidth(double pDefaultNodeWidth) {
+    aDefaultNodeWidth = pDefaultNodeWidth;
+  }
+
+
+  public double getDefaultNodeHeight() {
+    return aDefaultNodeHeight;
+  }
+
+
+  public void setDefaultNodeHeight(double pDefaultNodeHeight) {
+    aDefaultNodeHeight = pDefaultNodeHeight;
+  }
+
+  @Override
+  public int getEndNodeCount() {
+    int i=0;
+    for(T node: getModelNodes()) {
+      if (node instanceof EndNode) { ++i; }
+    }
+    return i;
+  }
+
+  @Override
+  public IProcessModelRef<T> getRef() {
+    throw new UnsupportedOperationException("Not implemented");
+  }
+
+  @Override
+  public T getNode(String pNodeId) {
+    for(T n: getModelNodes()) {
+      if (pNodeId.equals(n.getId())) {
+        return n;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public Collection<? extends T> getModelNodes() {
+    if (aNodes == null) {
+      aNodes = new ArrayList<T>(0);
+    }
+    return aNodes;
+  }
+
+  @Override
+  public String getName() {
+    return aName;
+  }
+
+  @Override
+  public Principal getOwner() {
+    // TODO Auto-generated method stub
+    // return null;
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  @Override
+  public Set<String> getRoles() {
+    // TODO Auto-generated method stub
+    // return null;
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  @Override
+  public Collection<? extends ClientStartNode<T>> getStartNodes() {
+    List<ClientStartNode<T>> result = new ArrayList<ClientStartNode<T>>();
+    for(T n:getModelNodes()) {
+      if (n instanceof ClientStartNode) {
+        result.add((ClientStartNode<T>) n);
+      }
+    }
+    return result;
+  }
+
   public void layout() {
     for (final T node : aNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
@@ -389,68 +531,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
             result.add(sibling);
           }
         }
-      }
-    }
-    return result;
-  }
-
-  @Override
-  public int getEndNodeCount() {
-    int i=0;
-    for(T node: getModelNodes()) {
-      if (node instanceof EndNode) { ++i; }
-    }
-    return i;
-  }
-
-  @Override
-  public IProcessModelRef<T> getRef() {
-    throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
-  public T getNode(String pNodeId) {
-    for(T n: getModelNodes()) {
-      if (pNodeId.equals(n.getId())) {
-        return n;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public Collection<? extends T> getModelNodes() {
-    if (aNodes == null) {
-      aNodes = new ArrayList<T>(0);
-    }
-    return aNodes;
-  }
-
-  @Override
-  public String getName() {
-    return aName;
-  }
-
-  @Override
-  public Principal getOwner() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  @Override
-  public Set<String> getRoles() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  @Override
-  public Collection<? extends ClientStartNode<T>> getStartNodes() {
-    List<ClientStartNode<T>> result = new ArrayList<ClientStartNode<T>>();
-    for(T n:getModelNodes()) {
-      if (n instanceof ClientStartNode) {
-        result.add((ClientStartNode<T>) n);
       }
     }
     return result;
