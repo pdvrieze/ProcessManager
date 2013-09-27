@@ -1,5 +1,9 @@
 package nl.adaptivity.process.editor.android;
 
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import static org.xmlpull.v1.XmlPullParser.TEXT;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -12,10 +16,6 @@ import java.util.Set;
 
 import javax.xml.XMLConstants;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
@@ -25,9 +25,13 @@ import nl.adaptivity.process.diagram.DrawableJoin;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableStartNode;
-import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import android.util.Log;
-import static org.xmlpull.v1.XmlPullParser.*;
 
 public class PMParser {
 
@@ -61,12 +65,12 @@ public class PMParser {
     }
 
     @Override
-    public Set<? extends DrawableProcessNode> getPredecessors() {
+    public ProcessNodeSet<? extends DrawableProcessNode> getPredecessors() {
       throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
-    public Set<? extends DrawableProcessNode> getSuccessors() {
+    public ProcessNodeSet<? extends DrawableProcessNode> getSuccessors() {
       throw new UnsupportedOperationException("Not implemented");
     }
 
