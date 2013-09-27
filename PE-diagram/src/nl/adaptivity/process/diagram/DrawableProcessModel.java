@@ -32,7 +32,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double ACTIVITYROUNDY=ACTIVITYHEIGHT/4d;
   public static final double JOINWIDTH=24d;
   public static final double JOINHEIGHT=JOINWIDTH;
-  public static final double DEFAULT_HORIZ_SEPARATION = 60d;
+  public static final double DEFAULT_HORIZ_SEPARATION = 40d;
   public static final double DEFAULT_VERT_SEPARATION = 30d;
   public static final double STROKEWIDTH = 1d;
 

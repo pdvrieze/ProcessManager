@@ -10,6 +10,7 @@ import net.devrieze.util.CollectionUtil;
 
 import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Point;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
@@ -25,21 +26,16 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private List<T> aNodes;
 
-  private double aVertSeparation = 30d;
-
-  private double aHorizSeparation = 30d;
-
   private double aTopPadding = 5d;
   private double aLeftPadding = 5d;
   private double aBottomPadding = 5d;
   private double aRightPadding = 5d;
 
-  private double aDefaultNodeWidth = 30d;
-  private double aDefaultNodeHeight = 30d;
-
   private double aInnerWidth = Double.NaN;
 
   private double aInnerHeight = Double.NaN;
+
+  LayoutAlgorithm aLayoutAlgorithm = new LayoutAlgorithm();
 
   public ClientProcessModel(final String pName, final Collection<? extends T> pNodes) {
     aName = pName;
@@ -53,28 +49,53 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public double getVertSeparation() {
-    return aVertSeparation;
+    return aLayoutAlgorithm.getVertSeparation();
   }
 
 
   public void setVertSeparation(double pVertSeparation) {
-    if (aVertSeparation!=pVertSeparation) {
+    if (aLayoutAlgorithm.getVertSeparation()!=pVertSeparation) {
       invalidate();
     }
-    aVertSeparation = pVertSeparation;
+    aLayoutAlgorithm.setVertSeparation(pVertSeparation);
   }
 
 
   public double getHorizSeparation() {
-    return aHorizSeparation;
+    return aLayoutAlgorithm.getHorizSeparation();
   }
 
 
   public void setHorizSeparation(double pHorizSeparation) {
-    if (aHorizSeparation!=pHorizSeparation) {
+    if (aLayoutAlgorithm.getHorizSeparation()!=pHorizSeparation) {
       invalidate();
     }
-    aHorizSeparation = pHorizSeparation;
+    aLayoutAlgorithm.setHorizSeparation(pHorizSeparation);
+  }
+
+  public double getDefaultNodeWidth() {
+    return aLayoutAlgorithm.getDefaultNodeWidth();
+  }
+
+
+  public void setDefaultNodeWidth(double pDefaultNodeWidth) {
+    if (aLayoutAlgorithm.getDefaultNodeWidth()!=pDefaultNodeWidth) {
+      invalidate();
+    }
+    aLayoutAlgorithm.setDefaultNodeWidth(pDefaultNodeWidth);
+  }
+
+
+  public double getDefaultNodeHeight() {
+    return aLayoutAlgorithm.getDefaultNodeHeight();
+  }
+
+
+  public void setDefaultNodeHeight(double pDefaultNodeHeight) {
+    if (aLayoutAlgorithm.getDefaultNodeHeight()!=pDefaultNodeHeight) {
+      invalidate();
+    }
+    aLayoutAlgorithm.setDefaultNodeHeight(pDefaultNodeHeight);
   }
 
 
@@ -125,28 +146,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     aRightPadding = pRightPadding;
   }
 
-
-  public double getDefaultNodeWidth() {
-    return aDefaultNodeWidth;
-  }
-
-
-  public void setDefaultNodeWidth(double pDefaultNodeWidth) {
-    if (aDefaultNodeWidth!=pDefaultNodeWidth) {
-      invalidate();
-    }
-    aDefaultNodeWidth = pDefaultNodeWidth;
-  }
-
-
-  public double getDefaultNodeHeight() {
-    return aDefaultNodeHeight;
-  }
-
-
-  public void setDefaultNodeHeight(double pDefaultNodeHeight) {
-    aDefaultNodeHeight = pDefaultNodeHeight;
-  }
 
   public void invalidate() {
     for (T n:aNodes) {
@@ -244,7 +243,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     for (final T node : aNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
         changed = true;
-        layoutNode(node, true); // always force as that should be slightly more efficient
+        layoutNode(node, true, true); // always force as that should be slightly more efficient
       }
     }
     if (changed) {
@@ -274,26 +273,26 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  private void layoutNode(T pNode, boolean force) {
+  private void layoutNode(T pNode, boolean forceX, boolean forceY) {
     List<Point> leftPoints = getLeftPoints(pNode);
     List<Point> abovePoints = getAbovePoints(pNode);
     List<Point> rightPoints = getRightPoints(pNode);
     List<Point> belowPoints = getBelowPoints(pNode);
 
-    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
-    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
-    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
-    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+    double minY = maxY(abovePoints)+getVertSeparation() + topDistance(pNode);
+    double maxY = minY(belowPoints)-getVertSeparation() - bottomDistance(pNode);
+    double minX = maxX(leftPoints)+getHorizSeparation() + leftDistance(pNode);
+    double maxX = minX(rightPoints)-getHorizSeparation() - rightDistance(pNode);
 
     double x = pNode.getX();
     double y = pNode.getY();
 
     if (leftPoints.isEmpty()) {
       if (rightPoints.isEmpty()) {
-        if (force || Double.isNaN(x)|| x<minX || x>maxX) {
+        if (forceX || Double.isNaN(x)|| x<minX || x>maxX) {
           x = averageX(abovePoints, belowPoints, 0d);
         }
-        if (force || Double.isNaN(y) || y<minY || y>maxY) {
+        if (forceY || Double.isNaN(y) || y<minY || y>maxY) {
           if (abovePoints.isEmpty()) {
             if (! belowPoints.isEmpty()) {
               y = maxY;
@@ -308,15 +307,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         }
 
       } else { // leftPoints empty, rightPoints not empty
-        if (force || Double.isNaN(y)|| y<minY || y>maxY) {
+        if (forceY || Double.isNaN(y)|| y<minY || y>maxY) {
           y = Math.max(minY, averageY(rightPoints));
         }
-        if (force || Double.isNaN(x)|| x<minX || x>maxX) {
+        if (forceX || Double.isNaN(x)|| x<minX || x>maxX) {
           x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
         }
       }
     } else { // leftPoints not empty
-      if (force || Double.isNaN(y) || y<minY || y>maxY) {
+      if (forceY || Double.isNaN(y) || y<minY || y>maxY) {
         if (leftPoints.size()==1) {
           y = Math.max(minY, averageY(leftPoints));
         } else {
@@ -327,7 +326,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           }
         }
       }
-      if (force || Double.isNaN(x)|| x<minX || x>maxX) {
+      if (forceX || Double.isNaN(x)|| x<minX || x>maxX) {
         if (rightPoints.isEmpty()) {
           x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
         } else {
@@ -344,16 +343,16 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
       pNode.setX(x);
       pNode.setY(y);
       for(T n:getPrecedingSiblings(pNode)) {
-        layoutNode(n, yChanged && y<minY);
+        layoutNode(n, xChanged, yChanged && y<minY);
       }
       for(T n:getFollowingSiblings(pNode)) {
-        layoutNode(n, yChanged && y>maxY);
+        layoutNode(n, xChanged, yChanged && y>maxY);
       }
       for(T n:pNode.getPredecessors()) {
-        layoutNode(n, xChanged && x<minX);
+        layoutNode(n, xChanged && x<minX, yChanged);
       }
       for(T n:pNode.getSuccessors()) {
-        layoutNode(n, xChanged && x>maxX);
+        layoutNode(n, xChanged && x>maxX, yChanged);
       }
     }
   }
@@ -368,28 +367,28 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     if ((!Double.isNaN(pNode.getY())) && pNode instanceof Bounded) {
       return pNode.getY()-((Bounded) pNode).getBounds().top;
     }
-    return aDefaultNodeHeight/2;
+    return aLayoutAlgorithm.getDefaultNodeHeight()/2;
   }
 
   private double bottomDistance(T pNode) {
     if ((!Double.isNaN(pNode.getY()))&& pNode instanceof Bounded) {
       return ((Bounded) pNode).getBounds().bottom()-pNode.getY();
     }
-    return aDefaultNodeHeight/2;
+    return aLayoutAlgorithm.getDefaultNodeHeight()/2;
   }
 
   private double leftDistance(T pNode) {
     if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
       return pNode.getX()-((Bounded) pNode).getBounds().left;
     }
-    return aDefaultNodeWidth/2;
+    return aLayoutAlgorithm.getDefaultNodeWidth()/2;
   }
 
   private double rightDistance(T pNode) {
     if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
       return ((Bounded) pNode).getBounds().right()-pNode.getX();
     }
-    return aDefaultNodeWidth/2;
+    return aLayoutAlgorithm.getDefaultNodeWidth()/2;
   }
 
   private static double averageY(List<Point> pPoints) {
@@ -483,7 +482,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         if (n instanceof Bounded) {
           x = ((Bounded) n).getBounds().right();
         } else {
-          x = n.getX()+(aDefaultNodeWidth/2);
+          x = n.getX()+(aLayoutAlgorithm.getDefaultNodeWidth()/2);
         }
         result.add(new Point(x,y));
       }
@@ -500,7 +499,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         if (n instanceof Bounded) {
           x = ((Bounded) n).getBounds().left;
         } else {
-          x = n.getX()-(aDefaultNodeWidth/2);
+          x = n.getX()-(aLayoutAlgorithm.getDefaultNodeWidth()/2);
         }
         result.add(new Point(x,y));
       }
@@ -517,7 +516,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         if (n instanceof Bounded) {
           y = ((Bounded) n).getBounds().bottom();
         } else {
-          y = n.getY()+(aDefaultNodeHeight/2);
+          y = n.getY()+(aLayoutAlgorithm.getDefaultNodeHeight()/2);
         }
         result.add(new Point(x,y));
       }
@@ -534,7 +533,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         if (n instanceof Bounded) {
           y = ((Bounded) n).getBounds().top;
         } else {
-          y = n.getY()-(aDefaultNodeHeight/2);
+          y = n.getY()-(aLayoutAlgorithm.getDefaultNodeHeight()/2);
         }
         result.add(new Point(x,y));
       }
