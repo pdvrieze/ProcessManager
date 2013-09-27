@@ -23,12 +23,20 @@ public final class Rectangle {
     return (float) top;
   }
 
-  public float rightf() {
-    return (float) (left+width);
+  public double right() {
+    return left+width;
   }
 
+  public float rightf() {
+    return (float) right();
+  }
+
+  public double bottom() {
+    return top+height;
+  }
+  
   public float bottomf() {
-    return (float) (top+height);
+    return (float) bottom();
   }
 
   public float widthf() {
