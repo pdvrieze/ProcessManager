@@ -37,6 +37,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   private double aDefaultNodeWidth = 30d;
   private double aDefaultNodeHeight = 30d;
 
+  private double aInnerWidth = Double.NaN;
+
+  private double aInnerHeight = Double.NaN;
+
   public ClientProcessModel(final String pName, final Collection<? extends T> pNodes) {
     aName = pName;
     setNodes(pNodes);
@@ -44,6 +48,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public void setNodes(final Collection<? extends T> nodes) {
     aNodes = CollectionUtil.copy(nodes);
+    invalidate();
   }
 
 
@@ -53,6 +58,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public void setVertSeparation(double pVertSeparation) {
+    if (aVertSeparation!=pVertSeparation) {
+      invalidate();
+    }
     aVertSeparation = pVertSeparation;
   }
 
@@ -63,6 +71,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public void setHorizSeparation(double pHorizSeparation) {
+    if (aHorizSeparation!=pHorizSeparation) {
+      invalidate();
+    }
     aHorizSeparation = pHorizSeparation;
   }
 
@@ -73,6 +84,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public void setTopPadding(double pTopPadding) {
+    double offset = pTopPadding-aTopPadding;
+    for(T n:aNodes) {
+      n.setY(n.getY()+offset);
+    }
     aTopPadding = pTopPadding;
   }
 
@@ -83,6 +98,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public void setLeftPadding(double pLeftPadding) {
+    double offset = pLeftPadding-aLeftPadding;
+    for(T n:aNodes) {
+      n.setX(n.getX()+offset);
+    }
     aLeftPadding = pLeftPadding;
   }
 
@@ -113,6 +132,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public void setDefaultNodeWidth(double pDefaultNodeWidth) {
+    if (aDefaultNodeWidth!=pDefaultNodeWidth) {
+      invalidate();
+    }
     aDefaultNodeWidth = pDefaultNodeWidth;
   }
 
@@ -124,6 +146,13 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public void setDefaultNodeHeight(double pDefaultNodeHeight) {
     aDefaultNodeHeight = pDefaultNodeHeight;
+  }
+
+  public void invalidate() {
+    for (T n:aNodes) {
+      n.setX(Double.NaN);
+      n.setY(Double.NaN);
+    }
   }
 
   @Override
@@ -188,25 +217,50 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return result;
   }
 
-  public void layout() {
+  public double getWidth() {
+    if (Double.isNaN(aInnerWidth)) {
+      layout();
+    }
+    return aLeftPadding+aInnerWidth+aRightPadding;
+  }
+
+  public double getHeight() {
+    if (Double.isNaN(aInnerHeight)) {
+      layout();
+    }
+    return aTopPadding+aInnerHeight+aBottomPadding;
+  }
+
+  protected void layout() {
+    boolean changed = Double.isNaN(aInnerHeight)|| Double.isNaN(aInnerWidth);
     for (final T node : aNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
-        layoutNode(node, false); // always force as that should be slightly more efficient
+        changed = true;
+        layoutNode(node, true); // always force as that should be slightly more efficient
       }
     }
-    double minX = Double.MAX_VALUE;
-    double minY = Double.MAX_VALUE;
-    for (final T node : aNodes) {
-      minX = Math.min(node.getX()-leftDistance(node), minX);
-      minY = Math.min(node.getY()-topDistance(node), minY);
-    }
-    final double offsetX = aLeftPadding - minX;
-    final double offsetY = aTopPadding - minY;
-
-    if (Math.abs(offsetX)>TOLERANCE || Math.abs(offsetY)>TOLERANCE) {
+    if (changed) {
+      double minX = Double.MAX_VALUE;
+      double minY = Double.MAX_VALUE;
+      double maxX = Double.MIN_VALUE;
+      double maxY = Double.MIN_VALUE;
       for (final T node : aNodes) {
-        node.setX(node.getX()+offsetX);
-        node.setY(node.getY()+offsetY);
+        minX = Math.min(node.getX()-leftDistance(node), minX);
+        minY = Math.min(node.getY()-topDistance(node), minY);
+        maxX = Math.max(node.getX()+rightDistance(node), maxX);
+        maxY = Math.max(node.getY()+bottomDistance(node), maxY);
+      }
+      final double offsetX = aLeftPadding - minX;
+      final double offsetY = aTopPadding - minY;
+
+      aInnerWidth = maxX - minX;
+      aInnerHeight = maxY - minY;
+
+      if (Math.abs(offsetX)>TOLERANCE || Math.abs(offsetY)>TOLERANCE) {
+        for (final T node : aNodes) {
+          node.setX(node.getX()+offsetX);
+          node.setY(node.getY()+offsetY);
+        }
       }
     }
   }
