@@ -2,9 +2,11 @@ package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.process.editor.android.R;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -37,17 +39,20 @@ public class DiagramView extends View {
   @Override
   public void draw(Canvas pCanvas) {
     super.draw(pCanvas);
-    if (aRed==null) {
-      aRed = new Paint();
-      aRed.setARGB(255, 255, 0, 0);
-    }
-    pCanvas.drawLine(200, 0, 0, 200, aRed);
-    
+//    pCanvas.drawLine(200, 0, 0, 200, aRed);
+
     if (aDiagram!=null) {
       final Rectangle clipBounds = new Rectangle(0d, 0d, getHeight(), getWidth());
       final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
       aDiagram.draw(canvas, clipBounds);
     } else {
+      if (aRed==null) {
+        aRed = new Paint();
+        aRed.setARGB(255, 255, 0, 0);
+        aRed.setTypeface(Typeface.DEFAULT);
+        aRed.setTextSize(50f);
+      }
+      pCanvas.drawText(getContext().getResources().getString(R.string.missing_diagram), getWidth()/2, getHeight()/2, aRed);
       pCanvas.drawCircle(100, 100, 75, aRed);
     }
   }

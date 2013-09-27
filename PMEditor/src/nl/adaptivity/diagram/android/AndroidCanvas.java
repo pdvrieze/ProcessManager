@@ -1,6 +1,6 @@
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Color;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
@@ -34,40 +34,43 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
     }
 
     @Override
-    public Color newColor(int pR, int pG, int pB, int pA) {
-      final Color color = AndroidCanvas.this.newColor(pR, pG, pB, pA);
-      ((AndroidColor) color).getPaint().setStrokeWidth((float) aScale);
-      return color;
+    public Pen newColor(int pR, int pG, int pB, int pA) {
+      return AndroidCanvas.this.newColor(pR, pG, pB, pA);
     }
 
     @Override
-    public void drawCircle(double pX, double pY, double pRadius, Color pColor) {
-      AndroidCanvas.this.drawCircle((pX+aXOffset)*aScale, (pY + aYOffset) * aScale, pRadius*aScale, pColor);
+    public Pen newPen() {
+      return AndroidCanvas.this.newPen();
     }
 
     @Override
-    public void drawFilledCircle(double pX, double pY, double pRadius, Color pColor) {
-      AndroidCanvas.this.drawFilledCircle((pX + aXOffset) * aScale, (pY + aYOffset) * aScale, pRadius*aScale, pColor);
+    public void drawCircle(double pX, double pY, double pRadius, Pen pPen) {
+      AndroidCanvas.this.drawCircle((pX+aXOffset)*aScale, (pY + aYOffset) * aScale, pRadius*aScale, pPen);
     }
 
     @Override
-    public void drawRect(Rectangle pRect, Color pColor) {
-      AndroidCanvas.this.drawRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pColor);
+    public void drawFilledCircle(double pX, double pY, double pRadius, Pen pPen) {
+      AndroidCanvas.this.drawFilledCircle((pX + aXOffset) * aScale, (pY + aYOffset) * aScale, pRadius*aScale, pPen);
     }
 
     @Override
-    public void drawFilledRect(Rectangle pRect, Color pColor) {
-      AndroidCanvas.this.drawFilledRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pColor);
+    public void drawRect(Rectangle pRect, Pen pPen) {
+      AndroidCanvas.this.drawRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pPen);
     }
 
     @Override
-    public void drawPath(double[] pPoints, Color pColor) {
-      AndroidCanvas.this.drawPath(transform(pPoints), pColor);
+    public void drawFilledRect(Rectangle pRect, Pen pPen) {
+      AndroidCanvas.this.drawFilledRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pPen);
     }
 
     @Override
-    public void drawFilledPath(double[] pPoints, Color pColor) {
-      AndroidCanvas.this.drawFilledPath(transform(pPoints), pColor);
+    public void drawPath(double[] pPoints, Pen pPen) {
+      AndroidCanvas.this.drawPath(transform(pPoints), pPen);
+    }
+
+    @Override
+    public void drawFilledPath(double[] pPoints, Pen pPen) {
+      AndroidCanvas.this.drawFilledPath(transform(pPoints), pPen);
     }
 
     private double[] transform(double[] pPoints) {
@@ -82,13 +85,13 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
     }
 
     @Override
-    public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Color pColor) {
-      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pColor);
+    public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
+      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pPen);
     }
 
     @Override
-    public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Color pColor) {
-      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pColor);
+    public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
+      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pPen);
     }
 
   }
@@ -105,7 +108,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
   }
 
   @Override
-  public Color newColor(int pR, int pG, int pB, int pA) {
+  public Pen newColor(int pR, int pG, int pB, int pA) {
     // TODO cache this some way
     Paint paint = new Paint();
     paint.setARGB(pA, pR, pG, pB);
@@ -114,12 +117,17 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
     // TODO make this configurable
 //    paint.setStrokeWidth(1f);
 
-    return new AndroidColor(paint);
+    return new AndroidPen(paint);
   }
 
   @Override
-  public void drawFilledCircle(double pX, double pY, double pRadius, Color pColor) {
-    Paint paint = ((AndroidColor) pColor).getPaint();
+  public Pen newPen() {
+    return new AndroidPen(new Paint());
+  }
+
+  @Override
+  public void drawFilledCircle(double pX, double pY, double pRadius, Pen pPen) {
+    Paint paint = ((AndroidPen) pPen).getPaint();
     Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
     aCanvas.drawCircle((float) pX, (float) pY, (float) pRadius, paint);
@@ -127,49 +135,49 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
   }
 
   @Override
-  public void drawCircle(double pX, double pY, double pRadius, Color pColor) {
-    aCanvas.drawCircle((float) pX, (float) pY, (float) pRadius, ((AndroidColor) pColor).getPaint());
+  public void drawCircle(double pX, double pY, double pRadius, Pen pPen) {
+    aCanvas.drawCircle((float) pX, (float) pY, (float) pRadius, ((AndroidPen) pPen).getPaint());
   }
 
   @Override
-  public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Color pColor) {
-    Paint paint = ((AndroidColor) pColor).getPaint();
+  public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
+    Paint paint = ((AndroidPen) pPen).getPaint();
     Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    aCanvas.drawRoundRect(toRectF(pRect), (float)pRx, (float)pRy, ((AndroidColor)pColor).getPaint());
+    aCanvas.drawRoundRect(toRectF(pRect), (float)pRx, (float)pRy, ((AndroidPen)pPen).getPaint());
     paint.setStyle(oldStyle);
   }
 
   @Override
-  public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Color pColor) {
-    aCanvas.drawRoundRect(toRectF(pRect), (float)pRx, (float)pRy, ((AndroidColor)pColor).getPaint());
+  public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
+    aCanvas.drawRoundRect(toRectF(pRect), (float)pRx, (float)pRy, ((AndroidPen)pPen).getPaint());
   }
 
   @Override
-  public void drawFilledRect(Rectangle pRect, Color pColor) {
-    Paint paint = ((AndroidColor) pColor).getPaint();
+  public void drawFilledRect(Rectangle pRect, Pen pPen) {
+    Paint paint = ((AndroidPen) pPen).getPaint();
     Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    aCanvas.drawRect(toRectF(pRect), ((AndroidColor)pColor).getPaint());
+    aCanvas.drawRect(toRectF(pRect), ((AndroidPen)pPen).getPaint());
     paint.setStyle(oldStyle);
   }
 
   @Override
-  public void drawRect(Rectangle pRect, Color pColor) {
-    aCanvas.drawRect(toRectF(pRect), ((AndroidColor)pColor).getPaint());
+  public void drawRect(Rectangle pRect, Pen pPen) {
+    aCanvas.drawRect(toRectF(pRect), ((AndroidPen)pPen).getPaint());
   }
 
   @Override
-  public void drawPath(double[] pPoints, Color pColor) {
-    aCanvas.drawPath(toPath(pPoints), ((AndroidColor)pColor).getPaint());
+  public void drawPath(double[] pPoints, Pen pPen) {
+    aCanvas.drawPath(toPath(pPoints), ((AndroidPen)pPen).getPaint());
   }
 
   @Override
-  public void drawFilledPath(double[] pPoints, Color pColor) {
-    Paint paint = ((AndroidColor) pColor).getPaint();
+  public void drawFilledPath(double[] pPoints, Pen pPen) {
+    Paint paint = ((AndroidPen) pPen).getPaint();
     Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    aCanvas.drawPath(toPath(pPoints), ((AndroidColor)pColor).getPaint());
+    aCanvas.drawPath(toPath(pPoints), ((AndroidPen)pPen).getPaint());
     paint.setStyle(oldStyle);
   }
 
