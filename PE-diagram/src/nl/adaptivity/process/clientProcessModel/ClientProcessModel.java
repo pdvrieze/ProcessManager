@@ -217,18 +217,26 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return result;
   }
 
-  public double getWidth() {
+  public double getInnerWidth() {
     if (Double.isNaN(aInnerWidth)) {
       layout();
     }
-    return aLeftPadding+aInnerWidth+aRightPadding;
+    return aInnerWidth;
   }
 
-  public double getHeight() {
+  public double getWidth() {
+    return aLeftPadding+getInnerWidth()+aRightPadding;
+  }
+
+  public double getInnerHeight() {
     if (Double.isNaN(aInnerHeight)) {
       layout();
     }
-    return aTopPadding+aInnerHeight+aBottomPadding;
+    return aInnerHeight;
+  }
+
+  public double getHeight() {
+    return aTopPadding+getInnerHeight()+aBottomPadding;
   }
 
   protected void layout() {
