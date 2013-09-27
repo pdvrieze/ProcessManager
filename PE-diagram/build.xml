@@ -25,9 +25,15 @@
 	</target>
 	<target name="build">
 		<mkdir dir="build" />
+	  <mkdir dir=".depcache" />
+	  <depend srcdir="src:../PE-common/src:../java-common/src:../JavaCommonApi/src:../DarwinJavaApi/src" 
+            destdir="build"
+	          cache=".depcache"/>
 		<javac srcdir="src" 
 		       sourcepath="src:../PE-common/src:../java-common/src:../JavaCommonApi/src:../DarwinJavaApi/src" 
-		       destdir="build" classpath="${classpath}" 
+		       destdir="build"
+		       classpath="${classpath}"
+		       includeantruntime="false"
 		       debug="on" 
 		       source="1.7" 
 		       target="1.7" />
@@ -38,10 +44,17 @@
 		       sourcepath="src:../PE-common/src:../java-common/src" 
 		       destdir="release" 
 		       classpath="${classpath}" 
+           includeantruntime="false"
 		       debug="off" 
 		       source="1.7" 
 		       target="1.7" />
 	</target>
+  <target name="clean">
+    <delete dir="build"></delete>
+    <delete dir="release"></delete>
+    <delete dir=".depcache"></delete>
+    <delete file="PE-diagram-1.0.0.jar" />
+  </target>
 	<target name="jar" depends="release">
 		<jar destfile="PE-diagram-1.0.0.jar" basedir="release">
 		</jar>
