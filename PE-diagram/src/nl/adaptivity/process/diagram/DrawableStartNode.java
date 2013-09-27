@@ -14,7 +14,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-STARTNODERADIUS, getY()-STARTNODERADIUS, STARTNODERADIUS*2, STARTNODERADIUS*2);
+    return new Rectangle(getX()-STARTNODERADIUS, getY()-STARTNODERADIUS, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
   }
 
   @Override

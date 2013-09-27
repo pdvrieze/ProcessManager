@@ -14,7 +14,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-ENDNODEOUTERRADIUS, getY()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2, ENDNODEOUTERRADIUS*2);
+    return new Rectangle(getX()-ENDNODEOUTERRADIUS, getY()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH);
   }
 
   @Override

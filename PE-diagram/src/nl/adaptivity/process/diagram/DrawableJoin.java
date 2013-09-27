@@ -10,6 +10,8 @@ import nl.adaptivity.process.processModel.Join;
 
 public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements DrawableProcessNode {
 
+  private static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
+
   private Pen aBlack;
   private Pen aWhite;
 
@@ -17,7 +19,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   public Rectangle getBounds() {
     double dx = JOINWIDTH/2;
     double dy = JOINHEIGHT/2;
-    return new Rectangle(getX()-dx, getY()-dy, JOINHEIGHT, JOINWIDTH);
+    return new Rectangle(getX()-dx, getY()-dy, JOINHEIGHT+STROKEEXTEND, JOINWIDTH+STROKEEXTEND);
   }
 
   @Override

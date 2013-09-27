@@ -16,7 +16,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-(ACTIVITYWIDTH/2), getY()-(ACTIVITYHEIGHT/2), ACTIVITYWIDTH, ACTIVITYHEIGHT);
+    return new Rectangle(getX()-(ACTIVITYWIDTH/2), getY()-(ACTIVITYHEIGHT/2), ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
   }
 
   @Override
