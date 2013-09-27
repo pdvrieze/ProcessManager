@@ -1,7 +1,7 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.Color;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
 import nl.adaptivity.process.processModel.Join;
@@ -10,8 +10,8 @@ import nl.adaptivity.process.processModel.Join;
 
 public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements DrawableProcessNode {
 
-  private Color aBlack;
-  private Color aWhite;
+  private Pen aBlack;
+  private Pen aWhite;
 
   @Override
   public Rectangle getBounds() {
@@ -24,7 +24,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     double dx = JOINWIDTH/2;
     double dy = JOINHEIGHT/2;
-    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
+    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(STROKEWIDTH); }
     if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
     double[] points = new double[] {
       0,dy,

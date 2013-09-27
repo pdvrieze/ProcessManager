@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.Color;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
@@ -22,18 +22,19 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode> implements Diagram {
 
-  public static final double STARTNODERADIUS=8d;
+  public static final double STARTNODERADIUS=10d;
   public static final double ENDNODEOUTERRADIUS=12d;
-  public static final double ENDNODEINNERRRADIUS=6d;
+  public static final double ENDNODEINNERRRADIUS=7d;
+  public static final double ENDNODEOUTERSTROKEWIDTH = 1.3d;
   public static final double ACTIVITYWIDTH=32d;
   public static final double ACTIVITYHEIGHT=ACTIVITYWIDTH;
   public static final double ACTIVITYROUNDX=ACTIVITYWIDTH/4d;
   public static final double ACTIVITYROUNDY=ACTIVITYHEIGHT/4d;
   public static final double JOINWIDTH=24d;
   public static final double JOINHEIGHT=JOINWIDTH;
-  private static final double DEFAULT_HORIZ_SEPARATION = 40d;
-  private static final double DEFAULT_VERT_SEPARATION = 30d;
-  private static final double STROKEWIDTH = 1d;
+  public static final double DEFAULT_HORIZ_SEPARATION = 60d;
+  public static final double DEFAULT_VERT_SEPARATION = 30d;
+  public static final double STROKEWIDTH = 1d;
 
   private double aScale = 1d;
 
@@ -48,6 +49,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   public DrawableProcessModel(String pName, Collection<? extends DrawableProcessNode> pNodes) {
     super(pName, pNodes);
+    setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
+    setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
+    setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
+    setVertSeparation(DEFAULT_VERT_SEPARATION);
     layout();
   }
 
@@ -126,7 +131,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     Canvas canvas = pCanvas.childCanvas(getBounds(), aScale);
-    Color red = canvas.newColor(255, 0, 0, 255);
+    Pen red = canvas.newColor(255, 0, 0, 255);
     for(DrawableProcessNode node:getModelNodes()) {
       System.err.println("Drawing "+ node.getClass().getSimpleName()+" "+node.getId()+ "("+node.getX()+", "+node.getY()+")");
       // TODO actually support clipbounds

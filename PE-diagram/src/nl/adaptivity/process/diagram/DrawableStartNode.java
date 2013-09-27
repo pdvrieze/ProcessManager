@@ -1,7 +1,7 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.Color;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
@@ -10,7 +10,7 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
 
-  private Color aBlack;
+  private Pen aBlack;
 
   @Override
   public Rectangle getBounds() {

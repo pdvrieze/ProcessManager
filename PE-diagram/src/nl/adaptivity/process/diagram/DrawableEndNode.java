@@ -1,7 +1,7 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.Color;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
@@ -10,7 +10,7 @@ import nl.adaptivity.process.processModel.EndNode;
 
 public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implements DrawableProcessNode {
 
-  private Color aBlack;
+  private Pen aBlack;
 
   @Override
   public Rectangle getBounds() {
@@ -19,7 +19,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
+    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(ENDNODEOUTERSTROKEWIDTH); }
     pCanvas.drawCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, aBlack);
     pCanvas.drawFilledCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEINNERRRADIUS, aBlack);
   }

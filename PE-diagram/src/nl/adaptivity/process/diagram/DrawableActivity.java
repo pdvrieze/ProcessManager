@@ -1,7 +1,7 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.Color;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
@@ -10,8 +10,8 @@ import nl.adaptivity.process.processModel.Activity;
 
 public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> implements DrawableProcessNode {
 
-  private Color aBlack;
-  private Color aWhite;
+  private Pen aBlack;
+  private Pen aWhite;
   private static Rectangle _bounds;
 
   @Override
@@ -21,7 +21,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
+    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); aBlack.setStrokeWidth(STROKEWIDTH); }
     if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
     if (_bounds==null) { _bounds = new Rectangle(0,0, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
     pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, aWhite);
