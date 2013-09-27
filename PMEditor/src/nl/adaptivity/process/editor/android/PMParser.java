@@ -65,22 +65,22 @@ public class PMParser {
     }
 
     @Override
-    public ProcessNodeSet<? extends DrawableProcessNode> getPredecessors() {
+    public ProcessNodeSet<DrawableProcessNode> getPredecessors() {
       throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
-    public ProcessNodeSet<? extends DrawableProcessNode> getSuccessors() {
+    public ProcessNodeSet<DrawableProcessNode> getSuccessors() {
       throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
-    protected void setPredecessor(DrawableProcessNode pArg0) {
+    public void setPredecessor(DrawableProcessNode pArg0) {
       throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
-    protected void setSuccessor(DrawableProcessNode pArg0) {
+    public void setSuccessor(DrawableProcessNode pArg0) {
       throw new UnsupportedOperationException("Not implemented");
     }
 
