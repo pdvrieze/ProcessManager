@@ -11,11 +11,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.MemHandleMap;
@@ -24,15 +19,21 @@ import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessModelRef;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 
 /**
@@ -51,7 +52,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   }
 
-  private final StringCache aStringCache = new StringCacheImpl.SafeStringCache();
+  private final StringCache aStringCache = new StringCacheImpl();
 
   private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<>();
 
@@ -88,7 +89,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @param pPm The process model to add.
    * @return The processModel to add.
    */
-  public ProcessModelRef addProcessModel(final ProcessModelImpl pPm, final Principal pUser) {
+  public IProcessModelRef<ProcessNodeImpl> addProcessModel(final ProcessModelImpl pPm, final Principal pUser) {
     aSecurityProvider.ensurePermission(Permissions.ADD_MODEL, pUser);
 
     if (pPm.getOwner() == null) {
@@ -109,7 +110,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @deprecated In favour of {@link #getProcessModel(HProcessModel)}
    */
   @Deprecated
-  public ProcessModel getProcessModel(final long pHandle, final Principal pUser) {
+  public ProcessModel<ProcessNodeImpl> getProcessModel(final long pHandle, final Principal pUser) {
     final ProcessModelImpl result = aProcessModels.get(pHandle);
     if (result != null) {
       aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
