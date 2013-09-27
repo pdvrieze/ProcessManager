@@ -7,17 +7,19 @@ import java.util.List;
 import java.util.Set;
 
 import net.devrieze.util.CollectionUtil;
-
 import nl.adaptivity.diagram.Bounded;
+import nl.adaptivity.diagram.Point;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 
 
 public class ClientProcessModel<T extends IClientProcessNode<T>> implements ProcessModel<T>{
 
   static final String PROCESSMODEL_NS = "http://adaptivity.nl/ProcessEngine/";
+
+  private static final double TOLERANCE = 1d;
 
   private final String aName;
 
@@ -46,144 +48,359 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public void layout() {
     for (final T node : aNodes) {
-      if (node.getX()==Double.NaN || node.getY()==Double.NaN) {
-        layoutNode(node);
+      if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
+        layoutNode(node, true); // always force as that should be slightly more efficient
       }
     }
     double minX = Double.MAX_VALUE;
     double minY = Double.MAX_VALUE;
     for (final T node : aNodes) {
-      if (node instanceof Bounded) {
-        Rectangle bounds = ((Bounded) node).getBounds();
-        minX = Math.min(bounds.top, minX);
-        minY = Math.min(bounds.top, minY);
-      } else {
-        minX = Math.min(node.getX()-(aDefaultNodeWidth/2), minX);
-        minY = Math.min(node.getY()-(aDefaultNodeHeight/2), minY);
-      }
+      minX = Math.min(node.getX()-leftDistance(node), minX);
+      minY = Math.min(node.getY()-topDistance(node), minY);
     }
     final double offsetX = aLeftPadding - minX;
     final double offsetY = aTopPadding - minY;
 
-    for (final T node : aNodes) {
-      node.setX(node.getX()+offsetX);
-      node.setY(node.getY()+offsetY);
+    if (Math.abs(offsetX)>TOLERANCE || Math.abs(offsetY)>TOLERANCE) {
+      for (final T node : aNodes) {
+        node.setX(node.getX()+offsetX);
+        node.setY(node.getY()+offsetY);
+      }
     }
   }
 
 
-  private void layoutNode(T pNode) {
-    ProcessNodeSet<? extends T> predecessors = pNode.getPredecessors();
-    if (predecessors.size()==0) {
-      pNode.setX(0d);
-      pNode.setY(0d);
-    } else {
-      for(T predecessor:predecessors) {
-
+  private void layoutNode(T pNode, boolean force) {
+    List<Point> leftPoints = getLeftPoints(pNode);
+    List<Point> abovePoints = getAbovePoints(pNode);
+    List<Point> rightPoints = getRightPoints(pNode);
+    List<Point> belowPoints = getBelowPoints(pNode);
+    
+    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
+    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
+    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
+    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+    
+    double x = pNode.getX();
+    double y = pNode.getY();
+    
+    if (leftPoints.isEmpty()) {
+      if (rightPoints.isEmpty()) {
+        if (force || Double.isNaN(x)|| x<minX || x>maxX) {
+          x = averageX(abovePoints, belowPoints, 0d);
+        }
+        if (force || Double.isNaN(y) || y<minY || y>maxY) {
+          if (abovePoints.isEmpty()) {
+            if (! belowPoints.isEmpty()) {
+              y = maxY;
+            } // otherwise keep it where it is
+          } else { // abovePoints not empty
+            if (belowPoints.isEmpty()) {
+              y = minY;
+            } else {
+              y = Math.max(minY, (minY+maxY)/2);
+            }
+          }
+        }
+        
+      } else { // leftPoints empty, rightPoints not empty
+        if (force || Double.isNaN(y)|| y<minY || y>maxY) {
+          y = Math.max(minY, averageY(rightPoints));
+        }
+        if (force || Double.isNaN(x)|| x<minX || x>maxX) {
+          x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
+        }
+      }
+    } else { // leftPoints not empty
+      if (force || Double.isNaN(y) || y<minY || y>maxY) {
+        if (leftPoints.size()==1) {
+          y = Math.max(minY, averageY(leftPoints));
+        } else {
+          if (rightPoints.size()==1) {
+            y = Math.max(minY, averageY(rightPoints));
+          } else {
+            y = Math.max(minY, averageY(leftPoints, rightPoints, 0));
+          }
+        }
+      }
+      if (force || Double.isNaN(x)|| x<minX || x>maxX) {
+        if (rightPoints.isEmpty()) {
+          x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
+        } else {
+          x = Math.max(minX, (minX+maxX)/2);
+        }
       }
     }
-    // TODO Auto-generated method stub
-    //
-    throw new UnsupportedOperationException("Not yet implemented");
+    if (Double.isNaN(x)) { x = 0d; }
+    if (Double.isNaN(y)) { y = 0d; }
+    boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
+    boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
+    if (yChanged || xChanged) {
+      System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
+      pNode.setX(x);
+      pNode.setY(y);
+      for(T n:getPrecedingSiblings(pNode)) {
+        layoutNode(n, yChanged && y<minY);
+      }
+      for(T n:getFollowingSiblings(pNode)) {
+        layoutNode(n, yChanged && y>maxY);
+      }
+      for(T n:pNode.getPredecessors()) {
+        layoutNode(n, xChanged && x<minX);
+      }
+      for(T n:pNode.getSuccessors()) {
+        layoutNode(n, xChanged && x>maxX);
+      }
+    }
   }
 
-  @Override
-  public double layout(final double pX, final double pY, final IClientProcessNode<?> pSource, final boolean pForward) {
-    if (hasPos()) {
-      boolean dx = false;
-      boolean dy = false;
-      if (pX != aX) {
-        if (pForward) {
-          if (pX > aX) {
-            aX = pX;
-            dx = true;
-          } else { // pX < aX
-            aX -= (aX - pX) / 2; // center
-          }
-        } else {
-          if (pX < aX) {
-            aX = pX;
-            dx = true;
-          } else { // pX > aX
-            aX += (pX - aX) / 2; // center
-          }
-        }
-      }
-      if (pY != aY) {
-        if (pY > aY) {
-          aY = pY;
-          dy = true;
-        } else {
-          aY -= (aY - pY)/2;
-        }
-      }
-      if (dx || dy) {
-        if (pForward) {
-          return Math.max(aY, layoutSuccessors(this));
-        } else {
-          return Math.max(layoutPredecessors(this), aY);
-        }
-      }
-      return aY;
+  private static boolean changed(double pA, double pB, double pTolerance) {
+    if (Double.isNaN(pA)) { return !Double.isNaN(pB); }
+    if (Double.isNaN(pB)) { return true; }
+    return Math.abs(pA-pB)>pTolerance;
+  }
 
+  private double topDistance(T pNode) {
+    if ((!Double.isNaN(pNode.getY())) && pNode instanceof Bounded) {
+      return pNode.getY()-((Bounded) pNode).getBounds().top;
+    }
+    return aDefaultNodeHeight/2;
+  }
+
+  private double bottomDistance(T pNode) {
+    if ((!Double.isNaN(pNode.getY()))&& pNode instanceof Bounded) {
+      return ((Bounded) pNode).getBounds().bottom()-pNode.getY();
+    }
+    return aDefaultNodeHeight/2;
+  }
+
+  private double leftDistance(T pNode) {
+    if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
+      return pNode.getX()-((Bounded) pNode).getBounds().left;
+    }
+    return aDefaultNodeWidth/2;
+  }
+
+  private double rightDistance(T pNode) {
+    if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
+      return ((Bounded) pNode).getBounds().right()-pNode.getX();
+    }
+    return aDefaultNodeWidth/2;
+  }
+
+  private static double averageY(List<Point> pPoints) {
+    if (pPoints.isEmpty()) {
+      return Double.NaN;
     } else {
-      aX = pX;
-      if (pForward) {
-        final int cnt = getPredecessors().size();
-        int index = -1;
-        int i = 0;
-        for (final T n : getPredecessors()) {
-          if (n == pSource) {
-            index = i;
+      double total = 0;
+      for(Point p: pPoints) { total+=p.y; }
+      return total/pPoints.size();
+    }
+  }
+
+  private static double averageY(List<Point> pPoints1, List<Point> pPoints2, double fallback) {
+    if (pPoints1.isEmpty() && pPoints2.isEmpty()) {
+      return fallback;
+    } else {
+      double total = 0;
+      for(Point p: pPoints1) { total+=p.y; }
+      for(Point p: pPoints2) { total+=p.y; }
+      return total/(pPoints1.size()+pPoints2.size());
+    }
+  }
+
+  private static double averageX(List<Point> pPoints) {
+    if (pPoints.isEmpty()) {
+      return Double.NaN;
+    } else {
+      double total = 0;
+      for(Point p: pPoints) { total+=p.x; }
+      return total/pPoints.size();
+    }
+  }
+
+  private static double averageX(List<Point> pPoints1, List<Point> pPoints2, double fallback) {
+    if (pPoints1.isEmpty() && pPoints2.isEmpty()) {
+      return fallback;
+    } else {
+      double total = 0;
+      for(Point p: pPoints1) { total+=p.x; }
+      for(Point p: pPoints2) { total+=p.x; }
+      return total/(pPoints1.size()+pPoints2.size());
+    }
+  }
+
+  private static double maxY(List<Point> pPoints) {
+    double result = Double.NEGATIVE_INFINITY;
+    for(Point p: pPoints) {
+      if (p.y>result) {
+        result = p.y;
+      }
+    }
+    return result;
+  }
+
+  private static double minY(List<Point> pPoints) {
+    double result = Double.POSITIVE_INFINITY;
+    for(Point p: pPoints) {
+      if (p.y<result) {
+        result = p.y;
+      }
+    }
+    return result;
+  }
+
+  private static double maxX(List<Point> pPoints) {
+    double result = Double.NEGATIVE_INFINITY;
+    for(Point p: pPoints) {
+      if (p.x>result) {
+        result = p.x;
+      }
+    }
+    return result;
+  }
+
+  private static double minX(List<Point> pPoints) {
+    double result = Double.POSITIVE_INFINITY;
+    for(Point p: pPoints) {
+      if (p.x<result) {
+        result = p.x;
+      }
+    }
+    return result;
+  }
+
+  private List<Point> getLeftPoints(T pNode) {
+    List<Point> result = new ArrayList<Point>();
+    for(T n:pNode.getPredecessors()) {
+      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
+        double x;
+        double y = n.getY();
+        if (n instanceof Bounded) {
+          x = ((Bounded) n).getBounds().right();
+        } else {
+          x = n.getX()+(aDefaultNodeWidth/2);
+        }
+        result.add(new Point(x,y));
+      }
+    }
+    return result;
+  }
+
+  private List<Point> getRightPoints(T pNode) {
+    List<Point> result = new ArrayList<Point>();
+    for(T n:pNode.getSuccessors()) {
+      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
+        double x;
+        double y = n.getY();
+        if (n instanceof Bounded) {
+          x = ((Bounded) n).getBounds().left;
+        } else {
+          x = n.getX()-(aDefaultNodeWidth/2);
+        }
+        result.add(new Point(x,y));
+      }
+    }
+    return result;
+  }
+
+  private List<Point> getAbovePoints(T pNode) {
+    List<Point> result = new ArrayList<Point>();
+    for(T n:getPrecedingSiblings(pNode)) {
+      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
+        double x = n.getX();
+        double y;
+        if (n instanceof Bounded) {
+          y = ((Bounded) n).getBounds().bottom();
+        } else {
+          y = n.getY()+(aDefaultNodeHeight/2);
+        }
+        result.add(new Point(x,y));
+      }
+    }
+    return result;
+  }
+
+  private List<Point> getBelowPoints(T pNode) {
+    List<Point> result = new ArrayList<Point>();
+    for(T n:getFollowingSiblings(pNode)) {
+      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
+        double x = n.getX();
+        double y;
+        if (n instanceof Bounded) {
+          y = ((Bounded) n).getBounds().top;
+        } else {
+          y = n.getY()-(aDefaultNodeHeight/2);
+        }
+        result.add(new Point(x,y));
+      }
+    }
+    return result;
+  }
+
+  private List<T> getPrecedingSiblings(T pNode) {
+    List<T> result = new ArrayList<T>();
+    for(T pred:pNode.getPredecessors()) {
+      if (pred.getSuccessors().contains(pNode)) {
+        for(T sibling: pred.getSuccessors()) {
+          if (sibling==pNode) {
             break;
+          } else {
+            result.add(pNode);
           }
-          ++i;
         }
-        if (index >= 0) {
-          aY = (pY - ((index * VERTSEP))) + (((cnt - 1) * VERTSEP) / 2);
-        } else {
-          aY = pY;
-        }
-      } else {
-        aY = pY;
       }
-      return Math.max(layoutPredecessors(pSource), layoutSuccessors(pSource));
     }
+    for(T pred:pNode.getSuccessors()) {
+      if (pred.getPredecessors().contains(pNode)) {
+        for(T sibling: pred.getPredecessors()) {
+          if (sibling==pNode) {
+            break;
+          } else {
+            result.add(pNode);
+          }
+        }
+      }
+    }
+    return result;
   }
 
-  private double layoutSuccessors(final IClientProcessNode<?> pSource) {
-    final Collection<? extends T> successors = getSuccessors();
-    double posY = aY - (((successors.size() - 1) * aVertSeparation) / 2);
-    final double posX = aX + aHorizSeparation;
-
-    for (final IClientProcessNode<?> successor : successors) {
-      if (successor != pSource) {
-        successor.layout(posX, posY, this, true);
+  private List<T> getFollowingSiblings(T pNode) {
+    List<T> result = new ArrayList<T>();
+    for(T successor:pNode.getPredecessors()) {
+      if (successor.getSuccessors().contains(pNode)) {
+        boolean following = false;
+        for(T sibling: successor.getSuccessors()) {
+          if (sibling==pNode) {
+            following = true;
+          } else if (following){
+            result.add(pNode);
+          }
+        }
       }
-      posY += VERTSEP;
     }
-    return Math.min(aY, posY - VERTSEP);
-  }
-
-  private double layoutPredecessors(final IClientProcessNode<?> pSource) {
-    final Set<? extends T> predecessors = getPredecessors();
-    double posY = aY - (((predecessors.size() - 1) * VERTSEP) / 2);
-    final double posX = aX - HORIZSEP;
-
-    for (final T predecessor : predecessors) {
-      if (predecessor != pSource) {
-        predecessor.layout(posX, posY, this, false);
+    for(T successor:pNode.getSuccessors()) {
+      if (successor.getPredecessors().contains(pNode)) {
+        boolean following = false;
+        for(T sibling: successor.getPredecessors()) {
+          if (sibling==pNode) {
+            following = true;
+          } else if (following){
+            result.add(pNode);
+          }
+        }
       }
-      posY += VERTSEP;
     }
-    return Math.min(aY, posY - VERTSEP);
+    return result;
   }
 
   @Override
   public int getEndNodeCount() {
-    // TODO Auto-generated method stub
-    // return 0;
-    throw new UnsupportedOperationException("Not yet implemented");
+    int i=0;
+    for(T node: getModelNodes()) {
+      if (node instanceof EndNode) { ++i; }
+    }
+    return i;
   }
 
   @Override

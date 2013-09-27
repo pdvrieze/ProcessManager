@@ -16,24 +16,24 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private String aCondition;
 
-  private T aPredecessor;
+  private ProcessNodeSet<T> aPredecessor = ProcessNodeSet.singleton();
 
   private ProcessNodeSet<T> aSuccessors;
 
   private IXmlMessage aMessage;
 
   @Override
-  public ProcessNodeSet<? extends T> getSuccessors() {
+  public ProcessNodeSet<T> getSuccessors() {
     if (aSuccessors == null) {
-      aSuccessors = new ProcessNodeSet<T>();
+      aSuccessors = ProcessNodeSet.processNodeSet();
     }
     return aSuccessors;
   }
 
 
   @Override
-  public ProcessNodeSet<? extends T> getPredecessors() {
-    return new ProcessNodeSet<T>();
+  public ProcessNodeSet<T> getPredecessors() {
+    return aPredecessor;
   }
 
   @Override
@@ -65,12 +65,7 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   @Override
   public T getPredecessor() {
-    return aPredecessor;
-  }
-
-  @Override
-  public void setPredecessor(T pPredecessor) {
-    aPredecessor = pPredecessor;
+    return aPredecessor.get(0);
   }
 
   @Override
@@ -84,19 +79,9 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  protected void setSuccessor(T pSuccessor) {
-    if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet<T>(1);
-    } else {
-      aSuccessors.clear();
-    }
-    aSuccessors.add(pSuccessor);
-  }
-
-  @Override
   public void addSuccessor(T pNode) {
     if (aSuccessors==null) {
-      aSuccessors = new ProcessNodeSet<T>(1);
+      aSuccessors = ProcessNodeSet.processNodeSet(1);
     }
     aSuccessors.add(pNode);
   }

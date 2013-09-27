@@ -54,7 +54,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  protected void setPredecessor(T pPredecessor) {
+  public void setPredecessor(T pPredecessor) {
     throw new UnsupportedOperationException("Start nodes have no predecessors");
   }
 
@@ -63,16 +63,6 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  @Override
-  protected void setSuccessor(T pSuccessor) {
-    if (aSuccessors==null) {
-      aSuccessors = ProcessNodeSet.processNodeSet(1);
-    } else {
-      aSuccessors.clear();
-    }
-    aSuccessors.add(pSuccessor);
   }
 
   @Override

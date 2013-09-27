@@ -35,28 +35,6 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProce
   }
 
   @Override
-  protected void setPredecessor(T pPredecessor) {
-    if (aPredecessors==null) {
-      aPredecessors = ProcessNodeSet.processNodeSet(1);
-    } else {
-      aPredecessors.clear();
-    }
-
-    aPredecessors.add(pPredecessor);
-  }
-
-  @Override
-  public void setSuccessor(T pNode) {
-    if (aSuccessors==null) {
-      aSuccessors = ProcessNodeSet.processNodeSet(1);
-    } else {
-      aSuccessors.clear();
-    }
-
-    aSuccessors.add(pNode);
-  }
-
-  @Override
   public void addSuccessor(T pNode) {
     if (aSuccessors==null) {
       aSuccessors = ProcessNodeSet.processNodeSet(1);

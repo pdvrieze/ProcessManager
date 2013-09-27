@@ -4,17 +4,12 @@ import java.util.Collection;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
-
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
 public abstract class ClientProcessNode<T extends IClientProcessNode<T>> implements IClientProcessNode<T>{
-
-  private static final int HORIZSEP = 100;
-
-  private static final int VERTSEP = 60;
 
   private String aId;
 
@@ -51,25 +46,42 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     setPredecessor(pPredecessors.iterator().next());
   }
 
-  protected abstract void setPredecessor(T pPredecessor);
+  public void setPredecessor(T pPredecessor) {
+    if (getPredecessors().size()==1 && getPredecessors().get(0).equals(pPredecessor)) {
+      return; // Don't change
+    }
+    getPredecessors().clear();
+    getPredecessors().add(pPredecessor);
+    if(! pPredecessor.getSuccessors().contains(this)) {
+      @SuppressWarnings("unchecked")
+      T suc = (T) this;
+      pPredecessor.addSuccessor(suc);
+    }
+  }
 
   @Override
   public void setSuccessors(Collection<? extends T> pSuccessors) {
     if (pSuccessors.size()!=1) {
       throw new IllegalArgumentException();
     }
-    setSuccessor(pSuccessors.iterator().next());
+    addSuccessor(pSuccessors.iterator().next());
   }
 
-  protected abstract void setSuccessor(T pSuccessor);
+  public void setSuccessor(T pSuccessor) {
+    if (getSuccessors().size()==1 && getSuccessors().get(0).equals(pSuccessor)) {
+      return; // Don't change
+    }
+    getSuccessors().clear();
+    addSuccessor(pSuccessor);
+  }
 
 
 
   @Override
-  public abstract ProcessNodeSet<? extends T> getPredecessors();
+  public abstract ProcessNodeSet<T> getPredecessors();
 
   @Override
-  public abstract ProcessNodeSet<? extends T> getSuccessors();
+  public abstract ProcessNodeSet<T> getSuccessors();
 
   protected List<IXmlImportType> getImports() {
     return aImports;
@@ -93,7 +105,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   public boolean hasPos() {
-    return aX!=Double.NaN && aY!=Double.NaN;
+    return !Double.isNaN(aX) && !Double.isNaN(aY);
   }
 
   @Override
@@ -120,5 +132,17 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     aX += pOffsetX;
     aY += pOffsetY;
   }
+
+  @Override
+  public String toString() {
+    String nm = getClass().getSimpleName();
+    if (nm.startsWith("Client")) { nm = nm.substring(6); }
+    if (nm.startsWith("Drawable")) { nm = nm.substring(8); }
+    if (nm.endsWith("Node")) { nm = nm.substring(0, nm.length()-4); }
+    
+    return nm+"[id=" + aId + '(' + aX + ", " + aY + ")";
+  }
+  
+  
 
 }

@@ -13,7 +13,7 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   private ProcessNodeSet<T> aPredecessor = ProcessNodeSet.singleton();
 
   @Override
-  public ProcessNodeSet<? extends T> getSuccessors() {
+  public ProcessNodeSet<T> getSuccessors() {
     return ProcessNodeSet.empty();
   }
 
@@ -45,19 +45,13 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public ProcessNodeSet<? extends T> getPredecessors() {
+  public ProcessNodeSet<T> getPredecessors() {
     return aPredecessor;
   }
 
   @Override
   public T getPredecessor() {
     return aPredecessor.size()==0 ? null : aPredecessor.get(0);
-  }
-
-  @Override
-  public void setPredecessor(T pPredecessor) {
-    aPredecessor.clear();
-    aPredecessor.add(pPredecessor);
   }
 
 }
