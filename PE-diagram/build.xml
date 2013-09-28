@@ -41,7 +41,7 @@
 	<target name="release">
 		<mkdir dir="release" />
 		<javac srcdir="src" 
-		       sourcepath="src:../PE-common/src:../java-common/src" 
+		       sourcepath="src:../PE-common/src:../java-common/src:../JavaCommonApi/src:../DarwinJavaApi/src" 
 		       destdir="release" 
 		       classpath="${classpath}" 
            includeantruntime="false"
