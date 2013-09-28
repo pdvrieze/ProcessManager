@@ -1,6 +1,7 @@
 package nl.adaptivity.process.diagram;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import nl.adaptivity.diagram.Positioned;
@@ -10,7 +11,7 @@ public class LayoutAlgorithm {
 
   private static final double TOLERANCE = 0.1d;
 
-  private static final int PASSCOUNT = 1;
+  private static final int PASSCOUNT = 4;
 
   private double aVertSeparation = 30d;
 
@@ -163,7 +164,7 @@ public class LayoutAlgorithm {
     List<? extends DiagramNode<T>> aboveSiblings = getPrecedingSiblings(pNode);
     List<? extends DiagramNode<T>> belowSiblings = getFollowingSiblings(pNode);
 
-    double minY = bottom(lowest(nodesAbove(pNodes, pNode)),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
+    double minY = bottom(lowest(nodesAbove(pNode)),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
     double maxY = top(highest(belowSiblings), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
     double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
@@ -175,7 +176,7 @@ public class LayoutAlgorithm {
       double missingSpace = minX - maxX;
       if (missingSpace>TOLERANCE) {
         x = minX;
-        moveX(nodesRight(pNodes, pNode), missingSpace);
+        moveX(nodesRightPos(pNodes, pNode), missingSpace);
         changed = true;
       }
     }
@@ -184,7 +185,7 @@ public class LayoutAlgorithm {
       double missingSpace = minY - maxY;
       if (missingSpace>TOLERANCE) {
         y = minY;
-        moveY(nodesBelow(pNodes, pNode), missingSpace);
+        moveY(belowSiblings, missingSpace);
         changed = true;
       }
     }
@@ -239,7 +240,7 @@ public class LayoutAlgorithm {
     List<? extends DiagramNode<T>> belowSiblings = getFollowingSiblings(pNode);
 
     double minY = bottom(lowest(aboveSiblings),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
-    double maxY = top(highest(nodesBelow(pNodes, pNode)), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
+    double maxY = top(highest(nodesBelow(pNode)), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
     double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
 
@@ -250,7 +251,7 @@ public class LayoutAlgorithm {
       double missingSpace = minX - maxX;
       if (missingSpace>TOLERANCE) {
         x = minX;
-        moveX(nodesLeft(pNodes, pNode), -missingSpace);
+        moveX(nodesLeftPos(pNodes, pNode), -missingSpace);
         changed = true;
       }
     }
@@ -259,7 +260,7 @@ public class LayoutAlgorithm {
       double missingSpace = minY - maxY;
       if (missingSpace>TOLERANCE) {
         y = minY;
-        moveY(nodesAbove(pNodes, pNode), -missingSpace);
+        moveY(nodesAbovePos(pNodes, pNode), -missingSpace);
         changed = true;
       }
     }
@@ -365,40 +366,101 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesAbove(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private <T extends Positioned> List<DiagramNode<T>> nodesAbove(DiagramNode<T> pNode) {
+    LinkedHashSet<DiagramNode<T>> result = new LinkedHashSet<DiagramNode<T>>();
+    for(DiagramNode<T> pred : pNode.getLeftNodes()) {
+      addNodesAbove(result, pred, pNode);
+    }
+    removeTransitiveRight(result, pNode);
+    return new ArrayList<DiagramNode<T>>(result);
+  }
+
+  private <T extends Positioned> List<DiagramNode<T>> nodesBelow(DiagramNode<T> pNode) {
+    LinkedHashSet<DiagramNode<T>> result = new LinkedHashSet<DiagramNode<T>>();
+    for(DiagramNode<T> pred : pNode.getLeftNodes()) {
+      addNodesBelow(result, pred, pNode);
+    }
+    removeTransitiveRight(result, pNode);
+    return new ArrayList<DiagramNode<T>>(result);
+  }
+
+  private <T extends Positioned> void addNodesAbove(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
+    for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
+      if (candidate==pRef) {
+        break;
+      } else {
+        addTransitiveRight(result, candidate);
+      }
+    }
+    for(DiagramNode<T> pred : pLeft.getLeftNodes()) {
+      addNodesAbove(result, pred, pLeft);
+    }
+  }
+
+  private <T extends Positioned> void addNodesBelow(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
+    boolean found = false;
+    for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
+      if (candidate==pRef) {
+        found = true;
+      } else if (found){
+        addTransitiveRight(result, candidate);
+      }
+    }
+    for(DiagramNode<T> pred : pLeft.getLeftNodes()) {
+      addNodesBelow(result, pred, pLeft);
+    }
+  }
+
+  private <T extends Positioned> void addTransitiveRight(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pNode) {
+    if (result.add(pNode)) {
+      for(DiagramNode<T> right: pNode.getRightNodes()) {
+        addTransitiveRight(result, right);
+      }
+    }
+  }
+
+
+  private <T extends Positioned> void removeTransitiveRight(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pNode) {
+    result.remove(pNode);
+    for(DiagramNode<T> right: pNode.getRightNodes()) {
+      removeTransitiveRight(result, right);
+    }
+  }
+
+  private <T extends Positioned> List<DiagramNode<T>> nodesAbovePos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
-      if (n.upOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+      if (n!=pNode && n.upOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
         result.add(n);
       }
     }
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesBelow(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private <T extends Positioned> List<DiagramNode<T>> nodesBelowPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
-      if (n.downOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+      if (n!=pNode && n.downOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
         result.add(n);
       }
     }
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesLeft(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private <T extends Positioned> List<DiagramNode<T>> nodesLeftPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
-      if (n.leftOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+      if (n!=pNode && n.leftOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
         result.add(n);
       }
     }
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private <T extends Positioned> List<DiagramNode<T>> nodesRightPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
-      if (n.rightOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+      if (n!=pNode && n.rightOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
         result.add(n);
       }
     }

@@ -154,6 +154,9 @@ public class DiagramNode<T extends Positioned> implements Positioned {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
+    if (aTarget!=null) {
+      builder.append(aTarget.toString()).append(' ');
+    }
     if (! Double.isNaN(aX)) {
       builder.append("x=");
       builder.append(aX);
@@ -169,13 +172,13 @@ public class DiagramNode<T extends Positioned> implements Positioned {
       }
     }
     builder.append("((");
-    builder.append(aLeftExtend);
+    builder.append((Double.isNaN(aX) ? 0 : aX) - aLeftExtend);
     builder.append(", ");
-    builder.append(aRightExtend);
+    builder.append((Double.isNaN(aY) ? 0 : aY) - aTopExtend);
     builder.append("),(");
-    builder.append(aTopExtend);
+    builder.append((Double.isNaN(aX) ? 0 : aX) + aRightExtend);
     builder.append(", ");
-    builder.append(aBottomExtend);
+    builder.append((Double.isNaN(aY) ? 0 : aY) + aBottomExtend);
     builder.append("))");
     return builder.toString();
   }
