@@ -7,6 +7,7 @@ import android.graphics.Paint;
 public class AndroidPen implements Pen {
 
   private Paint aPaint;
+  private double aStrokeWidth;
 
   public AndroidPen(Paint pPaint) {
     aPaint = pPaint;
@@ -30,7 +31,13 @@ public class AndroidPen implements Pen {
 
   @Override
   public AndroidPen setStrokeWidth(double pStrokeWidth) {
+    aStrokeWidth = pStrokeWidth;
     aPaint.setStrokeWidth((float) pStrokeWidth);
+    return this;
+  }
+
+  public Pen scale(double pScale) {
+    aPaint.setStrokeWidth((float) (aStrokeWidth*pScale));
     return this;
   }
 
