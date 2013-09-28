@@ -2,6 +2,7 @@ package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Pen;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 
 
 public class AndroidPen implements Pen {
@@ -11,6 +12,7 @@ public class AndroidPen implements Pen {
 
   public AndroidPen(Paint pPaint) {
     aPaint = pPaint;
+    aPaint.setStyle(Style.STROKE);
   }
 
   public Paint getPaint() {

@@ -110,19 +110,12 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
   @Override
   public Pen newColor(int pR, int pG, int pB, int pA) {
     // TODO cache this some way
-    Paint paint = new Paint();
-    paint.setARGB(pA, pR, pG, pB);
-    paint.setStyle(Style.STROKE);
-
-    // TODO make this configurable
-//    paint.setStrokeWidth(1f);
-
-    return new AndroidPen(paint);
+    return newPen().setColor(pR, pG, pB, pA);
   }
 
   @Override
   public Pen newPen() {
-    return new AndroidPen(new Paint());
+    return new AndroidPen(new Paint(Paint.ANTI_ALIAS_FLAG));
   }
 
   @Override
