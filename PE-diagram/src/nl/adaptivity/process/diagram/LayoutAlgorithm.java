@@ -172,8 +172,8 @@ public class LayoutAlgorithm {
     double y = pNode.getY();
 
     { // ensure that there is space for the node. If not, move all right nodes to the right
-      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
-      if (missingSpace>0) {
+      double missingSpace = minX - maxX;
+      if (missingSpace>TOLERANCE) {
         x = minX;
         moveX(nodesRight(pNodes, pNode), missingSpace);
         changed = true;
@@ -181,8 +181,8 @@ public class LayoutAlgorithm {
     }
 
     {
-      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
-      if (missingSpace>0) {
+      double missingSpace = minY - maxY;
+      if (missingSpace>TOLERANCE) {
         y = minY;
         moveY(nodesBelow(pNodes, pNode), missingSpace);
         changed = true;
@@ -191,7 +191,7 @@ public class LayoutAlgorithm {
 
     // If we have nodes left and right position this one in the middle
     if (! (leftNodes.isEmpty()||rightNodes.isEmpty())) {
-      x = (rightMost(leftNodes).getX()*leftMost(rightNodes).getX())/2;
+      x = (rightMost(leftNodes).getX()+leftMost(rightNodes).getX())/2;
     }
     if (!(aboveSiblings.isEmpty()|| belowSiblings.isEmpty())) {
       y = (lowest(aboveSiblings).getY()+ highest(belowSiblings).getY())/2;
@@ -248,7 +248,7 @@ public class LayoutAlgorithm {
 
     { // ensure that there is space for the node. If not, move all right nodes to the right
       double missingSpace = minX - maxX;
-      if (missingSpace>0) {
+      if (missingSpace>TOLERANCE) {
         x = minX;
         moveX(nodesLeft(pNodes, pNode), -missingSpace);
         changed = true;
@@ -257,7 +257,7 @@ public class LayoutAlgorithm {
 
     {
       double missingSpace = minY - maxY;
-      if (missingSpace>0) {
+      if (missingSpace>TOLERANCE) {
         y = minY;
         moveY(nodesAbove(pNodes, pNode), -missingSpace);
         changed = true;
@@ -266,7 +266,7 @@ public class LayoutAlgorithm {
 
     // If we have nodes left and right position this one in the middle
     if (! (leftNodes.isEmpty()||rightNodes.isEmpty())) {
-      x = (rightMost(leftNodes).getX()*leftMost(rightNodes).getX())/2;
+      x = (rightMost(leftNodes).getX()+leftMost(rightNodes).getX())/2;
     }
 
     if (!(aboveSiblings.isEmpty()|| belowSiblings.isEmpty())) {
