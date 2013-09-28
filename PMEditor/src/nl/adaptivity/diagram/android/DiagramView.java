@@ -47,7 +47,7 @@ public class DiagramView extends View {
       aDiagram.draw(canvas, clipBounds);
     } else {
       if (aRed==null) {
-        aRed = new Paint();
+        aRed = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
         aRed.setARGB(255, 255, 0, 0);
         aRed.setTypeface(Typeface.DEFAULT);
         aRed.setTextSize(50f);
