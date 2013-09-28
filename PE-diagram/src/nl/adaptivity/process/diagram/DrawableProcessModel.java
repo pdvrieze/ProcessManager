@@ -135,7 +135,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     Pen arc = canvas.newColor(0, 0, 0, 255).setStrokeWidth(1d);
     for(DrawableProcessNode start:getModelNodes()) {
       for (DrawableProcessNode end: start.getSuccessors()) {
-        canvas.drawPath(new double[]{start.getBounds().right(), start.getY(), end.getBounds().left, end.getY()}, arc);
+        canvas.drawPath(new double[]{start.getBounds().right()-STROKEWIDTH, start.getY(), end.getBounds().left+STROKEWIDTH, end.getY()}, arc);
       }
     }
     for(DrawableProcessNode node:getModelNodes()) {
