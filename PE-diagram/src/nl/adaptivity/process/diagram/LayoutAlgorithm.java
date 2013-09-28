@@ -3,13 +3,12 @@ package nl.adaptivity.process.diagram;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.adaptivity.diagram.Bounded;
-import nl.adaptivity.diagram.Point;
+import nl.adaptivity.diagram.Positioned;
 
 
 public class LayoutAlgorithm {
 
-  private static final double TOLERANCE = 1d;
+  private static final double TOLERANCE = 0.1d;
 
   private static final int PASSCOUNT = 0;
 
@@ -58,23 +57,23 @@ public class LayoutAlgorithm {
     aDefaultNodeHeight = pDefaultNodeHeight;
   }
 
-  public boolean layout(List<? extends DiagramNode<?>> pNodes) {
+  public <T extends Positioned> boolean layout(List<? extends DiagramNode<T>> pNodes) {
     boolean changed = false;
-    for (final DiagramNode<?> node : pNodes) {
+    for (final DiagramNode<T> node : pNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
-        changed = layoutNodeInitial(pNodes, node, true, true); // always force as that should be slightly more efficient
+        changed = layoutNodeInitial(pNodes, node); // always force as that should be slightly more efficient
       }
     }
     {
       boolean nodesChanged = true;
       for (int pass=0; nodesChanged && pass<PASSCOUNT; ++pass) {
         nodesChanged = false;
-        for(DiagramNode<?> node: pNodes) {
+        for(DiagramNode<T> node: pNodes) {
           if (node.getLeftNodes().isEmpty()) {
             nodesChanged|=layoutNodeRight(pNodes, node, pass);
           }
         }
-        for(DiagramNode<?> node: pNodes) {
+        for(DiagramNode<T> node: pNodes) {
           if (node.getRightNodes().isEmpty()) {
             nodesChanged|=layoutNodeLeft(pNodes, node, pass);
           }
@@ -85,7 +84,7 @@ public class LayoutAlgorithm {
     if (changed) {
       double minX = Double.MAX_VALUE;
       double minY = Double.MAX_VALUE;
-      for (final DiagramNode<?> node : pNodes) {
+      for (final DiagramNode<T> node : pNodes) {
         minX = Math.min(node.getLeft(), minX);
         minY = Math.min(node.getTop(), minY);
       }
@@ -93,7 +92,7 @@ public class LayoutAlgorithm {
       final double offsetY = 0 - minY;
 
       if (Math.abs(offsetX)>TOLERANCE || Math.abs(offsetY)>TOLERANCE) {
-        for (final DiagramNode<?> node : pNodes) {
+        for (final DiagramNode<T> node : pNodes) {
           node.setX(node.getX()+offsetX);
           node.setY(node.getY()+offsetY);
         }
@@ -103,86 +102,50 @@ public class LayoutAlgorithm {
   }
 
 
-  private boolean layoutNodeInitial(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pNode, boolean forceX, boolean forceY) {
+  private <T extends Positioned> boolean layoutNodeInitial(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     boolean changed = false;
-    List<Point> leftPoints = getLeftPoints(pNode);
-    List<Point> abovePoints = getAbovePoints(pNode);
-    List<Point> rightPoints = getRightPoints(pNode);
-    List<Point> belowPoints = getBelowPoints(pNode);
 
-    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
-    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
-    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
-    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+    List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
+    List<? extends DiagramNode<T>> aboveNodes = getPrecedingSiblings(pNode);
 
-    { // ensure that there is space for the node. If not, move all right nodes to the right
-      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
-      if (missingSpace>0) {
-        moveToRight(pNodes, pNode.withX(minX));
-        changed = true;
-      }
-    }
-
-    {
-      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
-      if (missingSpace>0) {
-        moveDown(pNodes, pNode.withY(minY));
-        changed = true;
-      }
-    }
+//    List<Point> leftPoints = getLeftPoints(pNode);
+//    List<Point> abovePoints = getAbovePoints(pNode);
+//    List<Point> rightPoints = getRightPoints(pNode);
+//    List<Point> belowPoints = getBelowPoints(pNode);
+//
+    double minY = bottom(lowest(aboveNodes), Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
+//    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
+    double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
+//    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+//
+//    { // ensure that there is space for the node. If not, move all right nodes to the right
+//      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
+//      if (missingSpace>0) {
+//        moveToRight(pNodes, pNode.withX(minX));
+//        changed = true;
+//      }
+//    }
+//
+//    {
+//      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
+//      if (missingSpace>0) {
+//        moveDown(pNodes, pNode.withY(minY));
+//        changed = true;
+//      }
+//    }
 
     double x = pNode.getX();
     double y = pNode.getY();
 
-    if (leftPoints.isEmpty()) {
-      if (rightPoints.isEmpty()) {
-        if (forceX || Double.isNaN(x)|| x<minX || x>maxX) {
-          x = averageX(abovePoints, belowPoints, 0d);
-        }
-        if (forceY || Double.isNaN(y) || y<minY || y>maxY) {
-          if (abovePoints.isEmpty()) {
-            if (! belowPoints.isEmpty()) {
-              y = maxY;
-            } // otherwise keep it where it is
-          } else { // abovePoints not empty
-            if (belowPoints.isEmpty()) {
-              y = minY;
-            } else {
-              y = Math.max(minY, (minY+maxY)/2);
-            }
-          }
-        }
-
-      } else { // leftPoints empty, rightPoints not empty
-        if (forceY || Double.isNaN(y)|| y<minY || y>maxY) {
-          y = Math.max(minY, averageY(rightPoints));
-        }
-        if (forceX || Double.isNaN(x)|| x<minX || x>maxX) {
-          x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
-        }
-      }
-    } else { // leftPoints not empty
-      if (forceY || Double.isNaN(y) || y<minY || y>maxY) {
-        if (leftPoints.size()==1) {
-          y = Math.max(minY, averageY(leftPoints));
-        } else {
-          if (rightPoints.size()==1) {
-            y = Math.max(minY, averageY(rightPoints));
-          } else {
-            y = Math.max(minY, averageY(leftPoints, rightPoints, 0));
-          }
-        }
-      }
-      if (forceX || Double.isNaN(x)|| x<minX || x>maxX) {
-        if (rightPoints.isEmpty()) {
-          x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
-        } else {
-          x = Math.max(minX, (minX+maxX)/2);
-        }
-      }
+    if (leftNodes.isEmpty()) {
+      x = aboveNodes.isEmpty() ? pNode.getLeftExtend() : averageX(aboveNodes);
+      y = aboveNodes.isEmpty() ? pNode.getTopExtend() :minY;
+    } else { // leftPoints not empty, minX must be set
+      x = minX;
+      y = Math.max(minY, averageY(leftNodes));
     }
-    if (Double.isNaN(x)) { x = 0d; }
-    if (Double.isNaN(y)) { y = 0d; }
+//    if (Double.isNaN(x)) { x = 0d; }
+//    if (Double.isNaN(y)) { y = 0d; }
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
     if (yChanged || xChanged) {
@@ -193,22 +156,26 @@ public class LayoutAlgorithm {
     return changed;
   }
 
-  private boolean layoutNodeRight(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pNode, int phase) {
+  private <T extends Positioned> boolean layoutNodeRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
     boolean changed = false;
-    List<Point> leftPoints = getLeftPoints(pNode);
-    List<Point> abovePoints = getAbovePoints(pNode);
-    List<Point> rightPoints = getRightPoints(pNode);
-    List<Point> belowPoints = getBelowPoints(pNode);
+    List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
+    List<? extends DiagramNode<T>> rightNodes = pNode.getRightNodes();
+    List<? extends DiagramNode<T>> aboveSiblings = getPrecedingSiblings(pNode);
+    List<? extends DiagramNode<T>> belowSiblings = getFollowingSiblings(pNode);
 
-    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
-    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
-    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
-    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+    double minY = bottom(lowest(nodesAbove(pNodes, pNode)),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
+    double maxY = top(highest(belowSiblings), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
+    double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
+    double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
+
+    double x = pNode.getX();
+    double y = pNode.getY();
 
     { // ensure that there is space for the node. If not, move all right nodes to the right
       double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
       if (missingSpace>0) {
-        moveToRight(pNodes, pNode.withX(minX));
+        x = minX;
+        moveX(nodesRight(pNodes, pNode), missingSpace);
         changed = true;
       }
     }
@@ -216,101 +183,72 @@ public class LayoutAlgorithm {
     {
       double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
       if (missingSpace>0) {
-        moveDown(pNodes, pNode.withY(minY));
+        y = minY;
+        moveY(nodesBelow(pNodes, pNode), missingSpace);
         changed = true;
       }
     }
 
-    double x = pNode.getX();
-    double y = pNode.getY();
-
-    if (leftPoints.isEmpty()) {
-      if (rightPoints.isEmpty()) {
-        if (Double.isNaN(x)|| x<minX || x>maxX) {
-          x = averageX(abovePoints, belowPoints, 0d);
-        }
-        if (Double.isNaN(y) || y<minY || y>maxY) {
-          if (abovePoints.isEmpty()) {
-            if (! belowPoints.isEmpty()) {
-              y = maxY;
-            } // otherwise keep it where it is
-          } else { // abovePoints not empty
-            if (belowPoints.isEmpty()) {
-              y = minY;
-            } else {
-              y = Math.max(minY, (minY+maxY)/2);
-            }
-          }
-        }
-
-      } else { // leftPoints empty, rightPoints not empty
-        if (Double.isNaN(y)|| y<minY || y>maxY) {
-          y = Math.max(minY, averageY(rightPoints));
-        }
-        if (Double.isNaN(x)|| x<minX || x>maxX) {
-          x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
-        }
-      }
-    } else { // leftPoints not empty
-      if (Double.isNaN(y) || y<minY || y>maxY) {
-        if (leftPoints.size()==1) {
-          y = Math.max(minY, averageY(leftPoints));
-        } else {
-          if (rightPoints.size()==1) {
-            y = Math.max(minY, averageY(rightPoints));
-          } else {
-            y = Math.max(minY, averageY(leftPoints, rightPoints, 0));
-          }
-        }
-      }
-      if (Double.isNaN(x)|| x<minX || x>maxX) {
-        if (rightPoints.isEmpty()) {
-          x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
-        } else {
-          x = Math.max(minX, (minX+maxX)/2);
-        }
-      }
+    // If we have nodes left and right position this one in the middle
+    if (! (leftNodes.isEmpty()||rightNodes.isEmpty())) {
+      x = (rightMost(leftNodes).getX()*leftMost(rightNodes).getX())/2;
     }
-    if (Double.isNaN(x)) { x = 0d; }
-    if (Double.isNaN(y)) { y = 0d; }
+    if (!(aboveSiblings.isEmpty()|| belowSiblings.isEmpty())) {
+      y = (lowest(aboveSiblings).getY()+ highest(belowSiblings).getY())/2;
+    } else if (leftNodes.size()>1) {
+      y = (highest(leftNodes).getY() + lowest(leftNodes).getY())/2;
+    } else if (leftNodes.size()==1) {
+      y = leftNodes.get(0).getY();
+    }
+
+    x = Math.max(Math.min(maxX, x), minX);
+    y = Math.max(Math.min(maxY, y), minY);
+
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
+
+    if (rightNodes.size()>1 && (pass==0 ||yChanged)) {
+      /* If we have multiple nodes branching of this one determine the center. Move that
+       * so that this node is the vertical center.
+       */
+      double rightCenterY = (highest(rightNodes).getY()+lowest(rightNodes).getY())/2;
+      if ((rightCenterY-y)>TOLERANCE) {
+        moveY(rightNodes, rightCenterY-y);
+      }
+    }
+
     if (yChanged || xChanged) {
+      changed=true;
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
-      for(DiagramNode<?> n:getPrecedingSiblings(pNode)) {
-        layoutNodeRight(pNodes, n, phase);
-      }
-      for(DiagramNode<?> n:getFollowingSiblings(pNode)) {
-        layoutNodeRight(pNodes, n, phase);
-      }
-      for(DiagramNode<?> n:pNode.getLeftNodes()) {
-        layoutNodeRight(pNodes, n, phase);
-      }
-      for(DiagramNode<?> n:pNode.getRightNodes()) {
-        layoutNodeRight(pNodes, n, phase);
-      }
+    }
+    for(DiagramNode<T> node:rightNodes) {
+      changed |= layoutNodeRight(pNodes, node, pass);
     }
     return changed;
   }
 
-  private boolean layoutNodeLeft(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pNode, int phase) {
+  private <T extends Positioned> boolean layoutNodeLeft(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
     boolean changed = false;
-    List<Point> leftPoints = getLeftPoints(pNode);
-    List<Point> abovePoints = getAbovePoints(pNode);
-    List<Point> rightPoints = getRightPoints(pNode);
-    List<Point> belowPoints = getBelowPoints(pNode);
+    List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
+    List<? extends DiagramNode<T>> rightNodes = pNode.getRightNodes();
+    List<? extends DiagramNode<T>> aboveSiblings = getPrecedingSiblings(pNode);
+    List<? extends DiagramNode<T>> belowSiblings = getFollowingSiblings(pNode);
 
-    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
-    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
-    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
-    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+    double minY = bottom(lowest(aboveSiblings),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
+    double maxY = top(highest(nodesBelow(pNodes, pNode)), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
+    double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
+    double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
+
+    double x = pNode.getX();
+    double y = pNode.getY();
 
     { // ensure that there is space for the node. If not, move all right nodes to the right
       double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
       if (missingSpace>0) {
-        moveToRight(pNodes, pNode.withX(minX));
+        x = minX;
+        moveX(nodesLeft(pNodes, pNode), -missingSpace);
         changed = true;
       }
     }
@@ -318,88 +256,153 @@ public class LayoutAlgorithm {
     {
       double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
       if (missingSpace>0) {
-        moveDown(pNodes, pNode.withY(minY));
+        y = minY;
+        moveY(nodesAbove(pNodes, pNode), -missingSpace);
         changed = true;
       }
     }
 
-    double x = pNode.getX();
-    double y = pNode.getY();
-
-    if (leftPoints.isEmpty()) {
-      if (rightPoints.isEmpty()) {
-        if (Double.isNaN(x)|| x<minX || x>maxX) {
-          x = averageX(abovePoints, belowPoints, 0d);
-        }
-        if (Double.isNaN(y) || y<minY || y>maxY) {
-          if (abovePoints.isEmpty()) {
-            if (! belowPoints.isEmpty()) {
-              y = maxY;
-            } // otherwise keep it where it is
-          } else { // abovePoints not empty
-            if (belowPoints.isEmpty()) {
-              y = minY;
-            } else {
-              y = Math.max(minY, (minY+maxY)/2);
-            }
-          }
-        }
-
-      } else { // leftPoints empty, rightPoints not empty
-        if (Double.isNaN(y)|| y<minY || y>maxY) {
-          y = Math.max(minY, averageY(rightPoints));
-        }
-        if (Double.isNaN(x)|| x<minX || x>maxX) {
-          x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
-        }
-      }
-    } else { // leftPoints not empty
-      if (Double.isNaN(y) || y<minY || y>maxY) {
-        if (leftPoints.size()==1) {
-          y = Math.max(minY, averageY(leftPoints));
-        } else {
-          if (rightPoints.size()==1) {
-            y = Math.max(minY, averageY(rightPoints));
-          } else {
-            y = Math.max(minY, averageY(leftPoints, rightPoints, 0));
-          }
-        }
-      }
-      if (Double.isNaN(x)|| x<minX || x>maxX) {
-        if (rightPoints.isEmpty()) {
-          x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
-        } else {
-          x = Math.max(minX, (minX+maxX)/2);
-        }
-      }
+    // If we have nodes left and right position this one in the middle
+    if (! (leftNodes.isEmpty()||rightNodes.isEmpty())) {
+      x = (rightMost(leftNodes).getX()*leftMost(rightNodes).getX())/2;
     }
-    if (Double.isNaN(x)) { x = 0d; }
-    if (Double.isNaN(y)) { y = 0d; }
+
+    if (!(aboveSiblings.isEmpty()|| belowSiblings.isEmpty())) {
+      y = (lowest(aboveSiblings).getY()+ highest(belowSiblings).getY())/2;
+    } else if (rightNodes.size()>1) {
+      y = (highest(rightNodes).getY() + lowest(rightNodes).getY())/2;
+    } else if (rightNodes.size()==1) {
+      y = rightNodes.get(0).getY();
+    }
+
+    x = Math.max(Math.min(maxX, x), minX);
+    y = Math.max(Math.min(maxY, y), minY);
+
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
+
+    if (leftNodes.size()>1 && (pass==0 ||yChanged)) {
+      /* If we have multiple nodes branching of this one determine the center. Move that
+       * so that this node is the vertical center.
+       */
+      double leftCenterY = (highest(leftNodes).getY()+lowest(leftNodes).getY())/2;
+      if ((leftCenterY-y)>TOLERANCE) {
+        moveY(leftNodes, leftCenterY-y);
+      }
+    }
+
     if (yChanged || xChanged) {
+      changed=true;
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
-      for(DiagramNode<?> n:getPrecedingSiblings(pNode)) {
-        layoutNodeLeft(pNodes, n, phase);
-      }
-      for(DiagramNode <?>n:getFollowingSiblings(pNode)) {
-        layoutNodeLeft(pNodes, n, phase);
-      }
-      for(DiagramNode<?> n:pNode.getLeftNodes()) {
-        layoutNodeLeft(pNodes, n, phase);
-      }
-      for(DiagramNode<?> n:pNode.getRightNodes()) {
-        layoutNodeLeft(pNodes, n, phase);
-      }
+    }
+    for(DiagramNode<T> node:leftNodes) {
+      changed |= layoutNodeLeft(pNodes, node, pass);
     }
     return changed;
   }
 
+  private static double top(DiagramNode<?> pNode, double pFallback) {
+    return pNode==null ? pFallback : pNode.getTop();
+  }
 
-  private void moveToRight(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pFreeRegion) {
-    for(DiagramNode<?> n: pNodes) {
+  private static double bottom(DiagramNode<?> pNode, double pFallback) {
+    return pNode==null ? pFallback : pNode.getBottom();
+  }
+
+  private static double left(DiagramNode<?> pNode, double pFallback) {
+    return pNode==null ? pFallback : pNode.getLeft();
+  }
+
+  private static double right(DiagramNode<?> pNode, double pFallback) {
+    return pNode==null ? pFallback : pNode.getRight();
+  }
+
+  private static <T extends Positioned> DiagramNode<T> highest(List<? extends DiagramNode<T>> pNodes) {
+    DiagramNode<T> result = null;
+    for(DiagramNode<T> node:pNodes) {
+      if (result==null || node.getTop()<result.getTop()) {
+        result = node;
+      }
+    }
+    return result;
+  }
+
+
+  private static <T extends Positioned> DiagramNode<T> lowest(List<? extends DiagramNode<T>> pNodes) {
+    DiagramNode<T> result = null;
+    for(DiagramNode<T> node:pNodes) {
+      if (result==null || node.getBottom()<result.getBottom()) {
+        result = node;
+      }
+    }
+    return result;
+  }
+
+  private static <T extends Positioned> DiagramNode<T> leftMost(List<? extends DiagramNode<T>> pNodes) {
+    DiagramNode<T> result = null;
+    for(DiagramNode<T> node:pNodes) {
+      if (result==null || node.getLeft()<result.getLeft()) {
+        result = node;
+      }
+    }
+    return result;
+  }
+
+
+  private static <T extends Positioned> DiagramNode<T> rightMost(List<? extends DiagramNode<T>> pNodes) {
+    DiagramNode<T> result = null;
+    for(DiagramNode<T> node:pNodes) {
+      if (result==null || node.getRight()<result.getRight()) {
+        result = node;
+      }
+    }
+    return result;
+  }
+
+  private <T extends Positioned> List<DiagramNode<T>> nodesAbove(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    for(DiagramNode<T> n: pNodes) {
+      if (n.upOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+        result.add(n);
+      }
+    }
+    return result;
+  }
+
+  private <T extends Positioned> List<DiagramNode<T>> nodesBelow(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    for(DiagramNode<T> n: pNodes) {
+      if (n.downOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+        result.add(n);
+      }
+    }
+    return result;
+  }
+
+  private <T extends Positioned> List<DiagramNode<T>> nodesLeft(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    for(DiagramNode<T> n: pNodes) {
+      if (n.leftOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+        result.add(n);
+      }
+    }
+    return result;
+  }
+
+  private <T extends Positioned> List<DiagramNode<T>> nodesRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    for(DiagramNode<T> n: pNodes) {
+      if (n.rightOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
+        result.add(n);
+      }
+    }
+    return result;
+  }
+
+  private <T extends Positioned> void moveToRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+    for(DiagramNode<T> n: pNodes) {
       if (n.rightOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
         n.setX(pFreeRegion.getRight()+aHorizSeparation+n.getLeftExtend());
         moveToRight(pNodes, n);
@@ -408,13 +411,27 @@ public class LayoutAlgorithm {
     }
   }
 
-  private void moveDown(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pFreeRegion) {
-    for(DiagramNode<?> n: pNodes) {
+  private <T extends Positioned> void moveDown(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+    for(DiagramNode<T> n: pNodes) {
       if (n.downOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
         n.setY(pFreeRegion.getBottom()+aVertSeparation+n.getTopExtend());
         moveDown(pNodes, n);
         moveToRight(pNodes, n);
       }
+    }
+  }
+
+  private static <T extends Positioned> void moveX(List<? extends DiagramNode<T>> pNodes, double distance) {
+    for(DiagramNode<T> n: pNodes) {
+      n.setX(n.getX()+distance);
+      System.err.println("Moving node "+n+ "to ("+n.getX()+"!, "+n.getY()+')');
+    }
+  }
+
+  private static <T extends Positioned> void moveY(List<? extends DiagramNode<T>> pNodes, double distance) {
+    for(DiagramNode<T> n: pNodes) {
+      n.setY(n.getY()+distance);
+      System.err.println("Moving node "+n+ "to ("+n.getX()+", "+n.getY()+"!)");
     }
   }
 
@@ -425,190 +442,55 @@ public class LayoutAlgorithm {
     return Math.abs(pA-pB)>pTolerance;
   }
 
-  private double topDistance(DiagramNode<?> pNode) {
-    if ((!Double.isNaN(pNode.getY())) && pNode instanceof Bounded) {
-      return pNode.getY()-((Bounded) pNode).getBounds().top;
-    }
-    return aDefaultNodeHeight/2;
-  }
-
-  private double bottomDistance(DiagramNode<?> pNode) {
-    if ((!Double.isNaN(pNode.getY()))&& pNode instanceof Bounded) {
-      return ((Bounded) pNode).getBounds().bottom()-pNode.getY();
-    }
-    return aDefaultNodeHeight/2;
-  }
-
-  private double leftDistance(DiagramNode<?> pNode) {
-    if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
-      return pNode.getX()-((Bounded) pNode).getBounds().left;
-    }
-    return aDefaultNodeWidth/2;
-  }
-
-  private double rightDistance(DiagramNode<?> pNode) {
-    if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
-      return ((Bounded) pNode).getBounds().right()-pNode.getX();
-    }
-    return aDefaultNodeWidth/2;
-  }
-
-  private static double averageY(List<Point> pPoints) {
-    if (pPoints.isEmpty()) {
+  private static <T extends Positioned> double averageY(List<? extends DiagramNode<T>> pNodes) {
+    if (pNodes.isEmpty()) {
       return Double.NaN;
     } else {
       double total = 0;
-      for(Point p: pPoints) { total+=p.y; }
-      return total/pPoints.size();
+      for(DiagramNode<T> p: pNodes) { total+=p.getY(); }
+      return total/pNodes.size();
     }
   }
 
-  private static double averageY(List<Point> pPoints1, List<Point> pPoints2, double fallback) {
-    if (pPoints1.isEmpty() && pPoints2.isEmpty()) {
+  private static <T extends Positioned> double averageY(List<? extends DiagramNode<T>> pNodes1, List<? extends DiagramNode<T>> pNodes2, double fallback) {
+    if (pNodes1.isEmpty() && pNodes2.isEmpty()) {
       return fallback;
     } else {
       double total = 0;
-      for(Point p: pPoints1) { total+=p.y; }
-      for(Point p: pPoints2) { total+=p.y; }
-      return total/(pPoints1.size()+pPoints2.size());
+      for(DiagramNode<T> p: pNodes1) { total+=p.getY(); }
+      for(DiagramNode<T> p: pNodes2) { total+=p.getY(); }
+      return total/(pNodes1.size()+pNodes2.size());
     }
   }
 
-  private static double averageX(List<Point> pPoints) {
-    if (pPoints.isEmpty()) {
+
+  private static <T extends Positioned> double averageX(List<? extends DiagramNode<T>> pNodes) {
+    if (pNodes.isEmpty()) {
       return Double.NaN;
     } else {
       double total = 0;
-      for(Point p: pPoints) { total+=p.x; }
-      return total/pPoints.size();
+      for(DiagramNode<T> p: pNodes) { total+=p.getX(); }
+      return total/pNodes.size();
     }
   }
 
-  private static double averageX(List<Point> pPoints1, List<Point> pPoints2, double fallback) {
-    if (pPoints1.isEmpty() && pPoints2.isEmpty()) {
+  private static <T extends Positioned> double averageX(List<? extends DiagramNode<T>> pNodes1, List<? extends DiagramNode<T>> pNodes2, double fallback) {
+    if (pNodes1.isEmpty() && pNodes2.isEmpty()) {
       return fallback;
     } else {
       double total = 0;
-      for(Point p: pPoints1) { total+=p.x; }
-      for(Point p: pPoints2) { total+=p.x; }
-      return total/(pPoints1.size()+pPoints2.size());
+      for(DiagramNode<T> p: pNodes1) { total+=p.getX(); }
+      for(DiagramNode<T> p: pNodes2) { total+=p.getY(); }
+      return total/(pNodes1.size()+pNodes2.size());
     }
-  }
-
-  private static double maxY(List<Point> pPoints) {
-    double result = Double.NEGATIVE_INFINITY;
-    for(Point p: pPoints) {
-      if (p.y>result) {
-        result = p.y;
-      }
-    }
-    return result;
-  }
-
-  private static double minY(List<Point> pPoints) {
-    double result = Double.POSITIVE_INFINITY;
-    for(Point p: pPoints) {
-      if (p.y<result) {
-        result = p.y;
-      }
-    }
-    return result;
-  }
-
-  private static double maxX(List<Point> pPoints) {
-    double result = Double.NEGATIVE_INFINITY;
-    for(Point p: pPoints) {
-      if (p.x>result) {
-        result = p.x;
-      }
-    }
-    return result;
-  }
-
-  private static double minX(List<Point> pPoints) {
-    double result = Double.POSITIVE_INFINITY;
-    for(Point p: pPoints) {
-      if (p.x<result) {
-        result = p.x;
-      }
-    }
-    return result;
-  }
-
-  private List<Point> getLeftPoints(DiagramNode<?> pNode) {
-    List<Point> result = new ArrayList<Point>();
-    for(DiagramNode<?> n:pNode.getLeftNodes()) {
-      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
-        double x;
-        double y = n.getY();
-        if (n instanceof Bounded) {
-          x = ((Bounded) n).getBounds().right();
-        } else {
-          x = n.getX()+(aDefaultNodeWidth/2);
-        }
-        result.add(new Point(x,y));
-      }
-    }
-    return result;
-  }
-
-  private List<Point> getRightPoints(DiagramNode<?> pNode) {
-    List<Point> result = new ArrayList<Point>();
-    for(DiagramNode<?> n:pNode.getRightNodes()) {
-      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
-        double x;
-        double y = n.getY();
-        if (n instanceof Bounded) {
-          x = ((Bounded) n).getBounds().left;
-        } else {
-          x = n.getX()-(aDefaultNodeWidth/2);
-        }
-        result.add(new Point(x,y));
-      }
-    }
-    return result;
-  }
-
-  private List<Point> getAbovePoints(DiagramNode<?> pNode) {
-    List<Point> result = new ArrayList<Point>();
-    for(DiagramNode<?> n:getPrecedingSiblings(pNode)) {
-      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
-        double x = n.getX();
-        double y;
-        if (n instanceof Bounded) {
-          y = ((Bounded) n).getBounds().bottom();
-        } else {
-          y = n.getY()+(aDefaultNodeHeight/2);
-        }
-        result.add(new Point(x,y));
-      }
-    }
-    return result;
-  }
-
-  private List<Point> getBelowPoints(DiagramNode<?> pNode) {
-    List<Point> result = new ArrayList<Point>();
-    for(DiagramNode<?> n:getFollowingSiblings(pNode)) {
-      if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
-        double x = n.getX();
-        double y;
-        if (n instanceof Bounded) {
-          y = ((Bounded) n).getBounds().top;
-        } else {
-          y = n.getY()-(aDefaultNodeHeight/2);
-        }
-        result.add(new Point(x,y));
-      }
-    }
-    return result;
   }
 
   // TODO Change to all nodes in the graph that are not smaller or bigger
-  private List<DiagramNode<?>> getPrecedingSiblings(DiagramNode<?> pNode) {
-    List<DiagramNode<?>> result = new ArrayList<DiagramNode<?>>();
-    for(DiagramNode<?> pred:pNode.getLeftNodes()) {
+  private static <T extends Positioned> List<? extends DiagramNode<T>> getPrecedingSiblings(DiagramNode<T> pNode) {
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    for(DiagramNode<T> pred:pNode.getLeftNodes()) {
       if (pred.getRightNodes().contains(pNode)) {
-        for(DiagramNode<?> sibling: pred.getRightNodes()) {
+        for(DiagramNode<T> sibling: pred.getRightNodes()) {
           if (sibling==pNode) {
             break;
           } else {
@@ -617,9 +499,9 @@ public class LayoutAlgorithm {
         }
       }
     }
-    for(DiagramNode<?> pred:pNode.getRightNodes()) {
+    for(DiagramNode<T> pred:pNode.getRightNodes()) {
       if (pred.getLeftNodes().contains(pNode)) {
-        for(DiagramNode<?> sibling: pred.getLeftNodes()) {
+        for(DiagramNode<T> sibling: pred.getLeftNodes()) {
           if (sibling==pNode) {
             break;
           } else {
@@ -631,12 +513,12 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private List<DiagramNode<?>> getFollowingSiblings(DiagramNode<?> pNode) {
-    List<DiagramNode<?>> result = new ArrayList<DiagramNode<?>>();
-    for(DiagramNode<?> successor:pNode.getLeftNodes()) {
+  private static <T extends Positioned> List<? extends DiagramNode<T>> getFollowingSiblings(DiagramNode<T> pNode) {
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    for(DiagramNode<T> successor:pNode.getLeftNodes()) {
       if (successor.getRightNodes().contains(pNode)) {
         boolean following = false;
-        for(DiagramNode<?> sibling: successor.getRightNodes()) {
+        for(DiagramNode<T> sibling: successor.getRightNodes()) {
           if (sibling==pNode) {
             following = true;
           } else if (following){
@@ -645,10 +527,10 @@ public class LayoutAlgorithm {
         }
       }
     }
-    for(DiagramNode<?> successor:pNode.getRightNodes()) {
+    for(DiagramNode<T> successor:pNode.getRightNodes()) {
       if (successor.getLeftNodes().contains(pNode)) {
         boolean following = false;
-        for(DiagramNode<?> sibling: successor.getLeftNodes()) {
+        for(DiagramNode<T> sibling: successor.getLeftNodes()) {
           if (sibling==pNode) {
             following = true;
           } else if (following){

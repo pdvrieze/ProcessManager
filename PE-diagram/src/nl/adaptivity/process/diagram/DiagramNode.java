@@ -114,36 +114,32 @@ public class DiagramNode<T extends Positioned> implements Positioned {
     return aY + aBottomExtend;
   }
 
+  /** Determine whether the region overlaps this node and is not positioned to its right. */
+  public boolean leftOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
+    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+           pRegion.getX()<getX();
+  }
+
   public boolean rightOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
-    if (pRegion.getLeft()<(getLeft())) {
-      return false;
-    }
-    if (pRegion.getLeft()>(getRight()+xSep)) {
-      return false;
-    }
-    if (pRegion.getTop()>(getBottom()+ySep)) {
-      return false;
-    }
-    if (pRegion.getBottom()<(getTop()-ySep)) {
-      return false;
-    }
-    return true;
+    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+        pRegion.getX()>getX();
+  }
+
+  public boolean upOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
+    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+        pRegion.getY()<getY();
   }
 
   public boolean downOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
-    if (pRegion.getRight()<(getLeft()-xSep)) {
-      return false;
-    }
-    if (pRegion.getLeft()>(getRight()+xSep)) {
-      return false;
-    }
-    if (pRegion.getTop()>(getTop())) {
-      return false;
-    }
-    if (pRegion.getBottom()<(getTop()-ySep)) {
-      return false;
-    }
-    return true;
+    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+        pRegion.getY()>getY();
+  }
+
+  private static boolean overlaps(DiagramNode<?> pRegion, double left, double top, double right, double bottom) {
+    return (pRegion.getRight()>left) &&
+           (pRegion.getLeft()<right) &&
+           (pRegion.getTop()<bottom) &&
+           (pRegion.getBottom()>top);
   }
 
   public List<DiagramNode<T>> getLeftNodes() {
