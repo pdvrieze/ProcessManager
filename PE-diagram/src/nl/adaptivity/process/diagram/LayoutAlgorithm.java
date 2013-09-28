@@ -9,6 +9,8 @@ import nl.adaptivity.diagram.Point;
 
 public class LayoutAlgorithm {
 
+  private static final double TOLERANCE = 1d;
+
   private double aVertSeparation = 30d;
 
   private double aHorizSeparation = 30d;
@@ -58,7 +60,7 @@ public class LayoutAlgorithm {
     boolean changed = false;
     for (final DiagramNode node : aNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
-        changed = layoutNode(aNodes, node, true, true); // always force as that should be slightly more efficient
+        changed = layoutNodeInitial(aNodes, node, true, true); // always force as that should be slightly more efficient
       }
     }
     return changed;
@@ -89,7 +91,7 @@ public class LayoutAlgorithm {
   }
 
 
-  private boolean layoutNode(List<DiagramNode> pNodes, DiagramNode pNode, boolean forceX, boolean forceY) {
+  private boolean layoutNodeInitial(List<DiagramNode> pNodes, DiagramNode pNode, boolean forceX, boolean forceY) {
     boolean changed = false;
     List<Point> leftPoints = getLeftPoints(pNode);
     List<Point> abovePoints = getAbovePoints(pNode);
@@ -175,20 +177,214 @@ public class LayoutAlgorithm {
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
-      for(DiagramNode n:getPrecedingSiblings(pNode)) {
-        layoutNode(n, xChanged, yChanged && y<minY);
-      }
-      for(DiagramNode n:getFollowingSiblings(pNode)) {
-        layoutNode(n, xChanged, yChanged && y>maxY);
-      }
-      for(DiagramNode n:pNode.getPredecessors()) {
-        layoutNode(n, xChanged && x<minX, yChanged);
-      }
-      for(DiagramNode n:pNode.getSuccessors()) {
-        layoutNode(n, xChanged && x>maxX, yChanged);
+    }
+    return changed;
+  }
+
+  private boolean layoutNodeRight(List<DiagramNode> pNodes, DiagramNode pNode, int phase) {
+    boolean changed = false;
+    List<Point> leftPoints = getLeftPoints(pNode);
+    List<Point> abovePoints = getAbovePoints(pNode);
+    List<Point> rightPoints = getRightPoints(pNode);
+    List<Point> belowPoints = getBelowPoints(pNode);
+
+    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
+    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
+    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
+    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+
+    { // ensure that there is space for the node. If not, move all right nodes to the right
+      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
+      if (missingSpace>0) {
+        moveToRight(pNodes, pNode.withX(minX));
+        changed = true;
       }
     }
+
+    {
+      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
+      if (missingSpace>0) {
+        moveDown(pNodes, pNode.withY(minY));
+        changed = true;
+      }
+    }
+
+    double x = pNode.getX();
+    double y = pNode.getY();
+
+    if (leftPoints.isEmpty()) {
+      if (rightPoints.isEmpty()) {
+        if (Double.isNaN(x)|| x<minX || x>maxX) {
+          x = averageX(abovePoints, belowPoints, 0d);
+        }
+        if (Double.isNaN(y) || y<minY || y>maxY) {
+          if (abovePoints.isEmpty()) {
+            if (! belowPoints.isEmpty()) {
+              y = maxY;
+            } // otherwise keep it where it is
+          } else { // abovePoints not empty
+            if (belowPoints.isEmpty()) {
+              y = minY;
+            } else {
+              y = Math.max(minY, (minY+maxY)/2);
+            }
+          }
+        }
+
+      } else { // leftPoints empty, rightPoints not empty
+        if (Double.isNaN(y)|| y<minY || y>maxY) {
+          y = Math.max(minY, averageY(rightPoints));
+        }
+        if (Double.isNaN(x)|| x<minX || x>maxX) {
+          x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
+        }
+      }
+    } else { // leftPoints not empty
+      if (Double.isNaN(y) || y<minY || y>maxY) {
+        if (leftPoints.size()==1) {
+          y = Math.max(minY, averageY(leftPoints));
+        } else {
+          if (rightPoints.size()==1) {
+            y = Math.max(minY, averageY(rightPoints));
+          } else {
+            y = Math.max(minY, averageY(leftPoints, rightPoints, 0));
+          }
+        }
+      }
+      if (Double.isNaN(x)|| x<minX || x>maxX) {
+        if (rightPoints.isEmpty()) {
+          x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
+        } else {
+          x = Math.max(minX, (minX+maxX)/2);
+        }
+      }
+    }
+    if (Double.isNaN(x)) { x = 0d; }
+    if (Double.isNaN(y)) { y = 0d; }
+    boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
+    boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
+    if (yChanged || xChanged) {
+      System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
+      pNode.setX(x);
+      pNode.setY(y);
+      for(DiagramNode n:getPrecedingSiblings(pNode)) {
+        layoutNodeRight(pNodes, n, phase);
+      }
+      for(DiagramNode n:getFollowingSiblings(pNode)) {
+        layoutNodeRight(pNodes, n, phase);
+      }
+      for(DiagramNode n:pNode.getLeftNodes()) {
+        layoutNodeRight(pNodes, n, phase);
+      }
+      for(DiagramNode n:pNode.getRightNodes()) {
+        layoutNodeRight(pNodes, n, phase);
+      }
+    }
+    return changed;
   }
+
+  private boolean layoutNodeLeft(List<DiagramNode> pNodes, DiagramNode pNode, int phase) {
+    boolean changed = false;
+    List<Point> leftPoints = getLeftPoints(pNode);
+    List<Point> abovePoints = getAbovePoints(pNode);
+    List<Point> rightPoints = getRightPoints(pNode);
+    List<Point> belowPoints = getBelowPoints(pNode);
+
+    double minY = maxY(abovePoints)+aVertSeparation + topDistance(pNode);
+    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
+    double minX = maxX(leftPoints)+aHorizSeparation + leftDistance(pNode);
+    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
+
+    { // ensure that there is space for the node. If not, move all right nodes to the right
+      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
+      if (missingSpace>0) {
+        moveToRight(pNodes, pNode.withX(minX));
+        changed = true;
+      }
+    }
+
+    {
+      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
+      if (missingSpace>0) {
+        moveDown(pNodes, pNode.withY(minY));
+        changed = true;
+      }
+    }
+
+    double x = pNode.getX();
+    double y = pNode.getY();
+
+    if (leftPoints.isEmpty()) {
+      if (rightPoints.isEmpty()) {
+        if (Double.isNaN(x)|| x<minX || x>maxX) {
+          x = averageX(abovePoints, belowPoints, 0d);
+        }
+        if (Double.isNaN(y) || y<minY || y>maxY) {
+          if (abovePoints.isEmpty()) {
+            if (! belowPoints.isEmpty()) {
+              y = maxY;
+            } // otherwise keep it where it is
+          } else { // abovePoints not empty
+            if (belowPoints.isEmpty()) {
+              y = minY;
+            } else {
+              y = Math.max(minY, (minY+maxY)/2);
+            }
+          }
+        }
+
+      } else { // leftPoints empty, rightPoints not empty
+        if (Double.isNaN(y)|| y<minY || y>maxY) {
+          y = Math.max(minY, averageY(rightPoints));
+        }
+        if (Double.isNaN(x)|| x<minX || x>maxX) {
+          x = Math.min(averageX(abovePoints, belowPoints,Double.POSITIVE_INFINITY),maxX);
+        }
+      }
+    } else { // leftPoints not empty
+      if (Double.isNaN(y) || y<minY || y>maxY) {
+        if (leftPoints.size()==1) {
+          y = Math.max(minY, averageY(leftPoints));
+        } else {
+          if (rightPoints.size()==1) {
+            y = Math.max(minY, averageY(rightPoints));
+          } else {
+            y = Math.max(minY, averageY(leftPoints, rightPoints, 0));
+          }
+        }
+      }
+      if (Double.isNaN(x)|| x<minX || x>maxX) {
+        if (rightPoints.isEmpty()) {
+          x = Math.max(averageX(abovePoints, belowPoints,Double.NEGATIVE_INFINITY),minX);
+        } else {
+          x = Math.max(minX, (minX+maxX)/2);
+        }
+      }
+    }
+    if (Double.isNaN(x)) { x = 0d; }
+    if (Double.isNaN(y)) { y = 0d; }
+    boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
+    boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
+    if (yChanged || xChanged) {
+      System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
+      pNode.setX(x);
+      pNode.setY(y);
+      for(DiagramNode n:getPrecedingSiblings(pNode)) {
+        layoutNodeLeft(pNodes, n, phase);
+      }
+      for(DiagramNode n:getFollowingSiblings(pNode)) {
+        layoutNodeLeft(pNodes, n, phase);
+      }
+      for(DiagramNode n:pNode.getLeftNodes()) {
+        layoutNodeLeft(pNodes, n, phase);
+      }
+      for(DiagramNode n:pNode.getRightNodes()) {
+        layoutNodeLeft(pNodes, n, phase);
+      }
+    }
+    return changed;
+  }
+
 
   private void moveToRight(List<DiagramNode> pNodes, DiagramNode pFreeRegion) {
     for(DiagramNode n: pNodes) {
@@ -329,7 +525,7 @@ public class LayoutAlgorithm {
 
   private List<Point> getLeftPoints(DiagramNode pNode) {
     List<Point> result = new ArrayList<Point>();
-    for(DiagramNode n:pNode.getPredecessors()) {
+    for(DiagramNode n:pNode.getLeftNodes()) {
       if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
         double x;
         double y = n.getY();
@@ -346,7 +542,7 @@ public class LayoutAlgorithm {
 
   private List<Point> getRightPoints(DiagramNode pNode) {
     List<Point> result = new ArrayList<Point>();
-    for(DiagramNode n:pNode.getSuccessors()) {
+    for(DiagramNode n:pNode.getRightNodes()) {
       if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
         double x;
         double y = n.getY();
@@ -395,11 +591,12 @@ public class LayoutAlgorithm {
     return result;
   }
 
+  // TODO Change to all nodes in the graph that are not smaller or bigger
   private List<DiagramNode> getPrecedingSiblings(DiagramNode pNode) {
     List<DiagramNode> result = new ArrayList<DiagramNode>();
-    for(DiagramNode pred:pNode.getPredecessors()) {
-      if (pred.getSuccessors().contains(pNode)) {
-        for(DiagramNode sibling: pred.getSuccessors()) {
+    for(DiagramNode pred:pNode.getLeftNodes()) {
+      if (pred.getRightNodes().contains(pNode)) {
+        for(DiagramNode sibling: pred.getRightNodes()) {
           if (sibling==pNode) {
             break;
           } else {
@@ -408,9 +605,9 @@ public class LayoutAlgorithm {
         }
       }
     }
-    for(DiagramNode pred:pNode.getSuccessors()) {
-      if (pred.getPredecessors().contains(pNode)) {
-        for(DiagramNode sibling: pred.getPredecessors()) {
+    for(DiagramNode pred:pNode.getRightNodes()) {
+      if (pred.getLeftNodes().contains(pNode)) {
+        for(DiagramNode sibling: pred.getLeftNodes()) {
           if (sibling==pNode) {
             break;
           } else {
@@ -424,10 +621,10 @@ public class LayoutAlgorithm {
 
   private List<DiagramNode> getFollowingSiblings(DiagramNode pNode) {
     List<DiagramNode> result = new ArrayList<DiagramNode>();
-    for(DiagramNode successor:pNode.getPredecessors()) {
-      if (successor.getSuccessors().contains(pNode)) {
+    for(DiagramNode successor:pNode.getLeftNodes()) {
+      if (successor.getRightNodes().contains(pNode)) {
         boolean following = false;
-        for(DiagramNode sibling: successor.getSuccessors()) {
+        for(DiagramNode sibling: successor.getRightNodes()) {
           if (sibling==pNode) {
             following = true;
           } else if (following){
@@ -436,10 +633,10 @@ public class LayoutAlgorithm {
         }
       }
     }
-    for(DiagramNode successor:pNode.getSuccessors()) {
-      if (successor.getPredecessors().contains(pNode)) {
+    for(DiagramNode successor:pNode.getRightNodes()) {
+      if (successor.getLeftNodes().contains(pNode)) {
         boolean following = false;
-        for(DiagramNode sibling: successor.getPredecessors()) {
+        for(DiagramNode sibling: successor.getLeftNodes()) {
           if (sibling==pNode) {
             following = true;
           } else if (following){
