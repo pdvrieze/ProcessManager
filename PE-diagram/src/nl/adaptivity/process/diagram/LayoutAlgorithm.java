@@ -149,7 +149,7 @@ public class LayoutAlgorithm {
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
     if (yChanged || xChanged) {
-      System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
+      System.err.println("Moving node "+pNode.getTarget()+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
     }
@@ -333,7 +333,7 @@ public class LayoutAlgorithm {
   private static <T extends Positioned> DiagramNode<T> lowest(List<? extends DiagramNode<T>> pNodes) {
     DiagramNode<T> result = null;
     for(DiagramNode<T> node:pNodes) {
-      if (result==null || node.getBottom()<result.getBottom()) {
+      if (result==null || node.getBottom()>result.getBottom()) {
         result = node;
       }
     }
@@ -354,7 +354,7 @@ public class LayoutAlgorithm {
   private static <T extends Positioned> DiagramNode<T> rightMost(List<? extends DiagramNode<T>> pNodes) {
     DiagramNode<T> result = null;
     for(DiagramNode<T> node:pNodes) {
-      if (result==null || node.getRight()<result.getRight()) {
+      if (result==null || node.getRight()>result.getRight()) {
         result = node;
       }
     }
