@@ -32,9 +32,15 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProce
     return aPredecessors;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void setPredecessors(Collection<? extends T> pPredecessors) {
     aPredecessors = ProcessNodeSet.processNodeSet(pPredecessors);
+    for(T pred:getPredecessors()) {
+      if (!pred.getSuccessors().contains(this)) {
+        pred.addSuccessor((T) this);
+      }
+    }
   }
 
   @Override
