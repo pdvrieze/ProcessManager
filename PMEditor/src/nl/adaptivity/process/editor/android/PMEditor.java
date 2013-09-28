@@ -5,7 +5,6 @@ import java.io.InputStream;
 
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.processModel.ProcessModel;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,7 +24,7 @@ public class PMEditor extends Activity {
     try {
       DrawableProcessModel pm = PMParser.parseProcessModel(file);
       if (pm!=null) {
-        pm.setScale(4d);
+        pm.setScale(2.5d);
         diagramView1.setDiagram(pm);
       }
     } finally {
