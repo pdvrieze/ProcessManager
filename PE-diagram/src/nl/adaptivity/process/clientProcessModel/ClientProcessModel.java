@@ -241,51 +241,72 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   protected void layout() {
-    aLayoutAlgorithm.layout(toDiagramNodes(getModelNodes()));
+    final List<DiagramNode<T>> diagramNodes = toDiagramNodes(getModelNodes());
+    if(aLayoutAlgorithm.layout(diagramNodes)) {
+      double maxX = Double.MIN_VALUE;
+      double maxY = Double.MIN_VALUE;
+      for(DiagramNode<T> n:diagramNodes) {
+        n.getTarget().setX(n.getX()+getLeftPadding());
+        n.getTarget().setY(n.getY()+getTopPadding());
+        maxX = Math.max(n.getRight(), maxX);
+        maxY = Math.max(n.getBottom(), maxY);
+      }
+      aInnerWidth = Math.max(0, maxX);
+      aInnerHeight = Math.max(0, maxY);
+    }
   }
 
 
-  private List<DiagramNode> toDiagramNodes(Collection<? extends T> pModelNodes) {
-    HashMap<T,DiagramNode> map = new HashMap<T, DiagramNode>();
-    List<DiagramNode> result = new ArrayList<DiagramNode>();
+  private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> pModelNodes) {
+    HashMap<T,DiagramNode<T>> map = new HashMap<T, DiagramNode<T>>();
+    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(T node:pModelNodes) {
       final double leftExtend;
       final double rightExtend;
       final double topExtend;
       final double bottomExtend;
       if (node instanceof Bounded) {
+        boolean tempCoords = Double.isNaN(node.getX())||Double.isNaN(node.getY());
+        double tmpX=0;
+        double tmpY=0;
+        if (tempCoords) {
+          tmpX=node.getX();node.setX(0);
+          tmpY=node.getY();node.setY(0);
+        }
         Rectangle bounds = ((Bounded)node).getBounds();
         leftExtend = node.getX()-bounds.left;
         rightExtend = bounds.right()-node.getX();
         topExtend = node.getY()-bounds.top;
         bottomExtend = bounds.bottom()-node.getY();
+        if (tempCoords) {
+          node.setX(tmpX);
+          node.setY(tmpY);
+        }
       } else {
         leftExtend = rightExtend = aLayoutAlgorithm.getDefaultNodeWidth()/2;
         topExtend = bottomExtend = aLayoutAlgorithm.getDefaultNodeHeight()/2;
       }
-      DiagramNode dn = new DiagramNode(node, leftExtend, rightExtend, topExtend, bottomExtend);
+      DiagramNode<T> dn = new DiagramNode<T>(node, leftExtend, rightExtend, topExtend, bottomExtend);
       if (node.getId()!=null) {
         map.put(node, dn);
       }
       result.add(dn);
     }
 
-    int i=0;
-    for(T mn:pModelNodes) {
-      DiagramNode dn = result.get(i);
+    for(DiagramNode<T> dn:result) {
+      T mn = dn.getTarget();
       for(T successor:mn.getSuccessors()) {
-        DiagramNode rightdn = map.get(successor);
+        DiagramNode<T> rightdn = map.get(successor);
         if (rightdn!=null) {
           dn.getRightNodes().add(rightdn);
         }
       }
       for(T predecessor:mn.getPredecessors()) {
-        DiagramNode leftdn = map.get(predecessor);
+        DiagramNode<T> leftdn = map.get(predecessor);
         if (leftdn!=null) {
           dn.getLeftNodes().add(leftdn);
         }
       }
-      ++i;
     }
     return result;
   }
