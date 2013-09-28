@@ -11,6 +11,8 @@ public class LayoutAlgorithm {
 
   private static final double TOLERANCE = 1d;
 
+  private static final int PASSCOUNT = 0;
+
   private double aVertSeparation = 30d;
 
   private double aHorizSeparation = 30d;
@@ -56,42 +58,52 @@ public class LayoutAlgorithm {
     aDefaultNodeHeight = pDefaultNodeHeight;
   }
 
-  public boolean layout(List<DiagramNode> aNodes) {
+  public boolean layout(List<? extends DiagramNode<?>> pNodes) {
     boolean changed = false;
-    for (final DiagramNode node : aNodes) {
+    for (final DiagramNode<?> node : pNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
-        changed = layoutNodeInitial(aNodes, node, true, true); // always force as that should be slightly more efficient
+        changed = layoutNodeInitial(pNodes, node, true, true); // always force as that should be slightly more efficient
+      }
+    }
+    {
+      boolean nodesChanged = true;
+      for (int pass=0; nodesChanged && pass<PASSCOUNT; ++pass) {
+        nodesChanged = false;
+        for(DiagramNode<?> node: pNodes) {
+          if (node.getLeftNodes().isEmpty()) {
+            nodesChanged|=layoutNodeRight(pNodes, node, pass);
+          }
+        }
+        for(DiagramNode<?> node: pNodes) {
+          if (node.getRightNodes().isEmpty()) {
+            nodesChanged|=layoutNodeLeft(pNodes, node, pass);
+          }
+        }
+      }
+      changed|=nodesChanged;
+    }
+    if (changed) {
+      double minX = Double.MAX_VALUE;
+      double minY = Double.MAX_VALUE;
+      for (final DiagramNode<?> node : pNodes) {
+        minX = Math.min(node.getLeft(), minX);
+        minY = Math.min(node.getTop(), minY);
+      }
+      final double offsetX = 0 - minX;
+      final double offsetY = 0 - minY;
+
+      if (Math.abs(offsetX)>TOLERANCE || Math.abs(offsetY)>TOLERANCE) {
+        for (final DiagramNode<?> node : pNodes) {
+          node.setX(node.getX()+offsetX);
+          node.setY(node.getY()+offsetY);
+        }
       }
     }
     return changed;
-//    if (changed) {
-//      double minX = Double.MAX_VALUE;
-//      double minY = Double.MAX_VALUE;
-//      double maxX = Double.MIN_VALUE;
-//      double maxY = Double.MIN_VALUE;
-//      for (final DiagramNode node : aNodes) {
-//        minX = Math.min(node.getX()-leftDistance(node), minX);
-//        minY = Math.min(node.getY()-topDistance(node), minY);
-//        maxX = Math.max(node.getX()+rightDistance(node), maxX);
-//        maxY = Math.max(node.getY()+bottomDistance(node), maxY);
-//      }
-//      final double offsetX = aLeftPadding - minX;
-//      final double offsetY = aTopPadding - minY;
-//
-//      aInnerWidth = maxX - minX;
-//      aInnerHeight = maxY - minY;
-//
-//      if (Math.abs(offsetX)>TOLERANCE || Math.abs(offsetY)>TOLERANCE) {
-//        for (final DiagramNode node : aNodes) {
-//          node.setX(node.getX()+offsetX);
-//          node.setY(node.getY()+offsetY);
-//        }
-//      }
-//    }
   }
 
 
-  private boolean layoutNodeInitial(List<DiagramNode> pNodes, DiagramNode pNode, boolean forceX, boolean forceY) {
+  private boolean layoutNodeInitial(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pNode, boolean forceX, boolean forceY) {
     boolean changed = false;
     List<Point> leftPoints = getLeftPoints(pNode);
     List<Point> abovePoints = getAbovePoints(pNode);
@@ -181,7 +193,7 @@ public class LayoutAlgorithm {
     return changed;
   }
 
-  private boolean layoutNodeRight(List<DiagramNode> pNodes, DiagramNode pNode, int phase) {
+  private boolean layoutNodeRight(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pNode, int phase) {
     boolean changed = false;
     List<Point> leftPoints = getLeftPoints(pNode);
     List<Point> abovePoints = getAbovePoints(pNode);
@@ -267,23 +279,23 @@ public class LayoutAlgorithm {
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
-      for(DiagramNode n:getPrecedingSiblings(pNode)) {
+      for(DiagramNode<?> n:getPrecedingSiblings(pNode)) {
         layoutNodeRight(pNodes, n, phase);
       }
-      for(DiagramNode n:getFollowingSiblings(pNode)) {
+      for(DiagramNode<?> n:getFollowingSiblings(pNode)) {
         layoutNodeRight(pNodes, n, phase);
       }
-      for(DiagramNode n:pNode.getLeftNodes()) {
+      for(DiagramNode<?> n:pNode.getLeftNodes()) {
         layoutNodeRight(pNodes, n, phase);
       }
-      for(DiagramNode n:pNode.getRightNodes()) {
+      for(DiagramNode<?> n:pNode.getRightNodes()) {
         layoutNodeRight(pNodes, n, phase);
       }
     }
     return changed;
   }
 
-  private boolean layoutNodeLeft(List<DiagramNode> pNodes, DiagramNode pNode, int phase) {
+  private boolean layoutNodeLeft(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pNode, int phase) {
     boolean changed = false;
     List<Point> leftPoints = getLeftPoints(pNode);
     List<Point> abovePoints = getAbovePoints(pNode);
@@ -369,16 +381,16 @@ public class LayoutAlgorithm {
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
-      for(DiagramNode n:getPrecedingSiblings(pNode)) {
+      for(DiagramNode<?> n:getPrecedingSiblings(pNode)) {
         layoutNodeLeft(pNodes, n, phase);
       }
-      for(DiagramNode n:getFollowingSiblings(pNode)) {
+      for(DiagramNode <?>n:getFollowingSiblings(pNode)) {
         layoutNodeLeft(pNodes, n, phase);
       }
-      for(DiagramNode n:pNode.getLeftNodes()) {
+      for(DiagramNode<?> n:pNode.getLeftNodes()) {
         layoutNodeLeft(pNodes, n, phase);
       }
-      for(DiagramNode n:pNode.getRightNodes()) {
+      for(DiagramNode<?> n:pNode.getRightNodes()) {
         layoutNodeLeft(pNodes, n, phase);
       }
     }
@@ -386,8 +398,8 @@ public class LayoutAlgorithm {
   }
 
 
-  private void moveToRight(List<DiagramNode> pNodes, DiagramNode pFreeRegion) {
-    for(DiagramNode n: pNodes) {
+  private void moveToRight(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pFreeRegion) {
+    for(DiagramNode<?> n: pNodes) {
       if (n.rightOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
         n.setX(pFreeRegion.getRight()+aHorizSeparation+n.getLeftExtend());
         moveToRight(pNodes, n);
@@ -396,8 +408,8 @@ public class LayoutAlgorithm {
     }
   }
 
-  private void moveDown(List<DiagramNode> pNodes, DiagramNode pFreeRegion) {
-    for(DiagramNode n: pNodes) {
+  private void moveDown(List<? extends DiagramNode<?>> pNodes, DiagramNode<?> pFreeRegion) {
+    for(DiagramNode<?> n: pNodes) {
       if (n.downOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
         n.setY(pFreeRegion.getBottom()+aVertSeparation+n.getTopExtend());
         moveDown(pNodes, n);
@@ -413,28 +425,28 @@ public class LayoutAlgorithm {
     return Math.abs(pA-pB)>pTolerance;
   }
 
-  private double topDistance(DiagramNode pNode) {
+  private double topDistance(DiagramNode<?> pNode) {
     if ((!Double.isNaN(pNode.getY())) && pNode instanceof Bounded) {
       return pNode.getY()-((Bounded) pNode).getBounds().top;
     }
     return aDefaultNodeHeight/2;
   }
 
-  private double bottomDistance(DiagramNode pNode) {
+  private double bottomDistance(DiagramNode<?> pNode) {
     if ((!Double.isNaN(pNode.getY()))&& pNode instanceof Bounded) {
       return ((Bounded) pNode).getBounds().bottom()-pNode.getY();
     }
     return aDefaultNodeHeight/2;
   }
 
-  private double leftDistance(DiagramNode pNode) {
+  private double leftDistance(DiagramNode<?> pNode) {
     if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
       return pNode.getX()-((Bounded) pNode).getBounds().left;
     }
     return aDefaultNodeWidth/2;
   }
 
-  private double rightDistance(DiagramNode pNode) {
+  private double rightDistance(DiagramNode<?> pNode) {
     if ((!Double.isNaN(pNode.getX()))&& pNode instanceof Bounded) {
       return ((Bounded) pNode).getBounds().right()-pNode.getX();
     }
@@ -523,9 +535,9 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private List<Point> getLeftPoints(DiagramNode pNode) {
+  private List<Point> getLeftPoints(DiagramNode<?> pNode) {
     List<Point> result = new ArrayList<Point>();
-    for(DiagramNode n:pNode.getLeftNodes()) {
+    for(DiagramNode<?> n:pNode.getLeftNodes()) {
       if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
         double x;
         double y = n.getY();
@@ -540,9 +552,9 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private List<Point> getRightPoints(DiagramNode pNode) {
+  private List<Point> getRightPoints(DiagramNode<?> pNode) {
     List<Point> result = new ArrayList<Point>();
-    for(DiagramNode n:pNode.getRightNodes()) {
+    for(DiagramNode<?> n:pNode.getRightNodes()) {
       if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
         double x;
         double y = n.getY();
@@ -557,9 +569,9 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private List<Point> getAbovePoints(DiagramNode pNode) {
+  private List<Point> getAbovePoints(DiagramNode<?> pNode) {
     List<Point> result = new ArrayList<Point>();
-    for(DiagramNode n:getPrecedingSiblings(pNode)) {
+    for(DiagramNode<?> n:getPrecedingSiblings(pNode)) {
       if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
         double x = n.getX();
         double y;
@@ -574,9 +586,9 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private List<Point> getBelowPoints(DiagramNode pNode) {
+  private List<Point> getBelowPoints(DiagramNode<?> pNode) {
     List<Point> result = new ArrayList<Point>();
-    for(DiagramNode n:getFollowingSiblings(pNode)) {
+    for(DiagramNode<?> n:getFollowingSiblings(pNode)) {
       if (!(Double.isNaN(n.getX()) || Double.isNaN(n.getY()))) {
         double x = n.getX();
         double y;
@@ -592,11 +604,11 @@ public class LayoutAlgorithm {
   }
 
   // TODO Change to all nodes in the graph that are not smaller or bigger
-  private List<DiagramNode> getPrecedingSiblings(DiagramNode pNode) {
-    List<DiagramNode> result = new ArrayList<DiagramNode>();
-    for(DiagramNode pred:pNode.getLeftNodes()) {
+  private List<DiagramNode<?>> getPrecedingSiblings(DiagramNode<?> pNode) {
+    List<DiagramNode<?>> result = new ArrayList<DiagramNode<?>>();
+    for(DiagramNode<?> pred:pNode.getLeftNodes()) {
       if (pred.getRightNodes().contains(pNode)) {
-        for(DiagramNode sibling: pred.getRightNodes()) {
+        for(DiagramNode<?> sibling: pred.getRightNodes()) {
           if (sibling==pNode) {
             break;
           } else {
@@ -605,9 +617,9 @@ public class LayoutAlgorithm {
         }
       }
     }
-    for(DiagramNode pred:pNode.getRightNodes()) {
+    for(DiagramNode<?> pred:pNode.getRightNodes()) {
       if (pred.getLeftNodes().contains(pNode)) {
-        for(DiagramNode sibling: pred.getLeftNodes()) {
+        for(DiagramNode<?> sibling: pred.getLeftNodes()) {
           if (sibling==pNode) {
             break;
           } else {
@@ -619,12 +631,12 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private List<DiagramNode> getFollowingSiblings(DiagramNode pNode) {
-    List<DiagramNode> result = new ArrayList<DiagramNode>();
-    for(DiagramNode successor:pNode.getLeftNodes()) {
+  private List<DiagramNode<?>> getFollowingSiblings(DiagramNode<?> pNode) {
+    List<DiagramNode<?>> result = new ArrayList<DiagramNode<?>>();
+    for(DiagramNode<?> successor:pNode.getLeftNodes()) {
       if (successor.getRightNodes().contains(pNode)) {
         boolean following = false;
-        for(DiagramNode sibling: successor.getRightNodes()) {
+        for(DiagramNode<?> sibling: successor.getRightNodes()) {
           if (sibling==pNode) {
             following = true;
           } else if (following){
@@ -633,10 +645,10 @@ public class LayoutAlgorithm {
         }
       }
     }
-    for(DiagramNode successor:pNode.getRightNodes()) {
+    for(DiagramNode<?> successor:pNode.getRightNodes()) {
       if (successor.getLeftNodes().contains(pNode)) {
         boolean following = false;
-        for(DiagramNode sibling: successor.getLeftNodes()) {
+        for(DiagramNode<?> sibling: successor.getLeftNodes()) {
           if (sibling==pNode) {
             following = true;
           } else if (following){
