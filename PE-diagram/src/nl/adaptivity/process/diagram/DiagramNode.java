@@ -1,5 +1,8 @@
 package nl.adaptivity.process.diagram;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import nl.adaptivity.diagram.Positioned;
 
 
@@ -19,8 +22,14 @@ public class DiagramNode implements Positioned {
 
   private final double aBottomExtend;
 
+  private List<DiagramNode> aLeft;
+
+  private List<DiagramNode> aRight;
+
   public DiagramNode(Positioned pTarget, double pLeftExtend, double pRightExtend, double pTopExtend, double pBottomExtend) {
     aTarget = pTarget;
+    aLeft = new ArrayList<DiagramNode>();
+    aRight = new ArrayList<DiagramNode>();
     aX = pTarget.getX();
     aY = pTarget.getY();
     aLeftExtend = pLeftExtend;
@@ -131,5 +140,13 @@ public class DiagramNode implements Positioned {
       return false;
     }
     return true;
+  }
+
+  public List<DiagramNode> getLeftNodes() {
+    return aLeft;
+  }
+
+  public List<DiagramNode> getRightNodes() {
+    return aRight;
   }
 }
