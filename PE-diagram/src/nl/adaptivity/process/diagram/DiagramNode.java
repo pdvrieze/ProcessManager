@@ -114,7 +114,7 @@ public class DiagramNode<T extends Positioned> implements Positioned {
     return aY + aBottomExtend;
   }
 
-  public boolean rightOverlaps(DiagramNode<T> pRegion, double xSep, double ySep) {
+  public boolean rightOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
     if (pRegion.getLeft()<(getLeft())) {
       return false;
     }
@@ -130,7 +130,7 @@ public class DiagramNode<T extends Positioned> implements Positioned {
     return true;
   }
 
-  public boolean downOverlaps(DiagramNode<T> pRegion, double xSep, double ySep) {
+  public boolean downOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
     if (pRegion.getRight()<(getLeft()-xSep)) {
       return false;
     }
@@ -152,5 +152,35 @@ public class DiagramNode<T extends Positioned> implements Positioned {
 
   public List<DiagramNode<T>> getRightNodes() {
     return aRight;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    if (! Double.isNaN(aX)) {
+      builder.append("x=");
+      builder.append(aX);
+      builder.append(", ");
+    }
+    if (! Double.isNaN(aY)) {
+      builder.append("y=");
+      builder.append(aY);
+      builder.append(" - ");
+    } else {
+      if (!Double.isNaN(aX)) {
+        builder.append(" - ");
+      }
+    }
+    builder.append("((");
+    builder.append(aLeftExtend);
+    builder.append(", ");
+    builder.append(aRightExtend);
+    builder.append("),(");
+    builder.append(aTopExtend);
+    builder.append(", ");
+    builder.append(aBottomExtend);
+    builder.append("))");
+    return builder.toString();
   }
 }
