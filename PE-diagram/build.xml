@@ -64,6 +64,8 @@
 		</jar>
 	</target>
   <target name="PMjar" depends="build">
+    <tstamp><format property="buildtime" pattern="HH:mm:ss" timezone="Z" /></tstamp>
+    <echo file="build/nl/adaptivity/process/diagram/version.properties" message="buildtime=${buildtime}" />
     <property name="proguard.jar" location="/opt/android-sdk-update-manager/tools/proguard/lib/proguard.jar" />
     <taskdef name="proguard" classname="proguard.ant.ProGuardTask" classpath="${proguard.jar}" />
     <proguard>
