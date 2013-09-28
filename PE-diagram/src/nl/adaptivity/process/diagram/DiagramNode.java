@@ -6,9 +6,9 @@ import java.util.List;
 import nl.adaptivity.diagram.Positioned;
 
 
-public class DiagramNode implements Positioned {
+public class DiagramNode<T extends Positioned> implements Positioned {
 
-  private Positioned aTarget;
+  private T aTarget;
 
   private double aX;
 
@@ -22,14 +22,14 @@ public class DiagramNode implements Positioned {
 
   private final double aBottomExtend;
 
-  private List<DiagramNode> aLeft;
+  private List<DiagramNode<T>> aLeft;
 
-  private List<DiagramNode> aRight;
+  private List<DiagramNode<T>> aRight;
 
-  public DiagramNode(Positioned pTarget, double pLeftExtend, double pRightExtend, double pTopExtend, double pBottomExtend) {
+  public DiagramNode(T pTarget, double pLeftExtend, double pRightExtend, double pTopExtend, double pBottomExtend) {
     aTarget = pTarget;
-    aLeft = new ArrayList<DiagramNode>();
-    aRight = new ArrayList<DiagramNode>();
+    aLeft = new ArrayList<DiagramNode<T>>();
+    aRight = new ArrayList<DiagramNode<T>>();
     aX = pTarget.getX();
     aY = pTarget.getY();
     aLeftExtend = pLeftExtend;
@@ -38,7 +38,7 @@ public class DiagramNode implements Positioned {
     aBottomExtend = pBottomExtend;
   }
 
-  private DiagramNode(DiagramNode pDiagramNode, double pX, double pY) {
+  private DiagramNode(DiagramNode<T> pDiagramNode, double pX, double pY) {
     aTarget = pDiagramNode.aTarget;
     aX = pX;
     aY = pY;
@@ -46,6 +46,10 @@ public class DiagramNode implements Positioned {
     aRightExtend = pDiagramNode.aRightExtend;
     aTopExtend = pDiagramNode.aTopExtend;
     aBottomExtend = pDiagramNode.aBottomExtend;
+  }
+
+  public T getTarget() {
+    return aTarget;
   }
 
   /** Get the size to the left of the gravity point. */
@@ -68,12 +72,12 @@ public class DiagramNode implements Positioned {
     return aBottomExtend;
   }
 
-  public DiagramNode withX(double pX) {
-    return new DiagramNode(this, pX, aY);
+  public DiagramNode<T> withX(double pX) {
+    return new DiagramNode<T>(this, pX, aY);
   }
 
-  public DiagramNode withY(double pY) {
-    return new DiagramNode(this, aX, pY);
+  public DiagramNode<T> withY(double pY) {
+    return new DiagramNode<T>(this, aX, pY);
   }
 
   public void setX(double pX) {
@@ -110,7 +114,7 @@ public class DiagramNode implements Positioned {
     return aY + aBottomExtend;
   }
 
-  public boolean rightOverlaps(DiagramNode pRegion, double xSep, double ySep) {
+  public boolean rightOverlaps(DiagramNode<T> pRegion, double xSep, double ySep) {
     if (pRegion.getLeft()<(getLeft())) {
       return false;
     }
@@ -126,7 +130,7 @@ public class DiagramNode implements Positioned {
     return true;
   }
 
-  public boolean downOverlaps(DiagramNode pRegion, double xSep, double ySep) {
+  public boolean downOverlaps(DiagramNode<T> pRegion, double xSep, double ySep) {
     if (pRegion.getRight()<(getLeft()-xSep)) {
       return false;
     }
@@ -142,11 +146,11 @@ public class DiagramNode implements Positioned {
     return true;
   }
 
-  public List<DiagramNode> getLeftNodes() {
+  public List<DiagramNode<T>> getLeftNodes() {
     return aLeft;
   }
 
-  public List<DiagramNode> getRightNodes() {
+  public List<DiagramNode<T>> getRightNodes() {
     return aRight;
   }
 }
