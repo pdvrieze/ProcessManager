@@ -45,7 +45,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawCircle(double pX, double pY, double pRadius, Pen pPen) {
-      AndroidCanvas.this.drawCircle((pX+aXOffset)*aScale, (pY + aYOffset) * aScale, pRadius*aScale, pPen);
+      AndroidCanvas.this.drawCircle((pX+aXOffset)*aScale, (pY + aYOffset) * aScale, pRadius*aScale, ((AndroidPen) pPen).scale(aScale));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawRect(Rectangle pRect, Pen pPen) {
-      AndroidCanvas.this.drawRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pPen);
+      AndroidCanvas.this.drawRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), ((AndroidPen) pPen).scale(aScale));
     }
 
     @Override
@@ -65,7 +65,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawPath(double[] pPoints, Pen pPen) {
-      AndroidCanvas.this.drawPath(transform(pPoints), pPen);
+      AndroidCanvas.this.drawPath(transform(pPoints), ((AndroidPen) pPen).scale(aScale));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
-      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pPen);
+      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, ((AndroidPen) pPen).scale(aScale));
     }
 
     @Override
