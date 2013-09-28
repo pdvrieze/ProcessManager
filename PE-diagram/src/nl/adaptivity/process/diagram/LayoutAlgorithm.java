@@ -10,7 +10,7 @@ public class LayoutAlgorithm {
 
   private static final double TOLERANCE = 0.1d;
 
-  private static final int PASSCOUNT = 0;
+  private static final int PASSCOUNT = 1;
 
   private double aVertSeparation = 30d;
 
@@ -212,7 +212,9 @@ public class LayoutAlgorithm {
        * so that this node is the vertical center.
        */
       double rightCenterY = (highest(rightNodes).getY()+lowest(rightNodes).getY())/2;
-      if ((rightCenterY-y)>TOLERANCE) {
+      if ((y-rightCenterY)>TOLERANCE) {
+        // if the center of the right nodes is above this one, move the right nodes down.
+        // the reverse should be handled in the left pass
         moveY(rightNodes, rightCenterY-y);
       }
     }
@@ -245,7 +247,7 @@ public class LayoutAlgorithm {
     double y = pNode.getY();
 
     { // ensure that there is space for the node. If not, move all right nodes to the right
-      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
+      double missingSpace = minX - maxX;
       if (missingSpace>0) {
         x = minX;
         moveX(nodesLeft(pNodes, pNode), -missingSpace);
@@ -254,7 +256,7 @@ public class LayoutAlgorithm {
     }
 
     {
-      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
+      double missingSpace = minY - maxY;
       if (missingSpace>0) {
         y = minY;
         moveY(nodesAbove(pNodes, pNode), -missingSpace);
@@ -286,8 +288,10 @@ public class LayoutAlgorithm {
        * so that this node is the vertical center.
        */
       double leftCenterY = (highest(leftNodes).getY()+lowest(leftNodes).getY())/2;
+      // if the center of the left nodes is below this one, move the left nodes up.
+      // the reverse should be handled in the right pass
       if ((leftCenterY-y)>TOLERANCE) {
-        moveY(leftNodes, leftCenterY-y);
+        moveY(leftNodes, y-leftCenterY);
       }
     }
 
