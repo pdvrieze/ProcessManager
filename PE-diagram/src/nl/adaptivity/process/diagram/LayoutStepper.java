@@ -5,6 +5,7 @@ import java.util.List;
 import nl.adaptivity.diagram.Positioned;
 
 
+@SuppressWarnings("unused")
 public class LayoutStepper<T extends Positioned> {
 
   public void reportMove(DiagramNode<T> pNode, double newX, double newY) {
@@ -15,7 +16,19 @@ public class LayoutStepper<T extends Positioned> {
     // no implementation
   }
 
-  public void reportLowest(DiagramNode<T> pNode) {
+  public void reportLowest(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    // empty
+  }
+
+  public void reportHighest(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    // empty
+  }
+
+  public void reportRightmost(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+    // empty
+  }
+
+  public void reportLeftmost(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     // empty
   }
 

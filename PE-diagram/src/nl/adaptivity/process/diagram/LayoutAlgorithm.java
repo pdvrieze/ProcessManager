@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import static org.objectweb.asm.Opcodes.*;
+
 import nl.adaptivity.diagram.Positioned;
 
 
@@ -124,31 +126,13 @@ public class LayoutAlgorithm<T extends Positioned> {
     List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
     List<? extends DiagramNode<T>> aboveNodes = getPrecedingSiblings(pNode);
 
-//    List<Point> leftPoints = getLeftPoints(pNode);
-//    List<Point> abovePoints = getAbovePoints(pNode);
-//    List<Point> rightPoints = getRightPoints(pNode);
-//    List<Point> belowPoints = getBelowPoints(pNode);
-//
     double minY = bottom(lowest(aboveNodes), Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
-//    double maxY = minY(belowPoints)-aVertSeparation - bottomDistance(pNode);
+    if (aboveNodes.size()>1) { aLayoutStepper.reportLowest(aboveNodes, lowest(aboveNodes)); }
+    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMinY(aboveNodes, minY); }
+
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
-//    double maxX = minX(rightPoints)-aHorizSeparation - rightDistance(pNode);
-//
-//    { // ensure that there is space for the node. If not, move all right nodes to the right
-//      double missingSpace = minX+pNode.getLeftExtend()+pNode.getRightExtend() - maxX;
-//      if (missingSpace>0) {
-//        moveToRight(pNodes, pNode.withX(minX));
-//        changed = true;
-//      }
-//    }
-//
-//    {
-//      double missingSpace = minY+pNode.getTopExtend()+pNode.getBottomExtend() - maxY;
-//      if (missingSpace>0) {
-//        moveDown(pNodes, pNode.withY(minY));
-//        changed = true;
-//      }
-//    }
+    if (leftNodes.size()>1) { aLayoutStepper.reportRightmost(leftNodes, rightMost(leftNodes)); }
+    if (!Double.isInfinite(minX)) { aLayoutStepper.reportMinX(leftNodes, minX); }
 
     double x = pNode.getX();
     double y = pNode.getY();
@@ -183,10 +167,20 @@ public class LayoutAlgorithm<T extends Positioned> {
 
     final List<DiagramNode<T>> nodesAbove = nodesAbove(pNode);
     double minY = bottom(lowest(nodesAbove),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
-    aLayoutStepper.reportMinY(nodesAbove, minY);
+    if (nodesAbove.size()>1) { aLayoutStepper.reportLowest(nodesAbove, lowest(nodesAbove)); }
+    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMinY(nodesAbove, minY); }
+
     double maxY = top(highest(belowSiblings), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
+    if (nodesAbove.size()>1) { aLayoutStepper.reportLowest(belowSiblings, highest(belowSiblings)); }
+    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMinY(belowSiblings, maxY); }
+
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
+    if (leftNodes.size()>1) { aLayoutStepper.reportRightmost(leftNodes, rightMost(leftNodes)); }
+    if (!Double.isInfinite(minX)) { aLayoutStepper.reportMinX(leftNodes, minX); }
+
     double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
+    if (leftNodes.size()>1) { aLayoutStepper.reportLeftmost(rightNodes, leftMost(rightNodes)); }
+    if (!Double.isInfinite(maxX)) { aLayoutStepper.reportMinX(rightNodes, maxX); }
 
     double x = pNode.getX();
     double y = pNode.getY();
