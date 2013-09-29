@@ -58,6 +58,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return aLayoutAlgorithm;
   }
 
+  public void setLayoutAlgorithm(LayoutAlgorithm<T> pLayoutAlgorithm) {
+    aLayoutAlgorithm = pLayoutAlgorithm;
+  }
+
   public double getVertSeparation() {
     return aLayoutAlgorithm.getVertSeparation();
   }
