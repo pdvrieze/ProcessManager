@@ -45,7 +45,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public ClientProcessModel(final String pName, final Collection<? extends T> pNodes, LayoutAlgorithm<T> pLayoutAlgorithm) {
     aName = pName;
-    aLayoutAlgorithm = pLayoutAlgorithm;
+    aLayoutAlgorithm = pLayoutAlgorithm == null ? new LayoutAlgorithm<T>() : pLayoutAlgorithm;
     setNodes(pNodes);
   }
 

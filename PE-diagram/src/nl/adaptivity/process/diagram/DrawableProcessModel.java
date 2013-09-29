@@ -65,6 +65,15 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
+  public DrawableProcessModel(String pName, Collection<? extends DrawableProcessNode> pNodes, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+    super(pName, pNodes, pLayoutAlgorithm);
+    setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
+    setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
+    setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
+    setVertSeparation(DEFAULT_VERT_SEPARATION);
+    layout();
+  }
+
   private static Collection<? extends DrawableProcessNode> getDrawableNodes(Collection<? extends StartNode<?>> pStartNodes) {
     Set<EndNode<?>> origEndNodes = getDrawableNodes(new HashSet<EndNode<?>>(), pStartNodes);
     ArrayList<DrawableProcessNode> result = new ArrayList<DrawableProcessNode>(pStartNodes.size());
