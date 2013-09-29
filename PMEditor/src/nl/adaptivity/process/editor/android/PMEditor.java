@@ -188,12 +188,8 @@ public class PMEditor extends Activity {
     }
     double offsetX= aPm.getLeftPadding()-minX;
     double offsetY= aPm.getTopPadding()-minY;
-    for(DrawableProcessNode node: aPm.getModelNodes()) {
-      if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
-        node.setX(node.getX()+offsetX);
-        node.setY(node.getY()+offsetY);
-      }
-    }
+    diagramView1.setOffsetX(offsetX*aPm.getScale());
+    diagramView1.setOffsetY(offsetY*aPm.getScale());
   }
 
   @Override

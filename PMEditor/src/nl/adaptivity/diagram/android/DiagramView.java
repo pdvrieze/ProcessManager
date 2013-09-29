@@ -23,6 +23,8 @@ public class DiagramView extends View {
   private Paint aRed;
   private Paint aTimePen;
   private Rect aBounds = new Rect();
+  private double aOffsetX = 0;
+  private double aOffsetY = 0;
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
@@ -34,6 +36,25 @@ public class DiagramView extends View {
 
   public DiagramView(Context pContext) {
     super(pContext);
+  }
+
+  public double getOffsetX() {
+    return aOffsetX;
+  }
+
+
+  public void setOffsetX(double pOffsetX) {
+    aOffsetX = pOffsetX;
+  }
+
+
+  public double getOffsetY() {
+    return aOffsetY;
+  }
+
+
+  public void setOffsetY(double pOffsetY) {
+    aOffsetY = pOffsetY;
   }
 
   public Diagram getDiagram() {
@@ -49,7 +70,7 @@ public class DiagramView extends View {
     super.draw(pCanvas);
 //    pCanvas.drawLine(200, 0, 0, 200, aRed);
     if (aDiagram!=null) {
-      final Rectangle clipBounds = new Rectangle(0d, 0d, getHeight(), getWidth());
+      final Rectangle clipBounds = new Rectangle(-aOffsetX, -aOffsetY, getHeight(), getWidth());
       final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
       aDiagram.draw(canvas, clipBounds);
     } else {
