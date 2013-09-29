@@ -105,12 +105,12 @@
           </Envelope>
         </message>
       </activity>
-      <activity id="ac5" predecessor="start"/>
-      <activity id="ac6" predecessor="ac5"/>
+      <activity id="ac6" predecessor="start"/>
       <activity id="ac7" predecessor="ac6"/>
+      <activity id="ac8" predecessor="ac7"/>
       <join id="j2" min="2" max="2">
         <predecessor>ac4</predecessor>
-        <predecessor>ac7</predecessor>
+        <predecessor>ac8</predecessor>
       </join>
       <end predecessor="j2" id="end"/>
 </processModel>

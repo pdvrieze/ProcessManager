@@ -17,6 +17,7 @@ import java.util.Set;
 import javax.xml.XMLConstants;
 
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.diagram.DrawableActivity;
@@ -82,6 +83,16 @@ public class PMParser {
     @Override
     public void setSuccessor(DrawableProcessNode pArg0) {
       throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public Pen getPen() {
+      return null;
+    }
+
+    @Override
+    public void setFGPen(Pen pPen) {
+      // ignore
     }
 
   }
