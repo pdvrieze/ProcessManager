@@ -19,7 +19,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   @Override
   public void setFGPen(Pen pPen) {
-    aFGPen = pPen.setStrokeWidth(ENDNODEOUTERSTROKEWIDTH);
+    aFGPen = pPen==null ? null : pPen.setStrokeWidth(ENDNODEOUTERSTROKEWIDTH);
   }
 
   @Override

@@ -26,7 +26,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public void setFGPen(Pen pPen) {
-    aFGPen = pPen.setStrokeWidth(STROKEWIDTH);
+    aFGPen = pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH);
   }
 
   @Override
