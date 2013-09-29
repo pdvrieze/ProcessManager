@@ -70,9 +70,9 @@ public class DiagramView extends View {
     super.draw(pCanvas);
 //    pCanvas.drawLine(200, 0, 0, 200, aRed);
     if (aDiagram!=null) {
-      final Rectangle clipBounds = new Rectangle(-aOffsetX, -aOffsetY, getHeight(), getWidth());
+      final Rectangle clipBounds = new Rectangle(aOffsetX, aOffsetY, getHeight(), getWidth());
       final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
-      aDiagram.draw(canvas, clipBounds);
+      aDiagram.draw(canvas.childCanvas(clipBounds, 1d), clipBounds);
     } else {
       if (aRed==null) {
         aRed = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);

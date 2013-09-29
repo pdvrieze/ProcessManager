@@ -26,6 +26,7 @@ import nl.adaptivity.process.diagram.DrawableJoin;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableStartNode;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -99,7 +100,7 @@ public class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  static DrawableProcessModel parseProcessModel(InputStream pIn) {
+  static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
@@ -118,7 +119,7 @@ public class PMParser {
             nodeMap.put(node.getId(), node);
           }
         }
-        return new DrawableProcessModel(modelName, modelElems);
+        return new DrawableProcessModel(modelName, modelElems, pLayoutAlgorithm);
 
       } else {
         return null;

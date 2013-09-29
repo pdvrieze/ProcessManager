@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -13,6 +14,7 @@ import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.LayoutStepper;
 import android.app.Activity;
 import android.graphics.Paint;
@@ -26,6 +28,14 @@ import android.view.MenuItem;
 
 public class PMEditor extends Activity {
 
+  private final static LayoutAlgorithm<DrawableProcessNode> NULL_LAYOUT_ALGORITHM = new LayoutAlgorithm<DrawableProcessNode>(){
+
+    @Override
+    public boolean layout(List<? extends DiagramNode<DrawableProcessNode>> pNodes) {
+      return false; // don't do any layout
+    }
+
+  };
 
   private static class WaitTask extends FutureTask<Object> {
 
@@ -38,12 +48,19 @@ public class PMEditor extends Activity {
 
     };
 
-    public WaitTask() {
+    private final boolean aImmediate;
+
+    public WaitTask(boolean pImmediate) {
       super(NULLCALLABLE);
+      aImmediate = pImmediate;
     }
 
     public void trigger() {
       set(Boolean.TRUE);
+    }
+
+    public boolean isImmediate() {
+      return aImmediate;
     }
   }
 
@@ -51,7 +68,7 @@ public class PMEditor extends Activity {
 
     LayoutTask aLayoutTask;
     private Pen aGreenPen;
-    private boolean dontwait = false;
+    private boolean aImmediate = false;
 
     public MyStepper(LayoutTask pLayoutTask) {
       aLayoutTask = pLayoutTask;
@@ -70,15 +87,12 @@ public class PMEditor extends Activity {
     }
 
     private void waitForNextClicked() {
-      if (! dontwait) {
-        final WaitTask task = new WaitTask();
-        aLayoutTask.postProgress(task);
-        try {
-          task.get();
-        } catch (ExecutionException e) {
-
-        } catch (InterruptedException e) {
-        }
+      final WaitTask task = new WaitTask(aImmediate);
+      aLayoutTask.postProgress(task);
+      try {
+        task.get();
+      } catch (ExecutionException e) { // ignore
+      } catch (InterruptedException e) { // ignore
       }
     }
 
@@ -101,9 +115,29 @@ public class PMEditor extends Activity {
 
     @Override
     protected Object doInBackground(Object... pParams) {
-      aStepper = new MyStepper(this);
-      aPm.getLayoutAlgorithm().setLayoutStepper(aStepper);
-      aPm.layout();
+      if (aStepper==null) {
+        aStepper = new MyStepper(this);
+      }
+      final InputStream file = getResources().openRawResource(R.raw.processmodel);
+      try {
+        // Start with null layout algorithm, to prevent dual layout.
+        aPm = PMParser.parseProcessModel(file, NULL_LAYOUT_ALGORITHM);
+        if (aPm!=null) {
+          aPm.setScale(2.5d);
+          LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<DrawableProcessNode>();
+          alg.setLayoutStepper(aStepper);
+          aPm.setLayoutAlgorithm(alg);
+          diagramView1.setDiagram(aPm);
+          aPm.layout();
+        }
+      } finally {
+        try {
+          file.close();
+        } catch (IOException e) {
+          Log.e(getClass().getName(), e.getMessage(), e);
+          return null;
+        }
+      }
       return null;
     }
 
@@ -115,17 +149,22 @@ public class PMEditor extends Activity {
     protected void onProgressUpdate(WaitTask... pValues) {
 //      findViewById(R.id.ac_next).setEnabled(true);
       diagramView1.invalidate();
+      final WaitTask task = pValues[0];
+      if (task.isImmediate()) {
+        task.trigger();
+      }
       aTask = pValues[0];
     }
 
     @Override
     protected void onPostExecute(Object pResult) {
       aLayoutTask=null;
+      updateDiagramBounds();
       diagramView1.invalidate();
     }
 
     public void playAll() {
-      aStepper.dontwait= true;
+      aStepper.aImmediate= true;
       if (aTask!=null) {
         aTask.trigger();
         aTask = null;
@@ -160,36 +199,22 @@ public class PMEditor extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
     diagramView1 = (DiagramView) findViewById(R.id.diagramView1);
-    final InputStream file = getResources().openRawResource(R.raw.processmodel);
-    try {
-      aPm = PMParser.parseProcessModel(file);
-      if (aPm!=null) {
-        aPm.setScale(2.5d);
-        aPm.invalidate();
-        diagramView1.setDiagram(aPm);
-      }
-    } finally {
-      try {
-        file.close();
-      } catch (IOException e) {
-        Log.e(getClass().getName(), e.getMessage(), e);
-        return;
-      }
-    }
   }
 
   public void updateDiagramBounds() {
     double minX = Double.POSITIVE_INFINITY;
     double minY = Double.POSITIVE_INFINITY;
     for(DrawableProcessNode node: aPm.getModelNodes()) {
-      final Rectangle bounds = node.getBounds();
-      if (bounds.left<minX) { minX = bounds.left; }
-      if (bounds.top<minY) { minY = bounds.top; }
+      if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
+        final Rectangle bounds = node.getBounds();
+        if (bounds.left<minX) { minX = bounds.left; }
+        if (bounds.top<minY) { minY = bounds.top; }
+      }
     }
-    double offsetX= aPm.getLeftPadding()-minX;
-    double offsetY= aPm.getTopPadding()-minY;
-    diagramView1.setOffsetX(offsetX*aPm.getScale());
-    diagramView1.setOffsetY(offsetY*aPm.getScale());
+    double offsetX= Double.isInfinite(minX)? 0 : aPm.getLeftPadding()-minX;
+    double offsetY= Double.isInfinite(minY)? 0 : aPm.getTopPadding()-minY;
+    diagramView1.setOffsetX(offsetX);
+    diagramView1.setOffsetY(offsetY);
   }
 
   @Override
@@ -199,6 +224,17 @@ public class PMEditor extends Activity {
       aLayoutTask = new LayoutTask();
       aLayoutTask.execute();
     }
+  }
+
+
+
+  @Override
+  protected void onDestroy() {
+    if (aLayoutTask!=null) {
+      aLayoutTask.playAll();
+      aLayoutTask = null;
+    }
+    super.onDestroy();
   }
 
   @Override
@@ -216,9 +252,11 @@ public class PMEditor extends Activity {
         break;
       case R.id.ac_zoom_inc:
         aPm.setScale(aPm.getScale()*1.2);
+        diagramView1.invalidate();
         break;
       case R.id.ac_zoom_dec:
         aPm.setScale(aPm.getScale()/1.2);
+        diagramView1.invalidate();
         break;
       default:
         return false;
