@@ -10,7 +10,17 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
 
-  private Pen aBlack;
+  private Pen aFGPen;
+
+  @Override
+  public Pen getPen() {
+    return aFGPen;
+  }
+
+  @Override
+  public void setFGPen(Pen pPen) {
+    aFGPen = pPen.setStrokeWidth(STROKEWIDTH);
+  }
 
   @Override
   public Rectangle getBounds() {
@@ -19,8 +29,10 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff); }
-    pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, aBlack);
+    if (hasPos()) {
+      if (aFGPen ==null) { aFGPen = pCanvas.newColor(0,0,0,0xff); }
+      pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, aFGPen);
+    }
   }
 
   public static DrawableStartNode from(StartNode<?> pN) {

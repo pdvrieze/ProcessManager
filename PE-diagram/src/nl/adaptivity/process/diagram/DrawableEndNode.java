@@ -10,7 +10,17 @@ import nl.adaptivity.process.processModel.EndNode;
 
 public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implements DrawableProcessNode {
 
-  private Pen aBlack;
+  private Pen aFGPen;
+
+  @Override
+  public Pen getPen() {
+    return aFGPen;
+  }
+
+  @Override
+  public void setFGPen(Pen pPen) {
+    aFGPen = pPen.setStrokeWidth(ENDNODEOUTERSTROKEWIDTH);
+  }
 
   @Override
   public Rectangle getBounds() {
@@ -19,9 +29,11 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(ENDNODEOUTERSTROKEWIDTH); }
-    pCanvas.drawCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, aBlack);
-    pCanvas.drawFilledCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEINNERRRADIUS, aBlack);
+    if (hasPos()) {
+      if (aFGPen ==null) { aFGPen = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(ENDNODEOUTERSTROKEWIDTH); }
+      pCanvas.drawCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, aFGPen);
+      pCanvas.drawFilledCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEINNERRRADIUS, aFGPen);
+    }
   }
 
   public static DrawableEndNode from(EndNode<?> pElem) {

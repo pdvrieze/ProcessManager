@@ -12,8 +12,18 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   private static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
 
-  private Pen aBlack;
+  private Pen aFGPen;
   private Pen aWhite;
+
+  @Override
+  public Pen getPen() {
+    return aFGPen;
+  }
+
+  @Override
+  public void setFGPen(Pen pPen) {
+    aFGPen = pPen.setStrokeWidth(STROKEWIDTH);
+  }
 
   @Override
   public Rectangle getBounds() {
@@ -24,19 +34,21 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    double dx = JOINWIDTH/2;
-    double dy = JOINHEIGHT/2;
-    if (aBlack ==null) { aBlack = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(STROKEWIDTH); }
-    if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
-    double[] points = new double[] {
-      0,dy,
-      dx, 0,
-      JOINWIDTH, dy,
-      dx, JOINHEIGHT,
-      0, dy
-    };
-    pCanvas.drawFilledPath(points, aWhite);
-    pCanvas.drawPath(points, aBlack);
+    if (hasPos()) {
+      double dx = JOINWIDTH/2;
+      double dy = JOINHEIGHT/2;
+      if (aFGPen ==null) { aFGPen = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(STROKEWIDTH); }
+      if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
+      double[] points = new double[] {
+        0,dy,
+        dx, 0,
+        JOINWIDTH, dy,
+        dx, JOINHEIGHT,
+        0, dy
+      };
+      pCanvas.drawFilledPath(points, aWhite);
+      pCanvas.drawPath(points, aFGPen);
+    }
   }
 
   public static DrawableJoin from(Join<?> pElem) {

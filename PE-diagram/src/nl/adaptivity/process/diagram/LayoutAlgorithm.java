@@ -7,11 +7,11 @@ import java.util.List;
 import nl.adaptivity.diagram.Positioned;
 
 
-public class LayoutAlgorithm {
+public class LayoutAlgorithm<T extends Positioned> {
 
   private static final double TOLERANCE = 0.1d;
 
-  private static final int PASSCOUNT = 4;
+  private static final int PASSCOUNT = 8;
 
   private double aVertSeparation = 30d;
 
@@ -19,6 +19,17 @@ public class LayoutAlgorithm {
 
   private double aDefaultNodeWidth = 30d;
   private double aDefaultNodeHeight = 30d;
+
+  private LayoutStepper<T> aLayoutStepper = new LayoutStepper<T>();
+
+  public LayoutStepper<T> getLayoutStepper() {
+    return aLayoutStepper;
+  }
+
+  public void setLayoutStepper(LayoutStepper<T> pLayoutStepper) {
+    aLayoutStepper = pLayoutStepper !=null ? pLayoutStepper : new LayoutStepper<T>();
+  }
+
 
   public double getVertSeparation() {
     return aVertSeparation;
@@ -58,7 +69,7 @@ public class LayoutAlgorithm {
     aDefaultNodeHeight = pDefaultNodeHeight;
   }
 
-  public <T extends Positioned> boolean layout(List<? extends DiagramNode<T>> pNodes) {
+  public boolean layout(List<? extends DiagramNode<T>> pNodes) {
     boolean changed = false;
     for (final DiagramNode<T> node : pNodes) {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
@@ -68,15 +79,19 @@ public class LayoutAlgorithm {
     {
       boolean nodesChanged = true;
       for (int pass=0; nodesChanged && pass<PASSCOUNT; ++pass) {
+        aLayoutStepper.reportPass(pass);
         nodesChanged = false;
-        for(DiagramNode<T> node: pNodes) {
-          if (node.getLeftNodes().isEmpty()) {
-            nodesChanged|=layoutNodeRight(pNodes, node, pass);
+        if (pass%2==0) {
+          for(DiagramNode<T> node: pNodes) {
+            if (node.getLeftNodes().isEmpty()) {
+              nodesChanged|=layoutNodeRight(pNodes, node, pass);
+            }
           }
-        }
-        for(DiagramNode<T> node: pNodes) {
-          if (node.getRightNodes().isEmpty()) {
-            nodesChanged|=layoutNodeLeft(pNodes, node, pass);
+        } else {
+          for(DiagramNode<T> node: pNodes) {
+            if (node.getRightNodes().isEmpty()) {
+              nodesChanged|=layoutNodeLeft(pNodes, node, pass);
+            }
           }
         }
       }
@@ -103,7 +118,7 @@ public class LayoutAlgorithm {
   }
 
 
-  private <T extends Positioned> boolean layoutNodeInitial(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private boolean layoutNodeInitial(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     boolean changed = false;
 
     List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
@@ -150,6 +165,7 @@ public class LayoutAlgorithm {
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
     if (yChanged || xChanged) {
+      aLayoutStepper.reportMove(pNode, x, y);
       System.err.println("Moving node "+pNode.getTarget()+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
@@ -157,14 +173,17 @@ public class LayoutAlgorithm {
     return changed;
   }
 
-  private <T extends Positioned> boolean layoutNodeRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
+  private boolean layoutNodeRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
+    aLayoutStepper.reportLayoutNode(pNode);
     boolean changed = false;
     List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
     List<? extends DiagramNode<T>> rightNodes = pNode.getRightNodes();
     List<? extends DiagramNode<T>> aboveSiblings = getPrecedingSiblings(pNode);
     List<? extends DiagramNode<T>> belowSiblings = getFollowingSiblings(pNode);
 
-    double minY = bottom(lowest(nodesAbove(pNode)),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
+    final List<DiagramNode<T>> nodesAbove = nodesAbove(pNode);
+    double minY = bottom(lowest(nodesAbove),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
+    aLayoutStepper.reportMinY(nodesAbove, minY);
     double maxY = top(highest(belowSiblings), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
     double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
@@ -221,6 +240,7 @@ public class LayoutAlgorithm {
     }
 
     if (yChanged || xChanged) {
+      aLayoutStepper.reportMove(pNode, x, y);
       changed=true;
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
@@ -232,7 +252,8 @@ public class LayoutAlgorithm {
     return changed;
   }
 
-  private <T extends Positioned> boolean layoutNodeLeft(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
+  private boolean layoutNodeLeft(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
+    aLayoutStepper.reportLayoutNode(pNode);
     boolean changed = false;
     List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
     List<? extends DiagramNode<T>> rightNodes = pNode.getRightNodes();
@@ -297,6 +318,7 @@ public class LayoutAlgorithm {
     }
 
     if (yChanged || xChanged) {
+      aLayoutStepper.reportMove(pNode, x, y);
       changed=true;
       System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
@@ -366,7 +388,7 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesAbove(DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> nodesAbove(DiagramNode<T> pNode) {
     LinkedHashSet<DiagramNode<T>> result = new LinkedHashSet<DiagramNode<T>>();
     for(DiagramNode<T> pred : pNode.getLeftNodes()) {
       addNodesAbove(result, pred, pNode);
@@ -375,7 +397,7 @@ public class LayoutAlgorithm {
     return new ArrayList<DiagramNode<T>>(result);
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesBelow(DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> nodesBelow(DiagramNode<T> pNode) {
     LinkedHashSet<DiagramNode<T>> result = new LinkedHashSet<DiagramNode<T>>();
     for(DiagramNode<T> pred : pNode.getLeftNodes()) {
       addNodesBelow(result, pred, pNode);
@@ -384,7 +406,7 @@ public class LayoutAlgorithm {
     return new ArrayList<DiagramNode<T>>(result);
   }
 
-  private <T extends Positioned> void addNodesAbove(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
+  private void addNodesAbove(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
     for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
       if (candidate==pRef) {
         break;
@@ -397,7 +419,7 @@ public class LayoutAlgorithm {
     }
   }
 
-  private <T extends Positioned> void addNodesBelow(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
+  private void addNodesBelow(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
     boolean found = false;
     for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
       if (candidate==pRef) {
@@ -411,7 +433,7 @@ public class LayoutAlgorithm {
     }
   }
 
-  private <T extends Positioned> void addTransitiveRight(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pNode) {
+  private void addTransitiveRight(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pNode) {
     if (result.add(pNode)) {
       for(DiagramNode<T> right: pNode.getRightNodes()) {
         addTransitiveRight(result, right);
@@ -420,14 +442,14 @@ public class LayoutAlgorithm {
   }
 
 
-  private <T extends Positioned> void removeTransitiveRight(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pNode) {
+  private void removeTransitiveRight(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pNode) {
     result.remove(pNode);
     for(DiagramNode<T> right: pNode.getRightNodes()) {
       removeTransitiveRight(result, right);
     }
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesAbovePos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> nodesAbovePos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
       if (n!=pNode && n.upOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
@@ -437,7 +459,7 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesBelowPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> nodesBelowPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
       if (n!=pNode && n.downOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
@@ -447,7 +469,7 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesLeftPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> nodesLeftPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
       if (n!=pNode && n.leftOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
@@ -457,7 +479,7 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private <T extends Positioned> List<DiagramNode<T>> nodesRightPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> nodesRightPos(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode) {
     List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
     for(DiagramNode<T> n: pNodes) {
       if (n!=pNode && n.rightOverlaps(pNode, aHorizSeparation, aVertSeparation)) {
@@ -467,34 +489,40 @@ public class LayoutAlgorithm {
     return result;
   }
 
-  private <T extends Positioned> void moveToRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+  private void moveToRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
     for(DiagramNode<T> n: pNodes) {
       if (n.rightOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
-        n.setX(pFreeRegion.getRight()+aHorizSeparation+n.getLeftExtend());
+        final double newX = pFreeRegion.getRight()+aHorizSeparation+n.getLeftExtend();
+        aLayoutStepper.reportMove(n, newX, n.getY());
+        n.setX(newX);
         moveToRight(pNodes, n);
         moveDown(pNodes, n);
       }
     }
   }
 
-  private <T extends Positioned> void moveDown(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+  private void moveDown(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
     for(DiagramNode<T> n: pNodes) {
       if (n.downOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
-        n.setY(pFreeRegion.getBottom()+aVertSeparation+n.getTopExtend());
+        final double newY = pFreeRegion.getBottom()+aVertSeparation+n.getTopExtend();
+        aLayoutStepper.reportMove(n, n.getX(), newY);
+        n.setY(newY);
         moveDown(pNodes, n);
         moveToRight(pNodes, n);
       }
     }
   }
 
-  private static <T extends Positioned> void moveX(List<? extends DiagramNode<T>> pNodes, double distance) {
+  private void moveX(List<? extends DiagramNode<T>> pNodes, double distance) {
+    aLayoutStepper.reportMoveX(pNodes, distance);
     for(DiagramNode<T> n: pNodes) {
       n.setX(n.getX()+distance);
       System.err.println("Moving node "+n+ "to ("+n.getX()+"!, "+n.getY()+')');
     }
   }
 
-  private static <T extends Positioned> void moveY(List<? extends DiagramNode<T>> pNodes, double distance) {
+  private void moveY(List<? extends DiagramNode<T>> pNodes, double distance) {
+    aLayoutStepper.reportMoveY(pNodes, distance);
     for(DiagramNode<T> n: pNodes) {
       n.setY(n.getY()+distance);
       System.err.println("Moving node "+n+ "to ("+n.getX()+", "+n.getY()+"!)");

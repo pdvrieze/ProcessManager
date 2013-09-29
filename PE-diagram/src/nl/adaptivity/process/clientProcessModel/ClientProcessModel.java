@@ -37,7 +37,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private double aInnerHeight = Double.NaN;
 
-  LayoutAlgorithm aLayoutAlgorithm = new LayoutAlgorithm();
+  LayoutAlgorithm<T> aLayoutAlgorithm = new LayoutAlgorithm<T>();
 
   public ClientProcessModel(final String pName, final Collection<? extends T> pNodes) {
     aName = pName;
@@ -49,6 +49,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     invalidate();
   }
 
+  public LayoutAlgorithm<T> getLayoutAlgorithm() {
+    return aLayoutAlgorithm;
+  }
 
   public double getVertSeparation() {
     return aLayoutAlgorithm.getVertSeparation();
@@ -240,7 +243,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return aTopPadding+getInnerHeight()+aBottomPadding;
   }
 
-  protected void layout() {
+  public void layout() {
     final List<DiagramNode<T>> diagramNodes = toDiagramNodes(getModelNodes());
     if(aLayoutAlgorithm.layout(diagramNodes)) {
       double maxX = Double.MIN_VALUE;
