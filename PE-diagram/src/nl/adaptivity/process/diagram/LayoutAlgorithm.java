@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import static org.objectweb.asm.Opcodes.*;
-
 import nl.adaptivity.diagram.Positioned;
 
 
