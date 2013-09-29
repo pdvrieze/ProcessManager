@@ -37,10 +37,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private double aInnerHeight = Double.NaN;
 
-  LayoutAlgorithm<T> aLayoutAlgorithm = new LayoutAlgorithm<T>();
+  LayoutAlgorithm<T> aLayoutAlgorithm;
 
   public ClientProcessModel(final String pName, final Collection<? extends T> pNodes) {
+    this(pName, pNodes, new LayoutAlgorithm<T>());
+  }
+
+  public ClientProcessModel(final String pName, final Collection<? extends T> pNodes, LayoutAlgorithm<T> pLayoutAlgorithm) {
     aName = pName;
+    aLayoutAlgorithm = pLayoutAlgorithm;
     setNodes(pNodes);
   }
 
