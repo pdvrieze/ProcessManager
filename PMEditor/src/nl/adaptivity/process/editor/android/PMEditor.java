@@ -35,7 +35,61 @@ import android.view.MenuItem;
 
 public class PMEditor extends Activity {
 
-  
+
+
+  private final class LineDrawable extends Drawable {
+
+    private double aX1;
+    private double aY1;
+    private double aX2;
+    private double aY2;
+    private final Paint aPaint;
+
+    public LineDrawable(double pX1, double pY1, double pX2, double pY2, Paint pPaint) {
+      aX1 = pX1;
+      aX2 = pX2;
+      aY1 = pY1;
+      aY2 = pY2;
+      aPaint = pPaint;
+    }
+
+    @Override
+    public void draw(Canvas pCanvas) {
+      if (!Double.isNaN(aX1)) {
+        float scaledX = (float) (((diagramView1.getOffsetX()*aPm.getScale())+aX1)*aPm.getScale());
+        pCanvas.drawLine(scaledX, 0, scaledX, pCanvas.getHeight(), aPaint);
+      }
+      if (!Double.isNaN(aY1)) {
+        float scaledY = (float) (((diagramView1.getOffsetY()*aPm.getScale())+aY1)*aPm.getScale());
+        pCanvas.drawLine(0, scaledY, pCanvas.getWidth(), scaledY, aPaint);
+      }
+      if (!Double.isNaN(aX2)) {
+        float scaledX = (float) (((diagramView1.getOffsetX()*aPm.getScale())+aX2)*aPm.getScale());
+        pCanvas.drawLine(scaledX, 0, scaledX, pCanvas.getHeight(), aPaint);
+      }
+      if (!Double.isNaN(aY2)) {
+        float scaledY = (float) (((diagramView1.getOffsetY()*aPm.getScale())+aY2)*aPm.getScale());
+        pCanvas.drawLine(0, scaledY, pCanvas.getWidth(), scaledY, aPaint);
+      }
+    }
+
+    @Override
+    public int getOpacity() {
+      return PixelFormat.TRANSPARENT;
+    }
+
+    @Override
+    public void setAlpha(int pAlpha) {
+      //
+    }
+
+    @Override
+    public void setColorFilter(ColorFilter pCf) {
+      //
+    }
+
+  }
+
   private final static LayoutAlgorithm<DrawableProcessNode> NULL_LAYOUT_ALGORITHM = new LayoutAlgorithm<DrawableProcessNode>(){
 
     @Override
@@ -44,19 +98,24 @@ public class PMEditor extends Activity {
     }
 
   };
-  
+
   private static class MoveDrawable extends Drawable{
 
     private int aAlpha = 255;
     private List<float[]> arrows;
     private Paint aPaint;
+    private Drawable aMinMaxOverlay;
 
-    public MoveDrawable(List<float[]> pArrows) {
+    public MoveDrawable(Drawable pMinMaxOverlay, List<float[]> pArrows) {
+      aMinMaxOverlay = pMinMaxOverlay;
       arrows = pArrows;
     }
-    
+
     @Override
     public void draw(Canvas pCanvas) {
+      if (aMinMaxOverlay!=null) {
+        aMinMaxOverlay.draw(pCanvas);
+      }
       if (aPaint ==null) {
         aPaint = new Paint();
         aPaint.setAntiAlias(true);
@@ -87,7 +146,7 @@ public class PMEditor extends Activity {
     public void setColorFilter(ColorFilter pCf) {
       // ignore
     }
-    
+
   }
 
   private static class WaitTask extends FutureTask<Object> {
@@ -122,14 +181,35 @@ public class PMEditor extends Activity {
 
   private class MyStepper extends LayoutStepper<DrawableProcessNode> {
 
-    LayoutTask aLayoutTask;
     private Pen aGreenPen;
     private boolean aImmediate = false;
     private AndroidPen aXMostPen;
     private AndroidPen aGroupPen;
+    private DiagramNode<DrawableProcessNode> aLayoutNode;
+    private AndroidPen aActivePen;
+    private double aMinX = Double.NaN;
+    private double aMinY = Double.NaN;
+    private double aMaxX = Double.NaN;
+    private double aMaxY = Double.NaN;
+    private LineDrawable aMinMaxOverlay = null;
 
-    public MyStepper(LayoutTask pLayoutTask) {
-      aLayoutTask = pLayoutTask;
+    @Override
+    public void reportLayoutNode(DiagramNode<DrawableProcessNode> pNode) {
+      aMinX = Double.NaN;
+      aMinY = Double.NaN;
+      aMaxX = Double.NaN;
+      aMaxY = Double.NaN;
+      aMinMaxOverlay = null;
+      if (! (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY()))) {
+        if (aLayoutNode!=null) {
+          if (getActivePen()==aLayoutNode.getTarget().getPen()) {
+            aLayoutNode.getTarget().setFGPen(null);
+          }
+        }
+        aLayoutNode = pNode;
+        aLayoutNode.getTarget().setFGPen(getActivePen());
+        waitForNextClicked(null);
+      }
     }
 
     @Override
@@ -156,6 +236,52 @@ public class PMEditor extends Activity {
       reportXMost(pNodes, pNode);
     }
 
+    @Override
+    public void reportMinX(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pX) {
+      setLabel("minX");
+      aMinX = pX;
+      reportMinMax(pNodes);
+    }
+
+    @Override
+    public void reportMaxX(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pX) {
+      setLabel("maxX");
+      aMaxX=pX;
+      reportMinMax(pNodes);
+    }
+
+    @Override
+    public void reportMinY(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pY) {
+      setLabel("minY");
+      aMinY = pY;
+      reportMinMax(pNodes);
+    }
+
+    @Override
+    public void reportMaxY(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pY) {
+      setLabel("maxY");
+      aMaxY = pY;
+      reportMinMax(pNodes);
+    }
+
+    private void reportMinMax(List<? extends DiagramNode<DrawableProcessNode>> pNodes) {
+      for(DiagramNode<DrawableProcessNode> node: pNodes) {
+        node.getTarget().setFGPen(getGroupPen());
+      }
+      if (aMinMaxOverlay==null) {
+        aMinMaxOverlay = new LineDrawable(aMinX, aMinY, aMaxX, aMaxY, ((AndroidPen)getXMostPen()).getPaint());
+      } else {
+        aMinMaxOverlay.aX1 = aMinX;
+        aMinMaxOverlay.aY1 = aMinY;
+        aMinMaxOverlay.aX2 = aMaxX;
+        aMinMaxOverlay.aY2 = aMaxY;
+      }
+      waitForNextClicked(aMinMaxOverlay);
+      for(DiagramNode<DrawableProcessNode> node: pNodes) {
+        node.getTarget().setFGPen(null);
+      }
+    }
+
     private void reportXMost(List<? extends DiagramNode<DrawableProcessNode>> pNodes, DiagramNode<DrawableProcessNode> pNode) {
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
         node.getTarget().setX(node.getX());
@@ -166,7 +292,7 @@ public class PMEditor extends Activity {
         pNode.getTarget().setFGPen(getXMostPen());
       }
       updateDiagramBounds();
-      waitForNextClicked(null);
+      waitForNextClicked(aMinMaxOverlay);
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
         node.getTarget().setFGPen(null);
       }
@@ -181,26 +307,31 @@ public class PMEditor extends Activity {
       pNode.getTarget().setY(pNewY);
       updateDiagramBounds();
 
-      waitForNextClicked(moveDrawable(Arrays.asList(pNode)));
+      waitForNextClicked(moveDrawable(aMinMaxOverlay, Arrays.asList(pNode)));
 
       pNode.getTarget().setFGPen(null); // reset the pen
+      aMinX = Double.NaN;
+      aMinY = Double.NaN;
+      aMaxX = Double.NaN;
+      aMaxY = Double.NaN;
+      aMinMaxOverlay = null;
     }
 
-    private MoveDrawable moveDrawable(List<? extends DiagramNode<?>> pNodes) {
+    private MoveDrawable moveDrawable(Drawable pMinMaxOverlay, List<? extends DiagramNode<?>> pNodes) {
       List<float[]> arrows = new ArrayList<float[]>(pNodes.size());
       for(DiagramNode<?> pNode: pNodes) {
         if (! (Double.isNaN(pNode.getX())|| Double.isNaN(pNode.getY()))) {
-          arrows.add(new float[]{(float) ((pNode.getX()+(diagramView1.getOffsetX()*aPm.getScale()))*aPm.getScale()), 
-                                 (float) ((pNode.getY()+(diagramView1.getOffsetY()*aPm.getScale()))*aPm.getScale()), 
-                                 (float) ((pNode.getTarget().getX()+(diagramView1.getOffsetX()*aPm.getScale()))*aPm.getScale()), 
+          arrows.add(new float[]{(float) ((pNode.getX()+(diagramView1.getOffsetX()*aPm.getScale()))*aPm.getScale()),
+                                 (float) ((pNode.getY()+(diagramView1.getOffsetY()*aPm.getScale()))*aPm.getScale()),
+                                 (float) ((pNode.getTarget().getX()+(diagramView1.getOffsetX()*aPm.getScale()))*aPm.getScale()),
                                  (float) ((pNode.getTarget().getY()+(diagramView1.getOffsetY()*aPm.getScale()))*aPm.getScale())});
         }
       }
-      return new MoveDrawable(arrows);
+      return new MoveDrawable(pMinMaxOverlay, arrows);
     }
 
-    
-    
+
+
     @Override
     public void reportMoveX(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pOffset) {
       setLabel("moveX");
@@ -210,7 +341,7 @@ public class PMEditor extends Activity {
         node.getTarget().setFGPen(getGreenPen());
       }
       updateDiagramBounds();
-      waitForNextClicked(moveDrawable(pNodes));
+      waitForNextClicked(moveDrawable(aMinMaxOverlay, pNodes));
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
         node.getTarget().setFGPen(null);
       }
@@ -225,7 +356,7 @@ public class PMEditor extends Activity {
         node.getTarget().setFGPen(getGreenPen());
       }
       updateDiagramBounds();
-      waitForNextClicked(moveDrawable(pNodes));
+      waitForNextClicked(moveDrawable(aMinMaxOverlay, pNodes));
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
         node.getTarget().setFGPen(null);
       }
@@ -255,7 +386,7 @@ public class PMEditor extends Activity {
       if (aGroupPen ==null) {
         final Paint paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setARGB(255, 127, 127, 0);
+        paint.setARGB(255, 255, 255, 0);
         aGroupPen = new AndroidPen(paint);
       }
       return aGroupPen;
@@ -271,6 +402,16 @@ public class PMEditor extends Activity {
       return aXMostPen;
     }
 
+    private Pen getActivePen() {
+      if (aActivePen ==null) {
+        final Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setARGB(255, 0, 0, 255);
+        aActivePen = new AndroidPen(paint);
+      }
+      return aActivePen;
+    }
+
   }
 
   private class LayoutTask extends AsyncTask<Object, WaitTask, Object> {
@@ -281,7 +422,7 @@ public class PMEditor extends Activity {
     @Override
     protected Object doInBackground(Object... pParams) {
       if (aStepper==null) {
-        aStepper = new MyStepper(this);
+        aStepper = new MyStepper();
       }
       final InputStream file = getResources().openRawResource(R.raw.processmodel);
       try {
@@ -326,6 +467,11 @@ public class PMEditor extends Activity {
     protected void onPostExecute(Object pResult) {
       aLayoutTask=null;
       updateDiagramBounds();
+      if (aStepper.aLayoutNode!=null) {
+        aStepper.aLayoutNode.getTarget().setFGPen(null);
+        aStepper.aLayoutNode = null;
+      }
+      diagramView1.setOverlay(null);
       diagramView1.invalidate();
     }
 
@@ -374,9 +520,9 @@ public class PMEditor extends Activity {
       public void run() {
         getActionBar().setTitle("PMEditor - " +pString);
       }
-      
+
     });
-    
+
   }
 
   public void updateDiagramBounds() {
@@ -451,6 +597,6 @@ public class PMEditor extends Activity {
     inflater.inflate(R.menu.diagram_menu, pMenu);
     return true;
   }
-  
-  
+
+
 }
