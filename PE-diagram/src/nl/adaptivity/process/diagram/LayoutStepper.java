@@ -37,11 +37,15 @@ public class LayoutStepper<T extends Positioned> {
   }
 
   public void reportMoveX(List<? extends DiagramNode<T>> pNodes, double offset) {
-    // empty
+    for(DiagramNode<T> node: pNodes) {
+      reportMove(node, node.getX()+offset, node.getY());
+    }
   }
 
   public void reportMoveY(List<? extends DiagramNode<T>> pNodes, double offset) {
-    // empty
+    for(DiagramNode<T> node: pNodes) {
+      reportMove(node, node.getX(), node.getY()+offset);
+    }
   }
 
   public void reportMinX(List<? extends DiagramNode<T>> pNodes, double offset) {
