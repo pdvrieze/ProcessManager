@@ -1,6 +1,7 @@
 package nl.adaptivity.process.diagram;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class LayoutAlgorithm<T extends Positioned> {
 
   private static final double TOLERANCE = 0.1d;
 
-  private static final int PASSCOUNT = 8;
+  private static final int PASSCOUNT = 9;
 
   private double aVertSeparation = 30d;
 
@@ -77,18 +78,21 @@ public class LayoutAlgorithm<T extends Positioned> {
       }
     }
     {
+      ArrayList<DiagramNode<T>> nodes = new ArrayList<DiagramNode<T>>(pNodes);
       boolean nodesChanged = true;
       for (int pass=0; nodesChanged && pass<PASSCOUNT; ++pass) {
         aLayoutStepper.reportPass(pass);
         nodesChanged = false;
         if (pass%2==0) {
-          for(DiagramNode<T> node: pNodes) {
+//          Collections.sort(nodes, LEFT_TO_RIGHT);
+          for(DiagramNode<T> node: nodes) {
             if (node.getLeftNodes().isEmpty()) {
               nodesChanged|=layoutNodeRight(pNodes, node, pass);
             }
           }
         } else {
-          for(DiagramNode<T> node: pNodes) {
+//          Collections.sort(nodes, RIGHT_TO_LEFT);
+          for(DiagramNode<T> node: nodes) {
             if (node.getRightNodes().isEmpty()) {
               nodesChanged|=layoutNodeLeft(pNodes, node, pass);
             }
@@ -169,8 +173,8 @@ public class LayoutAlgorithm<T extends Positioned> {
     if (!Double.isInfinite(minY)) { aLayoutStepper.reportMinY(nodesAbove, minY); }
 
     double maxY = top(highest(belowSiblings), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
-    if (nodesAbove.size()>1) { aLayoutStepper.reportLowest(belowSiblings, highest(belowSiblings)); }
-    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMinY(belowSiblings, maxY); }
+    if (belowSiblings.size()>1) { aLayoutStepper.reportHighest(belowSiblings, highest(belowSiblings)); }
+    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMaxY(belowSiblings, maxY); }
 
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
     if (leftNodes.size()>1) { aLayoutStepper.reportRightmost(leftNodes, rightMost(leftNodes)); }
@@ -178,7 +182,7 @@ public class LayoutAlgorithm<T extends Positioned> {
 
     double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
     if (leftNodes.size()>1) { aLayoutStepper.reportLeftmost(rightNodes, leftMost(rightNodes)); }
-    if (!Double.isInfinite(maxX)) { aLayoutStepper.reportMinX(rightNodes, maxX); }
+    if (!Double.isInfinite(maxX)) { aLayoutStepper.reportMaxX(rightNodes, maxX); }
 
     double x = pNode.getX();
     double y = pNode.getY();
@@ -209,7 +213,7 @@ public class LayoutAlgorithm<T extends Positioned> {
       y = (lowest(aboveSiblings).getY()+ highest(belowSiblings).getY())/2;
     } else if (leftNodes.size()>1) {
       y = (highest(leftNodes).getY() + lowest(leftNodes).getY())/2;
-    } else if (leftNodes.size()==1) {
+    } else if (leftNodes.size()==1 && rightNodes.size()<2) {
       y = leftNodes.get(0).getY();
     }
 
@@ -219,7 +223,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
 
-    if (rightNodes.size()>1 && (pass==0 ||yChanged)) {
+    if (rightNodes.size()>1 && (pass<2 ||yChanged)) {
       /* If we have multiple nodes branching of this one determine the center. Move that
        * so that this node is the vertical center.
        */
@@ -227,7 +231,7 @@ public class LayoutAlgorithm<T extends Positioned> {
       if ((y-rightCenterY)>TOLERANCE) {
         // if the center of the right nodes is above this one, move the right nodes down.
         // the reverse should be handled in the left pass
-        moveY(rightNodes, rightCenterY-y);
+        moveY(rightNodes, y-rightCenterY);
       }
     }
 
@@ -253,9 +257,21 @@ public class LayoutAlgorithm<T extends Positioned> {
     List<? extends DiagramNode<T>> belowSiblings = getFollowingSiblings(pNode);
 
     double minY = bottom(lowest(aboveSiblings),Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
-    double maxY = top(highest(nodesBelow(pNode)), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
+    if (aboveSiblings.size()>1) { aLayoutStepper.reportLowest(aboveSiblings, lowest(aboveSiblings)); }
+    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMinY(aboveSiblings, minY); }
+
+    List<DiagramNode<T>> nodesBelow = nodesBelow(pNode);
+    double maxY = top(highest(nodesBelow), Double.POSITIVE_INFINITY)-aVertSeparation - pNode.getBottomExtend();
+    if (nodesBelow.size()>1) { aLayoutStepper.reportHighest(nodesBelow, highest(nodesBelow)); }
+    if (!Double.isInfinite(minY)) { aLayoutStepper.reportMaxY(nodesBelow, maxY); }
+
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
+    if (leftNodes.size()>1) { aLayoutStepper.reportRightmost(leftNodes, rightMost(leftNodes)); }
+    if (!Double.isInfinite(minX)) { aLayoutStepper.reportMinX(leftNodes, minX); }
+
     double maxX = left(leftMost(rightNodes),Double.POSITIVE_INFINITY)-aHorizSeparation - pNode.getRightExtend();
+    if (leftNodes.size()>1) { aLayoutStepper.reportLeftmost(rightNodes, leftMost(rightNodes)); }
+    if (!Double.isInfinite(maxX)) { aLayoutStepper.reportMaxX(rightNodes, maxX); }
 
     double x = pNode.getX();
     double y = pNode.getY();
@@ -285,10 +301,11 @@ public class LayoutAlgorithm<T extends Positioned> {
 
     if (!(aboveSiblings.isEmpty()|| belowSiblings.isEmpty())) {
       y = (lowest(aboveSiblings).getY()+ highest(belowSiblings).getY())/2;
-    } else if (rightNodes.size()>1) {
+    } else if (rightNodes.size()>1 && leftNodes.size()<2) {
       y = (highest(rightNodes).getY() + lowest(rightNodes).getY())/2;
-    } else if (rightNodes.size()==1) {
-      y = rightNodes.get(0).getY();
+// Don't do this, leave it to the right direction pass.
+//    } else if (rightNodes.size()==1) {
+//      y = rightNodes.get(0).getY();
     }
 
     x = Math.max(Math.min(maxX, x), minX);
@@ -297,14 +314,14 @@ public class LayoutAlgorithm<T extends Positioned> {
     boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
     boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
 
-    if (leftNodes.size()>1 && (pass==0 ||yChanged)) {
+    if (leftNodes.size()>1 && (pass<2 ||yChanged)) {
       /* If we have multiple nodes branching of this one determine the center. Move that
        * so that this node is the vertical center.
        */
       double leftCenterY = (highest(leftNodes).getY()+lowest(leftNodes).getY())/2;
       // if the center of the left nodes is below this one, move the left nodes up.
       // the reverse should be handled in the right pass
-      if ((leftCenterY-y)>TOLERANCE) {
+      if ((y-leftCenterY)>TOLERANCE) {
         moveY(leftNodes, y-leftCenterY);
       }
     }
@@ -399,29 +416,33 @@ public class LayoutAlgorithm<T extends Positioned> {
   }
 
   private void addNodesAbove(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
-    for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
-      if (candidate==pRef) {
-        break;
-      } else {
-        addTransitiveRight(result, candidate);
+    if (pLeft.getY()<pRef.getY()) {
+      for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
+        if (candidate==pRef) {
+          break;
+        } else {
+          addTransitiveRight(result, candidate);
+        }
       }
-    }
-    for(DiagramNode<T> pred : pLeft.getLeftNodes()) {
-      addNodesAbove(result, pred, pLeft);
+      for(DiagramNode<T> pred : pLeft.getLeftNodes()) {
+        addNodesAbove(result, pred, pLeft);
+      }
     }
   }
 
   private void addNodesBelow(LinkedHashSet<DiagramNode<T>> result, DiagramNode<T> pLeft, DiagramNode<T> pRef) {
-    boolean found = false;
-    for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
-      if (candidate==pRef) {
-        found = true;
-      } else if (found){
-        addTransitiveRight(result, candidate);
+    if (pLeft.getY()>pRef.getY()) {
+      boolean found = false;
+      for(DiagramNode<T> candidate: pLeft.getRightNodes()) {
+        if (candidate==pRef) {
+          found = true;
+        } else if (found){
+          addTransitiveRight(result, candidate);
+        }
       }
-    }
-    for(DiagramNode<T> pred : pLeft.getLeftNodes()) {
-      addNodesBelow(result, pred, pLeft);
+      for(DiagramNode<T> pred : pLeft.getLeftNodes()) {
+        addNodesBelow(result, pred, pLeft);
+      }
     }
   }
 
