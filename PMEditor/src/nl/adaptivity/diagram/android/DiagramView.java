@@ -13,6 +13,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -25,6 +26,7 @@ public class DiagramView extends View {
   private Rect aBounds = new Rect();
   private double aOffsetX = 0;
   private double aOffsetY = 0;
+  private Drawable aOverlay;
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
@@ -85,6 +87,10 @@ public class DiagramView extends View {
       pCanvas.drawText(text, (getWidth()-aBounds.width())/2, (getHeight()-aBounds.height())/2, aRed);
       pCanvas.drawCircle(100, 100, 75, aRed);
     }
+    if (aOverlay!=null) {
+      aOverlay.draw(pCanvas);
+    }
+    
     if (BuildConfig.DEBUG) {
       InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
       if (stream!=null) {
@@ -116,6 +122,16 @@ public class DiagramView extends View {
           }
         }
       }
+    }
+  }
+
+  public void setOverlay(Drawable pOverlay) {
+    if (aOverlay!=null) {
+      invalidate(aOverlay.getBounds());
+    }
+    aOverlay = pOverlay;
+    if (pOverlay!=null) {
+      invalidate(pOverlay.getBounds());
     }
   }
 
