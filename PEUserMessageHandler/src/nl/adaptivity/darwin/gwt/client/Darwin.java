@@ -11,6 +11,7 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.EventTarget;
 import com.google.gwt.dom.client.InputElement;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
@@ -170,15 +171,17 @@ public class Darwin implements EntryPoint {
 
     @Override
     public void onClick(final ClickEvent pEvent) {
-      final EventTarget target = pEvent.getNativeEvent().getEventTarget();
-      String href = target.<Element> cast().getAttribute("href");
-      // handle urls to virtual pages
-      if (href!=null && href.startsWith("/#")) {
-        href=href.substring(2);
+      if(pEvent.getNativeButton()==NativeEvent.BUTTON_LEFT) {
+        final EventTarget target = pEvent.getNativeEvent().getEventTarget();
+        String href = target.<Element> cast().getAttribute("href");
+        // handle urls to virtual pages
+        if (href!=null && href.startsWith("/#")) {
+          href=href.substring(2);
+        }
+        navigateTo(href, true);
+        pEvent.preventDefault();
+        pEvent.stopPropagation();
       }
-      navigateTo(href, true);
-      pEvent.preventDefault();
-      pEvent.stopPropagation();
     }
 
   }
@@ -473,7 +476,8 @@ public class Darwin implements EntryPoint {
       
       
         } else {
-          hideBanner(); // whatever we do, hide the banner
+          // Load the page
+          Window.Location.assign(pNewLocation);
         }
       }
       if (addHistory) {
