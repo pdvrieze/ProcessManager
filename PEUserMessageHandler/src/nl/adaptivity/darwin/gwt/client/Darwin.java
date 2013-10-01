@@ -81,7 +81,7 @@ public class Darwin implements EntryPoint {
         closeDialogs();
         updateLoginPanel();
         requestRefreshMenu(aLocation);
-        navigateTo("/", true);
+        navigateTo("/", true, true);
       } else if ("error".equals(result)) {
         closeDialogs();
         error("Error validating login: " + payload, null);
@@ -162,7 +162,7 @@ public class Darwin implements EntryPoint {
     @Override
     public void onValueChange(final ValueChangeEvent<String> pEvent) {
       final String newValue = pEvent.getValue();
-      navigateTo(newValue, false);
+      navigateTo(newValue, false, false);
     }
 
   }
@@ -178,7 +178,7 @@ public class Darwin implements EntryPoint {
         if (href!=null && href.startsWith("/#")) {
           href=href.substring(2);
         }
-        navigateTo(href, true);
+        navigateTo(href, true, true);
         pEvent.preventDefault();
         pEvent.stopPropagation();
       }
@@ -334,7 +334,7 @@ public class Darwin implements EntryPoint {
     // This is not a page that already has it's content.
     if (asInlineLocation(newLocation)==null) {
       showBanner();
-      navigateTo(newLocation, false);
+      navigateTo(newLocation, false, false);
     } else {
       aLocation = newLocation;
     }
@@ -432,7 +432,7 @@ public class Darwin implements EntryPoint {
     }
   }
 
-  public void navigateTo(final String pNewLocation, final boolean addHistory) {
+  public void navigateTo(final String pNewLocation, final boolean addHistory, final boolean doRedirect) {
     if ((aLocation==null && pNewLocation!=null) || (aLocation!=null && !aLocation.equals(pNewLocation))) {
       if (aLocation!=null && aLocation.startsWith("/accounts/myaccount")) {
         aLocation = pNewLocation;
@@ -476,8 +476,12 @@ public class Darwin implements EntryPoint {
       
       
         } else {
-          // Load the page
-          Window.Location.assign(pNewLocation);
+          if (doRedirect) {
+            // Load the page
+            Window.Location.assign(pNewLocation);
+          } else {
+            hideBanner();
+          }
         }
       }
       if (addHistory) {
