@@ -363,12 +363,14 @@ public class PMEditor extends Activity {
     }
 
     private void waitForNextClicked(Drawable pOverlay) {
-      final WaitTask task = new WaitTask(aImmediate, pOverlay);
-      aLayoutTask.postProgress(task);
-      try {
-        task.get();
-      } catch (ExecutionException e) { // ignore
-      } catch (InterruptedException e) { // ignore
+      if (aLayoutTask!=null) {
+        final WaitTask task = new WaitTask(aImmediate, pOverlay);
+        aLayoutTask.postProgress(task);
+        try {
+          task.get();
+        } catch (ExecutionException e) { // ignore
+        } catch (InterruptedException e) { // ignore
+        }
       }
     }
 
@@ -454,13 +456,15 @@ public class PMEditor extends Activity {
     @Override
     protected void onProgressUpdate(WaitTask... pValues) {
       final WaitTask task = pValues[0];
-//      findViewById(R.id.ac_next).setEnabled(true);
-      diagramView1.setOverlay(task.aOverlay);
-      diagramView1.invalidate();
+      if (! isCancelled()) {
+  //      findViewById(R.id.ac_next).setEnabled(true);
+        diagramView1.setOverlay(task.aOverlay);
+        diagramView1.invalidate();
+      }
       if (task.isImmediate()) {
         task.trigger();
       }
-      aTask = pValues[0];
+      aTask = task;
     }
 
     @Override
@@ -556,7 +560,7 @@ public class PMEditor extends Activity {
   protected void onDestroy() {
     if (aLayoutTask!=null) {
       aLayoutTask.playAll();
-      aLayoutTask = null;
+      aLayoutTask.cancel(false);
     }
     super.onDestroy();
   }
