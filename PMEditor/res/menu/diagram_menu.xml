@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/ac_next" android:title="Next" android:showAsAction="always" android:icon="@android:drawable/ic_media_play" android:enabled="true"></item>
-    <item android:id="@+id/ac_play" android:title="Play" android:showAsAction="ifRoom" android:icon="@android:drawable/ic_media_ff" android:enabled="true"></item>
-    <item android:id="@+id/ac_zoom_inc" android:title="Zoom +" android:showAsAction="ifRoom" android:icon="@android:drawable/ic_menu_zoom"></item>
-    <item android:id="@+id/ac_zoom_dec" android:title="Zoom -" android:showAsAction="ifRoom" android:icon="@android:drawable/ic_menu_revert"></item>
+    <item android:id="@+id/ac_next" android:title="Next" android:showAsAction="always" android:icon="@drawable/ic_action_step" android:enabled="true"></item>
+    <item android:id="@+id/ac_play" android:title="Play" android:showAsAction="ifRoom" android:icon="@drawable/ic_action_fast_forward" android:enabled="true"></item>
+    <!-- item android:id="@+id/ac_zoom_inc" android:title="Zoom +" android:showAsAction="ifRoom" android:icon="@android:drawable/ic_menu_zoom"></item>
+    <item android:id="@+id/ac_zoom_dec" android:title="Zoom -" android:showAsAction="ifRoom" android:icon="@android:drawable/ic_menu_revert"></item-->
 	
 
 </menu>
