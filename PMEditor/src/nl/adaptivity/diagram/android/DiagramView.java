@@ -37,17 +37,21 @@ public class DiagramView extends View implements OnZoomListener{
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
-    aMultitouch = (! "google_sdk".equals( Build.PRODUCT )) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+  }
+
+  private static boolean isEmulator() {
+    return "google_sdk".equals( Build.PRODUCT )||"sdk_x86".equals(Build.PRODUCT);
   }
 
   public DiagramView(Context pContext, AttributeSet pAttrs) {
     super(pContext, pAttrs);
-    aMultitouch = (! "google_sdk".equals( Build.PRODUCT )) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
   }
 
   public DiagramView(Context pContext) {
     super(pContext);
-    aMultitouch = (! "google_sdk".equals( Build.PRODUCT )) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
   }
 
   public double getOffsetX() {
@@ -120,6 +124,7 @@ public class DiagramView extends View implements OnZoomListener{
       aOverlay.draw(pCanvas);
     }
 
+    pCanvas.restoreToCount(canvasSave);
     if (BuildConfig.DEBUG) {
       InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
       if (stream!=null) {
@@ -152,7 +157,6 @@ public class DiagramView extends View implements OnZoomListener{
         }
       }
     }
-    pCanvas.restoreToCount(canvasSave);
   }
 
   public void setOverlay(Drawable pOverlay) {
