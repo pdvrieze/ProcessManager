@@ -577,14 +577,6 @@ public class PMEditor extends Activity {
           aLayoutTask.playAll();
         }
         break;
-      case R.id.ac_zoom_inc:
-        aPm.setScale(aPm.getScale()*1.2);
-        diagramView1.invalidate();
-        break;
-      case R.id.ac_zoom_dec:
-        aPm.setScale(aPm.getScale()/1.2);
-        diagramView1.invalidate();
-        break;
       default:
         return false;
     }
