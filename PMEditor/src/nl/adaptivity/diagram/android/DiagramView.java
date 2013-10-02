@@ -9,16 +9,20 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.R;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ZoomButtonsController;
+import android.widget.ZoomButtonsController.OnZoomListener;
 
 
-public class DiagramView extends View {
+public class DiagramView extends View implements OnZoomListener{
 
   private Diagram aDiagram;
   private Paint aRed;
@@ -27,17 +31,23 @@ public class DiagramView extends View {
   private double aOffsetX = 0;
   private double aOffsetY = 0;
   private Drawable aOverlay;
+  private ZoomButtonsController aZoomController;
+  private final boolean aMultitouch;
+  private double aScale=1d;
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
+    aMultitouch = (! "google_sdk".equals( Build.PRODUCT )) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
   }
 
   public DiagramView(Context pContext, AttributeSet pAttrs) {
     super(pContext, pAttrs);
+    aMultitouch = (! "google_sdk".equals( Build.PRODUCT )) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
   }
 
   public DiagramView(Context pContext) {
     super(pContext);
+    aMultitouch = (! "google_sdk".equals( Build.PRODUCT )) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
   }
 
   public double getOffsetX() {
@@ -59,17 +69,36 @@ public class DiagramView extends View {
     aOffsetY = pOffsetY;
   }
 
+
+  public double getScale() {
+    return aScale;
+  }
+
+
+  public void setScale(double pScale) {
+    if (aScale!=pScale) {
+      invalidate();
+    }
+    aScale = pScale;
+  }
+
   public Diagram getDiagram() {
     return aDiagram;
   }
 
   public void setDiagram(Diagram pDiagram) {
     aDiagram = pDiagram;
+    if (aZoomController!=null) {
+      aZoomController.setZoomInEnabled(aDiagram!=null);
+      aZoomController.setZoomOutEnabled(aDiagram!=null);
+    }
   }
 
   @Override
   public void draw(Canvas pCanvas) {
     super.draw(pCanvas);
+    int canvasSave = pCanvas.save();
+    pCanvas.scale((float) aScale, (float) aScale);
 //    pCanvas.drawLine(200, 0, 0, 200, aRed);
     if (aDiagram!=null) {
       final Rectangle clipBounds = new Rectangle(aOffsetX, aOffsetY, getHeight(), getWidth());
@@ -90,7 +119,7 @@ public class DiagramView extends View {
     if (aOverlay!=null) {
       aOverlay.draw(pCanvas);
     }
-    
+
     if (BuildConfig.DEBUG) {
       InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
       if (stream!=null) {
@@ -123,6 +152,7 @@ public class DiagramView extends View {
         }
       }
     }
+    pCanvas.restoreToCount(canvasSave);
   }
 
   public void setOverlay(Drawable pOverlay) {
@@ -133,6 +163,51 @@ public class DiagramView extends View {
     if (pOverlay!=null) {
       invalidate(pOverlay.getBounds());
     }
+  }
+
+  @Override
+  public void onVisibilityChanged(boolean pVisible) {
+    // Part of zoomcontroller
+    // ignore it
+  }
+
+
+
+  @Override
+  protected void onVisibilityChanged(View pChangedView, int pVisibility) {
+    if (pChangedView==this && aZoomController!=null) {
+      aZoomController.setVisible(pVisibility==View.VISIBLE);
+    }
+  }
+
+  @Override
+  public void onZoom(boolean pZoomIn) {
+    if (pZoomIn) {
+      setScale(getScale()*1.2);
+    } else {
+      setScale(getScale()/1.2);
+    }
+  }
+
+  @Override
+  protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
+    if (! aMultitouch) {
+      aZoomController = new ZoomButtonsController(this);
+      aZoomController.setOnZoomListener(this);
+      aZoomController.setAutoDismissed(false);
+      aZoomController.setZoomInEnabled(aDiagram!=null);
+      aZoomController.setZoomOutEnabled(aDiagram!=null);
+      aZoomController.setVisible(getVisibility()==VISIBLE);
+    }
+  }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    if (! aMultitouch) {
+      aZoomController.setVisible(false);
+    }
+    super.onDetachedFromWindow();
   }
 
 }
