@@ -69,7 +69,7 @@
     </uptodate>
   </target>
   <target name="tagfile" unless="isuptodate" depends="checkuptodate">
-    <tstamp><format property="buildtime" pattern="HH:mm:ss" timezone="Z" /></tstamp>
+    <tstamp><format property="buildtime" pattern="YYYY-MM-DD HH:mm:ss" timezone="Z" /></tstamp>
     <echo file="build/nl/adaptivity/process/diagram/version.properties" message="buildtime=${buildtime}" />
   </target>
   <target name="PMjar" depends="build,tagfile">
