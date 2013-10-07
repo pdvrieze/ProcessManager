@@ -31,6 +31,18 @@ import android.widget.ZoomButtonsController.OnZoomListener;
 
 public class DiagramView extends View implements OnZoomListener{
 
+
+  public static abstract class DiagramDrawable extends Drawable {
+
+    @Override
+    public final void draw(Canvas pCanvas) {
+      draw(pCanvas, 1d);
+    }
+
+    public abstract void draw(Canvas pCanvas, double pScale);
+
+  }
+
   private static final double MAXSCALE = 3d;
   private static final double MINSCALE = 0.5d;
   private Diagram aDiagram;
@@ -159,6 +171,9 @@ public class DiagramView extends View implements OnZoomListener{
       pCanvas.drawCircle(100, 100, 75, aRed);
     }
     if (aOverlay!=null) {
+      if (aOverlay instanceof DiagramDrawable) {
+        ((DiagramDrawable) aOverlay).draw(pCanvas, aScale);
+      }
       aOverlay.draw(pCanvas);
     }
 

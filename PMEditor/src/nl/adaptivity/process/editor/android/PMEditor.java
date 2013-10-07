@@ -13,6 +13,7 @@ import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.DiagramView;
+import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -37,7 +38,7 @@ public class PMEditor extends Activity {
 
 
 
-  private final class LineDrawable extends Drawable {
+  private final class LineDrawable extends DiagramDrawable {
 
     private double aX1;
     private double aY1;
@@ -54,22 +55,24 @@ public class PMEditor extends Activity {
     }
 
     @Override
-    public void draw(Canvas pCanvas) {
+    public void draw(Canvas pCanvas, double pScale) {
+      int height = (int) Math.round((pCanvas.getHeight()/pScale));
+      int width = (int) Math.round(pCanvas.getWidth()/pScale);
       if (!Double.isNaN(aX1)) {
         float scaledX = (float) (((diagramView1.getOffsetX()*aPm.getScale())+aX1)*aPm.getScale());
-        pCanvas.drawLine(scaledX, 0, scaledX, pCanvas.getHeight(), aPaint);
+        pCanvas.drawLine(scaledX, 0, scaledX, height, aPaint);
       }
       if (!Double.isNaN(aY1)) {
         float scaledY = (float) (((diagramView1.getOffsetY()*aPm.getScale())+aY1)*aPm.getScale());
-        pCanvas.drawLine(0, scaledY, pCanvas.getWidth(), scaledY, aPaint);
+        pCanvas.drawLine(0, scaledY, width, scaledY, aPaint);
       }
       if (!Double.isNaN(aX2)) {
         float scaledX = (float) (((diagramView1.getOffsetX()*aPm.getScale())+aX2)*aPm.getScale());
-        pCanvas.drawLine(scaledX, 0, scaledX, pCanvas.getHeight(), aPaint);
+        pCanvas.drawLine(scaledX, 0, scaledX, height, aPaint);
       }
       if (!Double.isNaN(aY2)) {
         float scaledY = (float) (((diagramView1.getOffsetY()*aPm.getScale())+aY2)*aPm.getScale());
-        pCanvas.drawLine(0, scaledY, pCanvas.getWidth(), scaledY, aPaint);
+        pCanvas.drawLine(0, scaledY, width, scaledY, aPaint);
       }
     }
 
@@ -99,7 +102,7 @@ public class PMEditor extends Activity {
 
   };
 
-  private static class MoveDrawable extends Drawable{
+  private static class MoveDrawable extends DiagramDrawable{
 
     private int aAlpha = 255;
     private List<float[]> arrows;
@@ -112,9 +115,13 @@ public class PMEditor extends Activity {
     }
 
     @Override
-    public void draw(Canvas pCanvas) {
+    public void draw(Canvas pCanvas, double pScale) {
       if (aMinMaxOverlay!=null) {
-        aMinMaxOverlay.draw(pCanvas);
+        if (aMinMaxOverlay instanceof DiagramDrawable) {
+          ((DiagramDrawable)aMinMaxOverlay).draw(pCanvas, pScale);
+        } else {
+          aMinMaxOverlay.draw(pCanvas);
+        }
       }
       if (aPaint ==null) {
         aPaint = new Paint();
@@ -558,6 +565,7 @@ public class PMEditor extends Activity {
   protected void onResume() {
     super.onResume();
     aPm = getProcessModel();
+    diagramView1.setDiagram(aPm);
   }
 
 
