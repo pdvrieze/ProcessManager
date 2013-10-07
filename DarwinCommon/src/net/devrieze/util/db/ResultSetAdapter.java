@@ -7,9 +7,9 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.Iterator;
 
 import static net.devrieze.util.Annotations.*;
-
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
+import net.devrieze.util.AutoCloseableIterator;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.DBHelper.DBStatement;
 
@@ -17,7 +17,7 @@ import net.devrieze.util.db.DBHelper.DBStatement;
 public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T>*/ {
 
 
-  public abstract static class ResultSetAdapterIterator<T> implements Iterator<T> {
+  public abstract static class ResultSetAdapterIterator<T> implements AutoCloseableIterator<T> {
 
     @Nullable
     private ResultSet aResultSet;
@@ -137,6 +137,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
     }
 
+    @Override
     public void close() {
       if (aResultSet != null) {
         try {

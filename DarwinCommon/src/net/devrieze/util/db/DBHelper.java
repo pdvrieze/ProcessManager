@@ -386,7 +386,7 @@ public class DBHelper implements AutoCloseable{
     public Integer intQuery() {
       try {
         try (ResultSet rs=getSingleHelper()){
-          return rs == null ? null : Integer.valueOf(rs.getInt(1));
+          return rs == null ? null : rs.first() ? Integer.valueOf(rs.getInt(1)) : null;
         } catch (final SQLException e) {
           logException("Error processing result set", e);
           return null;
@@ -401,7 +401,7 @@ public class DBHelper implements AutoCloseable{
     public Long longQuery() {
       try {
         try (ResultSet rs = getSingleHelper()){
-          return rs == null ? null : Long.valueOf(rs.getLong(1));
+          return rs == null ? null : rs.first() ? Long.valueOf(rs.getLong(1)) : null;
         } catch (final SQLException e) {
           logException("Error processing result set", e);
           return null;

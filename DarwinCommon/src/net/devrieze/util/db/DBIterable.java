@@ -1,16 +1,14 @@
 package net.devrieze.util.db;
 
-import java.io.Closeable;
-import java.util.Iterator;
-
 import net.devrieze.annotations.NotNull;
+import net.devrieze.util.AutoCloseableIterator;
 
 
-public interface DBIterable<T> extends Closeable {
+public interface DBIterable<T> extends AutoCloseable {
 
   @NotNull
   Iterable<T> all();
 
   @NotNull
-  Iterator<T> iterator();
+  AutoCloseableIterator<T> iterator();
 }
