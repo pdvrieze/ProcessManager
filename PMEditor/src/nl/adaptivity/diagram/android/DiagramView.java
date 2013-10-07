@@ -13,10 +13,17 @@ import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
 import android.widget.ZoomButtonsController;
 import android.widget.ZoomButtonsController.OnZoomListener;
@@ -24,6 +31,8 @@ import android.widget.ZoomButtonsController.OnZoomListener;
 
 public class DiagramView extends View implements OnZoomListener{
 
+  private static final double MAXSCALE = 3d;
+  private static final double MINSCALE = 0.5d;
   private Diagram aDiagram;
   private Paint aRed;
   private Paint aTimePen;
@@ -34,24 +43,53 @@ public class DiagramView extends View implements OnZoomListener{
   private ZoomButtonsController aZoomController;
   private final boolean aMultitouch;
   private double aScale=1d;
+  private GestureDetector aGestureDetector;
+  private ScaleGestureDetector aScaleGestureDetector;
+
+  private RectF aScrollerViewport = new RectF();
+
+  private OnGestureListener aGestureListener = new SimpleOnGestureListener() {
+
+  };
+
+  private OnScaleGestureListener aScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+    @Override
+    public boolean onScale(ScaleGestureDetector pDetector) {
+      double scaleAdjust = ((double)pDetector.getCurrentSpan())/((double) pDetector.getPreviousSpan());
+      double newScale = getScale()*scaleAdjust;
+      if (newScale<=MAXSCALE && newScale>=MINSCALE) {
+        setScale(newScale);
+        return true;
+      }
+      return false;
+    }
+
+  };
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
     aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
-  }
-
-  private static boolean isEmulator() {
-    return "google_sdk".equals( Build.PRODUCT )||"sdk_x86".equals(Build.PRODUCT);
+    aGestureDetector = new GestureDetector(pContext, aGestureListener);
+    aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
   }
 
   public DiagramView(Context pContext, AttributeSet pAttrs) {
     super(pContext, pAttrs);
     aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aGestureDetector = new GestureDetector(pContext, aGestureListener);
+    aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
   }
 
   public DiagramView(Context pContext) {
     super(pContext);
     aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aGestureDetector = new GestureDetector(pContext, aGestureListener);
+    aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
+  }
+
+  private static boolean isEmulator() {
+    return "google_sdk".equals( Build.PRODUCT )||"sdk_x86".equals(Build.PRODUCT);
   }
 
   public double getOffsetX() {
@@ -167,6 +205,13 @@ public class DiagramView extends View implements OnZoomListener{
     if (pOverlay!=null) {
       invalidate(pOverlay.getBounds());
     }
+  }
+
+  @Override
+  public boolean onTouchEvent(MotionEvent pEvent) {
+    boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
+    retVal = aGestureDetector.onTouchEvent(pEvent) || retVal;
+    return retVal || super.onTouchEvent(pEvent);
   }
 
   @Override
