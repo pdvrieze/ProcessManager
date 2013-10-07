@@ -426,25 +426,15 @@ public class PMEditor extends Activity {
       if (aStepper==null) {
         aStepper = new MyStepper();
       }
-      final InputStream file = getResources().openRawResource(R.raw.processmodel);
-      try {
-        // Start with null layout algorithm, to prevent dual layout.
-        aPm = PMParser.parseProcessModel(file, NULL_LAYOUT_ALGORITHM);
-        if (aPm!=null) {
-          aPm.setScale(2.5d);
-          LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<DrawableProcessNode>();
-          alg.setLayoutStepper(aStepper);
-          aPm.setLayoutAlgorithm(alg);
-          diagramView1.setDiagram(aPm);
-          aPm.layout();
-        }
-      } finally {
-        try {
-          file.close();
-        } catch (IOException e) {
-          Log.e(getClass().getName(), e.getMessage(), e);
-          return null;
-        }
+      // Start with null layout algorithm, to prevent dual layout.
+      aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
+      if (aPm!=null) {
+        aPm.setScale(2.5d);
+        LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<DrawableProcessNode>();
+        alg.setLayoutStepper(aStepper);
+        aPm.setLayoutAlgorithm(alg);
+        diagramView1.setDiagram(aPm);
+        aPm.layout();
       }
       return null;
     }
@@ -545,13 +535,29 @@ public class PMEditor extends Activity {
     diagramView1.setOffsetY(offsetY/aPm.getScale());
   }
 
+  private final DrawableProcessModel getProcessModel() {
+    return getProcessModel(new LayoutAlgorithm<DrawableProcessNode>());
+  }
+
+  private DrawableProcessModel getProcessModel(LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+    final InputStream file = getResources().openRawResource(R.raw.processmodel);
+    try {
+      // Start with null layout algorithm, to prevent dual layout.
+      return PMParser.parseProcessModel(file, layoutAlgorithm);
+    } finally {
+      try {
+        file.close();
+      } catch (IOException e) {
+        Log.e(PMEditor.class.getName(), e.getMessage(), e);
+        return null;
+      }
+    }
+  }
+
   @Override
   protected void onResume() {
     super.onResume();
-    if (aLayoutTask==null) {
-      aLayoutTask = new LayoutTask();
-      aLayoutTask.execute();
-    }
+    aPm = getProcessModel();
   }
 
 
