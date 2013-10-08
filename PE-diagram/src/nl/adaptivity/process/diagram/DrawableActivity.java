@@ -32,7 +32,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     if (hasPos()) {
-      if (aFGPen ==null) { aFGPen = pCanvas.newColor(0,0,0,0xff); aFGPen.setStrokeWidth(STROKEWIDTH); }
+      if (aFGPen ==null) { setFGPen(pCanvas.newColor(0,0,0,0xff)); }
       if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
       if (_bounds==null) { _bounds = new Rectangle(0,0, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
       pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, aWhite);
