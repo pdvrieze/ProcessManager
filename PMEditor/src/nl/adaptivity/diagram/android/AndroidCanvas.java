@@ -17,14 +17,14 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
 
     public OffsetCanvas(OffsetCanvas pBase, Rectangle pArea, double pScale) {
-      aXOffset = (pBase.aXOffset + pArea.left)*pScale;
-      aYOffset = (pBase.aYOffset + pArea.top)*pScale;
+      aXOffset = (pBase.aXOffset - pArea.left)*pScale;
+      aYOffset = (pBase.aYOffset - pArea.top)*pScale;
       aScale = pBase.aScale*pScale;
     }
 
     public OffsetCanvas(Rectangle pArea, double pScale) {
-      aXOffset = pArea.left* pScale;
-      aYOffset = pArea.top* pScale;
+      aXOffset = -pArea.left* pScale;
+      aYOffset = -pArea.top* pScale;
       aScale = pScale;
     }
 
@@ -45,27 +45,31 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
     @Override
     public void drawCircle(double pX, double pY, double pRadius, Pen pPen) {
-      AndroidCanvas.this.drawCircle((pX+aXOffset)*aScale, (pY + aYOffset) * aScale, pRadius*aScale, ((AndroidPen) pPen).scale(aScale));
+      AndroidCanvas.this.drawCircle((pX-aXOffset)*aScale, (pY - aYOffset) * aScale, pRadius*aScale, scalePen(pPen));
     }
 
     @Override
     public void drawFilledCircle(double pX, double pY, double pRadius, Pen pPen) {
-      AndroidCanvas.this.drawFilledCircle((pX + aXOffset) * aScale, (pY + aYOffset) * aScale, pRadius*aScale, pPen);
+      AndroidCanvas.this.drawFilledCircle((pX - aXOffset) * aScale, (pY - aYOffset) * aScale, pRadius*aScale, pPen);
     }
 
     @Override
     public void drawRect(Rectangle pRect, Pen pPen) {
-      AndroidCanvas.this.drawRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), ((AndroidPen) pPen).scale(aScale));
+      AndroidCanvas.this.drawRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), scalePen(pPen));
     }
 
     @Override
     public void drawFilledRect(Rectangle pRect, Pen pPen) {
-      AndroidCanvas.this.drawFilledRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pPen);
+      AndroidCanvas.this.drawFilledRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), pPen);
     }
 
     @Override
     public void drawPath(double[] pPoints, Pen pPen) {
-      AndroidCanvas.this.drawPath(transform(pPoints), ((AndroidPen) pPen).scale(aScale));
+      AndroidCanvas.this.drawPath(transform(pPoints), scalePen(pPen));
+    }
+
+    private Pen scalePen(Pen pPen) {
+      return ((AndroidPen) pPen).scale(aScale);
     }
 
     @Override
@@ -77,21 +81,21 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
       double[] result = new double[pPoints.length];
       final int len = pPoints.length-1;
       for(int i=0; i<len;++i) {
-        result[i] = (pPoints[i]+aXOffset)*aScale;
+        result[i] = (pPoints[i]-aXOffset)*aScale;
         ++i;
-        result[i] = (pPoints[i]+aYOffset)*aScale;
+        result[i] = (pPoints[i]-aYOffset)*aScale;
       }
       return result;
     }
 
     @Override
     public void drawRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
-      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, ((AndroidPen) pPen).scale(aScale));
+      AndroidCanvas.this.drawRoundRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), pRx*aScale, pRy*aScale, scalePen(pPen));
     }
 
     @Override
     public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Pen pPen) {
-      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(aXOffset, aYOffset, aScale), pRx*aScale, pRy*aScale, pPen);
+      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), pRx*aScale, pRy*aScale, pPen);
     }
 
   }
@@ -115,7 +119,9 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
   @Override
   public Pen newPen() {
-    return new AndroidPen(new Paint(Paint.ANTI_ALIAS_FLAG));
+    Paint paint = new Paint();
+    paint.setAntiAlias(true);
+    return new AndroidPen(paint);
   }
 
   @Override
