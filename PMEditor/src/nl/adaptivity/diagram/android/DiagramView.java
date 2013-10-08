@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.editor.android.BuildConfig;
@@ -43,7 +44,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   }
 
-  private static final double MAXSCALE = 3d;
+  private static final double MAXSCALE = 6d;
   private static final double MINSCALE = 0.5d;
   private Diagram aDiagram;
   private Paint aRed;
@@ -58,20 +59,40 @@ public class DiagramView extends View implements OnZoomListener{
   private GestureDetector aGestureDetector;
   private ScaleGestureDetector aScaleGestureDetector;
 
-  private RectF aScrollerViewport = new RectF();
-
   private OnGestureListener aGestureListener = new SimpleOnGestureListener() {
 
   };
 
   private OnScaleGestureListener aScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+    
+    // These points are relative to the diagram. They should end up at the focal
+    // point in canvas coordinates.
+    double aPreviousDiagramX;
+    double aPreviousDiagramY;
+    
+    
+    @Override
+    public boolean onScaleBegin(ScaleGestureDetector pDetector) {
+      double newScale = getScale()*(double) pDetector.getScaleFactor();
+      aPreviousDiagramX = getOffsetX()+ pDetector.getFocusX()/newScale;
+      aPreviousDiagramY = getOffsetY()+ pDetector.getFocusY()/newScale;
+      return super.onScaleBegin(pDetector);
+    }
+
 
     @Override
     public boolean onScale(ScaleGestureDetector pDetector) {
-      double scaleAdjust = ((double)pDetector.getCurrentSpan())/((double) pDetector.getPreviousSpan());
+      double scaleAdjust = pDetector.getScaleFactor();
       double newScale = getScale()*scaleAdjust;
       if (newScale<=MAXSCALE && newScale>=MINSCALE) {
         setScale(newScale);
+
+        double newDiagramX = pDetector.getFocusX()/newScale;
+        double newDiagramY = pDetector.getFocusY()/newScale;
+
+        setOffsetX(aPreviousDiagramX - newDiagramX);
+        setOffsetY(aPreviousDiagramY - newDiagramY);
+
         return true;
       }
       return false;
@@ -111,6 +132,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   public void setOffsetX(double pOffsetX) {
     aOffsetX = pOffsetX;
+    Compat.postInvalidateOnAnimation(this);
   }
 
 
@@ -121,6 +143,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   public void setOffsetY(double pOffsetY) {
     aOffsetY = pOffsetY;
+    Compat.postInvalidateOnAnimation(this);
   }
 
 
@@ -131,7 +154,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   public void setScale(double pScale) {
     if (aScale!=pScale) {
-      invalidate();
+      Compat.postInvalidateOnAnimation(this);
     }
     aScale = pScale;
   }
@@ -152,13 +175,13 @@ public class DiagramView extends View implements OnZoomListener{
   public void draw(Canvas pCanvas) {
     super.draw(pCanvas);
     int canvasSave = pCanvas.save();
-    pCanvas.scale((float) aScale, (float) aScale);
 //    pCanvas.drawLine(200, 0, 0, 200, aRed);
     if (aDiagram!=null) {
-      final Rectangle clipBounds = new Rectangle(aOffsetX, aOffsetY, getHeight(), getWidth());
+      final Rectangle clipBounds = new Rectangle(-(aOffsetX/aScale), -(aOffsetY/aScale), getHeight(), getWidth());
       final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
-      aDiagram.draw(canvas.childCanvas(clipBounds, 1d), clipBounds);
+      aDiagram.draw(canvas.childCanvas(clipBounds, aScale), clipBounds);
     } else {
+      pCanvas.scale((float) aScale, (float) aScale);
       if (aRed==null) {
         aRed = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
         aRed.setARGB(255, 255, 0, 0);
@@ -170,7 +193,10 @@ public class DiagramView extends View implements OnZoomListener{
       pCanvas.drawText(text, (getWidth()-aBounds.width())/2, (getHeight()-aBounds.height())/2, aRed);
       pCanvas.drawCircle(100, 100, 75, aRed);
     }
+    pCanvas.restoreToCount(canvasSave);
+    canvasSave = pCanvas.save();
     if (aOverlay!=null) {
+      pCanvas.scale((float) aScale, (float) aScale);
       if (aOverlay instanceof DiagramDrawable) {
         ((DiagramDrawable) aOverlay).draw(pCanvas, aScale);
       }
