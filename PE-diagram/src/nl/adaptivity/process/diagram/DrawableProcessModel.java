@@ -150,14 +150,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
     Canvas canvas = pCanvas.childCanvas(getBounds(), aScale);
     Pen red = canvas.newColor(255, 0, 0, 255);
-    Pen arc = canvas.newColor(0, 0, 0, 255).setStrokeWidth(1d);
+    Pen arc = canvas.newColor(0, 0, 0, 255).setStrokeWidth(aScale);
     for(DrawableProcessNode start:getModelNodes()) {
       for (DrawableProcessNode end: start.getSuccessors()) {
         canvas.drawPath(new double[]{start.getBounds().right()-STROKEWIDTH, start.getY(), end.getBounds().left+STROKEWIDTH, end.getY()}, arc);
       }
     }
     for(DrawableProcessNode node:getModelNodes()) {
-      System.err.println("Drawing "+ node.getClass().getSimpleName()+" "+node.getId()+ "("+node.getX()+", "+node.getY()+")");
+//      System.err.println("Drawing "+ node.getClass().getSimpleName()+" "+node.getId()+ "("+node.getX()+", "+node.getY()+")");
       // TODO actually support clipbounds
 
       node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
