@@ -512,6 +512,9 @@ public class PMEditor extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
     diagramView1 = (DiagramView) findViewById(R.id.diagramView1);
+    diagramView1.setScale(2d);
+    diagramView1.setOffsetX(0d);
+    diagramView1.setOffsetY(0d);
   }
 
   public void setLabel(final String pString) {
@@ -536,8 +539,8 @@ public class PMEditor extends Activity {
         if (bounds.top<minY) { minY = bounds.top; }
       }
     }
-    double offsetX= Double.isInfinite(minX)? 0 : aPm.getLeftPadding()-minX;
-    double offsetY= Double.isInfinite(minY)? 0 : aPm.getTopPadding()-minY;
+    double offsetX= Double.isInfinite(minX)? 0 : minX - aPm.getLeftPadding();
+    double offsetY= Double.isInfinite(minY)? 0 : minY - aPm.getTopPadding();
     diagramView1.setOffsetX(offsetX/aPm.getScale());
     diagramView1.setOffsetY(offsetY/aPm.getScale());
   }
