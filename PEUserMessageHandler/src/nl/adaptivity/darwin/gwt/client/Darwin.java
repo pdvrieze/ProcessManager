@@ -115,7 +115,7 @@ public class Darwin implements EntryPoint {
       rBuilder = new RequestBuilder(RequestBuilder.POST, LOGIN_LOCATION);
       rBuilder.setHeader("Accept", "text/plain");
       rBuilder.setHeader("Content-Type", "application/x-www-form-urlencoded");
-      final String postData = "username=" + URL.encode(username.getValue()) + "&password=" + URL.encode(password.getValue());
+      final String postData = "username=" + URL.encodeQueryString(username.getValue()) + "&password=" + URL.encodeQueryString(password.getValue());
       try {
         rBuilder.sendRequest(postData, new LoginReceivedCallback());
       } catch (final RequestException e) {
