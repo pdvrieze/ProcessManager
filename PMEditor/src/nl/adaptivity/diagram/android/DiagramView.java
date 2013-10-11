@@ -3,12 +3,12 @@ package nl.adaptivity.diagram.android;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.R;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
@@ -61,16 +61,24 @@ public class DiagramView extends View implements OnZoomListener{
 
   private OnGestureListener aGestureListener = new SimpleOnGestureListener() {
 
+    @Override
+    public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
+      double scale = getScale();
+      setOffsetX(getOffsetX()+(pDistanceX/scale));
+      setOffsetY(getOffsetY()+(pDistanceY/scale));
+      return true;
+    }
+
   };
 
   private OnScaleGestureListener aScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
-    
+
     // These points are relative to the diagram. They should end up at the focal
     // point in canvas coordinates.
     double aPreviousDiagramX;
     double aPreviousDiagramY;
-    
-    
+
+
     @Override
     public boolean onScaleBegin(ScaleGestureDetector pDetector) {
       double newScale = getScale()*(double) pDetector.getScaleFactor();
@@ -172,12 +180,15 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   @Override
-  public void draw(Canvas pCanvas) {
-    super.draw(pCanvas);
+  public void onDraw(Canvas pCanvas) {
+    super.onDraw(pCanvas);
     int canvasSave = pCanvas.save();
 //    pCanvas.drawLine(200, 0, 0, 200, aRed);
     if (aDiagram!=null) {
+
+      @SuppressLint("DrawAllocation")
       final Rectangle clipBounds = new Rectangle(-(aOffsetX/aScale), -(aOffsetY/aScale), getHeight(), getWidth());
+      @SuppressLint("DrawAllocation")
       final AndroidCanvas canvas = new AndroidCanvas(pCanvas);
       aDiagram.draw(canvas.childCanvas(clipBounds, aScale), clipBounds);
     } else {
