@@ -3,10 +3,10 @@ package nl.adaptivity.diagram;
 
 public final class Rectangle {
 
-  public final double left;
-  public final double top;
-  public final double width;
-  public final double height;
+  public double left;
+  public double top;
+  public double width;
+  public double height;
 
   public Rectangle(double left, double top, double width, double height) {
     this.top = top;
@@ -34,7 +34,7 @@ public final class Rectangle {
   public double bottom() {
     return top+height;
   }
-  
+
   public float bottomf() {
     return (float) bottom();
   }
@@ -62,6 +62,29 @@ public final class Rectangle {
   @Override
   public String toString() {
     return "Rectangle [l=" + left + ", t=" + top + ", w=" + width + ", h=" + height + "]";
+  }
+
+  public void set(double pLeft, double pTop, double pWidth, double pHeight) {
+    left = pLeft;
+    top = pTop;
+    width = pWidth;
+    height = pHeight;
+  }
+
+  public void set(Rectangle pBounds) {
+    left = pBounds.left;
+    top = pBounds.top;
+    width = pBounds.width;
+    height = pBounds.height;
+  }
+
+  public void extendBounds(Rectangle pBounds) {
+    double newleft = Math.min(left,  pBounds.left);
+    double newtop = Math.min(top,  pBounds.left);
+    width = Math.max(right(),  pBounds.right())-newleft;
+    height = Math.max(bottom(),  pBounds.bottom())-newtop;
+    left = newleft;
+    top = newtop;
   }
 
 }
