@@ -38,6 +38,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   private double aScale = 1d;
   private Pen aArcPen;
+  private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
@@ -134,9 +135,31 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(0, 0, 200, 200);
+    if (Double.isNaN(aBounds.left) && getModelNodes().size()>0) {
+      layout();
+    }
+    return aBounds;
   }
 
+
+  @Override
+  public void setNodes(Collection<? extends DrawableProcessNode> pNodes) {
+    // Null check here as setNodes is called during construction of the parent
+    if (aBounds!=null) { aBounds.left = Double.NaN; }
+    super.setNodes(pNodes);
+  }
+
+  @Override
+  public void layout() {
+    super.layout();
+    Collection<? extends DrawableProcessNode> modelNodes = getModelNodes();
+    if (modelNodes.isEmpty()) { aBounds.set(0,0,0,0); return; }
+    DrawableProcessNode firstNode = modelNodes.iterator().next();
+    aBounds.set(firstNode.getBounds());
+    for(DrawableProcessNode node: modelNodes) {
+      aBounds.extendBounds(node.getBounds());
+    }
+  }
 
   public double getScale() {
     return aScale;
