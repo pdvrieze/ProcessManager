@@ -158,6 +158,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
         canvas.drawPath(new double[]{start.getBounds().right()-STROKEWIDTH, start.getY(), end.getBounds().left+STROKEWIDTH, end.getY()}, aArcPen);
       }
     }
+    for(DrawableProcessNode node:getModelNodes()) {
+      node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
+    }
   }
 
   static void copyProcessNodeAttrs(ProcessNode<?> pFrom, DrawableProcessNode pTo) {
