@@ -1,13 +1,15 @@
 package nl.adaptivity.diagram;
 
 
-public interface Canvas<PENTYPE extends Pen, PATHTYPE extends DiagramPath> {
+public interface Canvas<S extends DrawingStrategy> {
 
-  Canvas<PENTYPE, PATHTYPE> childCanvas(Rectangle area, double pScale);
+  S getStrategy();
 
-  PENTYPE newColor(int pR, int pG, int pB, int pA);
+  Canvas<S> childCanvas(Rectangle area, double pScale);
 
-  PENTYPE newPen();
+  Pen<S> newColor(int pR, int pG, int pB, int pA);
+
+  Pen<S> newPen();
 
   /**
    * Draw a circle filled with the given color.
@@ -17,17 +19,17 @@ public interface Canvas<PENTYPE extends Pen, PATHTYPE extends DiagramPath> {
    * @param pRadius
    * @param pColor
    */
-  void drawFilledCircle(double pX, double pY, double pRadius, PENTYPE pColor);
+  void drawFilledCircle(double pX, double pY, double pRadius, Pen<S> pColor);
 
-  void drawRect(Rectangle pRect, PENTYPE pColor);
+  void drawRect(Rectangle pRect, Pen<S> pColor);
 
-  void drawFilledRect(Rectangle pRect, PENTYPE pColor);
+  void drawFilledRect(Rectangle pRect, Pen<S> pColor);
 
-  void drawCircle(double pX, double pY, double pRadius, PENTYPE pColor);
+  void drawCircle(double pX, double pY, double pRadius, Pen<S> pColor);
 
-  void drawRoundRect(Rectangle pRect, double pRx, double pRy, PENTYPE pColor);
+  void drawRoundRect(Rectangle pRect, double pRx, double pRy, Pen<S> pColor);
 
-  void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, PENTYPE pColor);
+  void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, Pen<S> pColor);
 
   /**
    * These are implemented in terms of drawPath, but don't allow for path caching.
@@ -35,19 +37,19 @@ public interface Canvas<PENTYPE extends Pen, PATHTYPE extends DiagramPath> {
    * @param pColor The color
    */
   @Deprecated
-  void drawPoly(double[] pPoints, PENTYPE pColor);
+  void drawPoly(double[] pPoints, Pen<S> pColor);
 
   @Deprecated
-  void drawFilledPoly(double[] pPoints, PENTYPE pColor);
+  void drawFilledPoly(double[] pPoints, Pen<S> pColor);
 
-  void drawPath(PATHTYPE pPath, PENTYPE pColor);
+  void drawPath(DiagramPath<S> pPath, Pen<S> pColor);
 
-  void drawFilledPath(PATHTYPE pPath, PENTYPE pColor);
+  void drawFilledPath(DiagramPath<S> pPath, Pen<S> pColor);
 
   /**
    * Method to create a new path instance that can then be used for drawPath and
    * drawFilledPath.
    */
-  PATHTYPE newPath();
+  DiagramPath<S> newPath();
 
 }
