@@ -1,5 +1,6 @@
 package nl.adaptivity.diagram.android;
 
+import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import android.graphics.Paint;
@@ -11,6 +12,7 @@ import android.graphics.RectF;
 public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
 
   private class OffsetCanvas implements nl.adaptivity.diagram.Canvas {
+    /** The offset of the canvas. This is in scaled coordinates. */
     private double aXOffset;
     private double aYOffset;
     private double aScale;
@@ -39,8 +41,17 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
     }
 
     @Override
-    public Pen newPen() {
+    public AndroidPen newPen() {
       return AndroidCanvas.this.newPen();
+    }
+
+    @Override
+    public AndroidPath newPath() {
+      return AndroidCanvas.this.newPath();
+    }
+
+    private Pen scalePen(Pen pPen) {
+      return ((AndroidPen) pPen).scale(aScale);
     }
 
     @Override
@@ -64,17 +75,13 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
     }
 
     @Override
-    public void drawPath(double[] pPoints, Pen pPen) {
-      AndroidCanvas.this.drawPath(transform(pPoints), scalePen(pPen));
-    }
-
-    private Pen scalePen(Pen pPen) {
-      return ((AndroidPen) pPen).scale(aScale);
+    public void drawPoly(double[] pPoints, Pen pPen) {
+      AndroidCanvas.this.drawPoly(transform(pPoints), scalePen(pPen));
     }
 
     @Override
-    public void drawFilledPath(double[] pPoints, Pen pPen) {
-      AndroidCanvas.this.drawFilledPath(transform(pPoints), pPen);
+    public void drawFilledPoly(double[] pPoints, Pen pPen) {
+      AndroidCanvas.this.drawFilledPoly(transform(pPoints), pPen);
     }
 
     private double[] transform(double[] pPoints) {
@@ -86,6 +93,23 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
         result[i] = (pPoints[i]-aYOffset)*aScale;
       }
       return result;
+    }
+
+    @Override
+    public void drawPath(DiagramPath pPath, Pen pColor) {
+//      Matrix matrix = new Matrix();
+//      matrix.setScale((float)aScale, (float)aScale);
+//      matrix.postTranslate((float)aXOffset, (float) aYOffset);
+//      ((AndroidPath) pPath).getPath().transform(matrix);
+      AndroidCanvas.this.drawPath(pPath, pColor);
+//      ((AndroidPath) pPath).getPath().transform(matrix);
+    }
+
+    @Override
+    public void drawFilledPath(DiagramPath pPath, Pen pColor) {
+      // TODO Auto-generated method stub
+      //
+      throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -112,16 +136,20 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
   }
 
   @Override
-  public Pen newColor(int pR, int pG, int pB, int pA) {
+  public AndroidPen newColor(int pR, int pG, int pB, int pA) {
     // TODO cache this some way
     return newPen().setColor(pR, pG, pB, pA);
   }
 
   @Override
-  public Pen newPen() {
+  public AndroidPen newPen() {
     Paint paint = new Paint();
     paint.setAntiAlias(true);
     return new AndroidPen(paint);
+  }
+
+  public AndroidPath newPath() {
+    return new AndroidPath();
   }
 
   @Override
@@ -167,16 +195,30 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas {
   }
 
   @Override
-  public void drawPath(double[] pPoints, Pen pPen) {
+  public void drawPoly(double[] pPoints, Pen pPen) {
     aCanvas.drawPath(toPath(pPoints), ((AndroidPen)pPen).getPaint());
   }
 
   @Override
-  public void drawFilledPath(double[] pPoints, Pen pPen) {
+  public void drawFilledPoly(double[] pPoints, Pen pPen) {
     Paint paint = ((AndroidPen) pPen).getPaint();
     Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
     aCanvas.drawPath(toPath(pPoints), ((AndroidPen)pPen).getPaint());
+    paint.setStyle(oldStyle);
+  }
+
+  @Override
+  public void drawPath(DiagramPath pPath, Pen pColor) {
+    aCanvas.drawPath(((AndroidPath)pPath).getPath(), ((AndroidPen)pColor).getPaint());
+  }
+
+  @Override
+  public void drawFilledPath(DiagramPath pPath, Pen pPen) {
+    Paint paint = ((AndroidPen) pPen).getPaint();
+    Style oldStyle = paint.getStyle();
+    paint.setStyle(Paint.Style.FILL);
+    aCanvas.drawPath(((AndroidPath)pPath).getPath(), ((AndroidPen)pPen).getPaint());
     paint.setStyle(oldStyle);
   }
 

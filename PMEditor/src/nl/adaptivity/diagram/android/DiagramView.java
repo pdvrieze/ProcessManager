@@ -20,6 +20,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Debug;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
@@ -34,6 +35,8 @@ import android.widget.ZoomButtonsController.OnZoomListener;
 
 public class DiagramView extends View implements OnZoomListener{
 
+
+  private static final int CACHE_PADDING = 30;
 
   public static abstract class DiagramDrawable extends Drawable {
 
@@ -51,7 +54,8 @@ public class DiagramView extends View implements OnZoomListener{
   private Diagram aDiagram;
   private Paint aRed;
   private Paint aTimePen;
-  private Rect aBounds = new Rect();
+  private final Rect aMissingDiagramTextBounds = new Rect();
+  private String aMissingDiagramText;
   private double aOffsetX = 0;
   private double aOffsetY = 0;
   private Drawable aOverlay;
@@ -110,14 +114,16 @@ public class DiagramView extends View implements OnZoomListener{
     }
 
   };
+
   private boolean aTouchActionOptimize = false;
-  private double aCachedScale;
-  private Paint aCachePaint;
-  private double aCachedOffsetY;
-  private double aCachedOffsetX;
   private Bitmap aCacheBitmap;
   private Canvas aCacheCanvas;
   private Rectangle aCacheRect = new Rectangle(0d,0d,0d,0d);
+
+  private final Rect aBuildTimeBounds = new Rect();
+  private String aBuildTimeText;
+  private Rectangle aTmpRectangle = new Rectangle(0d, 0d, 0d, 0d);
+  private final RectF aTmpRectF = new RectF();
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
@@ -192,72 +198,96 @@ public class DiagramView extends View implements OnZoomListener{
 
   @Override
   public void onDraw(Canvas pCanvas) {
-    Canvas canvas;
-    if (aCacheCanvas ==null) {
-      if (aTouchActionOptimize) {
-        updateCacheRect(aCacheRect); //cacherect is in screen scale
-        aCacheBitmap = Bitmap.createBitmap((int) Math.ceil(aCacheRect.width*aScale), (int) Math.ceil(aCacheRect.height*aScale), Bitmap.Config.ARGB_8888);
-        aCacheCanvas = new Canvas(aCacheBitmap);
-        aCacheBitmap.eraseColor(0x00000000);
+    if (aTouchActionOptimize) {
+      ensureValidCache();
 
-        aCacheCanvas.translate((float)((aOffsetX - aCacheRect.left)*aScale), (float) ((aOffsetY - aCacheRect.top)*aScale));
-        canvas = aCacheCanvas;
+      aTmpRectF.left = (float) ((aCacheRect.left-aOffsetX)*aScale);
+      aTmpRectF.top = (float) ((aCacheRect.top-aOffsetY)*aScale);
+      aTmpRectF.right = (float) (aTmpRectF.left+aCacheRect.width*aScale);
+      aTmpRectF.bottom = (float) (aTmpRectF.top+aCacheRect.height*aScale);
+
+      pCanvas.drawBitmap(aCacheBitmap, null, aTmpRectF, null);
+    } else {
+
+      drawDiagram(pCanvas);
+
+      drawOverlay(pCanvas);
+
+      if (BuildConfig.DEBUG) {
+        drawDebugOverlay(pCanvas);
+      }
+
+    }
+  }
+
+  private void ensureValidCache() {
+    if (aCacheBitmap!=null) {
+      double oldScale = aCacheBitmap.getHeight()/aCacheRect.height;
+      final double scaleChange = aScale/oldScale;
+      if (scaleChange > 1.5 || scaleChange<0.34) {
+        aCacheBitmap=null; // invalidate
+        updateCacheRect(aCacheRect);
       } else {
-        canvas = pCanvas;
+        updateCacheRect(aTmpRectangle);
+        if (aTmpRectangle.left+CACHE_PADDING < aCacheRect.left ||
+            aTmpRectangle.top+CACHE_PADDING < aCacheRect.top ||
+            aTmpRectangle.right()-CACHE_PADDING < aCacheRect.right() ||
+            aTmpRectangle.bottom()-CACHE_PADDING < aCacheRect.bottom()) {
+          aCacheBitmap = null;
+          aCacheRect = aTmpRectangle;
+        }
       }
     } else {
-      if (aTouchActionOptimize) {
-        RectF target = new RectF();
-        target.left = (float) ((aCacheRect.left-aOffsetX)*aScale);
-        target.top = (float) ((aCacheRect.top-aOffsetY)*aScale);
-        target.right = (float) (target.left+aCacheRect.width*aScale);
-        target.bottom = (float) (target.top+aCacheRect.height*aScale);
-
-//        pCanvas.drawBitmap(aCacheBitmap, target.left, target.top, null);
-        pCanvas.drawBitmap(aCacheBitmap, null, target, null);
-        // invalidate if needed, otherwise just blit bitmap.
-  //      canvas = aCacheCanvas;
-  //      aCacheBitmap.eraseColor(0x20ff0000);
-        return;
-      } else {
-        canvas = pCanvas;
-      }
+      updateCacheRect(aCacheRect); //cacherect is in screen scale
     }
+    if (aCacheBitmap==null) {
+      aCacheBitmap = Bitmap.createBitmap((int) Math.ceil(aCacheRect.width*aScale), (int) Math.ceil(aCacheRect.height*aScale), Bitmap.Config.ARGB_8888);
+      aCacheCanvas = new Canvas(aCacheBitmap);
+      aCacheBitmap.eraseColor(0x00000000);
 
-    int canvasSave = canvas.save();
-//    pCanvas.drawLine(200, 0, 0, 200, aRed);
+      aCacheCanvas.translate((float)((aOffsetX - aCacheRect.left)*aScale), (float) ((aOffsetY - aCacheRect.top)*aScale));
+
+      drawDiagram(aCacheCanvas);
+      drawOverlay(aCacheCanvas);
+    }
+  }
+
+  private void drawDiagram(Canvas canvas) {
     if (aDiagram!=null) {
-
       @SuppressLint("DrawAllocation")
       final Rectangle clipBounds = new Rectangle(-(aOffsetX/aScale), -(aOffsetY/aScale), getHeight(), getWidth());
       @SuppressLint("DrawAllocation")
       final AndroidCanvas androidcanvas = new AndroidCanvas(canvas);
       aDiagram.draw(androidcanvas.childCanvas(clipBounds, aScale), clipBounds);
     } else {
-      canvas.scale((float) aScale, (float) aScale);
-      if (aRed==null) {
-        aRed = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
-        aRed.setARGB(255, 255, 0, 0);
-        aRed.setTypeface(Typeface.DEFAULT);
-        aRed.setTextSize(50f);
-      }
-      final String text = getContext().getResources().getString(R.string.missing_diagram);
-      aRed.getTextBounds(text, 0, text.length(), aBounds);
-      canvas.drawText(text, (getWidth()-aBounds.width())/2, (getHeight()-aBounds.height())/2, aRed);
-      canvas.drawCircle(100, 100, 75, aRed);
+      ensureMissingDiagramTextBounds();
+      canvas.drawText(aMissingDiagramText, (getWidth()-aMissingDiagramTextBounds.width())/2, (getHeight()-aMissingDiagramTextBounds.height())/2, getRedPen());
     }
-    canvas.restoreToCount(canvasSave);
-    canvasSave = canvas.save();
+  }
+
+  private void drawOverlay(Canvas canvas) {
+    int canvasSave = canvas.save();
     if (aOverlay!=null) {
-      canvas.scale((float) aScale, (float) aScale);
+      final float scalef = (float) aScale;
+      canvas.scale(scalef, scalef);
       if (aOverlay instanceof DiagramDrawable) {
         ((DiagramDrawable) aOverlay).draw(canvas, aScale);
       }
       aOverlay.draw(canvas);
     }
-
     canvas.restoreToCount(canvasSave);
-    if (BuildConfig.DEBUG) {
+  }
+
+  private void drawDebugOverlay(Canvas canvas) {
+    if (aBuildTimeText!=null) {
+      ensureBuildTimeTextBounds();
+
+      canvas.drawText(aBuildTimeText, getWidth() - aBuildTimeBounds.width()-20, getHeight()-20, aTimePen);
+    }
+  }
+
+  private void ensureBuildTimeTextBounds() {
+    if (aBuildTimeText==null) {
       InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
       if (stream!=null) {
         try {
@@ -266,20 +296,18 @@ public class DiagramView extends View implements OnZoomListener{
             props.load(stream);
           } catch (IOException e) {
             e.printStackTrace();
+            aBuildTimeText="";
+            aBuildTimeBounds.set(0, 0, 0, 0);
             return;
           }
-          String buildtime = props.getProperty("buildtime");
-          if (buildtime!=null) {
-            if (aTimePen==null) {
-              aTimePen = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
-              aTimePen.setARGB(255, 0, 0, 31);
-              aTimePen.setTypeface(Typeface.DEFAULT);
-              aTimePen.setTextSize(25f);
-            }
-
-            aTimePen.getTextBounds(buildtime, 0, buildtime.length(), aBounds);
-            canvas.drawText(buildtime, getWidth() - aBounds.width()-20, getHeight()-20, aTimePen);
+          aBuildTimeText = props.getProperty("buildtime");
+          if (aBuildTimeText!=null) {
+            aTimePen.getTextBounds(aBuildTimeText, 0, aBuildTimeText.length(), aBuildTimeBounds);
+          } else {
+            aBuildTimeText = "";
+            aBuildTimeBounds.set(0, 0, 0, 0);
           }
+
         } finally {
           try {
             stream.close();
@@ -289,24 +317,37 @@ public class DiagramView extends View implements OnZoomListener{
         }
       }
     }
-    if (canvas == aCacheCanvas) {
-      RectF target = new RectF();
-      target.left = (float) ((aCacheRect.left-aOffsetX)*aScale);
-      target.top = (float) ((aCacheRect.top-aOffsetY)*aScale);
-      target.right = target.left+((float) (aCacheRect.width*aScale));
-      target.bottom = target.top+((float) (aCacheRect.height*aScale));
-
-//      pCanvas.drawBitmap(aCacheBitmap, target.left, target.top, null);
-      pCanvas.drawBitmap(aCacheBitmap, null, target, null);
+    if (aTimePen==null) {
+      aTimePen = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+      aTimePen.setARGB(255, 0, 0, 31);
+      aTimePen.setTypeface(Typeface.DEFAULT);
+      aTimePen.setTextSize(25f);
     }
+  }
+
+  private void ensureMissingDiagramTextBounds() {
+    if (aMissingDiagramText==null) {
+      aMissingDiagramText = getContext().getResources().getString(R.string.missing_diagram);
+      getRedPen().getTextBounds(aMissingDiagramText, 0, aMissingDiagramText.length(), aMissingDiagramTextBounds);
+    }
+  }
+
+  private Paint getRedPen() {
+    if (aRed==null) {
+      aRed = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+      aRed.setARGB(255, 255, 0, 0);
+      aRed.setTypeface(Typeface.DEFAULT);
+      aRed.setTextSize(50f);
+    }
+    return aRed;
   }
 
   private void updateCacheRect(Rectangle pCacheRect) {
     Rectangle diagrambounds = aDiagram.getBounds();
-    double diagLeft = Math.max(diagrambounds.left-1, aOffsetX-30);
-    double diagWidth = Math.min(diagrambounds.right()-diagLeft+6, (getWidth()/aScale) + 60);
-    double diagTop = Math.max(diagrambounds.top-1, aOffsetY-30);
-    double diagHeight = Math.min(diagrambounds.bottom()-diagTop+6, (getHeight()/aScale) + 60);
+    double diagLeft = Math.max(diagrambounds.left-1, aOffsetX-CACHE_PADDING);
+    double diagWidth = Math.min(diagrambounds.right()-diagLeft+6, (getWidth()/aScale) + (CACHE_PADDING*2));
+    double diagTop = Math.max(diagrambounds.top-1, aOffsetY-CACHE_PADDING);
+    double diagHeight = Math.min(diagrambounds.bottom()-diagTop+6, (getHeight()/aScale) + (CACHE_PADDING*2));
     pCacheRect.set(diagLeft, diagTop, diagWidth, diagHeight);
   }
 
@@ -325,13 +366,15 @@ public class DiagramView extends View implements OnZoomListener{
     int action = pEvent.getActionMasked();
     if (action==MotionEvent.ACTION_DOWN) {
       aTouchActionOptimize  = true;
-//      buildDrawingCache(true);
-//      setDrawingCacheEnabled(true);
+      if (BuildConfig.DEBUG) {
+        Debug.startMethodTracing();
+      }
+      ensureValidCache();
     } else if (action==MotionEvent.ACTION_UP|| action==MotionEvent.ACTION_CANCEL) {
       aTouchActionOptimize  = false;
-//      setDrawingCacheEnabled(false);
-//      destroyDrawingCache();
-//      Compat.postInvalidateOnAnimation(this);
+      if (BuildConfig.DEBUG) {
+        Debug.stopMethodTracing();
+      }
       aCacheBitmap = null; aCacheCanvas = null;
       Compat.postInvalidateOnAnimation(this);
     }
