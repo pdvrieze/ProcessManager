@@ -1,6 +1,7 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
@@ -14,6 +15,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   private Pen aFGPen;
   private Pen aWhite;
+  private DiagramPath aPath;
 
   @Override
   public Pen getPen() {
@@ -34,20 +36,22 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   @Override
   public void draw(Canvas pCanvas, Rectangle pClipBounds) {
+    if (aPath==null) {
+      final double dx = JOINWIDTH/2;
+      final double dy = JOINHEIGHT/2;
+      aPath = pCanvas.newPath();
+      aPath.moveTo(0,dy)
+           .lineTo(dx, 0)
+           .lineTo(JOINWIDTH, dy)
+           .lineTo(dx, JOINHEIGHT)
+           .close();
+
+    }
     if (hasPos()) {
-      double dx = JOINWIDTH/2;
-      double dy = JOINHEIGHT/2;
       if (aFGPen ==null) { aFGPen = pCanvas.newColor(0,0,0,0xff).setStrokeWidth(STROKEWIDTH); }
       if (aWhite ==null) { aWhite = pCanvas.newColor(0xff,0xff,0xff,0xff); }
-      double[] points = new double[] {
-        0,dy,
-        dx, 0,
-        JOINWIDTH, dy,
-        dx, JOINHEIGHT,
-        0, dy
-      };
-      pCanvas.drawFilledPath(points, aWhite);
-      pCanvas.drawPath(points, aFGPen);
+      pCanvas.drawFilledPath(aPath, aWhite);
+      pCanvas.drawPath(aPath, aFGPen);
     }
   }
 

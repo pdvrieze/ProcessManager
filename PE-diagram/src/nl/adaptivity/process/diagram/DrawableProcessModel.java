@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
@@ -171,16 +173,20 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void draw(Canvas pCanvas, Rectangle pClipBounds) {
-    Canvas canvas = pCanvas.childCanvas(getBounds(), aScale);
+  public <S extends DrawingStrategy> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
+    Canvas<S> canvas = pCanvas.childCanvas(getBounds(), aScale);
     if (aArcPen==null) {
       aArcPen = canvas.newColor(0, 0, 0, 255).setStrokeWidth(aScale);
     }
+    DiagramPath<S> connectors = pCanvas.newPath();
     for(DrawableProcessNode start:getModelNodes()) {
       for (DrawableProcessNode end: start.getSuccessors()) {
-        canvas.drawPath(new double[]{start.getBounds().right()-STROKEWIDTH, start.getY(), end.getBounds().left+STROKEWIDTH, end.getY()}, aArcPen);
+        connectors.moveTo(start.getBounds().right()-STROKEWIDTH, start.getY())
+                  .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
       }
     }
+    canvas.drawPath(connectors, aArcPen);
+
     for(DrawableProcessNode node:getModelNodes()) {
       node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
     }

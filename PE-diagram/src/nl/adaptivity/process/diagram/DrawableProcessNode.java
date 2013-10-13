@@ -1,6 +1,7 @@
 package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.Drawable;
+import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.process.clientProcessModel.IClientProcessNode;
 
@@ -9,8 +10,8 @@ public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessN
 
   void setId(String pId);
 
-  Pen getPen();
+  <S extends DrawingStrategy> Pen<S> getPen(S pStrategy);
 
-  void setFGPen(Pen pPen);
+  <S extends DrawingStrategy> void setFGPen(S pStrategy, Pen<S> pPen);
 
 }
