@@ -168,8 +168,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public void invalidate() {
     super.invalidate();
-    aItems.clearPath(0);
-    aBounds.left=Double.NaN;
+    if (aItems!=null) { aItems.clearPath(0); }
+    if (aBounds!=null) { aBounds.left=Double.NaN; }
   }
 
   public double getScale() {
