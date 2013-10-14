@@ -366,15 +366,15 @@ public class DiagramView extends View implements OnZoomListener{
     int action = pEvent.getActionMasked();
     if (action==MotionEvent.ACTION_DOWN) {
       aTouchActionOptimize  = true;
-      if (BuildConfig.DEBUG) {
-        Debug.startMethodTracing();
-      }
+//      if (BuildConfig.DEBUG) {
+//        Debug.startMethodTracing();
+//      }
       ensureValidCache();
     } else if (action==MotionEvent.ACTION_UP|| action==MotionEvent.ACTION_CANCEL) {
       aTouchActionOptimize  = false;
-      if (BuildConfig.DEBUG) {
-        Debug.stopMethodTracing();
-      }
+//      if (BuildConfig.DEBUG) {
+//        Debug.stopMethodTracing();
+//      }
       aCacheBitmap = null; aCacheCanvas = null;
       Compat.postInvalidateOnAnimation(this);
     }

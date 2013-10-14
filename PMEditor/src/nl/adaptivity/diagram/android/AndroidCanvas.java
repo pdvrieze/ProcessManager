@@ -1,7 +1,7 @@
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
@@ -82,19 +82,28 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
 
     @Override
     public void drawPath(AndroidPath pPath, AndroidPen pColor) {
-//      Matrix matrix = new Matrix();
-//      matrix.setScale((float)aScale, (float)aScale);
-//      matrix.postTranslate((float)aXOffset, (float) aYOffset);
-//      ((AndroidPath) pPath).getPath().transform(matrix);
-      AndroidCanvas.this.drawPath(pPath, pColor);
-//      ((AndroidPath) pPath).getPath().transform(matrix);
+      Path transformedPath = new Path(pPath.getPath());
+      Matrix matrix = new Matrix();
+      matrix.setScale((float)aScale, (float)aScale);
+      matrix.preTranslate((float)-aXOffset, (float) -aYOffset);
+      transformedPath.transform(matrix);
+
+      aCanvas.drawPath(transformedPath, scalePen(pColor).getPaint());
     }
 
     @Override
-    public void drawFilledPath(AndroidPath pPath, AndroidPen pColor) {
-      // TODO Auto-generated method stub
-      //
-      throw new UnsupportedOperationException("Not yet implemented");
+    public void drawFilledPath(AndroidPath pPath, AndroidPen pPen) {
+      Path transformedPath = new Path(pPath.getPath());
+      Matrix matrix = new Matrix();
+      matrix.setScale((float)aScale, (float)aScale);
+      matrix.postTranslate((float)aXOffset, (float) aYOffset);
+      transformedPath.transform(matrix);
+
+      Paint paint = pPen.getPaint();
+      Style oldStyle = paint.getStyle();
+      paint.setStyle(Paint.Style.FILL);
+      aCanvas.drawPath(transformedPath, pPen.getPaint());
+      paint.setStyle(oldStyle);
     }
 
     @Override
