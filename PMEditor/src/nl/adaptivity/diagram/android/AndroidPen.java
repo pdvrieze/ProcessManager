@@ -5,7 +5,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 
 
-public class AndroidPen implements Pen {
+public class AndroidPen implements Pen<AndroidPen> {
 
   private Paint aPaint;
   private double aStrokeWidth;
@@ -38,7 +38,7 @@ public class AndroidPen implements Pen {
     return this;
   }
 
-  public Pen scale(double pScale) {
+  public AndroidPen scale(double pScale) {
     aPaint.setStrokeWidth((float) (aStrokeWidth*pScale));
     return this;
   }

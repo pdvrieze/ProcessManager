@@ -4,18 +4,18 @@ import android.graphics.Path;
 import nl.adaptivity.diagram.DiagramPath;
 
 
-public class AndroidPath implements DiagramPath {
+public final class AndroidPath implements DiagramPath<AndroidPath> {
 
   private Path aPath = new Path();
 
   @Override
-  public DiagramPath moveTo(double pX, double pY) {
+  public AndroidPath moveTo(double pX, double pY) {
     aPath.moveTo((float)pX, (float) pY);
     return this;
   }
 
   @Override
-  public DiagramPath lineTo(double pX, double pY) {
+  public AndroidPath lineTo(double pX, double pY) {
     aPath.lineTo((float)pX, (float) pY);
     return this;
   }
