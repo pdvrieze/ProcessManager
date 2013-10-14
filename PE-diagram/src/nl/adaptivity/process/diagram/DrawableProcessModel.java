@@ -9,6 +9,7 @@ import java.util.Set;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
+import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
@@ -39,7 +40,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double STROKEWIDTH = 1d;
 
   private double aScale = 1d;
-  private Pen aArcPen;
+  private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
@@ -173,10 +174,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public <S extends DrawingStrategy> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
     Canvas<S> canvas = pCanvas.childCanvas(getBounds(), aScale);
-    if (aArcPen==null) {
-      aArcPen = canvas.newColor(0, 0, 0, 255).setStrokeWidth(aScale);
+    final S strategy = pCanvas.getStrategy();
+    Pen<S> arcPen = aItems.getPen(strategy, 0);
+    if (arcPen==null) {
+      arcPen = canvas.newColor(0, 0, 0, 255).setStrokeWidth(aScale);
+      aItems.setPen(strategy, 0, arcPen);
     }
     DiagramPath<S> connectors = pCanvas.newPath();
     for(DrawableProcessNode start:getModelNodes()) {
@@ -185,7 +189,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
                   .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
       }
     }
-    canvas.drawPath(connectors, aArcPen);
+    canvas.drawPath(connectors, arcPen);
 
     for(DrawableProcessNode node:getModelNodes()) {
       node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);

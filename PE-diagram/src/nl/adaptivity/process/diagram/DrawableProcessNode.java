@@ -10,8 +10,8 @@ public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessN
 
   void setId(String pId);
 
-  <S extends DrawingStrategy> Pen<S> getPen(S pStrategy);
+  <S extends DrawingStrategy<S>> Pen<S> getFGPen(S pStrategy);
 
-  <S extends DrawingStrategy> void setFGPen(S pStrategy, Pen<S> pPen);
+  <S extends DrawingStrategy<S>> void setFGPen(S pStrategy, Pen<S> pPen);
 
 }

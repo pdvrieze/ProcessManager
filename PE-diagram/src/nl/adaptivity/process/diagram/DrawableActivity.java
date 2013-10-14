@@ -3,7 +3,7 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.PenCache;
+import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
@@ -12,7 +12,7 @@ import nl.adaptivity.process.processModel.Activity;
 
 public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> implements DrawableProcessNode {
 
-  private PenCache aPens = new PenCache();
+  private ItemCache aItems = new ItemCache();
   private static Rectangle _bounds;
 
   @Override
@@ -21,23 +21,29 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   }
 
   @Override
-  public <S extends DrawingStrategy> Pen<S> getPen(S pStrategy) {
-    return aPens.getPen(pStrategy, 0);
+  public <S extends DrawingStrategy<S>> Pen<S> getFGPen(S pStrategy) {
+    Pen<S> result = aItems.getPen(pStrategy, 0);
+    if (result==null) {
+      result = pStrategy.newPen();
+      result.setColor(0,0,0,0xff);
+      aItems.setPen(pStrategy, 0, result);
+    }
+    return result;
   }
 
   @Override
-  public <S extends DrawingStrategy> void setFGPen(S pStrategy, Pen<S> pPen) {
-    aPens.setPen(pStrategy, 0, pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH));
+  public <S extends DrawingStrategy<S>> void setFGPen(S pStrategy, Pen<S> pPen) {
+    aItems.setPen(pStrategy, 0, pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH));
   }
 
   @Override
-  public <S extends DrawingStrategy> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
     if (hasPos()) {
       final S strategy = pCanvas.getStrategy();
-      Pen<S> fgPen = aPens.getPen(strategy, 0);
-      Pen<S> white = aPens.getPen(strategy, 1);
-      if (fgPen ==null) { aPens.setPen(strategy, 0,fgPen = pCanvas.newColor(0,0,0,0xff)); }
-      if (white ==null) { aPens.setPen(strategy, 1, white = pCanvas.newColor(0xff,0xff,0xff,0xff)); }
+      Pen<S> fgPen = getFGPen(strategy);
+      Pen<S> white = aItems.getPen(strategy, 1);
+      if (white ==null) { aItems.setPen(strategy, 1, white = pCanvas.newColor(0xff,0xff,0xff,0xff)); }
+
       if (_bounds==null) { _bounds = new Rectangle(0,0, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
       pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, white);
       pCanvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, fgPen);

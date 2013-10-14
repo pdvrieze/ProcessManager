@@ -1,6 +1,8 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.DrawingStrategy;
+import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
@@ -10,16 +12,23 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
 
-  private Pen aFGPen;
+  private ItemCache aItems = new ItemCache();
+
 
   @Override
-  public Pen getPen() {
-    return aFGPen;
+  public <S extends DrawingStrategy<S>> Pen<S> getFGPen(S pStrategy) {
+    Pen<S> result = aItems.getPen(pStrategy, 0);
+    if (result==null) {
+      result = pStrategy.newPen();
+      result.setColor(0,0,0,0xff);
+      aItems.setPen(pStrategy, 0, result);
+    }
+    return result;
   }
 
   @Override
-  public void setFGPen(Pen pPen) {
-    aFGPen = pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH);
+  public <S extends DrawingStrategy<S>> void setFGPen(S pStrategy, Pen<S> pPen) {
+    aItems.setPen(pStrategy, 0, pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH));
   }
 
   @Override
@@ -28,10 +37,11 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   }
 
   @Override
-  public void draw(Canvas pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
     if (hasPos()) {
-      if (aFGPen ==null) { aFGPen = pCanvas.newColor(0,0,0,0xff); }
-      pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, aFGPen);
+      Pen<S> fgPen = getFGPen(pCanvas.getStrategy());
+      if (fgPen ==null) { fgPen = pCanvas.newColor(0,0,0,0xff); }
+      pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, fgPen);
     }
   }
 
