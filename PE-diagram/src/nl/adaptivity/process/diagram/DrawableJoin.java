@@ -3,8 +3,8 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.ItemCache;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
 import nl.adaptivity.process.processModel.Join;
@@ -18,8 +18,8 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   private ItemCache aItems = new ItemCache();
 
   @Override
-  public <S extends DrawingStrategy<S>> Pen<S> getFGPen(S pStrategy) {
-    Pen<S> result = aItems.getPen(pStrategy, 0);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
+    PEN_T result = aItems.getPen(pStrategy, 0);
     if (result==null) {
       result = pStrategy.newPen();
       result.setColor(0,0,0,0xff);
@@ -29,7 +29,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   }
 
   @Override
-  public <S extends DrawingStrategy<S>> void setFGPen(S pStrategy, Pen<S> pPen) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setFGPen(S pStrategy, PEN_T pPen) {
     aItems.setPen(pStrategy, 0, pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH));
   }
 
@@ -41,13 +41,13 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   }
 
   @Override
-  public <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
     final S strategy = pCanvas.getStrategy();
-    DiagramPath<S> path = aItems.getPath(strategy, 0);
+    PATH_T path = aItems.getPath(strategy, 0);
     if (path==null) {
       final double dx = JOINWIDTH/2;
       final double dy = JOINHEIGHT/2;
-      path = pCanvas.newPath();
+      path = strategy.newPath();
       path.moveTo(0,dy)
           .lineTo(dx, 0)
           .lineTo(JOINWIDTH, dy)
@@ -56,9 +56,9 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
       aItems.setPath(strategy, 0, path);
     }
     if (hasPos()) {
-      Pen<S> fgPen = getFGPen(strategy );
-      Pen<S> white = aItems.getPen(strategy, 1);
-      if (white ==null) { white = pCanvas.newColor(0xff,0xff,0xff,0xff); }
+      PEN_T fgPen = getFGPen(strategy );
+      PEN_T white = aItems.getPen(strategy, 1);
+      if (white ==null) { white = strategy.newPen().setColor(0xff,0xff,0xff,0xff); }
       pCanvas.drawFilledPath(path, white);
       pCanvas.drawPath(path, fgPen);
     }

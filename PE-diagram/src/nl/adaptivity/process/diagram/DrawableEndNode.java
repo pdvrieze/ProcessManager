@@ -1,9 +1,10 @@
 package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.ItemCache;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
@@ -16,8 +17,8 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
 
   @Override
-  public <S extends DrawingStrategy<S>> Pen<S> getFGPen(S pStrategy) {
-    Pen<S> result = aItems.getPen(pStrategy, 0);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
+    PEN_T result = aItems.getPen(pStrategy, 0);
     if (result==null) {
       result = pStrategy.newPen();
       result.setColor(0,0,0,0xff);
@@ -28,7 +29,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   }
 
   @Override
-  public <S extends DrawingStrategy<S>> void setFGPen(S pStrategy, Pen<S> pPen) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setFGPen(S pStrategy, PEN_T pPen) {
     aItems.setPen(pStrategy, 0, pPen==null ? null : pPen.setStrokeWidth(ENDNODEOUTERSTROKEWIDTH));
   }
 
@@ -38,9 +39,9 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   }
 
   @Override
-  public <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
     if (hasPos()) {
-      Pen<S> fgPen = getFGPen(pCanvas.getStrategy());
+      PEN_T fgPen = getFGPen(pCanvas.getStrategy());
       pCanvas.drawCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, fgPen);
       pCanvas.drawFilledCircle(ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS, ENDNODEINNERRRADIUS, fgPen);
     }

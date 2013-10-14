@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Set;
 
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.Activity;
@@ -162,6 +162,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     for(DrawableProcessNode node: modelNodes) {
       aBounds.extendBounds(node.getBounds());
     }
+    aItems.clearPath(0);
+  }
+
+  @Override
+  public void invalidate() {
+    super.invalidate();
+    aItems.clearPath(0);
+    aBounds.left=Double.NaN;
   }
 
   public double getScale() {
@@ -174,20 +182,24 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds) {
-    Canvas<S> canvas = pCanvas.childCanvas(getBounds(), aScale);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
+    Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(getBounds(), aScale);
     final S strategy = pCanvas.getStrategy();
-    Pen<S> arcPen = aItems.getPen(strategy, 0);
+    PEN_T arcPen = aItems.getPen(strategy, 0);
     if (arcPen==null) {
-      arcPen = canvas.newColor(0, 0, 0, 255).setStrokeWidth(aScale);
+      arcPen = strategy.newPen().setColor(0, 0, 0, 255).setStrokeWidth(aScale);
       aItems.setPen(strategy, 0, arcPen);
     }
-    DiagramPath<S> connectors = pCanvas.newPath();
-    for(DrawableProcessNode start:getModelNodes()) {
-      for (DrawableProcessNode end: start.getSuccessors()) {
-        connectors.moveTo(start.getBounds().right()-STROKEWIDTH, start.getY())
-                  .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
+    PATH_T connectors = aItems.getPath(strategy, 0);
+    if (connectors == null) {
+      connectors = strategy.newPath();
+      for(DrawableProcessNode start:getModelNodes()) {
+        for (DrawableProcessNode end: start.getSuccessors()) {
+          connectors.moveTo(start.getBounds().right()-STROKEWIDTH, start.getY())
+                    .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
+        }
       }
+      aItems.setPath(strategy, 0, connectors);
     }
     canvas.drawPath(connectors, arcPen);
 
