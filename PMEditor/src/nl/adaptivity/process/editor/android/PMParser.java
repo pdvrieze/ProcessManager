@@ -1,9 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
-import static org.xmlpull.v1.XmlPullParser.TEXT;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -12,11 +8,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.XMLConstants;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
@@ -28,11 +30,6 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
 import android.util.Log;
 
 public class PMParser {
@@ -47,7 +44,7 @@ public class PMParser {
     }
 
     @Override
-    public void draw(Canvas pArg0, Rectangle pArg1) {
+    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pArg0, Rectangle pArg1) {
       throw new UnsupportedOperationException("Not implemented");
     }
 
@@ -87,12 +84,12 @@ public class PMParser {
     }
 
     @Override
-    public Pen getPen() {
+    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
       return null;
     }
 
     @Override
-    public void setFGPen(Pen pPen) {
+    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setFGPen(S pStrategy, PEN_T pPen) {
       // ignore
     }
 
@@ -119,6 +116,9 @@ public class PMParser {
             nodeMap.put(node.getId(), node);
           }
         }
+        for(DrawableProcessNode node:modelElems) {
+          resolveRefs(node, nodeMap);
+        }
         return new DrawableProcessModel(modelName, modelElems, pLayoutAlgorithm);
 
       } else {
@@ -128,17 +128,6 @@ public class PMParser {
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-  }
-
-  private static Collection<? extends DrawableEndNode> getEndNodes(Map<String, DrawableProcessNode> pNodes) {
-    List<DrawableEndNode> result = new ArrayList<DrawableEndNode>();
-    for(DrawableProcessNode node: pNodes.values()) {
-      resolveRefs(node, pNodes);
-      if (node instanceof DrawableEndNode) {
-        result.add((DrawableEndNode) node);
-      }
-    }
-    return result;
   }
 
   private static void resolveRefs(DrawableProcessNode pNode, Map<String, DrawableProcessNode> pNodes) {
