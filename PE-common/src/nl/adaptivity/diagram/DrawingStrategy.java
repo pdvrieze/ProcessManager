@@ -1,10 +1,10 @@
 package nl.adaptivity.diagram;
 
 
-public interface DrawingStrategy<S extends DrawingStrategy<S>> {
+public interface DrawingStrategy<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> {
 
-  public Pen<S> newPen();
+  public PEN_T newPen();
 
-  public DiagramPath<S> newPath();
+  public PATH_T newPath();
 
 }

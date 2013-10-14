@@ -12,11 +12,11 @@ import java.lang.reflect.Array;
  */
 public class ItemCache {
 
-  private DrawingStrategy<?>[] aStrategies;
+  private DrawingStrategy<?,?,?>[] aStrategies;
   private Pen<?>[][] aPens = new Pen<?>[1][1];
   private DiagramPath<?>[][] aPaths = new DiagramPath<?>[1][1];
 
-  public <S extends DrawingStrategy<S>> void setPen(S pStrategy, int pIndex, Pen<S> pPen) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setPen(S pStrategy, int pIndex, PEN_T pPen) {
     int strategyIdx = ensureStrategyIndex(pStrategy);
     aPens = ensureArrayLength(aPens, strategyIdx+1);
     Pen<?>[] sPens = aPens[strategyIdx];
@@ -28,7 +28,7 @@ public class ItemCache {
     sPens[pIndex] = pPen;
   }
 
-  public <S extends DrawingStrategy<S>> void setPath(S pStrategy, int pIndex, DiagramPath<S> pPen) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setPath(S pStrategy, int pIndex, PATH_T pPath) {
     int strategyIdx = ensureStrategyIndex(pStrategy);
     aPaths = ensureArrayLength(aPaths, strategyIdx+1);
     DiagramPath<?>[] sPaths = aPaths[strategyIdx];
@@ -37,7 +37,7 @@ public class ItemCache {
     } else {
       sPaths = ensureArrayLength(sPaths, pIndex+1);
     }
-    sPaths[pIndex] = pPen;
+    sPaths[pIndex] = pPath;
   }
 
   private static <V> V[] ensureArrayLength(V[] array, int length) {
@@ -50,7 +50,7 @@ public class ItemCache {
     return array;
   }
 
-  private final <S extends DrawingStrategy<S>> int getStrategyIndex(S pStrategy) {
+  private final <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> int getStrategyIndex(S pStrategy) {
     int strategyIdx = -1;
     int strategyLen = aStrategies.length;
     for (int i=0; i<strategyLen; ++i) {
@@ -62,12 +62,12 @@ public class ItemCache {
     return strategyIdx;
   }
 
-  private <S extends DrawingStrategy<S>> int ensureStrategyIndex(S pStrategy) {
+  private <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> int ensureStrategyIndex(S pStrategy) {
     int strategyIdx = getStrategyIndex(pStrategy);
     if (strategyIdx<0) {
       strategyIdx=aStrategies.length;
       if (aStrategies.length<=strategyIdx) {
-        DrawingStrategy<?>[] newStrategies = new DrawingStrategy<?>[strategyIdx+1];
+        DrawingStrategy<?,?,?>[] newStrategies = new DrawingStrategy<?,?,?>[strategyIdx+1];
         System.arraycopy(aStrategies, 0, newStrategies, 0, strategyIdx);
         newStrategies[strategyIdx]=pStrategy;
         aStrategies = newStrategies;
@@ -77,17 +77,29 @@ public class ItemCache {
   }
 
   @SuppressWarnings("unchecked")
-  public <S extends DrawingStrategy<S>> Pen<S> getPen(S pStrategy, int pIndex) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getPen(S pStrategy, int pIndex) {
     int strategyIdx = getStrategyIndex(pStrategy);
     if(strategyIdx<0 || strategyIdx>=aPens.length || pIndex>=aPens[strategyIdx].length) { return null; }
-    return (Pen<S>) aPens[strategyIdx][pIndex];
+    return (PEN_T) aPens[strategyIdx][pIndex];
   }
 
   @SuppressWarnings("unchecked")
-  public <S extends DrawingStrategy<S>> DiagramPath<S> getPath(S pStrategy, int pIndex) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PATH_T getPath(S pStrategy, int pIndex) {
     int strategyIdx = getStrategyIndex(pStrategy);
     if(strategyIdx<0 || strategyIdx>=aPens.length || pIndex>=aPens[strategyIdx].length) { return null; }
-    return (DiagramPath<S>) aPens[strategyIdx][pIndex];
+    return (PATH_T) aPens[strategyIdx][pIndex];
+  }
+
+  /**
+   * Clear all the paths at the given index.
+   * @param pIndex The index of the paths to clear
+   */
+  public void clearPath(int pIndex) {
+    for(DiagramPath<?>[] lists:aPaths) {
+      if (lists!=null && lists.length>pIndex) {
+        lists[pIndex] = null;
+      }
+    }
   }
 
 }
