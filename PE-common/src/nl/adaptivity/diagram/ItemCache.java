@@ -12,7 +12,7 @@ import java.lang.reflect.Array;
  */
 public class ItemCache {
 
-  private DrawingStrategy<?,?,?>[] aStrategies;
+  private DrawingStrategy<?,?,?>[] aStrategies = new DrawingStrategy<?,?,?>[0];
   private Pen<?>[][] aPens = new Pen<?>[1][1];
   private DiagramPath<?>[][] aPaths = new DiagramPath<?>[1][1];
 
@@ -41,14 +41,25 @@ public class ItemCache {
   }
 
   private static <V> V[] ensureArrayLength(V[] array, int length) {
-    if (array.length<=length) {
+    final int srcLen = Array.getLength(array);
+    if (srcLen<=length) {
       @SuppressWarnings("unchecked")
-      V[] newArray = (V[]) Array.newInstance(array.getClass(), length);
-      System.arraycopy(array, 0, newArray, 0, array.length);
+      V[] newArray = (V[]) Array.newInstance(array.getClass().getComponentType(), length);
+      System.arraycopy(array, 0, newArray, 0, srcLen);
       return newArray;
     }
     return array;
   }
+//
+//  private static <V> V[][] ensureArraysLength(V[][] array, int length) {
+//    if (array.length<=length) {
+//      @SuppressWarnings("unchecked")
+//      V[][] newArray = (V[][]) Array.newInstance(array.getClass(), length, 0);
+//      System.arraycopy(array, 0, newArray, 0, array.length);
+//      return newArray;
+//    }
+//    return array;
+//  }
 
   private final <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> int getStrategyIndex(S pStrategy) {
     int strategyIdx = -1;
