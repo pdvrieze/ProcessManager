@@ -8,6 +8,6 @@ public interface Drawable extends Bounded {
    * @param pCanvas The canvas to draw on.
    * @param pClipBounds The part of the drawing to draw. Outside no drawing is needed.
    */
-  <S extends DrawingStrategy> void draw(Canvas<S> pCanvas, Rectangle pClipBounds);
+  <S extends DrawingStrategy<S>> void draw(Canvas<S> pCanvas, Rectangle pClipBounds);
 
 }

@@ -1,7 +1,7 @@
 package nl.adaptivity.diagram;
 
 
-public interface DiagramPath<S extends DrawingStrategy> {
+public interface DiagramPath<S extends DrawingStrategy<S>> {
 
   DiagramPath<S> moveTo(double pX, double pY);
 

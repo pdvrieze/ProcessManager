@@ -1,7 +1,7 @@
 package nl.adaptivity.diagram;
 
 
-public interface Canvas<S extends DrawingStrategy> {
+public interface Canvas<S extends DrawingStrategy<S>> {
 
   S getStrategy();
 
