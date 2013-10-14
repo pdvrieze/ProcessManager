@@ -1,7 +1,6 @@
 package nl.adaptivity.process.diagram;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
