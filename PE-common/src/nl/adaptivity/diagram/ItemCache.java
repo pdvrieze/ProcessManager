@@ -42,7 +42,7 @@ public class ItemCache {
 
   private static <V> V[] ensureArrayLength(V[] array, int length) {
     final int srcLen = Array.getLength(array);
-    if (srcLen<=length) {
+    if (srcLen<length) {
       @SuppressWarnings("unchecked")
       V[] newArray = (V[]) Array.newInstance(array.getClass().getComponentType(), length);
       System.arraycopy(array, 0, newArray, 0, srcLen);
@@ -82,6 +82,8 @@ public class ItemCache {
         System.arraycopy(aStrategies, 0, newStrategies, 0, strategyIdx);
         newStrategies[strategyIdx]=pStrategy;
         aStrategies = newStrategies;
+      } else {
+        aStrategies[strategyIdx]=pStrategy;
       }
     }
     return strategyIdx;
