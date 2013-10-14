@@ -21,8 +21,9 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
     PEN_T result = aItems.getPen(pStrategy, 0);
     if (result==null) {
-      result = pStrategy.newPen();
-      result.setColor(0,0,0,0xff);
+      result = pStrategy.newPen()
+                        .setColor(0,0,0,0xff)
+                        .setStrokeWidth(STROKEWIDTH);
       aItems.setPen(pStrategy, 0, result);
     }
     return result;
