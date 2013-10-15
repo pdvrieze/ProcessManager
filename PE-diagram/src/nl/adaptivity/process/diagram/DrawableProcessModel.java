@@ -201,7 +201,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       }
       aItems.setPath(strategy, 0, connectors);
     }
-    canvas.drawPath(connectors, arcPen);
+    canvas.drawPath(connectors, arcPen, null);
 
     for(DrawableProcessNode node:getModelNodes()) {
       node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);

@@ -60,8 +60,7 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
       PEN_T fgPen = getFGPen(strategy );
       PEN_T white = aItems.getPen(strategy, 1);
       if (white ==null) { white = strategy.newPen().setColor(0xff,0xff,0xff,0xff); }
-      pCanvas.drawFilledPath(path, white);
-      pCanvas.drawPath(path, fgPen);
+      pCanvas.drawPath(path, fgPen, white);
     }
   }
 
