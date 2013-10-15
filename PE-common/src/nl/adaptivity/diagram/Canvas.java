@@ -38,8 +38,6 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
   @Deprecated
   void drawFilledPoly(double[] pPoints, PEN_T pColor);
 
-  void drawPath(PATH_T pPath, PEN_T pColor);
-
-  void drawFilledPath(PATH_T pPath, PEN_T pColor);
+  void drawPath(PATH_T pPath, PEN_T pStroke, PEN_T pFill);
 
 }
