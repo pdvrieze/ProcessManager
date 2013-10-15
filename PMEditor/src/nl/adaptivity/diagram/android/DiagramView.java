@@ -3,13 +3,13 @@ package nl.adaptivity.diagram.android;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.R;
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -147,7 +147,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   private static boolean isEmulator() {
-    return "google_sdk".equals( Build.PRODUCT )||"sdk_x86".equals(Build.PRODUCT);
+    return "google_sdk".equals( Build.PRODUCT )||"sdk_x86".equals(Build.PRODUCT)|| "sdk".equals(Build.PRODUCT);
   }
 
   public double getOffsetX() {
@@ -381,6 +381,19 @@ public class DiagramView extends View implements OnZoomListener{
     boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
     retVal = aGestureDetector.onTouchEvent(pEvent) || retVal;
     return retVal || super.onTouchEvent(pEvent);
+  }
+
+  
+  
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
+  @Override
+  public boolean onGenericMotionEvent(MotionEvent pEvent) {
+    int action = pEvent.getActionMasked();
+    if (action==MotionEvent.ACTION_SCROLL) {
+      boolean zoomIn = Compat.isZoomIn(pEvent);;
+      onZoom(zoomIn);
+    }
+    return super.onGenericMotionEvent(pEvent);
   }
 
   @Override

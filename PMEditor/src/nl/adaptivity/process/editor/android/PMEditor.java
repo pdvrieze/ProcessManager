@@ -9,6 +9,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -373,11 +374,11 @@ public class PMEditor extends Activity {
       if (aLayoutTask!=null) {
         final WaitTask task = new WaitTask(aImmediate, pOverlay);
         aLayoutTask.postProgress(task);
-        try {
-          task.get();
-        } catch (ExecutionException e) { // ignore
-        } catch (InterruptedException e) { // ignore
-        }
+//        try {
+//          task.get();
+//        } catch (ExecutionException e) { // ignore
+//        } catch (InterruptedException e) { // ignore
+//        }
       }
     }
 
