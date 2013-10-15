@@ -21,9 +21,9 @@ public class ItemCache {
     aPens = ensureArrayLength(aPens, strategyIdx+1);
     Pen<?>[] sPens = aPens[strategyIdx];
     if (sPens==null) {
-      sPens = new Pen<?>[pIndex+1];
+      aPens[strategyIdx] = (sPens = new Pen<?>[pIndex+1]);
     } else {
-      sPens = ensureArrayLength(sPens, pIndex+1);
+      aPens[strategyIdx] = sPens = ensureArrayLength(sPens, pIndex+1);
     }
     sPens[pIndex] = pPen;
   }
@@ -33,9 +33,9 @@ public class ItemCache {
     aPaths = ensureArrayLength(aPaths, strategyIdx+1);
     DiagramPath<?>[] sPaths = aPaths[strategyIdx];
     if (sPaths==null) {
-      sPaths = new DiagramPath<?>[pIndex+1];
+      aPaths[strategyIdx] = sPaths = new DiagramPath<?>[pIndex+1];
     } else {
-      sPaths = ensureArrayLength(sPaths, pIndex+1);
+      aPaths[strategyIdx] = sPaths = ensureArrayLength(sPaths, pIndex+1);
     }
     sPaths[pIndex] = pPath;
   }
