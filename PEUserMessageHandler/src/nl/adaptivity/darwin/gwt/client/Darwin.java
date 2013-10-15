@@ -1,7 +1,6 @@
 package nl.adaptivity.darwin.gwt.client;
 
 import nl.adaptivity.gwt.base.client.Clickable;
-import nl.adaptivity.gwt.base.client.CompletionListener;
 import nl.adaptivity.gwt.ext.client.XMLUtil;
 
 import com.google.gwt.core.client.EntryPoint;
@@ -33,10 +32,8 @@ import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.gwt.user.client.ui.InlineLabel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.UIObject;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.xml.client.Node;
 import com.google.gwt.xml.client.XMLParser;
