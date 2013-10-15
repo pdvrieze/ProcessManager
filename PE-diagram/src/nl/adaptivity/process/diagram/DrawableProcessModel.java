@@ -155,14 +155,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public void layout() {
     super.layout();
+    updateBounds();
+    aItems.clearPath(0);
+  }
+
+  private void updateBounds() {
     Collection<? extends DrawableProcessNode> modelNodes = getModelNodes();
     if (modelNodes.isEmpty()) { aBounds.set(0,0,0,0); return; }
     DrawableProcessNode firstNode = modelNodes.iterator().next();
     aBounds.set(firstNode.getBounds());
-    for(DrawableProcessNode node: modelNodes) {
+    for(DrawableProcessNode node: getModelNodes()) {
       aBounds.extendBounds(node.getBounds());
     }
-    aItems.clearPath(0);
   }
 
   @Override
@@ -183,7 +187,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
-    Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(getBounds(), aScale);
+    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
+    Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(aBounds, aScale);
     final S strategy = pCanvas.getStrategy();
     PEN_T arcPen = aItems.getPen(strategy, 0);
     if (arcPen==null) {
