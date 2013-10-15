@@ -99,8 +99,8 @@ public class ItemCache {
   @SuppressWarnings("unchecked")
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PATH_T getPath(S pStrategy, int pIndex) {
     int strategyIdx = getStrategyIndex(pStrategy);
-    if(strategyIdx<0 || strategyIdx>=aPens.length || pIndex>=aPens[strategyIdx].length) { return null; }
-    return (PATH_T) aPens[strategyIdx][pIndex];
+    if(strategyIdx<0 || strategyIdx>=aPaths.length || pIndex>=aPaths[strategyIdx].length) { return null; }
+    return (PATH_T) aPaths[strategyIdx][pIndex];
   }
 
   /**
