@@ -16,4 +16,7 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   @Override
   public ProcessNodeSet<? extends T> getSuccessors();
 
+  void setOwner(ClientProcessModel<T> pOwner);
+
+  ClientProcessModel<T> getOwner();
 }

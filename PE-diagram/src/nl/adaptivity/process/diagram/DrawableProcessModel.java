@@ -38,13 +38,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DEFAULT_HORIZ_SEPARATION = 40d;
   public static final double DEFAULT_VERT_SEPARATION = 30d;
   public static final double STROKEWIDTH = 1d;
+  private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
 
-  private double aScale = 1d;
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
-    super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
+    super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()));
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -53,7 +53,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   public DrawableProcessModel(ProcessModel<?> pOriginal, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()), pLayoutAlgorithm);
+    super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()), pLayoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -79,11 +79,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  private static Collection<? extends DrawableProcessNode> getDrawableNodes(Collection<? extends StartNode<?>> pStartNodes) {
+  private static Collection<? extends DrawableProcessNode> getDrawableNodes(DrawableProcessModel pOwner, Collection<? extends StartNode<?>> pStartNodes) {
     Set<EndNode<?>> origEndNodes = getDrawableNodes(new HashSet<EndNode<?>>(), pStartNodes);
     ArrayList<DrawableProcessNode> result = new ArrayList<DrawableProcessNode>(pStartNodes.size());
     for(EndNode<?> n: origEndNodes) {
-      result.add(toDrawableEndNode(n));
+      result.add(toDrawableEndNode(pOwner, n));
     }
     return result;
   }
@@ -99,32 +99,32 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return pSet;
   }
 
-  private static DrawableEndNode toDrawableEndNode(EndNode<?> pN) {
-    DrawableEndNode result = DrawableEndNode.from(pN);
-    result.setPredecessors(toDrawableNodes(pN.getPredecessors()));
+  private static DrawableEndNode toDrawableEndNode(DrawableProcessModel pOwner, EndNode<?> pN) {
+    DrawableEndNode result = DrawableEndNode.from(pOwner, pN);
+    result.setPredecessors(toDrawableNodes(pOwner, pN.getPredecessors()));
     return result;
   }
 
-  private static Collection<? extends DrawableProcessNode> toDrawableNodes(Collection<? extends ProcessNode<?>> pPredecessors) {
+  private static Collection<? extends DrawableProcessNode> toDrawableNodes(DrawableProcessModel pOwner, Collection<? extends ProcessNode<?>> pPredecessors) {
     if (pPredecessors.size()==0) { return Collections.emptyList(); }
-    if (pPredecessors.size()==1) { return Collections.singleton(toDrawableNode(pPredecessors.iterator().next())); }
+    if (pPredecessors.size()==1) { return Collections.singleton(toDrawableNode(pOwner, pPredecessors.iterator().next())); }
 
     List<DrawableProcessNode> result = new ArrayList<DrawableProcessNode>(pPredecessors.size());
     for(ProcessNode<?> elem: pPredecessors) {
-      result.add(toDrawableNode(elem));
+      result.add(toDrawableNode(pOwner, elem));
     }
     return result;
   }
 
-  private static DrawableProcessNode toDrawableNode(ProcessNode<?> pElem) {
+  private static DrawableProcessNode toDrawableNode(DrawableProcessModel pOwner, ProcessNode<?> pElem) {
     if (pElem instanceof StartNode) {
-      return DrawableStartNode.from((StartNode<?>) pElem);
+      return DrawableStartNode.from(pOwner, (StartNode<?>) pElem);
     } else if (pElem instanceof EndNode) {
       throw new IllegalArgumentException("EndNodes should not see this function");
     } else if (pElem instanceof Join) {
-      return DrawableJoin.from((Join<?>) pElem);
+      return DrawableJoin.from(pOwner, (Join<?>) pElem);
     } else if (pElem instanceof Activity) {
-      return DrawableActivity.from((Activity<?>) pElem);
+      return DrawableActivity.from(pOwner, (Activity<?>) pElem);
     } else {
       throw new UnsupportedOperationException("Unsupported subclass to ProcessNode");
     }
@@ -139,7 +139,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public Rectangle getBounds() {
     if (Double.isNaN(aBounds.left) && getModelNodes().size()>0) {
-      layout();
+      updateBounds();
     }
     return aBounds;
   }
@@ -159,6 +159,21 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     aItems.clearPath(0);
   }
 
+  @Override
+  public void nodeChanged(DrawableProcessNode pNode) {
+    Rectangle nodeBounds = pNode.getBounds();
+    double right = Math.max(nodeBounds.right(), aBounds.right());
+    double bottom = Math.max(nodeBounds.bottom(), aBounds.bottom());
+    if (nodeBounds.left<aBounds.left) {
+      aBounds.left = nodeBounds.left;
+    }
+    if (nodeBounds.top<aBounds.top) {
+      aBounds.top = nodeBounds.top;
+    }
+    aBounds.width = right - aBounds.left;
+    aBounds.height = bottom - aBounds.top;
+  }
+
   private void updateBounds() {
     Collection<? extends DrawableProcessNode> modelNodes = getModelNodes();
     if (modelNodes.isEmpty()) { aBounds.set(0,0,0,0); return; }
@@ -176,23 +191,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     if (aBounds!=null) { aBounds.left=Double.NaN; }
   }
 
-  public double getScale() {
-    return aScale;
-  }
-
-
-  public void setScale(double pScale) {
-    aScale = pScale;
-  }
-
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
-    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
-    Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(aBounds, aScale);
+//    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
+    Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(NULLRECTANGLE, 1d);
     final S strategy = pCanvas.getStrategy();
     PEN_T arcPen = aItems.getPen(strategy, 0);
     if (arcPen==null) {
-      arcPen = strategy.newPen().setColor(0, 0, 0, 255).setStrokeWidth(aScale);
+      arcPen = strategy.newPen().setColor(0, 0, 0, 255).setStrokeWidth(STROKEWIDTH);
       aItems.setPen(strategy, 0, arcPen);
     }
     PATH_T connectors = aItems.getPath(strategy, 0);

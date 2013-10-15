@@ -7,6 +7,7 @@ import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.Activity;
 
 
@@ -15,6 +16,14 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   private ItemCache aItems = new ItemCache();
   private static Rectangle _bounds;
+
+  public DrawableActivity(ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pOwner);
+  }
+
+  public DrawableActivity(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pId, pOwner);
+  }
 
   @Override
   public Rectangle getBounds() {
@@ -52,8 +61,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     }
   }
 
-  public static DrawableActivity from(Activity<?> pElem) {
-    DrawableActivity result = new DrawableActivity();
+  public static DrawableActivity from(DrawableProcessModel pOwner, Activity<?> pElem) {
+    DrawableActivity result = new DrawableActivity(pOwner);
     copyProcessNodeAttrs(pElem, result);
     result.setName(pElem.getName());
     result.setCondition(pElem.getCondition());

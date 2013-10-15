@@ -7,6 +7,7 @@ import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.Join;
 
 
@@ -16,6 +17,14 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   private static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
 
   private ItemCache aItems = new ItemCache();
+
+  public DrawableJoin(ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pOwner);
+  }
+
+  public DrawableJoin(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pId, pOwner);
+  }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
@@ -64,8 +73,8 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
     }
   }
 
-  public static DrawableJoin from(Join<?> pElem) {
-    DrawableJoin result = new DrawableJoin();
+  public static DrawableJoin from(DrawableProcessModel pOwner, Join<?> pElem) {
+    DrawableJoin result = new DrawableJoin(pOwner);
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());
     result.setMax(pElem.getMax());

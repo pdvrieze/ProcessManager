@@ -16,6 +16,14 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProce
 
   private int aMax;
 
+  public ClientJoinNode(ClientProcessModel<T> pOwner) {
+    super(pOwner);
+  }
+
+  public ClientJoinNode(String pId, ClientProcessModel<T> pOwner) {
+    super(pId, pOwner);
+  }
+
   @Override
   public ProcessNodeSet<T> getSuccessors() {
     if (aSuccessors == null) {

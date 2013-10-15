@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
+
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
@@ -19,14 +20,17 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private List<IXmlImportType> aImports;
 
-  private List<IXmlExportType> aExports;;
+  private List<IXmlExportType> aExports;
 
-  protected ClientProcessNode() {
+  private ClientProcessModel<T> aOwner;
 
+  protected ClientProcessNode(ClientProcessModel<T> pOwner) {
+    aOwner = pOwner;
   }
 
-  protected ClientProcessNode(final String pId) {
+  protected ClientProcessNode(final String pId, ClientProcessModel<T> pOwner) {
     aId = pId;
+    aOwner = pOwner;
   }
 
   @Override
@@ -121,16 +125,19 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   @Override
   public void setX(double pX) {
     aX = pX;
+    if (aOwner!=null) aOwner.nodeChanged(this.asT());
   }
 
   @Override
   public void setY(double pY) {
     aY = pY;
+    if (aOwner!=null) aOwner.nodeChanged(this.asT());
   }
 
   public void offset(final int pOffsetX, final int pOffsetY) {
     aX += pOffsetX;
     aY += pOffsetY;
+    if (aOwner!=null) aOwner.nodeChanged(this.asT());
   }
 
   @Override
@@ -139,10 +146,22 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     if (nm.startsWith("Client")) { nm = nm.substring(6); }
     if (nm.startsWith("Drawable")) { nm = nm.substring(8); }
     if (nm.endsWith("Node")) { nm = nm.substring(0, nm.length()-4); }
-    
+
     return nm+"[id=" + aId + '(' + aX + ", " + aY + ")";
   }
-  
-  
 
+  @SuppressWarnings("unchecked")
+  public T asT() {
+    return (T) this;
+  }
+
+  @Override
+  public void setOwner(ClientProcessModel<T> pOwner) {
+    aOwner = pOwner;
+  }
+
+  @Override
+  public ClientProcessModel<T> getOwner() {
+    return aOwner;
+  }
 }

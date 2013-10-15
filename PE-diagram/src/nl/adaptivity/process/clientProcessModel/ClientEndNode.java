@@ -12,6 +12,14 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
 
   private ProcessNodeSet<T> aPredecessor = ProcessNodeSet.singleton();
 
+  public ClientEndNode(ClientProcessModel<T> pOwner) {
+    super(pOwner);
+  }
+
+  public ClientEndNode(String pId, ClientProcessModel<T> pOwner) {
+    super(pId, pOwner);
+  }
+
   @Override
   public ProcessNodeSet<T> getSuccessors() {
     return ProcessNodeSet.empty();

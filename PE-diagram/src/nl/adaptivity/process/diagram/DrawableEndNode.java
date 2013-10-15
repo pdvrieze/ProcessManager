@@ -7,6 +7,7 @@ import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.EndNode;
 
 
@@ -15,6 +16,14 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   private ItemCache aItems = new ItemCache();
 
+
+  public DrawableEndNode(ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pOwner);
+  }
+
+  public DrawableEndNode(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pId, pOwner);
+  }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
@@ -47,8 +56,8 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     }
   }
 
-  public static  DrawableEndNode from(EndNode<?> pElem) {
-    DrawableEndNode result = new DrawableEndNode();
+  public static  DrawableEndNode from(DrawableProcessModel pOwner, EndNode<?> pElem) {
+    DrawableEndNode result = new DrawableEndNode(pOwner);
     copyProcessNodeAttrs(pElem, result);
     return result;
   }

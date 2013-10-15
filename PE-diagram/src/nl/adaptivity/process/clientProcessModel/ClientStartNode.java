@@ -11,12 +11,12 @@ import nl.adaptivity.process.processModel.StartNode;
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
   private ProcessNodeSet<T> aSuccessors;
-  public ClientStartNode() {
-    super();
+  public ClientStartNode(ClientProcessModel<T> pOwner) {
+    super(pOwner);
   }
 
-  public ClientStartNode(final String pId) {
-    super(pId);
+  public ClientStartNode(final String pId, ClientProcessModel<T> pOwner) {
+    super(pId, pOwner);
   }
 
   private void resolvePredecessors(final Map<String, T> pMap) {
@@ -27,7 +27,9 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     if (aSuccessors == null) {
       aSuccessors = ProcessNodeSet.processNodeSet();
     }
-    aSuccessors.add(pNode);
+    if(aSuccessors.add(pNode)) {
+      pNode.setOwner(getOwner());
+    }
   }
 
   @Override
@@ -70,6 +72,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     if (aSuccessors==null) {
       aSuccessors = ProcessNodeSet.processNodeSet(1);
     }
+    pNode.setOwner(getOwner());
     aSuccessors.add(pNode);
   }
 

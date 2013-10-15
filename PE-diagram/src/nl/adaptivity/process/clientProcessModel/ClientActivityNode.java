@@ -31,6 +31,16 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
 
+  public ClientActivityNode(ClientProcessModel<T> pOwner) {
+    super(pOwner);
+  }
+
+
+  public ClientActivityNode(String pId, ClientProcessModel<T> pOwner) {
+    super(pId, pOwner);
+  }
+
+
   @Override
   public ProcessNodeSet<T> getPredecessors() {
     return aPredecessor;
@@ -106,6 +116,5 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   public void setExports(Collection<? extends IXmlExportType> pExports) {
     super.setExports(pExports);
   }
-
 
 }

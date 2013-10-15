@@ -22,8 +22,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   static final String PROCESSMODEL_NS = "http://adaptivity.nl/ProcessEngine/";
 
-  private static final double TOLERANCE = 1d;
-
   private final String aName;
 
   private List<T> aNodes;
@@ -32,10 +30,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   private double aLeftPadding = 5d;
   private double aBottomPadding = 5d;
   private double aRightPadding = 5d;
-
-  private double aInnerWidth = Double.NaN;
-
-  private double aInnerHeight = Double.NaN;
 
   LayoutAlgorithm<T> aLayoutAlgorithm;
 
@@ -51,6 +45,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public void setNodes(final Collection<? extends T> nodes) {
     aNodes = CollectionUtil.copy(nodes);
+    for(T node: aNodes) {
+      node.setOwner(this);
+    }
     invalidate();
   }
 
@@ -168,6 +165,13 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     }
   }
 
+  /**
+   * @param pNode The node that has changed.
+   */
+  public void nodeChanged(T pNode) {
+    // no implementation here
+  }
+
   @Override
   public int getEndNodeCount() {
     int i=0;
@@ -230,28 +234,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return result;
   }
 
-  public double getInnerWidth() {
-    if (Double.isNaN(aInnerWidth)) {
-      layout();
-    }
-    return aInnerWidth;
-  }
-
-  public double getWidth() {
-    return aLeftPadding+getInnerWidth()+aRightPadding;
-  }
-
-  public double getInnerHeight() {
-    if (Double.isNaN(aInnerHeight)) {
-      layout();
-    }
-    return aInnerHeight;
-  }
-
-  public double getHeight() {
-    return aTopPadding+getInnerHeight()+aBottomPadding;
-  }
-
   public void layout() {
     final List<DiagramNode<T>> diagramNodes = toDiagramNodes(getModelNodes());
     if(aLayoutAlgorithm.layout(diagramNodes)) {
@@ -263,8 +245,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         maxX = Math.max(n.getRight(), maxX);
         maxY = Math.max(n.getBottom(), maxY);
       }
-      aInnerWidth = Math.max(0, maxX);
-      aInnerHeight = Math.max(0, maxY);
     }
   }
 

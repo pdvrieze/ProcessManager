@@ -6,6 +6,7 @@ import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
 
@@ -15,6 +16,14 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   private ItemCache aItems = new ItemCache();
 
+
+  public DrawableStartNode(ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pOwner);
+  }
+
+  public DrawableStartNode(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
+    super(pId, pOwner);
+  }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
@@ -47,8 +56,8 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     }
   }
 
-  public static DrawableStartNode from(StartNode<?> pN) {
-    DrawableStartNode result = new DrawableStartNode();
+  public static DrawableStartNode from(DrawableProcessModel pOwner, StartNode<?> pN) {
+    DrawableStartNode result = new DrawableStartNode(pOwner);
     copyProcessNodeAttrs(pN, result);
     result.getImports().clear();
     result.getImports().addAll(pN.getImports());
