@@ -374,11 +374,11 @@ public class PMEditor extends Activity {
       if (aLayoutTask!=null) {
         final WaitTask task = new WaitTask(aImmediate, pOverlay);
         aLayoutTask.postProgress(task);
-//        try {
-//          task.get();
-//        } catch (ExecutionException e) { // ignore
-//        } catch (InterruptedException e) { // ignore
-//        }
+        try {
+          task.get();
+        } catch (ExecutionException e) { // ignore
+        } catch (InterruptedException e) { // ignore
+        }
       }
     }
 
