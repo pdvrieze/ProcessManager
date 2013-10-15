@@ -81,29 +81,23 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
     }
 
     @Override
-    public void drawPath(AndroidPath pPath, AndroidPen pColor) {
+    public void drawPath(AndroidPath pPath, AndroidPen pStroke, AndroidPen pFill) {
+      Path transformedPath = transformPath(pPath);
+      if (pFill!=null) {
+        AndroidCanvas.this.drawFilledPath(transformedPath, pFill.getPaint());
+      }
+      if (pStroke!=null) {
+        AndroidCanvas.this.drawPath(transformedPath, scalePen(pStroke).getPaint());
+      }
+    }
+
+    private Path transformPath(AndroidPath pPath) {
       Path transformedPath = new Path(pPath.getPath());
       Matrix matrix = new Matrix();
       matrix.setScale((float)aScale, (float)aScale);
       matrix.preTranslate((float)-aXOffset, (float) -aYOffset);
       transformedPath.transform(matrix);
-
-      aCanvas.drawPath(transformedPath, scalePen(pColor).getPaint());
-    }
-
-    @Override
-    public void drawFilledPath(AndroidPath pPath, AndroidPen pPen) {
-      Path transformedPath = new Path(pPath.getPath());
-      Matrix matrix = new Matrix();
-      matrix.setScale((float)aScale, (float)aScale);
-      matrix.postTranslate((float)aXOffset, (float) aYOffset);
-      transformedPath.transform(matrix);
-
-      Paint paint = pPen.getPaint();
-      Style oldStyle = paint.getStyle();
-      paint.setStyle(Paint.Style.FILL);
-      aCanvas.drawPath(transformedPath, pPen.getPaint());
-      paint.setStyle(oldStyle);
+      return transformedPath;
     }
 
     @Override
@@ -191,16 +185,21 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
   }
 
   @Override
-  public void drawPath(AndroidPath pPath, AndroidPen pColor) {
-    aCanvas.drawPath(pPath.getPath(), pColor.getPaint());
+  public void drawPath(AndroidPath pPath, AndroidPen pStroke, AndroidPen pFill) {
+    if (pFill!=null)
+      drawFilledPath(pPath.getPath(), pFill.getPaint());
+    if (pStroke!=null)
+      drawPath(pPath.getPath(), pStroke.getPaint());
   }
 
-  @Override
-  public void drawFilledPath(AndroidPath pPath, AndroidPen pPen) {
-    Paint paint = pPen.getPaint();
+  void drawPath(Path path, Paint paint) {
+    aCanvas.drawPath(path, paint);
+  }
+
+  private void drawFilledPath(Path path, Paint paint) {
     Style oldStyle = paint.getStyle();
     paint.setStyle(Paint.Style.FILL);
-    aCanvas.drawPath(pPath.getPath(), pPen.getPaint());
+    aCanvas.drawPath(path, paint);
     paint.setStyle(oldStyle);
   }
 
