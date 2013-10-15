@@ -3,6 +3,7 @@ package nl.adaptivity.diagram.android;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
@@ -20,7 +21,6 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.os.Debug;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
@@ -272,8 +272,9 @@ public class DiagramView extends View implements OnZoomListener{
       canvas.scale(scalef, scalef);
       if (aOverlay instanceof DiagramDrawable) {
         ((DiagramDrawable) aOverlay).draw(canvas, aScale);
+      } else {
+        aOverlay.draw(canvas);
       }
-      aOverlay.draw(canvas);
     }
     canvas.restoreToCount(canvasSave);
   }
@@ -383,8 +384,8 @@ public class DiagramView extends View implements OnZoomListener{
     return retVal || super.onTouchEvent(pEvent);
   }
 
-  
-  
+
+
   @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
   @Override
   public boolean onGenericMotionEvent(MotionEvent pEvent) {

@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -29,6 +28,7 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -60,19 +60,19 @@ public class PMEditor extends Activity {
       int height = (int) Math.round((pCanvas.getHeight()/pScale));
       int width = (int) Math.round(pCanvas.getWidth()/pScale);
       if (!Double.isNaN(aX1)) {
-        float scaledX = (float) (((diagramView1.getOffsetX()*aPm.getScale())+aX1)*aPm.getScale());
+        float scaledX = (float) (/*(diagramView1.getOffsetX()*pScale)+*/aX1-diagramView1.getOffsetX());
         pCanvas.drawLine(scaledX, 0, scaledX, height, aPaint);
       }
       if (!Double.isNaN(aY1)) {
-        float scaledY = (float) (((diagramView1.getOffsetY()*aPm.getScale())+aY1)*aPm.getScale());
+        float scaledY = (float) (/*(diagramView1.getOffsetY()*pScale)+*/aY1-diagramView1.getOffsetY());
         pCanvas.drawLine(0, scaledY, width, scaledY, aPaint);
       }
       if (!Double.isNaN(aX2)) {
-        float scaledX = (float) (((diagramView1.getOffsetX()*aPm.getScale())+aX2)*aPm.getScale());
+        float scaledX = (float) ((diagramView1.getOffsetX()*pScale)+aX2);
         pCanvas.drawLine(scaledX, 0, scaledX, height, aPaint);
       }
       if (!Double.isNaN(aY2)) {
-        float scaledY = (float) (((diagramView1.getOffsetY()*aPm.getScale())+aY2)*aPm.getScale());
+        float scaledY = (float) ((diagramView1.getOffsetY()*pScale)+aY2);
         pCanvas.drawLine(0, scaledY, width, scaledY, aPaint);
       }
     }
@@ -329,10 +329,11 @@ public class PMEditor extends Activity {
       List<float[]> arrows = new ArrayList<float[]>(pNodes.size());
       for(DiagramNode<?> pNode: pNodes) {
         if (! (Double.isNaN(pNode.getX())|| Double.isNaN(pNode.getY()))) {
-          arrows.add(new float[]{(float) ((pNode.getX()+(diagramView1.getOffsetX()*aPm.getScale()))*aPm.getScale()),
-                                 (float) ((pNode.getY()+(diagramView1.getOffsetY()*aPm.getScale()))*aPm.getScale()),
-                                 (float) ((pNode.getTarget().getX()+(diagramView1.getOffsetX()*aPm.getScale()))*aPm.getScale()),
-                                 (float) ((pNode.getTarget().getY()+(diagramView1.getOffsetY()*aPm.getScale()))*aPm.getScale())});
+          final double scale = diagramView1.getScale();
+          arrows.add(new float[]{(float) ((pNode.getX()+(diagramView1.getOffsetX()*scale))*scale),
+                                 (float) ((pNode.getY()+(diagramView1.getOffsetY()*scale))*scale),
+                                 (float) ((pNode.getTarget().getX()+(diagramView1.getOffsetX()*scale))*scale),
+                                 (float) ((pNode.getTarget().getY()+(diagramView1.getOffsetY()*scale))*scale)});
         }
       }
       return new MoveDrawable(pMinMaxOverlay, arrows);
@@ -372,12 +373,18 @@ public class PMEditor extends Activity {
 
     private void waitForNextClicked(Drawable pOverlay) {
       if (aLayoutTask!=null) {
-        final WaitTask task = new WaitTask(aImmediate, pOverlay);
-        aLayoutTask.postProgress(task);
-        try {
-          task.get();
-        } catch (ExecutionException e) { // ignore
-        } catch (InterruptedException e) { // ignore
+        if (Thread.currentThread()==Looper.getMainLooper().getThread()) {
+          if (BuildConfig.DEBUG) {
+            throw new IllegalStateException("Performing layout on UI thread");
+          }
+        } else {
+          final WaitTask task = new WaitTask(aImmediate, pOverlay);
+          aLayoutTask.postProgress(task);
+          try {
+            task.get();
+          } catch (ExecutionException e) { // ignore
+          } catch (InterruptedException e) { // ignore
+          }
         }
       }
     }
@@ -437,7 +444,6 @@ public class PMEditor extends Activity {
       // Start with null layout algorithm, to prevent dual layout.
       aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
       if (aPm!=null) {
-        aPm.setScale(2.5d);
         LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<DrawableProcessNode>();
         alg.setLayoutStepper(aStepper);
         aPm.setLayoutAlgorithm(alg);
@@ -542,8 +548,8 @@ public class PMEditor extends Activity {
     }
     double offsetX= Double.isInfinite(minX)? 0 : minX - aPm.getLeftPadding();
     double offsetY= Double.isInfinite(minY)? 0 : minY - aPm.getTopPadding();
-    diagramView1.setOffsetX(offsetX/aPm.getScale());
-    diagramView1.setOffsetY(offsetY/aPm.getScale());
+    diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
+    diagramView1.setOffsetY(offsetY-200/*/diagramView1.getScale()*/);
   }
 
   private final DrawableProcessModel getProcessModel() {
