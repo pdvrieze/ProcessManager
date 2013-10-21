@@ -13,10 +13,11 @@ public interface Bounded {
   /**
    * Determine whether the given coordinate lies within the object. As objects may be
    * shaped, this may mean that some points are not part even though they look to be.
+   * The method will return the most specific element contained.
    * @param aX The X coordinate
    * @param aY The Y coordinate
-   * @return <code>true</code> if in bounds, <code>false</code> if not.
+   * @return <code>null</code> if no item could be found, otherwise the item found.
    */
-  public boolean isInBounds(double pX, double pY);
+  public Bounded getItemAt(double pX, double pY);
 
 }
