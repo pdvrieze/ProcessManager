@@ -17,6 +17,6 @@ public interface Bounded {
    * @param aY The Y coordinate
    * @return <code>true</code> if in bounds, <code>false</code> if not.
    */
-  public boolean isInBounds(double aX, double aY);
+  public boolean isInBounds(double pX, double pY);
 
 }
