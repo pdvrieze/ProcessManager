@@ -1,7 +1,7 @@
 package nl.adaptivity.diagram;
 
 
-public final class Rectangle {
+public final class Rectangle implements Cloneable{
 
   public double left;
   public double top;
@@ -13,6 +13,15 @@ public final class Rectangle {
     this.left = left;
     this.height = height;
     this.width = width;
+  }
+
+  @Override
+  public Rectangle clone() {
+    try {
+      return (Rectangle) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public final float leftf() {
