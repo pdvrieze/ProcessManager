@@ -2,6 +2,7 @@ package nl.adaptivity.diagram.android;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Properties;
 
 import nl.adaptivity.android.compat.Compat;
@@ -19,7 +20,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -38,7 +38,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   private static final int CACHE_PADDING = 30;
 
-  public static abstract class DiagramDrawable extends Drawable {
+  public static abstract class DiagramDrawable extends android.graphics.drawable.Drawable {
 
     @Override
     public final void draw(Canvas pCanvas) {
@@ -58,7 +58,7 @@ public class DiagramView extends View implements OnZoomListener{
   private String aMissingDiagramText;
   private double aOffsetX = 0;
   private double aOffsetY = 0;
-  private Drawable aOverlay;
+  private android.graphics.drawable.Drawable aOverlay;
   private ZoomButtonsController aZoomController;
   private final boolean aMultitouch;
   private double aScale=1d;
@@ -74,6 +74,19 @@ public class DiagramView extends View implements OnZoomListener{
       setOffsetY(getOffsetY()+(pDistanceY/scale));
       return true;
     }
+
+    @Override
+    public void onShowPress(MotionEvent pE) {
+      int pIdx = pE.getActionIndex();
+      float x = pE.getX(pIdx);
+      float y = pE.getY(pIdx);
+      double diagX = x/aScale +aOffsetX;
+      double diagY = y/aScale +aOffsetY;
+      nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
+      if (touchedElement!=null) highlightTouch(touchedElement);
+    }
+
+
 
   };
 
@@ -124,6 +137,7 @@ public class DiagramView extends View implements OnZoomListener{
   private String aBuildTimeText;
   private Rectangle aTmpRectangle = new Rectangle(0d, 0d, 0d, 0d);
   private final RectF aTmpRectF = new RectF();
+  private final Rect aTmpRect = new Rect();
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
@@ -194,6 +208,27 @@ public class DiagramView extends View implements OnZoomListener{
       aZoomController.setZoomInEnabled(aDiagram!=null);
       aZoomController.setZoomOutEnabled(aDiagram!=null);
     }
+  }
+
+  protected void highlightTouch(nl.adaptivity.diagram.Drawable pTouchedElement) {
+    aDiagram.setHighlighted(Collections.singleton(pTouchedElement));
+    invalidate();
+//    invalidate(toRect(pTouchedElement.getBounds()));
+  }
+
+  private RectF toRectF(Rectangle pBounds) {
+    aTmpRectF.set(pBounds.leftf(), pBounds.topf(), pBounds.rightf(), pBounds.bottomf());
+    return aTmpRectF;
+  }
+
+  private Rect toRect(Rectangle pBounds) {
+    aTmpRect.set((int)Math.round(pBounds.left*aScale-0.5), (int)Math.round(pBounds.top*aScale-0.5),
+                 (int)Math.round(pBounds.right()*aScale+0.5), (int)Math.round(pBounds.bottom()*aScale+0.5));
+    return aTmpRect;
+  }
+
+  protected nl.adaptivity.diagram.Drawable findTouchedElement(double pDiagX, double pDiagY) {
+    return aDiagram.getItemAt(pDiagX, pDiagY);
   }
 
   @Override
@@ -352,7 +387,7 @@ public class DiagramView extends View implements OnZoomListener{
     pCacheRect.set(diagLeft, diagTop, diagWidth, diagHeight);
   }
 
-  public void setOverlay(Drawable pOverlay) {
+  public void setOverlay(android.graphics.drawable.Drawable pOverlay) {
     if (aOverlay!=null) {
       invalidate(aOverlay.getBounds());
     }

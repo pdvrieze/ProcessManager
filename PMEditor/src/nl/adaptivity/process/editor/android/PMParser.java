@@ -18,6 +18,7 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
@@ -51,6 +52,11 @@ public class PMParser {
 
     @Override
     public Rectangle getBounds() {
+      throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public Drawable getItemAt(double pX, double pY) {
       throw new UnsupportedOperationException("Not implemented");
     }
 
