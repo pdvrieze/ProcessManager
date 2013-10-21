@@ -15,35 +15,35 @@ public final class Rectangle {
     this.width = width;
   }
 
-  public float leftf() {
+  public final float leftf() {
     return (float) left;
   }
 
-  public float topf() {
+  public final float topf() {
     return (float) top;
   }
 
-  public double right() {
+  public final double right() {
     return left+width;
   }
 
-  public float rightf() {
+  public final float rightf() {
     return (float) right();
   }
 
-  public double bottom() {
+  public final double bottom() {
     return top+height;
   }
 
-  public float bottomf() {
+  public final float bottomf() {
     return (float) bottom();
   }
 
-  public float widthf() {
+  public final float widthf() {
     return (float) width;
   }
 
-  public float heightf() {
+  public final float heightf() {
     return (float) height;
   }
 
@@ -55,36 +55,43 @@ public final class Rectangle {
    * @param pScale The scaling needed.
    * @return A new rectangle that is moved from the original one.
    */
-  public Rectangle offsetScaled(double pXOffset, double pYOffset, double pScale) {
+  public final Rectangle offsetScaled(double pXOffset, double pYOffset, double pScale) {
     return new Rectangle((left+pXOffset)*pScale, (top+pYOffset)*pScale, width*pScale, height*pScale);
   }
 
   @Override
-  public String toString() {
+  public final String toString() {
     return "Rectangle [l=" + left + ", t=" + top + ", w=" + width + ", h=" + height + "]";
   }
 
-  public void set(double pLeft, double pTop, double pWidth, double pHeight) {
+  public final void set(double pLeft, double pTop, double pWidth, double pHeight) {
     left = pLeft;
     top = pTop;
     width = pWidth;
     height = pHeight;
   }
 
-  public void set(Rectangle pBounds) {
+  public final void set(Rectangle pBounds) {
     left = pBounds.left;
     top = pBounds.top;
     width = pBounds.width;
     height = pBounds.height;
   }
 
-  public void extendBounds(Rectangle pBounds) {
+  public final void extendBounds(Rectangle pBounds) {
     double newleft = Math.min(left,  pBounds.left);
     double newtop = Math.min(top,  pBounds.left);
     width = Math.max(right(),  pBounds.right())-newleft;
     height = Math.max(bottom(),  pBounds.bottom())-newtop;
     left = newleft;
     top = newtop;
+  }
+
+  public final boolean contains(double pX, double pY) {
+    return (pX>=left) &&
+           (pY>=top) &&
+           (pX<=left+width) &&
+           (pY<=top+height);
   }
 
 }
