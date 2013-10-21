@@ -9,6 +9,7 @@ import java.util.Set;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
@@ -39,9 +40,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DEFAULT_VERT_SEPARATION = 30d;
   public static final double STROKEWIDTH = 1d;
   private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
+  private static final double HLSTROKE = 3*STROKEWIDTH;
 
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
+  private ArrayList<DrawableProcessNode> aHighlighted;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()));
@@ -146,6 +149,43 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
 
   @Override
+  public Drawable getItemAt(double pX, double pY) {
+    if (getModelNodes().size()==0) {
+      return getBounds().contains(pX, pY) ? this : null;
+    }
+    for(Drawable candidate: getChildElements()) {
+      Drawable result = candidate.getItemAt(pX, pY);
+      if (result!=null) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void setHighlighted(Collection<Drawable> pItems) {
+    if (aHighlighted==null) {
+      aHighlighted = new ArrayList<DrawableProcessNode>(pItems.size());
+    } else {
+      aHighlighted.clear(); aHighlighted.ensureCapacity(pItems.size());
+    }
+    for(DrawableProcessNode node:getModelNodes()) {
+      for(Drawable item:pItems) {
+        if (node==item) {
+          aHighlighted.add(node);
+        }
+      }
+    }
+  }
+
+  @Override
+  public Collection<Drawable> getHighlighted() {
+    // TODO Auto-generated method stub
+    // return null;
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  @Override
   public void setNodes(Collection<? extends DrawableProcessNode> pNodes) {
     // Null check here as setNodes is called during construction of the parent
     if (aBounds!=null) { aBounds.left = Double.NaN; }
@@ -162,6 +202,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public void nodeChanged(DrawableProcessNode pNode) {
     Rectangle nodeBounds = pNode.getBounds();
+    if (aBounds==null) {
+      aBounds = nodeBounds.clone();
+      return;
+    }
     double right = Math.max(nodeBounds.right(), aBounds.right());
     double bottom = Math.max(nodeBounds.bottom(), aBounds.bottom());
     if (nodeBounds.left<aBounds.left) {
@@ -196,11 +240,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 //    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
     Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(NULLRECTANGLE, 1d);
     final S strategy = pCanvas.getStrategy();
-    PEN_T arcPen = aItems.getPen(strategy, 0);
-    if (arcPen==null) {
-      arcPen = strategy.newPen().setColor(0, 0, 0, 255).setStrokeWidth(STROKEWIDTH);
-      aItems.setPen(strategy, 0, arcPen);
-    }
+
+    PEN_T arcPen = getArcPen(strategy);
+
     PATH_T connectors = aItems.getPath(strategy, 0);
     if (connectors == null) {
       connectors = strategy.newPath();
@@ -212,11 +254,47 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       }
       aItems.setPath(strategy, 0, connectors);
     }
+
     canvas.drawPath(connectors, arcPen, null);
 
     for(DrawableProcessNode node:getModelNodes()) {
-      node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
+      if (aHighlighted==null || (! aHighlighted.contains(node))) {
+        node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
+      }
     }
+
+    if (aHighlighted!=null && aHighlighted.size()>0) {
+      PEN_T hlPen = getHlPen(strategy);
+      for(DrawableProcessNode node: aHighlighted) {
+        PEN_T oldPen = node.getFGPen(strategy);
+        node.setFGPen(strategy, hlPen);
+        node.draw(canvas.childCanvas(node.getBounds(), 1), null);
+        node.setFGPen(strategy, oldPen);
+      }
+    }
+  }
+
+  private <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getArcPen(final S strategy) {
+    PEN_T arcPen = aItems.getPen(strategy, 0);
+    if (arcPen==null) {
+      arcPen = strategy.newPen().setColor(0, 0, 0, 255).setStrokeWidth(STROKEWIDTH);
+      aItems.setPen(strategy, 0, arcPen);
+    }
+    return arcPen;
+  }
+
+  private <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getHlPen(final S strategy) {
+    PEN_T hlPen = aItems.getPen(strategy, 1);
+    if (hlPen==null) {
+      hlPen = strategy.newPen().setColor(255, 255, 0, 127).setStrokeWidth(HLSTROKE);
+      aItems.setPen(strategy, 1, hlPen);
+    }
+    return hlPen;
+  }
+
+  @Override
+  public Collection<? extends Drawable> getChildElements() {
+    return getModelNodes();
   }
 
   static void copyProcessNodeAttrs(ProcessNode<?> pFrom, DrawableProcessNode pTo) {

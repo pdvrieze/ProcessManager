@@ -2,6 +2,7 @@ package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
@@ -28,6 +29,11 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-(ACTIVITYWIDTH/2), getY()-(ACTIVITYHEIGHT/2), ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
+  }
+
+  @Override
+  public Drawable getItemAt(double pX, double pY) {
+    return _bounds.contains(pX-getX(), pY-getY()) ? this : null;
   }
 
   @Override

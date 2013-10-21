@@ -2,6 +2,7 @@ package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
@@ -45,9 +46,16 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   @Override
   public Rectangle getBounds() {
-    double dx = JOINWIDTH/2;
-    double dy = JOINHEIGHT/2;
+    double dx = (JOINWIDTH+STROKEEXTEND)/2;
+    double dy = (JOINHEIGHT+STROKEEXTEND)/2;
     return new Rectangle(getX()-dx, getY()-dy, JOINHEIGHT+STROKEEXTEND, JOINWIDTH+STROKEEXTEND);
+  }
+
+  @Override
+  public Drawable getItemAt(double pX, double pY) {
+    final double realradiusX=(JOINWIDTH+STROKEEXTEND)/2;
+    final double realradiusY=(JOINHEIGHT+STROKEEXTEND)/2;
+    return ((Math.abs(pX-getX())<=realradiusX) && (Math.abs(pY-getY())<=realradiusY)) ? this : null;
   }
 
   @Override

@@ -2,6 +2,7 @@ package nl.adaptivity.process.diagram;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
@@ -44,6 +45,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-STARTNODERADIUS, getY()-STARTNODERADIUS, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
+  }
+
+  @Override
+  public Drawable getItemAt(double pX, double pY) {
+    final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
+    return ((Math.abs(pX-getX())<=realradius) && (Math.abs(pY-getY())<=realradius)) ? this : null;
   }
 
   @Override
