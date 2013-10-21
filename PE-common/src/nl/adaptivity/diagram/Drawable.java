@@ -9,5 +9,4 @@ public interface Drawable extends Bounded {
    * @param pClipBounds The part of the drawing to draw. Outside no drawing is needed.
    */
   <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds);
-
 }
