@@ -401,18 +401,25 @@ public class DiagramView extends View implements OnZoomListener{
   public boolean onTouchEvent(MotionEvent pEvent) {
     int action = pEvent.getActionMasked();
     if (action==MotionEvent.ACTION_DOWN) {
-      aTouchActionOptimize  = true;
-//      if (BuildConfig.DEBUG) {
-//        Debug.startMethodTracing();
-//      }
-      ensureValidCache();
+      int pIdx = pEvent.getActionIndex();
+      double diagX = pEvent.getX(pIdx)/aScale +aOffsetX;
+      double diagY = pEvent.getY(pIdx)/aScale +aOffsetY;
+      nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
+      if (touchedElement!=null) highlightTouch(touchedElement);
+      
+//    if (BuildConfig.DEBUG) {
+//    Debug.startMethodTracing();
+//  }
+//      aTouchActionOptimize  = true;
+//      ensureValidCache();
     } else if (action==MotionEvent.ACTION_UP|| action==MotionEvent.ACTION_CANCEL) {
+      aDiagram.setHighlighted(Collections.<nl.adaptivity.diagram.Drawable>emptyList());
       aTouchActionOptimize  = false;
-//      if (BuildConfig.DEBUG) {
-//        Debug.stopMethodTracing();
-//      }
       aCacheBitmap = null; aCacheCanvas = null;
       Compat.postInvalidateOnAnimation(this);
+//    if (BuildConfig.DEBUG) {
+//      Debug.stopMethodTracing();
+//    }
     }
     boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
     retVal = aGestureDetector.onTouchEvent(pEvent) || retVal;
