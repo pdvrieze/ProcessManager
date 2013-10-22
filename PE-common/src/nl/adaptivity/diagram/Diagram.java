@@ -9,5 +9,5 @@ public interface Diagram extends GroupDrawable {
    */
   void setHighlighted(Collection<Drawable> pItems);
 
-  Collection<Drawable> getHighlighted();
+  Collection<? extends Drawable> getHighlighted();
 }
