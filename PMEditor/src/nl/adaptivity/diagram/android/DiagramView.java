@@ -38,6 +38,35 @@ public class DiagramView extends View implements OnZoomListener{
 
   private static final int CACHE_PADDING = 30;
 
+  private final class MyGestureListener extends SimpleOnGestureListener {
+
+    private boolean aIgnoreMove = false;
+
+    @Override
+    public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
+      if (aIgnoreMove) { return false; }
+      double scale = getScale();
+      setOffsetX(getOffsetX()+(pDistanceX/scale));
+      setOffsetY(getOffsetY()+(pDistanceY/scale));
+      return true;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent pE) {
+      int pIdx = pE.getActionIndex();
+      float x = pE.getX(pIdx);
+      float y = pE.getY(pIdx);
+      double diagX = x/aScale +aOffsetX;
+      double diagY = y/aScale +aOffsetY;
+      nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
+      if (touchedElement!=null) highlightTouch(touchedElement);
+    }
+    
+    public void setIgnoreMove(boolean pValue) {
+      aIgnoreMove = pValue;
+    }
+  }
+
   public static abstract class DiagramDrawable extends android.graphics.drawable.Drawable {
 
     @Override
@@ -65,30 +94,7 @@ public class DiagramView extends View implements OnZoomListener{
   private GestureDetector aGestureDetector;
   private ScaleGestureDetector aScaleGestureDetector;
 
-  private OnGestureListener aGestureListener = new SimpleOnGestureListener() {
-
-    @Override
-    public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
-      double scale = getScale();
-      setOffsetX(getOffsetX()+(pDistanceX/scale));
-      setOffsetY(getOffsetY()+(pDistanceY/scale));
-      return true;
-    }
-
-    @Override
-    public void onShowPress(MotionEvent pE) {
-      int pIdx = pE.getActionIndex();
-      float x = pE.getX(pIdx);
-      float y = pE.getY(pIdx);
-      double diagX = x/aScale +aOffsetX;
-      double diagY = y/aScale +aOffsetY;
-      nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
-      if (touchedElement!=null) highlightTouch(touchedElement);
-    }
-
-
-
-  };
+  private MyGestureListener aGestureListener = new MyGestureListener();
 
   private OnScaleGestureListener aScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
 
@@ -400,12 +406,16 @@ public class DiagramView extends View implements OnZoomListener{
   @Override
   public boolean onTouchEvent(MotionEvent pEvent) {
     int action = pEvent.getActionMasked();
+    nl.adaptivity.diagram.Drawable touchedElement = null;
     if (action==MotionEvent.ACTION_DOWN) {
       int pIdx = pEvent.getActionIndex();
       double diagX = pEvent.getX(pIdx)/aScale +aOffsetX;
       double diagY = pEvent.getY(pIdx)/aScale +aOffsetY;
-      nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
-      if (touchedElement!=null) highlightTouch(touchedElement);
+      touchedElement = findTouchedElement(diagX, diagY);
+      if (touchedElement!=null) {
+        highlightTouch(touchedElement);
+        aGestureListener.setIgnoreMove(true);
+      }
       
 //    if (BuildConfig.DEBUG) {
 //    Debug.startMethodTracing();
@@ -420,6 +430,7 @@ public class DiagramView extends View implements OnZoomListener{
 //    if (BuildConfig.DEBUG) {
 //      Debug.stopMethodTracing();
 //    }
+      aGestureListener.setIgnoreMove(false);
     }
     boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
     retVal = aGestureDetector.onTouchEvent(pEvent) || retVal;
