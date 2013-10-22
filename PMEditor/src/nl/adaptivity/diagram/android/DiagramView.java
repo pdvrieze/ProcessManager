@@ -2,9 +2,9 @@ package nl.adaptivity.diagram.android;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Properties;
 
+import static nl.adaptivity.diagram.Drawable.*;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Diagram;
 import nl.adaptivity.diagram.Rectangle;
@@ -23,7 +23,6 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
-import android.view.GestureDetector.OnGestureListener;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -31,7 +30,6 @@ import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
 import android.widget.ZoomButtonsController;
 import android.widget.ZoomButtonsController.OnZoomListener;
-
 
 public class DiagramView extends View implements OnZoomListener{
 
@@ -61,7 +59,7 @@ public class DiagramView extends View implements OnZoomListener{
       nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
       if (touchedElement!=null) highlightTouch(touchedElement);
     }
-    
+
     public void setIgnoreMove(boolean pValue) {
       aIgnoreMove = pValue;
     }
@@ -217,7 +215,7 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
   protected void highlightTouch(nl.adaptivity.diagram.Drawable pTouchedElement) {
-    aDiagram.setHighlighted(Collections.singleton(pTouchedElement));
+    pTouchedElement.setState(pTouchedElement.getState()|STATE_TOUCHED);
     invalidate();
 //    invalidate(toRect(pTouchedElement.getBounds()));
   }
@@ -416,14 +414,20 @@ public class DiagramView extends View implements OnZoomListener{
         highlightTouch(touchedElement);
         aGestureListener.setIgnoreMove(true);
       }
-      
+
 //    if (BuildConfig.DEBUG) {
 //    Debug.startMethodTracing();
 //  }
 //      aTouchActionOptimize  = true;
 //      ensureValidCache();
     } else if (action==MotionEvent.ACTION_UP|| action==MotionEvent.ACTION_CANCEL) {
-      aDiagram.setHighlighted(Collections.<nl.adaptivity.diagram.Drawable>emptyList());
+      for(nl.adaptivity.diagram.Drawable drawable: aDiagram.getChildElements()) {
+        int state = drawable.getState();
+        if ((state&STATE_TOUCHED)!=0) {
+          drawable.setState(state & ~STATE_TOUCHED);
+        }
+      }
+
       aTouchActionOptimize  = false;
       aCacheBitmap = null; aCacheCanvas = null;
       Compat.postInvalidateOnAnimation(this);

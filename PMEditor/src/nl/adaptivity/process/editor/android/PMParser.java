@@ -91,16 +91,6 @@ public class PMParser {
     }
 
     @Override
-    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
-      return null;
-    }
-
-    @Override
-    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setFGPen(S pStrategy, PEN_T pPen) {
-      // ignore
-    }
-
-    @Override
     public int getState() {
       throw new UnsupportedOperationException("Not implemented");
     }

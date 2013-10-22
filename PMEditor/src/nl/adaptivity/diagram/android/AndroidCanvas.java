@@ -1,6 +1,7 @@
 package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
@@ -115,9 +116,15 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
       return AndroidStrategy.INSTANCE;
     }
 
+    @Override
+    public Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme() {
+      return AndroidCanvas.this.getTheme();
+    }
+
   }
 
   android.graphics.Canvas aCanvas;
+  private AndroidTheme aTheme;
 
   public AndroidCanvas(android.graphics.Canvas pCanvas) {
     aCanvas = pCanvas;
@@ -224,6 +231,12 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
   @Override
   public AndroidStrategy getStrategy() {
     return AndroidStrategy.INSTANCE;
+  }
+
+  @Override
+  public Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme() {
+    if (aTheme==null) { aTheme = new AndroidTheme(getStrategy()); }
+    return aTheme;
   }
 
 }

@@ -34,8 +34,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import static nl.adaptivity.diagram.Drawable.*;
 
 public class PMEditor extends Activity {
+
+  private static final int STATE_ACTIVE=STATE_CUSTOM1;
+  private static final int STATE_GROUP=STATE_CUSTOM2;
+  private static final int STATE_XMOST=STATE_CUSTOM3;
+  private static final int STATE_MOVED=STATE_CUSTOM4;
 
 
 
@@ -210,12 +216,14 @@ public class PMEditor extends Activity {
       aMinMaxOverlay = null;
       if (! (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY()))) {
         if (aLayoutNode!=null) {
-          if (getActivePen()==aLayoutNode.getTarget().getFGPen(AndroidStrategy.INSTANCE)) {
-            aLayoutNode.getTarget().setFGPen(AndroidStrategy.INSTANCE, null);
-          }
+          final DrawableProcessNode target = aLayoutNode.getTarget();
+          target.setState(target.getState()& ~STATE_CUSTOM1);
         }
         aLayoutNode = pNode;
-        aLayoutNode.getTarget().setFGPen(AndroidStrategy.INSTANCE, getActivePen());
+        {
+          final DrawableProcessNode target = aLayoutNode.getTarget();
+          target.setState(target.getState()|STATE_CUSTOM1);
+        }
         waitForNextClicked(null);
       }
     }
@@ -274,7 +282,8 @@ public class PMEditor extends Activity {
 
     private void reportMinMax(List<? extends DiagramNode<DrawableProcessNode>> pNodes) {
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, getGroupPen());
+        final DrawableProcessNode target = node.getTarget();
+        target.setState(target.getState()|STATE_GROUP);
       }
       if (aMinMaxOverlay==null) {
         aMinMaxOverlay = new LineDrawable(aMinX, aMinY, aMaxX, aMaxY, getXMostPen().getPaint());
@@ -286,23 +295,30 @@ public class PMEditor extends Activity {
       }
       waitForNextClicked(aMinMaxOverlay);
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, null);
+        final DrawableProcessNode target = node.getTarget();
+        target.setState(target.getState()& ~STATE_GROUP);
       }
     }
 
     private void reportXMost(List<? extends DiagramNode<DrawableProcessNode>> pNodes, DiagramNode<DrawableProcessNode> pNode) {
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setX(node.getX());
-        node.getTarget().setY(node.getY());
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, getGroupPen());
+        final DrawableProcessNode target = node.getTarget();
+        target.setX(node.getX());
+        target.setY(node.getY());
+
+        if (node!=pNode) {
+          target.setState(target.getState()|STATE_GROUP);
+        }
       }
       if (pNode!=null) {
-        pNode.getTarget().setFGPen(AndroidStrategy.INSTANCE, getXMostPen());
+        final DrawableProcessNode target = pNode.getTarget();
+        target.setState(target.getState()|STATE_XMOST);
       }
       updateDiagramBounds();
       waitForNextClicked(aMinMaxOverlay);
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, null);
+        final DrawableProcessNode target = node.getTarget();
+        target.setState(target.getState()& ~(STATE_XMOST|STATE_GROUP));
       }
     }
 
@@ -310,14 +326,15 @@ public class PMEditor extends Activity {
     @Override
     public void reportMove(DiagramNode<DrawableProcessNode> pNode, double pNewX, double pNewY) {
       setLabel("move");
-      pNode.getTarget().setFGPen(AndroidStrategy.INSTANCE, getGreenPen());
-      pNode.getTarget().setX(pNewX);
-      pNode.getTarget().setY(pNewY);
+      final DrawableProcessNode target = pNode.getTarget();
+      target.setState(target.getState()|STATE_MOVED);
+      target.setX(pNewX);
+      target.setY(pNewY);
       updateDiagramBounds();
 
       waitForNextClicked(moveDrawable(aMinMaxOverlay, Arrays.asList(pNode)));
 
-      pNode.getTarget().setFGPen(AndroidStrategy.INSTANCE, null); // reset the pen
+      target.setState(target.getState()& ~STATE_MOVED);
       aMinX = Double.NaN;
       aMinY = Double.NaN;
       aMaxX = Double.NaN;
@@ -345,14 +362,16 @@ public class PMEditor extends Activity {
     public void reportMoveX(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pOffset) {
       setLabel("moveX");
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setX(node.getX()+pOffset);
-        node.getTarget().setY(node.getY());
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, getGreenPen());
+        final DrawableProcessNode target = node.getTarget();
+        target.setX(node.getX()+pOffset);
+        target.setY(node.getY());
+        target.setState(target.getState()|STATE_MOVED);
       }
       updateDiagramBounds();
       waitForNextClicked(moveDrawable(aMinMaxOverlay, pNodes));
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, null);
+        final DrawableProcessNode target = node.getTarget();
+        target.setState(target.getState()& ~STATE_MOVED);
       }
     }
 
@@ -360,14 +379,16 @@ public class PMEditor extends Activity {
     public void reportMoveY(List<? extends DiagramNode<DrawableProcessNode>> pNodes, double pOffset) {
       setLabel("moveY");
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setX(node.getX());
-        node.getTarget().setY(node.getY()+pOffset);
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, getGreenPen());
+        final DrawableProcessNode target = node.getTarget();
+        target.setX(node.getX());
+        target.setY(node.getY()+pOffset);
+        target.setState(target.getState()|STATE_MOVED);
       }
       updateDiagramBounds();
       waitForNextClicked(moveDrawable(aMinMaxOverlay, pNodes));
       for(DiagramNode<DrawableProcessNode> node: pNodes) {
-        node.getTarget().setFGPen(AndroidStrategy.INSTANCE, null);
+        final DrawableProcessNode target = node.getTarget();
+        target.setState(target.getState()& ~STATE_MOVED);
       }
     }
 
@@ -476,7 +497,8 @@ public class PMEditor extends Activity {
       aLayoutTask=null;
       updateDiagramBounds();
       if (aStepper.aLayoutNode!=null) {
-        aStepper.aLayoutNode.getTarget().setFGPen(AndroidStrategy.INSTANCE, null);
+        final DrawableProcessNode target = aStepper.aLayoutNode.getTarget();
+        target.setState(target.getState()& (~(STATE_CUSTOM1|STATE_CUSTOM2|STATE_CUSTOM3|STATE_CUSTOM4)));
         aStepper.aLayoutNode = null;
       }
       diagramView1.setOverlay(null);
