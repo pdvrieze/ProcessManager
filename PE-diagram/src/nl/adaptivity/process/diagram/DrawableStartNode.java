@@ -4,7 +4,6 @@ import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
@@ -15,7 +14,6 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
 
-  private ItemCache aItems = new ItemCache();
   private int aState = STATE_DEFAULT;
 
 
@@ -28,22 +26,6 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getFGPen(S pStrategy) {
-    PEN_T result = aItems.getPen(pStrategy, 0);
-    if (result==null) {
-      result = pStrategy.newPen();
-      result.setColor(0,0,0,0xff);
-      aItems.setPen(pStrategy, 0, result);
-    }
-    return result;
-  }
-
-  @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setFGPen(S pStrategy, PEN_T pPen) {
-    aItems.setPen(pStrategy, 0, pPen);
-  }
-
-  @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-STARTNODERADIUS, getY()-STARTNODERADIUS, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
   }
@@ -53,12 +35,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
     return ((Math.abs(pX-getX())<=realradius) && (Math.abs(pY-getY())<=realradius)) ? this : null;
   }
-  
+
   @Override
   public int getState() {
     return aState ;
   }
-  
+
   @Override
   public void setState(int pState) {
     aState = pState;
@@ -67,10 +49,9 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
     if (hasPos()) {
-      final S strategy = pCanvas.getStrategy();
-      PEN_T fgPen = getFGPen(strategy);
-      if (fgPen ==null) { fgPen = strategy.newPen().setColor(0,0,0,0xff); }
-      pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, fgPen);
+      PEN_T fillPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState);
+
+      pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, fillPen);
     }
   }
 

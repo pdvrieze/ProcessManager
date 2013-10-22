@@ -190,12 +190,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public Collection<? extends Drawable> getHighlighted() {
     return aHighlighted;
   }
-  
+
   @Override
   public int getState() {
     return aState ;
   }
-  
+
   @Override
   public void setState(int pState) {
     aState = pState;
@@ -276,16 +276,6 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     for(DrawableProcessNode node:getModelNodes()) {
       if (aHighlighted==null || (! aHighlighted.contains(node))) {
         node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
-      }
-    }
-
-    if (aHighlighted!=null && aHighlighted.size()>0) {
-      PEN_T hlPen = getHlPen(strategy);
-      for(DrawableProcessNode node: aHighlighted) {
-        PEN_T oldPen = node.getFGPen(strategy);
-        node.setFGPen(strategy, hlPen);
-        node.draw(canvas.childCanvas(node.getBounds(), 1), null);
-        node.setFGPen(strategy, oldPen);
       }
     }
   }

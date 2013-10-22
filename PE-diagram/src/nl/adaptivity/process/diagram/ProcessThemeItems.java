@@ -1,0 +1,132 @@
+package nl.adaptivity.process.diagram;
+
+import static nl.adaptivity.diagram.Drawable.*;
+import nl.adaptivity.diagram.DrawingStrategy;
+import nl.adaptivity.diagram.Pen;
+import nl.adaptivity.diagram.ThemeItem;
+
+public enum ProcessThemeItems implements ThemeItem {
+  LINE(DrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0), state(STATE_TOUCHED, 39,95,95)){
+
+    @Override
+    public int getEffectiveState(int pState) {
+      if ((pState&STATE_TOUCHED)!=0) { return STATE_TOUCHED; }
+      int result = effectiveStateHelper(pState);
+      if (result>=0) { return result; }
+      return STATE_DEFAULT;
+    }
+
+  },
+  BACKGROUND(state(STATE_DEFAULT, 255, 255, 255)) {
+
+    @Override
+    public int getEffectiveState(int pState) {
+      return STATE_DEFAULT;
+    }
+
+  },
+  ENDNODEOUTERLINE(DrawableProcessModel.ENDNODEOUTERSTROKEWIDTH, LINE),
+  LINEBG(LINE),
+  ;
+
+  private StateSpecifier[] aSpecifiers;
+  private boolean aFill;
+  private ProcessThemeItems aParent;
+  private double aStroke;
+
+  private ProcessThemeItems(double stroke, ProcessThemeItems pParent) {
+    aFill = false;
+    aStroke = stroke;
+    aParent = pParent;
+  }
+
+  private ProcessThemeItems(ProcessThemeItems pParent) {
+    aFill = true;
+    aParent = pParent;
+  }
+
+  private ProcessThemeItems(double stroke, StateSpecifier... pSpecifiers) {
+    aSpecifiers = pSpecifiers;
+    aFill = false;
+    aStroke = stroke;
+  }
+
+  private ProcessThemeItems(StateSpecifier... pSpecifiers) {
+    aSpecifiers = pSpecifiers;
+    aFill = true;
+  }
+
+  private static StateSpecifier state(int pState, int r, int g, int b) {
+    return new StateSpecifier(pState, r, g, b);
+  }
+
+  @Override
+  public int getItemNo() {
+    return ordinal();
+  }
+
+  @Override
+  public int getEffectiveState(int pState) {
+    if (aParent!=null) { return aParent.getEffectiveState(pState); }
+    final int result = effectiveStateHelper(pState);
+    return result>=0 ? result : pState;
+  }
+
+  int effectiveStateHelper(int pState) {
+    if ((pState&STATE_CUSTOM1)!=0) { return STATE_CUSTOM1; }
+    if ((pState&STATE_CUSTOM2)!=0) { return STATE_CUSTOM2; }
+    if ((pState&STATE_CUSTOM3)!=0) { return STATE_CUSTOM3; }
+    if ((pState&STATE_CUSTOM4)!=0) { return STATE_CUSTOM4; }
+    return -1;
+  }
+
+  @Override
+  public <PEN_T extends Pen<PEN_T>> PEN_T createPen(DrawingStrategy<?, PEN_T, ?> pStrategy, int pState) {
+    StateSpecifier specifier = getSpecifier(pState);
+    PEN_T result;
+    result = pStrategy.newPen().setColor(specifier.aRed, specifier.aGreen, specifier.aBlue);
+    if (! aFill) {
+      if (aParent!=null) {
+        result.setStrokeWidth(aParent.aStroke);
+      } else {
+        result.setStrokeWidth(aStroke);
+      }
+    }
+    return result;
+  }
+
+
+  private StateSpecifier getSpecifier(int pState) {
+    if (aParent!=null) { return aParent.getSpecifier(pState); }
+    for(StateSpecifier candidate: aSpecifiers) {
+      if (candidate.aState==pState) {
+        return candidate;
+      }
+    }
+    StateSpecifier bestCandidate = aSpecifiers[0];
+    for(StateSpecifier candidate: aSpecifiers) {
+      if ((candidate.aState&pState)==candidate.aState && candidate.aState>bestCandidate.aState) {
+        bestCandidate = candidate;
+      }
+    }
+    return bestCandidate;
+  }
+
+
+  private static class StateSpecifier {
+
+    private int aState;
+    private int aRed;
+    private int aGreen;
+    private int aBlue;
+
+    public StateSpecifier(int pState, int pR, int pG, int pB) {
+      aState = pState;
+      aRed = pR;
+      aGreen = pG;
+      aBlue = pB;
+    }
+
+  }
+
+}
