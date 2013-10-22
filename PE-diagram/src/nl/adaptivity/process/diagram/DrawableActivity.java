@@ -15,6 +15,7 @@ import nl.adaptivity.process.processModel.Activity;
 
 public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> implements DrawableProcessNode {
 
+  private int aState = STATE_DEFAULT;
   private ItemCache aItems = new ItemCache();
   private static Rectangle _bounds;
 
@@ -53,6 +54,16 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setFGPen(S pStrategy, PEN_T pPen) {
     aItems.setPen(pStrategy, 0, pPen==null ? null : pPen.setStrokeWidth(STROKEWIDTH));
+  }
+  
+  @Override
+  public int getState() {
+    return aState;
+  }
+  
+  @Override
+  public void setState(int pState) {
+    aState = pState;
   }
 
   @Override

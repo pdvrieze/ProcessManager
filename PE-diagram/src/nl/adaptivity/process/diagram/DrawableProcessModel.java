@@ -45,6 +45,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
   private ArrayList<DrawableProcessNode> aHighlighted;
+  private int aState = STATE_DEFAULT;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()));
@@ -186,10 +187,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public Collection<Drawable> getHighlighted() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+  public Collection<? extends Drawable> getHighlighted() {
+    return aHighlighted;
+  }
+  
+  @Override
+  public int getState() {
+    return aState ;
+  }
+  
+  @Override
+  public void setState(int pState) {
+    aState = pState;
   }
 
   @Override

@@ -16,6 +16,7 @@ import nl.adaptivity.process.processModel.EndNode;
 public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implements DrawableProcessNode {
 
   private ItemCache aItems = new ItemCache();
+  private int aState = STATE_DEFAULT;
 
 
   public DrawableEndNode(ClientProcessModel<DrawableProcessNode> pOwner) {
@@ -52,6 +53,16 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   public Drawable getItemAt(double pX, double pY) {
     final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
     return ((Math.abs(pX-getX())<=realradius) && (Math.abs(pY-getY())<=realradius)) ? this : null;
+  }
+  
+  @Override
+  public int getState() {
+    return aState ;
+  }
+  
+  @Override
+  public void setState(int pState) {
+    aState = pState;
   }
 
   @Override

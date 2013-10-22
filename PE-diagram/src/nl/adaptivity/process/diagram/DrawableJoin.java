@@ -19,6 +19,8 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   private ItemCache aItems = new ItemCache();
 
+  private int aState = STATE_DEFAULT;
+
   public DrawableJoin(ClientProcessModel<DrawableProcessNode> pOwner) {
     super(pOwner);
   }
@@ -56,6 +58,16 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
     final double realradiusX=(JOINWIDTH+STROKEEXTEND)/2;
     final double realradiusY=(JOINHEIGHT+STROKEEXTEND)/2;
     return ((Math.abs(pX-getX())<=realradiusX) && (Math.abs(pY-getY())<=realradiusY)) ? this : null;
+  }
+  
+  @Override
+  public int getState() {
+    return aState ;
+  }
+  
+  @Override
+  public void setState(int pState) {
+    aState = pState;
   }
 
   @Override
