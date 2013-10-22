@@ -40,4 +40,6 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
 
   void drawPath(PATH_T pPath, PEN_T pStroke, PEN_T pFill);
 
+  public Theme<S, PEN_T, PATH_T> getTheme();
+
 }
