@@ -40,11 +40,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DEFAULT_VERT_SEPARATION = 30d;
   public static final double STROKEWIDTH = 1d;
   private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
-  private static final double HLSTROKE = 3*STROKEWIDTH;
 
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
-  private ArrayList<DrawableProcessNode> aHighlighted;
   private int aState = STATE_DEFAULT;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
@@ -164,34 +162,6 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void setHighlighted(Collection<Drawable> pItems) {
-    if (aHighlighted==null) {
-      aHighlighted = new ArrayList<DrawableProcessNode>(pItems.size());
-    } else {
-      aHighlighted.clear(); aHighlighted.ensureCapacity(pItems.size());
-    }
-    int found=0;
-    outer: for(DrawableProcessNode node:getModelNodes()) {
-      for(Drawable item:pItems) {
-        if (node==item) {
-          aHighlighted.add(node);
-          ++found;
-          if (found==pItems.size()) {
-            break outer;
-          } else {
-            continue outer;
-          }
-        }
-      }
-    }
-  }
-
-  @Override
-  public Collection<? extends Drawable> getHighlighted() {
-    return aHighlighted;
-  }
-
-  @Override
   public int getState() {
     return aState ;
   }
@@ -257,7 +227,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(NULLRECTANGLE, 1d);
     final S strategy = pCanvas.getStrategy();
 
-    PEN_T arcPen = getArcPen(strategy);
+    PEN_T arcPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState);
 
     PATH_T connectors = aItems.getPath(strategy, 0);
     if (connectors == null) {
@@ -274,28 +244,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     canvas.drawPath(connectors, arcPen, null);
 
     for(DrawableProcessNode node:getModelNodes()) {
-      if (aHighlighted==null || (! aHighlighted.contains(node))) {
-        node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
-      }
+      node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
     }
-  }
-
-  private <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getArcPen(final S strategy) {
-    PEN_T arcPen = aItems.getPen(strategy, 0);
-    if (arcPen==null) {
-      arcPen = strategy.newPen().setColor(0, 0, 0, 255).setStrokeWidth(STROKEWIDTH);
-      aItems.setPen(strategy, 0, arcPen);
-    }
-    return arcPen;
-  }
-
-  private <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> PEN_T getHlPen(final S strategy) {
-    PEN_T hlPen = aItems.getPen(strategy, 1);
-    if (hlPen==null) {
-      hlPen = strategy.newPen().setColor(255, 255, 0, 127).setStrokeWidth(HLSTROKE);
-      aItems.setPen(strategy, 1, hlPen);
-    }
-    return hlPen;
   }
 
   @Override
