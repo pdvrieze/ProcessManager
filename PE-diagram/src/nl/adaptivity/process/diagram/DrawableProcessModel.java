@@ -169,10 +169,17 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     } else {
       aHighlighted.clear(); aHighlighted.ensureCapacity(pItems.size());
     }
-    for(DrawableProcessNode node:getModelNodes()) {
+    int found=0;
+    outer: for(DrawableProcessNode node:getModelNodes()) {
       for(Drawable item:pItems) {
         if (node==item) {
           aHighlighted.add(node);
+          ++found;
+          if (found==pItems.size()) {
+            break outer;
+          } else {
+            continue outer;
+          }
         }
       }
     }

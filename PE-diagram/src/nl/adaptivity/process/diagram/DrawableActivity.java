@@ -33,7 +33,9 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public Drawable getItemAt(double pX, double pY) {
-    return _bounds.contains(pX-getX(), pY-getY()) ? this : null;
+    double hwidth = (ACTIVITYWIDTH+STROKEWIDTH)/2;
+    double hheight = (ACTIVITYHEIGHT+STROKEWIDTH)/2; 
+    return ((Math.abs(pX-getX())<=hwidth) && (Math.abs(pY-getY())<=hheight)) ? this : null;
   }
 
   @Override
