@@ -100,6 +100,16 @@ public class PMParser {
       // ignore
     }
 
+    @Override
+    public int getState() {
+      throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void setState(int pState) {
+      throw new UnsupportedOperationException("Not implemented");
+    }
+
   }
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
