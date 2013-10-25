@@ -239,9 +239,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     if (connectors == null) {
       connectors = strategy.newPath();
       for(DrawableProcessNode start:getModelNodes()) {
-        for (DrawableProcessNode end: start.getSuccessors()) {
-          connectors.moveTo(start.getBounds().right()-STROKEWIDTH, start.getY())
-                    .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
+        if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
+          for (DrawableProcessNode end: start.getSuccessors()) {
+            if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
+              connectors.moveTo(start.getBounds().right()-STROKEWIDTH, start.getY())
+                        .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
+            }
+          }
         }
       }
       aItems.setPath(strategy, 0, connectors);
