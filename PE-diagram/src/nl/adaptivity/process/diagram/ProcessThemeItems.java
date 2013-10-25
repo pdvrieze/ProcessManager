@@ -6,7 +6,12 @@ import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.ThemeItem;
 
 public enum ProcessThemeItems implements ThemeItem {
-  LINE(DrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0), state(STATE_TOUCHED, 39,95,95)){
+  LINE(DrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
+                                         state(STATE_TOUCHED, 39,95,95),
+                                         state(STATE_CUSTOM1, 0,0,255),
+                                         state(STATE_CUSTOM2, 255,255,0),
+                                         state(STATE_CUSTOM3, 255, 0, 0),
+                                         state(STATE_CUSTOM4, 0,255,0)){
 
     @Override
     public int getEffectiveState(int pState) {
