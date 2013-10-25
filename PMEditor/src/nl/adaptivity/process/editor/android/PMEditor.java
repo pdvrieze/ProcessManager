@@ -9,9 +9,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import static nl.adaptivity.diagram.Drawable.*;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
-import nl.adaptivity.diagram.android.AndroidStrategy;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.process.diagram.DiagramNode;
@@ -33,8 +33,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-
-import static nl.adaptivity.diagram.Drawable.*;
 
 public class PMEditor extends Activity {
 
@@ -215,12 +213,12 @@ public class PMEditor extends Activity {
       if (! (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY()))) {
         if (aLayoutNode!=null) {
           final DrawableProcessNode target = aLayoutNode.getTarget();
-          target.setState(target.getState()& ~STATE_CUSTOM1);
+          target.setState(target.getState()& ~STATE_ACTIVE);
         }
         aLayoutNode = pNode;
         {
           final DrawableProcessNode target = aLayoutNode.getTarget();
-          target.setState(target.getState()|STATE_CUSTOM1);
+          target.setState(target.getState()|STATE_ACTIVE);
         }
         waitForNextClicked(null);
       }
