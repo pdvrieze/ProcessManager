@@ -195,12 +195,9 @@ public class PMEditor extends Activity {
 
   private class MyStepper extends LayoutStepper<DrawableProcessNode> {
 
-    private AndroidPen aGreenPen;
     private boolean aImmediate = false;
     private AndroidPen aXMostPen;
-    private AndroidPen aGroupPen;
     private DiagramNode<DrawableProcessNode> aLayoutNode;
-    private AndroidPen aActivePen;
     private double aMinX = Double.NaN;
     private double aMinY = Double.NaN;
     private double aMaxX = Double.NaN;
@@ -214,6 +211,7 @@ public class PMEditor extends Activity {
       aMaxX = Double.NaN;
       aMaxY = Double.NaN;
       aMinMaxOverlay = null;
+      setLabel("node under consideration");
       if (! (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY()))) {
         if (aLayoutNode!=null) {
           final DrawableProcessNode target = aLayoutNode.getTarget();
@@ -286,7 +284,7 @@ public class PMEditor extends Activity {
         target.setState(target.getState()|STATE_GROUP);
       }
       if (aMinMaxOverlay==null) {
-        aMinMaxOverlay = new LineDrawable(aMinX, aMinY, aMaxX, aMaxY, getXMostPen().getPaint());
+        aMinMaxOverlay = new LineDrawable(aMinX, aMinY, aMaxX, aMaxY, getLinePen().getPaint());
       } else {
         aMinMaxOverlay.aX1 = aMinX;
         aMinMaxOverlay.aY1 = aMinY;
@@ -410,27 +408,7 @@ public class PMEditor extends Activity {
       }
     }
 
-    private AndroidPen getGreenPen() {
-      if (aGreenPen ==null) {
-        final Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setARGB(255, 0, 255, 0);
-        aGreenPen = new AndroidPen(paint);
-      }
-      return aGreenPen;
-    }
-
-    private AndroidPen getGroupPen() {
-      if (aGroupPen ==null) {
-        final Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setARGB(255, 255, 255, 0);
-        aGroupPen = new AndroidPen(paint);
-      }
-      return aGroupPen;
-    }
-
-    private AndroidPen getXMostPen() {
+    private AndroidPen getLinePen() {
       if (aXMostPen ==null) {
         final Paint paint = new Paint();
         paint.setAntiAlias(true);
@@ -438,16 +416,6 @@ public class PMEditor extends Activity {
         aXMostPen = new AndroidPen(paint);
       }
       return aXMostPen;
-    }
-
-    private AndroidPen getActivePen() {
-      if (aActivePen ==null) {
-        final Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setARGB(255, 0, 0, 255);
-        aActivePen = new AndroidPen(paint);
-      }
-      return aActivePen;
     }
 
   }
