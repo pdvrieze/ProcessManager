@@ -187,6 +187,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public void nodeChanged(DrawableProcessNode pNode) {
+    invalidateConnectors();
     // TODO this is not correct as it will only expand the bounds.
     Rectangle nodeBounds = pNode.getBounds();
     if (aBounds==null) {
