@@ -7,7 +7,7 @@ import nl.adaptivity.diagram.ThemeItem;
 
 public enum ProcessThemeItems implements ThemeItem {
   LINE(DrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
-                                         state(STATE_SELECTED, 0, 0, 32, 255, 2d),
+                                         state(STATE_SELECTED, 0, 0, 255, 255, 2d),
                                          state(STATE_TOUCHED, 255,255,0, 127, 7d),
                                          state(STATE_CUSTOM1, 0,0,255),
                                          state(STATE_CUSTOM2, 255,255,0),
@@ -19,7 +19,7 @@ public enum ProcessThemeItems implements ThemeItem {
       if ((pState&STATE_TOUCHED)!=0) { return STATE_TOUCHED; }
       int result = effectiveStateHelper(pState);
       if (result>=0) { return result; }
-      return STATE_DEFAULT;
+      return super.getEffectiveState(pState);
     }
 
   },
