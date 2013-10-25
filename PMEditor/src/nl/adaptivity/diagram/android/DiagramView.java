@@ -80,10 +80,10 @@ public class DiagramView extends View implements OnZoomListener{
     @Override
     public boolean onSingleTapConfirmed(MotionEvent pE) {
       try {
-        if (aNodeClickListener!=null) {
+        if (aOnNodeClickListener!=null) {
           nl.adaptivity.diagram.Drawable touchedElement = getTouchedElement(pE);
           if (touchedElement!=null) {
-            return aNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE);
+            return aOnNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE);
           }
         }
         return false;
@@ -131,7 +131,7 @@ public class DiagramView extends View implements OnZoomListener{
   private GestureDetector aGestureDetector;
   private ScaleGestureDetector aScaleGestureDetector;
 
-  private OnNodeClickListener aNodeClickListener = null;
+  private OnNodeClickListener aOnNodeClickListener = null;
 
   private MyGestureListener aGestureListener = new MyGestureListener();
 
@@ -256,13 +256,13 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  public OnNodeClickListener getNodeClickListener() {
-    return aNodeClickListener;
+  public OnNodeClickListener getOnNodeClickListener() {
+    return aOnNodeClickListener;
   }
 
 
-  public void setNodeClickListener(OnNodeClickListener pNodeClickListener) {
-    aNodeClickListener = pNodeClickListener;
+  public void setOnNodeClickListener(OnNodeClickListener pNodeClickListener) {
+    aOnNodeClickListener = pNodeClickListener;
   }
 
   protected void highlightTouch(nl.adaptivity.diagram.Drawable pTouchedElement) {
