@@ -36,6 +36,10 @@ public class DiagramView extends View implements OnZoomListener{
 
   private static final int CACHE_PADDING = 30;
 
+  public interface OnNodeClickListener {
+    public boolean onNodeClicked(DiagramView pView, nl.adaptivity.diagram.Drawable node, MotionEvent event);
+  }
+
   private final class MyGestureListener extends SimpleOnGestureListener {
 
     private boolean aIgnoreMove = false;
@@ -51,18 +55,33 @@ public class DiagramView extends View implements OnZoomListener{
 
     @Override
     public void onShowPress(MotionEvent pE) {
-      int pIdx = pE.getActionIndex();
-      float x = pE.getX(pIdx);
-      float y = pE.getY(pIdx);
-      double diagX = x/aScale +aOffsetX;
-      double diagY = y/aScale +aOffsetY;
-      nl.adaptivity.diagram.Drawable touchedElement = findTouchedElement(diagX, diagY);
+      nl.adaptivity.diagram.Drawable touchedElement = getTouchedElement(pE);
       if (touchedElement!=null) highlightTouch(touchedElement);
+    }
+
+    private nl.adaptivity.diagram.Drawable getTouchedElement(MotionEvent pE) {
+      final int pIdx = pE.getActionIndex();
+      final double diagX = pE.getX(pIdx)/aScale +aOffsetX;
+      final double diagY = pE.getY(pIdx)/aScale +aOffsetY;
+      return findTouchedElement(diagX, diagY);
     }
 
     public void setIgnoreMove(boolean pValue) {
       aIgnoreMove = pValue;
     }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent pE) {
+      if (aNodeClickListener!=null) {
+        nl.adaptivity.diagram.Drawable touchedElement = getTouchedElement(pE);
+        if (touchedElement!=null) {
+          return aNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE);
+        }
+      }
+      return false;
+    }
+
+
   }
 
   public static abstract class DiagramDrawable extends android.graphics.drawable.Drawable {
@@ -91,6 +110,8 @@ public class DiagramView extends View implements OnZoomListener{
   private double aScale=1d;
   private GestureDetector aGestureDetector;
   private ScaleGestureDetector aScaleGestureDetector;
+
+  private OnNodeClickListener aNodeClickListener = null;
 
   private MyGestureListener aGestureListener = new MyGestureListener();
 
@@ -212,6 +233,16 @@ public class DiagramView extends View implements OnZoomListener{
       aZoomController.setZoomInEnabled(aDiagram!=null);
       aZoomController.setZoomOutEnabled(aDiagram!=null);
     }
+  }
+
+
+  public OnNodeClickListener getNodeClickListener() {
+    return aNodeClickListener;
+  }
+
+
+  public void setNodeClickListener(OnNodeClickListener pNodeClickListener) {
+    aNodeClickListener = pNodeClickListener;
   }
 
   protected void highlightTouch(nl.adaptivity.diagram.Drawable pTouchedElement) {
