@@ -14,6 +14,7 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
+import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -33,8 +34,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 
-public class PMEditor extends Activity {
+public class PMEditor extends Activity implements OnNodeClickListener {
 
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
@@ -510,6 +512,7 @@ public class PMEditor extends Activity {
     diagramView1.setScale(2d);
     diagramView1.setOffsetX(0d);
     diagramView1.setOffsetY(0d);
+    diagramView1.setOnNodeClickListener(this);
   }
 
   public void setLabel(final String pString) {
@@ -603,6 +606,19 @@ public class PMEditor extends Activity {
   public boolean onCreateOptionsMenu(Menu pMenu) {
     MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.diagram_menu, pMenu);
+    return true;
+  }
+
+  @Override
+  public boolean onNodeClicked(DiagramView pView, nl.adaptivity.diagram.Drawable pNode, MotionEvent pEvent) {
+    for(DrawableProcessNode node:aPm.getModelNodes()) {
+      if (node == pNode) {
+        node.setState(node.getState()|STATE_SELECTED);
+      } else {
+        node.setState(node.getState() & ~STATE_SELECTED);
+      }
+    }
+    diagramView1.invalidate();
     return true;
   }
 
