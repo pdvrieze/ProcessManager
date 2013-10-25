@@ -613,7 +613,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   public boolean onNodeClicked(DiagramView pView, nl.adaptivity.diagram.Drawable pNode, MotionEvent pEvent) {
     for(DrawableProcessNode node:aPm.getModelNodes()) {
       if (node == pNode) {
-        node.setState(node.getState()|STATE_SELECTED);
+        node.setState(node.getState()^STATE_SELECTED);
       } else {
         node.setState(node.getState() & ~STATE_SELECTED);
       }
