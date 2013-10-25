@@ -49,7 +49,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
     if (hasPos()) {
-      PEN_T fillPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState);
+      PEN_T fillPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
+
+      if ((aState&STATE_TOUCHED)!=0) {
+        PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
+        pCanvas.drawCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, touchedPen);
+      }
 
       pCanvas.drawFilledCircle(STARTNODERADIUS, STARTNODERADIUS, STARTNODERADIUS, fillPen);
     }

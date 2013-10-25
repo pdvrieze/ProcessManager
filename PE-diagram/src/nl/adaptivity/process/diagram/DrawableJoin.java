@@ -69,9 +69,13 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
       aItems.setPath(strategy, 0, path);
     }
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState);
+      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
       PEN_T bgPen = pCanvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
 
+      if ((aState&STATE_TOUCHED)!=0) {
+        PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
+        pCanvas.drawPath(path, touchedPen, null);
+      }
       pCanvas.drawPath(path, linePen, bgPen);
     }
   }
