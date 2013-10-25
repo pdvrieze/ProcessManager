@@ -187,6 +187,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public void nodeChanged(DrawableProcessNode pNode) {
+    // TODO this is not correct as it will only expand the bounds.
     Rectangle nodeBounds = pNode.getBounds();
     if (aBounds==null) {
       aBounds = nodeBounds.clone();
@@ -217,8 +218,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public void invalidate() {
     super.invalidate();
-    if (aItems!=null) { aItems.clearPath(0); }
+    invalidateConnectors();
     if (aBounds!=null) { aBounds.left=Double.NaN; }
+  }
+
+  private void invalidateConnectors() {
+    if (aItems!=null) { aItems.clearPath(0); }
   }
 
   @Override
