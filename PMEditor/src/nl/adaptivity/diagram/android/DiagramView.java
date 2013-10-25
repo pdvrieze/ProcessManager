@@ -7,6 +7,7 @@ import java.util.Properties;
 import static nl.adaptivity.diagram.Drawable.*;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Diagram;
+import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.R;
@@ -43,6 +44,7 @@ public class DiagramView extends View implements OnZoomListener{
   private final class MyGestureListener extends SimpleOnGestureListener {
 
     private boolean aIgnoreMove = false;
+    private Drawable aLastTouchedElement;
 
     @Override
     public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
@@ -63,7 +65,12 @@ public class DiagramView extends View implements OnZoomListener{
       final int pIdx = pE.getActionIndex();
       final double diagX = pE.getX(pIdx)/aScale +aOffsetX;
       final double diagY = pE.getY(pIdx)/aScale +aOffsetY;
-      return findTouchedElement(diagX, diagY);
+      if (aLastTouchedElement!=null) {
+        aLastTouchedElement = aLastTouchedElement.getItemAt(diagX, diagY);
+        if (aLastTouchedElement!=null) { return aLastTouchedElement; }
+      }
+      aLastTouchedElement = findTouchedElement(diagX, diagY);
+      return aLastTouchedElement;
     }
 
     public void setIgnoreMove(boolean pValue) {
@@ -72,13 +79,26 @@ public class DiagramView extends View implements OnZoomListener{
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent pE) {
-      if (aNodeClickListener!=null) {
-        nl.adaptivity.diagram.Drawable touchedElement = getTouchedElement(pE);
-        if (touchedElement!=null) {
-          return aNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE);
+      try {
+        if (aNodeClickListener!=null) {
+          nl.adaptivity.diagram.Drawable touchedElement = getTouchedElement(pE);
+          if (touchedElement!=null) {
+            return aNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE);
+          }
         }
+        return false;
+      } finally {
+        aLastTouchedElement=null;
       }
-      return false;
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent pE) {
+      try {
+        return super.onSingleTapUp(pE);
+      } finally {
+        aLastTouchedElement = null;
+      }
     }
 
 
