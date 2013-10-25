@@ -78,7 +78,7 @@ public class DiagramView extends View implements OnZoomListener{
     }
 
     @Override
-    public boolean onSingleTapConfirmed(MotionEvent pE) {
+    public boolean onSingleTapUp(MotionEvent pE) {
       try {
         if (aOnNodeClickListener!=null) {
           nl.adaptivity.diagram.Drawable touchedElement = getTouchedElement(pE);
@@ -93,7 +93,7 @@ public class DiagramView extends View implements OnZoomListener{
     }
 
     @Override
-    public boolean onSingleTapUp(MotionEvent pE) {
+    public boolean onSingleTapConfirmed(MotionEvent pE) {
       try {
         return super.onSingleTapUp(pE);
       } finally {
