@@ -66,19 +66,19 @@ public class PMEditor extends Activity {
       int height = (int) Math.round((pCanvas.getHeight()/pScale));
       int width = (int) Math.round(pCanvas.getWidth()/pScale);
       if (!Double.isNaN(aX1)) {
-        float scaledX = (float) (/*(diagramView1.getOffsetX()*pScale)+*/aX1-diagramView1.getOffsetX());
+        float scaledX = (float) (aX1-diagramView1.getOffsetX());
         pCanvas.drawLine(scaledX, 0, scaledX, height, aPaint);
       }
       if (!Double.isNaN(aY1)) {
-        float scaledY = (float) (/*(diagramView1.getOffsetY()*pScale)+*/aY1-diagramView1.getOffsetY());
+        float scaledY = (float) (aY1-diagramView1.getOffsetY());
         pCanvas.drawLine(0, scaledY, width, scaledY, aPaint);
       }
       if (!Double.isNaN(aX2)) {
-        float scaledX = (float) ((diagramView1.getOffsetX()*pScale)+aX2);
+        float scaledX = (float) (aX2-diagramView1.getOffsetX());
         pCanvas.drawLine(scaledX, 0, scaledX, height, aPaint);
       }
       if (!Double.isNaN(aY2)) {
-        float scaledY = (float) ((diagramView1.getOffsetY()*pScale)+aY2);
+        float scaledY = (float) (aY2-diagramView1.getOffsetY());
         pCanvas.drawLine(0, scaledY, width, scaledY, aPaint);
       }
     }
