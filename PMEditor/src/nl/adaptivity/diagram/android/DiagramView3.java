@@ -72,40 +72,40 @@ public class DiagramView3<T extends DiagramAdapter> extends ViewGroup {
    * The position of the first child displayed
    */
   @ViewDebug.ExportedProperty(category = "scrolling")
-  int mFirstPosition = 0;
+  private int mFirstPosition = 0;
 
   /**
    * The offset in pixels from the top of the AdapterView to the top
    * of the view to select during the next layout.
    */
-  int mSpecificTop;
+  private int mSpecificTop;
 
   /**
    * Position from which to start looking for mSyncRowId
    */
-  int mSyncPosition;
+  private int mSyncPosition;
 
   /**
    * Row id to look for when data has changed
    */
-  long mSyncRowId = INVALID_ROW_ID;
+  private long mSyncRowId = INVALID_ROW_ID;
 
   /**
    * Height of the view when mSyncPosition and mSyncRowId where set
    */
-  long mSyncHeight;
+  private long mSyncHeight;
 
   /**
    * True if we need to sync to mSyncRowId
    */
-  boolean mNeedSync = false;
+  private boolean mNeedSync = false;
 
   /**
    * Indicates whether to sync based on the selection or position. Possible
    * values are {@link #SYNC_SELECTED_POSITION} or
    * {@link #SYNC_FIRST_POSITION}.
    */
-  int mSyncMode;
+  private int mSyncMode;
 
   /**
    * Our height after the last layout
@@ -130,50 +130,50 @@ public class DiagramView3<T extends DiagramAdapter> extends ViewGroup {
   /**
    * Indicates that this view is currently being laid out.
    */
-  boolean mInLayout = false;
+  private boolean mInLayout = false;
 
   /**
    * The listener that receives notifications when an item is selected.
    */
-  OnItemSelectedListener mOnItemSelectedListener;
+  private OnItemSelectedListener mOnItemSelectedListener;
 
   /**
    * The listener that receives notifications when an item is clicked.
    */
-  OnItemClickListener mOnItemClickListener;
+  private OnItemClickListener mOnItemClickListener;
 
   /**
    * The listener that receives notifications when an item is long clicked.
    */
-  OnItemLongClickListener mOnItemLongClickListener;
+  private OnItemLongClickListener mOnItemLongClickListener;
 
   /**
    * True if the data has changed since the last layout
    */
-  boolean mDataChanged;
+  private boolean mDataChanged;
 
   /**
    * The position within the adapter's data set of the item to select
    * during the next layout.
    */
   @ViewDebug.ExportedProperty(category = "list")
-  int mNextSelectedPosition = INVALID_POSITION;
+  private int mNextSelectedPosition = INVALID_POSITION;
 
   /**
    * The item id of the item to select during the next layout.
    */
-  long mNextSelectedRowId = INVALID_ROW_ID;
+  private long mNextSelectedRowId = INVALID_ROW_ID;
 
   /**
    * The position within the adapter's data set of the currently selected item.
    */
   @ViewDebug.ExportedProperty(category = "list")
-  int mSelectedPosition = INVALID_POSITION;
+  private int mSelectedPosition = INVALID_POSITION;
 
   /**
    * The item id of the currently selected item.
    */
-  long mSelectedRowId = INVALID_ROW_ID;
+  private long mSelectedRowId = INVALID_ROW_ID;
 
   /**
    * View to show if there are no items to show.
@@ -184,12 +184,12 @@ public class DiagramView3<T extends DiagramAdapter> extends ViewGroup {
    * The number of items in the current adapter.
    */
   @ViewDebug.ExportedProperty(category = "list")
-  int mItemCount;
+  private int mItemCount;
 
   /**
    * The number of items in the adapter before a data changed event occurred.
    */
-  int mOldItemCount;
+  private int mOldItemCount;
 
   /**
    * Represents an invalid position. All valid positions are in the range 0 to 1 less than the
@@ -205,12 +205,12 @@ public class DiagramView3<T extends DiagramAdapter> extends ViewGroup {
   /**
    * The last selected position we used when notifying
    */
-  int mOldSelectedPosition = INVALID_POSITION;
+  private int mOldSelectedPosition = INVALID_POSITION;
 
   /**
    * The id of the last selected position we used when notifying
    */
-  long mOldSelectedRowId = INVALID_ROW_ID;
+  private long mOldSelectedRowId = INVALID_ROW_ID;
 
   /**
    * Indicates what focusable state is requested when calling setFocusable().
@@ -229,7 +229,7 @@ public class DiagramView3<T extends DiagramAdapter> extends ViewGroup {
    * When set to true, calls to requestLayout() will not propagate up the parent hierarchy.
    * This is used to layout the children during a layout pass.
    */
-  boolean mBlockLayoutRequests = false;
+  private boolean mBlockLayoutRequests = false;
 
   private T mAdapter;
 
