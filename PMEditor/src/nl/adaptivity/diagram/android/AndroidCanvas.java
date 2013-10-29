@@ -2,6 +2,7 @@ package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
@@ -28,6 +29,12 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
     public OffsetCanvas(Rectangle pArea, double pScale) {
       aXOffset = -pArea.left* pScale;
       aYOffset = -pArea.top* pScale;
+      aScale = pScale;
+    }
+
+    public OffsetCanvas(double pScale) {
+      aXOffset = 0;
+      aYOffset = 0;
       aScale = pScale;
     }
 
@@ -237,6 +244,14 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
   public Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme() {
     if (aTheme==null) { aTheme = new AndroidTheme(getStrategy()); }
     return aTheme;
+  }
+
+  public void setCanvas(Canvas pCanvas) {
+    aCanvas = pCanvas;
+  }
+
+  public nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> scale(double pScale) {
+    return new OffsetCanvas(pScale);
   }
 
 }

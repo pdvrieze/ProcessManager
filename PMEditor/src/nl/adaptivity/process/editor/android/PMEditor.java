@@ -436,7 +436,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
         LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<DrawableProcessNode>();
         alg.setLayoutStepper(aStepper);
         aPm.setLayoutAlgorithm(alg);
-        diagramView1.setDiagram(aPm);
+        aAdapter = new MyDiagramAdapter(aPm);
+        diagramView1.setAdapter(aAdapter);
         aPm.layout();
       }
       return null;
@@ -499,7 +500,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
 
   private DrawableProcessModel aPm;
-
+  
+  private MyDiagramAdapter aAdapter;
 
   private LayoutTask aLayoutTask;
 
@@ -566,7 +568,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   protected void onResume() {
     super.onResume();
     aPm = getProcessModel();
-    diagramView1.setDiagram(aPm);
+    aAdapter = new MyDiagramAdapter(aPm);
+    diagramView1.setAdapter(aAdapter);
   }
 
 
@@ -610,15 +613,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   }
 
   @Override
-  public boolean onNodeClicked(DiagramView pView, nl.adaptivity.diagram.Drawable pNode, MotionEvent pEvent) {
-    for(DrawableProcessNode node:aPm.getModelNodes()) {
-      if (node == pNode) {
-        node.setState(node.getState()^STATE_SELECTED);
-      } else {
-        node.setState(node.getState() & ~STATE_SELECTED);
-      }
-    }
-    diagramView1.invalidate();
+  public boolean onNodeClicked(DiagramView pView, int position, MotionEvent pEvent) {
+    pView.setSelection(position);
     return true;
   }
 
