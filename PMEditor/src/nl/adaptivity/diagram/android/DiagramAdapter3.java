@@ -4,7 +4,7 @@ import android.graphics.Rect;
 import android.widget.Adapter;
 
 
-public interface DiagramAdapter extends Adapter {
+public interface DiagramAdapter3 extends Adapter {
 
   Rect getBounds(int position);
 

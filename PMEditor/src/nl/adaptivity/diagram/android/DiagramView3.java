@@ -54,7 +54,7 @@ import android.widget.Spinner;
  * <a href="{@docRoot}guide/topics/ui/binding.html">Binding to Data with AdapterView</a>
  * developer guide.</p></div>
  */
-public class DiagramView3<T extends DiagramAdapter> extends ViewGroup {
+public class DiagramView3<T extends DiagramAdapter3> extends ViewGroup {
 
   /**
    * The item view type returned by {@link Adapter#getItemViewType(int)} when
