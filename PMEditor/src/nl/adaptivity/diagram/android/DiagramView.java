@@ -379,7 +379,7 @@ public class DiagramView extends View implements OnZoomListener{
         final LightView lv = aAdapter.getView(i);
         lv.getBounds(aTmpRectF);
         int save = canvas.save();
-        canvas.translate(toCanvasX(aTmpRect.left), toCanvasY(aTmpRect.top));
+        canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
         lv.draw(canvas, aScale);
         canvas.restoreToCount(save);
       }
