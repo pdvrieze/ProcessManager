@@ -529,17 +529,19 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   public void updateDiagramBounds() {
     double minX = Double.POSITIVE_INFINITY;
     double minY = Double.POSITIVE_INFINITY;
+    double maxY = Double.NEGATIVE_INFINITY;
     for(DrawableProcessNode node: aPm.getModelNodes()) {
       if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
         final Rectangle bounds = node.getBounds();
         if (bounds.left<minX) { minX = bounds.left; }
         if (bounds.top<minY) { minY = bounds.top; }
+        if (bounds.bottom()>maxY) { maxY = bounds.bottom(); }
       }
     }
     double offsetX= Double.isInfinite(minX)? 0 : minX - aPm.getLeftPadding();
     double offsetY= Double.isInfinite(minY)? 0 : minY - aPm.getTopPadding();
     diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
-    diagramView1.setOffsetY(offsetY-200/*/diagramView1.getScale()*/);
+    diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
 
   private final DrawableProcessModel getProcessModel() {
