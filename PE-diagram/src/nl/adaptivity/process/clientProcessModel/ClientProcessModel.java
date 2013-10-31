@@ -197,7 +197,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
-  public Collection<? extends T> getModelNodes() {
+  public List<? extends T> getModelNodes() {
     if (aNodes == null) {
       aNodes = new ArrayList<T>(0);
     }
