@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.AndroidCanvas;
 import nl.adaptivity.diagram.android.LightView;
 import android.graphics.Canvas;
@@ -66,9 +67,9 @@ public class DrawableView implements LightView{
   }
 
   @Override
-  public void draw(Canvas pCanvas, double pScale) {
+  public void draw(Canvas pCanvas, Theme pTheme, double pScale) {
     if (aAndroidCanvas==null) {
-      aAndroidCanvas=new AndroidCanvas(pCanvas);
+      aAndroidCanvas=new AndroidCanvas(pCanvas, pTheme);
     } else {
       aAndroidCanvas.setCanvas(pCanvas);
     }

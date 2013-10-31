@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.R;
 import android.annotation.TargetApi;
@@ -372,7 +373,13 @@ public class DiagramView extends View implements OnZoomListener{
   private void drawDiagram(Canvas canvas) {
     if (aAdapter!=null) {
       LightView bg = aAdapter.getBackground();
-      if (bg!=null) { bg.draw(canvas, aScale); }
+      Theme<?, AndroidPen, AndroidPath> theme = aAdapter.getTheme();
+      if (bg!=null) {
+        int save = canvas.save();
+        canvas.translate(toCanvasX(0), toCanvasY(0));
+        bg.draw(canvas, theme, aScale);
+        canvas.restoreToCount(save);
+      }
       
       int len = aAdapter.getCount();
       for(int i=0; i<len; i++) {
@@ -380,13 +387,13 @@ public class DiagramView extends View implements OnZoomListener{
         lv.getBounds(aTmpRectF);
         int save = canvas.save();
         canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
-        lv.draw(canvas, aScale);
+        lv.draw(canvas, theme, aScale);
         canvas.restoreToCount(save);
       }
       
       LightView overlay = aAdapter.getOverlay();
       if (overlay!=null) {
-        overlay.draw(canvas, aScale);
+        overlay.draw(canvas, theme, aScale);
       }
 //      @SuppressLint("DrawAllocation")
 //      final Rectangle clipBounds = new Rectangle(-(aOffsetX/aScale), -(aOffsetY/aScale), getHeight(), getWidth());

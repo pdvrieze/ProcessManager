@@ -3,15 +3,73 @@ package nl.adaptivity.process.editor.android;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.RectF;
+import nl.adaptivity.diagram.Drawable;
+import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.diagram.android.AndroidPath;
+import nl.adaptivity.diagram.android.AndroidPen;
+import nl.adaptivity.diagram.android.AndroidStrategy;
+import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DiagramAdapter;
 import nl.adaptivity.diagram.android.LightView;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.ProcessThemeItems;
 
 
 public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawableProcessNode> {
+
+  
+  private class ConnectorView implements LightView {
+
+    private Paint aPen;
+
+    @Override
+    public void setFocussed(boolean pFocussed) { /* ignore */ }
+
+    @Override
+    public boolean getFocussed() { return false; }
+
+    @Override
+    public void setSelected(boolean pSelected) { /* ignore */ }
+
+    @Override
+    public boolean getSelected() { return false; }
+
+    @Override
+    public void setTouched(boolean pB) { /* ignore */ }
+
+    @Override
+    public boolean getTouched() { return false; }
+
+    @Override
+    public void getBounds(RectF pDest) {
+      MyDiagramAdapter.this.getBounds(pDest);
+    }
+
+    @Override
+    public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale) {
+      if (aPen ==null) { aPen = pTheme.getPen(ProcessThemeItems.LINE, Drawable.STATE_DEFAULT).getPaint(); }
+      for(DrawableProcessNode start:aDiagram.getModelNodes()) {
+        if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
+          for (DrawableProcessNode end: start.getSuccessors()) {
+            if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
+              final float x1 = (float) ((start.getBounds().right()-DrawableProcessModel.STROKEWIDTH)*pScale);
+              final float y1 = (float) (start.getY()*pScale);
+              final float x2 = (float) ((end.getBounds().left+DrawableProcessModel.STROKEWIDTH)*pScale);
+              final float y2 = (float) (end.getY()* pScale);
+              pCanvas.drawLine(x1, y1, x2, y2, aPen);
+            }
+          }
+        }
+      }
+    }
+
+  }
 
   private DrawableProcessModel aDiagram;
   private List<DrawableView> aViewCache;
@@ -19,6 +77,7 @@ public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawablePr
   private LightView aOverlay;
   private RectF aBounds = new RectF();
   private boolean aInvalid = true;
+  private AndroidTheme aTheme;
 
   public MyDiagramAdapter(DrawableProcessModel pDiagram) {
     aDiagram = pDiagram;
@@ -49,6 +108,7 @@ public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawablePr
 
   @Override
   public LightView getBackground() {
+    if (aBackground==null) { aBackground = new ConnectorView(); }
     return aBackground;
   }
 
@@ -83,6 +143,12 @@ public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawablePr
       }
     }
     pDiagramBounds.set(aBounds);
+  }
+
+  @Override
+  public AndroidTheme getTheme() {
+    if (aTheme ==null) { aTheme = new AndroidTheme(AndroidStrategy.INSTANCE); }
+    return aTheme;
   }
 
 }

@@ -1,5 +1,7 @@
 package nl.adaptivity.diagram.android;
 
+import nl.adaptivity.diagram.DrawingStrategy;
+import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
@@ -20,6 +22,6 @@ public interface LightView {
   
   public void getBounds(RectF pTmpRectF);
   
-  public void draw(Canvas pCanvas, double pScale);
+  public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale);
   
 }

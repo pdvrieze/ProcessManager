@@ -1,5 +1,6 @@
 package nl.adaptivity.diagram.android;
 
+import nl.adaptivity.diagram.Theme;
 import android.graphics.RectF;
 
 
@@ -16,5 +17,7 @@ public interface DiagramAdapter<T extends LightView, V> {
   LightView getOverlay();
 
   void getBounds(RectF pDiagramBounds);
+
+  Theme<?, AndroidPen, AndroidPath> getTheme();
 
 }
