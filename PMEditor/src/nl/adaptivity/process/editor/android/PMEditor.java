@@ -422,14 +422,11 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
   private class LayoutTask extends AsyncTask<Object, WaitTask, Object> {
 
-    private MyStepper aStepper;
+    private final MyStepper aStepper = new MyStepper();
     private WaitTask aTask;
 
     @Override
     protected Object doInBackground(Object... pParams) {
-      if (aStepper==null) {
-        aStepper = new MyStepper();
-      }
       // Start with null layout algorithm, to prevent dual layout.
       aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
       if (aPm!=null) {
