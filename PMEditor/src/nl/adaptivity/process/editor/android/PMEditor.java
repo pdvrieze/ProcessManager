@@ -1,5 +1,10 @@
 package nl.adaptivity.process.editor.android;
 
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM1;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM2;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM3;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -9,15 +14,19 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import static nl.adaptivity.diagram.Drawable.*;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
+import nl.adaptivity.diagram.android.AndroidStrategy;
+import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
+import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.diagram.DiagramNode;
+import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.LayoutStepper;
 import android.app.Activity;
@@ -31,10 +40,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
 
@@ -501,6 +515,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   private MyDiagramAdapter aAdapter;
 
   private LayoutTask aLayoutTask;
+  private LinearLayout elementsView;
 
   /** Called when the activity is first created. */
   @Override
@@ -508,10 +523,38 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
     diagramView1 = (DiagramView) findViewById(R.id.diagramView1);
-    diagramView1.setScale(2d);
     diagramView1.setOffsetX(0d);
     diagramView1.setOffsetY(0d);
     diagramView1.setOnNodeClickListener(this);
+    
+    elementsView = (LinearLayout) findViewById(R.id.diagramElementsGroup);
+    if (elementsView!=null) {
+      elementsView.removeAllViews();
+      
+      final AndroidTheme theme = new AndroidTheme(AndroidStrategy.INSTANCE);
+
+      addNodeView(theme, new DrawableStartNode(null));
+      addNodeView(theme, new DrawableActivity(null));
+
+      elementsView.requestLayout();
+    }
+  }
+
+  private void addNodeView(AndroidTheme theme, DrawableProcessNode node) {
+    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    lp.gravity=Gravity.CENTER;
+    lp.weight=1f;
+    ImageView v = new ImageView(this);
+    v.setLayoutParams(lp);
+    v.setImageDrawable(new DrawableDrawable(positionNode(node), theme));
+    elementsView.addView(v);
+  }
+
+  private static DrawableProcessNode positionNode(final DrawableProcessNode node) {
+    node.setX(0); node.setY(0);
+    Rectangle bounds = node.getBounds();
+    node.setX(-bounds.left); node.setY(-bounds.top);
+    return node;
   }
 
   public void setLabel(final String pString) {

@@ -15,13 +15,14 @@ import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
 import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DiagramAdapter;
+import nl.adaptivity.diagram.android.LWDrawableView;
 import nl.adaptivity.diagram.android.LightView;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
 
 
-public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawableProcessNode> {
+public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, DrawableProcessNode> {
 
   
   private class ConnectorView implements LightView {
@@ -72,7 +73,7 @@ public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawablePr
   }
 
   private DrawableProcessModel aDiagram;
-  private List<DrawableView> aViewCache;
+  private List<LWDrawableView> aViewCache;
   private LightView aBackground;
   private LightView aOverlay;
   private RectF aBounds = new RectF();
@@ -81,7 +82,7 @@ public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawablePr
 
   public MyDiagramAdapter(DrawableProcessModel pDiagram) {
     aDiagram = pDiagram;
-    aViewCache = new ArrayList<DrawableView>(pDiagram.getModelNodes().size());
+    aViewCache = new ArrayList<LWDrawableView>(pDiagram.getModelNodes().size());
   }
 
   @Override
@@ -95,13 +96,13 @@ public class MyDiagramAdapter implements DiagramAdapter<DrawableView, DrawablePr
   }
 
   @Override
-  public DrawableView getView(int pPosition) {
+  public LWDrawableView getView(int pPosition) {
     for(int i=pPosition-aViewCache.size();i>=0;--i) { aViewCache.add(null); }
-    DrawableView result = aViewCache.get(pPosition);
+    LWDrawableView result = aViewCache.get(pPosition);
     if (result!=null) {
       return result;
     }
-    result = new DrawableView(getItem(pPosition));
+    result = new LWDrawableView(getItem(pPosition));
     aViewCache.set(pPosition, result);
     return result;
   }

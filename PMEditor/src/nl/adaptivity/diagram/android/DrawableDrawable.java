@@ -1,0 +1,94 @@
+package nl.adaptivity.diagram.android;
+
+import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
+import android.util.DisplayMetrics;
+
+
+public class DrawableDrawable extends Drawable {
+  
+  private nl.adaptivity.diagram.Drawable aImage;
+  private Theme<?,?,?> aTheme;
+  private double aScale;
+  
+  public DrawableDrawable(nl.adaptivity.diagram.Drawable pImage, Theme<?,?,?> pTheme) {
+    aTheme = pTheme;
+    aImage = pImage;
+    DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
+    aScale = dm.density*160/96;
+  }
+  
+  @Override
+  public void draw(Canvas pCanvas) {
+    if (aImage!=null) {
+      AndroidCanvas androidCanvas =  new AndroidCanvas(pCanvas, aTheme);
+      aImage.draw(androidCanvas.scale(aScale), null);
+    }
+  }
+
+  @Override
+  public int getOpacity() {
+    return PixelFormat.TRANSPARENT;
+  }
+
+  @Override
+  public void setAlpha(int pAlpha) {
+    throw new UnsupportedOperationException("Setting alpha not supported");
+  }
+
+  @Override
+  public void setColorFilter(ColorFilter pCf) {
+    throw new UnsupportedOperationException("Color filters not supported");
+  }
+
+  @Override
+  public boolean isStateful() {
+    return true;
+  }
+
+  @Override
+  public boolean setState(int[] pStateSet) {
+    if (aImage!=null) {
+      int dState = nl.adaptivity.diagram.Drawable.STATE_DISABLED;
+      for(int state:pStateSet) {
+        switch (state) {
+        case android.R.attr.state_enabled:
+          dState &= ~nl.adaptivity.diagram.Drawable.STATE_DISABLED;
+          break;
+        case android.R.attr.state_focused:
+          dState |= nl.adaptivity.diagram.Drawable.STATE_FOCUSSED;
+          break;
+        case android.R.attr.state_pressed:
+          dState |= nl.adaptivity.diagram.Drawable.STATE_TOUCHED;
+          break;
+        case android.R.attr.state_selected:
+          dState |= nl.adaptivity.diagram.Drawable.STATE_SELECTED;
+          break;
+        }
+      }
+      boolean result = aImage.getState()!=dState;
+      aImage.setState(dState);
+      super.setState(pStateSet);
+      return result;
+    }
+    return super.setState(pStateSet);
+  }
+
+  @Override
+  public int getIntrinsicWidth() {
+    Rectangle bounds = aImage.getBounds();
+    return (int) Math.ceil(bounds.width*aScale);
+  }
+
+  @Override
+  public int getIntrinsicHeight() {
+    Rectangle bounds = aImage.getBounds();
+    return (int) Math.ceil(bounds.height*aScale);
+  }
+
+}

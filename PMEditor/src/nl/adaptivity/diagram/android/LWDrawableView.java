@@ -1,20 +1,18 @@
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import nl.adaptivity.diagram.android.AndroidCanvas;
-import nl.adaptivity.diagram.android.LightView;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
 
-public class DrawableView implements LightView{
+public class LWDrawableView implements LightView{
 
   private Drawable aItem;
   private AndroidCanvas aAndroidCanvas;
 
-  public DrawableView(Drawable pItem) {
+  public LWDrawableView(Drawable pItem) {
     aItem = pItem;
   }
 

@@ -12,6 +12,7 @@ import nl.adaptivity.process.editor.android.R;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -116,8 +117,9 @@ public class DiagramView extends View implements OnZoomListener{
 
   }
 
-  private static final double MAXSCALE = 6d;
-  private static final double MINSCALE = 0.5d;
+  private static final double DENSITY = Resources.getSystem().getDisplayMetrics().density;
+  private static final double MAXSCALE = 6d*DENSITY;
+  private static final double MINSCALE = 0.5d*DENSITY;
   private DiagramAdapter<?,?> aAdapter;
   private Paint aRed;
   private Paint aTimePen;
@@ -128,7 +130,7 @@ public class DiagramView extends View implements OnZoomListener{
   private android.graphics.drawable.Drawable aOverlay;
   private ZoomButtonsController aZoomController;
   private final boolean aMultitouch;
-  private double aScale=1d;
+  private double aScale=DENSITY*160/96; // Use density of 96dpi for drawables
   private GestureDetector aGestureDetector;
   private ScaleGestureDetector aScaleGestureDetector;
 
@@ -605,7 +607,7 @@ public class DiagramView extends View implements OnZoomListener{
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
-    if (! aMultitouch) {
+    if (! (aMultitouch || isInEditMode())) {
       aZoomController = new ZoomButtonsController(this);
       aZoomController.setOnZoomListener(this);
       aZoomController.setAutoDismissed(false);
@@ -617,7 +619,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   @Override
   protected void onDetachedFromWindow() {
-    if (! aMultitouch) {
+    if (! (aMultitouch|| isInEditMode())) {
       aZoomController.setVisible(false);
     }
     super.onDetachedFromWindow();
