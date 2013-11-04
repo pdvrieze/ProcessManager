@@ -42,8 +42,6 @@ public class DiagramView extends View implements OnZoomListener{
   private final class MyGestureListener extends SimpleOnGestureListener {
 
     private boolean aIgnoreMove = false;
-    private int aLastTouchedElement = -1;
-
     @Override
     public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
       if (aIgnoreMove) { return false; }
@@ -57,22 +55,6 @@ public class DiagramView extends View implements OnZoomListener{
     public void onShowPress(MotionEvent pE) {
       int touchedElement = getTouchedElement(pE);
       if (touchedElement>=0) highlightTouch(touchedElement);
-    }
-
-    private int getTouchedElement(MotionEvent pE) {
-      final int pIdx = pE.getActionIndex();
-      float x = pE.getX(pIdx);
-      float y = pE.getY(pIdx);
-      final float diagX = toDiagramX(x);
-      final float diagY = toDiagramY(y);
-      if (aLastTouchedElement>=0) {
-        getItemBounds(aLastTouchedElement, aTmpRectF);
-        if (aTmpRectF.contains(diagX, diagY)) {
-          return aLastTouchedElement;
-        }
-      }
-      aLastTouchedElement = findTouchedElement(x, y);
-      return aLastTouchedElement;
     }
 
     public void setIgnoreMove(boolean pValue) {
@@ -123,6 +105,7 @@ public class DiagramView extends View implements OnZoomListener{
   private DiagramAdapter<?,?> aAdapter;
   private Paint aRed;
   private Paint aTimePen;
+  private int aLastTouchedElement = -1;
   private final Rect aMissingDiagramTextBounds = new Rect();
   private String aMissingDiagramText;
   private double aOffsetX = 0;
@@ -304,11 +287,31 @@ public class DiagramView extends View implements OnZoomListener{
     return aTmpRect;
   }
 
+  private int getTouchedElement(MotionEvent pEvent) {
+    int pIdx = pEvent.getActionIndex();
+    float x = pEvent.getX(pIdx);
+    float diagX = toDiagramX(x);
+    float y = pEvent.getY(pIdx);
+    float diagY = toDiagramY(y);
+
+    
+//    final int pIdx = pE.getActionIndex();
+//    float canvX = pE.getX(pIdx);
+//    float canvY = pE.getY(pIdx);
+    if (aLastTouchedElement>=0) {
+      getItemBounds(aLastTouchedElement, aTmpRectF);
+      if (aTmpRectF.contains(diagX, diagY)) {
+        return aLastTouchedElement;
+      }
+    }
+    aLastTouchedElement = findTouchedElement(diagX, diagY);
+    return aLastTouchedElement;
+  }
+
   protected int findTouchedElement(float diagX, float diagY) {
     final int len = aAdapter.getCount();
     for(int i=0;i < len ; ++i) {
-      LightView lv = aAdapter.getView(i);
-      lv.getBounds(aTmpRectF);
+      getItemBounds(i, aTmpRectF);
       if (aTmpRectF.contains(diagX, diagY)) {
         return i;
       }
