@@ -20,7 +20,7 @@ public interface LightView {
   
   public boolean getTouched();
   
-  public void getBounds(RectF pTmpRectF);
+  public void getBounds(RectF pTarget);
   
   public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale);
   
