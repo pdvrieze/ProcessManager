@@ -61,10 +61,11 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
       final double dx = JOINWIDTH/2;
       final double dy = JOINHEIGHT/2;
       path = strategy.newPath();
-      path.moveTo(0,dy)
-          .lineTo(dx, 0)
-          .lineTo(JOINWIDTH, dy)
-          .lineTo(dx, JOINHEIGHT)
+      final double hse = STROKEEXTEND/2;
+      path.moveTo(hse,dy+hse)
+          .lineTo(dx+hse, hse)
+          .lineTo(JOINWIDTH+hse, dy+hse)
+          .lineTo(dx+hse, JOINHEIGHT+hse)
           .close();
       aItems.setPath(strategy, 0, path);
     }
