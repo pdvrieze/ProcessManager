@@ -7,8 +7,8 @@ import nl.adaptivity.diagram.ThemeItem;
 
 public enum ProcessThemeItems implements ThemeItem {
   LINE(DrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
-                                         state(STATE_SELECTED, 0, 0, 255, 255, 2d),
-                                         state(STATE_TOUCHED, 255,255,0, 127, 7d),
+                                         stateStroke(STATE_SELECTED, 0, 0, 255, 255, 2d),
+                                         stateStroke(STATE_TOUCHED, 255,255,0, 127, 7d),
                                          state(STATE_CUSTOM1, 0,0,255),
                                          state(STATE_CUSTOM2, 255,255,0),
                                          state(STATE_CUSTOM3, 255, 0, 0),
@@ -62,7 +62,7 @@ public enum ProcessThemeItems implements ThemeItem {
     aFill = true;
   }
 
-  private static StateSpecifier state(int pState, int r, int g, int b, int a, double strokeMultiplier) {
+  private static StateSpecifier stateStroke(int pState, int r, int g, int b, int a, double strokeMultiplier) {
     return new StrokeStateSpecifier(pState, r, g, b, a, strokeMultiplier);
   }
 
@@ -101,7 +101,7 @@ public enum ProcessThemeItems implements ThemeItem {
     result = pStrategy.newPen().setColor(specifier.aRed, specifier.aGreen, specifier.aBlue, specifier.aAlpha);
     if (! aFill) {
       if (aParent!=null) {
-        result.setStrokeWidth(aParent.aStroke * specifier.getStrokeMultiplier());
+        result.setStrokeWidth((aStroke<=0d ? aParent.aStroke : aStroke) * specifier.getStrokeMultiplier());
       } else {
         result.setStrokeWidth(aStroke * specifier.getStrokeMultiplier());
       }
