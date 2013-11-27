@@ -118,6 +118,7 @@ public class DBHelper implements AutoCloseable{
             }
             if ((aConnection == null) && (connection != null) && connectionValid) {
               aConnection = connection;
+              aStatements = new ArrayList<>();
             } else {
               dataSource.aConnectionMap.remove(DBHelper.this.aKey);
               aConnection = connection = null;
@@ -129,6 +130,7 @@ public class DBHelper implements AutoCloseable{
           connection.setAutoCommit(false);
           dataSource.aConnectionMap.put(DBHelper.this.aKey, connection);
           DBHelper.this.aConnection = connection;
+          aStatements = new ArrayList<>();
         }
       }
       if (connection!=null) {
