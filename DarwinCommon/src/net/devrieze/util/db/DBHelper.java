@@ -19,11 +19,10 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import static net.devrieze.util.Annotations.*;
-
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.CompoundException;
-import net.devrieze.util.MultiException;
+//import net.devrieze.util.MultiException;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringCacheImpl;
 
@@ -664,14 +663,16 @@ public class DBHelper implements AutoCloseable{
    */
   @Override
   public void close() {
-    MultiException errors = null;
+    Exception error = null;
     getLogger().log(DETAIL_LOG_LEVEL, "Closing connection for key " + aKey);
     for (DBStatement statement:aStatements) {
       try {
         statement.close();
       } catch (RuntimeException e) {
         logException("Failure to close database statements", e);
-        MultiException.add(errors, e);
+        if (error==null) { error = e; } else {
+          error.addSuppressed(e);
+        }
       }
     }
     aStatements = notNull(Collections.<DBStatement>emptyList());
@@ -687,16 +688,22 @@ public class DBHelper implements AutoCloseable{
         }
       }
     } catch (SQLException e) {
-      MultiException.add(errors, e);
+      if (error==null) { error=e; } else { error.addSuppressed(e); }
       logException("Failure to close database connection", e);
     } finally {
       aConnection = null;
     }
-    MultiException.throwIfError(errors);
+    if (error!=null) {
+      if (error instanceof RuntimeException) {
+        throw (RuntimeException) error;
+      } else {
+        throw new RuntimeException(error);
+      }
+    }
   }
 
   public static void closeConnections(@NotNull final Object pReference) {
-    MultiException exceptions = null;
+    Exception error = null;
     int count = 0;
     synchronized (aShareLock) {
       if (aSourceMap!=null) {
@@ -706,13 +713,19 @@ public class DBHelper implements AutoCloseable{
               ++count;
             }
           } catch (SQLException e) {
-            exceptions = MultiException.add(exceptions, e);
+            if (error==null) { error=e; } else { error.addSuppressed(e); }
           }
         }
       }
     }
     getLogger().log(DETAIL_LOG_LEVEL, "Closed " + count + " connections for key " + pReference);
-    MultiException.throwIfError(exceptions);
+    if (error!=null) {
+      if (error instanceof RuntimeException) {
+        throw (RuntimeException) error;
+      } else {
+        throw new RuntimeException(error);
+      }
+    }
   }
 
   public static void closeAllConnections(@NotNull final String pDbResource) {
