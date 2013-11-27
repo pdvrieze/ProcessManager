@@ -13,8 +13,12 @@
 		<mkdir dir="release" />
 		<javac srcdir="src" destdir="release" classpath="." debug="off" source="1.7" target="1.7" />
 	</target>
+	<target name="debugjar" depends="build">
+		<jar destfile="JavaCommonApi-1.0.1.jar" basedir="build">
+		</jar>
+	</target>
 	<target name="jar" depends="release">
-		<jar destfile="JavaCommonApi-1.0.jar" basedir="release">
+		<jar destfile="JavaCommonApi-1.0.1.jar" basedir="release">
 		</jar>
 	</target>
 
