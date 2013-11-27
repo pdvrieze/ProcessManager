@@ -22,9 +22,8 @@ import static net.devrieze.util.Annotations.*;
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.CompoundException;
-//import net.devrieze.util.MultiException;
 import net.devrieze.util.StringCache;
-import net.devrieze.util.StringCacheImpl;
+//import net.devrieze.util.StringCacheImpl;
 
 
 public class DBHelper implements AutoCloseable{
@@ -524,7 +523,7 @@ public class DBHelper implements AutoCloseable{
     aDataSource = pDataSource;
     aKey = pKey != null ? pKey : new Object();
     aStatements = new ArrayList<>();
-    aStringCache = StringCacheImpl.NOPCACHE;
+    aStringCache = StringCache.NOPCACHE;
   }
 
   /**
