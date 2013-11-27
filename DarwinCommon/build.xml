@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="build">
-	<property name="classpath" value="/usr/share/tomcat-servlet-api-2.5/lib/jsp-api.jar:/usr/share/tomcat-servlet-api-2.5/lib/servlet-api.jar:../../JavaCommonApi/trunk/bin"/>
+	<property name="classpath" value="/usr/share/tomcat-servlet-api-2.5/lib/jsp-api.jar:/usr/share/tomcat-servlet-api-2.5/lib/servlet-api.jar:../../JavaCommonApi/trunk/JavaCommonApi-1.0.1.jar"/>
 
 	<target name="javadoc">
     <mkdir dir="doc" />
@@ -17,11 +17,11 @@
 		<javac srcdir="src" destdir="release" classpath="${classpath}" debug="off" source="1.7" target="1.7" />
 	</target>
 	<target name="jar" depends="release">
-		<jar destfile="DarwinCommon-1.0.1.jar" basedir="release">
+		<jar destfile="DarwinCommon-1.0.2.jar" basedir="release">
 		</jar>
 	</target>
 	<target name="debugjar" depends="build">
-		<jar destfile="DarwinCommon-1.0.1.jar" basedir="build">
+		<jar destfile="DarwinCommon-1.0.2.jar" basedir="build">
 		</jar>
 	</target>
 
