@@ -49,9 +49,9 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       if (aResultSet != null) {
         try {
           aResultSet.beforeFirst();
-          DBHelper.logWarnings("Resetting resultset for AdapterIterator", aResultSet.getWarnings());
+          DBHelper.logWarnings("Resetting resultset for AdapterIterator", aResultSet);
           final ResultSetMetaData metadata = aResultSet.getMetaData();
-          DBHelper.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet.getWarnings());
+          DBHelper.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet);
           for (int i = 1; i <= metadata.getColumnCount(); ++i) {
             doRegisterColumn(i, notNull(metadata.getColumnName(i)));
           }
@@ -79,7 +79,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
       try {
         aPeeked = resultSet.next();
-        DBHelper.logWarnings("Getting a peek at next row in resultset", resultSet.getWarnings());
+        DBHelper.logWarnings("Getting a peek at next row in resultset", resultSet);
         if (aAutoClose && !aPeeked) {
           closeStatement();
         }
@@ -105,10 +105,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
         if (!aPeeked) {
           if (!resultSet.next()) {
             closeStatement();
-            DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet.getWarnings());
+            DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
             throw new IllegalStateException("Trying to go beyond the last element");
           }
-          DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet.getWarnings());
+          DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
         }
         aPeeked = false;
 
@@ -128,7 +128,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
       try {
         resultSet.deleteRow();
-        DBHelper.logWarnings("Deleting a row in ResultSetAdapter", resultSet.getWarnings());
+        DBHelper.logWarnings("Deleting a row in ResultSetAdapter", resultSet);
       } catch (final SQLFeatureNotSupportedException e) {
         throw new UnsupportedOperationException(e);
       } catch (final SQLException e) {
@@ -141,8 +141,8 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     public void close() {
       if (aResultSet != null) {
         try {
+          DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet);
           aResultSet.close();
-          DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet.getWarnings());
         } catch (final SQLException e) {
           DBHelper.logException("Error closing resultset", e);
         }

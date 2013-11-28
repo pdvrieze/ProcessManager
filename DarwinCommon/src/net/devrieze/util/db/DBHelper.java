@@ -5,8 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,6 +19,7 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import static net.devrieze.util.Annotations.*;
+
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.CompoundException;
@@ -28,7 +29,7 @@ import net.devrieze.util.StringCache;
 
 public class DBHelper implements AutoCloseable{
 
-  private static final Level DETAIL_LOG_LEVEL = Level.INFO;
+  private static final Level DETAIL_LOG_LEVEL = Level.FINE;
 
   private static final String LOGGER_NAME = "DBHelper";
 
@@ -86,7 +87,7 @@ public class DBHelper implements AutoCloseable{
       Connection connection = aConnection;
       boolean connectionValid = false;
       connection = aConnection;
-      if (connection != null) {
+      if (connection != null && (! connection.isClosed())) {
         try {
           connectionValid = connection.isValid(1);
         } catch (final AbstractMethodError e) {
@@ -97,6 +98,7 @@ public class DBHelper implements AutoCloseable{
           aConnection = connection = null;
         }
       }
+      if (! connectionValid) { connection = null; }
 
       if (aDataSource!=null) {
         final DataSourceWrapper dataSource = notNull(aDataSource);
@@ -118,7 +120,6 @@ public class DBHelper implements AutoCloseable{
             }
             if ((aConnection == null) && (connection != null) && connectionValid) {
               aConnection = connection;
-              aStatements = new ArrayList<>();
             } else {
               dataSource.aConnectionMap.remove(DBHelper.this.aKey);
               aConnection = connection = null;
@@ -130,17 +131,16 @@ public class DBHelper implements AutoCloseable{
           connection.setAutoCommit(false);
           dataSource.aConnectionMap.put(DBHelper.this.aKey, connection);
           DBHelper.this.aConnection = connection;
-          aStatements = new ArrayList<>();
         }
       }
       if (connection!=null) {
         try {
           aSQLStatement = connection.prepareStatement(pSQL);
+          logWarnings("Preparing statement", connection);
         } catch (final SQLException e) {
           DBHelper.this.close();
           throw e;
         }
-        logWarnings("Preparing statement", connection.getWarnings());
       }
 
       DBHelper.this.aErrorMsg = pErrorMsg;
@@ -204,7 +204,7 @@ public class DBHelper implements AutoCloseable{
       }
       try {
         sqlStatement.execute();
-        logWarnings("Executing prepared statement", sqlStatement.getWarnings());
+        logWarnings("Executing prepared statement", sqlStatement);
         return true;
       } catch (final SQLException e) {
         logException(aErrorMsg, e);
@@ -341,7 +341,7 @@ public class DBHelper implements AutoCloseable{
           return null;
         }
         final ResultSet result = sqlStatement.executeQuery();
-        logWarnings("Prepared statement " + sqlStatement.toString(), sqlStatement.getWarnings());
+        logWarnings("Prepared statement " + sqlStatement.toString(), sqlStatement);
         aResultSets.add(result);
         return result;
       } catch (final SQLException e) {
@@ -358,7 +358,7 @@ public class DBHelper implements AutoCloseable{
           return false;
         }
         final boolean result = rs.next();
-        logWarnings("execQueryNotEmpty resultset", rs.getWarnings());
+        logWarnings("execQueryNotEmpty resultset", rs);
         return result;
       } catch (final SQLException e) {
         logException("Error processing result set", e);
@@ -373,7 +373,7 @@ public class DBHelper implements AutoCloseable{
           return true;
         }
         final boolean result = !rs.next();
-        logWarnings("execQueryNotEmpty resultset", rs.getWarnings());
+        logWarnings("execQueryNotEmpty resultset", rs);
         return result;
       } catch (final SQLException e) {
         logException("Error processing result set", e);
@@ -427,9 +427,9 @@ public class DBHelper implements AutoCloseable{
         }
         return null;
       }
-      logWarnings("getSingleHelper resultset", rs.getWarnings());
+      logWarnings("getSingleHelper resultset", rs);
       if (!rs.next()) {
-        logWarnings("getSingleHelper resultset", rs.getWarnings());
+        logWarnings("getSingleHelper resultset", rs);
         try {
           rs.close();
         } catch (SQLException e) {
@@ -437,9 +437,9 @@ public class DBHelper implements AutoCloseable{
         }
         return null; // No result, that is allowed, no warning
       }
-      logWarnings("getSingleHelper resultset", rs.getWarnings());
+      logWarnings("getSingleHelper resultset", rs);
       if (rs.getObject(1) == null) {
-        logWarnings("getSingleHelper resultset", rs.getWarnings());
+        logWarnings("getSingleHelper resultset", rs);
         try {
           rs.close();
         } catch (SQLException e) {
@@ -447,7 +447,7 @@ public class DBHelper implements AutoCloseable{
         }
         return null;
       }
-      logWarnings("getSingleHelper resultset", rs.getWarnings());
+      logWarnings("getSingleHelper resultset", rs);
       aResultSets.add(rs);
       return rs;
     }
@@ -586,10 +586,69 @@ public class DBHelper implements AutoCloseable{
     getLogger().log(Level.WARNING, pMsg, pException);
   }
 
-  static void logWarnings(@Nullable final String pString, @Nullable final SQLWarning pWarnings) {
-    if (pWarnings != null) {
-      getLogger().log(Level.WARNING, pString, pWarnings);
-      logWarnings(pString, pWarnings.getNextWarning());
+  static void logWarnings(@Nullable final String pString, @Nullable final Connection pConnection) {
+    if (pConnection != null) {
+      try {
+        if (pConnection.isClosed()) {
+          getLogger().log(Level.INFO, "Logging warnings on closed connection");
+        } else {
+          try {
+            SQLWarning warning = pConnection.getWarnings();
+            while (warning!=null) {
+              getLogger().log(Level.WARNING, pString, pConnection);
+              warning = warning.getNextWarning();
+            }
+          } catch (SQLException e) {
+            getLogger().log(Level.WARNING, "Error processing warnings", e);
+          }
+        }
+      } catch (SQLException e) {
+        getLogger().log(Level.WARNING, "Error processing warnings", e);
+      }
+    }
+  }
+
+  static void logWarnings(@Nullable final String pString, @Nullable final Statement pStatement) {
+    if (pStatement != null) {
+      try {
+        if (pStatement.isClosed()) {
+          getLogger().log(Level.INFO, "Logging warnings on closed statement");
+        } else {
+          try {
+            SQLWarning warning = pStatement.getWarnings();
+            while (warning!=null) {
+              getLogger().log(Level.WARNING, pString, pStatement);
+              warning = warning.getNextWarning();
+            }
+          } catch (SQLException e) {
+            getLogger().log(Level.WARNING, "Error processing warnings", e);
+          }
+        }
+      } catch (SQLException e) {
+        getLogger().log(Level.WARNING, "Error processing warnings", e);
+      }
+    }
+  }
+
+  static void logWarnings(@Nullable final String pString, @Nullable final ResultSet pResultSet) {
+    if (pResultSet != null) {
+      try {
+        if (pResultSet.isClosed()) {
+          getLogger().log(Level.INFO, "Logging warnings on closed resultset");
+        } else {
+          try {
+            SQLWarning warning = pResultSet.getWarnings();
+            while (warning!=null) {
+              getLogger().log(Level.WARNING, pString, pResultSet);
+              warning = warning.getNextWarning();
+            }
+          } catch (SQLException e) {
+            getLogger().log(Level.WARNING, "Error processing warnings", e);
+          }
+        }
+      } catch (SQLException e) {
+        getLogger().log(Level.WARNING, "Error processing warnings", e);
+      }
     }
   }
 
@@ -642,7 +701,7 @@ public class DBHelper implements AutoCloseable{
   public void commit() {
     try {
       notNull(aConnection).commit();
-      logWarnings("Committing database connection", notNull(aConnection).getWarnings());
+      logWarnings("Committing database connection", aConnection);
     } catch (final SQLException e) {
       logException("Failure to commit statement", e);
       rollback();
@@ -652,7 +711,7 @@ public class DBHelper implements AutoCloseable{
   public void rollback() {
     try {
       notNull(aConnection).rollback();
-      logWarnings("Rolling back database connection", notNull(aConnection).getWarnings());
+      logWarnings("Rolling back database connection", aConnection);
     } catch (final SQLException|NullPointerException e) {
       logException("Failure to roll back statement", e);
     }
@@ -676,7 +735,7 @@ public class DBHelper implements AutoCloseable{
         }
       }
     }
-    aStatements = notNull(Collections.<DBStatement>emptyList());
+    aStatements=new ArrayList<>();
     try {
       Connection connection = aConnection;
       if (connection != null) {
