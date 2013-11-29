@@ -437,7 +437,7 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
   private static DBHelper getDbHelper() throws SQLException {
-    return DBHelper.getDbHelper(getDBResource(), DarwinRealm.class);
+    return DBHelper.getDbHelper(getDBResource());
   }
 
   private static String getDBResource() {

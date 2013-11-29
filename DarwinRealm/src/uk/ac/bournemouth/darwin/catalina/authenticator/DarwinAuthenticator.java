@@ -235,7 +235,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   static DBHelper getUserDatabase(final Request pRequest) throws SQLException {
-    return DBHelper.getDbHelper(DBRESOURCE, pRequest);
+    return DBHelper.getDbHelper(DBRESOURCE);
   }
 
   @NotNull
@@ -311,7 +311,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   private static DBHelper getDatabaseStatic(final Object pKey) throws SQLException {
-    return DBHelper.getDbHelper(DBRESOURCE, pKey);
+    return DBHelper.getDbHelper(DBRESOURCE);
   }
 
   private static void denyPermission(final Response pResponse) throws IOException {
