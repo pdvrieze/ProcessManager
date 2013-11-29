@@ -6,6 +6,7 @@ import java.security.Principal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -32,8 +33,9 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.DBConnection;
+import net.devrieze.util.db.DBConnection.DBHelper;
+import net.devrieze.util.db.DBConnection.DBQuery;
 import net.devrieze.util.db.StringAdapter;
 
 
@@ -110,11 +112,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   public void stop() throws LifecycleException {
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
-
-    if (aDb != null) {
-      aDb.close();
-    }
-    aDb = null;
   }
 
   @Override
@@ -199,17 +196,28 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   public static DarwinPrincipal getPrincipal(final String pUser) {
-    try(final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class)) {
-      return getDarwinPrincipal(db, null, pUser);
+    DBHelper db;
+    try {
+      db = getDatabaseStatic(DarwinAuthenticator.class);
+    } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Failure querying principal", e);
+      return null;
     }
+    return getDarwinPrincipal(db, null, pUser);
   }
 
   public static DarwinPrincipal asDarwinPrincipal(final Principal pUser) {
-    try (final DBHelper db = getDatabaseStatic(DarwinAuthenticator.class)) {
-      final Realm realm = null;
-
-      return toDarwinPrincipal(db, realm, pUser);
+    if (pUser instanceof DarwinPrincipal) { return (DarwinPrincipal) pUser; }
+    DBHelper db;
+    try {
+      db = getDatabaseStatic(DarwinAuthenticator.class);
+    } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Failure querying principal", e);
+      return null;
     }
+    final Realm realm = null;
+
+    return toDarwinPrincipal(db, realm, pUser);
   }
 
   private static DarwinUserPrincipal getDarwinPrincipal(final DBHelper pDbHelper, final Realm pRealm, final String pUserName) {
@@ -226,22 +234,29 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pPrincipal.getName());
   }
 
-  static DBHelper getUserDatabase(final Request pRequest) {
+  static DBHelper getUserDatabase(final Request pRequest) throws SQLException {
     return DBHelper.getDbHelper(DBRESOURCE, pRequest);
   }
 
   @NotNull
   private AuthResult authenticate(final Request pRequest) {
-    try (final DBHelper db = getDatabase()){
-      DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
-      if (principal != null) {
-        logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
-        pRequest.setAuthType(AUTHTYPE);
-        pRequest.setUserPrincipal(principal);
-        return AuthResult.AUTHENTICATED;
-      }
+    DBHelper dbHelper;
+    try {
+      dbHelper = getDatabase();
+    } catch (SQLException e2) {
+      getLogger().log(Level.WARNING, "Failure getting authentication connection", e2);
+      return AuthResult.ERROR;
+    }
+    DarwinUserPrincipal principal = toDarwinPrincipal(dbHelper, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
+    if (principal != null) {
+      logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
+      pRequest.setAuthType(AUTHTYPE);
+      pRequest.setUserPrincipal(principal);
+      return AuthResult.AUTHENTICATED;
+    }
 
 
+    try (DBConnection db = dbHelper.getConnection();) {
       String user = null;
       final Cookie[] cookies = pRequest.getCookies();
       if (cookies != null) {
@@ -277,22 +292,25 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       if (user != null) {
         logInfo("Authenticated user " + user);
         pRequest.setAuthType(AUTHTYPE);
-        principal = getDarwinPrincipal(db, pRequest.getContext().getRealm(), user);
+        principal = getDarwinPrincipal(dbHelper, pRequest.getContext().getRealm(), user);
         pRequest.setUserPrincipal(principal);
         return AuthResult.AUTHENTICATED;
       }
+    } catch (SQLException e1) {
+      getLogger().log(Level.WARNING, "Error while attempting to authenticate", e1);
+      return AuthResult.ERROR;
     }
     return AuthResult.LOGIN_NEEDED;
   }
 
-  DBHelper getDatabase() {
+  DBHelper getDatabase() throws SQLException {
     if (aDb == null) {
       aDb = getDatabaseStatic(this);
     }
     return aDb;
   }
 
-  private static DBHelper getDatabaseStatic(final Object pKey) {
+  private static DBHelper getDatabaseStatic(final Object pKey) throws SQLException {
     return DBHelper.getDbHelper(DBRESOURCE, pKey);
   }
 

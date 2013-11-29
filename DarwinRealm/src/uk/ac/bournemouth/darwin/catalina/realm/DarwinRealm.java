@@ -6,6 +6,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.cert.X509Certificate;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +27,7 @@ import org.apache.catalina.util.LifecycleSupport;
 
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
 
-import net.devrieze.util.db.DBHelper;
+import net.devrieze.util.db.DBConnection.DBHelper;
 
 
 public class DarwinRealm implements Realm, Lifecycle {
@@ -64,8 +65,6 @@ public class DarwinRealm implements Realm, Lifecycle {
   public void stop() throws LifecycleException {
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
-
-    DBHelper.closeConnections(this);
   }
 
 
@@ -419,7 +418,12 @@ public class DarwinRealm implements Realm, Lifecycle {
     if (principal instanceof CoyotePrincipal) {
       // Look up this user in the UserDatabaseRealm.  The new
       // principal will contain UserDatabaseRealm role info.
-      final DarwinUserPrincipalImpl p = getDarwinPrincipal(principal.getName());
+      DarwinUserPrincipalImpl p;
+      try {
+        p = getDarwinPrincipal(principal.getName());
+      } catch (SQLException e) {
+        return false;
+      }
       if (p != null) {
         return p.hasRole(role);
       }
@@ -428,11 +432,11 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
 
-  private DarwinUserPrincipalImpl getDarwinPrincipal(final String pName) {
+  private DarwinUserPrincipalImpl getDarwinPrincipal(final String pName) throws SQLException {
     return new DarwinUserPrincipalImpl(getDbHelper(), this, pName);
   }
 
-  private static DBHelper getDbHelper() {
+  private static DBHelper getDbHelper() throws SQLException {
     return DBHelper.getDbHelper(getDBResource(), DarwinRealm.class);
   }
 

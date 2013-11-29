@@ -1,6 +1,7 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
 import java.security.Principal;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,8 +12,9 @@ import org.apache.catalina.Realm;
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.StringCache;
-import net.devrieze.util.db.DBHelper;
-import net.devrieze.util.db.DBHelper.DBQuery;
+import net.devrieze.util.db.DBConnection.DBHelper;
+import net.devrieze.util.db.DBConnection.DBQuery;
+import net.devrieze.util.db.DBConnection;
 import net.devrieze.util.db.StringAdapter;
 
 
@@ -39,7 +41,11 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   @Override
   @NotNull
   public synchronized Set<? extends String> getRolesSet() {
-    refreshIfNeeded();
+    try {
+      refreshIfNeeded();
+    } catch (SQLException e) {
+      return Collections.emptySet();
+    }
     return Collections.unmodifiableSet(new HashSet<>(aRoles));
   }
 
@@ -49,7 +55,11 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   public String[] getRoles() {
     Set<? extends String> lroles;
     synchronized (this) {
-      refreshIfNeeded();
+      try {
+        refreshIfNeeded();
+      } catch (SQLException e) {
+        return new String[0];
+      }
       lroles = aRoles;
       if (roles == null) {
         roles = lroles.toArray(new String[lroles.size()]);
@@ -59,11 +69,12 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     return roles;
   }
 
-  private synchronized void refreshIfNeeded() {
+  private synchronized void refreshIfNeeded() throws SQLException {
     if ((!(aRoles instanceof HashSet)) || needsRefresh()) {
       aRoles = new HashSet<>();
       roles = null;
-      try(final DBQuery query = aDbHelper.makeQuery("SELECT role FROM user_roles WHERE user=?")) {
+      try(final DBConnection db = aDbHelper.getConnection();
+          final DBQuery query = db.makeQuery("SELECT role FROM user_roles WHERE user=?")) {
         query.addParam(1, getName());
         try (final StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true)){
           for (final String role : queryResult.all()) {
@@ -71,6 +82,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
           }
         }
       }
+      markRefresh();
     }
   }
 
@@ -82,7 +94,11 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     if (pRole == null) {
       return false;
     }
-    refreshIfNeeded();
+    try {
+      refreshIfNeeded();
+    } catch (SQLException e) {
+      return false;
+    }
     return aRoles.contains(pRole);
   }
 
@@ -98,7 +114,9 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   public String toString() {
     final StringBuilder result = new StringBuilder();
     result.append("DarwinUserPrincipal[").append(getName());
-    refreshIfNeeded();
+    if (needsRefresh()) {
+      result.append("stale|");
+    }
     char sep = '(';
     for (final String role : aRoles) {
       result.append(sep).append(role);
