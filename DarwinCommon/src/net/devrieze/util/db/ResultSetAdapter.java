@@ -11,7 +11,7 @@ import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.AutoCloseableIterator;
 import net.devrieze.util.StringCache;
-import net.devrieze.util.db.DBHelper.DBStatement;
+import net.devrieze.util.db.DBConnection.DBStatement;
 
 
 public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T>*/ {
@@ -49,15 +49,15 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       if (aResultSet != null) {
         try {
           aResultSet.beforeFirst();
-          DBHelper.logWarnings("Resetting resultset for AdapterIterator", aResultSet);
+          DBConnection.logWarnings("Resetting resultset for AdapterIterator", aResultSet);
           final ResultSetMetaData metadata = aResultSet.getMetaData();
-          DBHelper.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet);
+          DBConnection.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet);
           for (int i = 1; i <= metadata.getColumnCount(); ++i) {
             doRegisterColumn(i, notNull(metadata.getColumnName(i)));
           }
           aInitialized = true;
         } catch (final SQLException e) {
-          DBHelper.logException("Initializing resultset iterator", e);
+          DBConnection.logException("Initializing resultset iterator", e);
           closeStatement();
           throw new RuntimeException(e);
         }
@@ -79,13 +79,13 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
       try {
         aPeeked = resultSet.next();
-        DBHelper.logWarnings("Getting a peek at next row in resultset", resultSet);
+        DBConnection.logWarnings("Getting a peek at next row in resultset", resultSet);
         if (aAutoClose && !aPeeked) {
           closeStatement();
         }
         return aPeeked;
       } catch (final SQLException e) {
-        DBHelper.logException("Initializing resultset iterator", e);
+        DBConnection.logException("Initializing resultset iterator", e);
         closeStatement();
         throw new RuntimeException(e);
       }
@@ -105,10 +105,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
         if (!aPeeked) {
           if (!resultSet.next()) {
             closeStatement();
-            DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
+            DBConnection.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
             throw new IllegalStateException("Trying to go beyond the last element");
           }
-          DBHelper.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
+          DBConnection.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
         }
         aPeeked = false;
 
@@ -128,7 +128,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
       try {
         resultSet.deleteRow();
-        DBHelper.logWarnings("Deleting a row in ResultSetAdapter", resultSet);
+        DBConnection.logWarnings("Deleting a row in ResultSetAdapter", resultSet);
       } catch (final SQLFeatureNotSupportedException e) {
         throw new UnsupportedOperationException(e);
       } catch (final SQLException e) {
@@ -141,10 +141,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     public void close() {
       if (aResultSet != null) {
         try {
-          DBHelper.logWarnings("Closing resultset in ResultSetAdapter", aResultSet);
+          DBConnection.logWarnings("Closing resultset in ResultSetAdapter", aResultSet);
           aResultSet.close();
         } catch (final SQLException e) {
-          DBHelper.logException("Error closing resultset", e);
+          DBConnection.logException("Error closing resultset", e);
         }
         aResultSet = null;
       }
@@ -162,7 +162,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
             }
           }
         } catch (final SQLException e) {
-          DBHelper.logException("Error closing owning iterator for resultset", e);
+          DBConnection.logException("Error closing owning iterator for resultset", e);
         }
         aResultSet = null;
         aStatement = null;
@@ -212,7 +212,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
           }
         }
       } catch (final SQLException e) {
-        DBHelper.logException("Error closing owning iterator for resultset", e);
+        DBConnection.logException("Error closing owning iterator for resultset", e);
       }
       aResultSet = null;
       aStatement = null;

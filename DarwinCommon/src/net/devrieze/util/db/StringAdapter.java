@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
-import net.devrieze.util.db.DBHelper.DBStatement;
+import net.devrieze.util.db.DBConnection.DBStatement;
 
 
 public class StringAdapter extends ResultSetAdapter<String> {
@@ -25,7 +25,7 @@ public class StringAdapter extends ResultSetAdapter<String> {
     @Nullable
     protected String doCreateElem(final ResultSet pResultSet) throws SQLException {
       final String result = getStringCache().lookup(pResultSet.getString(1));
-      DBHelper.logWarnings("Reading string out of resultset", pResultSet);
+      DBConnection.logWarnings("Reading string out of resultset", pResultSet);
       return result;
     }
 
