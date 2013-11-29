@@ -33,12 +33,12 @@ public class DBConnection implements AutoCloseable{
     private DataSourceWrapper aDataSource;
     private StringCache aStringCache;
 
-    public DBHelper(@NotNull DataSourceWrapper pDataSource, Object pKey) {
+    public DBHelper(@NotNull DataSourceWrapper pDataSource) {
       aDataSource = pDataSource;
     }
 
     @NotNull
-    public static DBHelper getDbHelper(final String pResourceName, final Object pKey) throws SQLException {
+    public static DBHelper getDbHelper(final String pResourceName) throws SQLException {
       DBConnection.DataSourceWrapper dataSource;
       if (true) {
         try {
@@ -51,7 +51,7 @@ public class DBConnection implements AutoCloseable{
       if (DBConnection.getLogger().isLoggable(DBConnection.DETAIL_LOG_LEVEL)) { // Do this only when we log this is going to be output
         final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         final StringBuilder message = new StringBuilder();
-        message.append("dbHelper invoked for ").append(pResourceName).append(" with key [").append(pKey).append("] from ");
+        message.append("dbHelper invoked for ").append(pResourceName).append(" from ");
         for (int i = 2; (i < stackTraceElements.length) && (i < 7); ++i) {
           if (i > 2) {
             message.append(" -> ");
@@ -60,7 +60,7 @@ public class DBConnection implements AutoCloseable{
         }
         DBConnection.getLogger().log(DBConnection.DETAIL_LOG_LEVEL, message.toString());
       }
-      return new DBHelper(dataSource, pKey);
+      return new DBHelper(dataSource);
     }
 
     @NotNull
@@ -510,26 +510,6 @@ public class DBConnection implements AutoCloseable{
     aStringCache = StringCache.NOPCACHE;
   }
 
-  /**
-   * @throws SQLException
-   * @deprecated use {@link DBHelper#getDbHelper(String, Object)}
-   */
-  @Deprecated
-  @NotNull
-  public static DBHelper dbHelper(final String pResourceName, final Object pKey) throws SQLException {
-    return DBHelper.getDbHelper(pResourceName, pKey);
-  }
-
-  /**
-   * @throws SQLException
-   * @deprecated Use {@link DBHelper#getDbHelper(String,Object)} instead
-   */
-  @Deprecated
-  @NotNull
-  public static DBHelper getDbHelper(final String pResourceName, final Object pKey) throws SQLException {
-    return DBHelper.getDbHelper(pResourceName, pKey);
-  }
-
   @NotNull
   private static Logger getLogger() {
     return notNull(Logger.getLogger(LOGGER_NAME));
@@ -610,7 +590,6 @@ public class DBConnection implements AutoCloseable{
     return makeQuery(pSQL, null);
   }
 
-  @SuppressWarnings("resource")
   @NotNull
   public DBQuery makeQuery(@NotNull final String pSQL, @Nullable final String pErrorMsg) {
     try {
@@ -632,7 +611,6 @@ public class DBConnection implements AutoCloseable{
     return makeInsert(pSQL, null);
   }
 
-  @SuppressWarnings("resource")
   @NotNull
   public DBInsert makeInsert(@NotNull final String pSQL, @Nullable final String pErrorMsg) throws SQLException {
     try {
@@ -702,16 +680,6 @@ public class DBConnection implements AutoCloseable{
         throw new RuntimeException(error);
       }
     }
-  }
-
-  @Deprecated
-  public static void closeConnections(@NotNull final Object pReference) {
-    // void
-  }
-
-  @Deprecated
-  public static void closeAllConnections(@NotNull final String pDbResource) {
-    // void
   }
 
   /**
