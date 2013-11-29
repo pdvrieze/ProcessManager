@@ -198,7 +198,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   public static DarwinPrincipal getPrincipal(final String pUser) {
     DBHelper db;
     try {
-      db = getDatabaseStatic(DarwinAuthenticator.class);
+      db = DBHelper.getDbHelper(DBRESOURCE);
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Failure querying principal", e);
       return null;
@@ -210,7 +210,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     if (pUser instanceof DarwinPrincipal) { return (DarwinPrincipal) pUser; }
     DBHelper db;
     try {
-      db = getDatabaseStatic(DarwinAuthenticator.class);
+      db = DBHelper.getDbHelper(DBRESOURCE);
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Failure querying principal", e);
       return null;
@@ -232,10 +232,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       return (DarwinUserPrincipal) pPrincipal;
     }
     return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pPrincipal.getName());
-  }
-
-  static DBHelper getUserDatabase(final Request pRequest) throws SQLException {
-    return DBHelper.getDbHelper(DBRESOURCE);
   }
 
   @NotNull
@@ -305,13 +301,9 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   DBHelper getDatabase() throws SQLException {
     if (aDb == null) {
-      aDb = getDatabaseStatic(this);
+      aDb = DBHelper.getDbHelper(DBRESOURCE);
     }
     return aDb;
-  }
-
-  private static DBHelper getDatabaseStatic(final Object pKey) throws SQLException {
-    return DBHelper.getDbHelper(DBRESOURCE);
   }
 
   private static void denyPermission(final Response pResponse) throws IOException {
