@@ -21,10 +21,14 @@ import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
 
-
+/**
+ * The MyDiagramAdapter to use for the editor.
+ * @author Paul de Vrieze
+ *
+ */
 public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, DrawableProcessNode> {
 
-  
+
   private class ConnectorView implements LightView {
 
     private Paint aPen;
@@ -121,7 +125,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   public void notifyDatasetChanged() {
     aInvalid = true;
   }
-  
+
   @Override
   public void getBounds(RectF pDiagramBounds) {
     if (aInvalid) {
@@ -140,7 +144,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
         aBounds.top=Math.min(aBounds.top, (float) bounds.top);
         aBounds.right=Math.max(aBounds.right, bounds.rightf());
         aBounds.bottom=Math.max(aBounds.bottom, bounds.bottomf());
-        
+
       }
     }
     pDiagramBounds.set(aBounds);

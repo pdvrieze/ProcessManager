@@ -513,7 +513,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
 
   private DrawableProcessModel aPm;
-  
+
   private MyDiagramAdapter aAdapter;
 
   private LayoutTask aLayoutTask;
@@ -528,11 +528,11 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     diagramView1.setOffsetX(0d);
     diagramView1.setOffsetY(0d);
     diagramView1.setOnNodeClickListener(this);
-    
+
     elementsView = (LinearLayout) findViewById(R.id.diagramElementsGroup);
     if (elementsView!=null) {
       elementsView.removeAllViews();
-      
+
       final AndroidTheme theme = new AndroidTheme(AndroidStrategy.INSTANCE);
 
       addNodeView(theme, new DrawableStartNode(null));
@@ -544,6 +544,11 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     }
   }
 
+  /**
+   * Add a view to the elementsView that shows a single process node.
+   * @param theme
+   * @param node
+   */
   private void addNodeView(AndroidTheme theme, DrawableProcessNode node) {
     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     lp.gravity=Gravity.CENTER;

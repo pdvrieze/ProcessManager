@@ -1,8 +1,12 @@
 package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Drawable;
+import nl.adaptivity.diagram.DrawingStrategy;
+import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
@@ -64,12 +68,22 @@ public class LWDrawableView implements LightView{
     pRect.set(bounds.leftf(), bounds.topf(), bounds.rightf(), bounds.bottomf());
   }
 
+
+//  @Override
   @Override
-  public void draw(Canvas pCanvas, Theme pTheme, double pScale) {
+  public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale) {
     if (aAndroidCanvas==null) {
       aAndroidCanvas=new AndroidCanvas(pCanvas, pTheme);
     } else {
       aAndroidCanvas.setCanvas(pCanvas);
+    }
+    if ((aItem.getState()&Drawable.STATE_SELECTED)!=0) {
+      Rectangle bounds = aItem.getBounds();
+      Bitmap bitmap = Bitmap.createBitmap((int) Math.ceil(bounds.width*pScale), (int) Math.ceil(bounds.height*pScale), Bitmap.Config.ARGB_8888);
+      AndroidCanvas bitmapCanvas = new AndroidCanvas(new Canvas(bitmap), pTheme);
+      aItem.draw(bitmapCanvas.scale(pScale), null);
+      AndroidPen pen = pTheme.getPen(AndroidExtraThemeItem.BLUR, aItem.getState());
+      aAndroidCanvas.drawBitmap(bounds.left*pScale, bounds.top, bitmap, pen);
     }
     aItem.draw(aAndroidCanvas.scale(pScale), null);
   }

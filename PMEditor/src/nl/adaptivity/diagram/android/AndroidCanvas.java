@@ -2,6 +2,7 @@ package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
@@ -10,10 +11,10 @@ import android.graphics.Path;
 import android.graphics.RectF;
 
 
-public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> {
+public class AndroidCanvas implements IAndroidCanvas {
 
 
-  private class OffsetCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> {
+  private class OffsetCanvas implements IAndroidCanvas {
     /** The offset of the canvas. This is in scaled coordinates. */
     private double aXOffset;
     private double aYOffset;
@@ -23,6 +24,12 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
     public OffsetCanvas(OffsetCanvas pBase, Rectangle pArea, double pScale) {
       aXOffset = (pBase.aXOffset - pArea.left)*pScale;
       aYOffset = (pBase.aYOffset - pArea.top)*pScale;
+      aScale = pBase.aScale*pScale;
+    }
+
+    public OffsetCanvas(OffsetCanvas pBase, double pScale) {
+      aXOffset = (pBase.aXOffset)*pScale;
+      aYOffset = (pBase.aYOffset)*pScale;
       aScale = pBase.aScale*pScale;
     }
 
@@ -39,9 +46,15 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
     }
 
     @Override
-    public nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> childCanvas(Rectangle pArea, double pScale) {
+    public IAndroidCanvas childCanvas(Rectangle pArea, double pScale) {
       return new OffsetCanvas(this, pArea, pScale);
     }
+
+    @Override
+    public IAndroidCanvas scale(double pScale) {
+      return new OffsetCanvas(this, pScale);
+    }
+
 
     private AndroidPen scalePen(AndroidPen pPen) {
       return pPen.scale(aScale);
@@ -50,6 +63,10 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
     @Override
     public void drawCircle(double pX, double pY, double pRadius, AndroidPen pPen) {
       AndroidCanvas.this.drawCircle((pX-aXOffset)*aScale, (pY - aYOffset) * aScale, pRadius*aScale, scalePen(pPen));
+    }
+
+    public void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen) {
+      AndroidCanvas.this.drawBitmap((pLeft-aXOffset)*aScale, (pTop-aYOffset)*aScale, pBitmap, pPen);
     }
 
     @Override
@@ -139,7 +156,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
   }
 
   @Override
-  public nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> childCanvas(Rectangle pArea, double pScale) {
+  public IAndroidCanvas childCanvas(Rectangle pArea, double pScale) {
     return new OffsetCanvas(pArea, pScale);
   }
 
@@ -251,8 +268,14 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
     aCanvas = pCanvas;
   }
 
-  public nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath> scale(double pScale) {
+  @Override
+  public IAndroidCanvas scale(double pScale) {
     return new OffsetCanvas(pScale);
+  }
+
+  @Override
+  public void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen) {
+    aCanvas.drawBitmap(pBitmap, (float) pLeft, (float) pTop, pPen.getPaint());
   }
 
 }
