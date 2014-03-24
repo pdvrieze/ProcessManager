@@ -99,7 +99,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   }
 
-  private static final double DENSITY = Resources.getSystem().getDisplayMetrics().density;
+  public static final double DENSITY = Resources.getSystem().getDisplayMetrics().density;
   private static final double MAXSCALE = 6d*DENSITY;
   private static final double MINSCALE = 0.5d*DENSITY;
   private DiagramAdapter<?,?> aAdapter;

@@ -82,13 +82,13 @@ public class DrawableDrawable extends Drawable {
   @Override
   public int getIntrinsicWidth() {
     Rectangle bounds = aImage.getBounds();
-    return (int) Math.ceil(bounds.width*aScale);
+    return (int) (Math.ceil(bounds.right()*aScale)-Math.floor(bounds.left*aScale));
   }
 
   @Override
   public int getIntrinsicHeight() {
     Rectangle bounds = aImage.getBounds();
-    return (int) Math.ceil(bounds.height*aScale);
+    return (int) (Math.ceil(bounds.bottom()*aScale)-Math.floor(bounds.top*aScale));
   }
 
 }

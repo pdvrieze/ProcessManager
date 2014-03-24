@@ -24,6 +24,8 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.DrawableActivity;
+import nl.adaptivity.process.diagram.DrawableEndNode;
+import nl.adaptivity.process.diagram.DrawableJoin;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableStartNode;
@@ -45,13 +47,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
 
+  private static final int ITEM_MARGIN = 8/*dp*/;
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
   private static final int STATE_XMOST=STATE_CUSTOM3;
@@ -535,6 +537,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
       addNodeView(theme, new DrawableStartNode(null));
       addNodeView(theme, new DrawableActivity(null));
+      addNodeView(theme, new DrawableJoin(null));
+      addNodeView(theme, new DrawableEndNode(null));
 
       elementsView.requestLayout();
     }
@@ -544,6 +548,14 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
     lp.gravity=Gravity.CENTER;
     lp.weight=1f;
+    if (elementsView.getOrientation()==LinearLayout.HORIZONTAL) {
+      lp.leftMargin=(int) Math.round(DiagramView.DENSITY*ITEM_MARGIN);
+      lp.rightMargin=lp.leftMargin;
+    } else {
+      lp.topMargin=(int) Math.round(DiagramView.DENSITY*ITEM_MARGIN/*dp*/);
+      lp.bottomMargin=lp.topMargin;
+    }
+
     ImageView v = new ImageView(this);
     v.setLayoutParams(lp);
     v.setImageDrawable(new DrawableDrawable(positionNode(node), theme));
