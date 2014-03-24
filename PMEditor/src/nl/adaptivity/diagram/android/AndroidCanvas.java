@@ -130,7 +130,7 @@ public class AndroidCanvas implements nl.adaptivity.diagram.Canvas<AndroidStrate
 
   }
 
-  android.graphics.Canvas aCanvas;
+  private android.graphics.Canvas aCanvas;
   private Theme aTheme;
 
   public AndroidCanvas(android.graphics.Canvas pCanvas, Theme pTheme) {

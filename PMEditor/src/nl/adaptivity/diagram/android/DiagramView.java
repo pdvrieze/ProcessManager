@@ -172,27 +172,27 @@ public class DiagramView extends View implements OnZoomListener{
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
-    aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
   }
 
   public DiagramView(Context pContext, AttributeSet pAttrs) {
     super(pContext, pAttrs);
-    aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
   }
 
   public DiagramView(Context pContext) {
     super(pContext);
-    aMultitouch = (! isEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
   }
 
-  private static boolean isEmulator() {
-    return "google_sdk".equals( Build.PRODUCT )||"sdk_x86".equals(Build.PRODUCT)|| "sdk".equals(Build.PRODUCT);
+  private static boolean isNotEmulator() {
+    return !"google_sdk".equals(Build.PRODUCT) && !"sdk_x86".equals(Build.PRODUCT) && !"sdk".equals(Build.PRODUCT);
   }
 
   public double getOffsetX() {
@@ -577,7 +577,7 @@ public class DiagramView extends View implements OnZoomListener{
   public boolean onGenericMotionEvent(MotionEvent pEvent) {
     int action = pEvent.getActionMasked();
     if (action==MotionEvent.ACTION_SCROLL) {
-      boolean zoomIn = Compat.isZoomIn(pEvent);;
+      boolean zoomIn = Compat.isZoomIn(pEvent);
       onZoom(zoomIn);
     }
     return super.onGenericMotionEvent(pEvent);

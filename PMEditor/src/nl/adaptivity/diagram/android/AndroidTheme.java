@@ -12,7 +12,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
 
   public AndroidTheme(AndroidStrategy pStrategy){
     aStrategy = pStrategy;
-    aPens = new SparseArray<SparseArray<AndroidPen>>();
+    aPens = new SparseArray<>();
   }
 
   @Override
@@ -20,7 +20,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
     int realState = pItem.getEffectiveState(pState);
     SparseArray<AndroidPen> statePens = aPens.get(pItem.getItemNo());
     if (statePens==null) {
-      statePens = new SparseArray<AndroidPen>();
+      statePens = new SparseArray<>();
       aPens.append(pItem.getItemNo(), statePens);
     }
 

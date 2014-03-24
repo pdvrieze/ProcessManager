@@ -112,9 +112,9 @@ public class PMParser {
       in.setInput(pIn, "utf-8");
 
       if(in.nextTag()==START_TAG && NS_PROCESSMODEL.equals(in.getNamespace()) && "processModel".equals(in.getName())){
-        ArrayList<DrawableProcessNode> modelElems = new ArrayList<DrawableProcessNode>();
+        ArrayList<DrawableProcessNode> modelElems = new ArrayList<>();
         String modelName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
-        Map<String, DrawableProcessNode> nodeMap = new HashMap<String, DrawableProcessNode>();
+        Map<String, DrawableProcessNode> nodeMap = new HashMap<>();
         for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
 
           DrawableProcessNode node = parseNode(in, nodeMap);
@@ -138,7 +138,7 @@ public class PMParser {
   }
 
   private static void resolveRefs(DrawableProcessNode pNode, Map<String, DrawableProcessNode> pNodes) {
-    List<DrawableProcessNode> preds = new ArrayList<DrawableProcessNode>();
+    List<DrawableProcessNode> preds = new ArrayList<>();
     boolean changed = false;
     for(DrawableProcessNode pred: pNode.getPredecessors()) {
       if (pred instanceof RefNode) {
@@ -155,7 +155,7 @@ public class PMParser {
       }
     }
     if (changed) {
-      pNode.setPredecessors(preds);;
+      pNode.setPredecessors(preds);
     }
   }
 
@@ -217,7 +217,7 @@ public class PMParser {
     DrawableJoin result = new DrawableJoin(null);
     parseCommon(pIn, pNodes, result);
     parseJoinAttrs(pIn, result);
-    List<DrawableProcessNode> predecessors = new ArrayList<DrawableProcessNode>();
+    List<DrawableProcessNode> predecessors = new ArrayList<>();
 
     for(int type = pIn.nextTag(); type!=END_TAG; type = pIn.nextTag()) {
       if (! (NS_PROCESSMODEL.equals(pIn.getNamespace()) && "predecessor".equals(pIn.getName()))) {

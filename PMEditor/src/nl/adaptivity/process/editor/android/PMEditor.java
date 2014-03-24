@@ -355,7 +355,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     }
 
     private MoveDrawable moveDrawable(Drawable pMinMaxOverlay, List<? extends DiagramNode<?>> pNodes) {
-      List<float[]> arrows = new ArrayList<float[]>(pNodes.size());
+      List<float[]> arrows = new ArrayList<>(pNodes.size());
       for(DiagramNode<?> pNode: pNodes) {
         if (! (Double.isNaN(pNode.getX())|| Double.isNaN(pNode.getY()))) {
           final double scale = diagramView1.getScale();
@@ -444,7 +444,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
       // Start with null layout algorithm, to prevent dual layout.
       aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
       if (aPm!=null) {
-        LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<DrawableProcessNode>();
+        LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<>();
         alg.setLayoutStepper(aStepper);
         aPm.setLayoutAlgorithm(alg);
         aAdapter = new MyDiagramAdapter(aPm);
@@ -587,7 +587,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
 
-  private final DrawableProcessModel getProcessModel() {
+  private DrawableProcessModel getProcessModel() {
     return getProcessModel(new LayoutAlgorithm<DrawableProcessNode>());
   }
 
@@ -601,7 +601,6 @@ public class PMEditor extends Activity implements OnNodeClickListener {
         file.close();
       } catch (IOException e) {
         Log.e(PMEditor.class.getName(), e.getMessage(), e);
-        return null;
       }
     }
   }
