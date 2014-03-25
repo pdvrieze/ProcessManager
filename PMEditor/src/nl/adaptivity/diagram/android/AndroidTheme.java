@@ -52,7 +52,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
    * @param pItemState The effective state of the item from the item's perspective
    * @return
    */
-  private int overrideState(ThemeItem pItem, int pState, int pItemState) {
+  private static int overrideState(ThemeItem pItem, int pState, int pItemState) {
     if (pItem instanceof ProcessThemeItems) {
       switch ((ProcessThemeItems) pItem) {
         case BACKGROUND:
@@ -75,7 +75,7 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
    * @param pState The state of the item.
    * @return The overridden pen. Optimally this is actually the same pen passed in.
    */
-  private AndroidPen overrideTheme(AndroidPen pPen, ThemeItem pItem, int pState) {
+  private static AndroidPen overrideTheme(AndroidPen pPen, ThemeItem pItem, int pState) {
     if (pItem instanceof ProcessThemeItems) {
       switch ((ProcessThemeItems) pItem) {
         case BACKGROUND:
