@@ -11,6 +11,7 @@ public interface Drawable extends Bounded {
   static final int STATE_CUSTOM2=0x20;
   static final int STATE_CUSTOM3=0x40;
   static final int STATE_CUSTOM4=0x80;
+  static final int STATE_DRAG=0x100;
   static final int STATE_MASK=0xffff;
 
 
