@@ -33,6 +33,7 @@ import android.widget.ZoomButtonsController.OnZoomListener;
 public class DiagramView extends View implements OnZoomListener{
 
 
+  private static final int INVALIDATE_MARGIN = 10;
   private static final int CACHE_PADDING = 30;
 
   public interface OnNodeClickListener {
@@ -260,9 +261,10 @@ public class DiagramView extends View implements OnZoomListener{
 
   protected void highlightTouch(int pTouchedElement) {
     LightView lv = aAdapter.getView(pTouchedElement);
-    lv.setTouched(true);
-    invalidate(pTouchedElement);
-//    invalidate(toRect(pTouchedElement.getBounds()));
+    if (! lv.getTouched()) {
+      lv.setTouched(true);
+      invalidate(pTouchedElement);
+    }
   }
 
   /**
@@ -272,26 +274,23 @@ public class DiagramView extends View implements OnZoomListener{
   private void invalidate(int pPosition) {
     LightView lv = aAdapter.getView(pPosition);
     lv.getBounds(aTmpRectF);
-    toContainingRect(aTmpRectF, aTmpRect);
+    outset(aTmpRectF, INVALIDATE_MARGIN);
+    toCanvasRect(aTmpRectF, aTmpRect);
     invalidate(aTmpRect);
   }
 
-  private static void toContainingRect(RectF pSource, Rect pDest) {
-    pDest.left=(int) Math.floor(pSource.left);
-    pDest.top=(int) Math.floor(pSource.top);
-    pDest.right = (int) Math.ceil(pSource.right);
-    pDest.bottom = (int) Math.ceil(pSource.bottom);
+  private void outset(RectF pRect, float pOutset) {
+    pRect.left-=pOutset;
+    pRect.top-=pOutset;
+    pRect.right+=pOutset;
+    pRect.bottom+=pOutset;
   }
 
-  private RectF toRectF(Rectangle pBounds) {
-    aTmpRectF.set(pBounds.leftf(), pBounds.topf(), pBounds.rightf(), pBounds.bottomf());
-    return aTmpRectF;
-  }
-
-  private Rect toRect(Rectangle pBounds) {
-    aTmpRect.set((int)Math.round(pBounds.left*aScale-0.5), (int)Math.round(pBounds.top*aScale-0.5),
-                 (int)Math.round(pBounds.right()*aScale+0.5), (int)Math.round(pBounds.bottom()*aScale+0.5));
-    return aTmpRect;
+  private void toCanvasRect(RectF pSource, Rect pDest) {
+    pDest.left=(int) Math.floor(toCanvasX(pSource.left));
+    pDest.top=(int) Math.floor(toCanvasY(pSource.top));
+    pDest.right = (int) Math.ceil(toCanvasX(pSource.right));
+    pDest.bottom = (int) Math.ceil(toCanvasY(pSource.bottom));
   }
 
   private int getTouchedElement(MotionEvent pEvent) {
