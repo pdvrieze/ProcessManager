@@ -175,6 +175,7 @@ public class DiagramView extends View implements OnZoomListener{
     aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
+    init();
   }
 
   public DiagramView(Context pContext, AttributeSet pAttrs) {
@@ -182,6 +183,7 @@ public class DiagramView extends View implements OnZoomListener{
     aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
+    init();
   }
 
   public DiagramView(Context pContext) {
@@ -189,6 +191,11 @@ public class DiagramView extends View implements OnZoomListener{
     aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
+    init();
+  }
+
+  public void init() {
+//    setLayerType(View.LAYER_TYPE_SOFTWARE, null);
   }
 
   private static boolean isNotEmulator() {
@@ -294,7 +301,7 @@ public class DiagramView extends View implements OnZoomListener{
     float y = pEvent.getY(pIdx);
     float diagY = toDiagramY(y);
 
-    
+
 //    final int pIdx = pE.getActionIndex();
 //    float canvX = pE.getX(pIdx);
 //    float canvY = pE.getY(pIdx);
@@ -385,7 +392,7 @@ public class DiagramView extends View implements OnZoomListener{
         bg.draw(canvas, theme, aScale);
         canvas.restoreToCount(save);
       }
-      
+
       int len = aAdapter.getCount();
       for(int i=0; i<len; i++) {
         final LightView lv = aAdapter.getView(i);
@@ -395,7 +402,7 @@ public class DiagramView extends View implements OnZoomListener{
         lv.draw(canvas, theme, aScale);
         canvas.restoreToCount(save);
       }
-      
+
       LightView overlay = aAdapter.getOverlay();
       if (overlay!=null) {
         overlay.draw(canvas, theme, aScale);

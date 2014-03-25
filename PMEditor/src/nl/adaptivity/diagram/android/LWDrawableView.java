@@ -69,7 +69,10 @@ public class LWDrawableView implements LightView{
   }
 
 
-//  @Override
+  /**
+   * Craw this drawable onto an android canvas. The canvas has an ofset
+   * preapplied so the top left of the drawing is 0,0.
+   */
   @Override
   public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale) {
     if (aAndroidCanvas==null) {
@@ -77,15 +80,16 @@ public class LWDrawableView implements LightView{
     } else {
       aAndroidCanvas.setCanvas(pCanvas);
     }
-    if ((aItem.getState()&Drawable.STATE_SELECTED)!=0) {
-      Rectangle bounds = aItem.getBounds();
-      Bitmap bitmap = Bitmap.createBitmap((int) Math.ceil(bounds.width*pScale), (int) Math.ceil(bounds.height*pScale), Bitmap.Config.ARGB_8888);
-      AndroidCanvas bitmapCanvas = new AndroidCanvas(new Canvas(bitmap), pTheme);
-      aItem.draw(bitmapCanvas.scale(pScale), null);
-      AndroidPen pen = pTheme.getPen(AndroidExtraThemeItem.BLUR, aItem.getState());
-      aAndroidCanvas.drawBitmap(bounds.left*pScale, bounds.top, bitmap, pen);
-    }
+//    if ((aItem.getState()&Drawable.STATE_SELECTED)!=0) {
+//      Rectangle bounds = aItem.getBounds();
+//      Bitmap bitmap = Bitmap.createBitmap((int) Math.ceil(bounds.width*pScale), (int) Math.ceil(bounds.height*pScale), Bitmap.Config.ARGB_8888);
+//      AndroidCanvas bitmapCanvas = new AndroidCanvas(new Canvas(bitmap), pTheme);
+//      aItem.draw(bitmapCanvas.scale(pScale), null);
+//      AndroidPen pen = pTheme.getPen(AndroidExtraThemeItem.BLUR, aItem.getState());
+//      aAndroidCanvas.drawBitmap(0f, 0f, bitmap, pen);
+//    } else {
     aItem.draw(aAndroidCanvas.scale(pScale), null);
+//    }
   }
 
 }

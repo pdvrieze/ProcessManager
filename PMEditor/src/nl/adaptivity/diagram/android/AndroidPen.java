@@ -9,7 +9,10 @@ public class AndroidPen implements Pen<AndroidPen> {
 
   private Paint aPaint;
   private double aStrokeWidth;
-
+  private float aShadowRadius=-1f;
+  private int aShadowColor;
+  private float aShadowDx;
+  private float aShadowDy;
   public AndroidPen(Paint pPaint) {
     aPaint = pPaint;
     aPaint.setStyle(Style.STROKE);
@@ -38,8 +41,19 @@ public class AndroidPen implements Pen<AndroidPen> {
     return this;
   }
 
+  public void setShadowLayer(float radius, int color) {
+    aShadowRadius = radius;
+    aShadowColor = color;
+    aShadowDx = 0f;
+    aShadowDy = 0f;
+    aPaint.setShadowLayer(radius, aShadowDx, aShadowDy, color);
+  }
+
   public AndroidPen scale(double pScale) {
     aPaint.setStrokeWidth((float) (aStrokeWidth*pScale));
+    if (aShadowRadius>0f) {
+      aPaint.setShadowLayer((float) (aShadowRadius*pScale), (float) (aShadowDx*pScale), (float) (aShadowDy*pScale), aShadowColor);
+    }
     return this;
   }
 
