@@ -86,10 +86,10 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
         default:
           return pPen;
       }
-      if ((pState & nl.adaptivity.diagram.Drawable.STATE_SELECTED)>0) {
-        pPen.setShadowLayer(AndroidExtraThemeItem.SHADER_RADIUS, AndroidExtraThemeItem.SELECTED_SHADE_COLOR);
-      } else if ((pState & nl.adaptivity.diagram.Drawable.STATE_TOUCHED)>0) {
+      if ((pState & nl.adaptivity.diagram.Drawable.STATE_TOUCHED)>0) {
         pPen.setShadowLayer(AndroidExtraThemeItem.SHADER_RADIUS, AndroidExtraThemeItem.TOUCHED_SHADE_COLOR);
+      } else if ((pState & nl.adaptivity.diagram.Drawable.STATE_SELECTED)>0) {
+        pPen.setShadowLayer(AndroidExtraThemeItem.SHADER_RADIUS, AndroidExtraThemeItem.SELECTED_SHADE_COLOR);
       }
     }
     return pPen;
