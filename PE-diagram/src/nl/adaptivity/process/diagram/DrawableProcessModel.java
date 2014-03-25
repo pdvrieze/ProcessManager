@@ -29,7 +29,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double STARTNODERADIUS=10d;
   public static final double ENDNODEOUTERRADIUS=12d;
   public static final double ENDNODEINNERRRADIUS=7d;
-  public static final double ENDNODEOUTERSTROKEWIDTH = 1.3d;
+  public static final double STROKEWIDTH = 1d;
+  public static final double ENDNODEOUTERSTROKEWIDTH = 1.7d * STROKEWIDTH;
   public static final double ACTIVITYWIDTH=32d;
   public static final double ACTIVITYHEIGHT=ACTIVITYWIDTH;
   public static final double ACTIVITYROUNDX=ACTIVITYWIDTH/4d;
@@ -38,7 +39,6 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double JOINHEIGHT=JOINWIDTH;
   public static final double DEFAULT_HORIZ_SEPARATION = 40d;
   public static final double DEFAULT_VERT_SEPARATION = 30d;
-  public static final double STROKEWIDTH = 1d;
   private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
 
   private ItemCache aItems = new ItemCache();
