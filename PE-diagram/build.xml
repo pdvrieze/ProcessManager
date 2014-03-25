@@ -79,12 +79,12 @@
       -injars       "build"
       -outjars      ../PMEditor/libs/PE-diagram-1.0.0.jar
       -libraryjars /opt/android-sdk-update-manager/platforms/android-19/android.jar
-      -target 1.6
       -ignorewarnings
       -dontobfuscate
       -dontoptimize
       -dontshrink
     </proguard>
+    <!--jar destfile="../PMEditor/libs/PE-diagram-1.0.0.jar" basedir="build" /-->
     <zip destfile="../PMEditor/libs/src/PE-diagram-1.0.0-src.zip">
       <fileset dir="src"/>
       <fileset dir="../PE-common/src"/>
