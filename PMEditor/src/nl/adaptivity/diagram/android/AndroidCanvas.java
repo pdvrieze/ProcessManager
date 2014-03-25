@@ -66,12 +66,12 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     public void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen) {
-      AndroidCanvas.this.drawBitmap((pLeft-aXOffset)*aScale, (pTop-aYOffset)*aScale, pBitmap, pPen);
+      AndroidCanvas.this.drawBitmap((pLeft-aXOffset)*aScale, (pTop-aYOffset)*aScale, pBitmap, scalePen(pPen));
     }
 
     @Override
     public void drawFilledCircle(double pX, double pY, double pRadius, AndroidPen pPen) {
-      AndroidCanvas.this.drawFilledCircle((pX - aXOffset) * aScale, (pY - aYOffset) * aScale, pRadius*aScale, pPen);
+      AndroidCanvas.this.drawFilledCircle((pX - aXOffset) * aScale, (pY - aYOffset) * aScale, pRadius*aScale, scalePen(pPen));
     }
 
     @Override
@@ -81,7 +81,7 @@ public class AndroidCanvas implements IAndroidCanvas {
 
     @Override
     public void drawFilledRect(Rectangle pRect, AndroidPen pPen) {
-      AndroidCanvas.this.drawFilledRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), pPen);
+      AndroidCanvas.this.drawFilledRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), scalePen(pPen));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class AndroidCanvas implements IAndroidCanvas {
 
     @Override
     public void drawFilledPoly(double[] pPoints, AndroidPen pPen) {
-      AndroidCanvas.this.drawFilledPoly(transform(pPoints), pPen);
+      AndroidCanvas.this.drawFilledPoly(transform(pPoints), scalePen(pPen));
     }
 
     private double[] transform(double[] pPoints) {
@@ -132,7 +132,7 @@ public class AndroidCanvas implements IAndroidCanvas {
 
     @Override
     public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, AndroidPen pPen) {
-      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), pRx*aScale, pRy*aScale, pPen);
+      AndroidCanvas.this.drawFilledRoundRect(pRect.offsetScaled(-aXOffset, -aYOffset, aScale), pRx*aScale, pRy*aScale, scalePen(pPen));
     }
 
     @Override
