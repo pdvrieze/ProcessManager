@@ -28,7 +28,7 @@ public enum AndroidExtraThemeItem implements ThemeItem {
 
   },
   ;
-  public static final float SHADER_RADIUS = 18f;
+  public static final float SHADER_RADIUS = 8f;
 
   public static final int TOUCHED_SHADE_COLOR=Color.argb(0xb0, 0xff, 0xec, 0x1a);
   public static final int SELECTED_SHADE_COLOR=Color.argb(0xb0, 23, 166, 255);
