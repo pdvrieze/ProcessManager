@@ -2,11 +2,8 @@ package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
@@ -80,16 +77,7 @@ public class LWDrawableView implements LightView{
     } else {
       aAndroidCanvas.setCanvas(pCanvas);
     }
-//    if ((aItem.getState()&Drawable.STATE_SELECTED)!=0) {
-//      Rectangle bounds = aItem.getBounds();
-//      Bitmap bitmap = Bitmap.createBitmap((int) Math.ceil(bounds.width*pScale), (int) Math.ceil(bounds.height*pScale), Bitmap.Config.ARGB_8888);
-//      AndroidCanvas bitmapCanvas = new AndroidCanvas(new Canvas(bitmap), pTheme);
-//      aItem.draw(bitmapCanvas.scale(pScale), null);
-//      AndroidPen pen = pTheme.getPen(AndroidExtraThemeItem.BLUR, aItem.getState());
-//      aAndroidCanvas.drawBitmap(0f, 0f, bitmap, pen);
-//    } else {
     aItem.draw(aAndroidCanvas.scale(pScale), null);
-//    }
   }
 
 }
