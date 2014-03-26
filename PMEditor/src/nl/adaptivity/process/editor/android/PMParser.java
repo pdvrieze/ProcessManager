@@ -22,6 +22,7 @@ import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableEndNode;
@@ -36,13 +37,18 @@ import android.util.Log;
 public class PMParser {
 
 
-  private static class RefNode extends ClientProcessNode<DrawableProcessNode> implements DrawableProcessNode {
+  private static final class RefNode extends ClientProcessNode<DrawableProcessNode> implements DrawableProcessNode {
 
     final String aRef;
 
     public RefNode(String pRef) {
-      super(null);
+      super((ClientProcessModel<DrawableProcessNode>) null);
       aRef = pRef;
+    }
+    
+    @Override
+	public RefNode clone() {
+    	return new RefNode(aRef);
     }
 
     @Override
@@ -181,14 +187,14 @@ public class PMParser {
   }
 
   private static DrawableProcessNode parseStart(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
-    DrawableStartNode result = new DrawableStartNode(null);
+    DrawableStartNode result = new DrawableStartNode((ClientProcessModel<DrawableProcessNode>) null);
     parseCommon(pIn, pNodes, result);
     if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
   private static DrawableProcessNode parseActivity(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
-    DrawableActivity result = new DrawableActivity(null);
+    DrawableActivity result = new DrawableActivity((ClientProcessModel<DrawableProcessNode>) null);
     parseCommon(pIn, pNodes, result);
     String name = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
     if (name!=null && name.length()>0) {
@@ -219,7 +225,7 @@ public class PMParser {
   }
 
   private static DrawableProcessNode parseJoin(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
-    DrawableJoin result = new DrawableJoin(null);
+    DrawableJoin result = new DrawableJoin((ClientProcessModel<DrawableProcessNode>) null);
     parseCommon(pIn, pNodes, result);
     parseJoinAttrs(pIn, result);
     List<DrawableProcessNode> predecessors = new ArrayList<>();
@@ -259,7 +265,7 @@ public class PMParser {
   }
 
   private static DrawableProcessNode parseEnd(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
-    DrawableEndNode result = new DrawableEndNode(null);
+    DrawableEndNode result = new DrawableEndNode((ClientProcessModel<DrawableProcessNode>) null);
     parseCommon(pIn, pNodes, result);
     if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;

@@ -1,9 +1,6 @@
 package nl.adaptivity.process.editor.android;
 
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM1;
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM2;
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM3;
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
+import static nl.adaptivity.diagram.Drawable.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,6 +19,7 @@ import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.diagram.android.DrawableDrawable;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableEndNode;
@@ -543,13 +541,13 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
     public ItemShadowBuilder(DrawableDrawable pD) {
       super(new ImageView(PMEditor.this));
-      ((ImageView)getView()).setImageDrawable((Drawable)pD.clone());
-      // TODO Auto-generated constructor stub
+      DrawableDrawable drawable = pD.clone();
+      drawable.setState(new int[]{android.R.attr.state_pressed});
+      ((ImageView)getView()).setImageDrawable(drawable);
     }
 
     @Override
     public void onProvideShadowMetrics(Point pShadowSize, Point pShadowTouchPoint) {
-      // TODO Auto-generated method stub
       super.onProvideShadowMetrics(pShadowSize, pShadowTouchPoint);
     }
 
@@ -591,10 +589,10 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
       final AndroidTheme theme = new AndroidTheme(AndroidStrategy.INSTANCE);
 
-      addNodeView(theme, new DrawableStartNode(null));
-      addNodeView(theme, new DrawableActivity(null));
-      addNodeView(theme, new DrawableJoin(null));
-      addNodeView(theme, new DrawableEndNode(null));
+      addNodeView(theme, new DrawableStartNode((ClientProcessModel<DrawableProcessNode>) null));
+      addNodeView(theme, new DrawableActivity((ClientProcessModel<DrawableProcessNode>) null));
+      addNodeView(theme, new DrawableJoin((ClientProcessModel<DrawableProcessNode>) null));
+      addNodeView(theme, new DrawableEndNode((ClientProcessModel<DrawableProcessNode>) null));
 
       elementsView.requestLayout();
     }

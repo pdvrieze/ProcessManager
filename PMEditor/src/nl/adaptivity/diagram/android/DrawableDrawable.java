@@ -24,11 +24,11 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
   
   @Override
-  protected Object clone() {
+  public DrawableDrawable clone() {
     if (getClass()==DrawableDrawable.class) {
-      return new DrawableDrawable(((nl.adaptivity.diagram.Drawable) aImage.clone()), aTheme);
+      return new DrawableDrawable(aImage.clone(), aTheme);
     }
-    throw new CloneNotSupportedException();
+    throw new RuntimeException(new CloneNotSupportedException());
   }
 
   @Override
