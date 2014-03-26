@@ -65,7 +65,9 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   public void setState(int pState) {
     if (pState==aState) { return ; }
     aState = pState;
-    getOwner().nodeChanged(this);
+    if (getOwner()!=null) {
+      getOwner().nodeChanged(this);
+    }
   }
 
   @Override
