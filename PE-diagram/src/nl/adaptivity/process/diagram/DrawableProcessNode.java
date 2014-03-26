@@ -8,6 +8,7 @@ public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessN
 
   void setId(String pId);
 
+  @Override
   public DrawableProcessNode clone();
 
 }

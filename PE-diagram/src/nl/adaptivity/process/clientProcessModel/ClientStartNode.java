@@ -2,7 +2,6 @@ package nl.adaptivity.process.clientProcessModel;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
@@ -22,19 +21,6 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   protected ClientStartNode(final ClientStartNode<T> pOrig) {
     super(pOrig);
     aSuccessors = pOrig.aSuccessors==null ? null : pOrig.aSuccessors.clone();
-  }
-
-  private void resolvePredecessors(final Map<String, T> pMap) {
-    // start node has no predecessors
-  }
-
-  private void ensureSuccessor(final T pNode) {
-    if (aSuccessors == null) {
-      aSuccessors = ProcessNodeSet.processNodeSet();
-    }
-    if(aSuccessors.add(pNode)) {
-      pNode.setOwner(getOwner());
-    }
   }
 
   @Override

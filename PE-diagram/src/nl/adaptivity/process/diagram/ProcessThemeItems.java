@@ -70,6 +70,8 @@ public enum ProcessThemeItems implements ThemeItem {
     return new StateSpecifier(pState, r, g, b, 255);
   }
 
+  // This method can be useful when colors with alpha are desired.
+  @SuppressWarnings("unused")
   private static StateSpecifier state(int pState, int r, int g, int b, int a) {
     return new StateSpecifier(pState, r, g, b, a);
   }
@@ -158,6 +160,7 @@ public enum ProcessThemeItems implements ThemeItem {
       aStrokeMultiplier = pStrokeMultiplier;
     }
 
+    @Override
     public double getStrokeMultiplier() {
       return aStrokeMultiplier;
     }

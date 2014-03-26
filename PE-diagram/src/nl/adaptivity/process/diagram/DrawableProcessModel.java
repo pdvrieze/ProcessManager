@@ -80,14 +80,15 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setVertSeparation(DEFAULT_VERT_SEPARATION);
     layout();
   }
-  
+
+  @Override
   public DrawableProcessModel clone() {
 	return new DrawableProcessModel(this);
   }
 
   private static Collection<? extends DrawableProcessNode> getDrawableNodes(DrawableProcessModel pOwner, Collection<? extends StartNode<?>> pStartNodes) {
     Set<EndNode<?>> origEndNodes = getDrawableNodes(new HashSet<EndNode<?>>(), pStartNodes);
-    ArrayList<DrawableProcessNode> result = new ArrayList<DrawableProcessNode>(pStartNodes.size());
+    ArrayList<DrawableProcessNode> result = new ArrayList<>(pStartNodes.size());
     for(EndNode<?> n: origEndNodes) {
       result.add(toDrawableEndNode(pOwner, n));
     }
@@ -115,7 +116,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     if (pPredecessors.size()==0) { return Collections.emptyList(); }
     if (pPredecessors.size()==1) { return Collections.singleton(toDrawableNode(pOwner, pPredecessors.iterator().next())); }
 
-    List<DrawableProcessNode> result = new ArrayList<DrawableProcessNode>(pPredecessors.size());
+    List<DrawableProcessNode> result = new ArrayList<>(pPredecessors.size());
     for(ProcessNode<?> elem: pPredecessors) {
       result.add(toDrawableNode(pOwner, elem));
     }

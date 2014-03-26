@@ -199,7 +199,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   @Override
   public List<? extends T> getModelNodes() {
     if (aNodes == null) {
-      aNodes = new ArrayList<T>(0);
+      aNodes = new ArrayList<>(0);
     }
     return aNodes;
   }
@@ -225,13 +225,19 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   @Override
   public Collection<? extends ClientStartNode<T>> getStartNodes() {
-    List<ClientStartNode<T>> result = new ArrayList<ClientStartNode<T>>();
+    List<ClientStartNode<T>> result = new ArrayList<>();
     for(T n:getModelNodes()) {
       if (n instanceof ClientStartNode) {
         result.add((ClientStartNode<T>) n);
       }
     }
     return result;
+  }
+
+  public void addNode(T pNode) {
+    aNodes.add(pNode);
+    // Make sure that children can know of the change.
+    nodeChanged(pNode);
   }
 
   public void layout() {
@@ -250,8 +256,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> pModelNodes) {
-    HashMap<T,DiagramNode<T>> map = new HashMap<T, DiagramNode<T>>();
-    List<DiagramNode<T>> result = new ArrayList<DiagramNode<T>>();
+    HashMap<T,DiagramNode<T>> map = new HashMap<>();
+    List<DiagramNode<T>> result = new ArrayList<>();
     for(T node:pModelNodes) {
       final double leftExtend;
       final double rightExtend;
@@ -278,7 +284,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         leftExtend = rightExtend = aLayoutAlgorithm.getDefaultNodeWidth()/2;
         topExtend = bottomExtend = aLayoutAlgorithm.getDefaultNodeHeight()/2;
       }
-      DiagramNode<T> dn = new DiagramNode<T>(node, leftExtend, rightExtend, topExtend, bottomExtend);
+      DiagramNode<T> dn = new DiagramNode<>(node, leftExtend, rightExtend, topExtend, bottomExtend);
       if (node.getId()!=null) {
         map.put(node, dn);
       }

@@ -28,8 +28,8 @@ public class DiagramNode<T extends Positioned> implements Positioned {
 
   public DiagramNode(T pTarget, double pLeftExtend, double pRightExtend, double pTopExtend, double pBottomExtend) {
     aTarget = pTarget;
-    aLeft = new ArrayList<DiagramNode<T>>();
-    aRight = new ArrayList<DiagramNode<T>>();
+    aLeft = new ArrayList<>();
+    aRight = new ArrayList<>();
     aX = pTarget.getX();
     aY = pTarget.getY();
     aLeftExtend = pLeftExtend;
@@ -73,11 +73,11 @@ public class DiagramNode<T extends Positioned> implements Positioned {
   }
 
   public DiagramNode<T> withX(double pX) {
-    return new DiagramNode<T>(this, pX, aY);
+    return new DiagramNode<>(this, pX, aY);
   }
 
   public DiagramNode<T> withY(double pY) {
-    return new DiagramNode<T>(this, aX, pY);
+    return new DiagramNode<>(this, aX, pY);
   }
 
   public void setX(double pX) {

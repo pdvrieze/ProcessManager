@@ -30,6 +30,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     aState = pOrig.aState;
   }
 
+  @Override
   public DrawableStartNode clone() {
     if (getClass()==DrawableStartNode.class) {
       return new DrawableStartNode(this);
