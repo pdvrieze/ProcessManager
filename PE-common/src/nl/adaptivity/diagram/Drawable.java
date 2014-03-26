@@ -1,6 +1,6 @@
 package nl.adaptivity.diagram;
 
-public interface Drawable extends Bounded {
+public interface Drawable extends Bounded, Cloneable {
 
   static final int STATE_DEFAULT=0x0;
   static final int STATE_TOUCHED=0x1;
