@@ -2,8 +2,6 @@ package nl.adaptivity.process.processModel;
 
 import java.util.Collection;
 
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
@@ -106,6 +104,7 @@ public interface IXmlMessage {
 
   public void setType(String pType);
 
+  @Override
   public String toString();
 
 }
