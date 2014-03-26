@@ -66,9 +66,9 @@ public class DiagramView extends View implements OnZoomListener{
             if (mGridSize>0) {
               lv.getBounds(aTmpRectF);
               double dX = (pE2.getX()-pE1.getX())/aScale;
-              double newX = Math.round((aOrigX + dX)/mGridSize)*mGridSize;   
+              double newX = Math.round((aOrigX + dX)/mGridSize)*mGridSize;
               double dY = (pE2.getY()-pE1.getY())/aScale;
-              double newY = Math.round((aOrigY + dY)/mGridSize)*mGridSize;   
+              double newY = Math.round((aOrigY + dY)/mGridSize)*mGridSize;
               lv.move(newX-aTmpRectF.left, newY-aTmpRectF.top);
             } else {
               lv.move(-pDistanceX/aScale, -pDistanceY/aScale);
@@ -77,7 +77,7 @@ public class DiagramView extends View implements OnZoomListener{
           }
           return true;
         }
-        return false; 
+        return false;
       } else {
         double scale = getScale();
         setOffsetX(getOffsetX()+(pDistanceX/scale));
@@ -95,7 +95,7 @@ public class DiagramView extends View implements OnZoomListener{
     /**
      * Allow for specifying whether the move is for a single item, or for the
      * canvas.
-     * 
+     *
      * @param pValue <code>true</code> when the focus is an element,
      *          <code>false</code> when not.
      */
@@ -256,6 +256,7 @@ public class DiagramView extends View implements OnZoomListener{
         a.recycle();
       }
     }
+    setLayerType(LAYER_TYPE_SOFTWARE, null);
   }
 
   private static boolean isNotEmulator() {
@@ -296,12 +297,12 @@ public class DiagramView extends View implements OnZoomListener{
     aScale = pScale;
   }
 
-  
+
   protected int getGridSize() {
     return mGridSize;
   }
 
-  
+
   protected void setGridSize(int pGridSize) {
     mGridSize = pGridSize;
   }
@@ -364,7 +365,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   /**
    * Get the element touched by the given event.
-   * 
+   *
    * @param pEvent The event to analyse.
    * @return The index of the touched element, or <code>-1</code> when none.
    */
