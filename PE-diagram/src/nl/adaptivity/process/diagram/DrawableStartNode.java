@@ -25,6 +25,18 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     super(pId, pOwner);
   }
 
+  public DrawableStartNode(DrawableStartNode pOrig) {
+    super(pOrig);
+    aState = pOrig.aState;
+  }
+
+  public DrawableStartNode clone() {
+    if (getClass()==DrawableStartNode.class) {
+      return new DrawableStartNode(this);
+    }
+    throw new RuntimeException(new CloneNotSupportedException());
+  }
+
   @Override
   public Rectangle getBounds() {
     final double hsw = STROKEWIDTH/2;

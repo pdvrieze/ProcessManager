@@ -25,6 +25,19 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     super(pId, pOwner);
   }
 
+  public DrawableEndNode(DrawableEndNode pOrig) {
+    super(pOrig);
+    aState = pOrig.aState;
+  }
+
+  @Override
+  public DrawableEndNode clone() {
+    if (getClass()==DrawableEndNode.class) {
+      return new DrawableEndNode(this);
+    }
+    throw new RuntimeException(new CloneNotSupportedException());
+  }
+
   @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-ENDNODEOUTERRADIUS, getY()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH);
@@ -59,7 +72,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
       PEN_T innerPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
 
       double hsw = ENDNODEOUTERSTROKEWIDTH/2;
-      
+
       if ((aState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
         pCanvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, touchedPen);

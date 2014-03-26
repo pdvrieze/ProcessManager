@@ -20,6 +20,10 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
     super(pId, pOwner);
   }
 
+  protected ClientEndNode(ClientEndNode<T> pOrig) {
+    super(pOrig);
+  }
+
   @Override
   public ProcessNodeSet<T> getSuccessors() {
     return ProcessNodeSet.empty();

@@ -26,7 +26,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   }
 
   public DrawableActivity(DrawableActivity pDrawableActivity) {
-    super(this);
+    super(pDrawableActivity);
     aState = pDrawableActivity.aState;
   }
 

@@ -29,6 +29,19 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
     super(pId, pOwner);
   }
 
+  public DrawableJoin(DrawableJoin pOrig) {
+    super(pOrig);
+    aState = pOrig.aState;
+  }
+
+  @Override
+  public DrawableJoin clone() {
+    if (getClass()==DrawableJoin.class) {
+      return new DrawableJoin(this);
+    }
+    throw new RuntimeException(new CloneNotSupportedException());
+  }
+
   @Override
   public Rectangle getBounds() {
     double dx = (JOINWIDTH+STROKEEXTEND)/2;

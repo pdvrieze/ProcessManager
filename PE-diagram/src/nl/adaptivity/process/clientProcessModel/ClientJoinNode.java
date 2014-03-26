@@ -24,6 +24,12 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProce
     super(pId, pOwner);
   }
 
+  protected ClientJoinNode(ClientJoinNode<T> pOrig) {
+    super(pOrig);
+    aPredecessors = pOrig.aPredecessors == null ? null : pOrig.aPredecessors.clone();
+    aSuccessors = pOrig.aSuccessors == null ? null : pOrig.aSuccessors.clone();
+  }
+
   @Override
   public ProcessNodeSet<T> getSuccessors() {
     if (aSuccessors == null) {

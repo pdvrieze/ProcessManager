@@ -19,6 +19,11 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     super(pId, pOwner);
   }
 
+  protected ClientStartNode(final ClientStartNode<T> pOrig) {
+    super(pOrig);
+    aSuccessors = pOrig.aSuccessors==null ? null : pOrig.aSuccessors.clone();
+  }
+
   private void resolvePredecessors(final Map<String, T> pMap) {
     // start node has no predecessors
   }

@@ -33,6 +33,15 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     aOwner = pOwner;
   }
 
+  protected ClientProcessNode(final ClientProcessNode<T> pOrig) {
+    aId = pOrig.aId;
+    aX = pOrig.aX;
+    aY = pOrig.aY;
+    aImports = CollectionUtil.copy(pOrig.aImports);
+    aExports = CollectionUtil.copy(pOrig.aExports);
+    aOwner = pOrig.aOwner;
+  }
+
   @Override
   public String getId() {
     return aId;
