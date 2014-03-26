@@ -80,6 +80,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setVertSeparation(DEFAULT_VERT_SEPARATION);
     layout();
   }
+  
+  public DrawableProcessModel clone() {
+	return new DrawableProcessModel(this);
+  }
 
   private static Collection<? extends DrawableProcessNode> getDrawableNodes(DrawableProcessModel pOwner, Collection<? extends StartNode<?>> pStartNodes) {
     Set<EndNode<?>> origEndNodes = getDrawableNodes(new HashSet<EndNode<?>>(), pStartNodes);
