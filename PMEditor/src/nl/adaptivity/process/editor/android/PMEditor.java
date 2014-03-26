@@ -37,22 +37,23 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
+import android.view.*;
+import android.view.View.DragShadowBuilder;
+import android.view.View.OnDragListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
 
+  
   private static final int ITEM_MARGIN = 8/*dp*/;
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
@@ -504,9 +505,65 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     }
 
   }
+  
+  private class ItemDragListener implements OnDragListener, OnTouchListener {
+
+    @Override
+    public boolean onDrag(View pV, DragEvent pEvent) {
+      // TODO Auto-generated method stub
+      return false;
+    }
+
+    @Override
+    public boolean onTouch(View pV, MotionEvent pEvent) {
+      // Don't handle multitouch
+      if (pEvent.getPointerCount()>0) { 
+        return false; 
+      }
+
+      ImageView v = (ImageView) pV;
+      DrawableDrawable d = (DrawableDrawable) v.getDrawable();
+      int action = pEvent.getAction();
+      switch (action) {
+      case MotionEvent.ACTION_DOWN: {
+        if (d.isInBounds(pEvent.getX(), pEvent.getY())) {
+          v.startDrag(null, new ItemShadowBuilder(d), v.getTag(), 0);
+        }
+      }
+        
+      }
+      
+      // TODO Auto-generated method stub
+      return false;
+    }
+    
+  }
+
+  private class ItemShadowBuilder extends DragShadowBuilder {
+
+    public ItemShadowBuilder(DrawableDrawable pD) {
+      super(new ImageView(PMEditor.this));
+      ((ImageView)getView()).setImageDrawable((Drawable)pD.clone());
+      // TODO Auto-generated constructor stub
+    }
+
+    @Override
+    public void onProvideShadowMetrics(Point pShadowSize, Point pShadowTouchPoint) {
+      // TODO Auto-generated method stub
+      super.onProvideShadowMetrics(pShadowSize, pShadowTouchPoint);
+    }
+
+    @Override
+    public void onDrawShadow(Canvas pCanvas) {
+      // TODO Auto-generated method stub
+      super.onDrawShadow(pCanvas);
+    }
+  
+  }
 
   boolean aStep = true;
 
+  private ItemDragListener mItemDragListener = new ItemDragListener();
 
   private DiagramView diagramView1;
 
@@ -563,6 +620,9 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     ImageView v = new ImageView(this);
     v.setLayoutParams(lp);
     v.setImageDrawable(new DrawableDrawable(positionNode(node), theme));
+    v.setOnTouchListener(mItemDragListener);
+    v.setOnDragListener(mItemDragListener);
+    v.setTag(node.getClass());
     elementsView.addView(v);
   }
 

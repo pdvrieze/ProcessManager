@@ -10,7 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.util.DisplayMetrics;
 
 
-public class DrawableDrawable extends Drawable {
+public class DrawableDrawable extends Drawable implements Cloneable {
   
   private nl.adaptivity.diagram.Drawable aImage;
   private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
@@ -23,6 +23,14 @@ public class DrawableDrawable extends Drawable {
     aScale = dm.density*160/96;
   }
   
+  @Override
+  protected Object clone() {
+    if (getClass()==DrawableDrawable.class) {
+      return new DrawableDrawable(((nl.adaptivity.diagram.Drawable) aImage.clone()), aTheme);
+    }
+    throw new CloneNotSupportedException();
+  }
+
   @Override
   public void draw(Canvas pCanvas) {
     if (aImage!=null) {
@@ -89,6 +97,10 @@ public class DrawableDrawable extends Drawable {
   public int getIntrinsicHeight() {
     Rectangle bounds = aImage.getBounds();
     return (int) (Math.ceil(bounds.bottom()*aScale)-Math.floor(bounds.top*aScale));
+  }
+
+  public boolean isInBounds(float pX, float pY) {
+    return aImage.getItemAt(pX/aScale, pY/aScale)!=null;
   }
 
 }
