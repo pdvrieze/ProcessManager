@@ -25,6 +25,19 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     super(pId, pOwner);
   }
 
+  public DrawableActivity(DrawableActivity pDrawableActivity) {
+    super(this);
+    aState = pDrawableActivity.aState;
+  }
+
+  @Override
+  public DrawableActivity clone() {
+    if (getClass()==DrawableActivity.class) {
+      return new DrawableActivity(this);
+    }
+    throw new RuntimeException(new CloneNotSupportedException());
+  }
+
   @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-((ACTIVITYWIDTH+STROKEWIDTH)/2), getY()-((ACTIVITYHEIGHT+STROKEWIDTH)/2), ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);

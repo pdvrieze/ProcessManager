@@ -40,6 +40,14 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
     super(pId, pOwner);
   }
 
+  protected ClientActivityNode(ClientActivityNode<T> pOrig) {
+    super(pOrig);
+    aName = pOrig.aName;
+    aCondition = pOrig.aCondition;
+    aPredecessor = pOrig.aPredecessor;
+    aSuccessors = pOrig.aSuccessors;
+    aMessage = pOrig.aMessage;
+  }
 
   @Override
   public ProcessNodeSet<T> getPredecessors() {
