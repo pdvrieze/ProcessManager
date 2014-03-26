@@ -1,7 +1,6 @@
 package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
@@ -71,13 +70,18 @@ public class LWDrawableView implements LightView{
    * preapplied so the top left of the drawing is 0,0.
    */
   @Override
-  public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale) {
+  public  void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
     if (aAndroidCanvas==null) {
       aAndroidCanvas=new AndroidCanvas(pCanvas, pTheme);
     } else {
       aAndroidCanvas.setCanvas(pCanvas);
     }
     aItem.draw(aAndroidCanvas.scale(pScale), null);
+  }
+
+  @Override
+  public void move(double pX, double pY) {
+    aItem.move(pX, pY);
   }
 
 }

@@ -13,6 +13,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -42,14 +43,47 @@ public class DiagramView extends View implements OnZoomListener{
 
   private final class MyGestureListener extends SimpleOnGestureListener {
 
-    private boolean aIgnoreMove = false;
+    private boolean aMoveItem = false;
+    private int aMoving = -1;
+    private float aOrigX;
+    private float aOrigY;
     @Override
     public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
-      if (aIgnoreMove) { return false; }
-      double scale = getScale();
-      setOffsetX(getOffsetX()+(pDistanceX/scale));
-      setOffsetY(getOffsetY()+(pDistanceY/scale));
-      return true;
+      if (aMoving>=0 || aMoveItem) {
+        int touchedElement = aMoving>=0 ? aMoving: getTouchedElement(pE1);
+        if (touchedElement>=0) {
+          if (aMoving <0) {
+            if (Math.max(Math.abs(pDistanceY),Math.abs(pDistanceX))>MIN_DRAG_DIST) {
+              aMoving = touchedElement;
+              LightView lv = aAdapter.getView(touchedElement);
+              lv.getBounds(aTmpRectF);
+              aOrigX = aTmpRectF.left;
+              aOrigY = aTmpRectF.top;
+            }
+          }
+          if (aMoving>=0) {
+            LightView lv = aAdapter.getView(touchedElement);
+            if (mGridSize>0) {
+              lv.getBounds(aTmpRectF);
+              double dX = (pE2.getX()-pE1.getX())/aScale;
+              double newX = Math.round((aOrigX + dX)/mGridSize)*mGridSize;   
+              double dY = (pE2.getY()-pE1.getY())/aScale;
+              double newY = Math.round((aOrigY + dY)/mGridSize)*mGridSize;   
+              lv.move(newX-aTmpRectF.left, newY-aTmpRectF.top);
+            } else {
+              lv.move(-pDistanceX/aScale, -pDistanceY/aScale);
+            }
+            invalidate();
+          }
+          return true;
+        }
+        return false; 
+      } else {
+        double scale = getScale();
+        setOffsetX(getOffsetX()+(pDistanceX/scale));
+        setOffsetY(getOffsetY()+(pDistanceY/scale));
+        return true;
+      }
     }
 
     @Override
@@ -58,8 +92,15 @@ public class DiagramView extends View implements OnZoomListener{
       if (touchedElement>=0) highlightTouch(touchedElement);
     }
 
-    public void setIgnoreMove(boolean pValue) {
-      aIgnoreMove = pValue;
+    /**
+     * Allow for specifying whether the move is for a single item, or for the
+     * canvas.
+     * 
+     * @param pValue <code>true</code> when the focus is an element,
+     *          <code>false</code> when not.
+     */
+    public void setMoveItem(boolean pValue) {
+      aMoveItem = pValue;
     }
 
     @Override
@@ -86,6 +127,11 @@ public class DiagramView extends View implements OnZoomListener{
       }
     }
 
+    public void actionFinished() {
+      aMoveItem = false;
+      aMoving = -1;
+    }
+
 
   }
 
@@ -103,6 +149,7 @@ public class DiagramView extends View implements OnZoomListener{
   public static final double DENSITY = Resources.getSystem().getDisplayMetrics().density;
   private static final double MAXSCALE = 6d*DENSITY;
   private static final double MINSCALE = 0.5d*DENSITY;
+  private static final float MIN_DRAG_DIST = (float) (8*DENSITY);
   private DiagramAdapter<?,?> aAdapter;
   private Paint aRed;
   private Paint aTimePen;
@@ -170,13 +217,16 @@ public class DiagramView extends View implements OnZoomListener{
   private Rectangle aTmpRectangle = new Rectangle(0d, 0d, 0d, 0d);
   private final RectF aTmpRectF = new RectF();
   private final Rect aTmpRect = new Rect();
+  private int mGridSize;
+
+  private static final int DEFAULT_GRID_SIZE=8;
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
     super(pContext, pAttrs, pDefStyle);
     aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
-    init();
+    init(pAttrs);
   }
 
   public DiagramView(Context pContext, AttributeSet pAttrs) {
@@ -184,7 +234,7 @@ public class DiagramView extends View implements OnZoomListener{
     aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
-    init();
+    init(pAttrs);
   }
 
   public DiagramView(Context pContext) {
@@ -192,11 +242,20 @@ public class DiagramView extends View implements OnZoomListener{
     aMultitouch = (isNotEmulator()) && pContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     aGestureDetector = new GestureDetector(pContext, aGestureListener);
     aScaleGestureDetector = new ScaleGestureDetector(pContext, aScaleGestureListener);
-    init();
+    init(null);
   }
 
-  public void init() {
-//    setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+  public void init(AttributeSet pAttrs) {
+    if (pAttrs==null) {
+      mGridSize=DEFAULT_GRID_SIZE;
+    } else {
+      TypedArray a = getContext().getTheme().obtainStyledAttributes(pAttrs, R.styleable.DiagramView, 0, 0);
+      try {
+        mGridSize = a.getInteger(R.styleable.DiagramView_gridSize, DEFAULT_GRID_SIZE);
+      } finally {
+        a.recycle();
+      }
+    }
   }
 
   private static boolean isNotEmulator() {
@@ -235,6 +294,16 @@ public class DiagramView extends View implements OnZoomListener{
       Compat.postInvalidateOnAnimation(this);
     }
     aScale = pScale;
+  }
+
+  
+  protected int getGridSize() {
+    return mGridSize;
+  }
+
+  
+  protected void setGridSize(int pGridSize) {
+    mGridSize = pGridSize;
   }
 
   public DiagramAdapter<?,?> getAdapter() {
@@ -279,7 +348,7 @@ public class DiagramView extends View implements OnZoomListener{
     invalidate(aTmpRect);
   }
 
-  private void outset(RectF pRect, float pOutset) {
+  private static void outset(RectF pRect, float pOutset) {
     pRect.left-=pOutset;
     pRect.top-=pOutset;
     pRect.right+=pOutset;
@@ -293,6 +362,12 @@ public class DiagramView extends View implements OnZoomListener{
     pDest.bottom = (int) Math.ceil(toCanvasY(pSource.bottom));
   }
 
+  /**
+   * Get the element touched by the given event.
+   * 
+   * @param pEvent The event to analyse.
+   * @return The index of the touched element, or <code>-1</code> when none.
+   */
   private int getTouchedElement(MotionEvent pEvent) {
     int pIdx = pEvent.getActionIndex();
     float x = pEvent.getX(pIdx);
@@ -384,7 +459,7 @@ public class DiagramView extends View implements OnZoomListener{
   private void drawDiagram(Canvas canvas) {
     if (aAdapter!=null) {
       LightView bg = aAdapter.getBackground();
-      Theme<?, AndroidPen, AndroidPath> theme = aAdapter.getTheme();
+      Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = aAdapter.getTheme();
       if (bg!=null) {
         int save = canvas.save();
         canvas.translate(toCanvasX(0), toCanvasY(0));
@@ -548,7 +623,7 @@ public class DiagramView extends View implements OnZoomListener{
       touchedElement = findTouchedElement(diagX, diagY);
       if (touchedElement>=0) {
         highlightTouch(touchedElement);
-        aGestureListener.setIgnoreMove(true);
+        aGestureListener.setMoveItem(true);
       }
 
 //    if (BuildConfig.DEBUG) {
@@ -569,7 +644,8 @@ public class DiagramView extends View implements OnZoomListener{
 //    if (BuildConfig.DEBUG) {
 //      Debug.stopMethodTracing();
 //    }
-      aGestureListener.setIgnoreMove(false);
+      aGestureListener.actionFinished();
+//      aGestureListener.setMoveItem(false);
     }
     boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
     retVal = aGestureDetector.onTouchEvent(pEvent) || retVal;

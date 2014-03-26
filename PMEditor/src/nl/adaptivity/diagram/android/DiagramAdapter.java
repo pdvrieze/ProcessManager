@@ -24,6 +24,6 @@ public interface DiagramAdapter<T extends LightView, V> {
 
   void getBounds(RectF pDiagramBounds);
 
-  Theme<?, AndroidPen, AndroidPath> getTheme();
+  Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme();
 
 }

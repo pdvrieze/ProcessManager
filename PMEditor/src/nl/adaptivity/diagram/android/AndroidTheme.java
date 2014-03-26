@@ -4,14 +4,13 @@ import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.ThemeItem;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
 
 
 public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidPath> {
 
   private static final int SHADE_STATE_MASK = nl.adaptivity.diagram.Drawable.STATE_SELECTED | nl.adaptivity.diagram.Drawable.STATE_TOUCHED;
-  public static final float SHADER_RADIUS = 18f;
+  public static final float SHADER_RADIUS = 8f;
 
   public static final int TOUCHED_SHADE_COLOR=Color.argb(0xb0, 0xff, 0xec, 0x1a);
   public static final int SELECTED_SHADE_COLOR=Color.argb(0xb0, 23, 166, 255);
@@ -87,9 +86,9 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
           return pPen;
       }
       if ((pState & nl.adaptivity.diagram.Drawable.STATE_TOUCHED)>0) {
-        pPen.setShadowLayer(AndroidExtraThemeItem.SHADER_RADIUS, AndroidExtraThemeItem.TOUCHED_SHADE_COLOR);
+        pPen.setShadowLayer(SHADER_RADIUS, TOUCHED_SHADE_COLOR);
       } else if ((pState & nl.adaptivity.diagram.Drawable.STATE_SELECTED)>0) {
-        pPen.setShadowLayer(AndroidExtraThemeItem.SHADER_RADIUS, AndroidExtraThemeItem.SELECTED_SHADE_COLOR);
+        pPen.setShadowLayer(SHADER_RADIUS, SELECTED_SHADE_COLOR);
       }
     }
     return pPen;

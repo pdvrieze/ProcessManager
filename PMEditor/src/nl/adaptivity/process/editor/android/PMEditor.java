@@ -336,7 +336,6 @@ public class PMEditor extends Activity implements OnNodeClickListener {
       }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void reportMove(DiagramNode<DrawableProcessNode> pNode, double pNewX, double pNewY) {
       setLabel("move");

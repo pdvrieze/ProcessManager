@@ -3,11 +3,7 @@ package nl.adaptivity.process.editor.android;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RectF;
 import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.AndroidPath;
@@ -20,6 +16,9 @@ import nl.adaptivity.diagram.android.LightView;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 
 /**
  * The MyDiagramAdapter to use for the editor.
@@ -57,7 +56,10 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     }
 
     @Override
-    public <S extends DrawingStrategy<S, AndroidPen, AndroidPath>> void draw(Canvas pCanvas, Theme<S, AndroidPen, AndroidPath> pTheme, double pScale) {
+    public void move(double pX, double pY) { /* ignore */ }
+
+    @Override
+    public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
       if (aPen ==null) { aPen = pTheme.getPen(ProcessThemeItems.LINE, Drawable.STATE_DEFAULT).getPaint(); }
       for(DrawableProcessNode start:aDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
@@ -86,7 +88,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   public MyDiagramAdapter(DrawableProcessModel pDiagram) {
     aDiagram = pDiagram;
-    aViewCache = new ArrayList<LWDrawableView>(pDiagram.getModelNodes().size());
+    aViewCache = new ArrayList<>(pDiagram.getModelNodes().size());
   }
 
   @Override

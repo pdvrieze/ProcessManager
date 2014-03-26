@@ -65,6 +65,7 @@ public class AndroidCanvas implements IAndroidCanvas {
       AndroidCanvas.this.drawCircle((pX-aXOffset)*aScale, (pY - aYOffset) * aScale, pRadius*aScale, scalePen(pPen));
     }
 
+    @Override
     public void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen) {
       AndroidCanvas.this.drawBitmap((pLeft-aXOffset)*aScale, (pTop-aYOffset)*aScale, pBitmap, scalePen(pPen));
     }
@@ -148,9 +149,9 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   private android.graphics.Canvas aCanvas;
-  private Theme aTheme;
+  private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
 
-  public AndroidCanvas(android.graphics.Canvas pCanvas, Theme pTheme) {
+  public AndroidCanvas(android.graphics.Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme) {
     aCanvas = pCanvas;
     aTheme = pTheme;
   }

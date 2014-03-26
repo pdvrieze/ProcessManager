@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="DiagramView">
+        <attr name="gridSize" format="integer" min="0">
+            <enum name="no_grid" value="0" />
+        </attr>
+    </declare-styleable>
+</resources>

@@ -13,10 +13,10 @@ import android.util.DisplayMetrics;
 public class DrawableDrawable extends Drawable {
   
   private nl.adaptivity.diagram.Drawable aImage;
-  private Theme<?,?,?> aTheme;
+  private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
   private double aScale;
   
-  public DrawableDrawable(nl.adaptivity.diagram.Drawable pImage, Theme<?,?,?> pTheme) {
+  public DrawableDrawable(nl.adaptivity.diagram.Drawable pImage, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme) {
     aTheme = pTheme;
     aImage = pImage;
     DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
