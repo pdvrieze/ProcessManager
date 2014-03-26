@@ -4,6 +4,8 @@ import static nl.adaptivity.diagram.Drawable.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,12 +32,16 @@ import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.diagram.LayoutStepper;
 import android.app.Activity;
+import android.content.ClipData;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -51,7 +57,7 @@ import android.widget.LinearLayout;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
 
-  
+
   private static final int ITEM_MARGIN = 8/*dp*/;
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
@@ -503,11 +509,45 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     }
 
   }
-  
+
   private class ItemDragListener implements OnDragListener, OnTouchListener {
 
     @Override
     public boolean onDrag(View pV, DragEvent pEvent) {
+      int action = pEvent.getAction();
+      switch (action) {
+        case DragEvent.ACTION_DRAG_STARTED:
+          return true;
+        case DragEvent.ACTION_DRAG_LOCATION:
+          return true;
+        case DragEvent.ACTION_DRAG_ENTERED:
+          return (pV==diagramView1);
+        case DragEvent.ACTION_DROP: {
+          if (pV==diagramView1) {
+            Class<?> nodeType = (Class<?>) pEvent.getLocalState();
+            Constructor<?> constructor;
+            try {
+              constructor = nodeType.getConstructor(ClientProcessModel.class);
+              DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(aPm);
+              float diagramX = diagramView1.toDiagramX(pEvent.getX());
+              float diagramY = diagramView1.toDiagramY(pEvent.getY());
+              final int gridSize = diagramView1.getGridSize();
+              if (gridSize>0) {
+                diagramX = Math.round(diagramX/gridSize)*gridSize;
+                diagramY = Math.round(diagramY/gridSize)*gridSize;
+              }
+              node.setX(diagramX);
+              node.setY(diagramY);
+              aPm.addNode(node);
+              diagramView1.invalidate();
+              return true;
+            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+              Log.e(PMEditor.class.getSimpleName(), "Failure to instantiate new node", e);
+            }
+          }
+          break;
+        }
+      }
       // TODO Auto-generated method stub
       return false;
     }
@@ -515,8 +555,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     @Override
     public boolean onTouch(View pV, MotionEvent pEvent) {
       // Don't handle multitouch
-      if (pEvent.getPointerCount()>0) { 
-        return false; 
+      if (pEvent.getPointerCount()>1) {
+        return false;
       }
 
       ImageView v = (ImageView) pV;
@@ -524,39 +564,58 @@ public class PMEditor extends Activity implements OnNodeClickListener {
       int action = pEvent.getAction();
       switch (action) {
       case MotionEvent.ACTION_DOWN: {
-        if (d.isInBounds(pEvent.getX(), pEvent.getY())) {
-          v.startDrag(null, new ItemShadowBuilder(d), v.getTag(), 0);
+        // Get the bounds of the drawable
+        RectF boundsF = new RectF(d.getBounds());
+        // Convert the bounds into imageview relative coordinates
+        v.getImageMatrix().mapRect(boundsF);
+        // Only work when the image is touched
+        if (boundsF.contains(pEvent.getX(), pEvent.getY())) {
+          ClipData data = ClipData.newPlainText("label", "text");
+          v.startDrag(data , new ItemShadowBuilder(d), v.getTag(), 0);
         }
+        break;
       }
-        
+
       }
-      
+
       // TODO Auto-generated method stub
       return false;
     }
-    
+
   }
 
   private class ItemShadowBuilder extends DragShadowBuilder {
 
+    private DrawableDrawable aDrawable;
+    private double aScale;
+
     public ItemShadowBuilder(DrawableDrawable pD) {
-      super(new ImageView(PMEditor.this));
-      DrawableDrawable drawable = pD.clone();
-      drawable.setState(new int[]{android.R.attr.state_pressed});
-      ((ImageView)getView()).setImageDrawable(drawable);
+      super(elementsView);
+      aDrawable = pD.clone();
+      aDrawable.setState(new int[]{android.R.attr.state_pressed});
     }
 
     @Override
     public void onProvideShadowMetrics(Point pShadowSize, Point pShadowTouchPoint) {
-      super.onProvideShadowMetrics(pShadowSize, pShadowTouchPoint);
+      aScale = diagramView1.getScale();
+      aDrawable.setScale(aScale);
+      pShadowSize.x=(int) Math.ceil(aDrawable.getIntrinsicWidth()+2*aScale*AndroidTheme.SHADER_RADIUS);
+      pShadowSize.y=(int) Math.ceil(aDrawable.getIntrinsicHeight()+2*aScale*AndroidTheme.SHADER_RADIUS);
+      pShadowTouchPoint.x=pShadowSize.x/2;
+      pShadowTouchPoint.y=pShadowSize.y/2;
+      final int padding = (int) Math.round(aScale*AndroidTheme.SHADER_RADIUS);
+      aDrawable.setBounds(padding, padding, pShadowSize.x-padding, pShadowSize.y-padding);
     }
 
     @Override
     public void onDrawShadow(Canvas pCanvas) {
-      // TODO Auto-generated method stub
-      super.onDrawShadow(pCanvas);
+      final float padding = (float) (aScale*AndroidTheme.SHADER_RADIUS);
+      int restore = pCanvas.save();
+      pCanvas.translate(padding, padding);
+      aDrawable.draw(pCanvas);
+      pCanvas.restoreToCount(restore);
     }
-  
+
   }
 
   boolean aStep = true;
@@ -582,6 +641,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     diagramView1.setOffsetX(0d);
     diagramView1.setOffsetY(0d);
     diagramView1.setOnNodeClickListener(this);
+    diagramView1.setOnDragListener(mItemDragListener);
 
     elementsView = (LinearLayout) findViewById(R.id.diagramElementsGroup);
     if (elementsView!=null) {

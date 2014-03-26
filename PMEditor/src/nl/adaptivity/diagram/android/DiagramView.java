@@ -298,12 +298,12 @@ public class DiagramView extends View implements OnZoomListener{
   }
 
 
-  protected int getGridSize() {
+  public int getGridSize() {
     return mGridSize;
   }
 
 
-  protected void setGridSize(int pGridSize) {
+  public void setGridSize(int pGridSize) {
     mGridSize = pGridSize;
   }
 
@@ -493,19 +493,19 @@ public class DiagramView extends View implements OnZoomListener{
     }
   }
 
-  private float toCanvasX(double pX) {
+  public float toCanvasX(double pX) {
     return (float) ((pX-aOffsetX)*aScale);
   }
 
-  private float toCanvasY(double pY) {
+  public float toCanvasY(double pY) {
     return (float) ((pY-aOffsetY)*aScale);
   }
 
-  private float toDiagramX(float x) {
+  public float toDiagramX(float x) {
     return (float) (x/aScale +aOffsetX);
   }
 
-  private float toDiagramY(float y) {
+  public float toDiagramY(float y) {
     return (float) (y/aScale +aOffsetY);
   }
 

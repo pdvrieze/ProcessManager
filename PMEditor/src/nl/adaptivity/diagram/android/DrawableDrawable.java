@@ -11,18 +11,18 @@ import android.util.DisplayMetrics;
 
 
 public class DrawableDrawable extends Drawable implements Cloneable {
-  
+
   private nl.adaptivity.diagram.Drawable aImage;
   private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
   private double aScale;
-  
+
   public DrawableDrawable(nl.adaptivity.diagram.Drawable pImage, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme) {
     aTheme = pTheme;
     aImage = pImage;
     DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
     aScale = dm.density*160/96;
   }
-  
+
   @Override
   public DrawableDrawable clone() {
     if (getClass()==DrawableDrawable.class) {
@@ -99,8 +99,12 @@ public class DrawableDrawable extends Drawable implements Cloneable {
     return (int) (Math.ceil(bounds.bottom()*aScale)-Math.floor(bounds.top*aScale));
   }
 
-  public boolean isInBounds(float pX, float pY) {
-    return aImage.getItemAt(pX/aScale, pY/aScale)!=null;
+  public double getScale() {
+    return aScale;
+  }
+
+  public void setScale(double pScale) {
+    aScale = pScale;
   }
 
 }
