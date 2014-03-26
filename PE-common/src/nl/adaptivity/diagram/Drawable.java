@@ -38,4 +38,8 @@ public interface Drawable extends Bounded {
    * @param pState
    */
   public void setState(int pState);
+  
+
+  public void move(double pX, double pY);
+
 }
