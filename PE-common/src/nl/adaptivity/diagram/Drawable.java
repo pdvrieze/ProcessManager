@@ -27,6 +27,14 @@ public interface Drawable extends Bounded, Cloneable {
   public Drawable getItemAt(double pX, double pY);
 
   /**
+   * Override the definition of {@link Object#clone()} to ensure the right
+   * return type and make it public.
+   * 
+   * @return A copy.
+   */
+  public Drawable clone();
+  
+  /**
    * Get the current state of the drawable. Individual implementations should specify what each state value means.
    * The <code>0</code> value however means the default.
    * @return The current state of the drawable.
