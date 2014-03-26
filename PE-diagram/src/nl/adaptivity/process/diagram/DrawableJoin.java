@@ -37,6 +37,12 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
   }
 
   @Override
+  public void move(double pX, double pY) {
+    setX(getX()+pX);
+    setY(getY()+pY);
+  }
+
+  @Override
   public Drawable getItemAt(double pX, double pY) {
     final double realradiusX=(JOINWIDTH+STROKEEXTEND)/2;
     final double realradiusY=(JOINHEIGHT+STROKEEXTEND)/2;

@@ -31,6 +31,12 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   }
 
   @Override
+  public void move(double pX, double pY) {
+    setX(getX()+pX);
+    setY(getY()+pY);
+  }
+
+  @Override
   public Drawable getItemAt(double pX, double pY) {
     final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
     return ((Math.abs(pX-getX())<=realradius) && (Math.abs(pY-getY())<=realradius)) ? this : null;

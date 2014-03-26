@@ -31,6 +31,12 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   }
 
   @Override
+  public void move(double pX, double pY) {
+    setX(getX()+pX);
+    setY(getY()+pY);
+  }
+
+  @Override
   public Drawable getItemAt(double pX, double pY) {
     double hwidth = (ACTIVITYWIDTH+STROKEWIDTH)/2;
     double hheight = (ACTIVITYHEIGHT+STROKEWIDTH)/2;

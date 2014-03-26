@@ -146,6 +146,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return aBounds;
   }
 
+  @Override
+  public void move(double pX, double pY) {
+    // TODO instead implement this through moving all elements.
+    throw new UnsupportedOperationException("Diagrams can not be moved");
+  }
 
   @Override
   public Drawable getItemAt(double pX, double pY) {
