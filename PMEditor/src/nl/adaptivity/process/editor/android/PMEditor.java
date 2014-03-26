@@ -1,7 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import static nl.adaptivity.diagram.Drawable.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -35,12 +33,10 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -54,6 +50,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import static nl.adaptivity.diagram.Drawable.*;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
 
