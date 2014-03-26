@@ -15,7 +15,7 @@ import net.devrieze.annotations.NotNull;
 import net.devrieze.util.ReadMap;
 
 
-public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess {
+public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
 
 
 
@@ -34,6 +34,11 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
     public BaseProcessNodeSet(Collection<? extends V> c) {
       aStore = new ArrayList<>(c.size());
       addAll(c);
+    }
+
+    @Override
+    public BaseProcessNodeSet<V> clone() {
+      return new BaseProcessNodeSet<>(aStore);
     }
 
     @Override
@@ -73,6 +78,11 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
   private static final class EmptyProcessNodeSet<V extends ProcessNode<V>> extends ProcessNodeSet<V> {
 
     @Override
+    public EmptyProcessNodeSet<V> clone() {
+      return this;
+    }
+
+    @Override
     public Collection<V> values() {
       return Collections.emptyList();
     }
@@ -98,6 +108,15 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
     public SingletonProcessNodeSet(V pElement) {
       if (pElement==null) { throw new NullPointerException(); }
       aElement = pElement;
+    }
+
+    @Override
+    public SingletonProcessNodeSet<V> clone() {
+      if (aElement==null) {
+        return new SingletonProcessNodeSet<>();
+      } else {
+        return new SingletonProcessNodeSet<>(aElement);
+      }
     }
 
     @Override
@@ -281,6 +300,9 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
   }
 
   @Override
+  public abstract ProcessNodeSet<T> clone();
+
+  @Override
   public T get(String pKey) {
     if (pKey==null) {
       for(T elem: this) {
@@ -312,11 +334,11 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
   private static ProcessNodeSet EMPTY = new EmptyProcessNodeSet<>();
 
   public static <V extends ProcessNode<V>> ProcessNodeSet<V> singleton() {
-    return new SingletonProcessNodeSet<V>();
+    return new SingletonProcessNodeSet<>();
   }
 
   public static <V extends ProcessNode<V>> ProcessNodeSet<V> singleton(V pElement) {
-    return new SingletonProcessNodeSet<V>(pElement);
+    return new SingletonProcessNodeSet<>(pElement);
   }
 
 }
