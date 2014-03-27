@@ -67,6 +67,11 @@ public class PMParser {
     }
 
     @Override
+    public void setPos(double pLeft, double pTop) {
+      throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
     public Drawable getItemAt(double pX, double pY) {
       throw new UnsupportedOperationException("Not implemented");
     }

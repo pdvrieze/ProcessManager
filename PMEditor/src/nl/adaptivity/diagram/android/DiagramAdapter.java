@@ -1,5 +1,7 @@
 package nl.adaptivity.diagram.android;
 
+import java.util.List;
+
 import nl.adaptivity.diagram.Theme;
 import android.graphics.RectF;
 
@@ -17,6 +19,8 @@ public interface DiagramAdapter<T extends LightView, V> {
   V getItem(int pPosition);
 
   T getView(int pPosition);
+  
+  List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected);
 
   LightView getBackground();
 

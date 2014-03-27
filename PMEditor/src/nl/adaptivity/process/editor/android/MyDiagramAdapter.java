@@ -1,11 +1,13 @@
 package nl.adaptivity.process.editor.android;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.diagram.android.AndroidDrawableLightView;
 import nl.adaptivity.diagram.android.AndroidPath;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -13,12 +15,16 @@ import nl.adaptivity.diagram.android.AndroidTheme;
 import nl.adaptivity.diagram.android.DiagramAdapter;
 import nl.adaptivity.diagram.android.LWDrawableView;
 import nl.adaptivity.diagram.android.LightView;
+import nl.adaptivity.diagram.android.RelativeLightView;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
+import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
+import static nl.adaptivity.diagram.android.RelativeLightView.*;
 
 /**
  * The MyDiagramAdapter to use for the editor.
@@ -36,19 +42,19 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     public void setFocussed(boolean pFocussed) { /* ignore */ }
 
     @Override
-    public boolean getFocussed() { return false; }
+    public boolean isFocussed() { return false; }
 
     @Override
     public void setSelected(boolean pSelected) { /* ignore */ }
 
     @Override
-    public boolean getSelected() { return false; }
+    public boolean isSelected() { return false; }
 
     @Override
     public void setTouched(boolean pB) { /* ignore */ }
 
     @Override
-    public boolean getTouched() { return false; }
+    public boolean isTouched() { return false; }
 
     @Override
     public void getBounds(RectF pDest) {
@@ -56,11 +62,14 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     }
 
     @Override
-    public void move(double pX, double pY) { /* ignore */ }
+    public void move(float pX, float pY) { /* ignore */ }
+
+    @Override
+    public void setPos(float pX, float pY) { /* ignore */ }
 
     @Override
     public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
-      if (aPen ==null) { aPen = pTheme.getPen(ProcessThemeItems.LINE, Drawable.STATE_DEFAULT).getPaint(); }
+      if (aPen ==null) { aPen = pTheme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
       for(DrawableProcessNode start:aDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (DrawableProcessNode end: start.getSuccessors()) {
@@ -78,6 +87,9 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   }
 
+  private static final double DECORATION_VSPACING = 12d;
+  private static final double DECORATION_HSPACING = 16d;
+
   private DrawableProcessModel aDiagram;
   private List<LWDrawableView> aViewCache;
   private LightView aBackground;
@@ -85,8 +97,10 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   private RectF aBounds = new RectF();
   private boolean aInvalid = true;
   private AndroidTheme aTheme;
+  private Context aContext;
 
-  public MyDiagramAdapter(DrawableProcessModel pDiagram) {
+  public MyDiagramAdapter(Context pContext, DrawableProcessModel pDiagram) {
+    aContext = pContext;
     aDiagram = pDiagram;
     aViewCache = new ArrayList<>(pDiagram.getModelNodes().size());
   }
@@ -111,6 +125,46 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     result = new LWDrawableView(getItem(pPosition));
     aViewCache.set(pPosition, result);
     return result;
+  }
+  
+  
+
+  @Override
+  public List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected) {
+    if (! pSelected) { return Collections.emptyList(); }
+    // TODO cache the decorations
+    RelativeLightView[] decorations = new RelativeLightView[3];
+    decorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
+    decorations[1] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_edit), pScale), BOTTOM| HGRAVITY);
+    decorations[2] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_arrow), pScale), BOTTOM| HGRAVITY);
+    final DrawableProcessNode drawableProcessNode = aDiagram.getModelNodes().get(pPosition);
+    double centerX = drawableProcessNode.getX();
+    double topY = drawableProcessNode.getBounds().bottom()+DECORATION_VSPACING/pScale;
+    layoutHorizontal(centerX, topY, pScale, decorations);
+    return Arrays.asList(decorations);
+  }
+  
+  private static void layoutHorizontal(double pCenterX, double pTop, double pScale, LightView[] pDecorations) {
+    if (pDecorations.length==0) { return; }
+    double hspacing = DECORATION_HSPACING/pScale; 
+    double totalWidth = -hspacing;
+    
+    RectF bounds = new RectF();
+    for(LightView decoration: pDecorations) {
+      decoration.getBounds(bounds);
+      totalWidth+=bounds.width()+hspacing;
+    }
+    float left = (float) (pCenterX-totalWidth/2);
+    float top = (float) pTop;
+    for(LightView decoration: pDecorations) {
+      decoration.setPos(left, top);
+      decoration.getBounds(bounds);
+      left+=bounds.width()+hspacing;
+    }
+  }
+
+  private Drawable loadDrawable(int pResId) {
+    return aContext.getResources().getDrawable(pResId);
   }
 
   @Override

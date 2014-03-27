@@ -10,6 +10,7 @@ import android.graphics.RectF;
 public class LWDrawableView implements LightView{
 
   private Drawable aItem;
+  /** Cached canvas */
   private AndroidCanvas aAndroidCanvas;
 
   public LWDrawableView(Drawable pItem) {
@@ -26,7 +27,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public boolean getFocussed() {
+  public boolean isFocussed() {
     return (aItem.getState()&Drawable.STATE_FOCUSSED)!=0;
   }
 
@@ -40,7 +41,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public boolean getSelected() {
+  public boolean isSelected() {
     return (aItem.getState()&Drawable.STATE_SELECTED)!=0;
   }
 
@@ -54,7 +55,7 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public boolean getTouched() {
+  public boolean isTouched() {
     return (aItem.getState()&Drawable.STATE_TOUCHED)!=0;
   }
 
@@ -80,8 +81,13 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void move(double pX, double pY) {
+  public void move(float pX, float pY) {
     aItem.move(pX, pY);
+  }
+  
+  @Override
+  public void setPos(float pLeft, float pTop) {
+    aItem.setPos(pLeft, pTop);
   }
 
 }

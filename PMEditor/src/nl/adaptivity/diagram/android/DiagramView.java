@@ -2,6 +2,7 @@ package nl.adaptivity.diagram.android;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 import nl.adaptivity.android.compat.Compat;
@@ -66,12 +67,12 @@ public class DiagramView extends View implements OnZoomListener{
             if (mGridSize>0) {
               lv.getBounds(aTmpRectF);
               double dX = (pE2.getX()-pE1.getX())/aScale;
-              double newX = Math.round((aOrigX + dX)/mGridSize)*mGridSize;
+              float newX = Math.round((aOrigX + dX)/mGridSize)*mGridSize;
               double dY = (pE2.getY()-pE1.getY())/aScale;
-              double newY = Math.round((aOrigY + dY)/mGridSize)*mGridSize;
+              float newY = Math.round((aOrigY + dY)/mGridSize)*mGridSize;
               lv.move(newX-aTmpRectF.left, newY-aTmpRectF.top);
             } else {
-              lv.move(-pDistanceX/aScale, -pDistanceY/aScale);
+              lv.move((float)(-pDistanceX/aScale), (float) (-pDistanceY/aScale));
             }
             invalidate();
           }
@@ -331,7 +332,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   protected void highlightTouch(int pTouchedElement) {
     LightView lv = aAdapter.getView(pTouchedElement);
-    if (! lv.getTouched()) {
+    if (! lv.isTouched()) {
       lv.setTouched(true);
       invalidate(pTouchedElement);
     }
@@ -415,6 +416,8 @@ public class DiagramView extends View implements OnZoomListener{
     } else {
 
       drawDiagram(pCanvas);
+      
+      drawDecorations(pCanvas);
 
       drawOverlay(pCanvas);
 
@@ -490,6 +493,25 @@ public class DiagramView extends View implements OnZoomListener{
     } else {
       ensureMissingDiagramTextBounds();
       canvas.drawText(aMissingDiagramText, (getWidth()-aMissingDiagramTextBounds.width())/2, (getHeight()-aMissingDiagramTextBounds.height())/2, getRedPen());
+    }
+  }
+  
+  private void drawDecorations(Canvas canvas) {
+    // TODO handle decoration touches
+    if (aAdapter!=null) {
+      Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = aAdapter.getTheme();
+      int len = aAdapter.getCount();
+      for(int i=0; i<len; i++) {
+        final LightView lv = aAdapter.getView(i);
+        List<? extends RelativeLightView> decorations = aAdapter.getRelativeDecorations(i, aScale, lv.isSelected());
+        for(LightView decoration: decorations) {
+          int savePos = canvas.save();
+          decoration.getBounds(aTmpRectF);
+          canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
+          decoration.draw(canvas, theme, aScale);
+          canvas.restoreToCount(savePos);
+        }
+      }
     }
   }
 
@@ -717,6 +739,16 @@ public class DiagramView extends View implements OnZoomListener{
     for(int i=0; i<len; ++i) {
       aAdapter.getView(i).setSelected(i==pPosition);
     }
+  }
+
+  public int getSelection() {
+    int len = aAdapter.getCount();
+    for(int i=0; i<len; ++i) {
+      if (aAdapter.getView(i).isSelected()) {
+        return i;
+      }
+    }
+    return -1;
   }
 
 }

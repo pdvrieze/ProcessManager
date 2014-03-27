@@ -9,20 +9,22 @@ public interface LightView {
   
   public void setFocussed(boolean pFocussed);
   
-  public boolean getFocussed();
+  public boolean isFocussed();
   
   public void setSelected(boolean pSelected);
   
-  public boolean getSelected();
+  public boolean isSelected();
 
   public void setTouched(boolean pB);
   
-  public boolean getTouched();
+  public boolean isTouched();
   
   public void getBounds(RectF pTarget);
   
   public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale);
 
-  public void move(double pX, double pY);
+  public void move(float pX, float pY);
+  
+  public void setPos(float pLeft, float pTop);
   
 }
