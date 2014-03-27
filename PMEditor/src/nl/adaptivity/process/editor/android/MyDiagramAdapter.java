@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import nl.adaptivity.android.graphics.BackgroundDrawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.AndroidDrawableLightView;
@@ -126,8 +127,8 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     aViewCache.set(pPosition, result);
     return result;
   }
-  
-  
+
+
 
   @Override
   public List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected) {
@@ -143,12 +144,12 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     layoutHorizontal(centerX, topY, pScale, decorations);
     return Arrays.asList(decorations);
   }
-  
+
   private static void layoutHorizontal(double pCenterX, double pTop, double pScale, LightView[] pDecorations) {
     if (pDecorations.length==0) { return; }
-    double hspacing = DECORATION_HSPACING/pScale; 
+    double hspacing = DECORATION_HSPACING/pScale;
     double totalWidth = -hspacing;
-    
+
     RectF bounds = new RectF();
     for(LightView decoration: pDecorations) {
       decoration.getBounds(bounds);
@@ -164,7 +165,8 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   }
 
   private Drawable loadDrawable(int pResId) {
-    return aContext.getResources().getDrawable(pResId);
+    return new BackgroundDrawable(aContext, android.R.drawable.btn_default, pResId);
+//    return aContext.getResources().getDrawable(pResId);
   }
 
   @Override
