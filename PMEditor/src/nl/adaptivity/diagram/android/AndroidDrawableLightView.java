@@ -65,23 +65,25 @@ public class AndroidDrawableLightView implements LightView {
         int newState[] = new int[oldState.length-1];
         System.arraycopy(oldState, 0, newState, 0, statePos);
         System.arraycopy(oldState, statePos+1, newState, statePos, newState.length-statePos);
+        aDrawable.setState(newState);
       }
     }
   }
 
   private static int getStatePos(final int[] pStates, final int pStateResource) {
-    for(int pos:pStates) {
-      if (pos== pStateResource) {
+    final int len = pStates.length;
+    for(int pos=0; pos<len; ++pos) {
+      if (pStates[pos]== pStateResource) {
         return pos;
       }
     }
     return -1;
   }
-  
+
   private boolean hasState(final int pStateResource) {
     return getStatePos(aDrawable.getState(), pStateResource)>=0;
   }
-  
+
   @Override
   public void getBounds(RectF pTarget) {
     pTarget.top = aTop;
@@ -89,7 +91,7 @@ public class AndroidDrawableLightView implements LightView {
     pTarget.right = aLeft+ (float) (aDrawable.getIntrinsicWidth()/aScale);
     pTarget.bottom = aTop+ (float) (aDrawable.getIntrinsicHeight()/aScale);
   }
-  
+
   @Override
   public void setPos(float pLeft, float pTop) {
     aLeft = pLeft;

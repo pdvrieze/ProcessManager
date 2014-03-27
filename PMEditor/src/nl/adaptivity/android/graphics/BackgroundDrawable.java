@@ -60,14 +60,10 @@ public class BackgroundDrawable extends Drawable {
   }
 
   @Override
-  public boolean setState(int[] pStateSet) {
-    if (super.setState(pStateSet)) {
-      aBackground.setState(pStateSet);
-      aForeground.setState(pStateSet);
-      return true;
-    } else {
-      return false;
-    }
+  protected boolean onStateChange(int[] pStateSet) {
+    boolean result = aBackground.setState(pStateSet);
+    result|=aForeground.setState(pStateSet);
+    return result;
   }
 
   @Override

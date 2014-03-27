@@ -99,6 +99,8 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   private boolean aInvalid = true;
   private AndroidTheme aTheme;
   private Context aContext;
+  private RelativeLightView[] aCachedDecorations = new RelativeLightView[3];
+  private int aCachedDecorationPos = -1;
 
   public MyDiagramAdapter(Context pContext, DrawableProcessModel pDiagram) {
     aContext = pContext;
@@ -132,17 +134,21 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   @Override
   public List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected) {
-    if (! pSelected) { return Collections.emptyList(); }
-    // TODO cache the decorations
-    RelativeLightView[] decorations = new RelativeLightView[3];
-    decorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
-    decorations[1] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_edit), pScale), BOTTOM| HGRAVITY);
-    decorations[2] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_arrow), pScale), BOTTOM| HGRAVITY);
+    if (! pSelected) {
+      if (pPosition==aCachedDecorationPos) { aCachedDecorationPos=-1; }
+      return Collections.emptyList();
+    }
+    if (aCachedDecorationPos ==pPosition) { return Arrays.asList(aCachedDecorations); }
+    aCachedDecorationPos = pPosition;
+    aCachedDecorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
+    aCachedDecorations[1] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_edit), pScale), BOTTOM| HGRAVITY);
+    aCachedDecorations[2] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_arrow), pScale), BOTTOM| HGRAVITY);
+    aCachedDecorations[1].setTouched(true);
     final DrawableProcessNode drawableProcessNode = aDiagram.getModelNodes().get(pPosition);
     double centerX = drawableProcessNode.getX();
     double topY = drawableProcessNode.getBounds().bottom()+DECORATION_VSPACING/pScale;
-    layoutHorizontal(centerX, topY, pScale, decorations);
-    return Arrays.asList(decorations);
+    layoutHorizontal(centerX, topY, pScale, aCachedDecorations);
+    return Arrays.asList(aCachedDecorations);
   }
 
   private static void layoutHorizontal(double pCenterX, double pTop, double pScale, LightView[] pDecorations) {
@@ -165,8 +171,8 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   }
 
   private Drawable loadDrawable(int pResId) {
+    // TODO get the button drawable out of the style.
     return new BackgroundDrawable(aContext, android.R.drawable.btn_default, pResId);
-//    return aContext.getResources().getDrawable(pResId);
   }
 
   @Override
