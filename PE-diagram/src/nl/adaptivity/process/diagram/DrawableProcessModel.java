@@ -158,6 +158,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
+  public void setPos(double pLeft, double pTop) {
+    // TODO instead implement this through moving all elements.
+    throw new UnsupportedOperationException("Diagrams can not be moved");
+  }
+
+  @Override
   public Drawable getItemAt(double pX, double pY) {
     if (getModelNodes().size()==0) {
       return getBounds().contains(pX, pY) ? this : null;

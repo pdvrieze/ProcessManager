@@ -14,6 +14,8 @@ import nl.adaptivity.process.processModel.Activity;
 
 public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> implements DrawableProcessNode {
 
+  private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
+  private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
   private int aState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
@@ -40,13 +42,19 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public Rectangle getBounds() {
-    return new Rectangle(getX()-((ACTIVITYWIDTH+STROKEWIDTH)/2), getY()-((ACTIVITYHEIGHT+STROKEWIDTH)/2), ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
+    return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
   }
 
   @Override
   public void move(double pX, double pY) {
     setX(getX()+pX);
     setY(getY()+pY);
+  }
+
+  @Override
+  public void setPos(double pLeft, double pTop) {
+    setX(pLeft+REFERENCE_OFFSET_X);
+    setY(pLeft+REFERENCE_OFFSET_Y);
   }
 
   @Override

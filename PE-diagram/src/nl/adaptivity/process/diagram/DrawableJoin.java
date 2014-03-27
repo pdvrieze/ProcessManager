@@ -17,6 +17,10 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   private static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
 
+  private static final double REFERENCE_OFFSET_X = (JOINWIDTH+STROKEEXTEND)/2;
+
+  private static final double REFERENCE_OFFSET_Y = (JOINHEIGHT+STROKEEXTEND)/2;
+
   private ItemCache aItems = new ItemCache();
 
   private int aState = STATE_DEFAULT;
@@ -44,15 +48,19 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode> implements
 
   @Override
   public Rectangle getBounds() {
-    double dx = (JOINWIDTH+STROKEEXTEND)/2;
-    double dy = (JOINHEIGHT+STROKEEXTEND)/2;
-    return new Rectangle(getX()-dx, getY()-dy, JOINHEIGHT+STROKEEXTEND, JOINWIDTH+STROKEEXTEND);
+    return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, JOINHEIGHT+STROKEEXTEND, JOINWIDTH+STROKEEXTEND);
   }
 
   @Override
   public void move(double pX, double pY) {
     setX(getX()+pX);
     setY(getY()+pY);
+  }
+
+  @Override
+  public void setPos(double pLeft, double pTop) {
+    setX(pLeft+REFERENCE_OFFSET_X);
+    setY(pLeft+REFERENCE_OFFSET_Y);
   }
 
   @Override

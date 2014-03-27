@@ -14,6 +14,8 @@ import nl.adaptivity.process.processModel.EndNode;
 
 public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implements DrawableProcessNode {
 
+  private static final double REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS;
+  private static final double REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS;
   private int aState = STATE_DEFAULT;
 
 
@@ -41,6 +43,12 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-ENDNODEOUTERRADIUS, getY()-ENDNODEOUTERRADIUS, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH, ENDNODEOUTERRADIUS*2 + ENDNODEOUTERSTROKEWIDTH);
+  }
+
+  @Override
+  public void setPos(double pLeft, double pTop) {
+    setX(pLeft+REFERENCE_OFFSET_X);
+    setY(pLeft+REFERENCE_OFFSET_Y);
   }
 
   @Override

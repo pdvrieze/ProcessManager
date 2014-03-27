@@ -14,6 +14,8 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
 
+  private static final double REFERENCE_OFFSET_X = STARTNODERADIUS+(STROKEWIDTH/2);
+  private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS+(STROKEWIDTH/2);
   private int aState = STATE_DEFAULT;
 
 
@@ -40,14 +42,19 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   @Override
   public Rectangle getBounds() {
-    final double hsw = STROKEWIDTH/2;
-    return new Rectangle(getX()-STARTNODERADIUS-hsw, getY()-STARTNODERADIUS-hsw, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
+    return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
   }
 
   @Override
   public void move(double pX, double pY) {
     setX(getX()+pX);
     setY(getY()+pY);
+  }
+
+  @Override
+  public void setPos(double pLeft, double pTop) {
+    setX(pLeft+REFERENCE_OFFSET_X);
+    setY(pLeft+REFERENCE_OFFSET_Y);
   }
 
   @Override
