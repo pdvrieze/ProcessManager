@@ -50,4 +50,6 @@ public interface Drawable extends Bounded, Cloneable {
 
   public void move(double pX, double pY);
 
+  public void setPos(double pLeft, double pTop);
+  
 }
