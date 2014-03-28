@@ -58,11 +58,11 @@ feature.png: ressrc/iconsource.svg
 	@optipng $@
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_default.9.png): ressrc/btn_src.svg Makefile
-	@scripts/9patch.php 38 38 $< default $@ 10 18 10 18 8 22 8 22
+	@scripts/9patch.php 38 38 $< default $@ 10 18 10 18 9 20 9 20
 	@optipng $@
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_pressed.9.png): ressrc/btn_src.svg Makefile
-	@scripts/9patch.php 38 38 $< pressed $@ 13 18 13 18 11 22 11 22
+	@scripts/9patch.php 38 38 $< pressed $@ 13 18 13 18 12 22 12 20
 	@optipng $@
 
 #$(foreach qual,$(QUALS),res/drawable-$(qual)/popuparrowdown.png): ressrc/popup_bg.svg
