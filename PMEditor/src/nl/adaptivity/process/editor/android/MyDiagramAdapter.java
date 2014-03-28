@@ -143,7 +143,6 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     aCachedDecorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
     aCachedDecorations[1] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_edit), pScale), BOTTOM| HGRAVITY);
     aCachedDecorations[2] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_arrow), pScale), BOTTOM| HGRAVITY);
-    aCachedDecorations[1].setTouched(true);
     final DrawableProcessNode drawableProcessNode = aDiagram.getModelNodes().get(pPosition);
     double centerX = drawableProcessNode.getX();
     double topY = drawableProcessNode.getBounds().bottom()+DECORATION_VSPACING/pScale;
@@ -172,7 +171,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   private Drawable loadDrawable(int pResId) {
     // TODO get the button drawable out of the style.
-    return new BackgroundDrawable(aContext, android.R.drawable.btn_default, pResId);
+    return new BackgroundDrawable(aContext, R.drawable.btn_context, pResId);
   }
 
   @Override
