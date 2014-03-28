@@ -45,7 +45,7 @@ public class PMParser {
       super((ClientProcessModel<DrawableProcessNode>) null);
       aRef = pRef;
     }
-    
+
     @Override
 	public RefNode clone() {
     	return new RefNode(aRef);
@@ -113,6 +113,16 @@ public class PMParser {
 
     @Override
     public void setState(int pState) {
+      throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void removePredecessor(DrawableProcessNode pNode) {
+      throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public void removeSuccessor(DrawableProcessNode pNode) {
       throw new UnsupportedOperationException("Not implemented");
     }
 

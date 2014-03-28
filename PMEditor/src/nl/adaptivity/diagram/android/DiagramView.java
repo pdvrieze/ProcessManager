@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import net.devrieze.util.Tupple;
+
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
@@ -220,8 +222,8 @@ public class DiagramView extends View implements OnZoomListener{
   private final RectF aTmpRectF = new RectF();
   private final Rect aTmpRect = new Rect();
   private int mGridSize;
-  private List<RelativeLightView> aDecorations = new ArrayList<>();
-  private RelativeLightView aTouchedDecoration = null;
+  private List<Tupple<Integer, RelativeLightView>> aDecorations = new ArrayList<>();
+  private Tupple<Integer,RelativeLightView> aTouchedDecoration = null;
 
   private static final int DEFAULT_GRID_SIZE=8;
 
@@ -350,7 +352,7 @@ public class DiagramView extends View implements OnZoomListener{
     invalidate(lv);
   }
 
-  private void invalidate(LightView view) {
+  public void invalidate(LightView view) {
     view.getBounds(aTmpRectF);
     outset(aTmpRectF, INVALIDATE_MARGIN);
     toCanvasRect(aTmpRectF, aTmpRect);
@@ -513,7 +515,7 @@ public class DiagramView extends View implements OnZoomListener{
         final LightView lv = aAdapter.getView(i);
         List<? extends RelativeLightView> decorations = aAdapter.getRelativeDecorations(i, aScale, lv.isSelected());
         for(RelativeLightView decoration: decorations) {
-          aDecorations.add(decoration);
+          aDecorations.add(Tupple.tupple(Integer.valueOf(i), decoration));
           int savePos = canvas.save();
           decoration.getBounds(aTmpRectF);
           canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
@@ -646,37 +648,36 @@ public class DiagramView extends View implements OnZoomListener{
   public boolean onTouchEvent(MotionEvent pEvent) {
     int action = pEvent.getActionMasked();
     int touchedElement = -1;
+    int pIdx = pEvent.getActionIndex();
+    float diagX = toDiagramX(pEvent.getX(pIdx));
+    float diagY = toDiagramY(pEvent.getY(pIdx));
     if (action==MotionEvent.ACTION_DOWN) {
-      int pIdx = pEvent.getActionIndex();
-      float x = pEvent.getX(pIdx);
-      float diagX = toDiagramX(x);
-      float y = pEvent.getY(pIdx);
-      float diagY = toDiagramY(y);
+
       touchedElement = findTouchedElement(diagX, diagY);
       if (touchedElement>=0) {
         highlightTouch(touchedElement);
         aGestureListener.setMoveItem(true);
         if (aTouchedDecoration!=null) {
-//          aTouchedDecoration.setTouched(false);
-          invalidate(aTouchedDecoration);
+          aTouchedDecoration.getElem2().setTouched(false);
+          invalidate(aTouchedDecoration.getElem2());
           aTouchedDecoration =null;
         }
       } else {
         if (aTouchedDecoration!=null) {
-          aTouchedDecoration.getBounds(aTmpRectF);
+          aTouchedDecoration.getElem2().getBounds(aTmpRectF);
           if (! aTmpRectF.contains(diagX, diagY)) {
-//            aTouchedDecoration.setTouched(false);
-            invalidate(aTouchedDecoration);
+            aTouchedDecoration.getElem2().setTouched(false);
+            invalidate(aTouchedDecoration.getElem2());
             aTouchedDecoration = null;
           }
         }
         if (aTouchedDecoration==null) {
-          for(RelativeLightView decoration: aDecorations) {
-            decoration.getBounds(aTmpRectF);
+          for(Tupple<Integer,RelativeLightView> decoration: aDecorations) {
+            decoration.getElem2().getBounds(aTmpRectF);
             if (aTmpRectF.contains(diagX, diagY)) {
               aTouchedDecoration = decoration;
-              aTouchedDecoration.setTouched(!aTouchedDecoration.isTouched());
-              invalidate(aTouchedDecoration);
+              aTouchedDecoration.getElem2().setTouched(true);
+              invalidate(aTouchedDecoration.getElem2());
               break;
             }
           }
@@ -696,8 +697,15 @@ public class DiagramView extends View implements OnZoomListener{
       }
 
       if (aTouchedDecoration!=null) {
-//        aTouchedDecoration.setTouched(false);
-//        invalidate(aTouchedDecoration);
+        aTouchedDecoration.getElem2().setTouched(false);
+        aTouchedDecoration.getElem2().getBounds(aTmpRectF);
+        if (aTmpRectF.contains(diagX, diagY)) {
+          aAdapter.onDecorationClick(this, aTouchedDecoration.getElem1(), aTouchedDecoration.getElem2());
+        } else {
+          aAdapter.onDecorationUp(this, aTouchedDecoration.getElem1(), aTouchedDecoration.getElem2(), diagX, diagY);
+        }
+
+        invalidate(aTouchedDecoration.getElem2());
         aTouchedDecoration = null;
       }
 
@@ -709,6 +717,9 @@ public class DiagramView extends View implements OnZoomListener{
 //    }
       aGestureListener.actionFinished();
 //      aGestureListener.setMoveItem(false);
+    } else if (action==MotionEvent.ACTION_MOVE && aTouchedDecoration!=null) {
+      aAdapter.onDecorationMove(this, aTouchedDecoration.getElem1(), aTouchedDecoration.getElem2(), diagX, diagY);
+      return true;
     }
     boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
     retVal = aGestureDetector.onTouchEvent(pEvent) || retVal;

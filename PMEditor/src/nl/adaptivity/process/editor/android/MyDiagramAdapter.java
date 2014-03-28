@@ -8,15 +8,7 @@ import java.util.List;
 import nl.adaptivity.android.graphics.BackgroundDrawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import nl.adaptivity.diagram.android.AndroidDrawableLightView;
-import nl.adaptivity.diagram.android.AndroidPath;
-import nl.adaptivity.diagram.android.AndroidPen;
-import nl.adaptivity.diagram.android.AndroidStrategy;
-import nl.adaptivity.diagram.android.AndroidTheme;
-import nl.adaptivity.diagram.android.DiagramAdapter;
-import nl.adaptivity.diagram.android.LWDrawableView;
-import nl.adaptivity.diagram.android.LightView;
-import nl.adaptivity.diagram.android.RelativeLightView;
+import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
@@ -218,6 +210,51 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   public AndroidTheme getTheme() {
     if (aTheme ==null) { aTheme = new AndroidTheme(AndroidStrategy.INSTANCE); }
     return aTheme;
+  }
+
+  @Override
+  public void onDecorationClick(DiagramView pView, int pPosition, LightView pDecoration) {
+    if (pDecoration==aCachedDecorations[0]) {
+      aDiagram.removeNode(pPosition);
+      if (aCachedDecorationPos==pPosition) {
+        aCachedDecorationPos=-1;
+      } else if (aCachedDecorationPos>pPosition) {
+        --aCachedDecorationPos;
+      }
+      pView.invalidate();
+    } else if (pDecoration==aCachedDecorations[1]) {
+      doEditNode(pPosition);
+    }
+  }
+
+  private void doEditNode(int pPosition) {
+    // TODO Auto-generated method stub
+    //
+  }
+
+  @Override
+  public void onDecorationMove(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY) {
+    DrawableProcessNode start = getItem(pPosition);
+    final float x1 = (float) (start.getBounds().right()-DrawableProcessModel.STROKEWIDTH);
+    final float y1 = (float) (start.getY());
+    final float x2 = pX;
+    final float y2 = pY;
+
+    if (aOverlay instanceof LineView) {
+      pView.invalidate(aOverlay); // invalidate both old
+      ((LineView) aOverlay).setPos(x1,y1, x2,y2);
+    } else {
+      aOverlay = new LineView(x1,y1, x2,y2);
+    }
+    pView.invalidate(aOverlay); // and new bounds
+  }
+
+  @Override
+  public void onDecorationUp(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY) {
+    if (aOverlay instanceof LineView) {
+      pView.invalidate(aOverlay);
+      aOverlay = null;
+    }
   }
 
 }

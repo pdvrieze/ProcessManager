@@ -19,7 +19,7 @@ public interface DiagramAdapter<T extends LightView, V> {
   V getItem(int pPosition);
 
   T getView(int pPosition);
-  
+
   List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected);
 
   LightView getBackground();
@@ -29,5 +29,11 @@ public interface DiagramAdapter<T extends LightView, V> {
   void getBounds(RectF pDiagramBounds);
 
   Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme();
+
+  void onDecorationClick(DiagramView pView, int pPosition, LightView pDecoration);
+
+  void onDecorationMove(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY);
+
+  void onDecorationUp(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY);
 
 }
