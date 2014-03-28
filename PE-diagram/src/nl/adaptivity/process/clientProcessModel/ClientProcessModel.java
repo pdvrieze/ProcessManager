@@ -240,6 +240,17 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     nodeChanged(pNode);
   }
 
+  public void removeNode(int pNodePos) {
+    T node = aNodes.remove(pNodePos);
+    for(T pred: node.getPredecessors()) {
+      pred.getSuccessors().remove(node);
+    }
+    for(T suc:node.getSuccessors()) {
+      suc.getPredecessors().remove(node);
+    }
+    nodeChanged(node);
+  }
+
   public void layout() {
     final List<DiagramNode<T>> diagramNodes = toDiagramNodes(getModelNodes());
     if(aLayoutAlgorithm.layout(diagramNodes)) {
