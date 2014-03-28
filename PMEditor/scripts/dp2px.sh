@@ -10,6 +10,8 @@ elif [ "$QUAL" == "hdpi" ]; then
   DPI=240
 elif [ "$QUAL" == "xhdpi" ]; then
   DPI=320
+elif [ "$QUAL" == "xxhdpi" ]; then
+  DPI=480
 else
   echo "$DP"
   exit
