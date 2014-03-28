@@ -12,7 +12,11 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
 
   public void setPredecessors(Collection<? extends T> predecessors);
 
+  public void removePredecessor(T pNode);
+
   public void addSuccessor(T pNode);
+
+  public void removeSuccessor(T pNode);
 
   public Set<? extends T> getSuccessors();
 

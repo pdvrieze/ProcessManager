@@ -78,6 +78,12 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     aPredecessors = ProcessNodeSet.processNodeSet(predecessors);
   }
 
+  @Override
+  public void removePredecessor(ProcessNodeImpl pNode) {
+    aPredecessors.remove(pNode);
+    // TODO perhaps make this reciprocal
+  }
+
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
    */
@@ -108,6 +114,10 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   @Override
   public Set<? extends ProcessNodeImpl> getSuccessors() {
     return aSuccessors;
+  }
+
+  public void removeSuccessor(ProcessNodeImpl pNode) {
+    aSuccessors.remove(pNode);
   }
 
   /**

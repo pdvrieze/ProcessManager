@@ -164,7 +164,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   public void setPredecessor(final ProcessNodeImpl predecessor) {
-    setPredecessors(Arrays.asList(predecessor));
+    setPredecessors(Collections.singleton(predecessor));
   }
 
   /* (non-Javadoc)

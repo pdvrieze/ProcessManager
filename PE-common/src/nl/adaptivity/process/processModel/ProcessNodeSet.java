@@ -54,6 +54,16 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
     }
 
     @Override
+    public V remove(int pIndex) {
+      return aStore.remove(pIndex);
+    }
+
+    @Override
+    public boolean remove(Object pO) {
+      return aStore.remove(pO);
+    }
+
+    @Override
     public void clear() {
       aStore.clear();
     }
