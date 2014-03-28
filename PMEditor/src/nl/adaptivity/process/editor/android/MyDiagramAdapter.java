@@ -216,6 +216,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   public void onDecorationClick(DiagramView pView, int pPosition, LightView pDecoration) {
     if (pDecoration==aCachedDecorations[0]) {
       aDiagram.removeNode(pPosition);
+      aViewCache.remove(pPosition);
       if (aCachedDecorationPos==pPosition) {
         aCachedDecorationPos=-1;
       } else if (aCachedDecorationPos>pPosition) {
