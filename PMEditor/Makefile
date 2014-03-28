@@ -9,7 +9,7 @@ SCORES:=black white none
 #           $(foreach score,$(SCORES),score_$(score).png) \
 #	   ic_launcher.png ic_menu_scores.png ic_action_scores.png popupframe.9.png popuparrowdown.png popuparrowup.png
 ICONS=ic_cont_arrow.png ic_cont_edit.png ic_cont_delete.png
-DRAWABLES:= ic_launcher.png $(ICONS)
+DRAWABLES:= ic_launcher.png $(ICONS) btn_default.9.png btn_pressed.9.png
 TARGETS:= $(foreach qual,$(QUALS),$(foreach drawable,$(DRAWABLES),res/drawable-$(qual)/$(drawable))) $(NODPITARGETS) 
 
 res: $(TARGETS)
@@ -56,11 +56,15 @@ $(foreach qual,$(QUALS),res/drawable-$(qual)/ic_cont_%.png): ressrc/ic_cont_%.sv
 feature.png: ressrc/iconsource.svg
 	@eval inkscape -w 1024 -h 500 -e $@ -j -i feature icon $<
 	@optipng $@
-#
-#$(foreach qual,$(QUALS),res/drawable-$(qual)/popupframe.9.png): ressrc/popup_bg.svg
-#	@scripts/9patch.php 100 72 $< frame $@ 7 87 7 59 6 89 6 61
-#	@optipng $@
-#
+
+$(foreach qual,$(QUALS),res/drawable-$(qual)/btn_default.9.png): ressrc/btn_src.svg Makefile
+	@scripts/9patch.php 38 38 $< default $@ 10 18 10 18 8 22 8 22
+	@optipng $@
+
+$(foreach qual,$(QUALS),res/drawable-$(qual)/btn_pressed.9.png): ressrc/btn_src.svg Makefile
+	@scripts/9patch.php 38 38 $< pressed $@ 13 18 13 18 11 22 11 22
+	@optipng $@
+
 #$(foreach qual,$(QUALS),res/drawable-$(qual)/popuparrowdown.png): ressrc/popup_bg.svg
 #	@eval scripts/iconize.sh 17 12 $<  $@ arrowdown
 #
