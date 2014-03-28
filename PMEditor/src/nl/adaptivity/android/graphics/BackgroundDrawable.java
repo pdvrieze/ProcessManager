@@ -7,7 +7,6 @@ import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.NinePatchDrawable;
 
 /**
  * Drawable that takes two initial drawables. One background, and one content.
@@ -16,9 +15,9 @@ import android.graphics.drawable.NinePatchDrawable;
  */
 public class BackgroundDrawable extends Drawable {
 
-  private Drawable aBackground;
-  private Drawable aForeground;
-  private Rect aTmpRect = new Rect();
+  private final Drawable aBackground;
+  private final Drawable aForeground;
+  private final Rect aTmpRect = new Rect();
 
   public BackgroundDrawable(Context context, int backgroundRes, int foregroundRes) {
     Resources resources = context.getResources();
@@ -64,7 +63,7 @@ public class BackgroundDrawable extends Drawable {
     boolean result = aBackground.setState(pStateSet);
     if (result) {
       Rect bounds = getBounds();
-      aBackground.getPadding(aTmpRect);
+      aBackground.getCurrent().getPadding(aTmpRect);
       aForeground.setBounds(bounds.left+aTmpRect.left, bounds.top+aTmpRect.top, bounds.right-aTmpRect.right, bounds.bottom-aTmpRect.bottom);
     }
     result|=aForeground.setState(pStateSet);
@@ -81,7 +80,7 @@ public class BackgroundDrawable extends Drawable {
     final int fgIntrinsicWidth = aForeground.getIntrinsicWidth();
     if (fgIntrinsicWidth<0) { return -1; }
     Rect padding = aTmpRect ;
-    aBackground.getPadding(padding);
+    aBackground.getCurrent().getPadding(padding);
     return fgIntrinsicWidth+padding.left+padding.right;
   }
 
@@ -90,28 +89,28 @@ public class BackgroundDrawable extends Drawable {
     final int fgIntrinsicHeight = aForeground.getIntrinsicHeight();
     if (fgIntrinsicHeight<0) { return -1; }
     Rect padding = aTmpRect ;
-    aBackground.getPadding(padding);
+    aBackground.getCurrent().getPadding(padding);
     return aForeground.getIntrinsicHeight()+padding.top+padding.bottom;
   }
 
   @Override
   public int getMinimumWidth() {
     Rect padding = aTmpRect ;
-    aBackground.getPadding(padding);
+    aBackground.getCurrent().getPadding(padding);
     return aForeground.getMinimumWidth()+padding.left+padding.right;
   }
 
   @Override
   public int getMinimumHeight() {
     Rect padding = aTmpRect ;
-    aBackground.getPadding(padding);
+    aBackground.getCurrent().getPadding(padding);
     return aForeground.getMinimumHeight()+padding.top+padding.bottom;
   }
 
   @Override
   public void setBounds(int pLeft, int pTop, int pRight, int pBottom) {
     aBackground.setBounds(pLeft, pTop, pRight, pBottom);
-    aBackground.getPadding(aTmpRect);
+    aBackground.getCurrent().getPadding(aTmpRect);
     aForeground.setBounds(pLeft+aTmpRect.left, pTop+aTmpRect.top, pRight-aTmpRect.right, pBottom-aTmpRect.bottom);
     super.setBounds(pLeft, pTop, pRight, pBottom);
   }
