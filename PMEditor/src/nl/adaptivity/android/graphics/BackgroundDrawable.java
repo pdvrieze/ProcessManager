@@ -62,6 +62,11 @@ public class BackgroundDrawable extends Drawable {
   @Override
   protected boolean onStateChange(int[] pStateSet) {
     boolean result = aBackground.setState(pStateSet);
+    if (result) {
+      Rect bounds = getBounds();
+      aBackground.getPadding(aTmpRect);
+      aForeground.setBounds(bounds.left+aTmpRect.left, bounds.top+aTmpRect.top, bounds.right-aTmpRect.right, bounds.bottom-aTmpRect.bottom);
+    }
     result|=aForeground.setState(pStateSet);
     return result;
   }
