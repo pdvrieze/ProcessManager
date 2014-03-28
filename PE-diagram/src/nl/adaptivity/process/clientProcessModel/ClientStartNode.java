@@ -37,6 +37,13 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
+  public void removeSuccessor(T pNode) {
+    if (aSuccessors!=null) {
+      aSuccessors.remove(pNode);
+    }
+  }
+
+  @Override
   public ProcessNodeSet<T> getPredecessors() {
     return ProcessNodeSet.empty();
   }
@@ -52,10 +59,13 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
+  public void removePredecessor(T pNode) {
+    throw new UnsupportedOperationException("Start nodes have no predecessors");
+  }
+
+  @Override
   public boolean isPredecessorOf(T pNode) {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
+    return aSuccessors.contains(pNode);
   }
 
   @Override

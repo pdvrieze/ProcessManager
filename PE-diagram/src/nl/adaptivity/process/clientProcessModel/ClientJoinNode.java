@@ -66,10 +66,24 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientProce
   }
 
   @Override
+  public void removeSuccessor(T pNode) {
+    if (aSuccessors!=null) {
+      aSuccessors.remove(pNode);
+    }
+  }
+
+  @Override
   public boolean isPredecessorOf(T pNode) {
     // TODO Auto-generated method stub
     // return false;
     throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  @Override
+  public void removePredecessor(T pNode) {
+    if (aPredecessors!=null) {
+      aPredecessors.remove(pNode);
+    }
   }
 
   @Override

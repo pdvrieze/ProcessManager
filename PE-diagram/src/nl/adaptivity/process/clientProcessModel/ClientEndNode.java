@@ -40,6 +40,11 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
+  public void removeSuccessor(T pNode) {
+    throw new UnsupportedOperationException("end nodes never have successors");
+  }
+
+  @Override
   public boolean isPredecessorOf(T pNode) {
     // TODO Auto-generated method stub
     // return false;
@@ -64,6 +69,13 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   @Override
   public T getPredecessor() {
     return aPredecessor.size()==0 ? null : aPredecessor.get(0);
+  }
+
+  @Override
+  public void removePredecessor(T pNode) {
+    if (aPredecessor==pNode) {
+      aPredecessor= null;
+    }
   }
 
 }

@@ -87,6 +87,14 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
+  public void removePredecessor(T pNode) {
+    if (aPredecessor==pNode) {
+      aPredecessor= null;
+    }
+  }
+
+
+  @Override
   public IXmlMessage getMessage() {
     return aMessage;
   }
@@ -102,6 +110,13 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
       aSuccessors = ProcessNodeSet.processNodeSet(1);
     }
     aSuccessors.add(pNode);
+  }
+
+  @Override
+  public void removeSuccessor(T pNode) {
+    if (aSuccessors!=null) {
+      aSuccessors.remove(pNode);
+    }
   }
 
 

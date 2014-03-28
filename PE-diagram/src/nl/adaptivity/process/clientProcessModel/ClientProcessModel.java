@@ -243,10 +243,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   public void removeNode(int pNodePos) {
     T node = aNodes.remove(pNodePos);
     for(T pred: node.getPredecessors()) {
-      pred.getSuccessors().remove(node);
+      pred.removeSuccessor(node);
     }
     for(T suc:node.getSuccessors()) {
-      suc.getPredecessors().remove(node);
+      suc.removePredecessor(node);
     }
     nodeChanged(node);
   }
