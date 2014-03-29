@@ -1,9 +1,10 @@
 package nl.adaptivity.process.editor.android;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.android.graphics.BackgroundDrawable;
@@ -73,7 +74,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   private static final double DECORATION_HSPACING = 16d;
 
   private DrawableProcessModel aDiagram;
-  private List<LWDrawableView> aViewCache;
+  private Map<DrawableProcessNode, LWDrawableView> aViewCache;
   private LightView aBackground;
   private LightView aOverlay;
   private RectF aBounds = new RectF();
@@ -87,7 +88,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   public MyDiagramAdapter(Context pContext, DrawableProcessModel pDiagram) {
     aContext = pContext;
     aDiagram = pDiagram;
-    aViewCache = new ArrayList<>(pDiagram.getModelNodes().size());
+    aViewCache = new HashMap<>();
   }
 
   @Override
@@ -102,13 +103,13 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   @Override
   public LWDrawableView getView(int pPosition) {
-    for(int i=pPosition-aViewCache.size();i>=0;--i) { aViewCache.add(null); }
-    LWDrawableView result = aViewCache.get(pPosition);
+    final DrawableProcessNode item = getItem(pPosition);
+    LWDrawableView result = aViewCache.get(item);
     if (result!=null) {
       return result;
     }
-    result = new LWDrawableView(getItem(pPosition));
-    aViewCache.set(pPosition, result);
+    result = new LWDrawableView(item);
+    aViewCache.put(item, result);
     return result;
   }
 
@@ -205,19 +206,23 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   @Override
   public void onDecorationClick(DiagramView pView, int pPosition, LightView pDecoration) {
     if (pDecoration==aCachedDecorations[0]) {
-      aDiagram.removeNode(pPosition);
-      aViewCache.remove(pPosition);
-      if (aCachedDecorationPos==pPosition) {
-        aCachedDecorationPos=-1;
-      } else if (aCachedDecorationPos>pPosition) {
-        --aCachedDecorationPos;
-      }
+      removeNode(pPosition);
       pView.invalidate();
     } else if (pDecoration==aCachedDecorations[1]) {
       doEditNode(pPosition);
     } else if (pDecoration==aCachedDecorations[2]) {
       pDecoration.setActive(true);
       aConnectingItem  = pPosition;
+    }
+  }
+
+  private void removeNode(int pPosition) {
+    aViewCache.remove(getItem(pPosition));
+    aDiagram.removeNode(pPosition);
+    if (aCachedDecorationPos==pPosition) {
+      aCachedDecorationPos=-1;
+    } else if (aCachedDecorationPos>pPosition) {
+      --aCachedDecorationPos;
     }
   }
 
@@ -276,6 +281,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
       } else {
         tryAddSuccessor(prev, next);
       }
+      aConnectingItem=-1;
       aCachedDecorations[2].setActive(false);
       pDiagramView.invalidate();
       return true;
