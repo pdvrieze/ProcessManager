@@ -6,7 +6,7 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.*;
 
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 @Target({PARAMETER, FIELD, LOCAL_VARIABLE, METHOD})
 public @interface Nullable {
   /* Just a marker interface */
