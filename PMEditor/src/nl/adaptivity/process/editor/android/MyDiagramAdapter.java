@@ -235,26 +235,30 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   @Override
   public void onDecorationMove(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY) {
-    DrawableProcessNode start = getItem(pPosition);
-    final float x1 = (float) (start.getBounds().right()-DrawableProcessModel.STROKEWIDTH);
-    final float y1 = (float) (start.getY());
-    final float x2 = pX;
-    final float y2 = pY;
+    if (pDecoration==aCachedDecorations[2]) {
+      DrawableProcessNode start = getItem(pPosition);
+      final float x1 = (float) (start.getBounds().right()-DrawableProcessModel.STROKEWIDTH);
+      final float y1 = (float) (start.getY());
+      final float x2 = pX;
+      final float y2 = pY;
 
-    if (aOverlay instanceof LineView) {
-      pView.invalidate(aOverlay); // invalidate both old
-      ((LineView) aOverlay).setPos(x1,y1, x2,y2);
-    } else {
-      aOverlay = new LineView(x1,y1, x2,y2);
+      if (aOverlay instanceof LineView) {
+        pView.invalidate(aOverlay); // invalidate both old
+        ((LineView) aOverlay).setPos(x1,y1, x2,y2);
+      } else {
+        aOverlay = new LineView(x1,y1, x2,y2);
+      }
+      pView.invalidate(aOverlay); // and new bounds
     }
-    pView.invalidate(aOverlay); // and new bounds
   }
 
   @Override
   public void onDecorationUp(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY) {
-    if (aOverlay instanceof LineView) {
-      pView.invalidate(aOverlay);
-      aOverlay = null;
+    if (pDecoration==aCachedDecorations[2]) {
+      if (aOverlay instanceof LineView) {
+        pView.invalidate(aOverlay);
+        aOverlay = null;
+      }
     }
   }
 
