@@ -474,39 +474,30 @@ public class DiagramView extends View implements OnZoomListener{
       LightView bg = aAdapter.getBackground();
       Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = aAdapter.getTheme();
       if (bg!=null) {
-        int save = canvas.save();
-        canvas.translate(toCanvasX(0), toCanvasY(0));
-        bg.draw(canvas, theme, aScale);
-        canvas.restoreToCount(save);
+        drawPositioned(canvas, theme, bg);
       }
 
       int len = aAdapter.getCount();
       for(int i=0; i<len; i++) {
-        final LightView lv = aAdapter.getView(i);
-        lv.getBounds(aTmpRectF);
-        int save = canvas.save();
-        canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
-        lv.draw(canvas, theme, aScale);
-        canvas.restoreToCount(save);
+        drawPositioned(canvas, theme, (LightView) aAdapter.getView(i));
       }
 
       LightView overlay = aAdapter.getOverlay();
       if (overlay!=null) {
-        overlay.getBounds(aTmpRectF);
-        int save = canvas.save();
-        canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
-        overlay.draw(canvas, theme, aScale);
-        canvas.restoreToCount(save);
+        drawPositioned(canvas, theme, overlay);
       }
-//      @SuppressLint("DrawAllocation")
-//      final Rectangle clipBounds = new Rectangle(-(aOffsetX/aScale), -(aOffsetY/aScale), getHeight(), getWidth());
-//      @SuppressLint("DrawAllocation")
-//      final AndroidCanvas androidcanvas = new AndroidCanvas(canvas);
-//      aAdapter.draw(androidcanvas.childCanvas(clipBounds, aScale), clipBounds);
     } else {
       ensureMissingDiagramTextBounds();
       canvas.drawText(aMissingDiagramText, (getWidth()-aMissingDiagramTextBounds.width())/2, (getHeight()-aMissingDiagramTextBounds.height())/2, getRedPen());
     }
+  }
+
+  private void drawPositioned(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, LightView view) {
+    view.getBounds(aTmpRectF);
+    int save = canvas.save();
+    canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
+    view.draw(canvas, theme, aScale);
+    canvas.restoreToCount(save);
   }
 
   private void drawDecorations(Canvas canvas) {
