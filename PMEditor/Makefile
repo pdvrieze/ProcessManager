@@ -62,7 +62,7 @@ $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_default.9.png): ressrc/btn_src.
 	@optipng $@
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_active.9.png): ressrc/btn_src.svg Makefile
-	@scripts/9patch.php 38 38 $< pressed $@ 13 18 13 18 12 22 12 20
+	@scripts/9patch.php 38 38 $< active $@ 13 18 13 18 12 22 12 20
 	@optipng $@
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_pressed.9.png): ressrc/btn_src.svg Makefile
