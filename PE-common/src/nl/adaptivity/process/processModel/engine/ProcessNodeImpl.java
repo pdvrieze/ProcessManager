@@ -38,6 +38,8 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
   private String aId;
 
+  private String aLabel;
+
   private double aX=Double.NaN;
   private double aY=Double.NaN;
 
@@ -179,6 +181,17 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
   public void setId(final String id) {
     aId = id;
+  }
+
+  @Override
+  @XmlAttribute
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  public String getLabel() {
+    return aLabel;
+  }
+
+  public void setLabel(final String label) {
+    aLabel = label;
   }
 
   @XmlAttribute(name="x")

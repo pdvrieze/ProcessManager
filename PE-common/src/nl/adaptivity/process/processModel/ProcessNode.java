@@ -30,6 +30,8 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
 
   public String getId();
 
+  public String getLabel();
+
   public boolean isPredecessorOf(T pNode);
 
 }
