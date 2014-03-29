@@ -14,11 +14,15 @@ import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
+import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.widget.Toast;
 import static nl.adaptivity.diagram.android.RelativeLightView.*;
 
 /**
@@ -249,17 +253,48 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
         aOverlay = null;
       }
 
-      DrawableProcessNode other=null;
+      DrawableProcessNode next=null;
       for(DrawableProcessNode item: aDiagram.getModelNodes()) {
         if(item.getItemAt(pX, pY)!=null) {
-          other = item;
+          next = item;
           break;
         }
       }
-      if (other!=null) {
-        DrawableProcessNode item = getItem(pPosition);
-        item.addSuccessor(other);
+      if (next!=null) {
+        tryAddSuccessor(getItem(pPosition), next);
       }
+    }
+  }
+
+  @Override
+  public boolean onNodeClickOverride(DiagramView pDiagramView, int pTouchedElement, MotionEvent pE) {
+    if (aConnectingItem>=0) {
+      DrawableProcessNode prev = getItem(aConnectingItem);
+      DrawableProcessNode next = getItem(pTouchedElement);
+      if (prev.isPredecessorOf(next)) {
+        prev.removeSuccessor(next);
+      } else {
+        tryAddSuccessor(prev, next);
+      }
+      aCachedDecorations[2].setActive(false);
+      pDiagramView.invalidate();
+      return true;
+    }
+    return false;
+  }
+
+  public void tryAddSuccessor(DrawableProcessNode prev, DrawableProcessNode next) {
+    if (prev.getSuccessors().size()<prev.getMaxSuccessorCount() &&
+        next.getPredecessors().size()<next.getMaxPredecessorCount()) {
+      try {
+        prev.addSuccessor(next);
+      } catch (IllegalProcessModelException e) {
+        Log.w(MyDiagramAdapter.class.getName(), e.getMessage(), e);
+        Toast.makeText(aContext, "These can not be connected", Toast.LENGTH_LONG).show();
+      }
+    } else {
+      Toast.makeText(aContext, "These can not be connected", Toast.LENGTH_LONG).show();
+      // TODO Better errors
     }
   }
 

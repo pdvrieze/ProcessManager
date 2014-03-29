@@ -4,6 +4,7 @@ import java.util.List;
 
 import nl.adaptivity.diagram.Theme;
 import android.graphics.RectF;
+import android.view.MotionEvent;
 
 /**
  * A {@link DiagramAdapter} is responsible for providing the diagram to the diagramView.
@@ -35,5 +36,10 @@ public interface DiagramAdapter<T extends LightView, V> {
   void onDecorationMove(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY);
 
   void onDecorationUp(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY);
+
+  /** Called by a view to allow it to handle an event before any listeners.
+   * @return <code>true</code> to stop propagation. <code>false</code> for unhandled events.
+   */
+  boolean onNodeClickOverride(DiagramView pDiagramView, int pTouchedElement, MotionEvent pE);
 
 }
