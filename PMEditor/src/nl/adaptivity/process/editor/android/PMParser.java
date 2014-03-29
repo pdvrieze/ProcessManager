@@ -276,6 +276,8 @@ public class PMParser {
           pNode.setY(Double.parseDouble(pIn.getAttributeValue(i)));
         } else if ("id".equals(aname)) {
           pNode.setId(pIn.getAttributeValue(i));
+        } else if ("label".equals(aname)) {
+          pNode.setLabel(pIn.getAttributeValue(i));
         } else if ("predecessor".equals(aname)) {
           pNode.setPredecessors(getPredecessors(pIn.getAttributeValue(i),pNodes));
         }
