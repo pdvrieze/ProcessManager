@@ -52,7 +52,7 @@ public class AndroidDrawableLightView implements LightView {
 
   @Override
   public void setActive(boolean pActive) {
-    setState(android.R.attr.state_pressed, pActive);
+    setState(android.R.attr.state_active, pActive);
   }
 
   @Override
