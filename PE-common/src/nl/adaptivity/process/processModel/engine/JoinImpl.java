@@ -121,6 +121,11 @@ public class JoinImpl extends ProcessNodeImpl implements Join<ProcessNodeImpl> {
   }
 
   @Override
+  public int getMaxPredecessorCount() {
+    return Integer.MAX_VALUE;
+  }
+
+  @Override
   public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }

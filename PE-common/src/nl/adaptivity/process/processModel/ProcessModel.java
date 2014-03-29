@@ -7,7 +7,7 @@ import java.util.Set;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 
 
-public interface ProcessModel<T extends ProcessNode<T>> {
+public interface ProcessModel<T extends ProcessNode<? extends T>> {
 
   /**
    * Get the amount of end nodes in the model
@@ -21,7 +21,7 @@ public interface ProcessModel<T extends ProcessNode<T>> {
    *
    * @return A reference node.
    */
-  public IProcessModelRef<T> getRef();
+  public IProcessModelRef<? extends T> getRef();
 
   /**
    * Get the process node with the given id.
@@ -38,6 +38,6 @@ public interface ProcessModel<T extends ProcessNode<T>> {
 
   public Set<String> getRoles();
 
-  public Collection<? extends StartNode<T>> getStartNodes();
+  public Collection<? extends StartNode<? extends T>> getStartNodes();
 
 }

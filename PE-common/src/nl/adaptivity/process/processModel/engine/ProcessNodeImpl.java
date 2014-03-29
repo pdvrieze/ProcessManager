@@ -78,6 +78,20 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     aPredecessors = ProcessNodeSet.processNodeSet(predecessors);
   }
 
+
+
+  @Override
+  public void addPredecessor(ProcessNodeImpl pNode) {
+    if (aPredecessors.contains(pNode)) { return; }
+    if (aPredecessors.size()+1>getMaxPredecessorCount()) {
+      throw new IllegalProcessModelException("Can not add more predecessors");
+    }
+    if(aPredecessors.add(pNode)) {
+      pNode.addSuccessor(this);
+    }
+  }
+
+
   @Override
   public void removePredecessor(ProcessNodeImpl pNode) {
     aPredecessors.remove(pNode);
@@ -115,6 +129,18 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   public Set<? extends ProcessNodeImpl> getSuccessors() {
     return aSuccessors;
   }
+
+  @Override
+  public int getMaxSuccessorCount() {
+    return Integer.MAX_VALUE;
+  }
+
+
+  @Override
+  public int getMaxPredecessorCount() {
+    return 1;
+  }
+
 
   public void removeSuccessor(ProcessNodeImpl pNode) {
     aSuccessors.remove(pNode);

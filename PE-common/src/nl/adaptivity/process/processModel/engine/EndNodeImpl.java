@@ -65,6 +65,11 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
     setPredecessors(Arrays.asList(predecessor));
   }
 
+  @Override
+  public int getMaxSuccessorCount() {
+    return 0;
+  }
+
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.EndNode#getExports()
    */

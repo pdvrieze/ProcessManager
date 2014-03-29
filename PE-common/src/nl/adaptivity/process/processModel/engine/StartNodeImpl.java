@@ -45,6 +45,11 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @Override
+  public int getMaxPredecessorCount() {
+    return 0;
+  }
+
+  @Override
   public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
