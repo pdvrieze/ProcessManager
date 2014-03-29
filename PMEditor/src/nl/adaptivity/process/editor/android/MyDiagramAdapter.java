@@ -260,6 +260,20 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
         pView.invalidate(aOverlay);
         aOverlay = null;
       }
+
+      DrawableProcessNode other=null;
+      for(DrawableProcessNode item: aDiagram.getModelNodes()) {
+        if(item.getItemAt(pX, pY)!=null) {
+          other = item;
+          break;
+        }
+      }
+      if (other!=null) {
+        DrawableProcessNode item = getItem(pPosition);
+        item.addSuccessor(other);
+        // TODO check that predecessors are mapped
+//        other.getPredecessors().add(item);
+      }
     }
   }
 
