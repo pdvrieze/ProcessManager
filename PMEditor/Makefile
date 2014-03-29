@@ -9,7 +9,7 @@ SCORES:=black white none
 #           $(foreach score,$(SCORES),score_$(score).png) \
 #	   ic_launcher.png ic_menu_scores.png ic_action_scores.png popupframe.9.png popuparrowdown.png popuparrowup.png
 ICONS=ic_cont_arrow.png ic_cont_edit.png ic_cont_delete.png
-DRAWABLES:= ic_launcher.png $(ICONS) btn_default.9.png btn_pressed.9.png
+DRAWABLES:= ic_launcher.png $(ICONS) btn_default.9.png btn_pressed.9.png btn_active.9.png
 TARGETS:= $(foreach qual,$(QUALS),$(foreach drawable,$(DRAWABLES),res/drawable-$(qual)/$(drawable))) $(NODPITARGETS) 
 
 res: $(TARGETS)
@@ -59,6 +59,10 @@ feature.png: ressrc/iconsource.svg
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_default.9.png): ressrc/btn_src.svg Makefile
 	@scripts/9patch.php 38 38 $< default $@ 10 18 10 18 9 20 9 20
+	@optipng $@
+
+$(foreach qual,$(QUALS),res/drawable-$(qual)/btn_active.9.png): ressrc/btn_src.svg Makefile
+	@scripts/9patch.php 38 38 $< pressed $@ 13 18 13 18 12 22 12 20
 	@optipng $@
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/btn_pressed.9.png): ressrc/btn_src.svg Makefile
