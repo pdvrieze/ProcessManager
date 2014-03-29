@@ -67,11 +67,12 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (DrawableProcessNode end: start.getSuccessors()) {
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
-              final float x1 = (float) ((start.getBounds().right()-DrawableProcessModel.STROKEWIDTH-aBounds.left)*pScale);
-              final float y1 = (float) (start.getY()*pScale-aBounds.top);
-              final float x2 = (float) ((end.getBounds().left+DrawableProcessModel.STROKEWIDTH-aBounds.left)*pScale);
-              final float y2 = (float) (end.getY()* pScale-aBounds.top);
-              pCanvas.drawLine(x1, y1, x2, y2, aPen);
+              final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/-aBounds.left)*pScale);
+              final float y1 = (float) ((start.getY()-aBounds.top)*pScale);
+              final float x2 = (float) ((end.getBounds().left/*+DrawableProcessModel.STROKEWIDTH*/-aBounds.left)*pScale);
+              final float y2 = (float) ((end.getY()-aBounds.top)* pScale);
+//              pCanvas.drawLine(x1, y1, x2, y2, aPen);
+              LineView.drawArrow(pCanvas, pTheme, x1, y1, x2, y2, pScale);
             }
           }
         }
