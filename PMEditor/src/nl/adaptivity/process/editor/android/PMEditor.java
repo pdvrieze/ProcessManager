@@ -20,15 +20,7 @@ import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.diagram.DiagramNode;
-import nl.adaptivity.process.diagram.DrawableActivity;
-import nl.adaptivity.process.diagram.DrawableEndNode;
-import nl.adaptivity.process.diagram.DrawableJoin;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.DrawableStartNode;
-import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import nl.adaptivity.process.diagram.LayoutStepper;
+import nl.adaptivity.process.diagram.*;
 import android.app.Activity;
 import android.content.ClipData;
 import android.graphics.Canvas;
@@ -648,6 +640,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
       addNodeView(theme, new DrawableStartNode((ClientProcessModel<DrawableProcessNode>) null));
       addNodeView(theme, new DrawableActivity((ClientProcessModel<DrawableProcessNode>) null));
+      addNodeView(theme, new DrawableSplit((ClientProcessModel<DrawableProcessNode>) null));
       addNodeView(theme, new DrawableJoin((ClientProcessModel<DrawableProcessNode>) null));
       addNodeView(theme, new DrawableEndNode((ClientProcessModel<DrawableProcessNode>) null));
 
