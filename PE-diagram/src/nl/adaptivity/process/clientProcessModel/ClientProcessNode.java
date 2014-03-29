@@ -15,6 +15,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private String aId;
 
+  private String aLabel;
+
   private double aX=Double.NaN;
 
   private double aY=Double.NaN;
@@ -67,6 +69,15 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   public void setId(String pId) {
     aId = pId;
+  }
+
+  @Override
+  public String getLabel() {
+    return aLabel;
+  }
+
+  public void setLabel(String pLabel) {
+    aLabel = pLabel;
   }
 
   @Override

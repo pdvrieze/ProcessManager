@@ -1,5 +1,4 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
@@ -7,38 +6,35 @@ import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.Split;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
-public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProcessNode> {
+public class DrawableSplit extends DrawableJoinSplit implements Split<DrawableProcessNode>{
 
-  public DrawableJoin(ClientProcessModel<DrawableProcessNode> pOwner) {
+  public DrawableSplit(ClientProcessModel<DrawableProcessNode> pOwner) {
     super(pOwner);
   }
 
-  public DrawableJoin(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
+  public DrawableSplit(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
     super(pId, pOwner);
   }
 
-  public DrawableJoin(DrawableJoin pOrig) {
+  public DrawableSplit(DrawableSplit pOrig) {
     super(pOrig);
   }
 
   @Override
-  public DrawableJoin clone() {
-    if (getClass()==DrawableJoin.class) {
-      return new DrawableJoin(this);
+  public DrawableSplit clone() {
+    if (getClass()==DrawableSplit.class) {
+      return new DrawableSplit(this);
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
-  @Override
-  public int getMaxPredecessorCount() {
-    return Integer.MAX_VALUE;
-  }
-
-  public static DrawableJoin from(DrawableProcessModel pOwner, Join<?> pElem) {
-    DrawableJoin result = new DrawableJoin(pOwner);
+  public static DrawableSplit from(DrawableProcessModel pOwner, Join<?> pElem) {
+    DrawableSplit result = new DrawableSplit(pOwner);
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());
     result.setMax(pElem.getMax());
@@ -57,9 +53,9 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
       final double hse = STROKEEXTEND/2;
       path.moveTo(hse,dy+hse)
           .lineTo(JOINWIDTH+hse, dy+hse)
-          .moveTo(hse+dx/2,hse+dy/2)
+          .moveTo(hse+dx+dx/2,hse+dy/2)
           .lineTo(hse+dx, hse+dy)
-          .lineTo(hse+dx/2,hse+dy+dy/2);
+          .lineTo(hse+dx+dx/2,hse+dy+dy/2);
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
