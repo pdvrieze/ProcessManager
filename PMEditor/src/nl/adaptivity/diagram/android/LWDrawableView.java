@@ -60,6 +60,20 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
+  public void setActive(boolean pActive) {
+    if (pActive) {
+      aItem.setState(aItem.getState()|Drawable.STATE_ACTIVE);
+    } else {
+      aItem.setState(aItem.getState()& ~Drawable.STATE_ACTIVE);
+    }
+  }
+
+  @Override
+  public boolean isActive() {
+    return (aItem.getState()&Drawable.STATE_ACTIVE)!=0;
+  }
+
+  @Override
   public void getBounds(RectF pRect) {
     Rectangle bounds = aItem.getBounds();
     pRect.set(bounds.leftf(), bounds.topf(), bounds.rightf(), bounds.bottomf());
@@ -84,7 +98,7 @@ public class LWDrawableView implements LightView{
   public void move(float pX, float pY) {
     aItem.move(pX, pY);
   }
-  
+
   @Override
   public void setPos(float pLeft, float pTop) {
     aItem.setPos(pLeft, pTop);

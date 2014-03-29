@@ -50,6 +50,16 @@ public class AndroidDrawableLightView implements LightView {
     return hasState(android.R.attr.state_pressed);
   }
 
+  @Override
+  public void setActive(boolean pActive) {
+    setState(android.R.attr.state_pressed, pActive);
+  }
+
+  @Override
+  public boolean isActive() {
+    return hasState(android.R.attr.state_active);
+  }
+
   private void setState(final int pStateResource, boolean pDesiredState) {
     final int[] oldState = aDrawable.getState();
     final int statePos = getStatePos(oldState, pStateResource);

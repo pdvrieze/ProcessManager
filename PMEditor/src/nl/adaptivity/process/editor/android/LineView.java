@@ -1,5 +1,6 @@
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.AndroidPath;
 import nl.adaptivity.diagram.android.AndroidPen;
@@ -12,7 +13,8 @@ import android.graphics.Path;
 import android.graphics.RectF;
 
 
-public class LineView implements LightView {
+public class LineView extends
+AbstractLightView implements LightView {
 
   private static final double LEADERLEN = 17d;
   private static final double HEADLEN= 10d;
@@ -25,45 +27,12 @@ public class LineView implements LightView {
   private float aY1;
   private float aX2;
   private float aY2;
-  private boolean aFocussed;
-  private boolean aSelected;
-  private boolean aTouched;
 
   public LineView(float x1, float y1, float x2, float y2) {
     aX1 = x1;
     aY1 = y1;
     aX2 = x2;
     aY2 = y2;
-  }
-
-  @Override
-  public void setFocussed(boolean pFocussed) {
-    aFocussed = pFocussed;
-  }
-
-  @Override
-  public boolean isFocussed() {
-    return aFocussed;
-  }
-
-  @Override
-  public void setSelected(boolean pSelected) {
-    aSelected = pSelected;
-  }
-
-  @Override
-  public boolean isSelected() {
-    return aSelected;
-  }
-
-  @Override
-  public void setTouched(boolean pTouched) {
-    aTouched = pTouched;
-  }
-
-  @Override
-  public boolean isTouched() {
-    return aTouched;
   }
 
   @Override

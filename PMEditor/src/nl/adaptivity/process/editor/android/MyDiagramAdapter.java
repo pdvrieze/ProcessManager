@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.android.graphics.BackgroundDrawable;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
@@ -27,27 +28,9 @@ import static nl.adaptivity.diagram.android.RelativeLightView.*;
 public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, DrawableProcessNode> {
 
 
-  private class ConnectorView implements LightView {
+  private class ConnectorView extends AbstractLightView {
 
     private Paint aPen;
-
-    @Override
-    public void setFocussed(boolean pFocussed) { /* ignore */ }
-
-    @Override
-    public boolean isFocussed() { return false; }
-
-    @Override
-    public void setSelected(boolean pSelected) { /* ignore */ }
-
-    @Override
-    public boolean isSelected() { return false; }
-
-    @Override
-    public void setTouched(boolean pB) { /* ignore */ }
-
-    @Override
-    public boolean isTouched() { return false; }
 
     @Override
     public void getBounds(RectF pDest) {
@@ -94,6 +77,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   private Context aContext;
   private RelativeLightView[] aCachedDecorations = new RelativeLightView[3];
   private int aCachedDecorationPos = -1;
+  private int aConnectingItem = -1;
 
   public MyDiagramAdapter(Context pContext, DrawableProcessModel pDiagram) {
     aContext = pContext;
@@ -226,6 +210,9 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
       pView.invalidate();
     } else if (pDecoration==aCachedDecorations[1]) {
       doEditNode(pPosition);
+    } else if (pDecoration==aCachedDecorations[2]) {
+      pDecoration.setActive(true);
+      aConnectingItem  = pPosition;
     }
   }
 
@@ -271,8 +258,6 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
       if (other!=null) {
         DrawableProcessNode item = getItem(pPosition);
         item.addSuccessor(other);
-        // TODO check that predecessors are mapped
-//        other.getPredecessors().add(item);
       }
     }
   }

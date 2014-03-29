@@ -27,4 +27,8 @@ public interface LightView {
 
   public void setPos(float pLeft, float pTop);
 
+  public void setActive(boolean pActive);
+
+  public boolean isActive();
+
 }

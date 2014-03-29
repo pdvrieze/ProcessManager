@@ -6,7 +6,7 @@ import android.graphics.RectF;
 
 
 public class RelativeLightView implements LightView {
-  
+
   public static final int HGRAVITY=0;
   public static final int LEFT=1;
   public static final int RIGHT=2;
@@ -16,16 +16,16 @@ public class RelativeLightView implements LightView {
   public static final int BOTTOM=8;
   public static final int VMASK=VGRAVITY|TOP|BOTTOM;
   public static final int GRAVITY=HGRAVITY|VGRAVITY;
-  
+
   private final int aRelativePos;
-  
+
   private final LightView aView;
-  
+
   public RelativeLightView(LightView pView, int pRelativePos) {
     aView = pView;
     aRelativePos = pRelativePos;
   }
-  
+
   public int getRelativePos() {
     return aRelativePos;
   }
@@ -58,6 +58,16 @@ public class RelativeLightView implements LightView {
   @Override
   public boolean isTouched() {
     return aView.isTouched();
+  }
+
+  @Override
+  public void setActive(boolean pActive) {
+    aView.setActive(pActive);
+  }
+
+  @Override
+  public boolean isActive() {
+    return aView.isActive();
   }
 
   @Override
