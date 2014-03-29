@@ -12,6 +12,7 @@ public interface Drawable extends Bounded, Cloneable {
   static final int STATE_CUSTOM3=0x40;
   static final int STATE_CUSTOM4=0x80;
   static final int STATE_DRAG=0x100;
+  static final int STATE_ACTIVE=0x200;
   static final int STATE_MASK=0xffff;
 
 
@@ -29,11 +30,11 @@ public interface Drawable extends Bounded, Cloneable {
   /**
    * Override the definition of {@link Object#clone()} to ensure the right
    * return type and make it public.
-   * 
+   *
    * @return A copy.
    */
   public Drawable clone();
-  
+
   /**
    * Get the current state of the drawable. Individual implementations should specify what each state value means.
    * The <code>0</code> value however means the default.
@@ -46,10 +47,10 @@ public interface Drawable extends Bounded, Cloneable {
    * @param pState
    */
   public void setState(int pState);
-  
+
 
   public void move(double pX, double pY);
 
   public void setPos(double pLeft, double pTop);
-  
+
 }
