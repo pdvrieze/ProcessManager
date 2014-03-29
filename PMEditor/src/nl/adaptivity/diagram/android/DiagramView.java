@@ -484,7 +484,7 @@ public class DiagramView extends View implements OnZoomListener{
 
       int len = aAdapter.getCount();
       for(int i=0; i<len; i++) {
-        drawPositioned(canvas, theme, (LightView) aAdapter.getView(i));
+        drawPositioned(canvas, theme, aAdapter.getView(i));
       }
 
       LightView overlay = aAdapter.getOverlay();
@@ -700,9 +700,9 @@ public class DiagramView extends View implements OnZoomListener{
         aTouchedDecoration.getElem2().setTouched(false);
         aTouchedDecoration.getElem2().getBounds(aTmpRectF);
         if (aTmpRectF.contains(diagX, diagY)) {
-          aAdapter.onDecorationClick(this, aTouchedDecoration.getElem1(), aTouchedDecoration.getElem2());
+          aAdapter.onDecorationClick(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2());
         } else {
-          aAdapter.onDecorationUp(this, aTouchedDecoration.getElem1(), aTouchedDecoration.getElem2(), diagX, diagY);
+          aAdapter.onDecorationUp(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2(), diagX, diagY);
         }
 
         invalidate(aTouchedDecoration.getElem2());
@@ -718,7 +718,7 @@ public class DiagramView extends View implements OnZoomListener{
       aGestureListener.actionFinished();
 //      aGestureListener.setMoveItem(false);
     } else if (action==MotionEvent.ACTION_MOVE && aTouchedDecoration!=null) {
-      aAdapter.onDecorationMove(this, aTouchedDecoration.getElem1(), aTouchedDecoration.getElem2(), diagX, diagY);
+      aAdapter.onDecorationMove(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2(), diagX, diagY);
       return true;
     }
     boolean retVal = aScaleGestureDetector.onTouchEvent(pEvent);
