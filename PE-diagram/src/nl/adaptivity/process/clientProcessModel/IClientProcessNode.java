@@ -9,7 +9,7 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   /**
    * Set the X coordinate of the reference point of the element. This is
    * normally the center.
-   * 
+   *
    * @param pX The x coordinate
    */
   void setX(double pX);
@@ -17,7 +17,7 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   /**
    * Set the Y coordinate of the reference point of the element. This is
    * normally the center of the symbol (excluding text).
-   * 
+   *
    * @param pY
    */
   void setY(double pY);

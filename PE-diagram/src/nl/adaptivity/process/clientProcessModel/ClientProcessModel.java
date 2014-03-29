@@ -224,11 +224,11 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
-  public Collection<? extends ClientStartNode<T>> getStartNodes() {
-    List<ClientStartNode<T>> result = new ArrayList<>();
+  public Collection<? extends ClientStartNode<? extends T>> getStartNodes() {
+    List<ClientStartNode<? extends T>> result = new ArrayList<>();
     for(T n:getModelNodes()) {
       if (n instanceof ClientStartNode) {
-        result.add((ClientStartNode<T>) n);
+        result.add((ClientStartNode<? extends T>) n);
       }
     }
     return result;

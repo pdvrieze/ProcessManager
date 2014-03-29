@@ -16,20 +16,7 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private String aCondition;
 
-  private ProcessNodeSet<T> aPredecessor = ProcessNodeSet.singleton();
-
-  private ProcessNodeSet<T> aSuccessors;
-
   private IXmlMessage aMessage;
-
-  @Override
-  public ProcessNodeSet<T> getSuccessors() {
-    if (aSuccessors == null) {
-      aSuccessors = ProcessNodeSet.processNodeSet();
-    }
-    return aSuccessors;
-  }
-
 
   public ClientActivityNode(ClientProcessModel<T> pOwner) {
     super(pOwner);
@@ -44,21 +31,7 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
     super(pOrig);
     aName = pOrig.aName;
     aCondition = pOrig.aCondition;
-    aPredecessor = pOrig.aPredecessor;
-    aSuccessors = pOrig.aSuccessors;
     aMessage = pOrig.aMessage;
-  }
-
-  @Override
-  public ProcessNodeSet<T> getPredecessors() {
-    return aPredecessor;
-  }
-
-  @Override
-  public boolean isPredecessorOf(T pNode) {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override
@@ -83,16 +56,13 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   @Override
   public T getPredecessor() {
-    return aPredecessor.get(0);
-  }
-
-  @Override
-  public void removePredecessor(T pNode) {
-    if (aPredecessor==pNode) {
-      aPredecessor= null;
+    ProcessNodeSet<T> list = getPredecessors();
+    if (list.isEmpty()) {
+      return null;
+    } else {
+      return list.get(0);
     }
   }
-
 
   @Override
   public IXmlMessage getMessage() {
@@ -102,21 +72,6 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   @Override
   public void setMessage(IXmlMessage pMessage) {
     aMessage = pMessage;
-  }
-
-  @Override
-  public void addSuccessor(T pNode) {
-    if (aSuccessors==null) {
-      aSuccessors = ProcessNodeSet.processNodeSet(1);
-    }
-    aSuccessors.add(pNode);
-  }
-
-  @Override
-  public void removeSuccessor(T pNode) {
-    if (aSuccessors!=null) {
-      aSuccessors.remove(pNode);
-    }
   }
 
 

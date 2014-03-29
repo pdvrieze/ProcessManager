@@ -7,6 +7,7 @@ import net.devrieze.util.CollectionUtil;
 
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
@@ -24,22 +25,39 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private ClientProcessModel<T> aOwner;
 
+  private final ProcessNodeSet<T> aPredecessors;
+
+  private final ProcessNodeSet<T> aSuccessors;
+
+
   protected ClientProcessNode(ClientProcessModel<T> pOwner) {
-    aOwner = pOwner;
+    this(null, pOwner);
   }
 
   protected ClientProcessNode(final String pId, ClientProcessModel<T> pOwner) {
     aId = pId;
     aOwner = pOwner;
+    switch (getMaxPredecessorCount()) {
+      case 0: aPredecessors = ProcessNodeSet.<T>empty(); break;
+      case 1: aPredecessors = ProcessNodeSet.<T>singleton(); break;
+      default: aPredecessors = ProcessNodeSet.<T>processNodeSet();
+    }
+    switch (getMaxSuccessorCount()) {
+      case 0: aSuccessors = ProcessNodeSet.<T>empty(); break;
+      case 1: aSuccessors = ProcessNodeSet.<T>singleton(); break;
+      default: aSuccessors = ProcessNodeSet.<T>processNodeSet();
+    }
   }
 
   protected ClientProcessNode(final ClientProcessNode<T> pOrig) {
-    aId = pOrig.aId;
+    this(pOrig.aId, pOrig.aOwner);
     aX = pOrig.aX;
     aY = pOrig.aY;
     aImports = CollectionUtil.copy(pOrig.aImports);
     aExports = CollectionUtil.copy(pOrig.aExports);
-    aOwner = pOrig.aOwner;
+
+    aPredecessors.addAll(pOrig.aPredecessors);
+    aSuccessors.addAll(pOrig.aSuccessors);
   }
 
   @Override
@@ -52,14 +70,34 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public void setPredecessors(Collection<? extends T> pPredecessors) {
-    if (pPredecessors.size()!=1) {
+  public final void setPredecessors(Collection<? extends T> pPredecessors) {
+    if (pPredecessors.size()>getMaxPredecessorCount()) {
       throw new IllegalArgumentException();
     }
-    setPredecessor(pPredecessors.iterator().next());
+    aPredecessors.retainAll(pPredecessors);
+    pPredecessors.removeAll(aPredecessors);
+    for(T pred: pPredecessors) {
+      addPredecessor(pred);
+    }
   }
 
-  public void setPredecessor(T pPredecessor) {
+  @Override
+  public final void addPredecessor(T pred) {
+    if (aPredecessors.contains(pred)) { return; }
+    if (aPredecessors.size()+1>getMaxPredecessorCount()) {
+      throw new IllegalProcessModelException("Can not add more predecessors");
+    }
+
+    aPredecessors.add(pred);
+    if (!pred.getSuccessors().contains(this)) {
+      @SuppressWarnings("unchecked")
+      T suc = (T) this;
+      pred.addSuccessor(suc);
+    }
+  }
+
+  @Deprecated
+  public final void setPredecessor(T pPredecessor) {
     if (getPredecessors().size()==1 && getPredecessors().get(0).equals(pPredecessor)) {
       return; // Don't change
     }
@@ -73,28 +111,91 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public void setSuccessors(Collection<? extends T> pSuccessors) {
+  public final ProcessNodeSet<T> getPredecessors() {
+    return aPredecessors;
+  }
+
+  @Override
+  public final void removePredecessor(T pNode) {
+    if (aPredecessors.remove(pNode)) {
+      @SuppressWarnings("unchecked")
+      T suc = (T) this;
+      pNode.removeSuccessor(suc);
+    }
+  }
+
+  @Override
+  public int getMaxPredecessorCount() {
+    return 1;
+  }
+
+  @Override
+  public final void setSuccessors(Collection<? extends T> pSuccessors) {
+    if (pSuccessors.size()>getMaxSuccessorCount()) {
+      throw new IllegalArgumentException();
+    }
+    aSuccessors.retainAll(pSuccessors);
+    pSuccessors.removeAll(aSuccessors);
+    for(T pred: pSuccessors) {
+      addSuccessor(pred);
+    }
     if (pSuccessors.size()!=1) {
       throw new IllegalArgumentException();
     }
     addSuccessor(pSuccessors.iterator().next());
   }
 
-  public void setSuccessor(T pSuccessor) {
-    if (getSuccessors().size()==1 && getSuccessors().get(0).equals(pSuccessor)) {
+  @Deprecated
+  public final void setSuccessor(T pSuccessor) {
+    if (aSuccessors.size()==1 && aSuccessors.get(0).equals(pSuccessor)) {
       return; // Don't change
     }
     getSuccessors().clear();
-    addSuccessor(pSuccessor);
+    getPredecessors().add(pSuccessor);
+    if(! pSuccessor.getPredecessors().contains(this)) {
+      @SuppressWarnings("unchecked")
+      T pred = (T) this;
+      pSuccessor.addPredecessor(pred);
+    }
   }
 
 
 
   @Override
-  public abstract ProcessNodeSet<T> getPredecessors();
+  public final ProcessNodeSet<T> getSuccessors() {
+    return aSuccessors;
+  }
+
 
   @Override
-  public abstract ProcessNodeSet<T> getSuccessors();
+  public final boolean isPredecessorOf(T pNode) {
+    return getSuccessors().contains(pNode);
+  }
+
+  @Override
+  public final void addSuccessor(T pNode) {
+    if (aSuccessors.add(pNode)) {
+      @SuppressWarnings("unchecked")
+      final T pred = (T) this;
+      if (!pNode.getPredecessors().contains(pred)) {
+        pNode.addPredecessor(pred);
+      }
+    }
+  }
+
+  @Override
+  public final void removeSuccessor(T pNode) {
+    if (aSuccessors.remove(pNode)) {
+      @SuppressWarnings("unchecked")
+      T pred = (T) this;
+      pNode.removePredecessor(pred);
+    }
+  }
+
+  @Override
+  public int getMaxSuccessorCount() {
+    return Integer.MAX_VALUE;
+  }
 
   protected List<IXmlImportType> getImports() {
     return aImports;

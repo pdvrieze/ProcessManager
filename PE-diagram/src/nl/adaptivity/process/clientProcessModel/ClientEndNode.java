@@ -10,8 +10,6 @@ import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
 
-  private ProcessNodeSet<T> aPredecessor = ProcessNodeSet.singleton();
-
   public ClientEndNode(ClientProcessModel<T> pOwner) {
     super(pOwner);
   }
@@ -25,30 +23,8 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public ProcessNodeSet<T> getSuccessors() {
-    return ProcessNodeSet.empty();
-  }
-
-  @Override
-  public void setSuccessor(T pNode) {
-    throw new UnsupportedOperationException("end nodes never have successors");
-  }
-
-  @Override
-  public void addSuccessor(T pNode) {
-    throw new UnsupportedOperationException("end nodes never have successors");
-  }
-
-  @Override
-  public void removeSuccessor(T pNode) {
-    throw new UnsupportedOperationException("end nodes never have successors");
-  }
-
-  @Override
-  public boolean isPredecessorOf(T pNode) {
-    // TODO Auto-generated method stub
-    // return false;
-    throw new UnsupportedOperationException("Not yet implemented");
+  public int getMaxSuccessorCount() {
+    return 0;
   }
 
   @Override
@@ -62,20 +38,9 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public ProcessNodeSet<T> getPredecessors() {
-    return aPredecessor;
-  }
-
-  @Override
   public T getPredecessor() {
-    return aPredecessor.size()==0 ? null : aPredecessor.get(0);
-  }
-
-  @Override
-  public void removePredecessor(T pNode) {
-    if (aPredecessor==pNode) {
-      aPredecessor= null;
-    }
+    ProcessNodeSet<T> list = getPredecessors();
+    return list.isEmpty() ? null : list.get(0);
   }
 
 }
