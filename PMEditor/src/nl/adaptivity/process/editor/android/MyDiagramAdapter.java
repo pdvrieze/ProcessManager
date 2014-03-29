@@ -7,6 +7,7 @@ import java.util.List;
 
 import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.android.graphics.BackgroundDrawable;
+import nl.adaptivity.android.graphics.LineView;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.*;

@@ -1,6 +1,5 @@
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.android.graphics;
 
-import nl.adaptivity.android.graphics.AbstractLightView;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.AndroidPath;
 import nl.adaptivity.diagram.android.AndroidPen;
