@@ -110,10 +110,15 @@ public class DiagramView extends View implements OnZoomListener{
     @Override
     public boolean onSingleTapUp(MotionEvent pE) {
       try {
-        if (aOnNodeClickListener!=null) {
-          int touchedElement = getTouchedElement(pE);
-          if (touchedElement>=0) {
-            return aOnNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE);
+        int touchedElement = getTouchedElement(pE);
+        if (touchedElement>=0) {
+          if (aAdapter.onNodeClickOverride(DiagramView.this, touchedElement, pE)) {
+            return true;
+          }
+          if (aOnNodeClickListener!=null) {
+            if(aOnNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, pE)) {
+              return true;
+            }
           }
         }
         return false;
