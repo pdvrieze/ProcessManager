@@ -44,6 +44,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
   private int aState = STATE_DEFAULT;
+  private int idSeq=0;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
     super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()));
@@ -161,6 +162,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public void setPos(double pLeft, double pTop) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
+  }
+
+  @Override
+  public void addNode(DrawableProcessNode pNode) {
+    if (pNode.getId()==null) {
+      String newId = "id"+idSeq;
+      while (getNode(newId)!=null) {
+        ++idSeq;
+      }
+      pNode.setId(newId);
+    }
+    super.addNode(pNode);
   }
 
   @Override
