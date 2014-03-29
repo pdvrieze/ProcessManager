@@ -492,7 +492,11 @@ public class DiagramView extends View implements OnZoomListener{
 
       LightView overlay = aAdapter.getOverlay();
       if (overlay!=null) {
+        overlay.getBounds(aTmpRectF);
+        int save = canvas.save();
+        canvas.translate(toCanvasX(aTmpRectF.left), toCanvasY(aTmpRectF.top));
         overlay.draw(canvas, theme, aScale);
+        canvas.restoreToCount(save);
       }
 //      @SuppressLint("DrawAllocation")
 //      final Rectangle clipBounds = new Rectangle(-(aOffsetX/aScale), -(aOffsetY/aScale), getHeight(), getWidth());
