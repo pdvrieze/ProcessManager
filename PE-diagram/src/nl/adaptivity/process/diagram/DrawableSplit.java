@@ -52,7 +52,7 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
       path = strategy.newPath();
       final double hse = STROKEEXTEND/2;
       path.moveTo(hse,dy+hse)
-          .lineTo(JOINWIDTH+hse, dy+hse)
+          .lineTo(dx+hse, dy+hse)
           .moveTo(hse+dx+dx/2,hse+dy/2)
           .lineTo(hse+dx, hse+dy)
           .lineTo(hse+dx+dx/2,hse+dy+dy/2);

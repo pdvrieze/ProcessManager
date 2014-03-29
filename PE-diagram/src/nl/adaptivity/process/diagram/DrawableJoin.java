@@ -55,7 +55,7 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
       final double dy = JOINHEIGHT/2;
       path = strategy.newPath();
       final double hse = STROKEEXTEND/2;
-      path.moveTo(hse,dy+hse)
+      path.moveTo(dx+hse,dy+hse)
           .lineTo(JOINWIDTH+hse, dy+hse)
           .moveTo(hse+dx/2,hse+dy/2)
           .lineTo(hse+dx, hse+dy)
