@@ -31,7 +31,6 @@ import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
 import android.util.Log;
 
 public class PMParser {
@@ -77,52 +76,12 @@ public class PMParser {
     }
 
     @Override
-    public void addSuccessor(DrawableProcessNode pArg0) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public boolean isPredecessorOf(DrawableProcessNode pArg0) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public ProcessNodeSet<DrawableProcessNode> getPredecessors() {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public ProcessNodeSet<DrawableProcessNode> getSuccessors() {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void setPredecessor(DrawableProcessNode pArg0) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void setSuccessor(DrawableProcessNode pArg0) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
     public int getState() {
       throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override
     public void setState(int pState) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void removePredecessor(DrawableProcessNode pNode) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void removeSuccessor(DrawableProcessNode pNode) {
       throw new UnsupportedOperationException("Not implemented");
     }
 
