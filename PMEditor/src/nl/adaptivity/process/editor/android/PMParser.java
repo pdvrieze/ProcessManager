@@ -27,8 +27,10 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableEndNode;
 import nl.adaptivity.process.diagram.DrawableJoin;
+import nl.adaptivity.process.diagram.DrawableJoinSplit;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.DrawableSplit;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import android.util.Log;
@@ -152,6 +154,8 @@ public class PMParser {
       return parseStart(pIn, pNodes);
     } else if ("activity".equals(pIn.getName())) {
       return parseActivity(pIn, pNodes);
+    } else if ("split".equals(pIn.getName())) {
+      return parseSplit(pIn, pNodes);
     } else if ("join".equals(pIn.getName())) {
       return parseJoin(pIn, pNodes);
     } else if ("end".equals(pIn.getName())) {
@@ -201,7 +205,7 @@ public class PMParser {
   private static DrawableProcessNode parseJoin(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
     DrawableJoin result = new DrawableJoin((ClientProcessModel<DrawableProcessNode>) null);
     parseCommon(pIn, pNodes, result);
-    parseJoinAttrs(pIn, result);
+    parseJoinSplitAttrs(pIn, result);
     List<DrawableProcessNode> predecessors = new ArrayList<>();
 
     for(int type = pIn.nextTag(); type!=END_TAG; type = pIn.nextTag()) {
@@ -225,7 +229,24 @@ public class PMParser {
     return result;
   }
 
-  private static void parseJoinAttrs(XmlPullParser pIn, DrawableJoin pNode) {
+  private static DrawableProcessNode parseSplit(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+    DrawableSplit result = new DrawableSplit((ClientProcessModel<DrawableProcessNode>) null);
+    parseCommon(pIn, pNodes, result);
+    parseJoinSplitAttrs(pIn, result);
+    for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
+      switch (type) {
+      case START_TAG:
+        parseUnknownTag(pIn);
+        break;
+      default:
+          // ignore
+      }
+    }
+
+    return result;
+  }
+
+  private static void parseJoinSplitAttrs(XmlPullParser pIn, DrawableJoinSplit pNode) {
     for(int i=0; i< pIn.getAttributeCount();++i) {
       if (XMLConstants.NULL_NS_URI.equals(pIn.getAttributeNamespace(i))) {
         final String aname = pIn.getAttributeName(i);
