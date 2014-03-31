@@ -51,15 +51,27 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
       final double dy = JOINHEIGHT/2;
       path = strategy.newPath();
       final double hse = STROKEEXTEND/2;
-      path.moveTo(hse,dy+hse)
+      // substract the strokewith to take the CAP away.
+      // How long is the arrow extend in the major direction
+      final double arrowlen = Math.sqrt(JOINWIDTH*JOINWIDTH*0.115*0.115*2-STROKEWIDTH*2);
+      // How long is the arrow in the minor direction (to have non 45 deg angles
+      final double arrowadjust = arrowlen*0.1;
+      path.moveTo(hse+JOINWIDTH*0.1,dy+hse)
           .lineTo(dx+hse, dy+hse)
-          .moveTo(hse+dx+dx/2,hse+dy/2)
+          .moveTo(hse+JOINWIDTH*0.7-STROKEWIDTH*0.5,hse+JOINHEIGHT*0.3+STROKEWIDTH*0.5)
           .lineTo(hse+dx, hse+dy)
-          .lineTo(hse+dx+dx/2,hse+dy+dy/2);
+          .lineTo(hse+JOINWIDTH*0.7-STROKEWIDTH*0.5,hse+JOINHEIGHT*0.7-STROKEWIDTH*0.5)
+          .moveTo(hse+JOINWIDTH*0.7-arrowlen,hse+JOINHEIGHT*0.3+arrowadjust)
+          .lineTo(hse+JOINWIDTH*0.7,hse+JOINHEIGHT*0.3)
+          .lineTo(hse+JOINWIDTH*0.7-arrowadjust,hse+JOINHEIGHT*0.3+arrowlen)
+          .moveTo(hse+JOINWIDTH*0.7-arrowlen,hse+JOINHEIGHT*0.7-arrowadjust)
+          .lineTo(hse+JOINWIDTH*0.7,hse+JOINHEIGHT*0.7)
+          .lineTo(hse+JOINWIDTH*0.7-arrowadjust,hse+JOINHEIGHT*0.7-arrowlen);
+      
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, getState() & ~STATE_TOUCHED);
+      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState() & ~STATE_TOUCHED);
       pCanvas.drawPath(path, linePen, null);
     }
   }
