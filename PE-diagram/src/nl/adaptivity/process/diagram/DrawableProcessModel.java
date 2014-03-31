@@ -167,9 +167,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public void addNode(DrawableProcessNode pNode) {
     if (pNode.getId()==null) {
-      String newId = "id"+idSeq;
+      String newId = "id"+idSeq++;
       while (getNode(newId)!=null) {
-        ++idSeq;
+        newId = "id"+idSeq++;
       }
       pNode.setId(newId);
     }
