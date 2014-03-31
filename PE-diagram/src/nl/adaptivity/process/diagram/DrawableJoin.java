@@ -56,14 +56,17 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
       path = strategy.newPath();
       final double hse = STROKEEXTEND/2;
       path.moveTo(dx+hse,dy+hse)
-          .lineTo(JOINWIDTH+hse, dy+hse)
-          .moveTo(hse+dx/2,hse+dy/2)
+          .lineTo(JOINWIDTH*0.875f, dy+hse)
+          .moveTo(JOINWIDTH*0.75f+hse, JOINHEIGHT*0.375f+hse)
+          .lineTo(JOINWIDTH*0.875f+hse, dy+hse)
+          .lineTo(JOINWIDTH*0.75f+hse, JOINHEIGHT*0.625f+hse)
+          .moveTo(hse+JOINWIDTH*0.3,hse+JOINHEIGHT*0.3)
           .lineTo(hse+dx, hse+dy)
-          .lineTo(hse+dx/2,hse+dy+dy/2);
+          .lineTo(hse+JOINWIDTH*0.3,hse+JOINHEIGHT*0.7);
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, getState() & ~STATE_TOUCHED);
+      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState());
       pCanvas.drawPath(path, linePen, null);
     }
   }
