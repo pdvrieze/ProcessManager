@@ -42,4 +42,8 @@ public interface DiagramAdapter<T extends LightView, V> {
    */
   boolean onNodeClickOverride(DiagramView pDiagramView, int pTouchedElement, MotionEvent pE);
 
+  double getGravityX(int pos);
+
+  double getGravityY(int pos);
+
 }

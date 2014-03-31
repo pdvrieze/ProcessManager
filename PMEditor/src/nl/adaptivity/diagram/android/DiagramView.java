@@ -49,8 +49,8 @@ public class DiagramView extends View implements OnZoomListener{
 
     private boolean aMoveItem = false;
     private int aMoving = -1;
-    private float aOrigX;
-    private float aOrigY;
+    private double aOrigX;
+    private double aOrigY;
     @Override
     public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
       if (aMoving>=0 || aMoveItem) {
@@ -59,21 +59,23 @@ public class DiagramView extends View implements OnZoomListener{
           if (aMoving <0) {
             if (Math.max(Math.abs(pDistanceY),Math.abs(pDistanceX))>MIN_DRAG_DIST) {
               aMoving = touchedElement;
-              LightView lv = aAdapter.getView(touchedElement);
-              lv.getBounds(aTmpRectF);
-              aOrigX = aTmpRectF.left;
-              aOrigY = aTmpRectF.top;
+              aOrigX = aAdapter.getGravityX(touchedElement);
+              aOrigY = aAdapter.getGravityY(touchedElement);
+//              item = aAdapter.getItem(touchedElement);
+//              LightView lv = aAdapter.getView(touchedElement);
+//              lv.getBounds(aTmpRectF);
+//              aOrigX = aTmpRectF.left;
+//              aOrigY = aTmpRectF.top;
             }
           }
           if (aMoving>=0) {
             LightView lv = aAdapter.getView(touchedElement);
             if (mGridSize>0) {
-              lv.getBounds(aTmpRectF);
               double dX = (pE2.getX()-pE1.getX())/aScale;
               float newX = Math.round((aOrigX + dX)/mGridSize)*mGridSize;
               double dY = (pE2.getY()-pE1.getY())/aScale;
               float newY = Math.round((aOrigY + dY)/mGridSize)*mGridSize;
-              lv.move(newX-aTmpRectF.left, newY-aTmpRectF.top);
+              lv.move((float)(newX-aAdapter.getGravityX(touchedElement)), (float) (newY-aAdapter.getGravityY(touchedElement)));
             } else {
               lv.move((float)(-pDistanceX/aScale), (float) (-pDistanceY/aScale));
             }

@@ -102,6 +102,16 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   }
 
   @Override
+  public double getGravityX(int pos) {
+    return getItem(pos).getX();
+  }
+
+  @Override
+  public double getGravityY(int pos) {
+    return getItem(pos).getY();
+  }
+
+  @Override
   public LWDrawableView getView(int pPosition) {
     final DrawableProcessNode item = getItem(pPosition);
     LWDrawableView result = aViewCache.get(item);
