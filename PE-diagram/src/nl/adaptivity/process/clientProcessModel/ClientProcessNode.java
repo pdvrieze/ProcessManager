@@ -205,7 +205,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   @Override
   public int getMaxSuccessorCount() {
-    return Integer.MAX_VALUE;
+    return 1;//Integer.MAX_VALUE;
   }
 
   protected List<IXmlImportType> getImports() {
