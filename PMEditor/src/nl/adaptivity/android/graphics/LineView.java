@@ -80,9 +80,11 @@ AbstractLightView implements LightView {
     final double angle2;
     final float capCorrect;
 
+    // The distance that the miter extends from the focal point of the arrow.
+    final double miterExtend = (0.5*paint.getStrokeWidth())/Math.sin(HEADANGLE);
     if (canvasX1<canvasX2) { // left to right
       headDx = -HEADDX*pScale;
-      x2 = (float) (canvasX2-(0.5*paint.getStrokeWidth())/Math.sin(HEADANGLE));
+      x2 = (float) (canvasX2-miterExtend);
       /* Point 3 represents the focal point of a spline.
        * Point 4 is the point where the spline stops and a straight line starts.
        */
@@ -91,7 +93,7 @@ AbstractLightView implements LightView {
       capCorrect = paint.getStrokeCap()==Paint.Cap.BUTT? 0f: paint.getStrokeWidth()/-2f;
     } else { //right to left
       headDx = HEADDX*pScale;
-      x2 = (float) (canvasX2+(0.5*paint.getStrokeWidth())/Math.sin(HEADANGLE));
+      x2 = (float) (canvasX2+miterExtend);
       /* Point 3 represents the focal point of a spline.
        * Point 4 is the point where the spline stops and a straight line starts.
        */
@@ -135,15 +137,18 @@ AbstractLightView implements LightView {
     double dy = canvasY2-canvasY1;
     double angle = Math.atan2(dy,dx);
 
-    pCanvas.drawLine(canvasX1, canvasY1, canvasX2, canvasY2, paint);
+    final double miterExtend = (0.5*paint.getStrokeWidth())/Math.sin(HEADANGLE);
+    final float miterExtendX = (float) (Math.cos(angle)*miterExtend);
+    final float miterExtendY = (float) (Math.sin(angle)*miterExtend);
+
     Path arrowPath = new Path();
 
     double headLen = Math.sqrt((pScale*HEADDX*pScale*HEADDX)+(pScale*HEADDY*pScale*HEADDY));
-    float x2 = canvasX2;
-    float y2 = canvasY2;
+    float x2 = canvasX2-miterExtendX;
+    float y2 = canvasY2-miterExtendY;
 
     arrowPath.moveTo(canvasX1, canvasY1);
-    arrowPath.lineTo(x2, y2);
+    arrowPath.lineTo(x2-miterExtendX, y2-miterExtendY);
 
     double headAngle = angle+Math.PI-HEADANGLE;
     final float headDX1 = (float) (Math.cos(headAngle)*headLen);
