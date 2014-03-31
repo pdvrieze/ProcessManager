@@ -20,6 +20,7 @@ import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.processModel.StartNode;
 
 
@@ -52,6 +53,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
     setVertSeparation(DEFAULT_VERT_SEPARATION);
+    ensureIds();
     layout();
   }
 
@@ -61,6 +63,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
     setVertSeparation(DEFAULT_VERT_SEPARATION);
+    ensureIds();
     layout();
   }
 
@@ -70,6 +73,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
     setVertSeparation(DEFAULT_VERT_SEPARATION);
+    ensureIds();
     layout();
   }
 
@@ -79,6 +83,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
     setVertSeparation(DEFAULT_VERT_SEPARATION);
+    ensureIds();
     layout();
   }
 
@@ -131,6 +136,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       throw new IllegalArgumentException("EndNodes should not see this function");
     } else if (pElem instanceof Join) {
       return DrawableJoin.from(pOwner, (Join<?>) pElem);
+    } else if (pElem instanceof Split) {
+      return DrawableSplit.from(pOwner, (Join<?>) pElem);
     } else if (pElem instanceof Activity) {
       return DrawableActivity.from(pOwner, (Activity<?>) pElem);
     } else {
@@ -166,6 +173,17 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public void addNode(DrawableProcessNode pNode) {
+    ensureId(pNode);
+    super.addNode(ensureId(pNode));
+  }
+
+  private void ensureIds() {
+    for (DrawableProcessNode node: getModelNodes()) {
+      ensureId(node);
+    }
+  }
+  
+  private <T extends DrawableProcessNode> T ensureId(T pNode) {
     if (pNode.getId()==null) {
       String newId = "id"+idSeq++;
       while (getNode(newId)!=null) {
@@ -173,7 +191,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       }
       pNode.setId(newId);
     }
-    super.addNode(pNode);
+    return pNode;
   }
 
   @Override

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import net.devrieze.util.CollectionUtil;
 import nl.adaptivity.diagram.Positioned;
 
 
@@ -130,6 +131,28 @@ public class LayoutAlgorithm<T extends Positioned> {
 
     List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
     List<? extends DiagramNode<T>> aboveNodes = getPrecedingSiblings(pNode);
+    
+    double origX = pNode.getX(); // store the initial coordinates
+    double origY = pNode.getY(); 
+
+    double x = origX;
+    double y = origY;
+    
+    // set temporary coordinates to prevent infinite recursion
+    if (Double.isNaN(origX)) {pNode.setX(0);x=0;}
+    if (Double.isNaN(origY)) {pNode.setY(0);y=0;}
+    
+    // Ensure that both the leftNodes and aboveNodes have set coordinates.
+    for(DiagramNode<T> node: leftNodes) {
+      if (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY())) {
+        layoutNodeInitial(pNodes, node);
+      }
+    }
+    for(DiagramNode<T> node: aboveNodes) {
+      if (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY())) {
+        layoutNodeInitial(pNodes, node);
+      }
+    }
 
     double minY = bottom(lowest(aboveNodes), Double.NEGATIVE_INFINITY)+aVertSeparation + pNode.getTopExtend();
     if (aboveNodes.size()>1) { aLayoutStepper.reportLowest(aboveNodes, lowest(aboveNodes)); }
@@ -138,10 +161,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
     if (leftNodes.size()>1) { aLayoutStepper.reportRightmost(leftNodes, rightMost(leftNodes)); }
     if (!Double.isInfinite(minX)) { aLayoutStepper.reportMinX(leftNodes, minX); }
-
-    double x = pNode.getX();
-    double y = pNode.getY();
-
+    
     if (leftNodes.isEmpty()) {
       x = aboveNodes.isEmpty() ? pNode.getLeftExtend() : averageX(aboveNodes);
       y = aboveNodes.isEmpty() ? pNode.getTopExtend() :minY;
@@ -151,8 +171,8 @@ public class LayoutAlgorithm<T extends Positioned> {
     }
 //    if (Double.isNaN(x)) { x = 0d; }
 //    if (Double.isNaN(y)) { y = 0d; }
-    boolean xChanged = changed(x, pNode.getX(), TOLERANCE);
-    boolean yChanged = changed(y, pNode.getY(), TOLERANCE);
+    boolean xChanged = changed(x, origX, TOLERANCE);
+    boolean yChanged = changed(y, origY, TOLERANCE);
     if (yChanged || xChanged) {
       aLayoutStepper.reportMove(pNode, x, y);
       System.err.println("Moving node "+pNode.getTarget()+ "to ("+x+", "+y+')');
