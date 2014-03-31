@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
+
 import nl.adaptivity.diagram.Positioned;
 
 
@@ -131,25 +132,20 @@ public class LayoutAlgorithm<T extends Positioned> {
 
     List<? extends DiagramNode<T>> leftNodes = pNode.getLeftNodes();
     List<? extends DiagramNode<T>> aboveNodes = getPrecedingSiblings(pNode);
-    
+
     double origX = pNode.getX(); // store the initial coordinates
-    double origY = pNode.getY(); 
+    double origY = pNode.getY();
 
     double x = origX;
     double y = origY;
-    
+
     // set temporary coordinates to prevent infinite recursion
     if (Double.isNaN(origX)) {pNode.setX(0);x=0;}
     if (Double.isNaN(origY)) {pNode.setY(0);y=0;}
-    
+
     // Ensure that both the leftNodes and aboveNodes have set coordinates.
-    for(DiagramNode<T> node: leftNodes) {
-      if (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY())) {
-        layoutNodeInitial(pNodes, node);
-      }
-    }
-    for(DiagramNode<T> node: aboveNodes) {
-      if (Double.isNaN(pNode.getX()) || Double.isNaN(pNode.getY())) {
+    for(DiagramNode<T> node: CollectionUtil.<DiagramNode<T>>combine(leftNodes, aboveNodes)) {
+      if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
         layoutNodeInitial(pNodes, node);
       }
     }
@@ -161,7 +157,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     double minX = right(rightMost(leftNodes), Double.NEGATIVE_INFINITY)+aHorizSeparation + pNode.getLeftExtend();
     if (leftNodes.size()>1) { aLayoutStepper.reportRightmost(leftNodes, rightMost(leftNodes)); }
     if (!Double.isInfinite(minX)) { aLayoutStepper.reportMinX(leftNodes, minX); }
-    
+
     if (leftNodes.isEmpty()) {
       x = aboveNodes.isEmpty() ? pNode.getLeftExtend() : averageX(aboveNodes);
       y = aboveNodes.isEmpty() ? pNode.getTopExtend() :minY;
@@ -175,7 +171,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     boolean yChanged = changed(y, origY, TOLERANCE);
     if (yChanged || xChanged) {
       aLayoutStepper.reportMove(pNode, x, y);
-      System.err.println("Moving node "+pNode.getTarget()+ "to ("+x+", "+y+')');
+//      System.err.println("Moving node "+pNode.getTarget()+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
     }
@@ -261,7 +257,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     if (yChanged || xChanged) {
       aLayoutStepper.reportMove(pNode, x, y);
       changed=true;
-      System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
+//      System.err.println("Moving node "+pNode+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
     }
@@ -326,9 +322,8 @@ public class LayoutAlgorithm<T extends Positioned> {
       y = (lowest(aboveSiblings).getY()+ highest(belowSiblings).getY())/2;
     } else if (rightNodes.size()>1 && leftNodes.size()<2) {
       y = (highest(rightNodes).getY() + lowest(rightNodes).getY())/2;
-// Don't do this, leave it to the right direction pass.
-//    } else if (rightNodes.size()==1) {
-//      y = rightNodes.get(0).getY();
+    } else if (rightNodes.size()==1 && leftNodes.isEmpty()) {
+      y = rightNodes.get(0).getY();
     }
 
     x = Math.max(Math.min(maxX, x), minX);
