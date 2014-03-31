@@ -61,11 +61,8 @@ public class DiagramView extends View implements OnZoomListener{
               aMoving = touchedElement;
               aOrigX = aAdapter.getGravityX(touchedElement);
               aOrigY = aAdapter.getGravityY(touchedElement);
-//              item = aAdapter.getItem(touchedElement);
-//              LightView lv = aAdapter.getView(touchedElement);
-//              lv.getBounds(aTmpRectF);
-//              aOrigX = aTmpRectF.left;
-//              aOrigY = aTmpRectF.top;
+              // Cancel the selection on drag.
+              setSelection(-1);
             }
           }
           if (aMoving>=0) {
