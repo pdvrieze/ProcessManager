@@ -18,6 +18,11 @@ public abstract class DrawableJoinSplit extends ClientJoinNode<DrawableProcessNo
   protected static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
   private static final double REFERENCE_OFFSET_X = (JOINWIDTH+STROKEEXTEND)/2;
   private static final double REFERENCE_OFFSET_Y = (JOINHEIGHT+STROKEEXTEND)/2;
+  protected static final double HORIZONTALDECORATIONLEN = JOINWIDTH*0.4;
+  protected static final double CENTERX = (JOINWIDTH+STROKEEXTEND)/2;
+  protected static final double CENTERY = (JOINHEIGHT+STROKEEXTEND)/2;
+  protected static final double ARROWHEADANGLE = (40*Math.PI)/180;
+  protected static final double ARROWLEN = JOINWIDTH*0.15;
   protected final ItemCache aItems = new ItemCache();
   private int aState = STATE_DEFAULT;
 

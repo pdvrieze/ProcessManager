@@ -13,6 +13,15 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 public class DrawableSplit extends DrawableJoinSplit implements Split<DrawableProcessNode>{
 
+  private static final double ARROWHEADDX = JOINWIDTH*0.2;
+  private static final double ARROWHEADDY = JOINWIDTH*0.2;
+  private static final double ARROWHEADADJUST = (0.5*STROKEWIDTH)*Math.sqrt(0.5/(Math.sin(ARROWHEADANGLE)* Math.sin(ARROWHEADANGLE)));
+  /** The y coordinate if the line were horizontal. */ 
+  private static final double ARROWDFAR = ARROWLEN*Math.sin(0.25*Math.PI-ARROWHEADANGLE);
+  /** The x coordinate if the line were horizontal. */ 
+  private static final double ARROWDNEAR = ARROWLEN*Math.cos(0.25*Math.PI-ARROWHEADANGLE);
+  
+
   public DrawableSplit(ClientProcessModel<DrawableProcessNode> pOwner) {
     super(pOwner);
   }
@@ -21,20 +30,20 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     super(pId, pOwner);
   }
 
-  public DrawableSplit(DrawableSplit pOrig) {
+  public DrawableSplit(DrawableJoinSplit pOrig) {
     super(pOrig);
   }
 
   @Override
-  public DrawableSplit clone() {
+  public DrawableJoinSplit clone() {
     if (getClass()==DrawableSplit.class) {
       return new DrawableSplit(this);
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
-  public static DrawableSplit from(DrawableProcessModel pOwner, Join<?> pElem) {
-    DrawableSplit result = new DrawableSplit(pOwner);
+  public static DrawableJoinSplit from(DrawableProcessModel pOwner, Join<?> pElem) {
+    DrawableJoinSplit result = new DrawableSplit(pOwner);
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());
     result.setMax(pElem.getMax());
@@ -47,26 +56,18 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     final S strategy = pCanvas.getStrategy();
     PATH_T path = aItems.getPath(strategy, 1);
     if (path==null) {
-      final double dx = JOINWIDTH/2;
-      final double dy = JOINHEIGHT/2;
       path = strategy.newPath();
-      final double hse = STROKEEXTEND/2;
-      // substract the strokewith to take the CAP away.
-      // How long is the arrow extend in the major direction
-      final double arrowlen = Math.sqrt(JOINWIDTH*JOINWIDTH*0.115*0.115*2-STROKEWIDTH*2);
-      // How long is the arrow in the minor direction (to have non 45 deg angles
-      final double arrowadjust = arrowlen*0.1;
-      path.moveTo(hse+JOINWIDTH*0.1,dy+hse)
-          .lineTo(dx+hse, dy+hse)
-          .moveTo(hse+JOINWIDTH*0.7-STROKEWIDTH*0.5,hse+JOINHEIGHT*0.3+STROKEWIDTH*0.5)
-          .lineTo(hse+dx, hse+dy)
-          .lineTo(hse+JOINWIDTH*0.7-STROKEWIDTH*0.5,hse+JOINHEIGHT*0.7-STROKEWIDTH*0.5)
-          .moveTo(hse+JOINWIDTH*0.7-arrowlen,hse+JOINHEIGHT*0.3+arrowadjust)
-          .lineTo(hse+JOINWIDTH*0.7,hse+JOINHEIGHT*0.3)
-          .lineTo(hse+JOINWIDTH*0.7-arrowadjust,hse+JOINHEIGHT*0.3+arrowlen)
-          .moveTo(hse+JOINWIDTH*0.7-arrowlen,hse+JOINHEIGHT*0.7-arrowadjust)
-          .lineTo(hse+JOINWIDTH*0.7,hse+JOINHEIGHT*0.7)
-          .lineTo(hse+JOINWIDTH*0.7-arrowadjust,hse+JOINHEIGHT*0.7-arrowlen);
+      path.moveTo(CENTERX-HORIZONTALDECORATIONLEN,CENTERY)
+          .lineTo(CENTERX, CENTERY)
+          .moveTo(CENTERX+ARROWHEADDX-ARROWHEADADJUST,CENTERY-ARROWHEADDY+ARROWHEADADJUST)
+          .lineTo(CENTERX, CENTERY)
+          .lineTo(CENTERX+ARROWHEADDX-ARROWHEADADJUST,CENTERY+ARROWHEADDY-ARROWHEADADJUST)
+          .moveTo(CENTERX+ARROWHEADDX-ARROWDNEAR,CENTERY-ARROWHEADDY+ARROWDFAR)
+          .lineTo(CENTERX+ARROWHEADDX,CENTERY-ARROWHEADDY)
+          .lineTo(CENTERX+ARROWHEADDX-ARROWDFAR,CENTERY-ARROWHEADDY+ARROWDNEAR)
+          .moveTo(CENTERX+ARROWHEADDX-ARROWDFAR,CENTERY+ARROWHEADDY-ARROWDNEAR)
+          .lineTo(CENTERX+ARROWHEADDX,CENTERY+ARROWHEADDY)
+          .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR,CENTERY+ARROWHEADDY-ARROWDFAR);
       
       aItems.setPath(strategy, 1, path);
     }

@@ -12,6 +12,16 @@ import nl.adaptivity.process.processModel.Join;
 
 public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProcessNode> {
 
+  private static final double ARROWHEADDX = JOINWIDTH*0.375;
+  private static final double ARROWHEADADJUST = 0.5*STROKEWIDTH/Math.sin(ARROWHEADANGLE);
+
+  /** The y coordinate if the line were horizontal. */ 
+  private static final double ARROWDFAR = ARROWLEN*Math.sin(ARROWHEADANGLE);
+  /** The x coordinate if the line were horizontal. */ 
+  private static final double ARROWDNEAR = ARROWLEN*Math.cos(ARROWHEADANGLE);
+  private static final double INDX = JOINWIDTH*0.2;
+  private static final double INDY = JOINHEIGHT*0.2;
+
   public DrawableJoin(ClientProcessModel<DrawableProcessNode> pOwner) {
     super(pOwner);
   }
@@ -51,18 +61,15 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     final S strategy = pCanvas.getStrategy();
     PATH_T path = aItems.getPath(strategy, 1);
     if (path==null) {
-      final double dx = JOINWIDTH/2;
-      final double dy = JOINHEIGHT/2;
       path = strategy.newPath();
-      final double hse = STROKEEXTEND/2;
-      path.moveTo(dx+hse,dy+hse)
-          .lineTo(JOINWIDTH*0.875f, dy+hse)
-          .moveTo(JOINWIDTH*0.75f+hse, JOINHEIGHT*0.375f+hse)
-          .lineTo(JOINWIDTH*0.875f+hse, dy+hse)
-          .lineTo(JOINWIDTH*0.75f+hse, JOINHEIGHT*0.625f+hse)
-          .moveTo(hse+JOINWIDTH*0.3,hse+JOINHEIGHT*0.3)
-          .lineTo(hse+dx, hse+dy)
-          .lineTo(hse+JOINWIDTH*0.3,hse+JOINHEIGHT*0.7);
+      path.moveTo(CENTERX,CENTERY)
+          .lineTo(CENTERX + ARROWHEADDX - ARROWHEADADJUST, CENTERX)
+          .moveTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY-ARROWDFAR)
+          .lineTo(CENTERX+ARROWHEADDX, CENTERY)
+          .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY+ARROWDFAR)
+          .moveTo(CENTERX-INDX,CENTERY-INDY)
+          .lineTo(CENTERX, CENTERY)
+          .lineTo(CENTERX-INDX,CENTERY+INDY);
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
