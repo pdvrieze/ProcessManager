@@ -1,5 +1,9 @@
 package nl.adaptivity.process.editor.android;
 
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import static org.xmlpull.v1.XmlPullParser.TEXT;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -11,11 +15,6 @@ import java.util.Map;
 
 import javax.xml.XMLConstants;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
@@ -33,6 +32,11 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableSplit;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
 import android.util.Log;
 
 public class PMParser {
@@ -104,14 +108,16 @@ public class PMParser {
         Map<String, DrawableProcessNode> nodeMap = new HashMap<>();
         for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
 
-          DrawableProcessNode node = parseNode(in, nodeMap);
+          DrawableProcessNode node = parseNode(in, nodeMap, modelElems);
           modelElems.add(node);
           if (node.getId()!=null) {
             nodeMap.put(node.getId(), node);
           }
         }
-        for(DrawableProcessNode node:modelElems) {
-          resolveRefs(node, nodeMap);
+        // Use list indexing as resolveRefs may add elements to the list.
+        // We will need to still check those
+        for(int i=0; i< modelElems.size(); ++i) {
+          resolveRefs(modelElems.get(i), nodeMap, modelElems);
         }
         return new DrawableProcessModel(modelName, modelElems, pLayoutAlgorithm);
 
@@ -124,56 +130,50 @@ public class PMParser {
     }
   }
 
-  private static void resolveRefs(DrawableProcessNode pNode, Map<String, DrawableProcessNode> pNodes) {
-    List<DrawableProcessNode> preds = new ArrayList<>();
-    boolean changed = false;
+  private static void resolveRefs(DrawableProcessNode pNode, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
     for(DrawableProcessNode pred: pNode.getPredecessors()) {
+      // It is a temporary predecessor
       if (pred instanceof RefNode) {
+        // First remove the link with the temporary
+        pNode.removePredecessor(pred);
+        // Get the id we need
         String ref = ((RefNode)pred).aRef;
-        if (pNode.getPredecessors().size()==1) {
-          pNode.setPredecessors(Collections.singleton(pNodes.get(ref)));
-          return;
-        } else {
-          preds.add(pNodes.get(ref));
-          changed = true;
-        }
-      } else {
-        preds.add(pred);
+        // Get the node that should replace the temporary
+        DrawableProcessNode realNode = pNodes.get(ref);
+        // Add the node as successor to the real predecessor
+        addAsSuccessor(realNode, pNode, pModelElems);
       }
-    }
-    if (changed) {
-      pNode.setPredecessors(preds);
     }
   }
 
-  private static DrawableProcessNode parseNode(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseNode(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     if (!NS_PROCESSMODEL.equals(pIn.getNamespace())) {
       throw new IllegalArgumentException("Invalid process model");
     }
     if ("start".equals(pIn.getName())) {
-      return parseStart(pIn, pNodes);
+      return parseStart(pIn, pNodes, pModelElems);
     } else if ("activity".equals(pIn.getName())) {
-      return parseActivity(pIn, pNodes);
+      return parseActivity(pIn, pNodes, pModelElems);
     } else if ("split".equals(pIn.getName())) {
-      return parseSplit(pIn, pNodes);
+      return parseSplit(pIn, pNodes, pModelElems);
     } else if ("join".equals(pIn.getName())) {
-      return parseJoin(pIn, pNodes);
+      return parseJoin(pIn, pNodes, pModelElems);
     } else if ("end".equals(pIn.getName())) {
-      return parseEnd(pIn, pNodes);
+      return parseEnd(pIn, pNodes, pModelElems);
     }
     throw new UnsupportedOperationException("Unsupported tag");
   }
 
-  private static DrawableProcessNode parseStart(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseStart(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     DrawableStartNode result = new DrawableStartNode((ClientProcessModel<DrawableProcessNode>) null);
-    parseCommon(pIn, pNodes, result);
+    parseCommon(pIn, pNodes, pModelElems, result);
     if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static DrawableProcessNode parseActivity(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseActivity(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     DrawableActivity result = new DrawableActivity((ClientProcessModel<DrawableProcessNode>) null);
-    parseCommon(pIn, pNodes, result);
+    parseCommon(pIn, pNodes, pModelElems, result);
     String name = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
     if (name!=null && name.length()>0) {
       result.setName(name);
@@ -202,9 +202,9 @@ public class PMParser {
     }
   }
 
-  private static DrawableProcessNode parseJoin(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseJoin(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     DrawableJoin result = new DrawableJoin((ClientProcessModel<DrawableProcessNode>) null);
-    parseCommon(pIn, pNodes, result);
+    parseCommon(pIn, pNodes, pModelElems, result);
     parseJoinSplitAttrs(pIn, result);
     List<DrawableProcessNode> predecessors = new ArrayList<>();
 
@@ -222,16 +222,16 @@ public class PMParser {
         }
         type=pIn.next();
       }
-      predecessors.add(getPredecessor(name.toString(), pNodes));
+      predecessors.add(getPredecessor(name.toString(), pNodes, pModelElems));
     }
     result.setPredecessors(predecessors);
 
     return result;
   }
 
-  private static DrawableProcessNode parseSplit(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseSplit(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     DrawableSplit result = new DrawableSplit((ClientProcessModel<DrawableProcessNode>) null);
-    parseCommon(pIn, pNodes, result);
+    parseCommon(pIn, pNodes, pModelElems, result);
     parseJoinSplitAttrs(pIn, result);
     for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
       switch (type) {
@@ -259,14 +259,14 @@ public class PMParser {
     }
   }
 
-  private static DrawableProcessNode parseEnd(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseEnd(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     DrawableEndNode result = new DrawableEndNode((ClientProcessModel<DrawableProcessNode>) null);
-    parseCommon(pIn, pNodes, result);
+    parseCommon(pIn, pNodes, pModelElems, result);
     if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static void parseCommon(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, DrawableProcessNode pNode) {
+  private static void parseCommon(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems, DrawableProcessNode pNode) {
     for(int i=0; i< pIn.getAttributeCount();++i) {
       if (XMLConstants.NULL_NS_URI.equals(pIn.getAttributeNamespace(i))) {
         final String aname = pIn.getAttributeName(i);
@@ -279,23 +279,65 @@ public class PMParser {
         } else if ("label".equals(aname)) {
           pNode.setLabel(pIn.getAttributeValue(i));
         } else if ("predecessor".equals(aname)) {
-          pNode.setPredecessors(getPredecessors(pIn.getAttributeValue(i),pNodes));
+          addPredecessor(pNode, pIn.getAttributeValue(i), pNodes, pModelElems);
+//          pNode.setPredecessors(getPredecessors(pIn.getAttributeValue(i),pNodes, pModelElems));
         }
       }
     }
   }
 
-  private static Collection<? extends DrawableProcessNode> getPredecessors(String pName, Map<String, DrawableProcessNode> pNodes) {
-    final DrawableProcessNode predecessor = getPredecessor(pName, pNodes);
-    return predecessor==null ? null : Collections.singleton(predecessor);
+  private static void addPredecessor(DrawableProcessNode pNode, String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
+    DrawableProcessNode predecessor = getPredecessor(pName, pNodes, pModelElems);
+    addAsSuccessor(predecessor, pNode, pModelElems);
   }
 
-  private static DrawableProcessNode getPredecessor(String pName, Map<String, DrawableProcessNode> pNodes) {
+  private static DrawableProcessNode getPredecessor(String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
     DrawableProcessNode val = pNodes.get(pName);
     if (val==null) {
       val = new RefNode(pName);
+    } else { // there already is a node
+      // Allow temporary references to collect as many successors as desired, it might be a split.
+      if ((val instanceof RefNode)|| (val.getSuccessors().size()<val.getMaxSuccessorCount())) {
+        return val;
+      } else {
+        // There is no suitable successor
+        return introduceSplit(val, pModelElems);
+      }
     }
     return val;
+  }
+
+  private static DrawableSplit introduceSplit(DrawableProcessNode predecessor, List<DrawableProcessNode> pModelElems) {
+    for(DrawableProcessNode successor:predecessor.getSuccessors()) {
+      if (successor instanceof DrawableSplit) {
+        return (DrawableSplit) successor;
+      }
+    }
+
+    DrawableSplit newSplit = new DrawableSplit((ClientProcessModel<DrawableProcessNode>) null);
+    ArrayList<DrawableProcessNode> successors = new ArrayList<>(predecessor.getSuccessors());
+    for(DrawableProcessNode successor: successors) {
+      predecessor.removeSuccessor(successor);
+      successor.removePredecessor(predecessor);
+      newSplit.addSuccessor(successor);
+      successor.addPredecessor(newSplit);
+    }
+    predecessor.addSuccessor(newSplit);
+    newSplit.addPredecessor(predecessor);
+    pModelElems.add(newSplit);
+    return newSplit;
+  }
+  
+  private static void addAsSuccessor(DrawableProcessNode predecessor, DrawableProcessNode successor, List<DrawableProcessNode> pModelElems) {
+    if (predecessor.getSuccessors().size()<predecessor.getMaxSuccessorCount()) {
+      predecessor.addSuccessor(successor);
+      successor.addPredecessor(predecessor);
+    } else {
+      DrawableSplit newSplit = introduceSplit(predecessor, pModelElems);
+      newSplit.addSuccessor(successor);
+      successor.addPredecessor(newSplit);
+    }
+        
   }
 
 }
