@@ -507,6 +507,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
       switch (action) {
         case DragEvent.ACTION_DRAG_STARTED:
           return true;
+        case DragEvent.ACTION_DRAG_ENDED:
+          return true;
         case DragEvent.ACTION_DRAG_LOCATION:
           return true;
         case DragEvent.ACTION_DRAG_ENTERED:
@@ -537,7 +539,6 @@ public class PMEditor extends Activity implements OnNodeClickListener {
           break;
         }
       }
-      // TODO Auto-generated method stub
       return false;
     }
 
@@ -552,22 +553,21 @@ public class PMEditor extends Activity implements OnNodeClickListener {
       DrawableDrawable d = (DrawableDrawable) v.getDrawable();
       int action = pEvent.getAction();
       switch (action) {
-      case MotionEvent.ACTION_DOWN: {
-        // Get the bounds of the drawable
-        RectF boundsF = new RectF(d.getBounds());
-        // Convert the bounds into imageview relative coordinates
-        v.getImageMatrix().mapRect(boundsF);
-        // Only work when the image is touched
-        if (boundsF.contains(pEvent.getX(), pEvent.getY())) {
-          ClipData data = ClipData.newPlainText("label", "text");
-          v.startDrag(data , new ItemShadowBuilder(d), v.getTag(), 0);
+        case MotionEvent.ACTION_DOWN: {
+          // Get the bounds of the drawable
+          RectF boundsF = new RectF(d.getBounds());
+          // Convert the bounds into imageview relative coordinates
+          v.getImageMatrix().mapRect(boundsF);
+          // Only work when the image is touched
+          if (boundsF.contains(pEvent.getX(), pEvent.getY())) {
+            ClipData data = ClipData.newPlainText("label", "text");
+            v.startDrag(data , new ItemShadowBuilder(d), v.getTag(), 0);
+          }
+          break;
         }
-        break;
-      }
 
       }
 
-      // TODO Auto-generated method stub
       return false;
     }
 
