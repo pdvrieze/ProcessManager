@@ -51,6 +51,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   }
 
   @Override
+  public int getMaxSuccessorCount() {
+    return Integer.MAX_VALUE;
+  }
+
+  @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
     super.draw(pCanvas, pClipBounds);
     final S strategy = pCanvas.getStrategy();

@@ -10,10 +10,11 @@ import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
+import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 
 
-public abstract class DrawableJoinSplit extends ClientJoinNode<DrawableProcessNode> implements DrawableProcessNode {
+public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode> implements DrawableProcessNode {
 
   protected static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
   private static final double REFERENCE_OFFSET_X = (JOINWIDTH+STROKEEXTEND)/2;
