@@ -23,6 +23,7 @@ public enum ProcessThemeItems implements ThemeItem {
     }
 
   },
+  INNERLINE(DrawableProcessModel.STROKEWIDTH*0.85, state(STATE_DEFAULT, 0, 0, 0x20, 0xb0)),
   BACKGROUND(state(STATE_DEFAULT, 255, 255, 255)) {
 
     @Override
