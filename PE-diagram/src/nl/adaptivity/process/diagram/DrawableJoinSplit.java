@@ -109,7 +109,7 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       double textwidth = textPen.measureTextWidth(s, Double.MAX_VALUE);
       double textbot = textPen.getTextMaxDescent();
 
-      pCanvas.drawText(dx-textwidth/2, -hse-textbot, s, Double.MAX_VALUE, textPen);
+      pCanvas.drawText(hse+dx-textwidth/2, -hse-textbot, s, Double.MAX_VALUE, textPen);
     }
   }
 
