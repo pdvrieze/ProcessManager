@@ -5,6 +5,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Paint.Style;
+import android.graphics.Typeface;
 
 
 public class AndroidPen implements Pen<AndroidPen> {
@@ -101,19 +102,31 @@ public class AndroidPen implements Pen<AndroidPen> {
   @Override
   public double getTextMaxAscent() {
     ensureFontMetrics();
-    return aFontMetrics.top;
+    return Math.abs(aFontMetrics.top);
   }
 
   @Override
   public double getTextMaxDescent() {
     ensureFontMetrics();
-    return aFontMetrics.bottom;
+    return Math.abs(aFontMetrics.bottom);
   }
 
   @Override
   public double getTextLeading() {
     ensureFontMetrics();
-    return aFontMetrics.leading;
+    return Math.abs(aFontMetrics.leading);
+  }
+
+  @Override
+  public void setTextItalics(boolean pItalics) {
+    final Typeface oldTypeface = aPaint.getTypeface();
+    final int style;
+    if (oldTypeface==null) {
+      style = pItalics ? Typeface.ITALIC : Typeface.NORMAL;
+    } else {
+      style = (oldTypeface.getStyle() & ~ Typeface.ITALIC) | (pItalics ? Typeface.ITALIC : Typeface.NORMAL);
+    }
+    aPaint.setTypeface(Typeface.create(oldTypeface,style));
   }
 
 }
