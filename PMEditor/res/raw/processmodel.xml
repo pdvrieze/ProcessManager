@@ -25,7 +25,8 @@
           </Envelope>
         </message>
       </activity>
-      <activity id="ac2" predecessor="ac1" name="ac2">
+      <split id="split1" min="1" max="1" predecessor="ac1"/>
+      <activity id="ac2" predecessor="split1" name="ac2">
         <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
@@ -44,7 +45,7 @@
           </Envelope>
         </message>
       </activity>
-      <activity id="ac3" predecessor="ac1" name="ac3">
+      <activity id="ac3" predecessor="split1" name="ac3">
         <message serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
@@ -108,7 +109,7 @@
       <activity id="ac6" predecessor="start"/>
       <activity id="ac7" predecessor="ac6"/>
       <activity id="ac8" predecessor="ac7"/>
-      <join id="j2" min="2" max="2">
+      <join id="j2" min="1" max="2">
         <predecessor>ac4</predecessor>
         <predecessor>ac8</predecessor>
       </join>
