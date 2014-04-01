@@ -2,6 +2,8 @@ package nl.adaptivity.diagram.android;
 
 import nl.adaptivity.diagram.Pen;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
+import android.graphics.Paint.FontMetrics;
 import android.graphics.Paint.Style;
 
 
@@ -13,6 +15,10 @@ public class AndroidPen implements Pen<AndroidPen> {
   private int aShadowColor;
   private float aShadowDx;
   private float aShadowDy;
+  private double aFontSize=Double.NaN;
+  private FontMetrics aFontMetrics;
+
+
   public AndroidPen(Paint pPaint) {
     aPaint = pPaint;
     aPaint.setStyle(Style.STROKE);
@@ -54,7 +60,59 @@ public class AndroidPen implements Pen<AndroidPen> {
     if (aShadowRadius>0f) {
       aPaint.setShadowLayer((float) (aShadowRadius*pScale), (float) (aShadowDx*pScale), (float) (aShadowDy*pScale), aShadowColor);
     }
+    if (!Double.isNaN(aFontSize)) {
+      aPaint.setTextSize((float) (aFontSize*pScale));
+    }
     return this;
+  }
+
+  @Override
+  public AndroidPen setFontSize(double fontSize) {
+    aPaint.setTextAlign(Align.LEFT);
+    aPaint.setTextSize((float) fontSize);
+    aFontSize = fontSize;
+    return this;
+  }
+
+  @Override
+  public double getFontSize() {
+    return aFontSize;
+  }
+
+  @Override
+  public double measureTextWidth(String pText, double pFoldWidth) {
+    float ts = aPaint.getTextSize();
+    aPaint.setTextSize((float) aFontSize);
+    final float result = aPaint.measureText(pText);
+    aPaint.setTextSize(ts);
+    return result;
+  }
+
+  public void ensureFontMetrics() {
+    if (aFontMetrics==null) {
+      float ts = aPaint.getTextSize();
+      aPaint.setTextSize((float) aFontSize);
+      aFontMetrics=aPaint.getFontMetrics();
+      aPaint.setTextSize(ts);
+    }
+  }
+
+  @Override
+  public double getTextMaxAscent() {
+    ensureFontMetrics();
+    return aFontMetrics.top;
+  }
+
+  @Override
+  public double getTextMaxDescent() {
+    ensureFontMetrics();
+    return aFontMetrics.bottom;
+  }
+
+  @Override
+  public double getTextLeading() {
+    ensureFontMetrics();
+    return aFontMetrics.leading;
   }
 
 }

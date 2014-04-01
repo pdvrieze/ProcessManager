@@ -93,6 +93,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
 
   @Override
   public int getCount() {
+    if (aDiagram==null) { return 0; }
     return aDiagram.getModelNodes().size();
   }
 
@@ -221,7 +222,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     } else if (pDecoration==aCachedDecorations[1]) {
       doEditNode(pPosition);
     } else if (pDecoration==aCachedDecorations[2]) {
-      if (aOverlay instanceof LineView) { 
+      if (aOverlay instanceof LineView) {
         pView.invalidate(aOverlay);
         aOverlay = null;
       } else {

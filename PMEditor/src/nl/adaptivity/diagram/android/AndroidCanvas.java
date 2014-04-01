@@ -13,7 +13,6 @@ import android.graphics.RectF;
 
 public class AndroidCanvas implements IAndroidCanvas {
 
-
   private class OffsetCanvas implements IAndroidCanvas {
     /** The offset of the canvas. This is in scaled coordinates. */
     private double aXOffset;
@@ -62,17 +61,17 @@ public class AndroidCanvas implements IAndroidCanvas {
 
     @Override
     public void drawCircle(double pX, double pY, double pRadius, AndroidPen pPen) {
-      AndroidCanvas.this.drawCircle((pX-aXOffset)*aScale, (pY - aYOffset) * aScale, pRadius*aScale, scalePen(pPen));
+      AndroidCanvas.this.drawCircle(transformX(pX), transformY(pY), pRadius*aScale, scalePen(pPen));
     }
 
     @Override
     public void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen) {
-      AndroidCanvas.this.drawBitmap((pLeft-aXOffset)*aScale, (pTop-aYOffset)*aScale, pBitmap, scalePen(pPen));
+      AndroidCanvas.this.drawBitmap(transformX(pLeft), transformY(pTop), pBitmap, scalePen(pPen));
     }
 
     @Override
     public void drawFilledCircle(double pX, double pY, double pRadius, AndroidPen pPen) {
-      AndroidCanvas.this.drawFilledCircle((pX - aXOffset) * aScale, (pY - aYOffset) * aScale, pRadius*aScale, scalePen(pPen));
+      AndroidCanvas.this.drawFilledCircle(transformX(pX), transformY(pY), pRadius*aScale, scalePen(pPen));
     }
 
     @Override
@@ -99,11 +98,19 @@ public class AndroidCanvas implements IAndroidCanvas {
       double[] result = new double[pPoints.length];
       final int len = pPoints.length-1;
       for(int i=0; i<len;++i) {
-        result[i] = (pPoints[i]-aXOffset)*aScale;
+        result[i] = transformX(pPoints[i]);
         ++i;
-        result[i] = (pPoints[i]-aYOffset)*aScale;
+        result[i] = transformY(pPoints[i]);
       }
       return result;
+    }
+
+    public double transformX(double x) {
+      return (x-aXOffset)*aScale;
+    }
+
+    public double transformY(double y) {
+      return (y-aYOffset)*aScale;
     }
 
     @Override
@@ -144,6 +151,11 @@ public class AndroidCanvas implements IAndroidCanvas {
     @Override
     public Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme() {
       return AndroidCanvas.this.getTheme();
+    }
+
+    @Override
+    public void drawText(double pLeft, double pBottom, String pText, double pFoldWidth, AndroidPen pPen) {
+      AndroidCanvas.this.drawText(transformX(pLeft), transformY(pBottom), pText, pFoldWidth*aScale, scalePen(pPen));
     }
 
   }
@@ -278,5 +290,13 @@ public class AndroidCanvas implements IAndroidCanvas {
   public void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen) {
     aCanvas.drawBitmap(pBitmap, (float) pLeft, (float) pTop, pPen.getPaint());
   }
+
+  @Override
+  public void drawText(double pLeft, double baselineY, String pText, double pFoldWidth, AndroidPen pPen) {
+    final Paint paint = pPen.getPaint();
+    paint.setStyle(Style.FILL);
+    aCanvas.drawText(pText, (float) pLeft, (float) baselineY, paint);
+  }
+
 
 }
