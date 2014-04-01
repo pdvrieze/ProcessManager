@@ -29,4 +29,6 @@ public interface Pen<PEN_T extends Pen<PEN_T>> {
    */
   public double getTextLeading();
 
+  public void setTextItalics(boolean italics);
+
 }
