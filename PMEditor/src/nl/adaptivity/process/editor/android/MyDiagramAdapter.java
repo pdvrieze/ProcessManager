@@ -15,7 +15,9 @@ import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
+import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
+import nl.adaptivity.process.processModel.StartNode;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -71,7 +73,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   }
 
   private static final double DECORATION_VSPACING = 12d;
-  private static final double DECORATION_HSPACING = 16d;
+  private static final double DECORATION_HSPACING = 12d;
 
   private DrawableProcessModel aDiagram;
   private Map<DrawableProcessNode, LWDrawableView> aViewCache;
@@ -82,7 +84,9 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   private AndroidTheme aTheme;
   private Context aContext;
   private RelativeLightView[] aCachedDecorations = new RelativeLightView[3];
-  private int aCachedDecorationPos = -1;
+  private RelativeLightView[] aCachedStartDecorations = new RelativeLightView[2];
+  private RelativeLightView[] aCachedEndDecorations = new RelativeLightView[1];
+  private DrawableProcessNode aCachedDecorationItem = null;
   private int aConnectingItem = -1;
 
   public MyDiagramAdapter(Context pContext, DrawableProcessModel pDiagram) {
@@ -129,20 +133,59 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   @Override
   public List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected) {
     if (! pSelected) {
-      if (pPosition==aCachedDecorationPos) { aCachedDecorationPos=-1; }
+//      if (pPosition>=0) {
+//        DrawableProcessNode item = getItem(pPosition);
+//        if (item.equals(aCachedDecorationItem)) { aCachedDecorationItem = null; }
+//      } else {
+//        aCachedDecorationItem=null;
+//      }
       return Collections.emptyList();
     }
-    if (aCachedDecorationPos !=pPosition) {
-      aCachedDecorationPos = pPosition;
+
+    final DrawableProcessNode drawableProcessNode = aDiagram.getModelNodes().get(pPosition);
+
+    final RelativeLightView[] decorations;
+    if (drawableProcessNode instanceof StartNode) {
+      decorations = getStartDecorations(drawableProcessNode, pScale);
+    } else if (drawableProcessNode instanceof EndNode) {
+      decorations = getEndDecorations(drawableProcessNode, pScale);
+    } else {
+      decorations = getDefaultDecorations(drawableProcessNode, pScale);
+    }
+
+    double centerX = drawableProcessNode.getX();
+    double topY = drawableProcessNode.getBounds().bottom()+DECORATION_VSPACING/pScale;
+    layoutHorizontal(centerX, topY, pScale, decorations);
+    return Arrays.asList(decorations);
+  }
+
+  private RelativeLightView[] getDefaultDecorations(DrawableProcessNode item, double pScale) {
+    if (! item.equals(aCachedDecorationItem)) {
+      aCachedDecorationItem = item;
       aCachedDecorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
       aCachedDecorations[1] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_edit), pScale), BOTTOM| HGRAVITY);
       aCachedDecorations[2] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_arrow), pScale), BOTTOM| HGRAVITY);
     }
-    final DrawableProcessNode drawableProcessNode = aDiagram.getModelNodes().get(pPosition);
-    double centerX = drawableProcessNode.getX();
-    double topY = drawableProcessNode.getBounds().bottom()+DECORATION_VSPACING/pScale;
-    layoutHorizontal(centerX, topY, pScale, aCachedDecorations);
-    return Arrays.asList(aCachedDecorations);
+    return aCachedDecorations;
+  }
+
+  private RelativeLightView[] getStartDecorations(DrawableProcessNode item, double pScale) {
+    if (! item.equals(aCachedDecorationItem)) {
+      aCachedDecorationItem = item;
+      // Assign to both caches to allow click to remain working.
+      aCachedDecorations[0] = aCachedStartDecorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
+      aCachedDecorations[2] = aCachedStartDecorations[1] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_arrow), pScale), BOTTOM| HGRAVITY);
+    }
+    return aCachedStartDecorations;
+  }
+
+  private RelativeLightView[] getEndDecorations(DrawableProcessNode item, double pScale) {
+    if (! item.equals(aCachedDecorationItem)) {
+      aCachedDecorationItem = item;
+      // Assign to both caches to allow click to remain working.
+      aCachedDecorations[0] = aCachedEndDecorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), pScale), BOTTOM| HGRAVITY);
+    }
+    return aCachedEndDecorations;
   }
 
   private static void layoutHorizontal(double pCenterX, double pTop, double pScale, LightView[] pDecorations) {
@@ -233,12 +276,11 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   }
 
   private void removeNode(int pPosition) {
-    aViewCache.remove(getItem(pPosition));
+    final DrawableProcessNode item = getItem(pPosition);
+    aViewCache.remove(item);
     aDiagram.removeNode(pPosition);
-    if (aCachedDecorationPos==pPosition) {
-      aCachedDecorationPos=-1;
-    } else if (aCachedDecorationPos>pPosition) {
-      --aCachedDecorationPos;
+    if (item.equals(aCachedDecorationItem)) {
+      aCachedDecorationItem=null;
     }
   }
 
@@ -250,7 +292,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   @Override
   public void onDecorationMove(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY) {
     if (pDecoration==aCachedDecorations[2]) {
-      DrawableProcessNode start = getItem(pPosition);
+      DrawableProcessNode start = aCachedDecorationItem;
       final float x1 = (float) (start.getBounds().right()-DrawableProcessModel.STROKEWIDTH);
       final float y1 = (float) (start.getY());
       final float x2 = pX;
