@@ -42,4 +42,14 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
 
   public Theme<S, PEN_T, PATH_T> getTheme();
 
+  /**
+   * Draw the given text onto the canvas.
+   * @param left The left point for drawing the text.
+   * @param baselineY The coordinate of the text baseline
+   * @param text The text to draw.
+   * @param foldWidth The width at which to fold the text.
+   * @param pen The pen to use for it all.
+   */
+  public void drawText(double left, double baselineY, String text, double foldWidth, PEN_T pen);
+
 }
