@@ -9,6 +9,7 @@ import android.graphics.Paint.Style;
 
 public class AndroidPen implements Pen<AndroidPen> {
 
+  private static final float FONT_MEASURE_FACTOR = 3f;
   private Paint aPaint;
   private double aStrokeWidth;
   private float aShadowRadius=-1f;
@@ -82,8 +83,8 @@ public class AndroidPen implements Pen<AndroidPen> {
   @Override
   public double measureTextWidth(String pText, double pFoldWidth) {
     float ts = aPaint.getTextSize();
-    aPaint.setTextSize((float) aFontSize);
-    final float result = aPaint.measureText(pText);
+    aPaint.setTextSize(((float) aFontSize)*FONT_MEASURE_FACTOR);
+    final float result = aPaint.measureText(pText)/FONT_MEASURE_FACTOR;
     aPaint.setTextSize(ts);
     return result;
   }
