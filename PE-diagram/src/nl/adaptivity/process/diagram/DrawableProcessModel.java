@@ -41,6 +41,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DEFAULT_HORIZ_SEPARATION = 40d;
   public static final double DEFAULT_VERT_SEPARATION = 30d;
   private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
+  public static final double DIAGRAMTEXT_SIZE = JOINHEIGHT/2.4d;
 
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
@@ -182,7 +183,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       ensureId(node);
     }
   }
-  
+
   private <T extends DrawableProcessNode> T ensureId(T pNode) {
     if (pNode.getId()==null) {
       String newId = "id"+idSeq++;

@@ -6,8 +6,8 @@ import nl.adaptivity.process.processModel.JoinSplit;
 
 public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements JoinSplit<T>{
 
-  private int aMin;
-  private int aMax;
+  private int aMin=-1;
+  private int aMax=-1;
 
   public ClientJoinSplit(ClientProcessModel<T> pOwner) {
     super(pOwner);

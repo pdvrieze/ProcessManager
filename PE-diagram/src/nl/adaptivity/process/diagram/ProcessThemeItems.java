@@ -34,12 +34,14 @@ public enum ProcessThemeItems implements ThemeItem {
   },
   ENDNODEOUTERLINE(DrawableProcessModel.ENDNODEOUTERSTROKEWIDTH, LINE),
   LINEBG(LINE),
+  DIAGRAMTEXT(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMTEXT_SIZE, state(STATE_DEFAULT, 0, 0, 0))
   ;
 
   private StateSpecifier[] aSpecifiers;
   private boolean aFill;
   private ProcessThemeItems aParent;
   private double aStroke;
+  private double aFontSize=Double.NaN;
 
   private ProcessThemeItems(double stroke, ProcessThemeItems pParent) {
     aFill = false;
@@ -58,6 +60,13 @@ public enum ProcessThemeItems implements ThemeItem {
     aStroke = stroke;
   }
 
+  private ProcessThemeItems(double stroke, double fontSize, StateSpecifier... pSpecifiers) {
+    aSpecifiers = pSpecifiers;
+    aFill = false;
+    aStroke = stroke;
+    aFontSize = fontSize;
+  }
+
   private ProcessThemeItems(StateSpecifier... pSpecifiers) {
     aSpecifiers = pSpecifiers;
     aFill = true;
@@ -72,7 +81,6 @@ public enum ProcessThemeItems implements ThemeItem {
   }
 
   // This method can be useful when colors with alpha are desired.
-  @SuppressWarnings("unused")
   private static StateSpecifier state(int pState, int r, int g, int b, int a) {
     return new StateSpecifier(pState, r, g, b, a);
   }
@@ -108,6 +116,9 @@ public enum ProcessThemeItems implements ThemeItem {
       } else {
         result.setStrokeWidth(aStroke * specifier.getStrokeMultiplier());
       }
+    }
+    if (! Double.isNaN(aFontSize)) {
+      result.setFontSize(aFontSize);
     }
     return result;
   }

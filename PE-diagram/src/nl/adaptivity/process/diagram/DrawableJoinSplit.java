@@ -1,7 +1,6 @@
 package nl.adaptivity.process.diagram;
 
 
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
@@ -9,12 +8,14 @@ import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode> implements DrawableProcessNode {
+
+  private static final boolean TEXT_DESC=true;
 
   protected static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
   private static final double REFERENCE_OFFSET_X = (JOINWIDTH+STROKEEXTEND)/2;
@@ -81,11 +82,11 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
     final S strategy = pCanvas.getStrategy();
     PATH_T path = aItems.getPath(strategy, 0);
+    final double dx = JOINWIDTH/2;
+    final double hse = STROKEEXTEND/2;
     if (path==null) {
-      final double dx = JOINWIDTH/2;
       final double dy = JOINHEIGHT/2;
       path = strategy.newPath();
-      final double hse = STROKEEXTEND/2;
       path.moveTo(hse,dy+hse)
           .lineTo(dx+hse, hse)
           .lineTo(JOINWIDTH+hse, dy+hse)
@@ -102,7 +103,38 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
         pCanvas.drawPath(path, touchedPen, null);
       }
       pCanvas.drawPath(path, linePen, bgPen);
+
+      PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
+      String s = getMinMaxText();
+      double textwidth = textPen.measureTextWidth(s, Double.MAX_VALUE);
+      double textbot = textPen.getTextMaxDescent();
+
+      pCanvas.drawText(dx-textwidth/2, -hse-textbot, s, Double.MAX_VALUE, textPen);
     }
+  }
+
+  public String getMinMaxText() {
+    if (TEXT_DESC) {
+      if (getMin()==1 && getMax()==1) {
+        return "xor";
+      } else if (getMin()==1 && getMax()>=getSuccessors().size()) {
+        return "or";
+      } else if (getMin()==getMax() && getMax()>=getSuccessors().size()) {
+        return "and";
+      }
+    }
+    StringBuilder str = new StringBuilder();
+    if (getMin()<0) {
+      str.append("?..");
+    } else {
+      str.append(getMin()).append("..");
+    }
+    if (getMax()<0) {
+      str.append("?");
+    } else {
+      str.append(getMax());
+    }
+    return str.toString();
   }
 
 }
