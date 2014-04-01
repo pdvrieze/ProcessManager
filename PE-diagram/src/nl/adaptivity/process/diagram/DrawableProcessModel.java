@@ -41,7 +41,8 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DEFAULT_HORIZ_SEPARATION = 40d;
   public static final double DEFAULT_VERT_SEPARATION = 30d;
   private static final Rectangle NULLRECTANGLE = new Rectangle(0, 0, Double.MAX_VALUE, Double.MAX_VALUE);
-  public static final double DIAGRAMTEXT_SIZE = JOINHEIGHT/2.4d;
+  public static final double DIAGRAMTEXT_SIZE = JOINHEIGHT/2.4d; // 10dp
+  public static final double DIAGRAMLABEL_SIZE = DIAGRAMTEXT_SIZE*1.1; // 11dp
 
   private ItemCache aItems = new ItemCache();
   private Rectangle aBounds = new Rectangle(0, 0, 0, 0);

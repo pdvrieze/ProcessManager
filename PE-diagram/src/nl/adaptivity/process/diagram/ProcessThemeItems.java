@@ -34,7 +34,8 @@ public enum ProcessThemeItems implements ThemeItem {
   },
   ENDNODEOUTERLINE(DrawableProcessModel.ENDNODEOUTERSTROKEWIDTH, LINE),
   LINEBG(LINE),
-  DIAGRAMTEXT(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMTEXT_SIZE, state(STATE_DEFAULT, 0, 0, 0))
+  DIAGRAMTEXT(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMTEXT_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
+  DIAGRAMLABEL(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMLABEL_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
   ;
 
   private StateSpecifier[] aSpecifiers;
@@ -62,7 +63,7 @@ public enum ProcessThemeItems implements ThemeItem {
 
   private ProcessThemeItems(double stroke, double fontSize, StateSpecifier... pSpecifiers) {
     aSpecifiers = pSpecifiers;
-    aFill = false;
+    aFill = true;
     aStroke = stroke;
     aFontSize = fontSize;
   }

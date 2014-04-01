@@ -92,6 +92,19 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
       }
       pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen);
       pCanvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen);
+
+      PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
+      String label = getLabel();
+      if (label==null) { label = getName(); }
+      if (label==null) {
+        label='<'+getId()+'>';
+        textPen.setTextItalics(true);
+      } else {
+        textPen.setTextItalics(false);
+      }
+      double textwidth = textPen.measureTextWidth(label, Double.MAX_VALUE);
+      double baseline = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()+textPen.getTextMaxAscent();
+      pCanvas.drawText(REFERENCE_OFFSET_X-textwidth/2, baseline, label, Double.MAX_VALUE, textPen);
     }
   }
 
