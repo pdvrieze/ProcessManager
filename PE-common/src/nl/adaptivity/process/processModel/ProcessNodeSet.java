@@ -1,15 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import java.lang.reflect.Array;
-import java.util.AbstractList;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.RandomAccess;
-import java.util.Set;
+import java.util.*;
 
 import net.devrieze.annotations.NotNull;
 import net.devrieze.util.ReadMap;
@@ -18,6 +10,135 @@ import net.devrieze.util.ReadMap;
 public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
 
 
+
+  
+  private class ReadonlyIterator implements Iterator<T>, ListIterator<T> {
+
+    private final ListIterator<T> aIterator;
+    
+    private ReadonlyIterator() {
+      aIterator = ProcessNodeSet.this.listIterator();
+    }
+    
+    private ReadonlyIterator(int index) {
+      aIterator = ProcessNodeSet.this.listIterator(index);
+    }
+    
+    @Override
+    public boolean hasNext() {
+      return aIterator.hasNext();
+    }
+
+    @Override
+    public T next() {
+      return aIterator.next();
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public boolean hasPrevious() {
+      return aIterator.hasPrevious();
+    }
+
+    @Override
+    public T previous() {
+      return aIterator.previous();
+    }
+
+    @Override
+    public int nextIndex() {
+      return aIterator.nextIndex();
+    }
+
+    @Override
+    public int previousIndex() {
+      return aIterator.previousIndex();
+    }
+
+    @Override
+    public void set(T pE) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public void add(T pE) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+  }
+
+  private class ReadOnlyProcessNodeSet extends ProcessNodeSet<T> {
+
+    @Override
+    public Collection<T> values() {
+      return this;
+    }
+
+    @Override
+    public ProcessNodeSet<T> clone() {
+      return this;
+    }
+
+    @Override
+    public T get(int pIndex) {
+      return ProcessNodeSet.this.get(pIndex);
+    }
+
+    @Override
+    public int size() {
+      return ProcessNodeSet.this.size();
+    }
+
+    @Override
+    public boolean add(T pE) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public T set(int pIndex, T pElement) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public void add(int pIndex, T pElement) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public T remove(int pIndex) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+      return new ReadonlyIterator();
+    }
+
+    @Override
+    public ListIterator<T> listIterator() {
+      return new ReadonlyIterator();
+    }
+
+    @Override
+    public ListIterator<T> listIterator(int pIndex) {
+      return new ReadonlyIterator(pIndex);
+    }
+
+    @Override
+    public boolean remove(Object pO) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> pC) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+  
+  }
 
   private static final class BaseProcessNodeSet<V extends ProcessNode<V>> extends ProcessNodeSet<V> {
 
@@ -349,6 +470,13 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
   public static <V extends ProcessNode<V>> ProcessNodeSet<V> singleton(V pElement) {
     return new SingletonProcessNodeSet<>(pElement);
+  }
+
+  public ProcessNodeSet<T> readOnly() {
+    if (this instanceof ProcessNodeSet.ReadOnlyProcessNodeSet) {
+      return this;
+    }
+    return new ReadOnlyProcessNodeSet();
   }
 
 }
