@@ -54,6 +54,7 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
     @Override
     public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
       if (aPen ==null) { aPen = pTheme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
+      if (aDiagram==null) { return; }
       for(DrawableProcessNode start:aDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (DrawableProcessNode end: start.getSuccessors()) {
