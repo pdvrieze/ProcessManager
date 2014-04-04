@@ -9,6 +9,8 @@ import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.*;
+
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
 
@@ -103,6 +105,17 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   @Override
   public void setExports(Collection<? extends IXmlExportType> pExports) {
     super.setExports(pExports);
+  }
+
+
+  @Override
+  public void serialize(SerializerAdapter pOut) {
+    pOut.startTag(NS_PM, "start");
+    serializeCommonAttrs(pOut);
+    if (aName!=null) { pOut.addAttribute("name", aName); }
+    if (aCondition!=null) { pOut.addAttribute("condition", aCondition); }
+    if (aMessage!=null) { /* TODO serialize this */ }
+    pOut.endTag(NS_PM, "start");
   }
 
 }

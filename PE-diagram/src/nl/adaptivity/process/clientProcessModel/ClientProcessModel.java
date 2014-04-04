@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
+
 import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
@@ -19,7 +21,13 @@ import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 
 public class ClientProcessModel<T extends IClientProcessNode<T>> implements ProcessModel<T>{
 
-  static final String PROCESSMODEL_NS = "http://adaptivity.nl/ProcessEngine/";
+  public static final String NS_JBI = "http://adaptivity.nl/ProcessEngine/activity";
+
+  public static final String NS_UMH = "http://adaptivity.nl/userMessageHandler";
+
+  public static final String NS_PM = "http://adaptivity.nl/ProcessEngine/";
+
+  static final String PROCESSMODEL_NS = NS_PM;
 
   private final String aName;
 
@@ -271,6 +279,20 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     }
   }
 
+  public void serialize(SerializerAdapter pOut) {
+    pOut.addNamespace(XMLConstants.NULL_NS_URI, NS_PM);
+    pOut.addNamespace("umh", NS_UMH);
+    pOut.addNamespace("jbi", NS_JBI);
+    
+    pOut.startTag(NS_PM, "processModel");
+    if (aName!=null) {
+      pOut.addAttribute("name", aName);
+    }
+    for(T node:aNodes) {
+      node.serialize(pOut);
+    }
+    pOut.endTag(NS_PM, "processModel");
+  }
 
   private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> pModelNodes) {
     HashMap<T,DiagramNode<T>> map = new HashMap<>();

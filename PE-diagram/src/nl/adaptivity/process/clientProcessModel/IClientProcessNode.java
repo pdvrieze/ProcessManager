@@ -33,4 +33,6 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   ClientProcessModel<T> getOwner();
   
   void disconnect();
+  
+  void serialize(SerializerAdapter pOut);
 }
