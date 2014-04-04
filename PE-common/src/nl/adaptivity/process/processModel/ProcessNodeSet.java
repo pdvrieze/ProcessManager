@@ -16,12 +16,8 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
     private final ListIterator<T> aIterator;
     
-    private ReadonlyIterator() {
-      aIterator = ProcessNodeSet.this.listIterator();
-    }
-    
-    private ReadonlyIterator(int index) {
-      aIterator = ProcessNodeSet.this.listIterator(index);
+    private ReadonlyIterator(ListIterator<T> pListIterator) {
+      aIterator = pListIterator;
     }
     
     @Override
@@ -115,17 +111,17 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
     @Override
     public Iterator<T> iterator() {
-      return new ReadonlyIterator();
+      return new ReadonlyIterator(super.listIterator());
     }
 
     @Override
     public ListIterator<T> listIterator() {
-      return new ReadonlyIterator();
+      return new ReadonlyIterator(super.listIterator());
     }
 
     @Override
     public ListIterator<T> listIterator(int pIndex) {
-      return new ReadonlyIterator(pIndex);
+      return new ReadonlyIterator(super.listIterator(pIndex));
     }
 
     @Override
