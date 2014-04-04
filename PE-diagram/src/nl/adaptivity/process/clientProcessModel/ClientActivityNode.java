@@ -65,6 +65,16 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
+  public void setPredecessor(T pPredecessor) {
+    T previous = getPredecessor();
+    if (previous==null) {
+      removePredecessor(previous);
+    }
+    addPredecessor(pPredecessor);
+  }
+
+
+  @Override
   public IXmlMessage getMessage() {
     return aMessage;
   }

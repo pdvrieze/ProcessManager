@@ -31,4 +31,6 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   void setOwner(ClientProcessModel<T> pOwner);
 
   ClientProcessModel<T> getOwner();
+  
+  void disconnect();
 }

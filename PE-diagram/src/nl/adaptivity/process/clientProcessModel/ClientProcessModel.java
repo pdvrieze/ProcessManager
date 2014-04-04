@@ -7,14 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import net.devrieze.util.CollectionUtil;
-
 import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 
 
@@ -24,7 +23,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private final String aName;
 
-  private List<T> aNodes;
+  private ProcessNodeSet<T> aNodes;
 
   private double aTopPadding = 5d;
   private double aLeftPadding = 5d;
@@ -44,7 +43,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   public void setNodes(final Collection<? extends T> nodes) {
-    aNodes = CollectionUtil.copy(nodes);
+    aNodes = ProcessNodeSet.processNodeSet(nodes);
     for(T node: aNodes) {
       node.setOwner(this);
     }
@@ -199,7 +198,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   @Override
   public List<? extends T> getModelNodes() {
     if (aNodes == null) {
-      aNodes = new ArrayList<>(0);
+      aNodes = ProcessNodeSet.processNodeSet();
     }
     return aNodes;
   }
@@ -236,18 +235,25 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public void addNode(T pNode) {
     aNodes.add(pNode);
+    pNode.setOwner(this);
     // Make sure that children can know of the change.
     nodeChanged(pNode);
   }
 
   public void removeNode(int pNodePos) {
     T node = aNodes.remove(pNodePos);
-    for(T pred: node.getPredecessors()) {
-      pred.removeSuccessor(node);
+    disconnectNode(node);
+  }
+
+  void removeNode(T node) {
+    if (node==null) { return; }
+    if (aNodes.remove(node)) {
+      disconnectNode(node);
     }
-    for(T suc:node.getSuccessors()) {
-      suc.removePredecessor(node);
-    }
+  }
+
+  private void disconnectNode(T node) {
+    node.disconnect();
     nodeChanged(node);
   }
 

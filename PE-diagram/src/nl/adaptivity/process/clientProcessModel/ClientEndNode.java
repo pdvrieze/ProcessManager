@@ -43,4 +43,13 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
     return list.isEmpty() ? null : list.get(0);
   }
 
+  @Override
+  public void setPredecessor(T pPredecessor) {
+    T previous = getPredecessor();
+    if (previous==null) {
+      removePredecessor(previous);
+    }
+    addPredecessor(pPredecessor);
+  }
+
 }

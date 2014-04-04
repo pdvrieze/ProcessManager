@@ -1,10 +1,11 @@
 package nl.adaptivity.process.clientProcessModel;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
-
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
@@ -85,10 +86,44 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     if (pPredecessors.size()>getMaxPredecessorCount()) {
       throw new IllegalArgumentException();
     }
-    aPredecessors.retainAll(pPredecessors);
-    pPredecessors.removeAll(aPredecessors);
+    List<T> toRemove = new ArrayList<>(aPredecessors.size());
+    for(Iterator<T> it = aPredecessors.iterator();it.hasNext(); ) {
+      T item = it.next();
+      if (pPredecessors.contains(item)) {
+        pPredecessors.remove(item);
+      } else {
+        toRemove.add(item);
+        it.remove();
+      }
+    }
+    for(T oldPred: toRemove) {
+      removePredecessor(oldPred);
+    }
     for(T pred: pPredecessors) {
       addPredecessor(pred);
+    }
+  }
+
+  @Override
+  public final void setSuccessors(Collection<? extends T> pSuccessors) {
+    if (pSuccessors.size()>getMaxSuccessorCount()) {
+      throw new IllegalArgumentException();
+    }
+    List<T> toRemove = new ArrayList<>(aSuccessors.size());
+    for(Iterator<T> it = aSuccessors.iterator();it.hasNext(); ) {
+      T item = it.next();
+      if (pSuccessors.contains(item)) {
+        pSuccessors.remove(item);
+      } else {
+        toRemove.add(item);
+        it.remove();
+      }
+    }
+    for(T oldSuc: toRemove) {
+      removeSuccessor(oldSuc);
+    }
+    for(T suc: pSuccessors) {
+      addSuccessor(suc);
     }
   }
 
@@ -101,90 +136,30 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
     aPredecessors.add(pred);
     if (!pred.getSuccessors().contains(this)) {
-      @SuppressWarnings("unchecked")
-      T suc = (T) this;
-      pred.addSuccessor(suc);
+      pred.addSuccessor(this.asT());
     }
-  }
-
-  @Deprecated
-  public final void setPredecessor(T pPredecessor) {
-    if (getPredecessors().size()==1 && getPredecessors().get(0).equals(pPredecessor)) {
-      return; // Don't change
+    if (aOwner!=null) {
+      aOwner.addNode(pred);
     }
-    getPredecessors().clear();
-    getPredecessors().add(pPredecessor);
-    if(! pPredecessor.getSuccessors().contains(this)) {
-      @SuppressWarnings("unchecked")
-      T suc = (T) this;
-      pPredecessor.addSuccessor(suc);
-    }
-  }
-
-  @Override
-  public final ProcessNodeSet<T> getPredecessors() {
-    return aPredecessors;
-  }
-
-  @Override
-  public final void removePredecessor(T pNode) {
-    if (aPredecessors.remove(pNode)) {
-      @SuppressWarnings("unchecked")
-      T suc = (T) this;
-      pNode.removeSuccessor(suc);
-    }
-  }
-
-  @Override
-  public int getMaxPredecessorCount() {
-    return 1;
-  }
-
-  @Override
-  public final void setSuccessors(Collection<? extends T> pSuccessors) {
-    if (pSuccessors.size()>getMaxSuccessorCount()) {
-      throw new IllegalArgumentException();
-    }
-    aSuccessors.retainAll(pSuccessors);
-    pSuccessors.removeAll(aSuccessors);
-    for(T pred: pSuccessors) {
-      addSuccessor(pred);
-    }
-    if (pSuccessors.size()!=1) {
-      throw new IllegalArgumentException();
-    }
-    addSuccessor(pSuccessors.iterator().next());
-  }
-
-  @Deprecated
-  public final void setSuccessor(T pSuccessor) {
-    if (aSuccessors.size()==1 && aSuccessors.get(0).equals(pSuccessor)) {
-      return; // Don't change
-    }
-    getSuccessors().clear();
-    getPredecessors().add(pSuccessor);
-    if(! pSuccessor.getPredecessors().contains(this)) {
-      @SuppressWarnings("unchecked")
-      T pred = (T) this;
-      pSuccessor.addPredecessor(pred);
-    }
-  }
-
-
-
-  @Override
-  public final ProcessNodeSet<T> getSuccessors() {
-    return aSuccessors;
-  }
-
-
-  @Override
-  public final boolean isPredecessorOf(T pNode) {
-    return getSuccessors().contains(pNode);
   }
 
   @Override
   public final void addSuccessor(T pNode) {
+    if (aSuccessors.contains(pNode)) { return; }
+    if (aSuccessors.size()+1>getMaxSuccessorCount()) {
+      throw new IllegalProcessModelException("Can not add more successors");
+    }
+  
+    aSuccessors.add(pNode);
+    if (!pNode.getPredecessors().contains(this)) {
+      pNode.addPredecessor(this.asT());
+    }
+    if (aOwner!=null) {
+      aOwner.addNode(pNode);
+    }
+  
+    
+    
     if (aSuccessors.add(pNode)) {
       @SuppressWarnings("unchecked")
       final T pred = (T) this;
@@ -195,12 +170,52 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
+  public final ProcessNodeSet<T> getPredecessors() {
+    return aPredecessors.readOnly();
+  }
+
+  @Override
+  public final ProcessNodeSet<T> getSuccessors() {
+    return aSuccessors.readOnly();
+  }
+
+  @Override
+  public final void removePredecessor(T pNode) {
+    if (aPredecessors.remove(pNode)) {
+      pNode.removeSuccessor(this.asT());
+    }
+  }
+
+  @Override
   public final void removeSuccessor(T pNode) {
     if (aSuccessors.remove(pNode)) {
-      @SuppressWarnings("unchecked")
-      T pred = (T) this;
-      pNode.removePredecessor(pred);
+      pNode.removePredecessor(this.asT());
     }
+  }
+  
+  @Override
+  public void disconnect() {
+    final T me = this.asT();
+    for(Iterator<T> it=aPredecessors.iterator(); it.hasNext();) {
+      T pred = it.next();
+      it.remove(); // Remove first, otherwise we get strange iterator concurrent modification effects.
+      pred.removeSuccessor(me);
+    }
+    for(Iterator<? extends T> it = aSuccessors.iterator(); it.hasNext();) {
+      T suc = it.next();
+      it.remove();
+      suc.removePredecessor(me);
+    }
+  }
+
+  @Override
+  public final boolean isPredecessorOf(T pNode) {
+    return aSuccessors.contains(pNode);
+  }
+
+  @Override
+  public int getMaxPredecessorCount() {
+    return 1;
   }
 
   @Override
@@ -282,7 +297,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public ClientProcessModel<T> getOwner() {
+  public final ClientProcessModel<T> getOwner() {
     return aOwner;
   }
 }
