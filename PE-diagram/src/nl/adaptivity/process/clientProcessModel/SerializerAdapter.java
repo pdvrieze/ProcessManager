@@ -13,4 +13,6 @@ public interface SerializerAdapter {
 
   void text(String pString);
 
+  void ignorableWhitespace(String pString);
+
 }

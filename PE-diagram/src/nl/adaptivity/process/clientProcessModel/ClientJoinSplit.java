@@ -63,10 +63,12 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
     for(T predecessor: getPredecessors()) {
+      pOut.ignorableWhitespace("\n    ");
       pOut.startTag(NS_PM, "predecessor");
       pOut.text(predecessor.getId());
       pOut.endTag(NS_PM, "predecessor");
     }
+    pOut.ignorableWhitespace("\n  ");
     pOut.endTag(NS_PM, "join");
   }
 

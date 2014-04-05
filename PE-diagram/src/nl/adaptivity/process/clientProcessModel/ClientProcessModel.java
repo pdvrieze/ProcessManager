@@ -289,8 +289,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
       pOut.addAttribute("name", aName);
     }
     for(T node:aNodes) {
+      pOut.ignorableWhitespace("\n  ");
       node.serialize(pOut);
     }
+    pOut.ignorableWhitespace("\n");
     pOut.endTag(NS_PM, "processModel");
   }
 
