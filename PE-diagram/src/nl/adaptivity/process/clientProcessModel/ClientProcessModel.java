@@ -40,6 +40,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   LayoutAlgorithm<T> aLayoutAlgorithm;
 
+  private boolean mNeedsLayoutCheck = false;
+
   public ClientProcessModel(final String pName, final Collection<? extends T> pNodes) {
     this(pName, pNodes, new LayoutAlgorithm<T>());
   }
@@ -166,10 +168,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
 
   public void invalidate() {
-    for (T n:aNodes) {
-      n.setX(Double.NaN);
-      n.setY(Double.NaN);
-    }
+    mNeedsLayoutCheck  = true;
+//    for (T n:aNodes) {
+//      n.setX(Double.NaN);
+//      n.setY(Double.NaN);
+//    }
+  }
+  
+  public boolean isInvalid() {
+    return mNeedsLayoutCheck;
   }
 
   /**
