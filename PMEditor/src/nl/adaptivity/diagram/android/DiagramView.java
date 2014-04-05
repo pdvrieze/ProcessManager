@@ -849,8 +849,12 @@ public class DiagramView extends View implements OnZoomListener{
 
   @Override
   protected void onRestoreInstanceState(Parcelable pState) {
-    super.onRestoreInstanceState(pState);
+    if (!(pState instanceof DiagramViewState)) {
+      super.onRestoreInstanceState(pState);
+      return;
+    }
     DiagramViewState state = (DiagramViewState) pState;
+    super.onRestoreInstanceState(state.getSuperState());
     aOffsetX = state.mOffsetX;
     aOffsetY = state.mOffsetY;
     aScale = state.mScale;
