@@ -2,4 +2,7 @@
 <resources>
     <string name="app_name">PMEditor</string>
     <string name="missing_diagram">No diagram loaded</string>
+    <string name="ac_save">Save</string>
+    <string name="ac_play">Play</string>
+    <string name="ac_next">Next</string>
 </resources>

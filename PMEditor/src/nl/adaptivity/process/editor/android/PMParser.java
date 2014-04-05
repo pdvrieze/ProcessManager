@@ -43,7 +43,7 @@ import android.util.Log;
 
 public class PMParser {
 
-
+  public static final String MIME_TYPE="application/x-processmodel";
   
   private static class XmlSerializerAdapter implements SerializerAdapter {
 
@@ -99,6 +99,16 @@ public class PMParser {
       }
     }
 
+    @Override
+    public void ignorableWhitespace(String pString) {
+      try {
+        mSerializer.ignorableWhitespace(pString);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    
   }
 
   private static final class RefNode extends ClientProcessNode<DrawableProcessNode> implements DrawableProcessNode {
@@ -189,7 +199,13 @@ public class PMParser {
   }
   
   private static void serializeProcessModel(XmlSerializer pSerializer, ClientProcessModel<?> pProcessModel) {
-    pProcessModel.serialize(new XmlSerializerAdapter(pSerializer));
+    try {
+      pSerializer.startDocument(null, null);
+      pProcessModel.serialize(new XmlSerializerAdapter(pSerializer));
+      pSerializer.endDocument();
+    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {

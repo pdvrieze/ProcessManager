@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
+      xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ProcessEngine.xsd"
       xmlns="http://adaptivity.nl/ProcessEngine/"
       xmlns:umh="http://adaptivity.nl/userMessageHandler"
       xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"

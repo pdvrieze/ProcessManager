@@ -1,7 +1,9 @@
 package nl.adaptivity.process.editor.android;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -10,6 +12,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
@@ -21,8 +25,11 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -31,7 +38,9 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -42,6 +51,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import static nl.adaptivity.diagram.Drawable.*;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
@@ -118,6 +128,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     }
 
   };
+  private static final int REQUEST_SAVE_FILE = 42;
+  private static final String TAG = PMEditor.class.getName();
 
   private static class MoveDrawable extends DiagramDrawable{
 
@@ -764,10 +776,51 @@ public class PMEditor extends Activity implements OnNodeClickListener {
           aLayoutTask.playAll();
         }
         break;
+      case R.id.ac_save:
+        doSave();
+        break;
       default:
         return false;
     }
     return true;
+  }
+
+  @TargetApi(Build.VERSION_CODES.KITKAT)
+  private void doSave() {
+    if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
+      PackageManager pm = getPackageManager();
+      Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+      i.setType("file/*");
+      i.addCategory(Intent.CATEGORY_OPENABLE);
+      startActivityForResult(i, REQUEST_SAVE_FILE);
+    } else {
+      Toast.makeText(this, "Saving not yet supported below kitkat", Toast.LENGTH_LONG).show();
+      // TODO alternative way
+    }
+    // TODO Auto-generated method stub
+    
+  }
+
+  
+  
+  @Override
+  protected void onActivityResult(int pRequestCode, int pResultCode, Intent pData) {
+    if (pRequestCode==REQUEST_SAVE_FILE && pResultCode==Activity.RESULT_OK) {
+      Uri uri = pData.getData();
+      OutputStream out;
+      try {
+        out = getContentResolver().openOutputStream(uri);
+        try {
+          PMParser.serializeProcessModel(out , aPm);
+        } finally {
+          out.close();
+        }
+      } catch (XmlPullParserException |RuntimeException| IOException e) {
+        Log.e(TAG, "Failure to save file", e);
+      }
+    }
+    // TODO Auto-generated method stub
+    super.onActivityResult(pRequestCode, pResultCode, pData);
   }
 
   @Override
