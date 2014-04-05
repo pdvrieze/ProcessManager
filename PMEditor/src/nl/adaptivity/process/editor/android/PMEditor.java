@@ -788,9 +788,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   @TargetApi(Build.VERSION_CODES.KITKAT)
   private void doSave() {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
-      PackageManager pm = getPackageManager();
       Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
-      i.setType("file/*");
+      i.setType("*/*");
       i.addCategory(Intent.CATEGORY_OPENABLE);
       startActivityForResult(i, REQUEST_SAVE_FILE);
     } else {
