@@ -6,9 +6,9 @@ import static org.xmlpull.v1.XmlPullParser.TEXT;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +23,7 @@ import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
+import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableEndNode;
 import nl.adaptivity.process.diagram.DrawableJoin;
@@ -36,11 +37,69 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 import android.util.Log;
 
 public class PMParser {
 
+
+  
+  private static class XmlSerializerAdapter implements SerializerAdapter {
+
+    private final XmlSerializer mSerializer;
+
+    public XmlSerializerAdapter(XmlSerializer pSerializer) {
+      mSerializer = pSerializer;
+    }
+
+    @Override
+    public void addNamespace(String pPrefix, String pNamespace) {
+      // TODO maybe record pending namespaces and only add them on startTag
+      try {
+        mSerializer.setPrefix(pPrefix, pNamespace);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void startTag(String pNamespace, String pName) {
+      try {
+        mSerializer.startTag(pNamespace, pName);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void endTag(String pNamespace, String pName) {
+      try {
+        mSerializer.endTag(pNamespace, pName);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void addAttribute(String pName, String pValue) {
+      try {
+        mSerializer.attribute(null, pName, pValue);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void text(String pString) {
+      try {
+        mSerializer.text(pString);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+  }
 
   private static final class RefNode extends ClientProcessNode<DrawableProcessNode> implements DrawableProcessNode {
 
@@ -91,9 +150,47 @@ public class PMParser {
       throw new UnsupportedOperationException("Not implemented");
     }
 
+    @Override
+    public void serialize(SerializerAdapter pOut) {
+      // Don't serialize temps
+    }
+    
+    @Override
+    public String getId() {
+      return aRef;
+    }
+
   }
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
+
+  static void serializeProcessModel(OutputStream pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
+    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+    factory.setNamespaceAware(true);
+    XmlSerializer serializer = factory.newSerializer();
+    try {
+      serializer.setOutput(pOut, "UTF-8");
+    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+      throw new IOException(e);
+    }
+    serializeProcessModel(serializer, pProcessModel);
+  }
+
+  static void serializeProcessModel(Writer pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
+    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+    factory.setNamespaceAware(true);
+    XmlSerializer serializer = factory.newSerializer();
+    try {
+      serializer.setOutput(pOut);
+    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+      throw new IOException(e);
+    }
+    serializeProcessModel(serializer, pProcessModel);
+  }
+  
+  private static void serializeProcessModel(XmlSerializer pSerializer, ClientProcessModel<?> pProcessModel) {
+    pProcessModel.serialize(new XmlSerializerAdapter(pSerializer));
+  }
 
   static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
     try {
