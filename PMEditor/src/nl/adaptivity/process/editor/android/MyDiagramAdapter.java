@@ -1,5 +1,8 @@
 package nl.adaptivity.process.editor.android;
 
+import static nl.adaptivity.diagram.android.RelativeLightView.BOTTOM;
+import static nl.adaptivity.diagram.android.RelativeLightView.HGRAVITY;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +29,6 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
-import static nl.adaptivity.diagram.android.RelativeLightView.*;
 
 /**
  * The MyDiagramAdapter to use for the editor.

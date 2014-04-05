@@ -1,6 +1,10 @@
 package nl.adaptivity.process.editor.android;
 
-import java.io.FileNotFoundException;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM1;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM2;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM3;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,8 +17,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import org.xmlpull.v1.XmlPullParserException;
-
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -25,11 +27,13 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
+
+import org.xmlpull.v1.XmlPullParserException;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
@@ -52,7 +56,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-import static nl.adaptivity.diagram.Drawable.*;
 
 public class PMEditor extends Activity implements OnNodeClickListener {
 

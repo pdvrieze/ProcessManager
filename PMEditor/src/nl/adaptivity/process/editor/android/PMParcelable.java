@@ -5,9 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import nl.adaptivity.process.diagram.DrawableProcessModel;
+
 import org.xmlpull.v1.XmlPullParserException;
 
-import nl.adaptivity.process.diagram.DrawableProcessModel;
 import android.os.Parcel;
 import android.os.Parcelable;
 
