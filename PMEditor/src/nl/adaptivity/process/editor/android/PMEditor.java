@@ -57,6 +57,7 @@ import static nl.adaptivity.diagram.Drawable.*;
 public class PMEditor extends Activity implements OnNodeClickListener {
 
 
+  private static final String KEY_PROCESSMODEL = "processmodel";
   private static final int ITEM_MARGIN = 8/*dp*/;
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
@@ -658,6 +659,17 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
       elementsView.requestLayout();
     }
+    
+    if(savedInstanceState!=null) {
+      final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
+      if (pmparcelable!=null) {
+        aPm = pmparcelable.getProcessModel();
+      }
+    }
+    if (aPm == null) {
+      aPm = getProcessModel();
+    }
+
   }
 
   /**
@@ -744,7 +756,6 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   @Override
   protected void onResume() {
     super.onResume();
-    aPm = getProcessModel();
     aAdapter = new MyDiagramAdapter(this, aPm);
     diagramView1.setAdapter(aAdapter);
   }
@@ -840,5 +851,12 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     return true;
   }
 
+  @Override
+  protected void onSaveInstanceState(Bundle pOutState) {
+    super.onSaveInstanceState(pOutState);
+    pOutState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(aPm));
+  }
+
+  
 
 }
