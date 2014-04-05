@@ -11,4 +11,6 @@ public interface SerializerAdapter {
 
   void addAttribute(String pName, String pValue);
 
+  void text(String pString);
+
 }

@@ -6,6 +6,7 @@ import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
 
 
@@ -76,6 +77,11 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
       PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState());
       pCanvas.drawPath(path, linePen, null);
     }
+  }
+
+  @Override
+  public void serialize(SerializerAdapter pOut) {
+    serializeJoin(pOut);
   }
 
 }

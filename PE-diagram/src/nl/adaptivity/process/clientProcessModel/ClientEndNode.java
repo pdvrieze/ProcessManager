@@ -1,5 +1,7 @@
 package nl.adaptivity.process.clientProcessModel;
 
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -50,6 +52,14 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
       removePredecessor(previous);
     }
     addPredecessor(pPredecessor);
+  }
+
+  @Override
+  public void serialize(SerializerAdapter pOut) {
+    pOut.startTag(NS_PM, "end");
+    serializeCommonAttrs(pOut);
+    serializeCommonChildren(pOut);
+    pOut.endTag(NS_PM, "end");
   }
 
 }

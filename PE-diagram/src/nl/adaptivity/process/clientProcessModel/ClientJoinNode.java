@@ -13,13 +13,18 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinS
     super(pId, pOwner);
   }
 
-  protected ClientJoinNode(ClientJoinNode<T> pOrig) {
+  protected ClientJoinNode(ClientJoinSplit<T> pOrig) {
     super(pOrig);
   }
 
   @Override
   public int getMaxPredecessorCount() {
     return Integer.MAX_VALUE;
+  }
+
+  @Override
+  public void serialize(SerializerAdapter pOut) {
+    serializeJoin(pOut);
   }
 
 }

@@ -1,6 +1,7 @@
 package nl.adaptivity.process.clientProcessModel;
 
 
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 import nl.adaptivity.process.processModel.JoinSplit;
 
 
@@ -41,6 +42,32 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   @Override
   public int getMin() {
     return aMin;
+  }
+
+  @Override
+  public void serializeCommonAttrs(SerializerAdapter pOut) {
+    super.serializeCommonAttrs(pOut);
+    if (aMin>=0) { pOut.addAttribute("min", Integer.toString(aMin)); }
+    if (aMax>=0) { pOut.addAttribute("max", Integer.toString(aMax)); }
+  }
+
+  protected void serializeSplit(SerializerAdapter pOut) {
+    pOut.startTag(NS_PM, "split");
+    serializeCommonAttrs(pOut);
+    serializeCommonChildren(pOut);
+    pOut.endTag(NS_PM, "split");
+  }
+
+  protected void serializeJoin(SerializerAdapter pOut) {
+    pOut.startTag(NS_PM, "join");
+    serializeCommonAttrs(pOut);
+    serializeCommonChildren(pOut);
+    for(T predecessor: getPredecessors()) {
+      pOut.startTag(NS_PM, "predecessor");
+      pOut.text(predecessor.getId());
+      pOut.endTag(NS_PM, "predecessor");
+    }
+    pOut.endTag(NS_PM, "join");
   }
 
 }

@@ -300,4 +300,18 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   public final ClientProcessModel<T> getOwner() {
     return aOwner;
   }
+  
+  public void serializeCommonAttrs(SerializerAdapter pOut) {
+    pOut.addAttribute("id", aId);
+    if (aLabel!=null) { pOut.addAttribute("label", aLabel); }
+    if (!Double.isNaN(aX)) { pOut.addAttribute("x", Double.toString(aX)); }
+    if (!Double.isNaN(aY)) { pOut.addAttribute("y", Double.toString(aY)); }
+    if (getMaxPredecessorCount()==1 && aPredecessors.size()==1) {
+      pOut.addAttribute("pred", aPredecessors.get(0).getId());
+    }
+  }
+  
+  public void serializeCommonChildren(SerializerAdapter pOut) {
+    // TODO handle imports and exports.
+  }
 }

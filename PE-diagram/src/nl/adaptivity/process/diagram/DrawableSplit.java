@@ -5,6 +5,7 @@ import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.Split;
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
@@ -80,6 +81,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
       PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState() & ~STATE_TOUCHED);
       pCanvas.drawPath(path, linePen, null);
     }
+  }
+
+  @Override
+  public void serialize(SerializerAdapter pOut) {
+    serializeSplit(pOut);
   }
 
 }

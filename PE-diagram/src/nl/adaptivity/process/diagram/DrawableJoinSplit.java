@@ -124,14 +124,14 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       }
     }
     StringBuilder str = new StringBuilder();
-    if (getMin()<1) {
+    if (getMin()<0) {
       str.append("?...");
     } else if (getMin()==getMax()){
       return Integer.toString(getMin());
     } else {
       str.append(getMin()).append("...");
     }
-    if (getMax()<1) {
+    if (getMax()<0) {
       str.append("?");
     } else {
       str.append(getMax());
