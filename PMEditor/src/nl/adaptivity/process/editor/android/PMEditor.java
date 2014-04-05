@@ -453,9 +453,13 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     @Override
     protected Object doInBackground(Object... pParams) {
       // Start with null layout algorithm, to prevent dual layout.
-      aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
+      if (aPm == null || aPm.getModelNodes().isEmpty()) {
+        aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
+      }
       if (aPm!=null) {
         LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<>();
+        alg.setGridSize(diagramView1.getGridSize());
+        alg.setTighten(true);
         alg.setLayoutStepper(aStepper);
         aPm.setLayoutAlgorithm(alg);
         aAdapter = new MyDiagramAdapter(PMEditor.this, aPm);
@@ -745,7 +749,6 @@ public class PMEditor extends Activity implements OnNodeClickListener {
   private DrawableProcessModel getProcessModel(LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     final InputStream file = getResources().openRawResource(R.raw.processmodel);
     try {
-      // Start with null layout algorithm, to prevent dual layout.
       return PMParser.parseProcessModel(file, layoutAlgorithm);
     } finally {
       try {
