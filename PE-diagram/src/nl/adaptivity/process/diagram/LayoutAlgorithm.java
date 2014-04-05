@@ -225,13 +225,15 @@ public class LayoutAlgorithm<T extends Positioned> {
   }
   
   private static <T extends Positioned> void addToPartition(DiagramNode<T> pNode, ArrayList<DiagramNode<T>> pPartition, ArrayList<DiagramNode<T>> pNodes) {
-    pPartition.add(pNode);
-    if(pNodes.remove(pNode)) {
-      for(DiagramNode<T> left: pNode.getLeftNodes()) {
-        addToPartition(left, pPartition, pNodes);
-      }
-      for(DiagramNode<T> right: pNode.getRightNodes()) {
-        addToPartition(right, pPartition, pNodes);
+    if (! pPartition.contains(pNode)) {
+      pPartition.add(pNode);
+      if(pNodes.remove(pNode)) {
+        for(DiagramNode<T> left: pNode.getLeftNodes()) {
+          addToPartition(left, pPartition, pNodes);
+        }
+        for(DiagramNode<T> right: pNode.getRightNodes()) {
+          addToPartition(right, pPartition, pNodes);
+        }
       }
     }
   }
@@ -255,14 +257,22 @@ public class LayoutAlgorithm<T extends Positioned> {
         newXs[leftMostNode] = pNodes.get(leftMostNode).getX();
       }
       for(DiagramNode<T> node: pNodes.get(leftMostNode).getRightNodes()) {
-        double newX = newXs[leftMostNode] + pNodes.get(leftMostNode).getRightExtend()+getHorizSeparation()+node.getLeft();
+        double newX = newXs[leftMostNode] + pNodes.get(leftMostNode).getRightExtend()+getHorizSeparation()+node.getLeftExtend();
         updateXPosLR(newX, node, pNodes, newXs);
       }
     }
-    int mostRightNode = maxPos(newXs);
-    boolean changed = false;
-    for(DiagramNode<T> node:pNodes.get(mostRightNode).getLeftNodes()) {
-      double newX = pNodes.get(mostRightNode).getLeft()-getHorizSeparation()-node.getRightExtend();
+    int mostRightNodePos = maxPos(newXs);
+    DiagramNode<T> mostRightNode = pNodes.get(mostRightNodePos);
+    boolean changed;
+    if (Math.abs(mostRightNode.getX()-newXs[mostRightNodePos])>TOLERANCE) {
+      changed = true;
+      aLayoutStepper.reportMove(mostRightNode, newXs[mostRightNodePos], mostRightNode.getY());
+      pNodes.get(mostRightNodePos).setX(newXs[mostRightNodePos]);
+    } else {
+      changed = false;
+    }
+    for(DiagramNode<T> node:pNodes.get(mostRightNodePos).getLeftNodes()) {
+      double newX = newXs[mostRightNodePos]-pNodes.get(mostRightNodePos).getLeftExtend()-getHorizSeparation()-node.getRightExtend();
       changed = updateXPosRL(newX, node, pNodes, newXs) || changed;
     }
 
@@ -273,11 +283,13 @@ public class LayoutAlgorithm<T extends Positioned> {
     final int len = pNodes.size();
     for(int i=0; i< len;++i) {
       if (pNode==pNodes.get(i)) {
+        aLayoutStepper.reportLayoutNode(pNode);
+        aLayoutStepper.reportMinX(pNode.getLeftNodes(), pNewX);
         double oldX = newXs[i];
-        if (pNewX>oldX) {
+        if (! (pNewX<=oldX)) { // Use the negative way to handle NaN, don't go on when there is already a value that wasn't changed.
           newXs[i] = pNewX;
           for(DiagramNode<T> rightNode:pNode.getRightNodes()) {
-            double newX = pNode.getRight()+getHorizSeparation()+rightNode.getLeftExtend();
+            double newX = pNewX+pNode.getRightExtend()+getHorizSeparation()+rightNode.getLeftExtend();
             updateXPosLR(newX, rightNode, pNodes, newXs);
           }
         } // ignore the rest
@@ -297,17 +309,19 @@ public class LayoutAlgorithm<T extends Positioned> {
           if (Math.abs(pNode.getX()-newX)>TOLERANCE){
             changed = true;
             newXs[i] = newX;
+            aLayoutStepper.reportMove(pNode, newX, pNode.getY());
             pNode.setX(newX);
           }
         } else if ( oldX-TOLERANCE>= pNode.getX() && pNode.getX()>=pNewX+TOLERANCE) {
           // outside of tolerance, so need to move
           changed = true;
           newXs[i] = (oldX+pNewX)/2;
+          aLayoutStepper.reportMove(pNode, newXs[i], pNode.getY());
           pNode.setX(newXs[i]);
         }
 //        if (pNewX>oldX) {
         for(DiagramNode<T> leftNode:pNode.getLeftNodes()) {
-          double newX = pNode.getLeft()-getHorizSeparation()+leftNode.getRightExtend();
+          double newX = pNode.getLeft()-getHorizSeparation()-leftNode.getRightExtend();
           updateXPosRL(newX, leftNode, pNodes, newXs);
         }
 //        } // ignore the rest
