@@ -5,7 +5,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
-
 import nl.adaptivity.diagram.Positioned;
 
 
@@ -21,6 +20,10 @@ public class LayoutAlgorithm<T extends Positioned> {
 
   private double aDefaultNodeWidth = 30d;
   private double aDefaultNodeHeight = 30d;
+  
+  private double aGridSize = Double.NaN;
+  
+  private boolean aTighten = false;
 
   private LayoutStepper<T> aLayoutStepper = new LayoutStepper<>();
 
@@ -32,6 +35,24 @@ public class LayoutAlgorithm<T extends Positioned> {
     aLayoutStepper = pLayoutStepper !=null ? pLayoutStepper : new LayoutStepper<T>();
   }
 
+
+  
+  public double getGridSize() {
+    return aGridSize;
+  }
+
+  
+  public void setGridSize(double pGridSize) {
+    aGridSize = pGridSize;
+  }
+  
+  public boolean isTighten() {
+    return aTighten;
+  }
+  
+  public void setTighten(boolean pTighten) {
+    aTighten = pTighten;
+  }
 
   public double getVertSeparation() {
     return aVertSeparation;
@@ -78,7 +99,14 @@ public class LayoutAlgorithm<T extends Positioned> {
         changed = layoutNodeInitial(pNodes, node); // always force as that should be slightly more efficient
       }
     }
-    {
+    if (! changed) {
+      if (aTighten) {
+        changed = tightenPositions(pNodes);
+      } else {
+        changed = verifyPositions(pNodes);
+      }
+    } 
+    if (aTighten || changed) {
       ArrayList<DiagramNode<T>> nodes = new ArrayList<>(pNodes);
       boolean nodesChanged = true;
       for (int pass=0; nodesChanged && pass<PASSCOUNT; ++pass) {
@@ -122,6 +150,195 @@ public class LayoutAlgorithm<T extends Positioned> {
     return changed;
   }
 
+  private static void unset(double[] array) {
+    for(int i=0; i<array.length; ++i) {
+      array[i]=Double.NaN;
+    }
+  }
+
+  private static double max(double[] pArray) {
+    int node = maxPos(pArray);
+    if (node<0) { return Double.NaN; }
+    return pArray[node];
+  }
+
+  private static int maxPos(double[] pArray) {
+    if (pArray.length==0) { return -1; }
+    double cur = pArray[0];
+    int node = 0;
+    for(int i=1; i<pArray.length;++i) {
+      if(pArray[i]>cur) {
+        node = i;
+        cur = pArray[i];
+      }
+    }
+    return node;
+  }
+
+  private boolean tightenPositions(List<? extends DiagramNode<T>> pNodes) {
+    double minX = getValidMinX(pNodes);
+    double minY = getValidMinY(pNodes);
+    
+    boolean changed = false;
+    for(List<DiagramNode<T>> partition:partition(pNodes)) {
+      changed = tightenPartitionPositions(partition, minX, minY) | changed;
+      minY = bottom(lowest(partition),0)+getVertSeparation(); // put the partitions below each other
+    }
+    return changed;
+  }
+
+  /**
+   * Get a minX value that is a valid number (not NaN or infinity). The fallback is 0.
+   * @param pNodes The nodes to try to find the mimimum of.
+   * @return The minimum left of all the nodes, or 0 if none exists.
+   */
+  protected double getValidMinX(List<? extends DiagramNode<T>> pNodes) {
+    double minX = left(leftMost(pNodes),Double.POSITIVE_INFINITY);
+    if (Double.isInfinite(minX)) {
+      minX = 0;
+    }
+    return minX;
+  }
+
+  /**
+   * Get a minX value that is a valid number (not NaN or infinity). The fallback is 0.
+   * @param pNodes The nodes to try to find the mimimum of.
+   * @return The minimum left of all the nodes, or 0 if none exists.
+   */
+  protected double getValidMinY(List<? extends DiagramNode<T>> pNodes) {
+    double minY = top(highest(pNodes), Double.POSITIVE_INFINITY);
+    if (Double.isInfinite(minY)) {
+      minY = 0;
+    }
+    return minY;
+  }
+
+  protected static <T extends Positioned> List<List<DiagramNode<T>>> partition(List<? extends DiagramNode<T>> pNodes) {
+    List<List<DiagramNode<T>>> partitions = new ArrayList<>();
+    ArrayList<DiagramNode<T>> nodes = new ArrayList<>(pNodes);
+    while (! nodes.isEmpty()) {
+      final ArrayList<DiagramNode<T>> partition = new ArrayList<>();
+      addToPartition(nodes.get(0), partition, nodes);
+      partitions.add(partition);
+    }
+    return partitions;
+  }
+  
+  private static <T extends Positioned> void addToPartition(DiagramNode<T> pNode, ArrayList<DiagramNode<T>> pPartition, ArrayList<DiagramNode<T>> pNodes) {
+    pPartition.add(pNode);
+    if(pNodes.remove(pNode)) {
+      for(DiagramNode<T> left: pNode.getLeftNodes()) {
+        addToPartition(left, pPartition, pNodes);
+      }
+      for(DiagramNode<T> right: pNode.getRightNodes()) {
+        addToPartition(right, pPartition, pNodes);
+      }
+    }
+  }
+
+  private boolean tightenPartitionPositions(List<? extends DiagramNode<T>> pNodes, double minX, double minY) {
+    int leftMostNode;
+    int len = pNodes.size();
+    double[] newXs = new double[len]; unset(newXs);
+    double[] newYs = new double[len]; unset(newYs);
+    {
+      leftMostNode = -1;
+      minX = Double.MAX_VALUE;
+      for(int i=0; i<len;++i) {
+        DiagramNode<T> node = pNodes.get(i);
+        if (node.getLeftNodes().isEmpty() && node.getLeft()<minX) {
+          leftMostNode = i;
+          minX = node.getLeft();
+        }
+      }
+      if (leftMostNode>=0) {
+        newXs[leftMostNode] = pNodes.get(leftMostNode).getX();
+      }
+      for(DiagramNode<T> node: pNodes.get(leftMostNode).getRightNodes()) {
+        double newX = newXs[leftMostNode] + pNodes.get(leftMostNode).getRightExtend()+getHorizSeparation()+node.getLeft();
+        updateXPosLR(newX, node, pNodes, newXs);
+      }
+    }
+    int mostRightNode = maxPos(newXs);
+    boolean changed = false;
+    for(DiagramNode<T> node:pNodes.get(mostRightNode).getLeftNodes()) {
+      double newX = pNodes.get(mostRightNode).getLeft()-getHorizSeparation()-node.getRightExtend();
+      changed = updateXPosRL(newX, node, pNodes, newXs) || changed;
+    }
+
+    return changed;
+  }
+
+  private void updateXPosLR(double pNewX, DiagramNode<T> pNode, List<? extends DiagramNode<T>> pNodes, double[] newXs) {
+    final int len = pNodes.size();
+    for(int i=0; i< len;++i) {
+      if (pNode==pNodes.get(i)) {
+        double oldX = newXs[i];
+        if (pNewX>oldX) {
+          newXs[i] = pNewX;
+          for(DiagramNode<T> rightNode:pNode.getRightNodes()) {
+            double newX = pNode.getRight()+getHorizSeparation()+rightNode.getLeftExtend();
+            updateXPosLR(newX, rightNode, pNodes, newXs);
+          }
+        } // ignore the rest
+        break;
+      }
+    }
+  }
+
+  private boolean updateXPosRL(double pNewX, DiagramNode<T> pNode, List<? extends DiagramNode<T>> pNodes, double[] newXs) {
+    boolean changed = false;
+    final int len = pNodes.size();
+    for(int i=0; i< len;++i) { // loop to find the node position
+      if (pNode==pNodes.get(i)) { // found the position, now use stuff
+        double oldX = newXs[i];
+        if (pNewX-TOLERANCE<=oldX) { //very tight
+          double newX = (pNewX+oldX)/2;
+          if (Math.abs(pNode.getX()-newX)>TOLERANCE){
+            changed = true;
+            newXs[i] = newX;
+            pNode.setX(newX);
+          }
+        } else if ( oldX-TOLERANCE>= pNode.getX() && pNode.getX()>=pNewX+TOLERANCE) {
+          // outside of tolerance, so need to move
+          changed = true;
+          newXs[i] = (oldX+pNewX)/2;
+          pNode.setX(newXs[i]);
+        }
+//        if (pNewX>oldX) {
+        for(DiagramNode<T> leftNode:pNode.getLeftNodes()) {
+          double newX = pNode.getLeft()-getHorizSeparation()+leftNode.getRightExtend();
+          updateXPosRL(newX, leftNode, pNodes, newXs);
+        }
+//        } // ignore the rest
+        break;
+      }
+    }
+    return changed;
+  }
+
+  /** Just ensure that the positions of all the nodes are valid. 
+   * This means that all nodes are checked on whether they are at least horizseparation and vertseparation from each other.
+   * This method does <b>not</b> take into account the grid. In most cases this method should not change the layout.
+   * @param pNodes The nodes to verify (or move)
+   * @return <code>true</code> if at least one node changed position, <code>false</code> if not.
+   */
+  private boolean verifyPositions(List<? extends DiagramNode<T>> pNodes) {
+    boolean changed = false;
+    for(DiagramNode<T> node: pNodes) {
+      // For every node determine the minimum X position
+      double minX = right(rightMost(nodesLeftPos(pNodes, node)), Double.NEGATIVE_INFINITY)+aHorizSeparation+node.getLeftExtend();
+      // If our coordinate is lower than needed, move the node and all "within the area"
+      if (minX + TOLERANCE>node.getX()) {
+        changed = moveToRight(pNodes, node) || changed;
+      }
+      double minY = bottom(lowest(nodesAbovePos(pNodes, node)), Double.NEGATIVE_INFINITY)+aHorizSeparation+node.getTopExtend();
+      if (minY + TOLERANCE>node.getY()) {
+        changed = moveDown(pNodes, node) || changed;
+      }
+    }
+    return changed;
+  }
 
   /**
    * @param pNodes The nodes in the diagram that could be layed out.
@@ -521,9 +738,11 @@ public class LayoutAlgorithm<T extends Positioned> {
     return result;
   }
 
-  private void moveToRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+  private boolean moveToRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+    boolean changed = false;
     for(DiagramNode<T> n: pNodes) {
       if (n.rightOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
+        changed = true;
         final double newX = pFreeRegion.getRight()+aHorizSeparation+n.getLeftExtend();
         aLayoutStepper.reportMove(n, newX, n.getY());
         n.setX(newX);
@@ -531,11 +750,14 @@ public class LayoutAlgorithm<T extends Positioned> {
         moveDown(pNodes, n);
       }
     }
+    return changed;
   }
 
-  private void moveDown(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+  private boolean moveDown(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pFreeRegion) {
+    boolean changed = false;
     for(DiagramNode<T> n: pNodes) {
       if (n.downOverlaps(pFreeRegion, aHorizSeparation, aVertSeparation)) {
+        changed = true;
         final double newY = pFreeRegion.getBottom()+aVertSeparation+n.getTopExtend();
         aLayoutStepper.reportMove(n, n.getX(), newY);
         n.setY(newY);
@@ -543,6 +765,7 @@ public class LayoutAlgorithm<T extends Positioned> {
         moveToRight(pNodes, n);
       }
     }
+    return changed;
   }
 
   private void moveX(List<? extends DiagramNode<T>> pNodes, double distance) {
