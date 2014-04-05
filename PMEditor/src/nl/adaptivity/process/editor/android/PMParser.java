@@ -201,6 +201,7 @@ public class PMParser {
   private static void serializeProcessModel(XmlSerializer pSerializer, ClientProcessModel<?> pProcessModel) {
     try {
       pSerializer.startDocument(null, null);
+      pSerializer.ignorableWhitespace("\n");
       pProcessModel.serialize(new XmlSerializerAdapter(pSerializer));
       pSerializer.endDocument();
     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
