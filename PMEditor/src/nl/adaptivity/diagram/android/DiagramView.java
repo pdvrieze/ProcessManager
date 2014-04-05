@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Properties;
 
 import net.devrieze.util.Tupple;
-
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
@@ -25,6 +24,9 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.os.Parcelable.Creator;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -37,6 +39,63 @@ import android.widget.ZoomButtonsController.OnZoomListener;
 
 public class DiagramView extends View implements OnZoomListener{
 
+
+  
+  private static class DiagramViewStateCreator implements Creator<DiagramViewState> {
+
+    @Override
+    public DiagramViewState createFromParcel(Parcel pSource) {
+      return new DiagramViewState(pSource);
+    }
+
+    @Override
+    public DiagramViewState[] newArray(int pSize) {
+      return new DiagramViewState[pSize];
+    }
+
+  }
+
+  private static class DiagramViewState extends View.BaseSavedState {
+
+    @SuppressWarnings({ "unused", "hiding" })
+    public static final Parcelable.Creator<DiagramViewState> CREATOR = new DiagramViewStateCreator();
+    
+    private double mOffsetX;
+    private double mOffsetY;
+    private double mScale;
+    private int mGridSize;
+
+    public DiagramViewState(DiagramView pDiagramView, Parcelable pViewState) {
+      super(pViewState);
+      mOffsetX = pDiagramView.aOffsetX;
+      mOffsetY = pDiagramView.aOffsetY;
+      mScale = pDiagramView.aScale;
+      mGridSize = pDiagramView.mGridSize;
+    }
+
+    public DiagramViewState(Parcel pSource) {
+      super(pSource);
+      mOffsetX = pSource.readDouble();
+      mOffsetY = pSource.readDouble();
+      mScale = pSource.readDouble();
+      mGridSize = pSource.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+      return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel pDest, int pFlags) {
+      super.writeToParcel(pDest, pFlags);
+      pDest.writeDouble(mOffsetX);
+      pDest.writeDouble(mOffsetY);
+      pDest.writeDouble(mScale);
+      pDest.writeInt(mGridSize);
+    }
+  
+  }
 
   private static final int INVALIDATE_MARGIN = 10;
   private static final int CACHE_PADDING = 30;
@@ -781,6 +840,21 @@ public class DiagramView extends View implements OnZoomListener{
       aZoomController.setVisible(false);
     }
     super.onDetachedFromWindow();
+  }
+
+  @Override
+  protected Parcelable onSaveInstanceState() {
+    return new DiagramViewState(this, super.onSaveInstanceState());
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Parcelable pState) {
+    super.onRestoreInstanceState(pState);
+    DiagramViewState state = (DiagramViewState) pState;
+    aOffsetX = state.mOffsetX;
+    aOffsetY = state.mOffsetY;
+    aScale = state.mScale;
+    mGridSize = state.mGridSize;
   }
 
   public void setSelection(int pPosition) {
