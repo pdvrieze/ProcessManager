@@ -307,7 +307,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     if (!Double.isNaN(aX)) { pOut.addAttribute("x", Double.toString(aX)); }
     if (!Double.isNaN(aY)) { pOut.addAttribute("y", Double.toString(aY)); }
     if (getMaxPredecessorCount()==1 && aPredecessors.size()==1) {
-      pOut.addAttribute("pred", aPredecessors.get(0).getId());
+      pOut.addAttribute("predecessor", aPredecessors.get(0).getId());
     }
   }
   
