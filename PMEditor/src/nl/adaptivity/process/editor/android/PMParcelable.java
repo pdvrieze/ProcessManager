@@ -30,7 +30,7 @@ public class PMParcelable implements Parcelable {
   private DrawableProcessModel mProcessModel;
 
   public PMParcelable(Parcel pSource) {
-    this(PMParser.parseProcessModel(readInputStream(pSource), null));
+    this(PMParser.parseProcessModel(readInputStream(pSource), PMEditor.NULL_LAYOUT_ALGORITHM));
   }
 
   public PMParcelable(DrawableProcessModel pProcessModel) {
