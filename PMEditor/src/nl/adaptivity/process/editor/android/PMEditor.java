@@ -124,7 +124,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
   }
 
-  private final static LayoutAlgorithm<DrawableProcessNode> NULL_LAYOUT_ALGORITHM = new LayoutAlgorithm<DrawableProcessNode>(){
+  final static LayoutAlgorithm<DrawableProcessNode> NULL_LAYOUT_ALGORITHM = new LayoutAlgorithm<DrawableProcessNode>(){
 
     @Override
     public boolean layout(List<? extends DiagramNode<DrawableProcessNode>> pNodes) {
@@ -445,15 +445,17 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
   }
 
-  private class LayoutTask extends AsyncTask<Object, WaitTask, Object> {
+  private class LayoutTask extends AsyncTask<DrawableProcessModel, WaitTask, Object> {
 
     private final MyStepper aStepper = new MyStepper();
     private WaitTask aTask;
 
     @Override
-    protected Object doInBackground(Object... pParams) {
+    protected Object doInBackground(DrawableProcessModel... pParams) {
       // Start with null layout algorithm, to prevent dual layout.
-      if (aPm == null || aPm.getModelNodes().isEmpty()) {
+      if (pParams.length>0) {
+        aPm = pParams[0];
+      } else if (aPm == null || aPm.getModelNodes().isEmpty()) {
         aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
       }
       if (aPm!=null) {
@@ -787,6 +789,15 @@ public class PMEditor extends Activity implements OnNodeClickListener {
           aLayoutTask = new LayoutTask();
           aLayoutTask.execute();
         }
+        break;
+      case R.id.ac_reset:
+        if (aLayoutTask!=null) {
+          aLayoutTask.cancel(false);
+          aLayoutTask.playAll();
+        }
+        aLayoutTask = new LayoutTask();
+        aPm = null; // unset the process model
+        aLayoutTask.execute();
         break;
       case R.id.ac_play:
         if (aLayoutTask!=null) {
