@@ -313,12 +313,12 @@ public class LayoutAlgorithm<T extends Positioned> {
     final int len = pNodes.size();
     for(int i=0; i< len;++i) { // loop to find the node position
       if (pNode==pNodes.get(i)) { // found the position, now use stuff
+        aLayoutStepper.reportMinX(Arrays.asList(pNode), minXs[i]);
         if (Double.isNaN(maxXs[i]) || (maxXs[i]-TOLERANCE>pMaxX)) {
           maxXs[i] = pMaxX;
           for(DiagramNode<T> leftNode:pNode.getLeftNodes()) {
             double newX = pMaxX-pNode.getLeftExtend()-getHorizSeparation()-leftNode.getRightExtend();
             aLayoutStepper.reportLayoutNode(leftNode);
-            aLayoutStepper.reportMinX(Arrays.asList(pNode), minXs[i]);
             aLayoutStepper.reportMaxX(Arrays.asList(pNode), newX);
             updateXPosRL(newX, leftNode, pNodes, minXs, maxXs);
           }
@@ -339,10 +339,14 @@ public class LayoutAlgorithm<T extends Positioned> {
       aLayoutStepper.reportMinX(Collections.<DiagramNode<T>>emptyList(), minX);
       aLayoutStepper.reportMaxX(Collections.<DiagramNode<T>>emptyList(), maxX);
       double x = node.getX();
-      if (x+TOLERANCE<minX || x-TOLERANCE>maxX) {
-        aLayoutStepper.reportMove(node, (maxX+minX)/2, node.getY());
+      if (x+TOLERANCE<minX) {
+        aLayoutStepper.reportMove(node, minX, node.getY());
         changed = true;
-        node.setX((maxX+minX)/2);
+        node.setX(minX);
+      } else if (x-TOLERANCE>maxX) {
+        aLayoutStepper.reportMove(node, maxX, node.getY());
+        changed = true;
+        node.setX(maxX);
       }
     }
     
