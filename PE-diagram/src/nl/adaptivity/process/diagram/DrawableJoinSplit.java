@@ -104,12 +104,14 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       }
       pCanvas.drawPath(path, linePen, bgPen);
 
-      PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
-      String s = getMinMaxText();
-      double textwidth = textPen.measureTextWidth(s, Double.MAX_VALUE);
-      double textbot = textPen.getTextMaxDescent();
-
-      pCanvas.drawText(hse+dx-textwidth/2, -hse-textbot, s, Double.MAX_VALUE, textPen);
+      if (getOwner()!=null || getMin()>=0 || getMax()>=0) {
+        PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
+        String s = getMinMaxText();
+        double textwidth = textPen.measureTextWidth(s, Double.MAX_VALUE);
+        double textbot = textPen.getTextMaxDescent();
+  
+        pCanvas.drawText(hse+dx-textwidth/2, -hse-textbot, s, Double.MAX_VALUE, textPen);
+      }
     }
   }
 
