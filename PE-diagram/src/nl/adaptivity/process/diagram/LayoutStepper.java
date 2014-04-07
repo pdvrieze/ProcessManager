@@ -63,5 +63,9 @@ public class LayoutStepper<T extends Positioned> {
   public void reportMaxY(List<? extends DiagramNode<T>> pNodes, double offset) {
     // empty
   }
+  
+  public void reportSiblings(DiagramNode<T> node, List<? extends DiagramNode<T>> nodes, boolean above) {
+    // empty
+  }
 
 }

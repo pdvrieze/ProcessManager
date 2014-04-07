@@ -886,60 +886,63 @@ public class LayoutAlgorithm<T extends Positioned> {
   }
 
   // TODO Change to all nodes in the graph that are not smaller or bigger
-  private static <T extends Positioned> List<DiagramNode<T>> getPrecedingSiblings(DiagramNode<T> pNode) {
+  private List<DiagramNode<T>> getPrecedingSiblings(DiagramNode<T> pNode) {
+    return getSiblings(pNode, true);
+  }
+
+  private List<DiagramNode<T>> getSiblings(DiagramNode<T> pNode, boolean above) {
     List<DiagramNode<T>> result = new ArrayList<>();
-    for(DiagramNode<T> pred:pNode.getLeftNodes()) {
-      if (pred.getRightNodes().contains(pNode)) {
-        for(DiagramNode<T> sibling: pred.getRightNodes()) {
-          if (sibling==pNode) {
-            break;
-          } else {
-            result.add(sibling);
+    double y = pNode.getY();
+    {
+      boolean seenNode = false;
+      for(DiagramNode<T> pred:pNode.getLeftNodes()) {
+        if (pred.getRightNodes().contains(pNode)) {
+          for(DiagramNode<T> sibling: pred.getRightNodes()) {
+            if(sibling==pNode) {
+              seenNode = true;
+            }
+            if(Double.isNaN(sibling.getY()) || Double.isNaN(y)) { // no coordinate
+              if (above ^ seenNode) {
+                result.add(sibling);
+              }
+            } else {
+              if ( above ? (sibling.getY()<y) : (sibling.getY()>y)) {
+                result.add(sibling);
+              }
+            }
           }
         }
       }
     }
-    for(DiagramNode<T> pred:pNode.getRightNodes()) {
-      if (pred.getLeftNodes().contains(pNode)) {
-        for(DiagramNode<T> sibling: pred.getLeftNodes()) {
-          if (sibling==pNode) {
-            break;
-          } else {
-            result.add(sibling);
+    {
+      boolean seenNode = false;
+      for(DiagramNode<T> pred:pNode.getRightNodes()) {
+        if (pred.getLeftNodes().contains(pNode)) {
+          for(DiagramNode<T> sibling: pred.getLeftNodes()) {
+            if(sibling==pNode) {
+              seenNode = true;
+            }
+            if(Double.isNaN(sibling.getY()) || Double.isNaN(y)) { // no coordinate
+              if (above ^ seenNode) {
+                result.add(sibling);
+              }
+            } else {
+              if ( above ? (sibling.getY()<y) : (sibling.getY()>y)) {
+                result.add(sibling);
+              }
+            }
           }
         }
       }
+    }
+    if (result.size()>0) {
+      aLayoutStepper.reportSiblings(pNode, result, above);
     }
     return result;
   }
 
-  private static <T extends Positioned> List<DiagramNode<T>> getFollowingSiblings(DiagramNode<T> pNode) {
-    List<DiagramNode<T>> result = new ArrayList<>();
-    for(DiagramNode<T> successor:pNode.getLeftNodes()) {
-      if (successor.getRightNodes().contains(pNode)) {
-        boolean following = false;
-        for(DiagramNode<T> sibling: successor.getRightNodes()) {
-          if (sibling==pNode) {
-            following = true;
-          } else if (following){
-            result.add(sibling);
-          }
-        }
-      }
-    }
-    for(DiagramNode<T> successor:pNode.getRightNodes()) {
-      if (successor.getLeftNodes().contains(pNode)) {
-        boolean following = false;
-        for(DiagramNode<T> sibling: successor.getLeftNodes()) {
-          if (sibling==pNode) {
-            following = true;
-          } else if (following){
-            result.add(sibling);
-          }
-        }
-      }
-    }
-    return result;
+  private List<DiagramNode<T>> getFollowingSiblings(DiagramNode<T> pNode) {
+    return getSiblings(pNode, false);
   }
 
 }
