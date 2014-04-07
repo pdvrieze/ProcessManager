@@ -96,15 +96,17 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
       PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
       String label = getLabel();
       if (label==null) { label = getName(); }
-      if (label==null) {
+      if (label==null && getOwner()!=null) {
         label='<'+getId()+'>';
         textPen.setTextItalics(true);
-      } else {
+      } else if (label!=null) {
         textPen.setTextItalics(false);
       }
-      double textwidth = textPen.measureTextWidth(label, Double.MAX_VALUE);
-      double baseline = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()+textPen.getTextMaxAscent();
-      pCanvas.drawText(REFERENCE_OFFSET_X-textwidth/2, baseline, label, Double.MAX_VALUE, textPen);
+      if (label!=null) {
+        double textwidth = textPen.measureTextWidth(label, Double.MAX_VALUE);
+        double baseline = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()+textPen.getTextMaxAscent();
+        pCanvas.drawText(REFERENCE_OFFSET_X-textwidth/2, baseline, label, Double.MAX_VALUE, textPen);
+      }
     }
   }
 
