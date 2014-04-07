@@ -15,6 +15,7 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode> implements DrawableProcessNode {
 
+  protected static final boolean CURVED_ARROWS=true;
   private static final boolean TEXT_DESC=true;
 
   protected static final double STROKEEXTEND = Math.sqrt(2)*STROKEWIDTH;
@@ -25,6 +26,7 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   protected static final double CENTERY = (JOINHEIGHT+STROKEEXTEND)/2;
   protected static final double ARROWHEADANGLE = (35*Math.PI)/180;
   protected static final double ARROWLEN = JOINWIDTH*0.15;
+  protected static final double ARROWCONTROLRATIO=0.85;
   protected final ItemCache aItems = new ItemCache();
   private int aState = STATE_DEFAULT;
 

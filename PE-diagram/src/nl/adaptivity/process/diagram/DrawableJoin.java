@@ -22,6 +22,7 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   private static final double ARROWDNEAR = ARROWLEN*Math.cos(ARROWHEADANGLE);
   private static final double INDX = JOINWIDTH*0.2;
   private static final double INDY = JOINHEIGHT*0.2;
+  private static final double INLEN = Math.sqrt(INDX*INDX+INDY*INDY);
 
   public DrawableJoin(ClientProcessModel<DrawableProcessNode> pOwner) {
     super(pOwner);
@@ -63,14 +64,25 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     PATH_T path = aItems.getPath(strategy, 1);
     if (path==null) {
       path = strategy.newPath();
-      path.moveTo(CENTERX,CENTERY)
-          .lineTo(CENTERX + ARROWHEADDX - ARROWHEADADJUST, CENTERX)
-          .moveTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY-ARROWDFAR)
-          .lineTo(CENTERX+ARROWHEADDX, CENTERY)
-          .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY+ARROWDFAR)
-          .moveTo(CENTERX-INDX,CENTERY-INDY)
-          .lineTo(CENTERX, CENTERY)
-          .lineTo(CENTERX-INDX,CENTERY+INDY);
+      if (CURVED_ARROWS) {
+        path.moveTo(CENTERX+INLEN,CENTERY)
+            .lineTo(CENTERX + ARROWHEADDX - ARROWHEADADJUST, CENTERX)
+            .moveTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY-ARROWDFAR)
+            .lineTo(CENTERX+ARROWHEADDX, CENTERY)
+            .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY+ARROWDFAR)
+            .moveTo(CENTERX-INDX,CENTERY-INDY)
+            .cubicTo(CENTERX-(INDX*(1-ARROWCONTROLRATIO)), CENTERY-(INDY*(1-ARROWCONTROLRATIO)), CENTERX+INLEN*(1-ARROWCONTROLRATIO), CENTERY, CENTERX+INLEN, CENTERY)
+            .cubicTo(CENTERX+INLEN*(1-ARROWCONTROLRATIO), CENTERY, CENTERX-(INDX*(1-ARROWCONTROLRATIO)), CENTERY+(INDY*(1-ARROWCONTROLRATIO)), CENTERX-INDX,CENTERY+INDY);
+      } else {
+        path.moveTo(CENTERX,CENTERY)
+            .lineTo(CENTERX + ARROWHEADDX - ARROWHEADADJUST, CENTERX)
+            .moveTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY-ARROWDFAR)
+            .lineTo(CENTERX+ARROWHEADDX, CENTERY)
+            .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR, CENTERY+ARROWDFAR)
+            .moveTo(CENTERX-INDX,CENTERY-INDY)
+            .lineTo(CENTERX, CENTERY)
+            .lineTo(CENTERX-INDX,CENTERY+INDY);
+      }
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
