@@ -21,6 +21,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -320,7 +321,9 @@ public class MessagingSoapClientGenerator {
   }
 
   private static void writeMethods(final Writer pOut, final Class<?> pEndpointClass, Map<String, String> pImports) throws IOException {
-    for (final Method method : pEndpointClass.getMethods()) {
+    final Method[] methods = pEndpointClass.getMethods();
+    Arrays.sort(methods);
+    for (final Method method : methods) {
       final WebMethod annotation = method.getAnnotation(WebMethod.class);
       if (annotation != null) {
         writeMethod(pOut, method, annotation, pImports);
