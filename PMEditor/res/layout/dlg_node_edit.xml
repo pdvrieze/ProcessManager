@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/LinearLayout1"
+	style="@android:style/TextAppearance.Large"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="vertical"
+	android:padding="16dp" >
+
+	<TextView
+		android:id="@+id/lbl_node_label"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/lbl_label"
+		android:textAppearance="?android:attr/textAppearanceLarge" />
+
+	<EditText
+		android:id="@+id/et_node_label"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="8dp"
+		android:ems="10"
+		android:hint="@string/hint_node_label"
+		android:imeOptions="actionDone"
+		android:inputType="text" >
+
+		<requestFocus />
+	</EditText>
+
+	<RadioGroup
+		android:id="@+id/rg_minmax"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom"
+		android:layout_marginTop="16dp" >
+
+		<RadioButton
+			android:id="@+id/radioand"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:checked="true"
+			android:text="@string/radio_and" />
+
+		<RadioButton
+			android:id="@+id/radioor"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/radio_or" />
+
+		<RadioButton
+			android:id="@+id/radioxor"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/radio_xor" />
+
+		<RadioButton
+			android:id="@+id/radioother"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/radio_other" />
+	</RadioGroup>
+
+	<LinearLayout android:id="@+id/vg_minmax"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_marginTop="16dp"
+		android:baselineAligned="false" >
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_weight="1"
+			android:orientation="vertical" >
+
+			<TextView
+				android:id="@+id/textView1"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:text="@string/lbl_min" />
+
+			<NumberPicker
+				android:id="@+id/np_min"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="8dp" />
+		</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_weight="1"
+			android:orientation="vertical" >
+
+			<TextView
+				android:id="@+id/textView2"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:text="@string/lbl_max" />
+
+			<NumberPicker
+				android:id="@+id/np_max"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center_horizontal"
+				android:layout_marginTop="8dp" />
+		</LinearLayout>
+	</LinearLayout>
+
+</LinearLayout>

@@ -27,6 +27,7 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.diagram.android.DrawableDrawable;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
+import nl.adaptivity.process.editor.android.NodeEditDialogFragment.NodeEditListener;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -57,7 +58,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-public class PMEditor extends Activity implements OnNodeClickListener {
+public class PMEditor extends Activity implements OnNodeClickListener, NodeEditListener {
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";
@@ -414,8 +415,8 @@ public class PMEditor extends Activity implements OnNodeClickListener {
         target.setState(target.getState()& ~STATE_MOVED);
       }
     }
-    
-    
+
+
 
     @Override
     public void reportSiblings(DiagramNode<DrawableProcessNode> pNode, List<? extends DiagramNode<DrawableProcessNode>> pNodes,
@@ -695,7 +696,7 @@ public class PMEditor extends Activity implements OnNodeClickListener {
 
       elementsView.requestLayout();
     }
-    
+
     if(savedInstanceState!=null) {
       final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
       if (pmparcelable!=null) {
@@ -852,11 +853,11 @@ public class PMEditor extends Activity implements OnNodeClickListener {
       // TODO alternative way
     }
     // TODO Auto-generated method stub
-    
+
   }
 
-  
-  
+
+
   @Override
   protected void onActivityResult(int pRequestCode, int pResultCode, Intent pData) {
     if (pRequestCode==REQUEST_SAVE_FILE && pResultCode==Activity.RESULT_OK) {
@@ -901,6 +902,16 @@ public class PMEditor extends Activity implements OnNodeClickListener {
     pOutState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(aPm));
   }
 
-  
+  @Override
+  public DrawableProcessNode getNode(int pPos) {
+    return aAdapter.getItem(pPos);
+  }
+
+  @Override
+  public void onNodeEdit(int pPos) {
+    diagramView1.invalidate();
+  }
+
+
 
 }

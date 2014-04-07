@@ -21,11 +21,13 @@ import nl.adaptivity.process.diagram.ProcessThemeItems;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.StartNode;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -288,6 +290,13 @@ public class MyDiagramAdapter implements DiagramAdapter<LWDrawableView, Drawable
   }
 
   private void doEditNode(int pPosition) {
+    if (aContext instanceof Activity) {
+      NodeEditDialogFragment frag = new NodeEditDialogFragment();
+      Bundle args = new Bundle(1);
+      args.putInt(NodeEditDialogFragment.NODE_POS, pPosition);
+      frag.setArguments(args);
+      frag.show(((Activity)aContext).getFragmentManager(), "editNode");
+    }
     // TODO Auto-generated method stub
     //
   }

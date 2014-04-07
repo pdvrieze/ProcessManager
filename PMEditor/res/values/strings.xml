@@ -5,4 +5,12 @@
     <string name="ac_save">Save</string>
     <string name="ac_play">Play</string>
     <string name="ac_next">Next</string>
+    <string name="lbl_label">Provide the node label</string>
+    <string name="hint_node_label">Enter a label</string>
+    <string name="radio_and">All (and)</string>
+    <string name="radio_or">At least one (or)</string>
+    <string name="radio_xor">Exactly one (xor)</string>
+    <string name="radio_other">Other</string>
+    <string name="lbl_min">Min</string>
+    <string name="lbl_max">Max</string>
 </resources>
