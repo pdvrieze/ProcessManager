@@ -414,6 +414,33 @@ public class PMEditor extends Activity implements OnNodeClickListener {
         target.setState(target.getState()& ~STATE_MOVED);
       }
     }
+    
+    
+
+    @Override
+    public void reportSiblings(DiagramNode<DrawableProcessNode> pNode, List<? extends DiagramNode<DrawableProcessNode>> pNodes,
+                               boolean pAbove) {
+      setLabel(pAbove ? "Siblings above" : "Siblings below");
+      for(DiagramNode<DrawableProcessNode> node: pNodes) {
+        final DrawableProcessNode target = node.getTarget();
+        target.setX(node.getX());
+        target.setY(node.getY());
+
+        if (node!=pNode) {
+          target.setState(target.getState()|STATE_GROUP);
+        }
+      }
+      if (pNode!=null) {
+        final DrawableProcessNode target = pNode.getTarget();
+        target.setState(target.getState()|STATE_ACTIVE);
+      }
+      updateDiagramBounds();
+      waitForNextClicked(aMinMaxOverlay);
+      for(DiagramNode<DrawableProcessNode> node: pNodes) {
+        final DrawableProcessNode target = node.getTarget();
+        target.setState(target.getState()& ~(STATE_ACTIVE|STATE_GROUP));
+      }
+    }
 
     private void waitForNextClicked(Drawable pOverlay) {
       if (aLayoutTask!=null) {
