@@ -154,8 +154,8 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public void drawText(double pLeft, double pBottom, String pText, double pFoldWidth, AndroidPen pPen) {
-      AndroidCanvas.this.drawText(transformX(pLeft), transformY(pBottom), pText, pFoldWidth*aScale, scalePen(pPen));
+    public void drawText(TextPos pTextPos, double pLeft, double pBottom, String pText, double pFoldWidth, AndroidPen pPen) {
+      AndroidCanvas.this.drawText(pTextPos, transformX(pLeft), transformY(pBottom), pText, pFoldWidth*aScale, scalePen(pPen), aScale);
     }
 
   }
@@ -292,10 +292,59 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public void drawText(double pLeft, double baselineY, String pText, double pFoldWidth, AndroidPen pPen) {
+  public void drawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth, AndroidPen pPen) {
+    drawText(pTextPos, pX, pY, pText, pFoldWidth, pPen, 1);
+  }
+  
+  private void drawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth, AndroidPen pPen, double pScale) {
     final Paint paint = pPen.getPaint();
     paint.setStyle(Style.FILL);
-    aCanvas.drawText(pText, (float) pLeft, (float) baselineY, paint);
+    float left = getLeft(pTextPos, pX, pText, pFoldWidth, pPen, pScale);
+    float baseline = getBaseLine(pTextPos, pY, pPen, pScale);
+    aCanvas.drawText(pText, left, baseline, paint);
+  }
+
+  private static float getBaseLine(TextPos pTextPos, double pY, AndroidPen pPen, double pScale) {
+    switch (pTextPos) {
+    case TOPLEFT:
+    case TOP:
+    case TOPRIGHT:
+      return (float) (pY+(pPen.getTextMaxAscent()*pScale));
+    case LEFT:
+    case MIDDLE:
+    case RIGHT:
+      return (float) (pY+(0.5*pPen.getTextMaxAscent()-0.5*pPen.getTextMaxDescent())*pScale);
+    case BASELINEMIDDLE:
+    case BASELINERIGHT:
+    case BASELINELEFT:
+      return (float) pY;
+    case BOTTOMLEFT:
+    case BOTTOMRIGHT:
+    case BOTTOM:
+      return (float) (pY-(pPen.getTextMaxDescent()*pScale));
+    }
+    throw new IllegalArgumentException(pTextPos.toString());
+  }
+
+  private static float getLeft(TextPos pTextPos, double pX, String pText, double pFoldWidth, AndroidPen pPen, double pScale) {
+    switch (pTextPos) {
+    case BASELINELEFT:
+    case BOTTOMLEFT:
+    case LEFT:
+    case TOPLEFT:
+      return (float) pX;
+    case TOP:
+    case BASELINEMIDDLE:
+    case MIDDLE:
+    case BOTTOM:
+      return (float) (pX - ((pPen.measureTextWidth(pText, pFoldWidth)*pScale)/2));
+    case TOPRIGHT:
+    case RIGHT:
+    case BASELINERIGHT:
+    case BOTTOMRIGHT:
+      return (float) (pX - ((pPen.measureTextWidth(pText, pFoldWidth)*pScale)));
+    }
+    throw new IllegalArgumentException(pTextPos.toString());
   }
 
 
