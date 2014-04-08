@@ -1,0 +1,5 @@
+The purpose of this project is to provide data-like services. Users may upload data, that then
+can be made available as webservice. Formats may include CSV, RSS/ATOM, XML, Excel, ACCESS
+
+ms documents (excel): http://poi.apache.org/
+ms access: http://jackcess.sourceforge.net/
