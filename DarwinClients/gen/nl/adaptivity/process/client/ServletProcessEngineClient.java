@@ -37,12 +37,11 @@ public class ServletProcessEngineClient {
 
   private ServletProcessEngineClient() { }
 
-  public static Future<TaskState> updateTaskState(long handle, TaskState state, Principal user, CompletionListener completionListener) throws JAXBException {
+  public static Future<TaskState> finishTask(long handle, Node payload, Principal principal, CompletionListener completionListener) throws JAXBException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
-    final Tripple<String, Class<TaskState>, TaskState> param1 = Tripple.<String, Class<TaskState>, TaskState>tripple("state", TaskState.class, state);
-    final Tripple<String, Class<Principal>, Principal> param2 = Tripple.<String, Class<Principal>, Principal>tripple("user", Principal.class, user);
+    final Tripple<String, Class<Node>, Node> param1 = Tripple.<String, Class<Node>, Node>tripple("payload", Node.class, payload);
 
-    Source message = SoapHelper.createMessage(new QName("updateTaskState"), Arrays.asList(param0, param1, param2));
+    Source message = SoapHelper.createMessage(new QName("finishTask"), Arrays.asList(new JAXBElement<String>(new QName("http://adaptivity.nl/ProcessEngine/","principal"), String.class, principal.getName())), Arrays.asList(param0, param1));
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
@@ -61,11 +60,12 @@ public class ServletProcessEngineClient {
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class);
   }
 
-  public static Future<TaskState> finishTask(long handle, Node payload, Principal principal, CompletionListener completionListener) throws JAXBException {
+  public static Future<TaskState> updateTaskState(long handle, TaskState state, Principal user, CompletionListener completionListener) throws JAXBException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
-    final Tripple<String, Class<Node>, Node> param1 = Tripple.<String, Class<Node>, Node>tripple("payload", Node.class, payload);
+    final Tripple<String, Class<TaskState>, TaskState> param1 = Tripple.<String, Class<TaskState>, TaskState>tripple("state", TaskState.class, state);
+    final Tripple<String, Class<Principal>, Principal> param2 = Tripple.<String, Class<Principal>, Principal>tripple("user", Principal.class, user);
 
-    Source message = SoapHelper.createMessage(new QName("finishTask"), Arrays.asList(new JAXBElement<String>(new QName("http://adaptivity.nl/ProcessEngine/","principal"), String.class, principal.getName())), Arrays.asList(param0, param1));
+    Source message = SoapHelper.createMessage(new QName("updateTaskState"), Arrays.asList(param0, param1, param2));
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
