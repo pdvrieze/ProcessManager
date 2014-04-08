@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,30 @@ public class MessagingSoapClientGenerator {
     }
 
   }
+
+  private static final Comparator<Method> METHODSORT = new Comparator<Method>() {
+
+    @Override
+    public int compare(Method m1, Method m2) {
+      // First sort on name
+      int result = m1.getName().compareTo(m2.getName());
+      if (result!=0) { return result; }
+      
+      Class<?>[] p1 = m1.getParameterTypes();
+      Class<?>[] p2 = m2.getParameterTypes();
+      // Next on parameter list length
+      if (p1.length!=p2.length) { return p1.length-p2.length; }
+      
+      // Next on the parameter types
+      for(int i=0; i<p1.length; ++i) {
+        result = p1[i].getSimpleName().compareTo(p2[i].getSimpleName());
+        if (result!=0) { return result; }
+      }
+      // This should not happen as methods can not be the same but for return type in Java (but in jvm can)
+      return m1.getReturnType().getSimpleName().compareTo(m2.getReturnType().getSimpleName());
+    }
+    
+  };
 
   /**
    * @param args
@@ -322,7 +347,7 @@ public class MessagingSoapClientGenerator {
 
   private static void writeMethods(final Writer pOut, final Class<?> pEndpointClass, Map<String, String> pImports) throws IOException {
     final Method[] methods = pEndpointClass.getMethods();
-    Arrays.sort(methods);
+    Arrays.sort(methods, METHODSORT);
     for (final Method method : methods) {
       final WebMethod annotation = method.getAnnotation(WebMethod.class);
       if (annotation != null) {
