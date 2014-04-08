@@ -6,6 +6,7 @@ import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.Activity;
@@ -103,9 +104,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
         textPen.setTextItalics(false);
       }
       if (label!=null) {
-        double textwidth = textPen.measureTextWidth(label, Double.MAX_VALUE);
-        double baseline = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()+textPen.getTextMaxAscent();
-        pCanvas.drawText(REFERENCE_OFFSET_X-textwidth/2, baseline, label, Double.MAX_VALUE, textPen);
+        double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading();
+        pCanvas.drawText(TextPos.TOP, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
       }
     }
   }

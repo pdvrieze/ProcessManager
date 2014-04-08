@@ -2,6 +2,7 @@ package nl.adaptivity.process.diagram;
 
 
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
@@ -109,10 +110,8 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       if (getOwner()!=null || getMin()>=0 || getMax()>=0) {
         PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
         String s = getMinMaxText();
-        double textwidth = textPen.measureTextWidth(s, Double.MAX_VALUE);
-        double textbot = textPen.getTextMaxDescent();
   
-        pCanvas.drawText(hse+dx-textwidth/2, -hse-textbot, s, Double.MAX_VALUE, textPen);
+        pCanvas.drawText(TextPos.BOTTOM, hse+dx, -hse, s, Double.MAX_VALUE, textPen);
       }
     }
   }
