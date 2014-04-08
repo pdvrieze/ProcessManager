@@ -18,7 +18,7 @@ public class LayoutAlgorithm<T extends Positioned> {
 
   private double aVertSeparation = DrawableProcessModel.DEFAULT_VERT_SEPARATION;
 
-  private double aHorizSeparation = 30d;/* TODO proper value is: DrawableProcessModel.DEFAULT_HORIZ_SEPARATION;*/
+  private double aHorizSeparation = DrawableProcessModel.DEFAULT_HORIZ_SEPARATION;
 
   private double aDefaultNodeWidth = 30d;
   private double aDefaultNodeHeight = 30d;
