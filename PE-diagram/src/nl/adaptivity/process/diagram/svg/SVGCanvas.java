@@ -6,18 +6,22 @@ import java.util.List;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import nl.adaptivity.process.diagram.svg.SVGCanvas.PathElem;
 
 
 public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
+  
   
   
   interface PathElem {
   
   }
 
-  private static abstract class PaintedElem implements PathElem {
-    SVGPen mColor;
+  interface IPaintedElem extends PathElem {
+    
+  }
+  
+  private static abstract class PaintedElem implements IPaintedElem {
+    final SVGPen mColor;
 
     PaintedElem(SVGPen pColor) {
       mColor = pColor;
@@ -26,7 +30,7 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
   }
   
   private static class BaseRect extends PaintedElem {
-    Rectangle aBounds;
+    final Rectangle aBounds;
     
     BaseRect(Rectangle pBounds, SVGPen pColor) {
       super(pColor);
@@ -38,6 +42,33 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
     FilledRect(Rectangle pBounds, SVGPen pColor) {
       super(pBounds, pColor);
+    }
+    
+  }
+  
+  private static abstract class BaseRoundRect extends BaseRect {
+    final double aRx;
+    final double aRy;
+
+    BaseRoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen pColor) {
+      super(pBounds, pColor);
+      aRx = pRx;
+      aRy = pRy;
+    }
+  }
+  
+  private static class RoundRect extends BaseRoundRect {
+
+    RoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen pColor) {
+      super(pBounds, pRx, pRy, pColor);
+    }
+    
+  }
+  
+  private static class FilledRoundRect extends BaseRoundRect {
+
+    FilledRoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen pColor) {
+      super(pBounds, pRx, pRy, pColor);
     }
     
   }
@@ -80,9 +111,42 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
     }
     
   }
+  
+  private static class PaintedPath implements IPaintedElem {
+
+    final SVGPath mPath;
+    final SVGPen mStroke;
+    final SVGPen mFill;
+
+    public PaintedPath(SVGPath pPath, SVGPen pStroke, SVGPen pFill) {
+      mPath = pPath;
+      mStroke = pStroke;
+      mFill = pFill;
+    }
+    
+  }
 
   
-  private static class SubCanvas extends SVGCanvas {
+  private static class DrawText extends PaintedElem {
+
+    final TextPos mTextPos;
+    final double mX;
+    final double mY;
+    final String mText;
+    final double mFoldWidth;
+
+    public DrawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth, SVGPen pColor) {
+      super(pColor);
+      mTextPos = pTextPos;
+      mX = pX;
+      mY = pY;
+      mText = pText;
+      mFoldWidth = pFoldWidth;
+    }
+  
+  }
+
+  private static class SubCanvas extends SVGCanvas implements IPaintedElem {
 
     final double aScale;
 
@@ -95,7 +159,7 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   private SVGStrategy aStrategy;
   
-  private List<PathElem> aPath = new ArrayList<PathElem>(); 
+  private List<IPaintedElem> aPath = new ArrayList<>(); 
   
   public SVGCanvas(TextMeasurer pTextMeasurer) {
     aStrategy = new SVGStrategy(pTextMeasurer);
@@ -137,44 +201,54 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   @Override
   public void drawRoundRect(Rectangle pRect, double pRx, double pRy, SVGPen pColor) {
-    // TODO Auto-generated method stub
+    aPath.add(new RoundRect(pRect, pRx, pRy, pColor));
     
   }
 
   @Override
   public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, SVGPen pColor) {
-    // TODO Auto-generated method stub
-    
+    aPath.add(new FilledRoundRect(pRect, pRx, pRy, pColor));
   }
 
   @Override
   public void drawPoly(double[] pPoints, SVGPen pColor) {
-    // TODO Auto-generated method stub
-    
+    if (pPoints.length>1) {
+      SVGPath path = pointsToPath(pPoints);
+      drawPath(path, pColor, null);
+    }
   }
 
   @Override
   public void drawFilledPoly(double[] pPoints, SVGPen pColor) {
-    // TODO Auto-generated method stub
-    
+    if (pPoints.length>1) {
+      SVGPath path = pointsToPath(pPoints);
+      drawPath(path, null, pColor);
+    }
+  }
+
+  private static SVGPath pointsToPath(double[] pPoints) {
+    SVGPath path = new SVGPath();
+    path.moveTo(pPoints[0], pPoints[1]);
+    for(int i=2; i<pPoints.length; i+=2) {
+      path.lineTo(pPoints[i], pPoints[i+1]);
+    }
+    return path;
   }
 
   @Override
   public void drawPath(SVGPath pPath, SVGPen pStroke, SVGPen pFill) {
-    // TODO Auto-generated method stub
-    
+    aPath.add(new PaintedPath(pPath, pStroke, pFill));
   }
 
   @Override
   public Theme<SVGStrategy, SVGPen, SVGPath> getTheme() {
-    // TODO Auto-generated method stub
-    return null;
+    return new SVGTheme(aStrategy);
   }
 
   @Override
-  public void drawText(nl.adaptivity.diagram.Canvas.TextPos pTextPos, double pLeft, double pBaselineY, String pText, double pFoldWidth,
+  public void drawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth,
                        SVGPen pPen) {
-    // TODO Auto-generated method stub
+    aPath.add(new DrawText(pTextPos, pX, pY, pText, pFoldWidth, pPen.clone()));
     
   }
 
