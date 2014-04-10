@@ -44,8 +44,8 @@ import android.util.Log;
 public class PMParser {
 
   public static final String MIME_TYPE="application/x-processmodel";
-  
-  private static class XmlSerializerAdapter implements SerializerAdapter {
+
+  public static class XmlSerializerAdapter implements SerializerAdapter {
 
     private final XmlSerializer mSerializer;
 
@@ -108,7 +108,7 @@ public class PMParser {
       }
     }
 
-    
+
   }
 
   private static final class RefNode extends ClientProcessNode<DrawableProcessNode> implements DrawableProcessNode {
@@ -164,7 +164,7 @@ public class PMParser {
     public void serialize(SerializerAdapter pOut) {
       // Don't serialize temps
     }
-    
+
     @Override
     public String getId() {
       return aRef;
@@ -175,29 +175,41 @@ public class PMParser {
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
   static void serializeProcessModel(OutputStream pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
+    XmlSerializer serializer = getSerializer(pOut);
+    serializeProcessModel(serializer, pProcessModel);
+  }
+
+  static void serializeProcessModel(Writer pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
+    XmlSerializer serializer = getSerializer(pOut);
+    serializeProcessModel(serializer, pProcessModel);
+  }
+
+  private static XmlSerializer getSerializer() throws XmlPullParserException {
     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
     factory.setNamespaceAware(true);
-    XmlSerializer serializer = factory.newSerializer();
+    return factory.newSerializer();
+  }
+
+  public static XmlSerializer getSerializer(OutputStream pOut) throws XmlPullParserException, IOException {
+    XmlSerializer serializer = getSerializer();
     try {
       serializer.setOutput(pOut, "UTF-8");
     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
       throw new IOException(e);
     }
-    serializeProcessModel(serializer, pProcessModel);
+    return serializer;
   }
 
-  static void serializeProcessModel(Writer pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
-    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-    factory.setNamespaceAware(true);
-    XmlSerializer serializer = factory.newSerializer();
+  public static XmlSerializer getSerializer(Writer pOut) throws XmlPullParserException, IOException {
+    XmlSerializer serializer = getSerializer();
     try {
       serializer.setOutput(pOut);
     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
       throw new IOException(e);
     }
-    serializeProcessModel(serializer, pProcessModel);
+    return serializer;
   }
-  
+
   private static void serializeProcessModel(XmlSerializer pSerializer, ClientProcessModel<?> pProcessModel) {
     try {
       pSerializer.startDocument(null, null);
@@ -445,7 +457,7 @@ public class PMParser {
     pModelElems.add(newSplit);
     return newSplit;
   }
-  
+
   private static void addAsSuccessor(DrawableProcessNode predecessor, DrawableProcessNode successor, List<DrawableProcessNode> pModelElems) {
     if (predecessor.getSuccessors().size()<predecessor.getMaxSuccessorCount()) {
       predecessor.addSuccessor(successor);
@@ -455,7 +467,7 @@ public class PMParser {
       newSplit.addSuccessor(successor);
       successor.addPredecessor(newSplit);
     }
-        
+
   }
 
 }

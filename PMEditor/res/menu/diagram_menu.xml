@@ -27,5 +27,9 @@
         android:id="@+id/ac_save"
         android:title="@string/ac_save">
     </item>
-
+    <item
+        android:id="@+id/ac_export_svg"
+        android:title="@string/ac_export_svg">
+    </item>
+    
 </menu>
