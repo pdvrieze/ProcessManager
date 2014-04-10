@@ -295,7 +295,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     pOut.addNamespace("umh", NS_UMH);
     pOut.addNamespace("jbi", NS_JBI);
     
-    pOut.startTag(NS_PM, "processModel");
+    pOut.startTag(NS_PM, "processModel", true);
     if (aName!=null) {
       pOut.addAttribute("name", aName);
     }
@@ -304,7 +304,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
       node.serialize(pOut);
     }
     pOut.ignorableWhitespace("\n");
-    pOut.endTag(NS_PM, "processModel");
+    pOut.endTag(NS_PM, "processModel", true);
   }
 
   private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> pModelNodes) {

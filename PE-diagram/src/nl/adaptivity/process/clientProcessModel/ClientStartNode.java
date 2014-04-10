@@ -34,10 +34,10 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
 
   @Override
   public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "start");
+    pOut.startTag(NS_PM, "start", true);
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
-    pOut.endTag(NS_PM, "start");
+    pOut.endTag(NS_PM, "start", true);
   }
 
 }

@@ -46,7 +46,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     void serializeRect(SerializerAdapter pOut) {
-      pOut.startTag(SVG_NAMESPACE, "rect");
+      pOut.startTag(SVG_NAMESPACE, "rect", true);
       pOut.addAttribute("x", Double.toString(aBounds.left));
       pOut.addAttribute("y", Double.toString(aBounds.top));
       pOut.addAttribute("width", Double.toString(aBounds.width));
@@ -64,7 +64,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       serializeRect(pOut);
       serializeStroke(pOut);
-      pOut.endTag(SVG_NAMESPACE, "rect");
+      pOut.endTag(SVG_NAMESPACE, "rect", true);
     }
 
   }
@@ -79,7 +79,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       serializeRect(pOut);
       serializeFill(pOut);
-      pOut.endTag(SVG_NAMESPACE, "rect");
+      pOut.endTag(SVG_NAMESPACE, "rect", true);
     }
 
   }
@@ -111,7 +111,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       serializeRoundRect(pOut);
       serializeStroke(pOut);
-      pOut.endTag(SVG_NAMESPACE, "rect");
+      pOut.endTag(SVG_NAMESPACE, "rect", true);
     }
 
   }
@@ -126,7 +126,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       serializeRoundRect(pOut);
       serializeFill(pOut);
-      pOut.endTag(SVG_NAMESPACE, "rect");
+      pOut.endTag(SVG_NAMESPACE, "rect", true);
     }
 
   }
@@ -145,7 +145,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     public void serializeCircle(SerializerAdapter pOut) {
-      pOut.startTag(SVG_NAMESPACE, "circle");
+      pOut.startTag(SVG_NAMESPACE, "circle", true);
       pOut.addAttribute("cx", Double.toString(mX));
       pOut.addAttribute("cy", Double.toString(mY));
       pOut.addAttribute("r", Double.toString(mRadius));
@@ -163,7 +163,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       serializeCircle(pOut);
       serializeStroke(pOut);
-      pOut.endTag(SVG_NAMESPACE, "circle");
+      pOut.endTag(SVG_NAMESPACE, "circle", true);
     }
 
   }
@@ -178,7 +178,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       serializeCircle(pOut);
       serializeFill(pOut);
-      pOut.endTag(SVG_NAMESPACE, "circle");
+      pOut.endTag(SVG_NAMESPACE, "circle", true);
     }
 
   }
@@ -197,12 +197,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     @Override
     public void serialize(SerializerAdapter pOut) {
-      pOut.startTag(SVG_NAMESPACE, "path");
+      pOut.startTag(SVG_NAMESPACE, "path", true);
       serializeStyle(pOut, mStroke, mFill, null);
 
       pOut.addAttribute("d", mPath.toPathData());
 
-      pOut.endTag(SVG_NAMESPACE, "path");
+      pOut.endTag(SVG_NAMESPACE, "path", true);
     }
 
   }
@@ -228,14 +228,14 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     @Override
     public void serialize(SerializerAdapter pOut) {
-      pOut.startTag(SVG_NAMESPACE, "text");
+      pOut.startTag(SVG_NAMESPACE, "text", true);
       pOut.addAttribute("x", Double.toString(mX));
       pOut.addAttribute("y", Double.toString(mY));
       serializeStyle(pOut, null, mColor, mTextPos);
-      pOut.startTag(SVG_NAMESPACE, "tspan");
+      pOut.startTag(SVG_NAMESPACE, "tspan", false);
       pOut.text(mText);
-      pOut.endTag(SVG_NAMESPACE, "tspan");
-      pOut.endTag(SVG_NAMESPACE, "text");
+      pOut.endTag(SVG_NAMESPACE, "tspan", true);
+      pOut.endTag(SVG_NAMESPACE, "text", true);
     }
 
   }
@@ -255,10 +255,16 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     @Override
     public void serialize(SerializerAdapter pOut) {
-      pOut.startTag(SVG_NAMESPACE, "g");
-      pOut.addAttribute("transform", "scale("+aScale+")");
-      super.serialize(pOut);
-      pOut.endTag(SVG_NAMESPACE, "g");
+      pOut.startTag(SVG_NAMESPACE, "g", true);
+      if (aX==0 && aY==0) {
+        pOut.addAttribute("transform", "scale("+aScale+")");
+      } else {
+        pOut.addAttribute("transform", "matrix("+aScale+",0,0,"+aScale+","+aX*aScale+","+aY*aScale+")");
+      }
+      for (IPaintedElem element:this.aPath) {
+        element.serialize(pOut);
+      }
+      pOut.endTag(SVG_NAMESPACE, "g", true);
     }
 
   }
@@ -266,11 +272,28 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   private static final String SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
   private SVGStrategy<M> aStrategy;
+  
+  private static boolean sUseBaselineAlign = false;
 
-  private List<IPaintedElem> aPath = new ArrayList<>();
+  List<IPaintedElem> aPath = new ArrayList<>();
+
+  private Rectangle aBounds;
+
+// Only for debug purposes
+//  private SVGPen<M> aRedPen;
+//  private SVGPen<M> aGreenPen;
 
   public SVGCanvas(TextMeasurer<M> pTextMeasurer) {
-    aStrategy = new SVGStrategy<>(pTextMeasurer);
+    this(new SVGStrategy<>(pTextMeasurer));
+  }
+
+  public SVGCanvas(SVGStrategy<M> pStrategy) {
+    aStrategy = pStrategy;
+// Only for debug purposes
+//    aRedPen = aStrategy.newPen();
+//    aRedPen.setColor(0xff, 0, 0);
+//    aGreenPen = aStrategy.newPen();
+//    aGreenPen.setColor(0, 0xff, 0);
   }
 
   public static void serializeStyle(SerializerAdapter pOut, SVGPen<?> pStroke, SVGPen<?> pFill, TextPos pTextPos) {
@@ -282,6 +305,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
         style.append("stroke-opacity: ").append(colorToSVGOpacity(color)).append("; ");
       }
       style.append("stroke-width: ").append(Double.toString(pStroke.getStrokeWidth())).append("; ");
+    } else {
+      style.append("stroke:none;");
     }
     if (pFill!=null) {
       final int color = pFill.getColor();
@@ -298,8 +323,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
           style.append("font-style: normal; ");
         }
         style.append("text-anchor: ").append(toAnchor(pTextPos)).append("; ");
-        style.append("alignment-baseline").append(toBaseline(pTextPos)).append("; ");
+        if (sUseBaselineAlign) {
+          style.append("alignment-baseline: ").append(toBaseline(pTextPos)).append("; ");
+        }
       }
+    } else {
+      style.append("fill:none; ");
     }
 
     pOut.addAttribute("style", style.toString());
@@ -349,20 +378,20 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   private static boolean hasAlpha(int pColor) {
-    return (pColor >>24) !=0xff;
+    return (pColor >>>24) !=0xff;
   }
 
   private static String colorToSVGOpacity(int pColor) {
-    int alpha = pColor >>24;
-    return Double.toString(alpha/255);
+    int alpha = pColor >>>24;
+    return String.format("%5f", Double.valueOf(alpha/255d));
   }
 
   private static String colorToSVGpaint(int pColor) {
-    return '#'+Integer.toHexString(pColor&0xffffff); // Ignore alpha here
+    return String.format("#%06x", Integer.valueOf(pColor&0xffffff)); // Ignore alpha here
   }
 
-  public SVGCanvas(SVGStrategy<M> pStrategy) {
-    aStrategy = pStrategy;
+  public void setBounds(Rectangle pBounds) {
+    aBounds = pBounds;
   }
 
   @Override
@@ -446,19 +475,51 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   @Override
   public void drawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth,
                        SVGPen<M> pPen) {
-    aPath.add(new DrawText<>(pTextPos, pX, pY, pText, pFoldWidth, pPen.clone()));
+    final double y;
+    if (sUseBaselineAlign) {
+      y = pY;
+    } else {
+      y = adjustToBaseline(pTextPos, pY, pPen);
+    }
+    aPath.add(new DrawText<>(pTextPos, pX, y, pText, pFoldWidth, pPen.clone()));
+// Only for debug purposes
+//    aPath.add(new FilledCircle<>(pX, pY, 1d, aGreenPen));
+//    aPath.add(new FilledCircle<>(pX, y, 1d, aRedPen));
+  }
 
+  private double adjustToBaseline(nl.adaptivity.diagram.Canvas.TextPos pTextPos, double pY, SVGPen<M> pPen) {
+    switch (pTextPos) {
+    case BASELINELEFT:
+    case BASELINEMIDDLE:
+    case BASELINERIGHT:
+      return pY;
+    case BOTTOM:
+    case BOTTOMLEFT:
+    case BOTTOMRIGHT:
+      return pY-pPen.getTextDescent();
+    case LEFT:
+    case MIDDLE:
+    case RIGHT:
+      return (pY+0.5*(pPen.getTextAscent()-pPen.getTextDescent()));
+    case TOP:
+    case TOPLEFT:
+    case TOPRIGHT:
+      return pY +pPen.getTextMaxAscent();
+    }
+    throw new IllegalArgumentException();
   }
 
   public void serialize(SerializerAdapter pOut) {
     pOut.addNamespace(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
-    pOut.startTag(SVG_NAMESPACE, "svg");
+    pOut.startTag(SVG_NAMESPACE, "svg", true);
     pOut.addAttribute("version", "1.1");
+    pOut.addAttribute("width", Double.toString(aBounds.width+aBounds.left*2));
+    pOut.addAttribute("height", Double.toString(aBounds.height+aBounds.top*2));
 
     for (IPaintedElem element:aPath) {
       element.serialize(pOut);
     }
 
-    pOut.endTag(SVG_NAMESPACE, "svg");
+    pOut.endTag(SVG_NAMESPACE, "svg", true);
   }
 }

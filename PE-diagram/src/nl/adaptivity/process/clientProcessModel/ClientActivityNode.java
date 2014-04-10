@@ -110,13 +110,13 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   @Override
   public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "activity");
+    pOut.startTag(NS_PM, "activity", true);
     serializeCommonAttrs(pOut);
     if (aName!=null) { pOut.addAttribute("name", aName); }
     if (aCondition!=null) { pOut.addAttribute("condition", aCondition); }
     serializeCommonChildren(pOut);
     if (aMessage!=null) { /* TODO serialize this */ }
-    pOut.endTag(NS_PM, "activity");
+    pOut.endTag(NS_PM, "activity", true);
   }
 
 }

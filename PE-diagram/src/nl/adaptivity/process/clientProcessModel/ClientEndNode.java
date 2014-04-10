@@ -56,10 +56,10 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
 
   @Override
   public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "end");
+    pOut.startTag(NS_PM, "end", true);
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
-    pOut.endTag(NS_PM, "end");
+    pOut.endTag(NS_PM, "end", true);
   }
 
 }

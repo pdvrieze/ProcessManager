@@ -52,24 +52,24 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   }
 
   protected void serializeSplit(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "split");
+    pOut.startTag(NS_PM, "split", true);
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
-    pOut.endTag(NS_PM, "split");
+    pOut.endTag(NS_PM, "split", true);
   }
 
   protected void serializeJoin(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "join");
+    pOut.startTag(NS_PM, "join", true);
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
     for(T predecessor: getPredecessors()) {
       pOut.ignorableWhitespace("\n    ");
-      pOut.startTag(NS_PM, "predecessor");
+      pOut.startTag(NS_PM, "predecessor", true);
       pOut.text(predecessor.getId());
-      pOut.endTag(NS_PM, "predecessor");
+      pOut.endTag(NS_PM, "predecessor", true);
     }
     pOut.ignorableWhitespace("\n  ");
-    pOut.endTag(NS_PM, "join");
+    pOut.endTag(NS_PM, "join", true);
   }
 
 }

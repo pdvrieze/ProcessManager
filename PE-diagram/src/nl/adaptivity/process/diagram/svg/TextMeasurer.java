@@ -19,7 +19,11 @@ public interface TextMeasurer <M extends MeasureInfo> {
 
   double getTextMaxAscent(M pTextMeasureInfo);
 
+  double getTextAscent(M pTextMeasureInfo);
+
   double getTextMaxDescent(M pTextMeasureInfo);
+
+  double getTextDescent(M pTextMeasureInfo);
 
   double getTextLeading(M pTextMeasureInfo);
 

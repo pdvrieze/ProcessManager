@@ -6,7 +6,7 @@ import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable {
 
-  private int aColor;
+  private int aColor = 0xff000000;
   private double aStrokeWidth;
   private double aFontSize;
   private boolean aItalics;
@@ -69,6 +69,22 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
       aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
     }
     return aTextMeasurer.getTextMaxAscent(aTextMeasureInfo);
+  }
+
+  @Override
+  public double getTextAscent() {
+    if (aTextMeasureInfo==null) {
+      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    }
+    return aTextMeasurer.getTextAscent(aTextMeasureInfo);
+  }
+
+  @Override
+  public double getTextDescent() {
+    if (aTextMeasureInfo==null) {
+      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    }
+    return aTextMeasurer.getTextDescent(aTextMeasureInfo);
   }
 
   @Override
