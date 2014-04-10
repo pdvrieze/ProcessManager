@@ -48,6 +48,11 @@ public class AndroidPen implements Pen<AndroidPen> {
     aPaint.setStrokeWidth((float) pStrokeWidth);
     return this;
   }
+  
+  @Override
+  public double getStrokeWidth() {
+    return aStrokeWidth;
+  }
 
   public void setShadowLayer(float radius, int color) {
     aShadowRadius = radius;
