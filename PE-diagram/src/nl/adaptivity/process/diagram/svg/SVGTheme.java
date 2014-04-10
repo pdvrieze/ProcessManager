@@ -1,13 +1,12 @@
 package nl.adaptivity.process.diagram.svg;
 
-import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.ThemeItem;
 
 
 public class SVGTheme implements Theme<SVGStrategy, SVGPen, SVGPath> {
 
-  private DrawingStrategy<?, ? extends SVGPen, ?> aStrategy;
+  private SVGStrategy aStrategy;
 
   public SVGTheme(SVGStrategy pStrategy) {
     aStrategy = pStrategy;
