@@ -243,9 +243,13 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   private static class SubCanvas<M extends MeasureInfo> extends SVGCanvas<M> implements IPaintedElem {
 
     final double aScale;
+    final double aX;
+    final double aY;
 
-    SubCanvas(SVGStrategy<M> pStrategy, double pScale) {
+    SubCanvas(SVGStrategy<M> pStrategy, Rectangle pArea, double pScale) {
       super(pStrategy);
+      aX = pArea.left;
+      aY = pArea.top;
       aScale = pScale;
     }
 
@@ -368,7 +372,9 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   @Override
   public Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> childCanvas(Rectangle pArea, double pScale) {
-    return new SubCanvas<>(aStrategy, pScale);
+    final SubCanvas<M> result = new SubCanvas<>(aStrategy, pArea, pScale);
+    aPath.add(result);
+    return result;
   }
 
   @Override
@@ -446,7 +452,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   public void serialize(SerializerAdapter pOut) {
     pOut.addNamespace(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
-    pOut.endTag(SVG_NAMESPACE, "svg");
+    pOut.startTag(SVG_NAMESPACE, "svg");
     pOut.addAttribute("version", "1.1");
 
     for (IPaintedElem element:aPath) {
