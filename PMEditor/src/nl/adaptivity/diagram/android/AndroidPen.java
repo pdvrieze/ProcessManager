@@ -105,16 +105,31 @@ public class AndroidPen implements Pen<AndroidPen> {
     return Math.abs(aFontMetrics.top);
   }
 
+  public double getTextAscent() {
+    ensureFontMetrics();
+    return Math.abs(aFontMetrics.ascent);
+  }
+
   @Override
   public double getTextMaxDescent() {
     ensureFontMetrics();
     return Math.abs(aFontMetrics.bottom);
   }
 
+  public double getTextDescent() {
+    ensureFontMetrics();
+    return Math.abs(aFontMetrics.descent);
+  }
+
   @Override
   public double getTextLeading() {
+//    float ts = aPaint.getTextSize();
+//    aPaint.setTextSize((float) aFontSize);
+//    double result = aPaint.getFontSpacing() - aFontSize;
+//    aPaint.setTextSize(ts);
+//    return result;
     ensureFontMetrics();
-    return Math.abs(aFontMetrics.leading);
+    return Math.abs(aFontMetrics.top)+Math.abs(aFontMetrics.bottom)-Math.abs(aFontMetrics.ascent)-Math.abs(aFontMetrics.descent);
   }
 
   @Override

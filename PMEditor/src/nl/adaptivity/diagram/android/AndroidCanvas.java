@@ -4,6 +4,7 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
@@ -162,10 +163,17 @@ public class AndroidCanvas implements IAndroidCanvas {
 
   private android.graphics.Canvas aCanvas;
   private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
+  
+//Only for debug purposes
+//  private Paint aRedPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+//  private Paint aGreenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
   public AndroidCanvas(android.graphics.Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme) {
     aCanvas = pCanvas;
     aTheme = pTheme;
+//Only for debug purposes
+//    aRedPaint.setColor(Color.rgb(255, 0, 0)); aRedPaint.setStyle(Style.FILL);
+//    aGreenPaint.setColor(Color.rgb(0, 255, 0)); aGreenPaint.setStyle(Style.FILL);
   }
 
   @Override
@@ -302,6 +310,9 @@ public class AndroidCanvas implements IAndroidCanvas {
     float left = getLeft(pTextPos, pX, pText, pFoldWidth, pPen, pScale);
     float baseline = getBaseLine(pTextPos, pY, pPen, pScale);
     aCanvas.drawText(pText, left, baseline, paint);
+//Only for debug purposes
+//    aCanvas.drawCircle(left, baseline, 3f, aRedPaint);
+//    aCanvas.drawCircle((float)pX, (float)pY, 3f, aGreenPaint);
   }
 
   private static float getBaseLine(TextPos pTextPos, double pY, AndroidPen pPen, double pScale) {
@@ -309,11 +320,11 @@ public class AndroidCanvas implements IAndroidCanvas {
     case TOPLEFT:
     case TOP:
     case TOPRIGHT:
-      return (float) (pY+(pPen.getTextMaxAscent()*pScale));
+      return (float) (pY+(pPen.getTextAscent()*pScale));
     case LEFT:
     case MIDDLE:
     case RIGHT:
-      return (float) (pY+(0.5*pPen.getTextMaxAscent()-0.5*pPen.getTextMaxDescent())*pScale);
+      return (float) (pY+(0.5*pPen.getTextAscent()-0.5*pPen.getTextDescent())*pScale);
     case BASELINEMIDDLE:
     case BASELINERIGHT:
     case BASELINELEFT:
@@ -321,7 +332,7 @@ public class AndroidCanvas implements IAndroidCanvas {
     case BOTTOMLEFT:
     case BOTTOMRIGHT:
     case BOTTOM:
-      return (float) (pY-(pPen.getTextMaxDescent()*pScale));
+      return (float) (pY-(pPen.getTextDescent()*pScale));
     }
     throw new IllegalArgumentException(pTextPos.toString());
   }

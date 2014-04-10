@@ -48,6 +48,10 @@ public class PMParser {
   public static class XmlSerializerAdapter implements SerializerAdapter {
 
     private final XmlSerializer mSerializer;
+    
+    private int aIndent = 0;
+    private boolean aPendingBreak = false;
+    private boolean aExtraIndent = false;
 
     public XmlSerializerAdapter(XmlSerializer pSerializer) {
       mSerializer = pSerializer;
@@ -64,21 +68,45 @@ public class PMParser {
     }
 
     @Override
-    public void startTag(String pNamespace, String pName) {
+    public void startTag(String pNamespace, String pName, boolean pAddWs) {
       try {
+        if (aPendingBreak) {
+          printBreak();
+        }
+        printExtraIndent();
         mSerializer.startTag(pNamespace, pName);
+        ++aIndent;
+        aPendingBreak = pAddWs;
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void endTag(String pNamespace, String pName) {
+    public void endTag(String pNamespace, String pName, boolean pAddWs) {
       try {
         mSerializer.endTag(pNamespace, pName);
+        --aIndent;
+        if (pAddWs) {
+          printBreak();
+        }
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
+    }
+
+    private void printExtraIndent() throws IOException {
+      if (aExtraIndent) {
+        mSerializer.ignorableWhitespace("  ");
+        aExtraIndent = false;
+      }
+    }
+    
+    private void printBreak() throws IOException {
+      mSerializer.ignorableWhitespace("\n");
+      for(int i=aIndent; i>1; --i) { mSerializer.ignorableWhitespace("  "); }
+      aPendingBreak = false;
+      aExtraIndent=true;
     }
 
     @Override
@@ -93,6 +121,10 @@ public class PMParser {
     @Override
     public void text(String pString) {
       try {
+        if (aPendingBreak) {
+          printBreak();
+        }
+        printExtraIndent();
         mSerializer.text(pString);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
@@ -102,6 +134,10 @@ public class PMParser {
     @Override
     public void ignorableWhitespace(String pString) {
       try {
+        if (aPendingBreak) {
+          printBreak();
+        }
+        printExtraIndent();
         mSerializer.ignorableWhitespace(pString);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);

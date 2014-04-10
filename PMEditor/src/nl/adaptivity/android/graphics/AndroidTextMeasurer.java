@@ -5,6 +5,7 @@ import nl.adaptivity.process.diagram.svg.SVGPen;
 import nl.adaptivity.process.diagram.svg.TextMeasurer;
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 import android.graphics.Paint;
+import android.graphics.Paint.FontMetrics;
 import android.graphics.Typeface;
 
 
@@ -14,19 +15,22 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidMeasureInfo> {
   public static class AndroidMeasureInfo implements MeasureInfo {
 
     final Paint aPaint;
+    final FontMetrics aFontMetrics = new FontMetrics();
 
     public AndroidMeasureInfo(Paint pPaint) {
       aPaint = pPaint;
+      aPaint.getFontMetrics(aFontMetrics);
     }
 
     @Override
     public void setFontSize(double pFontSize) {
       aPaint.setTextSize((float) pFontSize*FONT_MEASURE_FACTOR);
+      aPaint.getFontMetrics(aFontMetrics);
     }
 
   }
 
-  private static final float FONT_MEASURE_FACTOR = 4f;
+  private static final float FONT_MEASURE_FACTOR = 1f;
 
   @Override
   public AndroidMeasureInfo getTextMeasureInfo(SVGPen<AndroidMeasureInfo> pSvgPen) {
@@ -47,17 +51,27 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidMeasureInfo> {
 
   @Override
   public double getTextMaxAscent(AndroidMeasureInfo pTextMeasureInfo) {
-    return pTextMeasureInfo.aPaint.ascent();
+    return Math.abs(pTextMeasureInfo.aFontMetrics.top)/FONT_MEASURE_FACTOR;
+  }
+
+  @Override
+  public double getTextAscent(AndroidMeasureInfo pTextMeasureInfo) {
+    return Math.abs(pTextMeasureInfo.aFontMetrics.ascent)/FONT_MEASURE_FACTOR;
   }
 
   @Override
   public double getTextMaxDescent(AndroidMeasureInfo pTextMeasureInfo) {
-    return pTextMeasureInfo.aPaint.descent();
+    return Math.abs(pTextMeasureInfo.aFontMetrics.bottom)/FONT_MEASURE_FACTOR;
+  }
+
+  @Override
+  public double getTextDescent(AndroidMeasureInfo pTextMeasureInfo) {
+    return Math.abs(pTextMeasureInfo.aFontMetrics.descent)/FONT_MEASURE_FACTOR;
   }
 
   @Override
   public double getTextLeading(AndroidMeasureInfo pTextMeasureInfo) {
-    return pTextMeasureInfo.aPaint.getFontSpacing();
+    return (Math.abs(pTextMeasureInfo.aFontMetrics.top)+Math.abs(pTextMeasureInfo.aFontMetrics.bottom)-Math.abs(pTextMeasureInfo.aFontMetrics.ascent)-Math.abs(pTextMeasureInfo.aFontMetrics.descent))/FONT_MEASURE_FACTOR;
   }
 
 }
