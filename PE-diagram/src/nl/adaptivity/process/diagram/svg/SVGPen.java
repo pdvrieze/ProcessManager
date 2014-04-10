@@ -18,8 +18,7 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
 
   @Override
   public SVGPen setColor(int pRed, int pGreen, int pBlue) {
-    aColor = (pRed&0xff)<<16 | (pGreen&0xff)<<8 | (pBlue&0xff);
-    return this;
+    return setColor(pRed, pGreen, pBlue, 0xff);
   }
 
   @Override
@@ -28,10 +27,18 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
     return this;
   }
 
+  public int getColor() {
+    return aColor;
+  }
+
   @Override
   public SVGPen setStrokeWidth(double pStrokeWidth) {
     aStrokeWidth = pStrokeWidth;
     return this;
+  }
+
+  public double getStrokeWidth() {
+    return aStrokeWidth;
   }
 
   @Override
@@ -45,6 +52,7 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
   public double getFontSize() {
     return aFontSize;
   }
+
 
   @Override
   public double measureTextWidth(String pText, double pFoldWidth) {
@@ -74,6 +82,10 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
     aItalics = pItalics;
   }
 
+  public boolean isTextItalics() {
+    return aItalics;
+  }
+
   @Override
   public SVGPen clone() {
     try {
@@ -82,5 +94,5 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
       throw new AssertionError("This should never throw", e);
     }
   }
-  
+
 }

@@ -9,11 +9,15 @@ import nl.adaptivity.process.diagram.svg.SVGCanvas.PathElem;
 
 public class SVGPath implements DiagramPath<SVGPath>{
 
-  
-  
-  private static abstract class OperTo implements PathElem {
-    private final double aX;
-    private final double aY;
+  private interface IPathElem extends PathElem{
+
+    void appendPathSpecTo(StringBuilder pBuilder);
+
+  }
+
+  private static abstract class OperTo implements IPathElem {
+    final double aX;
+    final double aY;
 
     public OperTo(double pX, double pY) {
       aX = pX;
@@ -21,19 +25,29 @@ public class SVGPath implements DiagramPath<SVGPath>{
     }
 
   }
-  
+
   private static class MoveTo extends OperTo {
     public MoveTo(double pX, double pY) {
       super(pX, pY);
     }
+
+    @Override
+    public void appendPathSpecTo(StringBuilder pBuilder) {
+      pBuilder.append("M").append(aX).append(' ').append(aY).append(' ');
+    }
   }
-  
+
   private static class LineTo extends OperTo {
     public LineTo(double pX, double pY) {
       super(pX, pY);
     }
+
+    @Override
+    public void appendPathSpecTo(StringBuilder pBuilder) {
+      pBuilder.append("L").append(aX).append(' ').append(aY).append(' ');
+    }
   }
-  
+
   private static class CubicTo extends OperTo {
     private final double aCX1;
     private final double aCY1;
@@ -47,13 +61,25 @@ public class SVGPath implements DiagramPath<SVGPath>{
       aCX2 = pCX2;
       aCY2 = pCY2;
     }
+
+    @Override
+    public void appendPathSpecTo(StringBuilder pBuilder) {
+      pBuilder.append("C").append(aCX1).append(' ').append(aCY1).append(' ')
+                          .append(aCX2).append(' ').append(aCY2).append(' ')
+                          .append(aX).append(' ').append(aY).append(' ');
+    }
   }
 
-  private static class Close implements PathElem {
-  
+  private static class Close implements IPathElem {
+
+    @Override
+    public void appendPathSpecTo(StringBuilder pBuilder) {
+      pBuilder.append("Z ");
+    }
+
   }
 
-  private List<PathElem> aPath = new ArrayList<>();
+  private List<IPathElem> aPath = new ArrayList<>();
 
   @Override
   public SVGPath moveTo(double pX, double pY) {
@@ -77,6 +103,14 @@ public class SVGPath implements DiagramPath<SVGPath>{
   public SVGPath close() {
     aPath.add(new Close());
     return this;
+  }
+
+  public String toPathData() {
+    StringBuilder result = new StringBuilder();
+    for(IPathElem elem: aPath) {
+      elem.appendPathSpecTo(result);
+    }
+    return result.toString();
   }
 
 }
