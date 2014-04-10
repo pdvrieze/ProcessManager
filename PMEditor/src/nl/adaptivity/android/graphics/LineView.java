@@ -1,26 +1,20 @@
 package nl.adaptivity.android.graphics;
 
+import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.diagram.android.AndroidCanvas;
 import nl.adaptivity.diagram.android.AndroidPath;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
+import nl.adaptivity.diagram.android.IAndroidCanvas;
 import nl.adaptivity.diagram.android.LightView;
-import nl.adaptivity.process.diagram.ProcessThemeItems;
+import nl.adaptivity.process.diagram.Connectors;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.RectF;
 
 
 public class LineView extends
 AbstractLightView implements LightView {
-
-  private static final double LEADERLEN = 17d;
-  private static final double HEADLEN= 10d;
-  private static final double HEADANGLE=(35*Math.PI)/180;
-  private static final double HEADDX = Math.cos(HEADANGLE)*HEADLEN;
-  private static final double HEADDY = Math.sin(HEADANGLE)*HEADLEN;
-  private static final double MINANGLE = (1*Math.PI)/180;
 
   private float aX1;
   private float aY1;
@@ -58,109 +52,18 @@ AbstractLightView implements LightView {
     if (aX1<=aX2) { x1=0; x2=(float) ((aX2-aX1)*pScale); } else { x2=0; x1=(float) ((aX1-aX2)*pScale); }
     if (aY1<=aY2) { y1=0; y2=(float) ((aY2-aY1)*pScale); } else { y2=0; y1=(float) ((aY1-aY2)*pScale); }
     drawArrow(pCanvas, pTheme, x1, y1, x2, y2, pScale);
-
-//    pCanvas.drawLine(x1, y1, x2, y2, paint);
   }
 
   public static void drawArrow(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, float canvasX1, float canvasY1, float canvasX2, float canvasY2, double pScale) {
-    double dx = canvasX2-canvasX1;
-    double dy = canvasY2-canvasY1;
-    double angle = Math.atan2(dy,dx);
-    if (Math.abs(angle)<MINANGLE || Math.abs(canvasX2-canvasX1)<LEADERLEN*pScale){
-      drawStraightArrow(pCanvas, pTheme, canvasX1, canvasY1, canvasX2, canvasY2, pScale);
-
-      return;
-    }
-    Paint paint = pTheme.getPen(ProcessThemeItems.LINE, 0).scale(pScale).getPaint();
-
-    final double headDx;
-    final float x2;
-    final double x3;
-    final double y3 = canvasY2;
-    final double angle2;
-    final float capCorrect;
-
-    // The distance that the miter extends from the focal point of the arrow.
-    final double miterExtend = (0.5*paint.getStrokeWidth())/Math.sin(HEADANGLE);
-    if (canvasX1<canvasX2) { // left to right
-      headDx = -HEADDX*pScale;
-      x2 = (float) (canvasX2-miterExtend);
-      /* Point 3 represents the focal point of a spline.
-       * Point 4 is the point where the spline stops and a straight line starts.
-       */
-      x3 = x2-LEADERLEN*pScale;
-      angle2 = Math.atan2((canvasY1-y3),(canvasX1-x3));
-      capCorrect = paint.getStrokeCap()==Paint.Cap.BUTT? 0f: paint.getStrokeWidth()/-2f;
-    } else { //right to left
-      headDx = HEADDX*pScale;
-      x2 = (float) (canvasX2+miterExtend);
-      /* Point 3 represents the focal point of a spline.
-       * Point 4 is the point where the spline stops and a straight line starts.
-       */
-      x3 = x2+LEADERLEN*pScale;
-      angle2 = Math.atan2((canvasY1-y3),(canvasX1-x3));
-      capCorrect = paint.getStrokeCap()==Paint.Cap.BUTT? 0f: paint.getStrokeWidth()/2f;
-    }
-    final float x4 = (float) (x3+Math.cos(angle2)*LEADERLEN*pScale);
-    final float y4 = (float) (y3+Math.sin(angle2)*LEADERLEN*pScale);
-
-    boolean tooShort = false;
-    if (dx>0) {
-      if (x4<canvasX1) { tooShort=true; }
-    } else {
-      if (x4>canvasX1) { tooShort=true; }
-    }
-    if (dy>0) {
-      if (y4<canvasY1) { tooShort=true; }
-    } else { // dy<0
-      if (y4>canvasY1) { tooShort=true; }
-    }
-    if (tooShort) {
-      drawStraightArrow(pCanvas, pTheme, canvasX1, canvasY1, canvasX2, canvasY2, pScale);
-      return;
-    }
-
-    Path arrowPath = new Path();
-    arrowPath.moveTo(canvasX1, canvasY1);
-    arrowPath.lineTo(x4, y4);
-    arrowPath.cubicTo((float)x3, (float)y3, (float)x3, (float)y3, x2+capCorrect, canvasY2);
-    final float headDy = (float) (HEADDY*pScale);
-    arrowPath.moveTo((float)(x2+headDx), canvasY2-headDy);
-    arrowPath.lineTo(x2, canvasY2);
-    arrowPath.lineTo((float)(x2+headDx), canvasY2+headDy);
-    pCanvas.drawPath(arrowPath, paint);
+    IAndroidCanvas canvas = new AndroidCanvas(pCanvas, pTheme).childCanvas(new Rectangle(0d/*Math.min(aX1, aX2)*/, 0d,0d/*Math.min(aY1, aY2)*/, 0d), pScale);
+    Connectors.drawArrow(canvas, pTheme, canvasX1/pScale, canvasY1/pScale, 0, canvasX2/pScale, canvasY2/pScale, 0);
+    return;
   }
 
   public static void drawStraightArrow(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, float canvasX1, float canvasY1, float canvasX2, float canvasY2, double pScale) {
-    Paint paint = pTheme.getPen(ProcessThemeItems.LINE, 0).scale(pScale).getPaint();
-    double dx = canvasX2-canvasX1;
-    double dy = canvasY2-canvasY1;
-    double angle = Math.atan2(dy,dx);
-
-    final double miterExtend = (0.5*paint.getStrokeWidth())/Math.sin(HEADANGLE);
-    final float miterExtendX = (float) (Math.cos(angle)*miterExtend);
-    final float miterExtendY = (float) (Math.sin(angle)*miterExtend);
-
-    Path arrowPath = new Path();
-
-    double headLen = Math.sqrt((pScale*HEADDX*pScale*HEADDX)+(pScale*HEADDY*pScale*HEADDY));
-    float x2 = canvasX2-miterExtendX;
-    float y2 = canvasY2-miterExtendY;
-
-    arrowPath.moveTo(canvasX1, canvasY1);
-    arrowPath.lineTo(x2-miterExtendX, y2-miterExtendY);
-
-    double headAngle = angle+Math.PI-HEADANGLE;
-    final float headDX1 = (float) (Math.cos(headAngle)*headLen);
-    final float headDY1 = (float) (Math.sin(headAngle)*headLen);
-    headAngle = angle+Math.PI+HEADANGLE;
-    final float headDX2 = (float) (Math.cos(headAngle)*headLen);
-    final float headDY2 = (float) (Math.sin(headAngle)*headLen);
-
-    arrowPath.moveTo(x2+headDX1, y2+headDY1);
-    arrowPath.lineTo(x2, y2);
-    arrowPath.lineTo(x2+headDX2, y2+headDY2);
-    pCanvas.drawPath(arrowPath, paint);
+    IAndroidCanvas canvas = new AndroidCanvas(pCanvas, pTheme).childCanvas(new Rectangle(0d/*Math.min(aX1, aX2)*/, 0d,0d/*Math.min(aY1, aY2)*/, 0d), pScale);
+    Connectors.drawStraightArrow(canvas, pTheme, canvasX1/pScale, canvasY1/pScale, canvasX2/pScale, canvasY2/pScale);
+    return;
   }
 
   @Override
