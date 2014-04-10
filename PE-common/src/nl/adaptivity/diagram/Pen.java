@@ -5,6 +5,8 @@ public interface Pen<PEN_T extends Pen<PEN_T>> {
   PEN_T setColor(int red, int green, int blue);
   PEN_T setColor(int red, int green, int blue, int alpha);
   PEN_T setStrokeWidth(double strokeWidth);
+  double getStrokeWidth();
+  
   PEN_T setFontSize(double fontSize);
   double getFontSize();
 
@@ -21,7 +23,11 @@ public interface Pen<PEN_T extends Pen<PEN_T>> {
 
   public double getTextMaxAscent();
 
+  public double getTextAscent();
+
   public double getTextMaxDescent();
+
+  public double getTextDescent();
 
   /**
    * The space recommended to separate two lines (beyond ascent and descent.
