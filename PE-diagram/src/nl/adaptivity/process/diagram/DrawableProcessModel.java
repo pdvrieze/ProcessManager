@@ -284,23 +284,28 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     PEN_T arcPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState);
 
-    PATH_T connectors = aItems.getPath(strategy, 0);
+    List<PATH_T> connectors  = aItems.getPathList(strategy, 0);
     if (connectors == null) {
-      connectors = strategy.newPath();
+      connectors = new ArrayList<>();
       for(DrawableProcessNode start:getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (DrawableProcessNode end: start.getSuccessors()) {
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
-              connectors.moveTo(start.getBounds().right()-STROKEWIDTH, start.getY())
-                        .lineTo(end.getBounds().left+STROKEWIDTH, end.getY());
+              double x1 = start.getBounds().right()/*-STROKEWIDTH*/;
+              double y1 = start.getY();
+              double x2 = end.getBounds().left/*+STROKEWIDTH*/;
+              double y2 = end.getY();
+              connectors.add(Connectors.getArrow(strategy, x1, y1, x2, y2, arcPen));
             }
           }
         }
       }
-      aItems.setPath(strategy, 0, connectors);
+      aItems.setPathList(strategy, 0, connectors);
     }
 
-    canvas.drawPath(connectors, arcPen, null);
+    for(PATH_T path: connectors) {
+      canvas.drawPath(path, arcPen, null);
+    }
 
     for(DrawableProcessNode node:getModelNodes()) {
       node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
