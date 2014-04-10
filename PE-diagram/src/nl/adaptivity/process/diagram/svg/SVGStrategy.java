@@ -1,19 +1,20 @@
 package nl.adaptivity.process.diagram.svg;
 
 import nl.adaptivity.diagram.DrawingStrategy;
+import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 
-public class SVGStrategy implements DrawingStrategy<SVGStrategy, SVGPen, SVGPath> {
+public class SVGStrategy<M extends MeasureInfo> implements DrawingStrategy<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
-  private TextMeasurer aTextMeasurer;
+  private TextMeasurer<M> aTextMeasurer;
 
-  public SVGStrategy(TextMeasurer pTextMeasurer) {
+  public SVGStrategy(TextMeasurer<M> pTextMeasurer) {
     aTextMeasurer = pTextMeasurer;
   }
-  
+
   @Override
-  public SVGPen newPen() {
-    return new SVGPen(aTextMeasurer);
+  public SVGPen<M> newPen() {
+    return new SVGPen<>(aTextMeasurer);
   }
 
   @Override

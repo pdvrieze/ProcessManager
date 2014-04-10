@@ -1,28 +1,29 @@
 package nl.adaptivity.process.diagram.svg;
 
 import nl.adaptivity.diagram.Pen;
+import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 
-public class SVGPen implements Pen<SVGPen>, Cloneable {
+public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable {
 
   private int aColor;
   private double aStrokeWidth;
   private double aFontSize;
   private boolean aItalics;
-  private TextMeasurer aTextMeasurer;
-  private TextMeasurer.MeasureInfo aTextMeasureInfo;
+  private TextMeasurer<M> aTextMeasurer;
+  private M aTextMeasureInfo;
 
-  public SVGPen(TextMeasurer pTextMeasurer) {
+  public SVGPen(TextMeasurer<M> pTextMeasurer) {
     aTextMeasurer = pTextMeasurer;
   }
 
   @Override
-  public SVGPen setColor(int pRed, int pGreen, int pBlue) {
+  public SVGPen<M> setColor(int pRed, int pGreen, int pBlue) {
     return setColor(pRed, pGreen, pBlue, 0xff);
   }
 
   @Override
-  public SVGPen setColor(int pRed, int pGreen, int pBlue, int pAlpha) {
+  public SVGPen<M> setColor(int pRed, int pGreen, int pBlue, int pAlpha) {
     aColor = (pAlpha&0xff) << 24 | (pRed&0xff)<<16 | (pGreen&0xff)<<8 | (pBlue&0xff);
     return this;
   }
@@ -32,7 +33,7 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
   }
 
   @Override
-  public SVGPen setStrokeWidth(double pStrokeWidth) {
+  public SVGPen<M> setStrokeWidth(double pStrokeWidth) {
     aStrokeWidth = pStrokeWidth;
     return this;
   }
@@ -42,7 +43,7 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
   }
 
   @Override
-  public SVGPen setFontSize(double pFontSize) {
+  public SVGPen<M> setFontSize(double pFontSize) {
     aFontSize = pFontSize;
     if (aTextMeasureInfo!=null) { aTextMeasureInfo.setFontSize(pFontSize); }
     return this;
@@ -57,23 +58,32 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
   @Override
   public double measureTextWidth(String pText, double pFoldWidth) {
     if (aTextMeasureInfo==null) {
-      aTextMeasurer.getTextMeasureInfo(this);
+      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
     }
     return aTextMeasurer.measureTextWidth(aTextMeasureInfo, pText, pFoldWidth);
   }
 
   @Override
   public double getTextMaxAscent() {
+    if (aTextMeasureInfo==null) {
+      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    }
     return aTextMeasurer.getTextMaxAscent(aTextMeasureInfo);
   }
 
   @Override
   public double getTextMaxDescent() {
+    if (aTextMeasureInfo==null) {
+      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    }
     return aTextMeasurer.getTextMaxDescent(aTextMeasureInfo);
   }
 
   @Override
   public double getTextLeading() {
+    if (aTextMeasureInfo==null) {
+      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    }
     return aTextMeasurer.getTextLeading(aTextMeasureInfo);
   }
 
@@ -86,10 +96,11 @@ public class SVGPen implements Pen<SVGPen>, Cloneable {
     return aItalics;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public SVGPen clone() {
+  public SVGPen<M> clone() {
     try {
-      return (SVGPen) super.clone();
+      return (SVGPen<M>) super.clone();
     } catch (CloneNotSupportedException e) {
       throw new AssertionError("This should never throw", e);
     }

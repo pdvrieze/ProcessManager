@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.process.diagram.svg.SVGCanvas.PathElem;
 
 
 public class SVGPath implements DiagramPath<SVGPath>{
 
-  private interface IPathElem extends PathElem{
+  private interface IPathElem {
 
     void appendPathSpecTo(StringBuilder pBuilder);
 

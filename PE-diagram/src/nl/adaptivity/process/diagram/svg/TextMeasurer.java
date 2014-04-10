@@ -3,23 +3,24 @@ package nl.adaptivity.process.diagram.svg;
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 
-public interface TextMeasurer {
 
-  
+public interface TextMeasurer <M extends MeasureInfo> {
+
+
   public interface MeasureInfo {
 
     void setFontSize(double pFontSize);
 
   }
 
-  void getTextMeasureInfo(SVGPen pSvgPen);
+  M getTextMeasureInfo(SVGPen<M> pSvgPen);
 
-  double measureTextWidth(MeasureInfo pTextMeasureInfo, String pText, double pFoldWidth);
+  double measureTextWidth(M pTextMeasureInfo, String pText, double pFoldWidth);
 
-  double getTextMaxAscent(MeasureInfo pTextMeasureInfo);
+  double getTextMaxAscent(M pTextMeasureInfo);
 
-  double getTextMaxDescent(MeasureInfo pTextMeasureInfo);
+  double getTextMaxDescent(M pTextMeasureInfo);
 
-  double getTextLeading(MeasureInfo pTextMeasureInfo);
+  double getTextLeading(M pTextMeasureInfo);
 
 }

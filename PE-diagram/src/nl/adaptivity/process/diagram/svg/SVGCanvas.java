@@ -8,28 +8,22 @@ import javax.xml.XMLConstants;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
+import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 
-public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
+public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
-
-
-  interface PathElem {
-
-  }
-
-  interface IPaintedElem extends PathElem {
+  interface IPaintedElem {
 
     void serialize(SerializerAdapter pOut);
 
   }
 
-  private static abstract class PaintedElem implements IPaintedElem {
-    final SVGPen mColor;
+  private static abstract class PaintedElem<M extends MeasureInfo> implements IPaintedElem {
+    final SVGPen<M> mColor;
 
-    PaintedElem(SVGPen pColor) {
+    PaintedElem(SVGPen<M> pColor) {
       mColor = pColor;
     }
 
@@ -43,10 +37,10 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static abstract class BaseRect extends PaintedElem {
+  private static abstract class BaseRect<M extends MeasureInfo> extends PaintedElem<M> {
     final Rectangle aBounds;
 
-    BaseRect(Rectangle pBounds, SVGPen pColor) {
+    BaseRect(Rectangle pBounds, SVGPen<M> pColor) {
       super(pColor);
       aBounds = pBounds;
     }
@@ -60,9 +54,9 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
     }
   }
 
-  private static class Rect extends BaseRect {
+  private static class Rect<M extends MeasureInfo> extends BaseRect<M> {
 
-    public Rect(Rectangle pBounds, SVGPen pColor) {
+    public Rect(Rectangle pBounds, SVGPen<M> pColor) {
       super(pBounds, pColor);
     }
 
@@ -75,9 +69,9 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static class FilledRect extends BaseRect {
+  private static class FilledRect<M extends MeasureInfo> extends BaseRect<M> {
 
-    FilledRect(Rectangle pBounds, SVGPen pColor) {
+    FilledRect(Rectangle pBounds, SVGPen<M> pColor) {
       super(pBounds, pColor);
     }
 
@@ -90,11 +84,11 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static abstract class BaseRoundRect extends BaseRect {
+  private static abstract class BaseRoundRect<M extends MeasureInfo> extends BaseRect<M> {
     final double aRx;
     final double aRy;
 
-    BaseRoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen pColor) {
+    BaseRoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen<M> pColor) {
       super(pBounds, pColor);
       aRx = pRx;
       aRy = pRy;
@@ -107,9 +101,9 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
     }
   }
 
-  private static class RoundRect extends BaseRoundRect {
+  private static class RoundRect<M extends MeasureInfo> extends BaseRoundRect<M> {
 
-    RoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen pColor) {
+    RoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen<M> pColor) {
       super(pBounds, pRx, pRy, pColor);
     }
 
@@ -122,9 +116,9 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static class FilledRoundRect extends BaseRoundRect {
+  private static class FilledRoundRect<M extends MeasureInfo> extends BaseRoundRect<M> {
 
-    FilledRoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen pColor) {
+    FilledRoundRect(Rectangle pBounds, double pRx, double pRy, SVGPen<M> pColor) {
       super(pBounds, pRx, pRy, pColor);
     }
 
@@ -137,13 +131,13 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static abstract class BaseCircle extends PaintedElem {
+  private static abstract class BaseCircle<M extends MeasureInfo> extends PaintedElem<M> {
 
     final double mX;
     final double mY;
     final double mRadius;
 
-    public BaseCircle(double pX, double pY, double pRadius, SVGPen pColor) {
+    public BaseCircle(double pX, double pY, double pRadius, SVGPen<M> pColor) {
       super(pColor);
       mX = pX;
       mY = pY;
@@ -159,9 +153,9 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static class Circle extends BaseCircle {
+  private static class Circle<M extends MeasureInfo> extends BaseCircle<M> {
 
-    public Circle(double pX, double pY, double pRadius, SVGPen pColor) {
+    public Circle(double pX, double pY, double pRadius, SVGPen<M> pColor) {
       super(pX, pY, pRadius, pColor);
     }
 
@@ -174,9 +168,9 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static class FilledCircle extends BaseCircle {
+  private static class FilledCircle<M extends MeasureInfo> extends BaseCircle<M> {
 
-    public FilledCircle(double pX, double pY, double pRadius, SVGPen pColor) {
+    public FilledCircle(double pX, double pY, double pRadius, SVGPen<M> pColor) {
       super(pX, pY, pRadius, pColor);
     }
 
@@ -189,13 +183,13 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static class PaintedPath implements IPaintedElem {
+  private static class PaintedPath<M extends MeasureInfo> implements IPaintedElem {
 
     final SVGPath mPath;
-    final SVGPen mStroke;
-    final SVGPen mFill;
+    final SVGPen<M> mStroke;
+    final SVGPen<M> mFill;
 
-    public PaintedPath(SVGPath pPath, SVGPen pStroke, SVGPen pFill) {
+    public PaintedPath(SVGPath pPath, SVGPen<M> pStroke, SVGPen<M> pFill) {
       mPath = pPath;
       mStroke = pStroke;
       mFill = pFill;
@@ -214,15 +208,16 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
   }
 
 
-  private static class DrawText extends PaintedElem {
+  private static class DrawText<M extends MeasureInfo> extends PaintedElem<M> {
 
     final TextPos mTextPos;
     final double mX;
     final double mY;
     final String mText;
+    @SuppressWarnings("unused")
     final double mFoldWidth;
 
-    public DrawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth, SVGPen pColor) {
+    public DrawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth, SVGPen<M> pColor) {
       super(pColor);
       mTextPos = pTextPos;
       mX = pX;
@@ -245,11 +240,11 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   }
 
-  private static class SubCanvas extends SVGCanvas implements IPaintedElem {
+  private static class SubCanvas<M extends MeasureInfo> extends SVGCanvas<M> implements IPaintedElem {
 
     final double aScale;
 
-    SubCanvas(SVGStrategy pStrategy, double pScale) {
+    SubCanvas(SVGStrategy<M> pStrategy, double pScale) {
       super(pStrategy);
       aScale = pScale;
     }
@@ -266,15 +261,15 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
 
   private static final String SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-  private SVGStrategy aStrategy;
+  private SVGStrategy<M> aStrategy;
 
   private List<IPaintedElem> aPath = new ArrayList<>();
 
-  public SVGCanvas(TextMeasurer pTextMeasurer) {
-    aStrategy = new SVGStrategy(pTextMeasurer);
+  public SVGCanvas(TextMeasurer<M> pTextMeasurer) {
+    aStrategy = new SVGStrategy<>(pTextMeasurer);
   }
 
-  public static void serializeStyle(SerializerAdapter pOut, SVGPen pStroke, SVGPen pFill, TextPos pTextPos) {
+  public static void serializeStyle(SerializerAdapter pOut, SVGPen<?> pStroke, SVGPen<?> pFill, TextPos pTextPos) {
     StringBuilder style = new StringBuilder();
     if (pStroke!=null) {
       final int color = pStroke.getColor();
@@ -362,53 +357,53 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
     return '#'+Integer.toHexString(pColor&0xffffff); // Ignore alpha here
   }
 
-  public SVGCanvas(SVGStrategy pStrategy) {
+  public SVGCanvas(SVGStrategy<M> pStrategy) {
     aStrategy = pStrategy;
   }
 
   @Override
-  public SVGStrategy getStrategy() {
+  public SVGStrategy<M> getStrategy() {
     return aStrategy;
   }
 
   @Override
-  public Canvas<SVGStrategy, SVGPen, SVGPath> childCanvas(Rectangle pArea, double pScale) {
-    return new SubCanvas(aStrategy, pScale);
+  public Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> childCanvas(Rectangle pArea, double pScale) {
+    return new SubCanvas<>(aStrategy, pScale);
   }
 
   @Override
-  public void drawFilledCircle(double pX, double pY, double pRadius, SVGPen pColor) {
-    aPath.add(new FilledCircle(pX, pY, pRadius, pColor.clone()));
+  public void drawFilledCircle(double pX, double pY, double pRadius, SVGPen<M> pColor) {
+    aPath.add(new FilledCircle<>(pX, pY, pRadius, pColor.clone()));
   }
 
   @Override
-  public void drawRect(Rectangle pRect, SVGPen pColor) {
-    aPath.add(new Rect(pRect, pColor));
+  public void drawRect(Rectangle pRect, SVGPen<M> pColor) {
+    aPath.add(new Rect<>(pRect, pColor));
   }
 
   @Override
-  public void drawFilledRect(Rectangle pRect, SVGPen pColor) {
-    aPath.add(new FilledRect(pRect, pColor));
+  public void drawFilledRect(Rectangle pRect, SVGPen<M> pColor) {
+    aPath.add(new FilledRect<>(pRect, pColor));
   }
 
   @Override
-  public void drawCircle(double pX, double pY, double pRadius, SVGPen pColor) {
-    aPath.add(new Circle(pX, pY, pRadius, pColor));
+  public void drawCircle(double pX, double pY, double pRadius, SVGPen<M> pColor) {
+    aPath.add(new Circle<>(pX, pY, pRadius, pColor));
   }
 
   @Override
-  public void drawRoundRect(Rectangle pRect, double pRx, double pRy, SVGPen pColor) {
-    aPath.add(new RoundRect(pRect, pRx, pRy, pColor));
+  public void drawRoundRect(Rectangle pRect, double pRx, double pRy, SVGPen<M> pColor) {
+    aPath.add(new RoundRect<>(pRect, pRx, pRy, pColor));
 
   }
 
   @Override
-  public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, SVGPen pColor) {
-    aPath.add(new FilledRoundRect(pRect, pRx, pRy, pColor));
+  public void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, SVGPen<M> pColor) {
+    aPath.add(new FilledRoundRect<>(pRect, pRx, pRy, pColor));
   }
 
   @Override
-  public void drawPoly(double[] pPoints, SVGPen pColor) {
+  public void drawPoly(double[] pPoints, SVGPen<M> pColor) {
     if (pPoints.length>1) {
       SVGPath path = pointsToPath(pPoints);
       drawPath(path, pColor, null);
@@ -416,7 +411,7 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
   }
 
   @Override
-  public void drawFilledPoly(double[] pPoints, SVGPen pColor) {
+  public void drawFilledPoly(double[] pPoints, SVGPen<M> pColor) {
     if (pPoints.length>1) {
       SVGPath path = pointsToPath(pPoints);
       drawPath(path, null, pColor);
@@ -433,19 +428,19 @@ public class SVGCanvas implements Canvas<SVGStrategy, SVGPen, SVGPath> {
   }
 
   @Override
-  public void drawPath(SVGPath pPath, SVGPen pStroke, SVGPen pFill) {
-    aPath.add(new PaintedPath(pPath, pStroke, pFill));
+  public void drawPath(SVGPath pPath, SVGPen<M> pStroke, SVGPen<M> pFill) {
+    aPath.add(new PaintedPath<>(pPath, pStroke, pFill));
   }
 
   @Override
-  public Theme<SVGStrategy, SVGPen, SVGPath> getTheme() {
-    return new SVGTheme(aStrategy);
+  public Theme<SVGStrategy<M>, SVGPen<M>, SVGPath> getTheme() {
+    return new SVGTheme<>(aStrategy);
   }
 
   @Override
   public void drawText(TextPos pTextPos, double pX, double pY, String pText, double pFoldWidth,
-                       SVGPen pPen) {
-    aPath.add(new DrawText(pTextPos, pX, pY, pText, pFoldWidth, pPen.clone()));
+                       SVGPen<M> pPen) {
+    aPath.add(new DrawText<>(pTextPos, pX, pY, pText, pFoldWidth, pPen.clone()));
 
   }
 
