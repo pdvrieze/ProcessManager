@@ -4,9 +4,11 @@ package nl.adaptivity.diagram;
 public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> {
   
   public enum TextPos {
-    TOPLEFT, TOP, TOPRIGHT,
+    MAXTOPLEFT, MAXTOP, MAXTOPRIGHT,
+    ASCENTLEFT, ASCENT, ASCENTRIGHT,
     LEFT, MIDDLE, RIGHT,
     BASELINELEFT, BASELINEMIDDLE, BASELINERIGHT,
+    DESCENTLEFT, DESCENT, DESCENTRIGHT,
     BOTTOMLEFT, BOTTOM, BOTTOMRIGHT;
   }
 
