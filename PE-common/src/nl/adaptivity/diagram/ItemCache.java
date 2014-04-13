@@ -1,6 +1,7 @@
 package nl.adaptivity.diagram;
 
 import java.lang.reflect.Array;
+import java.util.List;
 
 /**
  * A cache implementation that allows drawing strategy related items to be stored.
@@ -15,6 +16,8 @@ public class ItemCache {
   private DrawingStrategy<?,?,?>[] aStrategies = new DrawingStrategy<?,?,?>[0];
   private Pen<?>[][] aPens = new Pen<?>[1][1];
   private DiagramPath<?>[][] aPaths = new DiagramPath<?>[1][1];
+  @SuppressWarnings("unchecked")
+  private List<DiagramPath<?>>[][] aPathLists = new List[1][1];
 
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setPen(S pStrategy, int pIndex, PEN_T pPen) {
     int strategyIdx = ensureStrategyIndex(pStrategy);
@@ -38,6 +41,19 @@ public class ItemCache {
       aPaths[strategyIdx] = sPaths = ensureArrayLength(sPaths, pIndex+1);
     }
     sPaths[pIndex] = pPath;
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void setPathList(S pStrategy, int pIndex, List<PATH_T> pPathList) {
+    int strategyIdx = ensureStrategyIndex(pStrategy);
+    aPathLists = ensureArrayLength(aPathLists, strategyIdx+1);
+    List<DiagramPath<?>>[] sPathLists = aPathLists[strategyIdx];
+    if (sPathLists==null) {
+      aPathLists[strategyIdx] = sPathLists = new List[pIndex+1];
+    } else {
+      aPathLists[strategyIdx] = sPathLists = ensureArrayLength(sPathLists, pIndex+1);
+    }
+    sPathLists[pIndex] = (List) pPathList;
   }
 
   private static <V> V[] ensureArrayLength(V[] array, int length) {
@@ -101,6 +117,13 @@ public class ItemCache {
     int strategyIdx = getStrategyIndex(pStrategy);
     if(strategyIdx<0 || strategyIdx>=aPaths.length || pIndex>=aPaths[strategyIdx].length) { return null; }
     return (PATH_T) aPaths[strategyIdx][pIndex];
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> List<PATH_T> getPathList(S pStrategy, int pIndex) {
+    int strategyIdx = getStrategyIndex(pStrategy);
+    if(strategyIdx<0 || strategyIdx>=aPathLists.length || pIndex>=aPathLists[strategyIdx].length) { return null; }
+    return (List) aPathLists[strategyIdx][pIndex];
   }
 
   /**
