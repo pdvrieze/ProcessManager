@@ -104,8 +104,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
         textPen.setTextItalics(false);
       }
       if (label!=null) {
-        double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading();
-        pCanvas.drawText(TextPos.TOP, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
+        double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()/2;
+        pCanvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
       }
     }
   }

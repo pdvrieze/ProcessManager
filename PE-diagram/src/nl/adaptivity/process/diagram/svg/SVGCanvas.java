@@ -340,6 +340,9 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       case BASELINEMIDDLE:
       case BASELINERIGHT:
         return "auto";
+      case DESCENTLEFT:
+      case DESCENT:
+      case DESCENTRIGHT:
       case BOTTOM:
       case BOTTOMLEFT:
       case BOTTOMRIGHT:
@@ -348,9 +351,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       case MIDDLE:
       case RIGHT:
         return "central";
-      case TOP:
-      case TOPLEFT:
-      case TOPRIGHT:
+      case ASCENT:
+      case ASCENTLEFT:
+      case ASCENTRIGHT:
+      case MAXTOP:
+      case MAXTOPLEFT:
+      case MAXTOPRIGHT:
         return "before-edge";
     }
     throw new IllegalArgumentException();
@@ -358,17 +364,23 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static String toAnchor(TextPos pTextPos) {
     switch (pTextPos) {
-      case TOPLEFT:
+      case MAXTOPLEFT:
+      case ASCENTLEFT:
+      case DESCENTLEFT:
       case LEFT:
       case BASELINELEFT:
       case BOTTOMLEFT:
         return "start";
-      case TOP:
+      case MAXTOP:
+      case ASCENT:
+      case DESCENT:
       case MIDDLE:
       case BASELINEMIDDLE:
       case BOTTOM:
         return "middle";
-      case TOPRIGHT:
+      case MAXTOPRIGHT:
+      case ASCENTRIGHT:
+      case DESCENTRIGHT:
       case RIGHT:
       case BASELINERIGHT:
       case BOTTOMRIGHT:
@@ -496,14 +508,22 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     case BOTTOM:
     case BOTTOMLEFT:
     case BOTTOMRIGHT:
+      return pY-pPen.getTextMaxDescent();
+    case DESCENT:
+    case DESCENTLEFT:
+    case DESCENTRIGHT:
       return pY-pPen.getTextDescent();
     case LEFT:
     case MIDDLE:
-    case RIGHT:
+    case RIGHT: 
       return (pY+0.5*(pPen.getTextAscent()-pPen.getTextDescent()));
-    case TOP:
-    case TOPLEFT:
-    case TOPRIGHT:
+    case ASCENT:
+    case ASCENTLEFT:
+    case ASCENTRIGHT:
+      return pY +pPen.getTextAscent();
+    case MAXTOP:
+    case MAXTOPLEFT:
+    case MAXTOPRIGHT:
       return pY +pPen.getTextMaxAscent();
     }
     throw new IllegalArgumentException();
