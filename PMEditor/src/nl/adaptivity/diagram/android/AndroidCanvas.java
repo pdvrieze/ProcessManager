@@ -317,9 +317,13 @@ public class AndroidCanvas implements IAndroidCanvas {
 
   private static float getBaseLine(TextPos pTextPos, double pY, AndroidPen pPen, double pScale) {
     switch (pTextPos) {
-    case TOPLEFT:
-    case TOP:
-    case TOPRIGHT:
+    case MAXTOPLEFT:
+    case MAXTOP:
+    case MAXTOPRIGHT:
+      return (float) (pY+(pPen.getTextMaxAscent()*pScale));
+    case ASCENTLEFT:
+    case ASCENT:
+    case ASCENTRIGHT:
       return (float) (pY+(pPen.getTextAscent()*pScale));
     case LEFT:
     case MIDDLE:
@@ -332,6 +336,10 @@ public class AndroidCanvas implements IAndroidCanvas {
     case BOTTOMLEFT:
     case BOTTOMRIGHT:
     case BOTTOM:
+      return (float) (pY-(pPen.getTextMaxDescent()*pScale));
+    case DESCENTLEFT:
+    case DESCENTRIGHT:
+    case DESCENT:
       return (float) (pY-(pPen.getTextDescent()*pScale));
     }
     throw new IllegalArgumentException(pTextPos.toString());
@@ -342,14 +350,19 @@ public class AndroidCanvas implements IAndroidCanvas {
     case BASELINELEFT:
     case BOTTOMLEFT:
     case LEFT:
-    case TOPLEFT:
+    case MAXTOPLEFT:
+    case ASCENTLEFT:
       return (float) pX;
-    case TOP:
+    case MAXTOP:
+    case ASCENT:
+    case DESCENT:
     case BASELINEMIDDLE:
     case MIDDLE:
     case BOTTOM:
       return (float) (pX - ((pPen.measureTextWidth(pText, pFoldWidth)*pScale)/2));
-    case TOPRIGHT:
+    case MAXTOPRIGHT:
+    case ASCENTRIGHT:
+    case DESCENTRIGHT:
     case RIGHT:
     case BASELINERIGHT:
     case BOTTOMRIGHT:
