@@ -48,7 +48,7 @@ public class PMParser {
   public static class XmlSerializerAdapter implements SerializerAdapter {
 
     private final XmlSerializer mSerializer;
-    
+
     private int aIndent = 0;
     private boolean aPendingBreak = false;
     private boolean aExtraIndent = false;
@@ -101,7 +101,7 @@ public class PMParser {
         aExtraIndent = false;
       }
     }
-    
+
     private void printBreak() throws IOException {
       mSerializer.ignorableWhitespace("\n");
       for(int i=aIndent; i>1; --i) { mSerializer.ignorableWhitespace("  "); }
@@ -210,12 +210,12 @@ public class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  static void serializeProcessModel(OutputStream pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
+  public static void serializeProcessModel(OutputStream pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer(pOut);
     serializeProcessModel(serializer, pProcessModel);
   }
 
-  static void serializeProcessModel(Writer pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
+  public static void serializeProcessModel(Writer pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer(pOut);
     serializeProcessModel(serializer, pProcessModel);
   }
@@ -226,7 +226,7 @@ public class PMParser {
     return factory.newSerializer();
   }
 
-  public static XmlSerializer getSerializer(OutputStream pOut) throws XmlPullParserException, IOException {
+  static XmlSerializer getSerializer(OutputStream pOut) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer();
     try {
       serializer.setOutput(pOut, "UTF-8");
@@ -236,7 +236,7 @@ public class PMParser {
     return serializer;
   }
 
-  public static XmlSerializer getSerializer(Writer pOut) throws XmlPullParserException, IOException {
+  static XmlSerializer getSerializer(Writer pOut) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer();
     try {
       serializer.setOutput(pOut);
@@ -257,7 +257,7 @@ public class PMParser {
     }
   }
 
-  static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);

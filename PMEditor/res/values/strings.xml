@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">PMEditor</string>
     <string name="missing_diagram">No diagram loaded</string>
     <string name="ac_save">Save</string>
@@ -14,4 +15,7 @@
     <string name="radio_other">Other</string>
     <string name="lbl_min">Min</string>
     <string name="lbl_max">Max</string>
+    <string name="title_processmodel_list">ProcessModels</string>
+    <string name="title_processmodel_detail">ProcessModel Detail</string>
+
 </resources>
