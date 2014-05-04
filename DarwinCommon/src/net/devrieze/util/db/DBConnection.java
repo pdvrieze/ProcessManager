@@ -505,7 +505,7 @@ public class DBConnection implements AutoCloseable{
 
   private DBConnection(@NotNull final DataSourceWrapper pDataSource) throws SQLException {
     aConnection = notNull(pDataSource.aDataSource.getConnection());
-    aConnection.setAutoCommit(false);
+    notNull(aConnection).setAutoCommit(false);
     aStatements = new ArrayList<>();
     aStringCache = StringCache.NOPCACHE;
   }
