@@ -1,13 +1,25 @@
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ListFragment;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.BaseColumns;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 /**
  * A list fragment representing a list of ProcessModels. This fragment also
@@ -18,13 +30,15 @@ import android.widget.ListView;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ProcessModelListFragment extends ListFragment {
+public class ProcessModelListFragment extends ListFragment implements LoaderCallbacks<Cursor> {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
    * activated item position. Only used on tablets.
    */
   private static final String STATE_ACTIVATED_POSITION = "activated_position";
+
+  private static final int LOADERID = 3;
 
   /**
    * The fragment's current callback object, which is notified of list item
@@ -36,6 +50,37 @@ public class ProcessModelListFragment extends ListFragment {
    * The current activated item position. Only used on tablets.
    */
   private int mActivatedPosition = ListView.INVALID_POSITION;
+
+  private static final class PMCursorAcapter extends CursorAdapter {
+
+    private LayoutInflater mInflater;
+    private int mNameColumn;
+
+    private PMCursorAcapter(Context pContext, Cursor pC) {
+      super(pContext, pC, 0);
+      mInflater = LayoutInflater.from(pContext);
+      if (pC==null) {
+        mNameColumn = -1;
+      } else {
+        mNameColumn = pC.getColumnIndex(ProcessModels.COLUMN_NAME);
+      }
+    }
+
+    @Override
+    public View newView(Context pContext, Cursor pCursor, ViewGroup pParent) {
+      return mInflater.inflate(android.R.layout.simple_list_item_1, pParent, false);
+    }
+
+    @Override
+    public void bindView(View pView, Context pContext, Cursor pCursor) {
+      TextView view = (TextView) pView;
+      if (pCursor!=null) {
+        view.setText(pCursor.getString(mNameColumn));
+      } else {
+        view.setText(null);
+      }
+    }
+  }
 
   /**
    * A callback interface that all activities containing this fragment must
@@ -60,6 +105,8 @@ public class ProcessModelListFragment extends ListFragment {
     public void onItemSelected(ProcessModel<?> pProcessModel) {}
   };
 
+  private PMCursorAcapter mAdapter;
+
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
@@ -69,6 +116,9 @@ public class ProcessModelListFragment extends ListFragment {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    getLoaderManager().initLoader(LOADERID, null, this);
+    mAdapter = new PMCursorAcapter(getActivity(), null);
+    setListAdapter(mAdapter);
 
     // TODO: replace with a real list adapter.
 //    setListAdapter(new CursorAdapter(getActivity(), ArrayAdapter<DummyContent.DummyItem>(
@@ -148,5 +198,23 @@ public class ProcessModelListFragment extends ListFragment {
     }
 
     mActivatedPosition = position;
+  }
+
+  @Override
+  public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
+    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, null, null, null);
+  }
+
+  @Override
+  public void onLoadFinished(Loader<Cursor> pLoader, Cursor pData) {
+
+    if (pData!=null) {
+      mAdapter.changeCursor(pData);
+    }
+  }
+
+  @Override
+  public void onLoaderReset(Loader<Cursor> pLoader) {
+    mAdapter.changeCursor(null);
   }
 }

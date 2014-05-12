@@ -36,8 +36,6 @@ public class ProcessModelListActivity extends Activity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_processmodel_list);
-    // Show the Up button in the action bar.
-    getActionBar().setDisplayHomeAsUpEnabled(true);
 
     if (findViewById(R.id.processmodel_detail_container) != null) {
       // The detail container view will be present only in the
