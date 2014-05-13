@@ -19,6 +19,11 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
     aHandle = pHandle;
   }
 
+  public ProcessModelRef(IProcessModelRef<?> pSource) {
+    aHandle = pSource.getHandle();
+    aName = pSource.getName();
+  }
+
   void setName(final String name) {
     aName = name;
   }
