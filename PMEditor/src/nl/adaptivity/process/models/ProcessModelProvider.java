@@ -1,6 +1,7 @@
 package nl.adaptivity.process.models;
 
 import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -18,7 +19,10 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
+import android.os.CancellationSignal;
+import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.webkit.MimeTypeMap;
 
@@ -33,6 +37,7 @@ public class ProcessModelProvider extends ContentProvider {
 
     public static final String COLUMN_HANDLE="handle";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_MODEL = "model";
 
 
     private static final String SCHEME = "content://";
@@ -177,6 +182,17 @@ public class ProcessModelProvider extends ContentProvider {
     } else {
       return null;
     }
+  }
+
+  @Override
+  public ParcelFileDescriptor openFile(Uri pUri, String pMode) throws FileNotFoundException {
+    UriHelper helper = UriHelper.parseUri(pUri);
+    if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT) {
+      throw new FileNotFoundException();
+    }
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    SQLiteStatement stmt = db.compileStatement("SELECT "+ProcessModels.COLUMN_MODEL+" FROM "+ProcessModelsOpenHelper.TABLE_NAME+" WHERE "+BaseColumns._ID+" = "+helper.mId);
+    return stmt.simpleQueryForBlobFileDescriptor();
   }
 
   @Override
