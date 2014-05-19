@@ -38,8 +38,8 @@ public class ProcessModelDetailActivity extends Activity {
       // Create the detail fragment and add it to the activity
       // using a fragment transaction.
       Bundle arguments = new Bundle();
-      arguments.putString(ProcessModelDetailFragment.ARG_ITEM_ID,
-          getIntent().getStringExtra(ProcessModelDetailFragment.ARG_ITEM_ID));
+      arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID,
+          getIntent().getLongExtra(ProcessModelDetailFragment.ARG_ITEM_ID,-1));
       ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
       fragment.setArguments(arguments);
       getFragmentManager().beginTransaction()

@@ -17,5 +17,6 @@
     <string name="lbl_max">Max</string>
     <string name="title_processmodel_list">ProcessModels</string>
     <string name="title_processmodel_detail">ProcessModel Detail</string>
+    <string name="example_1_name">Example 1</string>
 
 </resources>

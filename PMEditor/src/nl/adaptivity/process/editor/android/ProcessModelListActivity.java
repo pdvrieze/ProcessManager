@@ -76,14 +76,13 @@ public class ProcessModelListActivity extends Activity
    * that the item with the given ID was selected.
    */
   @Override
-  public void onItemSelected(ProcessModel<?> pProcess) {
-    long id = pProcess.getRef().getHandle();
+  public void onItemSelected(long pProcessModelRowId) {
     if (mTwoPane) {
       // In two-pane mode, show the detail view in this activity by
       // adding or replacing the detail fragment using a
       // fragment transaction.
       Bundle arguments = new Bundle();
-      arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, id);
+      arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
       ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
       fragment.setArguments(arguments);
       getFragmentManager().beginTransaction()
@@ -94,7 +93,7 @@ public class ProcessModelListActivity extends Activity
       // In single-pane mode, simply start the detail activity
       // for the selected item ID.
       Intent detailIntent = new Intent(this, ProcessModelDetailActivity.class);
-      detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, id);
+      detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
       startActivity(detailIntent);
     }
   }

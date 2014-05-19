@@ -42,9 +42,9 @@ public class ProcessModelProvider extends ContentProvider {
 
     private static final String SCHEME = "content://";
 
-    private static final String PATH_MODELS = "processmodels";
+    private static final String PATH_MODELS = "/processmodels";
     private static final String PATH_MODEL_ID = PATH_MODELS+'/';
-    private static final String PATH_MODEL_STREAM = "streams/";
+    private static final String PATH_MODEL_STREAM = "/streams/";
 
     public static final Uri CONTENT_URI = Uri.parse(SCHEME+AUTHORITY+PATH_MODELS);
 
@@ -255,7 +255,7 @@ public class ProcessModelProvider extends ContentProvider {
   public static ProcessModel<?> getProcessModelForHandle(Context pContext, long pHandle) {
     try {
       final ContentResolver contentResolver = pContext.getContentResolver();
-      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { ProcessModels._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(pHandle)} , null);
+      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(pHandle)} , null);
       try {
         if (! idresult.moveToFirst()) { return null; }
         long id = idresult.getLong(1); // only one column

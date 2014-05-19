@@ -2,7 +2,6 @@ package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.processModel.ProcessModel;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ListFragment;
@@ -17,6 +16,7 @@ import android.provider.BaseColumns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -49,21 +49,37 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   /**
    * The current activated item position. Only used on tablets.
    */
-  private int mActivatedPosition = ListView.INVALID_POSITION;
+  private int mActivatedPosition = AdapterView.INVALID_POSITION;
 
-  private static final class PMCursorAcapter extends CursorAdapter {
+  private static final class PMCursorAdapter extends CursorAdapter {
 
     private LayoutInflater mInflater;
     private int mNameColumn;
 
-    private PMCursorAcapter(Context pContext, Cursor pC) {
+    private PMCursorAdapter(Context pContext, Cursor pC) {
       super(pContext, pC, 0);
       mInflater = LayoutInflater.from(pContext);
+      updateNameColumn(pC);
+    }
+
+    private void updateNameColumn(Cursor pC) {
       if (pC==null) {
         mNameColumn = -1;
       } else {
         mNameColumn = pC.getColumnIndex(ProcessModels.COLUMN_NAME);
       }
+    }
+
+    @Override
+    public void changeCursor(Cursor pCursor) {
+      super.changeCursor(pCursor);
+    }
+
+    @Override
+    public Cursor swapCursor(Cursor pNewCursor) {
+      final Cursor result = super.swapCursor(pNewCursor);
+      updateNameColumn(pNewCursor);
+      return result;
     }
 
     @Override
@@ -74,10 +90,11 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
     @Override
     public void bindView(View pView, Context pContext, Cursor pCursor) {
       TextView view = (TextView) pView;
-      if (pCursor!=null) {
-        view.setText(pCursor.getString(mNameColumn));
+      if (pCursor!=null && mNameColumn>=0) {
+        final String name = pCursor.getString(mNameColumn);
+        view.setText(name!=null ? name : "<Unnamed>");
       } else {
-        view.setText(null);
+        view.setText("<Unnamed>");
       }
     }
   }
@@ -92,7 +109,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
     /**
      * Callback for when an item has been selected.
      */
-    public void onItemSelected(ProcessModel<?> pProcessModel);
+    public void onItemSelected(long pProcessModelRowId);
   }
 
   /**
@@ -102,10 +119,10 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   private static Callbacks sDummyCallbacks = new Callbacks() {
 
     @Override
-    public void onItemSelected(ProcessModel<?> pProcessModel) {}
+    public void onItemSelected(long pProcessModelRowId) {/*dummy*/}
   };
 
-  private PMCursorAcapter mAdapter;
+  private PMCursorAdapter mAdapter;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -117,7 +134,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getLoaderManager().initLoader(LOADERID, null, this);
-    mAdapter = new PMCursorAcapter(getActivity(), null);
+    mAdapter = new PMCursorAdapter(getActivity(), null);
     setListAdapter(mAdapter);
 
     // TODO: replace with a real list adapter.
@@ -164,9 +181,10 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   public void onListItemClick(ListView listView, View view, int position, long id) {
     super.onListItemClick(listView, view, position, id);
 
+    long modelid = mAdapter.getItemId(position);
     // Notify the active callbacks interface (the activity, if the
     // fragment is attached to one) that an item has been selected.
-    mCallbacks.onItemSelected((ProcessModel<?>)listView.getAdapter().getItem(position));
+    mCallbacks.onItemSelected(modelid);
   }
 
   @Override

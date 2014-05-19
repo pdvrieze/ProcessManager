@@ -42,6 +42,11 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="nl.adaptivity.process.editor.android.ProcessModelListActivity" />
         </activity>
+
+        <provider
+            android:name="nl.adaptivity.process.models.ProcessModelProvider"
+            android:authorities="nl.adaptivity.process.models" >
+        </provider>
     </application>
 
 </manifest>

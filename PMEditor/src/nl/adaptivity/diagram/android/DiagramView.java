@@ -40,7 +40,7 @@ import android.widget.ZoomButtonsController.OnZoomListener;
 public class DiagramView extends View implements OnZoomListener{
 
 
-  
+
   private static class DiagramViewStateCreator implements Creator<DiagramViewState> {
 
     @Override
@@ -59,7 +59,7 @@ public class DiagramView extends View implements OnZoomListener{
 
     @SuppressWarnings({ "unused", "hiding" })
     public static final Parcelable.Creator<DiagramViewState> CREATOR = new DiagramViewStateCreator();
-    
+
     private double mOffsetX;
     private double mOffsetY;
     private double mScale;
@@ -94,7 +94,7 @@ public class DiagramView extends View implements OnZoomListener{
       pDest.writeDouble(mScale);
       pDest.writeInt(mGridSize);
     }
-  
+
   }
 
   private static final int INVALIDATE_MARGIN = 10;
@@ -169,7 +169,7 @@ public class DiagramView extends View implements OnZoomListener{
     public boolean onSingleTapUp(MotionEvent pE) {
       try {
         int touchedElement = getTouchedElement(pE);
-        if (touchedElement>=0) {
+        if (touchedElement>=0 && isEditable()) {
           if (aAdapter.onNodeClickOverride(DiagramView.this, touchedElement, pE)) {
             return true;
           }
@@ -288,6 +288,8 @@ public class DiagramView extends View implements OnZoomListener{
   private List<Tupple<Integer, RelativeLightView>> aDecorations = new ArrayList<>();
   private Tupple<Integer,RelativeLightView> aTouchedDecoration = null;
 
+  private boolean mEditable = true;
+
   private static final int DEFAULT_GRID_SIZE=8;
 
   public DiagramView(Context pContext, AttributeSet pAttrs, int pDefStyle) {
@@ -321,6 +323,7 @@ public class DiagramView extends View implements OnZoomListener{
       TypedArray a = getContext().getTheme().obtainStyledAttributes(pAttrs, R.styleable.DiagramView, 0, 0);
       try {
         mGridSize = a.getInteger(R.styleable.DiagramView_gridSize, DEFAULT_GRID_SIZE);
+        mEditable = a.getBoolean(R.styleable.DiagramView_gridSize, true);
       } finally {
         a.recycle();
       }
@@ -756,11 +759,13 @@ public class DiagramView extends View implements OnZoomListener{
 
       if (aTouchedDecoration!=null) {
         aTouchedDecoration.getElem2().setTouched(false);
-        aTouchedDecoration.getElem2().getBounds(aTmpRectF);
-        if (aTmpRectF.contains(diagX, diagY)) {
-          aAdapter.onDecorationClick(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2());
-        } else {
-          aAdapter.onDecorationUp(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2(), diagX, diagY);
+        if (isEditable()) {
+          aTouchedDecoration.getElem2().getBounds(aTmpRectF);
+          if (aTmpRectF.contains(diagX, diagY)) {
+            aAdapter.onDecorationClick(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2());
+          } else {
+            aAdapter.onDecorationUp(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2(), diagX, diagY);
+          }
         }
 
         invalidate(aTouchedDecoration.getElem2());
@@ -775,7 +780,7 @@ public class DiagramView extends View implements OnZoomListener{
 //    }
       aGestureListener.actionFinished();
 //      aGestureListener.setMoveItem(false);
-    } else if (action==MotionEvent.ACTION_MOVE && aTouchedDecoration!=null) {
+    } else if (action==MotionEvent.ACTION_MOVE && aTouchedDecoration!=null && isEditable()) {
       aAdapter.onDecorationMove(this, aTouchedDecoration.getElem1().intValue(), aTouchedDecoration.getElem2(), diagX, diagY);
       return true;
     }
@@ -877,6 +882,16 @@ public class DiagramView extends View implements OnZoomListener{
       }
     }
     return -1;
+  }
+
+
+  public boolean isEditable() {
+    return mEditable;
+  }
+
+
+  public void setEditable(boolean pEditable) {
+    mEditable = pEditable;
   }
 
 }
