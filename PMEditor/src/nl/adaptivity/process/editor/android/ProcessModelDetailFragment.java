@@ -73,7 +73,7 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
 
   @Override
   public Loader<ProcessModel<?>> onCreateLoader(int pId, Bundle pArgs) {
-    Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE,pArgs.getLong(ARG_ITEM_ID));
+    Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,pArgs.getLong(ARG_ITEM_ID));
     return new ProcessModelLoader(getActivity(), uri);
   }
 
