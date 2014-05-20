@@ -112,7 +112,7 @@ public class DiagramView extends View implements OnZoomListener{
     private double aOrigY;
     @Override
     public boolean onScroll(MotionEvent pE1, MotionEvent pE2, float pDistanceX, float pDistanceY) {
-      if (aMoving>=0 || aMoveItem) {
+      if (isEditable()&& (aMoving>=0 || aMoveItem)) {
         int touchedElement = aMoving>=0 ? aMoving: getTouchedElement(pE1);
         if (touchedElement>=0) {
           if (aMoving <0) {
@@ -323,7 +323,7 @@ public class DiagramView extends View implements OnZoomListener{
       TypedArray a = getContext().getTheme().obtainStyledAttributes(pAttrs, R.styleable.DiagramView, 0, 0);
       try {
         mGridSize = a.getInteger(R.styleable.DiagramView_gridSize, DEFAULT_GRID_SIZE);
-        mEditable = a.getBoolean(R.styleable.DiagramView_gridSize, true);
+        mEditable = a.getBoolean(R.styleable.DiagramView_editable, true);
       } finally {
         a.recycle();
       }
@@ -389,6 +389,7 @@ public class DiagramView extends View implements OnZoomListener{
       aZoomController.setZoomInEnabled(aAdapter!=null);
       aZoomController.setZoomOutEnabled(aAdapter!=null);
     }
+    invalidate();
   }
 
 
@@ -892,6 +893,10 @@ public class DiagramView extends View implements OnZoomListener{
 
   public void setEditable(boolean pEditable) {
     mEditable = pEditable;
+    if (aZoomController!=null) {
+      aZoomController.setVisible(false);
+      aZoomController=null;
+    }
   }
 
 }
