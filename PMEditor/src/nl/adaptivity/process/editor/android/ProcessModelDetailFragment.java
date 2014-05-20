@@ -64,11 +64,6 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
     mTVName = (TextView) rootView.findViewById(R.id.processmodel_name);
     mModelView = (DiagramView) rootView.findViewById(R.id.diagramView1);
 
-    // Show the dummy content as text in a TextView.
-    if (mItem != null) {
-      ((TextView) rootView.findViewById(R.id.processmodel_detail)).setText(mItem.getName());
-    }
-
     return rootView;
   }
 
