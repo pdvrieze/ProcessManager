@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import nl.adaptivity.android.util.ContentProviderHelper;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
@@ -106,6 +107,8 @@ public class ProcessModelProvider extends ContentProvider {
       switch (u) {
       case PROCESSMODEL:
         return new UriHelper(u, ContentUris.parseId(query));
+      case PROCESSMODELCONTENT:
+        return new UriHelper(u, ContentUris.parseId(query));
       default:
         return new UriHelper(u);
       }
@@ -187,12 +190,11 @@ public class ProcessModelProvider extends ContentProvider {
   @Override
   public ParcelFileDescriptor openFile(Uri pUri, String pMode) throws FileNotFoundException {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT) {
+    if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    SQLiteStatement stmt = db.compileStatement("SELECT "+ProcessModels.COLUMN_MODEL+" FROM "+ProcessModelsOpenHelper.TABLE_NAME+" WHERE "+BaseColumns._ID+" = "+helper.mId);
-    return stmt.simpleQueryForBlobFileDescriptor();
+    return ContentProviderHelper.createPipe(this, db, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, pMode);
   }
 
   @Override
