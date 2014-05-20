@@ -14,7 +14,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
@@ -23,6 +26,18 @@ import android.widget.TextView;
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
 public class ProcessModelDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>> {
+
+
+  private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
+
+    @Override
+    public void onLayoutChange(View pV, int pLeft, int pTop, int pRight, int pBottom, int pOldLeft, int pOldTop, int pOldRight, int pOldBottom) {
+      if (mItem!=null && ((pOldRight-pOldLeft!=pRight-pLeft)||(pOldBottom-pOldTop!=pBottom-pTop))) {
+        updateDiagramScale();
+      }
+    }
+
+  }
 
   /**
    * The fragment argument representing the item ID that this fragment
@@ -35,17 +50,33 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
   /**
    * The process model represented by this fragment
    */
-  private DrawableProcessModel mItem;
+  private BaseProcessAdapter mItem;
 
   private TextView mTVName;
 
   private DiagramView mModelView;
+
+  private ProgressBar mSpinner;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
    */
   public ProcessModelDetailFragment() {}
+
+  void updateDiagramScale() {
+    RectF diagramBounds =new RectF();
+    mItem.getBounds(diagramBounds);
+    float scale = Math.min(mModelView.getWidth()/diagramBounds.width(),mModelView.getHeight()/diagramBounds.height());
+    mModelView.setScale(scale);
+
+    float w2 = mModelView.getWidth()/scale;
+
+    mModelView.setOffsetX(diagramBounds.left-(w2-diagramBounds.width())/2);
+
+    float h2 = mModelView.getHeight()/scale;
+    mModelView.setOffsetY(diagramBounds.top-(h2-diagramBounds.height())/2);
+  }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -63,7 +94,11 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
 
     mTVName = (TextView) rootView.findViewById(R.id.processmodel_name);
     mModelView = (DiagramView) rootView.findViewById(R.id.diagramView1);
+    mModelView.addOnLayoutChangeListener(new ModelViewLayoutChangeListener());
 
+    mSpinner = (ProgressBar) rootView.findViewById(R.id.spinner);
+    mTVName.setVisibility(View.GONE);
+    mModelView.setVisibility(View.GONE);
     return rootView;
   }
 
@@ -75,15 +110,14 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
 
   @Override
   public void onLoadFinished(Loader<ProcessModel<?>> pLoader, ProcessModel<?> pData) {
-    mItem = DrawableProcessModel.get(pData);
+    mSpinner.setVisibility(View.GONE);
+    mTVName.setVisibility(View.VISIBLE);
+    mModelView.setVisibility(View.VISIBLE);
+    mModelView.getParent().requestLayout(); // Do a layout
     mTVName.setText(pData.getName());
-    final BaseProcessAdapter adapter = new BaseProcessAdapter(mItem);
-    RectF diagramBounds =new RectF();
-    adapter.getBounds(diagramBounds);
-    float scale = Math.min(mModelView.getWidth()/diagramBounds.width(),mModelView.getHeight()/diagramBounds.height());
-    mModelView.setAdapter(adapter);
-    mModelView.setScale(scale);
-    mModelView.setOffsetX(diagramBounds.left);
+    mItem = new BaseProcessAdapter(DrawableProcessModel.get(pData));
+    mModelView.setAdapter(mItem);
+    updateDiagramScale();
   }
 
   @Override
