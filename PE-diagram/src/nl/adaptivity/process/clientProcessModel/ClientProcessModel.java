@@ -29,7 +29,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   static final String PROCESSMODEL_NS = NS_PM;
 
-  private final String aName;
+  private String aName;
 
   private ProcessNodeSet<T> aNodes;
 
@@ -170,7 +170,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   public void invalidate() {
     mNeedsLayout  = true;
   }
-  
+
   public void resetLayout() {
     for (T n:aNodes) {
       n.setX(Double.NaN);
@@ -178,7 +178,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     }
     invalidate();
   }
-  
+
   public boolean isInvalid() {
     return mNeedsLayout;
   }
@@ -225,6 +225,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   @Override
   public String getName() {
     return aName;
+  }
+
+  public void setName(String pName) {
+    aName = pName;
   }
 
   @Override
@@ -294,7 +298,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     pOut.addNamespace(XMLConstants.NULL_NS_URI, NS_PM);
     pOut.addNamespace("umh", NS_UMH);
     pOut.addNamespace("jbi", NS_JBI);
-    
+
     pOut.startTag(NS_PM, "processModel", true);
     if (aName!=null) {
       pOut.addAttribute("name", aName);
