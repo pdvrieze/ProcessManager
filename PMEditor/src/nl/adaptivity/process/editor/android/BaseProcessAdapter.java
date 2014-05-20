@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +74,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   }
 
   private DrawableProcessModel aDiagram;
-  protected Map<DrawableProcessNode, LWDrawableView> aViewCache;
+  protected Map<DrawableProcessNode, LWDrawableView> aViewCache = new HashMap<>();
   private LightView aBackground;
   private RectF aBounds = new RectF();
   private boolean aInvalid = true;
