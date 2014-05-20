@@ -9,6 +9,7 @@ import android.app.Fragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
 import android.content.Loader;
+import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -81,7 +82,13 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
   public void onLoadFinished(Loader<ProcessModel<?>> pLoader, ProcessModel<?> pData) {
     mItem = DrawableProcessModel.get(pData);
     mTVName.setText(pData.getName());
-    mModelView.setAdapter(new BaseProcessAdapter(mItem));
+    final BaseProcessAdapter adapter = new BaseProcessAdapter(mItem);
+    RectF diagramBounds =new RectF();
+    adapter.getBounds(diagramBounds);
+    float scale = Math.min(mModelView.getWidth()/diagramBounds.width(),mModelView.getHeight()/diagramBounds.height());
+    mModelView.setAdapter(adapter);
+    mModelView.setScale(scale);
+    mModelView.setOffsetX(diagramBounds.left);
   }
 
   @Override
