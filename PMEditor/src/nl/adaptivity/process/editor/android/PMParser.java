@@ -223,7 +223,9 @@ public class PMParser {
   private static XmlSerializer getSerializer() throws XmlPullParserException {
     XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
     factory.setNamespaceAware(true);
-    return factory.newSerializer();
+    final XmlSerializer serializer = factory.newSerializer();
+    serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", false);
+    return serializer;
   }
 
   static XmlSerializer getSerializer(OutputStream pOut) throws XmlPullParserException, IOException {
@@ -392,6 +394,7 @@ public class PMParser {
   }
 
   private static String trimWS(CharSequence str) {
+    if (str==null) { return null; }
     int start, end;
     for(start=0;start<str.length()&&isXMLWS(str.charAt(start));++start) {/*no body*/}
     for(end=str.length()-1;end>=start&& isXMLWS(str.charAt(end));--end) {/*no body*/}
