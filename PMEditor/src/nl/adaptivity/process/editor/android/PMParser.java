@@ -336,7 +336,7 @@ public class PMParser {
   private static DrawableProcessNode parseActivity(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
     DrawableActivity result = new DrawableActivity((ClientProcessModel<DrawableProcessNode>) null);
     parseCommon(pIn, pNodes, pModelElems, result);
-    String name = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
+    String name = trimWS(pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
     if (name!=null && name.length()>0) {
       result.setName(name);
     }
@@ -384,11 +384,22 @@ public class PMParser {
         }
         type=pIn.next();
       }
-      predecessors.add(getPredecessor(name.toString(), pNodes, pModelElems));
+      predecessors.add(getPredecessor(trimWS(name), pNodes, pModelElems));
     }
     result.setPredecessors(predecessors);
 
     return result;
+  }
+
+  private static String trimWS(CharSequence str) {
+    int start, end;
+    for(start=0;start<str.length()&&isXMLWS(str.charAt(start));++start) {/*no body*/}
+    for(end=str.length()-1;end>=start&& isXMLWS(str.charAt(end));--end) {/*no body*/}
+    return str.subSequence(start, end+1).toString();
+  }
+
+  private static boolean isXMLWS(int codepoint) {
+    return codepoint==0x20|codepoint==0x9||codepoint==0xD||codepoint==0xA;
   }
 
   private static DrawableProcessNode parseSplit(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
@@ -437,7 +448,7 @@ public class PMParser {
         } else if ("y".equals(aname)) {
           pNode.setY(Double.parseDouble(pIn.getAttributeValue(i)));
         } else if ("id".equals(aname)) {
-          pNode.setId(pIn.getAttributeValue(i));
+          pNode.setId(trimWS(pIn.getAttributeValue(i)));
         } else if ("label".equals(aname)) {
           pNode.setLabel(pIn.getAttributeValue(i));
         } else if ("name".equals(aname)) {
@@ -445,7 +456,7 @@ public class PMParser {
             pNode.setLabel(pIn.getAttributeValue(i));
           }
         } else if ("predecessor".equals(aname)) {
-          addPredecessor(pNode, pIn.getAttributeValue(i), pNodes, pModelElems);
+          addPredecessor(pNode, trimWS(pIn.getAttributeValue(i)), pNodes, pModelElems);
 //          pNode.setPredecessors(getPredecessors(pIn.getAttributeValue(i),pNodes, pModelElems));
         }
       }
