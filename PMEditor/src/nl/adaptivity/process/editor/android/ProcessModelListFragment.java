@@ -84,17 +84,17 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
 
     @Override
     public View newView(Context pContext, Cursor pCursor, ViewGroup pParent) {
-      return mInflater.inflate(android.R.layout.simple_list_item_1, pParent, false);
+      return mInflater.inflate(R.layout.modellist_item, pParent, false);
     }
 
     @Override
     public void bindView(View pView, Context pContext, Cursor pCursor) {
-      TextView view = (TextView) pView;
+      TextView modelName = (TextView) pView.findViewById(R.id.model_name);
       if (pCursor!=null && mNameColumn>=0) {
         final String name = pCursor.getString(mNameColumn);
-        view.setText(name!=null ? name : "<Unnamed>");
+        modelName.setText(name!=null ? name : "<Unnamed>");
       } else {
-        view.setText("<Unnamed>");
+        modelName.setText("<Unnamed>");
       }
     }
   }
