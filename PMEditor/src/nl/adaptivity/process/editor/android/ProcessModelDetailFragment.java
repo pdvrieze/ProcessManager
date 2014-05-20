@@ -49,6 +49,10 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    if (getArguments().containsKey(ARG_ITEM_ID)) {
+      getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
+    }
   }
 
   @Override
@@ -62,10 +66,6 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
     // Show the dummy content as text in a TextView.
     if (mItem != null) {
       ((TextView) rootView.findViewById(R.id.processmodel_detail)).setText(mItem.getName());
-    }
-
-    if (getArguments().containsKey(ARG_ITEM_ID)) {
-      getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
     }
 
     return rootView;

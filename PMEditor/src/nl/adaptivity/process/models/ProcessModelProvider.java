@@ -275,23 +275,21 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   public static ProcessModel<?> getProcessModelForId(Context pContext, long pId) {
-    try {
-      final ContentResolver contentResolver = pContext.getContentResolver();
-      Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pId);
-      InputStream in = contentResolver.openInputStream(uri);
-      try {
-        return getProcessModel(in);
-      } finally {
-        in.close();
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pId);
+    return getProcessModel(pContext, uri);
   }
 
   public static ProcessModel<?> getProcessModel(Context pContext, Uri pUri) {
     try {
-      InputStream in = URI.create(pUri.toString()).toURL().openStream();
+      InputStream in;
+      if (ContentResolver.SCHEME_CONTENT.equals(pUri.getScheme())||
+          ContentResolver.SCHEME_ANDROID_RESOURCE.equals(pUri.getScheme())||
+          ContentResolver.SCHEME_FILE.equals(pUri.getScheme())) {
+        final ContentResolver contentResolver = pContext.getContentResolver();
+        in = contentResolver.openInputStream(pUri);
+      } else {
+        in = URI.create(pUri.toString()).toURL().openStream();
+      }
       try {
         return getProcessModel(new BufferedInputStream(in));
       } finally {
