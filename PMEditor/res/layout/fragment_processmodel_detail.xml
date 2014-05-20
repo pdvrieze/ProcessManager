@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
+    <ProgressBar
+    	android:id="@+id/spinner"
+    	style="?android:attr/progressBarStyleLarge"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:layout_gravity="center"
+    	android:layout_weight="1" />
+
     <TextView
         android:id="@+id/processmodel_name"
         style="?android:attr/textAppearanceLarge"
