@@ -14,11 +14,22 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModel<?>> {
   public ProcessModelLoader(Context pContext, long pHandle) {
     super(pContext);
     mHandle = pHandle;
+    onContentChanged();
   }
 
   public ProcessModelLoader(Context pContext, Uri pUri) {
     super(pContext);
     mUri = pUri;
+    onContentChanged();
+  }
+
+
+  @Override
+  protected void onStartLoading() {
+    super.onStartLoading();
+    if (takeContentChanged()) {
+      forceLoad();
+    }
   }
 
   @Override
