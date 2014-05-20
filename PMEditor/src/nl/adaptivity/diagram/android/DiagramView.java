@@ -829,7 +829,7 @@ public class DiagramView extends View implements OnZoomListener{
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
-    if (! (aMultitouch || isInEditMode())) {
+    if (mEditable && (! (aMultitouch || isInEditMode()))) {
       aZoomController = new ZoomButtonsController(this);
       aZoomController.setOnZoomListener(this);
       aZoomController.setAutoDismissed(false);
