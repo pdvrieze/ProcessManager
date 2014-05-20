@@ -1,17 +1,22 @@
 package nl.adaptivity.process.models;
 
 import java.io.BufferedInputStream;
+import java.io.CharArrayWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import org.xmlpull.v1.XmlPullParserException;
+
 import nl.adaptivity.android.util.ContentProviderHelper;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.processModel.ProcessModel;
 import android.content.ContentProvider;
+import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -19,13 +24,10 @@ import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
-import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
+import android.os.RemoteException;
 import android.provider.BaseColumns;
-import android.webkit.MimeTypeMap;
 
 
 public class ProcessModelProvider extends ContentProvider {
@@ -304,6 +306,28 @@ public class ProcessModelProvider extends ContentProvider {
 
   private static ProcessModel<?> getProcessModel(InputStream in) {
     return PMParser.parseProcessModel(in, new LayoutAlgorithm<DrawableProcessNode>());
+  }
+
+  public static Uri newProcessModel(Context context, ClientProcessModel<?> pProcessModel) throws IOException {
+    CharArrayWriter out = new CharArrayWriter();
+    try {
+      PMParser.serializeProcessModel(out, pProcessModel);
+    } catch (XmlPullParserException e) {
+      throw new IOException(e);
+    }
+    ContentProviderClient client = context.getContentResolver().acquireContentProviderClient(ProcessModels.CONTENT_ID_URI_BASE);
+    try {
+      ContentValues values = new ContentValues();
+      values.put(ProcessModels.COLUMN_NAME, pProcessModel.getName());
+      values.put(ProcessModels.COLUMN_MODEL, out.toString());
+      try {
+        return client.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
+      } catch (RemoteException e) {
+        throw new IOException(e);
+      }
+    } finally {
+      client.release();
+    }
   }
 
 }

@@ -389,7 +389,7 @@ public class DiagramView extends View implements OnZoomListener{
       aZoomController.setZoomInEnabled(aAdapter!=null);
       aZoomController.setZoomOutEnabled(aAdapter!=null);
     }
-    invalidate();
+    postInvalidate();
   }
 
 

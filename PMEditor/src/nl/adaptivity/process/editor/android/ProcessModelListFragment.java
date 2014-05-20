@@ -1,23 +1,40 @@
 package nl.adaptivity.process.editor.android;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
+import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ListFragment;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
+import android.text.InputType;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -99,6 +116,43 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
     }
   }
 
+  public static class GetPMNameDialogFragment extends DialogFragment {
+
+    private static final String ARG_PREV_NAME = "prevName";
+    ProcessModelListFragment mOwner;
+
+    public GetPMNameDialogFragment() { /* empty */ }
+
+    @Override
+    public void onAttach(Activity activity) {
+      super.onAttach(activity);
+      mOwner = (ProcessModelListFragment) activity.getFragmentManager().findFragmentById(R.id.processmodel_list);
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+      String prevName = getArguments()==null ? null : getArguments().getString(ARG_PREV_NAME);
+      AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+      final EditText editText = new EditText(getActivity());
+      editText.setInputType(InputType.TYPE_CLASS_TEXT);
+      editText.setText(prevName);
+      editText.selectAll();
+      builder.setTitle("Model name")
+             .setMessage("Provide the new name")
+             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+              @Override
+              public void onClick(DialogInterface pDialog, int id) {
+                mOwner.createNewPM(editText.getText().toString());
+              }
+            })
+            .setNegativeButton(android.R.string.cancel, null)
+            .setView(editText);
+      return builder.create();
+
+    }
+  }
+
   /**
    * A callback interface that all activities containing this fragment must
    * implement. This mechanism allows activities to be notified of item
@@ -137,12 +191,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
     mAdapter = new PMCursorAdapter(getActivity(), null);
     setListAdapter(mAdapter);
 
-    // TODO: replace with a real list adapter.
-//    setListAdapter(new CursorAdapter(getActivity(), ArrayAdapter<DummyContent.DummyItem>(
-//        getActivity(),
-//        android.R.layout.simple_list_item_activated_1,
-//        android.R.id.text1,
-//        DummyContent.ITEMS));
+    setHasOptionsMenu(true);
   }
 
   @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -216,6 +265,45 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
     }
 
     mActivatedPosition = position;
+  }
+
+
+
+  @Override
+  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
+    pInflater.inflate(R.menu.pmlist_menu, pMenu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem pItem) {
+    switch (pItem.getItemId()) {
+      case R.id.menu_add_pm:
+        createNewPM();
+        return true;
+    }
+    return super.onOptionsItemSelected(pItem);
+  }
+
+  private void createNewPM() {
+    GetPMNameDialogFragment f = new GetPMNameDialogFragment();
+//    Bundle args = new Bundle(1);
+//    args.putString(ARG_PREV_NAME, null);
+//    f.setArguments(args);
+    f.show(getFragmentManager(), "getName");
+  }
+
+  void createNewPM(String name) {
+
+    DrawableProcessModel model = new DrawableProcessModel(name, new ArrayList<DrawableProcessNode>());
+    Uri uri;
+    try {
+      uri = ProcessModelProvider.newProcessModel(getActivity(), model);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    Intent editIntent = new Intent(getActivity(), PMEditor.class);
+    editIntent.setData(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, ContentUris.parseId(uri)));
+    startActivity(editIntent);
   }
 
   @Override

@@ -18,5 +18,9 @@
     <string name="title_processmodel_list">ProcessModels</string>
     <string name="title_processmodel_detail">ProcessModel Detail</string>
     <string name="example_1_name">Example 1</string>
-
+    <string name="btn_pm_edit">Edit</string>
+    <string name="btn_pm_execute">Execute</string>
+    <string name="menu_add_pm">New Model</string>
+    <string name="menu_add_pm_cond">New</string>
+    
 </resources>

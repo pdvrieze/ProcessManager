@@ -42,6 +42,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -473,13 +474,13 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
 
   }
 
-  private class LayoutTask extends AsyncTask<DrawableProcessModel, WaitTask, Object> {
+  private class LayoutTask extends AsyncTask<DrawableProcessModel, WaitTask, DrawableProcessModel> {
 
     private final MyStepper aStepper = new MyStepper();
     private WaitTask aTask;
 
     @Override
-    protected Object doInBackground(DrawableProcessModel... pParams) {
+    protected DrawableProcessModel doInBackground(DrawableProcessModel... pParams) {
       // Start with null layout algorithm, to prevent dual layout.
       if (pParams.length>0) {
         aPm = pParams[0];
@@ -496,7 +497,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
         diagramView1.setAdapter(aAdapter);
         aPm.layout();
       }
-      return null;
+      return aPm;
     }
 
     public void postProgress(WaitTask pWaitTask) {
@@ -518,7 +519,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     }
 
     @Override
-    protected void onPostExecute(Object pResult) {
+    protected void onPostExecute(DrawableProcessModel pResult) {
       aLayoutTask=null;
       updateDiagramBounds();
       if (aStepper.aLayoutNode!=null) {
@@ -702,6 +703,10 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
       if (pmparcelable!=null) {
         aPm = pmparcelable.getProcessModel();
       }
+    } else {
+      if (getIntent().getData()!=null) {
+        aPm = getProcessModel(getIntent().getData(), new LayoutAlgorithm<DrawableProcessNode>());
+      }
     }
     if (aPm == null) {
       aPm = getProcessModel();
@@ -777,12 +782,23 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   }
 
   private DrawableProcessModel getProcessModel(LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
-    final InputStream file = getResources().openRawResource(R.raw.processmodel);
+    return getProcessModel(getResources().openRawResource(R.raw.processmodel), layoutAlgorithm);
+  }
+
+  private DrawableProcessModel getProcessModel(Uri uri, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     try {
-      return PMParser.parseProcessModel(file, layoutAlgorithm);
+      return getProcessModel(getContentResolver().openInputStream(uri), layoutAlgorithm);
+    } catch (FileNotFoundException e1) {
+      throw new RuntimeException(e1);
+    }
+  }
+
+  public DrawableProcessModel getProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+    try {
+      return PMParser.parseProcessModel(in, layoutAlgorithm);
     } finally {
       try {
-        file.close();
+        in.close();
       } catch (IOException e) {
         Log.e(PMEditor.class.getName(), e.getMessage(), e);
       }
@@ -838,8 +854,10 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
       case R.id.ac_export_svg:
         doExportSVG();
         break;
+      case android.R.id.home:
+        // TODO handle this smarter
       default:
-        return false;
+        return super.onMenuItemSelected(pFeatureId, pItem);
     }
     return true;
   }

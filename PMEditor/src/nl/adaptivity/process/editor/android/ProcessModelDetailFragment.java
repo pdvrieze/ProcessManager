@@ -4,20 +4,22 @@ import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
 import android.app.Fragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
+import android.content.Intent;
 import android.content.Loader;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
@@ -25,7 +27,7 @@ import android.widget.TextView;
  * either contained in a {@link ProcessModelListActivity} in two-pane mode (on
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
-public class ProcessModelDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>> {
+public class ProcessModelDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener {
 
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -99,6 +101,9 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
     mSpinner = (ProgressBar) rootView.findViewById(R.id.spinner);
     mTVName.setVisibility(View.GONE);
     mModelView.setVisibility(View.GONE);
+
+    rootView.findViewById(R.id.btn_pm_edit).setOnClickListener(this);
+    rootView.findViewById(R.id.btn_pm_exec).setOnClickListener(this);
     return rootView;
   }
 
@@ -127,5 +132,26 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
     mModelView.setAdapter(null);
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  public void onClick(View pV) {
+    switch (pV.getId()) {
+      case R.id.btn_pm_edit:
+        btnPmEditClicked(); return;
+      case R.id.btn_pm_exec:
+        btnPmExecClicked(); return;
+    }
+  }
+
+  public void btnPmEditClicked() {
+    Intent intent = new Intent(getActivity(), PMEditor.class);
+    long id = getArguments().getLong(ARG_ITEM_ID);
+    intent.setData(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id));
+    startActivity(intent);
+  }
+
+  public void btnPmExecClicked() {
+    // Don't do anything yet
   }
 }
