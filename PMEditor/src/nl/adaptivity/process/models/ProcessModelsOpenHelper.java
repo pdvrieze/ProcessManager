@@ -19,9 +19,9 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
 
   static final String TABLE_NAME = "processModels";
   private static final String DB_NAME = "processmodels.db";
-  private static final int DB_VERSION = 3;
+  private static final int DB_VERSION = 4;
   private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
-      BaseColumns._ID+" LONG," +
+      BaseColumns._ID+" INTEGER PRIMARY KEY," +
       ProcessModels.COLUMN_HANDLE +" LONG," +
       ProcessModels.COLUMN_NAME + " TEXT," +
       ProcessModels.COLUMN_MODEL + " TEXT )";
