@@ -7,10 +7,28 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
+
 import nl.adaptivity.diagram.Positioned;
 
 
 public class LayoutAlgorithm<T extends Positioned> {
+
+  private static class NullAlgorithm extends LayoutAlgorithm<Positioned> {
+
+    @Override
+    public boolean layout(List<? extends DiagramNode<Positioned>> pNodes) {
+      return false;
+    }
+
+    public static final NullAlgorithm INSTANCE = new NullAlgorithm();
+
+  }
+
+  public static final LayoutAlgorithm<?> NULLALGORITHM = NullAlgorithm.INSTANCE;
+
+  // We know that nullalgorithm does nothing and doesn't care about types.
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public static <T extends Positioned> LayoutAlgorithm<T> nullalgorithm() { return (LayoutAlgorithm) NULLALGORITHM; }
 
   private static final double TOLERANCE = 0.1d;
 
@@ -22,9 +40,9 @@ public class LayoutAlgorithm<T extends Positioned> {
 
   private double aDefaultNodeWidth = 30d;
   private double aDefaultNodeHeight = 30d;
-  
+
   private double aGridSize = Double.NaN;
-  
+
   private boolean aTighten = false;
 
   private LayoutStepper<T> aLayoutStepper = new LayoutStepper<>();
@@ -38,20 +56,20 @@ public class LayoutAlgorithm<T extends Positioned> {
   }
 
 
-  
+
   public double getGridSize() {
     return aGridSize;
   }
 
-  
+
   public void setGridSize(double pGridSize) {
     aGridSize = pGridSize;
   }
-  
+
   public boolean isTighten() {
     return aTighten;
   }
-  
+
   public void setTighten(boolean pTighten) {
     aTighten = pTighten;
   }
@@ -94,6 +112,11 @@ public class LayoutAlgorithm<T extends Positioned> {
     aDefaultNodeHeight = pDefaultNodeHeight;
   }
 
+  /**
+   * Layout the given nodes
+   * @param pNodes The nodes to layout
+   * @return Whether the nodes have changed.
+   */
   public boolean layout(List<? extends DiagramNode<T>> pNodes) {
     boolean changed = false;
     double minY = Double.NEGATIVE_INFINITY;
@@ -104,7 +127,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     // TODO if needed, lay out single element partitions differently.
     return changed;
   }
-   
+
   public boolean layoutPartition(List<DiagramNode<T>> pNodes, double pMinY) {
     boolean changed = false;
     for (final DiagramNode<T> node : pNodes) {
@@ -118,7 +141,7 @@ public class LayoutAlgorithm<T extends Positioned> {
       } else {
         changed = verifyPositions(pNodes);
       }
-    } 
+    }
     if (aTighten || changed) {
       ArrayList<DiagramNode<T>> nodes = new ArrayList<>(pNodes);
       boolean nodesChanged = true;
@@ -185,7 +208,7 @@ public class LayoutAlgorithm<T extends Positioned> {
   private boolean tightenPositions(List<DiagramNode<T>> pNodes) {
     double minX = getValidLeftBound(pNodes, 0);
     double minY = getValidTopBound(pNodes, 0);
-    
+
     boolean changed = false;
     for(List<DiagramNode<T>> partition:partition(pNodes)) {
       changed = tightenPartitionPositions(partition, minX, minY) | changed;
@@ -226,7 +249,7 @@ public class LayoutAlgorithm<T extends Positioned> {
     }
     return partitions;
   }
-  
+
   private static <T extends Positioned> void addToPartition(DiagramNode<T> pNode, ArrayList<DiagramNode<T>> pPartition, ArrayList<DiagramNode<T>> pNodes) {
     if (! pPartition.contains(pNode)) {
       pPartition.add(pNode);
@@ -349,11 +372,11 @@ public class LayoutAlgorithm<T extends Positioned> {
         node.setX(maxX);
       }
     }
-    
+
     return changed;
   }
-  
-  /** Just ensure that the positions of all the nodes are valid. 
+
+  /** Just ensure that the positions of all the nodes are valid.
    * This means that all nodes are checked on whether they are at least horizseparation and vertseparation from each other.
    * This method does <b>not</b> take into account the grid. In most cases this method should not change the layout.
    * @param pNodes The nodes to verify (or move)
