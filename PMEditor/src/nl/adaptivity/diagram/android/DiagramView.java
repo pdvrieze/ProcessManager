@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Properties;
 
 import net.devrieze.util.Tupple;
+
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
@@ -34,6 +35,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.ScaleGestureDetector.OnScaleGestureListener;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ZoomButtonsController;
 import android.widget.ZoomButtonsController.OnZoomListener;
 
@@ -226,7 +228,7 @@ public class DiagramView extends View implements OnZoomListener{
   private double aOffsetX = 0;
   private double aOffsetY = 0;
   private android.graphics.drawable.Drawable aOverlay;
-  private ZoomButtonsController aZoomController;
+  private ZoomButtonsController mZoomController;
   private final boolean aMultitouch;
   private double aScale=DENSITY*160/96; // Use density of 96dpi for drawables
   private GestureDetector aGestureDetector;
@@ -385,10 +387,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   public void setAdapter(DiagramAdapter<?, ?> pDiagram) {
     aAdapter = pDiagram;
-    if (aZoomController!=null) {
-      aZoomController.setZoomInEnabled(aAdapter!=null);
-      aZoomController.setZoomOutEnabled(aAdapter!=null);
-    }
+    updateZoomControlButtons();
     postInvalidate();
   }
 
@@ -812,40 +811,77 @@ public class DiagramView extends View implements OnZoomListener{
 
 
   @Override
+  protected void onWindowVisibilityChanged(int pVisibility) {
+    if (pVisibility==View.VISIBLE) {
+      showZoomController();
+    } else {
+      dismissZoomController();
+    }
+
+    super.onWindowVisibilityChanged(pVisibility);
+  }
+
+  @Override
   protected void onVisibilityChanged(View pChangedView, int pVisibility) {
-    if (pChangedView==this && aZoomController!=null) {
-      aZoomController.setVisible(pVisibility==View.VISIBLE);
+    if (mZoomController!=null) {
+      boolean show = pVisibility==View.VISIBLE;
+      if (show!=mZoomController.isVisible()) {
+        mZoomController.setVisible(show);
+        updateZoomControlButtons();
+      }
     }
   }
 
   @Override
   public void onZoom(boolean pZoomIn) {
+    final double newScale;
     if (pZoomIn) {
-      setScale(getScale()*1.2);
+      newScale = getScale()*1.2;
     } else {
-      setScale(getScale()/1.2);
+      newScale = getScale()/1.2;
+    }
+    setScale(newScale);
+    updateZoomControlButtons();
+  }
+
+  public void updateZoomControlButtons() {
+    if (mZoomController!=null) {
+      mZoomController.setZoomInEnabled(aAdapter!=null && (getScale()*1.2)<MAXSCALE);
+      mZoomController.setZoomOutEnabled(aAdapter!=null && (getScale()/1.2)>MINSCALE);
     }
   }
 
   @Override
   protected void onAttachedToWindow() {
     super.onAttachedToWindow();
-    if (mEditable && (! (aMultitouch || isInEditMode()))) {
-      aZoomController = new ZoomButtonsController(this);
-      aZoomController.setOnZoomListener(this);
-      aZoomController.setAutoDismissed(false);
-      aZoomController.setZoomInEnabled(aAdapter!=null);
-      aZoomController.setZoomOutEnabled(aAdapter!=null);
-      aZoomController.setVisible(getVisibility()==VISIBLE);
-    }
+//    showZoomController();
   }
 
   @Override
   protected void onDetachedFromWindow() {
-    if (aZoomController!=null) {
-      aZoomController.setVisible(false);
-    }
+    dismissZoomController();
     super.onDetachedFromWindow();
+  }
+
+  private void showZoomController() {
+    if (mEditable && (! (aMultitouch || isInEditMode()))) {
+      if (mZoomController==null) { mZoomController = new ZoomButtonsController(this); }
+      mZoomController.setOnZoomListener(this);
+      mZoomController.setAutoDismissed(false);
+      if (!mZoomController.isVisible()) {
+        mZoomController.setVisible(getVisibility()==VISIBLE);
+      }
+      updateZoomControlButtons();
+    }
+  }
+
+  private void dismissZoomController() {
+    if (mZoomController!=null) {
+      mZoomController.setAutoDismissed(true);
+      mZoomController.setVisible(false);
+      ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).removeViewImmediate(mZoomController.getContainer());
+      mZoomController = null;
+    }
   }
 
   @Override
@@ -893,10 +929,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   public void setEditable(boolean pEditable) {
     mEditable = pEditable;
-    if (aZoomController!=null) {
-      aZoomController.setVisible(false);
-      aZoomController=null;
-    }
+    dismissZoomController();
   }
 
 }
