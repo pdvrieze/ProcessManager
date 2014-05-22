@@ -212,7 +212,9 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    return db.query(ProcessModelsOpenHelper.TABLE_NAME, pProjection, pSelection, pSelectionArgs, null, null, pSortOrder);
+    final Cursor result = db.query(ProcessModelsOpenHelper.TABLE_NAME, pProjection, pSelection, pSelectionArgs, null, null, pSortOrder);
+    result.setNotificationUri(getContext().getContentResolver(), pUri);
+    return result;
   }
 
   @Override
@@ -223,7 +225,10 @@ public class ProcessModelProvider extends ContentProvider {
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     long id = db.insert(ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_NAME, pValues);
-    return ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_PATTERN, id);
+    final Uri result = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_PATTERN, id);
+    getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
+    getContext().getContentResolver().notifyChange(result, null);
+    return result;
   }
 
   @Override
@@ -231,14 +236,19 @@ public class ProcessModelProvider extends ContentProvider {
     UriHelper helper = UriHelper.parseUri(pUri);
     if (helper.mTarget==QueryTarget.PROCESSMODEL) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = ProcessModels.COLUMN_HANDLE+" = ?";
+        pSelection = ProcessModels._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels.COLUMN_HANDLE+" = ? )";
+        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels._ID+" = ? )";
       }
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    return db.delete(ProcessModelsOpenHelper.TABLE_NAME, pSelection, pSelectionArgs);
+    getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
+    final int result = db.delete(ProcessModelsOpenHelper.TABLE_NAME, pSelection, pSelectionArgs);
+    if (result>0) {
+      getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
+    }
+    return result;
   }
 
   @Override
@@ -253,7 +263,11 @@ public class ProcessModelProvider extends ContentProvider {
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    return db.update(ProcessModelsOpenHelper.TABLE_NAME, pValues, pSelection, pSelectionArgs);
+    final int result = db.update(ProcessModelsOpenHelper.TABLE_NAME, pValues, pSelection, pSelectionArgs);
+    if (result>0) {
+      getContext().getContentResolver().notifyChange(pUri, null);
+    }
+    return result;
   }
 
   public static ProcessModel<?> getProcessModelForHandle(Context pContext, long pHandle) {
