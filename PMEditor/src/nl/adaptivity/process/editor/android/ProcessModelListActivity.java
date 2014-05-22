@@ -1,6 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import nl.adaptivity.process.processModel.ProcessModel;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
