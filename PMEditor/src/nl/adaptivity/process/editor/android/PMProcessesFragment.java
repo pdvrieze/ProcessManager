@@ -158,7 +158,9 @@ public class PMProcessesFragment extends Fragment {
   public void onAttach(Activity pActivity) {
     super.onAttach(pActivity);
     Fragment parent = Compat.getParentFragment(this);
-    if (parent!=null && (parent instanceof PMProvider)) {
+    if (this instanceof PMProvider) {
+      mProvider = (PMProvider) this;
+    } else if (parent!=null && (parent instanceof PMProvider)) {
       mProvider = (PMProvider) parent;
     } else if (pActivity instanceof PMProvider){
       mProvider = (PMProvider) pActivity;
