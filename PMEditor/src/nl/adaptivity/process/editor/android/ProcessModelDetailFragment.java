@@ -17,6 +17,9 @@ import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
@@ -64,6 +67,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   private PMProcessesFragment mProcessesFragment;
 
+  private long mProcessModelId;
+
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
@@ -91,6 +96,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     if (getArguments().containsKey(ARG_ITEM_ID)) {
       getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
     }
+    setHasOptionsMenu(true);
   }
 
   @Override
@@ -113,7 +119,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   @Override
   public Loader<ProcessModel<?>> onCreateLoader(int pId, Bundle pArgs) {
-    Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,pArgs.getLong(ARG_ITEM_ID));
+    mProcessModelId = pArgs.getLong(ARG_ITEM_ID);
+    Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,mProcessModelId);
     return new ProcessModelLoader(getActivity(), uri);
   }
 
@@ -157,6 +164,22 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   public void btnPmExecClicked() {
     // Don't do anything yet
+  }
+
+  @Override
+  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
+    pInflater.inflate(R.menu.pm_detail_menu, pMenu);
+    super.onCreateOptionsMenu(pMenu, pInflater);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem pItem) {
+    if (pItem.getItemId()==R.id.ac_delete) {
+      Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, mProcessModelId);
+      getActivity().getContentResolver().delete(uri, null, null);
+      return true;
+    }
+    return super.onOptionsItemSelected(pItem);
   }
 
   @Override

@@ -26,5 +26,6 @@
     <string name="title_saveas">Save as</string>
     <string name="btn_save">Save</string>
     <string name="ac_import">Import</string>
+    <string name="ac_delete">Delete</string>
     
 </resources>
