@@ -3,7 +3,6 @@ package nl.adaptivity.process.editor.android;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -126,8 +126,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     }
 
   };
-  private static final int REQUEST_SAVE_FILE = 42;
-  private static final int REQUEST_EXPORT_SVG = 43;
+
   private static final String TAG = PMEditor.class.getName();
 
   private static class MoveDrawable extends DiagramDrawable{
@@ -862,10 +861,6 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     if (pResultCode==Activity.RESULT_OK) {
       // no results yet
     }
-  }
-
-  private OutputStream getOutputStreamFromSave(Intent pData) throws FileNotFoundException {
-    return getContentResolver().openOutputStream(pData.getData());
   }
 
   @Override
