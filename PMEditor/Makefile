@@ -8,7 +8,7 @@ SCORES:=black white none
 #DRAWABLES:=$(foreach peg,peg btn,$(foreach colour,$(COLOURS),$(peg)_$(colour).xml)) \
 #           $(foreach score,$(SCORES),score_$(score).png) \
 #	   ic_launcher.png ic_menu_scores.png ic_action_scores.png popupframe.9.png popuparrowdown.png popuparrowup.png
-ICONS=ic_cont_arrow.png ic_cont_edit.png ic_cont_delete.png
+ICONS=ic_cont_arrow.png ic_cont_edit.png ic_cont_delete.png ic_action_export.png ic_action_import.png
 DRAWABLES:= ic_launcher.png $(ICONS) btn_default.9.png btn_pressed.9.png btn_active.9.png
 TARGETS:= $(foreach qual,$(QUALS),$(foreach drawable,$(DRAWABLES),res/drawable-$(qual)/$(drawable))) $(NODPITARGETS) 
 
@@ -49,6 +49,9 @@ ic_launcher-web.png: ressrc/iconsource.svg
 
 #$(foreach qual,$(QUALS),res/drawable-$(qual)/ic_action_scores.png): ressrc/menu_highscore_ics.svg
 #	@eval scripts/iconize.sh 32 32 $< $@ icon
+
+$(foreach qual,$(QUALS),$(foreach icon,ic_action_export.png ic_action_import.png,res/drawable-$(qual)/$(icon))): ressrc/ic_action_save.svg
+	@eval scripts/iconize.sh 32 32 $< $@ $(subst .png,,$(@F))
 
 $(foreach qual,$(QUALS),res/drawable-$(qual)/ic_cont_%.png): ressrc/ic_cont_%.svg
 	@eval scripts/iconize.sh 32 32 $< $@
