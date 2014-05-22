@@ -1,12 +1,12 @@
 package nl.adaptivity.process.editor.android;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import android.annotation.TargetApi;
@@ -28,6 +28,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -58,6 +59,10 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
   private static final int LOADERID = 3;
+
+  private static final int REQUEST_IMPORT = 31;
+
+  private static final String TAG = ProcessModelListFragment.class.getSimpleName();
 
   /**
    * The fragment's current callback object, which is notified of list item
@@ -282,6 +287,12 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
       case R.id.menu_add_pm:
         createNewPM();
         return true;
+      case R.id.ac_import:
+        Intent importIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        importIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        importIntent.setType("*/*");
+        startActivityForResult(Intent.createChooser(importIntent, "Import from"),REQUEST_IMPORT);
+        return true;
       case R.id.menu_settings: {
         Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
         startActivity(settingsIntent);
@@ -289,6 +300,29 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
       }
     }
     return super.onOptionsItemSelected(pItem);
+  }
+
+
+
+  @Override
+  public void onActivityResult(int pRequestCode, int pResultCode, Intent pData) {
+    if (pResultCode==Activity.RESULT_OK) {
+      if (pRequestCode==REQUEST_IMPORT) {
+        try {
+          InputStream in = getActivity().getContentResolver().openInputStream(pData.getData());
+          try {
+            DrawableProcessModel pm = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
+            Uri uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
+            long id = ContentUris.parseId(uri);
+            mCallbacks.onItemSelected(id);
+          } finally {
+            in.close();
+          }
+        } catch (IOException e) {
+          Log.e(TAG, "Failure to import file", e);
+        }
+      }
+    }
   }
 
   private void createNewPM() {
