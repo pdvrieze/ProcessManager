@@ -3,8 +3,10 @@ package nl.adaptivity.process.editor.android;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import android.annotation.TargetApi;
@@ -280,6 +282,11 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
       case R.id.menu_add_pm:
         createNewPM();
         return true;
+      case R.id.menu_settings: {
+        Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
+        startActivity(settingsIntent);
+        return true;
+      }
     }
     return super.onOptionsItemSelected(pItem);
   }

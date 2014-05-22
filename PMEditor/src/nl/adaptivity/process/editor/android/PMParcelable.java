@@ -5,35 +5,34 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-
 import org.xmlpull.v1.XmlPullParserException;
 
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 
 public class PMParcelable implements Parcelable {
-  
-  public static final Parcelable.Creator<PMParcelable> CREATOR = new Creator<PMParcelable>() { 
-    
+
+  public static final Parcelable.Creator<PMParcelable> CREATOR = new Creator<PMParcelable>() {
+
     @Override
     public PMParcelable[] newArray(int pSize) {
       return new PMParcelable[pSize];
     }
-    
+
     @Override
     public PMParcelable createFromParcel(Parcel pSource) {
       return new PMParcelable(pSource);
     }
   };
-  private DrawableProcessModel mProcessModel;
+  private ClientProcessModel<?> mProcessModel;
 
   public PMParcelable(Parcel pSource) {
     this(PMParser.parseProcessModel(readInputStream(pSource), PMEditor.NULL_LAYOUT_ALGORITHM));
   }
 
-  public PMParcelable(DrawableProcessModel pProcessModel) {
+  public PMParcelable(ClientProcessModel<?> pProcessModel) {
     mProcessModel = pProcessModel;
   }
 
@@ -57,7 +56,11 @@ public class PMParcelable implements Parcelable {
   public void writeToParcel(Parcel pDest, int pFlags) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     try {
-      PMParser.serializeProcessModel(out, mProcessModel);
+      if (mProcessModel!=null) {
+        PMParser.serializeProcessModel(out, mProcessModel);
+      } else {
+        pDest.writeInt(0);
+      }
     } catch (XmlPullParserException | IOException e) {
       pDest.writeInt(0);
       throw new RuntimeException(e);
@@ -68,8 +71,8 @@ public class PMParcelable implements Parcelable {
     }
   }
 
-  public DrawableProcessModel getProcessModel() {
+  public ClientProcessModel<?> getProcessModel() {
     return mProcessModel;
   }
-  
+
 }

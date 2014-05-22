@@ -30,6 +30,7 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.diagram.svg.SVGCanvas;
 import nl.adaptivity.process.editor.android.NodeEditDialogFragment.NodeEditListener;
+import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
@@ -58,7 +59,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import static nl.adaptivity.diagram.Drawable.*;
 
-public class PMEditor extends Activity implements OnNodeClickListener, NodeEditListener {
+public class PMEditor extends Activity implements OnNodeClickListener, NodeEditListener, PMProvider {
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";
@@ -485,7 +486,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
       if (pParams.length>0) {
         aPm = pParams[0];
       } else if (aPm == null || aPm.getModelNodes().isEmpty()) {
-        aPm = getProcessModel(NULL_LAYOUT_ALGORITHM);
+        aPm = loadInitialProcessModel(NULL_LAYOUT_ALGORITHM);
       }
       if (aPm!=null) {
         LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<>();
@@ -701,17 +702,17 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     if(savedInstanceState!=null) {
       final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
       if (pmparcelable!=null) {
-        aPm = pmparcelable.getProcessModel();
+        aPm = DrawableProcessModel.get(pmparcelable.getProcessModel());
       }
     } else {
       if (getIntent().getData()!=null) {
-        aPm = getProcessModel(getIntent().getData(), new LayoutAlgorithm<DrawableProcessNode>());
+        aPm = loadProcessModel(getIntent().getData(), new LayoutAlgorithm<DrawableProcessNode>());
       }
     }
     if (aPm == null) {
-      aPm = getProcessModel();
+      aPm = loadInitialProcessModel();
     }
-
+    getFragmentManager().beginTransaction().add(new PMProcessesFragment(), "processModelHelper").commit();
   }
 
   /**
@@ -777,23 +778,23 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
 
-  private DrawableProcessModel getProcessModel() {
-    return getProcessModel(new LayoutAlgorithm<DrawableProcessNode>());
+  private DrawableProcessModel loadInitialProcessModel() {
+    return loadInitialProcessModel(new LayoutAlgorithm<DrawableProcessNode>());
   }
 
-  private DrawableProcessModel getProcessModel(LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
-    return getProcessModel(getResources().openRawResource(R.raw.processmodel), layoutAlgorithm);
+  private DrawableProcessModel loadInitialProcessModel(LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+    return loadProcessModel(getResources().openRawResource(R.raw.processmodel), layoutAlgorithm);
   }
 
-  private DrawableProcessModel getProcessModel(Uri uri, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  private DrawableProcessModel loadProcessModel(Uri uri, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     try {
-      return getProcessModel(getContentResolver().openInputStream(uri), layoutAlgorithm);
+      return loadProcessModel(getContentResolver().openInputStream(uri), layoutAlgorithm);
     } catch (FileNotFoundException e1) {
       throw new RuntimeException(e1);
     }
   }
 
-  public DrawableProcessModel getProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  public DrawableProcessModel loadProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     try {
       return PMParser.parseProcessModel(in, layoutAlgorithm);
     } finally {
@@ -849,7 +850,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
         }
         break;
       case R.id.ac_save:
-        doSave();
+        doSaveFile();
         break;
       case R.id.ac_export_svg:
         doExportSVG();
@@ -863,11 +864,11 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   }
 
   @TargetApi(Build.VERSION_CODES.KITKAT)
-  private void doSave() {
-    requestSave("*/*", REQUEST_SAVE_FILE);
+  private void doSaveFile() {
+    requestSaveFile("*/*", REQUEST_SAVE_FILE);
   }
 
-  public void doSave(Intent pData) {
+  public void doSaveFile(Intent pData) {
     try {
       OutputStream out = getOutputStreamFromSave(pData);
       try {
@@ -882,7 +883,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
 
   @TargetApi(Build.VERSION_CODES.KITKAT)
   private void doExportSVG() {
-    requestSave("image/svg", REQUEST_EXPORT_SVG);
+    requestSaveFile("image/svg", REQUEST_EXPORT_SVG);
   }
 
   public void doExportSVG(Intent pData) {
@@ -908,7 +909,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     }
   }
 
-  public void requestSave(final String type, final int request) {
+  public void requestSaveFile(final String type, final int request) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
       Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
       i.setType(type);
@@ -926,7 +927,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   protected void onActivityResult(int pRequestCode, int pResultCode, Intent pData) {
     if (pResultCode==Activity.RESULT_OK) {
       if (pRequestCode==REQUEST_SAVE_FILE) {
-        doSave(pData);
+        doSaveFile(pData);
       } else if (pRequestCode == REQUEST_EXPORT_SVG) {
         doExportSVG(pData);
       }
@@ -969,6 +970,11 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   @Override
   public void onNodeEdit(int pPos) {
     diagramView1.invalidate();
+  }
+
+  @Override
+  public ClientProcessModel<?> getProcessModel() {
+    return aPm;
   }
 
 

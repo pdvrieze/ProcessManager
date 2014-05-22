@@ -1,11 +1,15 @@
 package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.diagram.android.DiagramView;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.process.editor.android.ProcessModelListFragment.Callbacks;
 import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
@@ -27,7 +31,7 @@ import android.widget.TextView;
  * either contained in a {@link ProcessModelListActivity} in two-pane mode (on
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
-public class ProcessModelDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener {
+public class ProcessModelDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener, PMProvider {
 
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -60,6 +64,8 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
 
   private ProgressBar mSpinner;
 
+  private PMProcessesFragment mProcessesFragment;
+
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
@@ -87,6 +93,21 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
     if (getArguments().containsKey(ARG_ITEM_ID)) {
       getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
     }
+  }
+
+  @Override
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    mProcessesFragment = new PMProcessesFragment();
+    getFragmentManager().beginTransaction().add(mProcessesFragment, "processModelHelper").commit();
+    mProcessesFragment.setPMProvider(this);
+  }
+
+  @Override
+  public void onDetach() {
+    getFragmentManager().beginTransaction().remove(mProcessesFragment).commit();
+
+    super.onDetach();
   }
 
   @Override
@@ -153,5 +174,10 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
 
   public void btnPmExecClicked() {
     // Don't do anything yet
+  }
+
+  @Override
+  public ClientProcessModel<?> getProcessModel() {
+    return mItem.getDiagram();
   }
 }
