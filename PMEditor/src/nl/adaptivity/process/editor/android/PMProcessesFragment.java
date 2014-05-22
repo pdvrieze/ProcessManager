@@ -348,13 +348,13 @@ public class PMProcessesFragment extends Fragment {
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
     ClientProcessModel<?> pm = null;
-    if ((pItem.getItemId()==R.id.ac_save||pItem.getItemId()==R.id.ac_export_svg)&&
+    if ((pItem.getItemId()==R.id.ac_export||pItem.getItemId()==R.id.ac_export_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
       Toast.makeText(getActivity(), "No process model available", Toast.LENGTH_LONG).show();
       return true;
     }
     switch (pItem.getItemId()) {
-      case R.id.ac_save:
+      case R.id.ac_export:
         doSaveFile(pm);
         return true;
       case R.id.ac_export_svg:
