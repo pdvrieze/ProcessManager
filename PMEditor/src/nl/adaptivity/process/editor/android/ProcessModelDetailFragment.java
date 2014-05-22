@@ -4,13 +4,11 @@ import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
-import nl.adaptivity.process.editor.android.ProcessModelListFragment.Callbacks;
 import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
 import android.content.Intent;
@@ -31,7 +29,7 @@ import android.widget.TextView;
  * either contained in a {@link ProcessModelListActivity} in two-pane mode (on
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
-public class ProcessModelDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener, PMProvider {
+public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener, PMProvider {
 
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -93,21 +91,6 @@ public class ProcessModelDetailFragment extends Fragment implements LoaderCallba
     if (getArguments().containsKey(ARG_ITEM_ID)) {
       getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
     }
-  }
-
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    mProcessesFragment = new PMProcessesFragment();
-    getFragmentManager().beginTransaction().add(mProcessesFragment, "processModelHelper").commit();
-    mProcessesFragment.setPMProvider(this);
-  }
-
-  @Override
-  public void onDetach() {
-    getFragmentManager().beginTransaction().remove(mProcessesFragment).commit();
-
-    super.onDetach();
   }
 
   @Override
