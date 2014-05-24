@@ -1,8 +1,11 @@
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.android.util.AuthenticatedWebClient;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
@@ -48,6 +51,12 @@ public class ProcessModelListActivity extends Activity
       ((ProcessModelListFragment) getFragmentManager()
           .findFragmentById(R.id.processmodel_list))
           .setActivateOnItemClick(true);
+    }
+
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
+    if (source!=null) {
+      AuthenticatedWebClient.ensureAccount(this, source);
     }
 
     // TODO: If exposing deep links into your app, handle intents here.

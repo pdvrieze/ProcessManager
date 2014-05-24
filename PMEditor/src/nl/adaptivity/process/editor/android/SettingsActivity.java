@@ -39,6 +39,8 @@ public class SettingsActivity extends PreferenceActivity {
 
   public static final String PREF_KITKATFILE="pref_kitkatfile";
 
+  public static final String PREF_SYNC_SOURCE = "sync_source";
+
   /**
    * Determines whether to always show the simplified settings UI, where
    * settings are presented in a single list. When false, settings are shown as
@@ -87,6 +89,7 @@ public class SettingsActivity extends PreferenceActivity {
     // to reflect the new value, per the Android Design guidelines.
     bindPreferenceSummaryToValue(findPreference(PREF_NOTIFICATIONS_NEW_TASK_RINGTONE));
     bindPreferenceSummaryToValue(findPreference(PREF_SYNC_FREQUENCY));
+    bindPreferenceSummaryToValue(findPreference(PREF_SYNC_SOURCE));
   }
 
   /** {@inheritDoc} */
