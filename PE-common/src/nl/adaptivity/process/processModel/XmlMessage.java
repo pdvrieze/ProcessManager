@@ -93,6 +93,33 @@ public class XmlMessage implements IXmlMessage {
   @XmlTransient
   private ArrayList<Object> aAny;
 
+  public XmlMessage() { /* default constructor */ }
+
+
+  public XmlMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody, Collection<Object> pAny) {
+    service = pService;
+    endpoint = pEndpoint;
+    operation = pOperation;
+    url = pUrl;
+    method = pMethod;
+    type = pContentType;
+    aBody = pMessageBody;
+    aAny = (pAny instanceof ArrayList) ? (ArrayList<Object>) pAny : new ArrayList<>(pAny);
+  }
+
+
+  public static XmlMessage get(IXmlMessage pMessage) {
+    if (pMessage instanceof XmlMessage) { return (XmlMessage) pMessage; }
+    return new XmlMessage(pMessage.getService(),
+                          pMessage.getEndpoint(),
+                          pMessage.getOperation(),
+                          pMessage.getUrl(),
+                          pMessage.getMethod(),
+                          pMessage.getContentType(),
+                          pMessage.getMessageBody(),
+                          pMessage.getAny());
+  }
+
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.IXmlMessage#getServiceName()
    */

@@ -1,7 +1,9 @@
 package nl.adaptivity.process.processModel.engine;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -18,16 +20,20 @@ import net.devrieze.util.IdFactory;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.XmlExportType;
+import nl.adaptivity.process.processModel.XmlImportType;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
-@XmlSeeAlso({ Join.class, ActivityImpl.class, EndNodeImpl.class, StartNode.class })
+@XmlSeeAlso({ JoinImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
 public abstract class ProcessNodeImpl implements Serializable, ProcessNode<ProcessNodeImpl> {
 
   private static final long serialVersionUID = -7745019972129682199L;
@@ -144,6 +150,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   }
 
 
+  @Override
   public void removeSuccessor(ProcessNodeImpl pNode) {
     aSuccessors.remove(pNode);
   }
@@ -271,6 +278,32 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
       }
     }
     return false;
+  }
+
+  protected static List<XmlExportType> toExportableExports(Collection<? extends IXmlExportType> pExports) {
+    List<XmlExportType> newExports;
+    if (pExports!=null) {
+      newExports = new ArrayList<>(pExports.size());
+      for(IXmlExportType export:pExports) {
+        newExports.add(XmlExportType.get(export));
+      }
+    } else {
+      newExports = new ArrayList<>();
+    }
+    return newExports;
+  }
+
+  protected static List<XmlImportType> toExportableImports(Collection<? extends IXmlImportType> pImports) {
+    List<XmlImportType> newImports;
+    if (pImports!=null) {
+      newImports = new ArrayList<>(pImports.size());
+      for(IXmlImportType imp:pImports) {
+        newImports.add(XmlImportType.get(imp));
+      }
+    } else {
+      newImports = new ArrayList<>();
+    }
+    return newImports;
   }
 
 }

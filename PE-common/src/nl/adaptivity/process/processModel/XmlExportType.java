@@ -141,4 +141,15 @@ public class XmlExportType implements IXmlExportType {
     this.path = value;
   }
 
+  public static XmlExportType get(IXmlExportType pExport) {
+    if (pExport instanceof XmlExportType) { return (XmlExportType) pExport; }
+    XmlExportType result = new XmlExportType();
+    result.content = pExport.getContent();
+    result.name = pExport.getName();
+    result.node = pExport.getNode();
+    result.paramName = pExport.getParamName();
+    result.path = pExport.getPath();
+    return result;
+  }
+
 }

@@ -19,6 +19,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.XmlExportType;
 
 
 @XmlRootElement(name = EndNodeImpl.ELEMENTNAME)
@@ -26,7 +27,7 @@ import nl.adaptivity.process.processModel.IXmlExportType;
 @XmlType(name = "EndNode")
 public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl> {
 
-  private List<IXmlExportType> aExports;
+  private List<XmlExportType> aExports;
 
   public EndNodeImpl(final ProcessNodeImpl pPrevious) {
     super(Collections.singletonList(pPrevious));
@@ -75,7 +76,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
    */
   @Override
   @XmlElement(name = "export")
-  public List<IXmlExportType> getExports() {
+  public List<? extends XmlExportType> getExports() {
     if (aExports == null) {
       aExports = new ArrayList<>();
     }
@@ -84,7 +85,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   @Override
   public void setExports(Collection<? extends IXmlExportType> pExports) {
-    aExports = new ArrayList<>(pExports);
+    aExports = toExportableExports(pExports);
   }
 
   /* (non-Javadoc)

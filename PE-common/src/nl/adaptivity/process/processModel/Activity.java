@@ -43,7 +43,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of imports.
    */
-  public abstract List<IXmlImportType> getImports();
+  public abstract List<? extends IXmlImportType> getImports();
 
   /**
    * Set the import requirements for this activity. This will create a copy of
@@ -59,7 +59,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of exports.
    */
-  public abstract List<IXmlExportType> getExports();
+  public abstract List<? extends IXmlExportType> getExports();
 
   /**
    * Set the export requirements for this activity. This will create a copy of

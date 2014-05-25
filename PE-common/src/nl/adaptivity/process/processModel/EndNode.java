@@ -7,7 +7,7 @@ import java.util.List;
 public interface EndNode<T extends ProcessNode<T>> extends ProcessNode<T>{
   void setExports(Collection<? extends IXmlExportType> pExports);
 
-  List<IXmlExportType> getExports();
+  List<? extends IXmlExportType> getExports();
 
   T getPredecessor();
 
