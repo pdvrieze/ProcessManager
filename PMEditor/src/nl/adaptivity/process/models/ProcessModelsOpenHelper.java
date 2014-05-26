@@ -23,12 +23,13 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
 
   static final String TABLE_NAME = "processModels";
   private static final String DB_NAME = "processmodels.db";
-  private static final int DB_VERSION = 1;
+  private static final int DB_VERSION = 2;
   private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       ProcessModels.COLUMN_HANDLE +" LONG," +
       ProcessModels.COLUMN_NAME + " TEXT," +
-      ProcessModels.COLUMN_MODEL + " TEXT )";
+      ProcessModels.COLUMN_MODEL + " TEXT," +
+      ProcessModels.COLUMN_SYNCSTATE+ " INT )";
   private Context mContext;
 
   public ProcessModelsOpenHelper(Context pContext) {
@@ -57,6 +58,7 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
     }
     cv.put(ProcessModels.COLUMN_MODEL, out.toString());
     cv.put(ProcessModels.COLUMN_NAME, modelName);
+    cv.put(ProcessModels.COLUMN_SYNCSTATE, ProcessModels.SYNC_UPDATE_SERVER);
     pDb.insert(TABLE_NAME, ProcessModels.COLUMN_MODEL, cv);
   }
 

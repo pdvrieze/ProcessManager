@@ -311,7 +311,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
         try {
           InputStream in = getActivity().getContentResolver().openInputStream(pData.getData());
           try {
-            DrawableProcessModel pm = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
+            DrawableProcessModel pm = PMParser.parseProcessModel(in, null /*LayoutAlgorithm.<DrawableProcessNode>nullalgorithm()*/);
             Uri uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
             long id = ContentUris.parseId(uri);
             mCallbacks.onItemSelected(id);

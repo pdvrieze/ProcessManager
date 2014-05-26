@@ -1,12 +1,24 @@
 package nl.adaptivity.process.editor.android;
 
-import nl.adaptivity.android.util.AuthenticatedWebClient;
+import java.io.IOException;
+
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.MenuItem;
 
 /**
@@ -55,11 +67,42 @@ public class ProcessModelListActivity extends Activity
 
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
     String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
+    String authbase = AuthenticatedWebClient.getAuthBase(source);
     if (source!=null) {
-      AuthenticatedWebClient.ensureAccount(this, source);
-    }
+      AsyncTask<String, Object, Account> task = new AsyncTask<String, Object, Account>() {
 
-    // TODO: If exposing deep links into your app, handle intents here.
+        @Override
+        protected Account doInBackground(String... pParams) {
+          final Account account = AuthenticatedWebClient.ensureAccount(ProcessModelListActivity.this, pParams[0]);
+          ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
+          AccountManager accountManager = AccountManager.get(ProcessModelListActivity.this);
+          AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+
+            @Override
+            public void run(AccountManagerFuture<Bundle> pFuture) {
+              try {
+                Bundle result = pFuture.getResult();
+              } catch (OperationCanceledException | AuthenticatorException | IOException e) {
+                Log.e(ProcessModelListActivity.class.getSimpleName(), "Failure to get auth token", e);
+              }
+              if (account!=null) {
+                Bundle extras = new Bundle(1);
+                extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+                ContentResolver.requestSync(account, ProcessModelProvider.AUTHORITY, extras );
+              }
+            }};
+          accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, ProcessModelListActivity.this, callback  , null);
+
+          return account;
+        }
+
+        @Override
+        protected void onPostExecute(Account account) {
+        }
+
+      };
+      task.execute(authbase);
+    }
   }
 
   @Override
