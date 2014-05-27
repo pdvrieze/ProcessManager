@@ -16,7 +16,6 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -229,6 +228,10 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
           statement.executeUpdate();
         }
       }
+    }
+
+    public void createTable(Connection pConnection) throws SQLException {
+      throw new UnsupportedOperationException("This is not yet supported");
     }
 
 

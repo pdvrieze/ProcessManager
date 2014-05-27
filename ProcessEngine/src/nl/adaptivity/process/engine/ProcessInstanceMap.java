@@ -16,7 +16,6 @@ import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -150,6 +149,10 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       pStatement.setString(pOffset+1, COL_NAME);
       pStatement.setString(pOffset+2, pElement.getOwner().getName());
       return 3;
+    }
+
+    public void createTable(Connection pConnection) throws SQLException {
+      throw new UnsupportedOperationException("This is not yet supported");
     }
 
   }

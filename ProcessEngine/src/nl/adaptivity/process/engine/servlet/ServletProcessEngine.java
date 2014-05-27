@@ -58,8 +58,8 @@ import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.MemHandleMap;
+import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -84,6 +84,7 @@ import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -527,10 +528,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
-  public ProcessModelRefs getProcesModelRefs() {
+  public ProcessModelRefs<?> getProcesModelRefs() {
     final Iterable<ProcessModelImpl> processModels = aProcessEngine.getProcessModels();
-    final ProcessModelRefs list = new ProcessModelRefs();
-    for (final ProcessModel pm : processModels) {
+    final ProcessModelRefs<?> list = new ProcessModelRefs<>();
+    for (final ProcessModel<?> pm : processModels) {
       list.add(pm.getRef());
     }
     return list;
@@ -548,7 +549,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
-  public ProcessModelRefs postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) throws IOException {
+  public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) throws IOException {
+    if (pOwner==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     XmlProcessModel xmlpm;
     try {
       xmlpm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
@@ -557,10 +559,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
     if (xmlpm != null) {
       final ProcessModelImpl processModel = xmlpm.toProcessModel();
-      aProcessEngine.addProcessModel(processModel, pOwner);
+      return ProcessModelRef.get(aProcessEngine.addProcessModel(processModel, pOwner));
     }
 
-    return getProcesModelRefs();
+    return null;
   }
 
   /**

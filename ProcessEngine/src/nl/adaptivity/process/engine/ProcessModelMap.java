@@ -5,6 +5,7 @@ import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.security.Principal;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -18,7 +19,6 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
@@ -63,7 +63,8 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
     @Override
     public int setFilterParams(PreparedStatement pStatement, int pOffset) {
-      throw new UnsupportedOperationException(); // this should not be called
+      // No where clauses are used.
+      return 0;
     }
 
     @Override
@@ -152,6 +153,10 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     public int setHandleParams(PreparedStatement pStatement, long pHandle, int pOffset) throws SQLException {
       pStatement.setLong(pOffset, pHandle);
       return 1;
+    }
+
+    public void createTable(Connection pConnection) throws SQLException {
+      throw new UnsupportedOperationException("This is not yet supported");
     }
 
   }
