@@ -19,17 +19,18 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
+import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import net.devrieze.util.CollectionUtil;
-
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
+import nl.adaptivity.util.ListFilter;
 
 
 /**
@@ -76,11 +77,12 @@ public class XmlProcessModel {
     roles = m.getRoles();
   }
 
+  @XmlMixed
   @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
                    @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
                    @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
                    @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class) })
-  private List<? extends ProcessNodeImpl> nodes;
+  protected List<? extends ProcessNodeImpl> nodes;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
@@ -109,12 +111,21 @@ public class XmlProcessModel {
    */
   public List<? extends ProcessNodeImpl> getNodes() {
     if (nodes == null) {
-      nodes = new ArrayList<>();
+      nodes = new ListFilter<>(ProcessNodeImpl.class, true);
     }
     return this.nodes;
   }
 
+  private static <T> List<T> filter(List<? extends T> source, Class<T> clazz) {
+    ListFilter<T> result = new ListFilter<>(clazz, true);
+    result.addAll(source);
+    return result;
+  }
+
   public ProcessModelImpl toProcessModel() {
+    if (nodes instanceof ArrayList) {
+      nodes = filter(nodes, ProcessNodeImpl.class);
+    }
     return new ProcessModelImpl(this);
   }
 

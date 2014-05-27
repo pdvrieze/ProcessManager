@@ -1,6 +1,7 @@
 package nl.adaptivity.util;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -10,8 +11,8 @@ public class ListFilter<T> extends AbstractList<T> {
   private final Class<T> mClass;
   private final boolean mLax;
 
-  public ListFilter(List<T> source, Class<T> pClass, boolean pLax) {
-    mSource = source;
+  public ListFilter(Class<T> pClass, boolean pLax) {
+    mSource = new ArrayList<>();
     mClass = pClass;
     mLax = pLax;
   }
@@ -29,7 +30,7 @@ public class ListFilter<T> extends AbstractList<T> {
   @Override
   public void add(int pIndex, T pElement) {
     if (mClass.isInstance(pElement)) {
-      super.add(pIndex, pElement);
+      mSource.add(pIndex, pElement);
     } else if(! mLax) {
       mClass.cast(pElement);
     }
@@ -38,7 +39,7 @@ public class ListFilter<T> extends AbstractList<T> {
   @Override
   public T set(int pIndex, T pElement) {
     if (mClass.isInstance(pElement)) {
-      return super.set(pIndex, pElement);
+      return mSource.set(pIndex, pElement);
     } else if(! mLax) {
       mClass.cast(pElement);
     }

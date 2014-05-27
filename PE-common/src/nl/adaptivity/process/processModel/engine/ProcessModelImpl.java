@@ -115,7 +115,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   public ProcessModelImpl(final XmlProcessModel pXmlModel) {
     final Collection<EndNodeImpl> endNodes = new ArrayList<>();
 
-    for (final ProcessNodeImpl node : pXmlModel.getNodes()) {
+    for (final Object node : pXmlModel.getNodes()) {
       if (node instanceof EndNodeImpl) {
         endNodes.add((EndNodeImpl) node);
       }
