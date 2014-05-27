@@ -1,5 +1,8 @@
 package nl.adaptivity.process.models;
 
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -7,11 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.util.MultipartEntity;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -34,13 +37,13 @@ import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
-import static org.xmlpull.v1.XmlPullParser.*;
 
 
 public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
 
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
   private static final String TAG_PROCESSMODELS = "processModels";
+  private static final String TAG_PROCESSMODEL = "processModel";
   private static final String TAG = ProcessModelSyncAdapter.class.getSimpleName();
   private AuthenticatedWebClient mHttpClient;
   private String mBase;
@@ -67,7 +70,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
       String authbase = AuthenticatedWebClient.getAuthBase(mBase);
       mHttpClient = new AuthenticatedWebClient(getContext(), authbase);
     }
-    HttpGet getProcessesRequest = new HttpGet(mBase+"ProcessModels");
+    HttpGet getProcessesRequest = new HttpGet(mBase+"processModels");
     HttpResponse result;
     try {
       result = mHttpClient.execute(getProcessesRequest);
@@ -75,22 +78,26 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
       pSyncResult.stats.numIoExceptions++;
       return;
     }
-    final int statusCode = result.getStatusLine().getStatusCode();
-    if (statusCode>=200 && statusCode<400) {
-      try {
-        updateProcessModelList(pProvider, pSyncResult, result.getEntity().getContent());
-      } catch (IllegalStateException|XmlPullParserException e) {
-        pSyncResult.stats.numParseExceptions++;
-        Log.e(TAG, "Error parsing process model list", e);
-      } catch (IOException e) {
+    if (result!=null) {
+      final int statusCode = result.getStatusLine().getStatusCode();
+      if (statusCode>=200 && statusCode<400) {
+        try {
+          updateProcessModelList(pProvider, pSyncResult, result.getEntity().getContent());
+        } catch (IllegalStateException|XmlPullParserException e) {
+          pSyncResult.stats.numParseExceptions++;
+          Log.e(TAG, "Error parsing process model list", e);
+        } catch (IOException e) {
+          pSyncResult.stats.numIoExceptions++;
+          Log.e(TAG, "Error parsing process model list", e);
+        } catch (RemoteException e) {
+          pSyncResult.databaseError=true;
+          Log.e(TAG, "Error parsing process model list", e);
+        }
+      } else {
         pSyncResult.stats.numIoExceptions++;
-        Log.e(TAG, "Error parsing process model list", e);
-      } catch (RemoteException e) {
-        pSyncResult.databaseError=true;
-        Log.e(TAG, "Error parsing process model list", e);
       }
     } else {
-      pSyncResult.stats.numIoExceptions++;
+      pSyncResult.stats.numAuthExceptions++;
     }
   }
 
@@ -106,9 +113,11 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
   }
 
   private void postProcessModel(ContentProviderClient pProvider, SyncResult pSyncResult, long pLong, String pModel) throws IOException, XmlPullParserException {
-    HttpPost post = new HttpPost(mBase+"ProcessModels");
+    HttpPost post = new HttpPost(mBase+"processModels");
     try {
-      post.setEntity(new StringEntity(pModel, "UTF8"));
+      final MultipartEntity entity = new MultipartEntity();
+      entity.add("processUpload", new StringEntity(pModel, "UTF8"));
+      post.setEntity(entity);
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
@@ -149,7 +158,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
   private Long parseProcessModelRef(ContentProviderClient pProvider, SyncResult pSyncResult, XmlPullParser parser) throws XmlPullParserException, IOException, RemoteException {
-    parser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODELS);
+    parser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     String name = parser.getAttributeValue(null, "name");
     long handle;
     try {
@@ -160,7 +169,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
       return null;
     }
     parser.next();
-    parser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSMODELS);
+    parser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     final long id;
     Cursor localModel = pProvider.query(ProcessModels.CONTENT_ID_URI_BASE, ProcessModels.BASE_PROJECTION, ProcessModels.SELECT_HANDLE, new String[] { Long.toString(handle)}, null);
     if (localModel.moveToFirst()) {
