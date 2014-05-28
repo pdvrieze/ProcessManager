@@ -33,7 +33,7 @@ import nl.adaptivity.process.processModel.XmlImportType;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
-@XmlSeeAlso({ JoinImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
+@XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
 public abstract class ProcessNodeImpl implements Serializable, ProcessNode<ProcessNodeImpl> {
 
   private static final long serialVersionUID = -7745019972129682199L;
@@ -73,6 +73,17 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
       aPredecessors = ProcessNodeSet.processNodeSet();
     }
     return aPredecessors;
+  }
+
+  protected void swapPredecessors(final Collection<?> predecessors) {
+    aPredecessors=null;
+    List<ProcessNodeImpl> tmp = new ArrayList<>(predecessors.size());
+    for(Object pred:predecessors) {
+      if (pred instanceof ProcessNodeImpl) {
+        tmp.add((ProcessNodeImpl) pred);
+      }
+    }
+    setPredecessors(tmp);
   }
 
   /* (non-Javadoc)

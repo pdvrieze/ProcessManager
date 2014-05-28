@@ -1,7 +1,9 @@
 package nl.adaptivity.process.processModel.engine;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -10,12 +12,15 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.util.ListFilter;
 
 
 @XmlRootElement(name = JoinImpl.ELEMENTNAME)
@@ -60,8 +65,6 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
 
   // TODO see whether this is still needed
   @Deprecated
-  @XmlElement(name = "predecessor")
-  @XmlIDREF
   public Set<ProcessNodeImpl> getPred() {
     if (aPred == null) {
       aPred = ProcessNodeSet.processNodeSet();
@@ -69,8 +72,6 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
     return aPred;
   }
 
-  @XmlElement(name = "predecessor")
-  @XmlIDREF
   @Override
   public Set<? extends ProcessNodeImpl> getPredecessors() {
     if (aPred != null) {
@@ -78,6 +79,17 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
       aPred = null;
     }
     return super.getPredecessors();
+  }
+
+  List<? extends ProcessNodeImpl> getXmlPrececessors() {
+    return new ArrayList<>(getPredecessors());
+  }
+
+  @XmlElement(name = "predecessor")
+//@XmlJavaTypeAdapter(PredecessorAdapter.class)
+  @XmlIDREF
+  void setXmlPrececessors(List<? extends ProcessNodeImpl> pred) {
+    swapPredecessors(pred);
   }
 
   @Override

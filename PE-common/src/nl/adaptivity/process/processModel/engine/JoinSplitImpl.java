@@ -3,11 +3,13 @@ package nl.adaptivity.process.processModel.engine;
 
 import java.util.Collection;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
 import nl.adaptivity.process.processModel.JoinSplit;
 
-
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ProcessNodeImpl>{
 
   private static final long serialVersionUID = -4343040873373817308L;

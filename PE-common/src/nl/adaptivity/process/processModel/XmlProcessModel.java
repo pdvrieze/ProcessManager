@@ -29,6 +29,7 @@ import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.SplitImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.ListFilter;
 
@@ -77,12 +78,7 @@ public class XmlProcessModel {
     roles = m.getRoles();
   }
 
-  @XmlMixed
-  @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
-                   @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
-                   @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
-                   @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class) })
-  protected List<? extends ProcessNodeImpl> nodes;
+  private List<? extends ProcessNodeImpl> nodes;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
@@ -111,9 +107,25 @@ public class XmlProcessModel {
    */
   public List<? extends ProcessNodeImpl> getNodes() {
     if (nodes == null) {
-      nodes = new ListFilter<>(ProcessNodeImpl.class, true);
+      nodes = new ArrayList<>();
     }
     return this.nodes;
+  }
+
+  @XmlMixed
+  @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
+                   @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
+                   @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
+                   @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class),
+                   @XmlElementRef(name = SplitImpl.ELEMENTNAME, type = SplitImpl.class)})
+  public void setNodes(List<? extends ProcessNodeImpl> pNodes) {
+    final ArrayList<ProcessNodeImpl> tmp = new ArrayList<>();
+    nodes = tmp;
+    for(Object o: pNodes) {
+      if (o instanceof ProcessNodeImpl) {
+        tmp.add((ProcessNodeImpl)o);
+      }
+    }
   }
 
   private static <T> List<T> filter(List<? extends T> source, Class<T> clazz) {
