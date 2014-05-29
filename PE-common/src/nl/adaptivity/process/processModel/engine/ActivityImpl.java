@@ -182,6 +182,10 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     aMessage = XmlMessage.get(message);
   }
 
+  public void setMessage(final XmlMessage message) {
+    aMessage = XmlMessage.get(message);
+  }
+
   /**
    * Determine whether the process can start.
    */
