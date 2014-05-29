@@ -35,8 +35,8 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
 
   private Set<ProcessNodeImpl> aPred;
 
-  public JoinImpl(final Collection<ProcessNodeImpl> pNodes, final int pMin, final int pMax) {
-    super(pNodes, pMin, pMax);
+  public JoinImpl(final Collection<ProcessNodeImpl> pPredecessors, final int pMin, final int pMax) {
+    super(pPredecessors, pMin, pMax);
     if ((getMin() < 1) || (pMax < pMin)) {
       throw new IllegalProcessModelException("Join range (" + pMin + ", " + pMax + ") must be sane");
     }
