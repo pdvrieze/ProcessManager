@@ -21,7 +21,7 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
     // default empty constructor for serialization (and xml work)
   }
 
-  public JoinSplitImpl(Collection<ProcessNodeImpl> pPredecessors, int pMin, int pMax) {
+  public JoinSplitImpl(Collection<? extends ProcessNodeImpl> pPredecessors, int pMin, int pMax) {
     super(pPredecessors);
     aMin = pMin;
     aMax = pMax;
