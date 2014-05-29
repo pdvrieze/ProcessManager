@@ -12,12 +12,12 @@ import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
 
-  public ClientEndNode(ClientProcessModel<T> pOwner) {
-    super(pOwner);
+  public ClientEndNode() {
+    super();
   }
 
-  public ClientEndNode(String pId, ClientProcessModel<T> pOwner) {
-    super(pId, pOwner);
+  public ClientEndNode(String pId) {
+    super(pId);
   }
 
   protected ClientEndNode(ClientEndNode<T> pOrig) {

@@ -50,7 +50,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private int idSeq=0;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
-    super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()));
+    super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -60,7 +60,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   public DrawableProcessModel(ProcessModel<?> pOriginal, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pOriginal.getName(), getDrawableNodes((DrawableProcessModel) null, pOriginal.getStartNodes()), pLayoutAlgorithm);
+    super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()), pLayoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -99,11 +99,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 	return new DrawableProcessModel(this);
   }
 
-  private static Collection<? extends DrawableProcessNode> getDrawableNodes(DrawableProcessModel pOwner, Collection<? extends StartNode<?>> pStartNodes) {
+  private static Collection<? extends DrawableProcessNode> getDrawableNodes(Collection<? extends StartNode<?>> pStartNodes) {
     Set<EndNode<?>> origEndNodes = getDrawableNodes(new HashSet<EndNode<?>>(), pStartNodes);
     ArrayList<DrawableProcessNode> result = new ArrayList<>(pStartNodes.size());
     for(EndNode<?> n: origEndNodes) {
-      result.add(toDrawableEndNode(pOwner, n));
+      result.add(toDrawableEndNode(n));
     }
     return result;
   }
@@ -119,34 +119,34 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return pSet;
   }
 
-  private static DrawableEndNode toDrawableEndNode(DrawableProcessModel pOwner, EndNode<?> pN) {
-    DrawableEndNode result = DrawableEndNode.from(pOwner, pN);
-    result.setPredecessors(toDrawableNodes(pOwner, pN.getPredecessors()));
+  private static DrawableEndNode toDrawableEndNode(EndNode<?> pN) {
+    DrawableEndNode result = DrawableEndNode.from(pN);
+    result.setPredecessors(toDrawableNodes(pN.getPredecessors()));
     return result;
   }
 
-  private static Collection<? extends DrawableProcessNode> toDrawableNodes(DrawableProcessModel pOwner, Collection<? extends ProcessNode<?>> pPredecessors) {
+  private static Collection<? extends DrawableProcessNode> toDrawableNodes(Collection<? extends ProcessNode<?>> pPredecessors) {
     if (pPredecessors.size()==0) { return Collections.emptyList(); }
-    if (pPredecessors.size()==1) { return Collections.singleton(toDrawableNode(pOwner, pPredecessors.iterator().next())); }
+    if (pPredecessors.size()==1) { return Collections.singleton(toDrawableNode(pPredecessors.iterator().next())); }
 
     List<DrawableProcessNode> result = new ArrayList<>(pPredecessors.size());
     for(ProcessNode<?> elem: pPredecessors) {
-      result.add(toDrawableNode(pOwner, elem));
+      result.add(toDrawableNode(elem));
     }
     return result;
   }
 
-  private static DrawableProcessNode toDrawableNode(DrawableProcessModel pOwner, ProcessNode<?> pElem) {
+  private static DrawableProcessNode toDrawableNode(ProcessNode<?> pElem) {
     if (pElem instanceof StartNode) {
-      return DrawableStartNode.from(pOwner, (StartNode<?>) pElem);
+      return DrawableStartNode.from((StartNode<?>) pElem);
     } else if (pElem instanceof EndNode) {
       throw new IllegalArgumentException("EndNodes should not see this function");
     } else if (pElem instanceof Join) {
-      return DrawableJoin.from(pOwner, (Join<?>) pElem);
+      return DrawableJoin.from((Join<?>) pElem);
     } else if (pElem instanceof Split) {
-      return DrawableSplit.from(pOwner, (Join<?>) pElem);
+      return DrawableSplit.from((Join<?>) pElem);
     } else if (pElem instanceof Activity) {
-      return DrawableActivity.from(pOwner, (Activity<?>) pElem);
+      return DrawableActivity.from((Activity<?>) pElem);
     } else {
       throw new UnsupportedOperationException("Unsupported subclass to ProcessNode");
     }

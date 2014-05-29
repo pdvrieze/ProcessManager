@@ -1,12 +1,13 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STARTNODERADIUS;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
 
@@ -19,12 +20,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   private int aState = STATE_DEFAULT;
 
 
-  public DrawableStartNode(ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pOwner);
+  public DrawableStartNode() {
+    super();
   }
 
-  public DrawableStartNode(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pId, pOwner);
+  public DrawableStartNode(String pId) {
+    super(pId);
   }
 
   public DrawableStartNode(DrawableStartNode pOrig) {
@@ -88,8 +89,8 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     }
   }
 
-  public static DrawableStartNode from(DrawableProcessModel pOwner, StartNode<?> pN) {
-    DrawableStartNode result = new DrawableStartNode(pOwner);
+  public static DrawableStartNode from(StartNode<?> pN) {
+    DrawableStartNode result = new DrawableStartNode();
     copyProcessNodeAttrs(pN, result);
     result.getImports().clear();
     result.getImports().addAll(pN.getImports());

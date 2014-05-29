@@ -5,12 +5,12 @@ import nl.adaptivity.process.processModel.Join;
 
 public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Join<T> {
 
-  public ClientSplitNode(ClientProcessModel<T> pOwner) {
-    super(pOwner);
+  public ClientSplitNode() {
+    super();
   }
 
-  public ClientSplitNode(String pId, ClientProcessModel<T> pOwner) {
-    super(pId, pOwner);
+  public ClientSplitNode(String pId) {
+    super(pId);
   }
 
   protected ClientSplitNode(ClientJoinSplit<T> pOrig) {

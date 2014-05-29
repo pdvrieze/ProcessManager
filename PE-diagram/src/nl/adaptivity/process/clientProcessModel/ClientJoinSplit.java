@@ -10,12 +10,12 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   private int aMin=-1;
   private int aMax=-1;
 
-  public ClientJoinSplit(ClientProcessModel<T> pOwner) {
-    super(pOwner);
+  public ClientJoinSplit() {
+    super();
   }
 
-  public ClientJoinSplit(String pId, ClientProcessModel<T> pOwner) {
-    super(pId, pOwner);
+  public ClientJoinSplit(String pId) {
+    super(pId);
   }
 
   public ClientJoinSplit(ClientJoinSplit<T> pOrig) {

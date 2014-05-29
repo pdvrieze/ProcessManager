@@ -1,5 +1,8 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ENDNODEINNERRRADIUS;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ENDNODEOUTERRADIUS;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ENDNODEOUTERSTROKEWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
@@ -7,7 +10,6 @@ import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.EndNode;
 
 
@@ -19,12 +21,12 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   private int aState = STATE_DEFAULT;
 
 
-  public DrawableEndNode(ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pOwner);
+  public DrawableEndNode() {
+    super();
   }
 
-  public DrawableEndNode(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pId, pOwner);
+  public DrawableEndNode(String pId) {
+    super(pId);
   }
 
   public DrawableEndNode(DrawableEndNode pOrig) {
@@ -91,8 +93,8 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     }
   }
 
-  public static  DrawableEndNode from(DrawableProcessModel pOwner, EndNode<?> pElem) {
-    DrawableEndNode result = new DrawableEndNode(pOwner);
+  public static  DrawableEndNode from(EndNode<?> pElem) {
+    DrawableEndNode result = new DrawableEndNode();
     copyProcessNodeAttrs(pElem, result);
     return result;
   }

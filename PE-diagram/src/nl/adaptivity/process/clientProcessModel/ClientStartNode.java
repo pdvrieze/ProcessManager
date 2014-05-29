@@ -9,12 +9,12 @@ import nl.adaptivity.process.processModel.StartNode;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
-  public ClientStartNode(ClientProcessModel<T> pOwner) {
-    super(pOwner);
+  public ClientStartNode() {
+    super();
   }
 
-  public ClientStartNode(final String pId, ClientProcessModel<T> pOwner) {
-    super(pId, pOwner);
+  public ClientStartNode(final String pId) {
+    super(pId);
   }
 
   protected ClientStartNode(final ClientStartNode<T> pOrig) {

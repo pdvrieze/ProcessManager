@@ -32,14 +32,13 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private final ProcessNodeSet<T> aSuccessors;
 
-
-  protected ClientProcessNode(ClientProcessModel<T> pOwner) {
-    this(null, pOwner);
+  protected ClientProcessNode() {
+    this((String) null);
   }
 
-  protected ClientProcessNode(final String pId, ClientProcessModel<T> pOwner) {
+  protected ClientProcessNode(final String pId) {
     aId = pId;
-    aOwner = pOwner;
+    aOwner = null;
     switch (getMaxPredecessorCount()) {
       case 0: aPredecessors = ProcessNodeSet.<T>empty(); break;
       case 1: aPredecessors = ProcessNodeSet.<T>singleton(); break;
@@ -53,7 +52,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   protected ClientProcessNode(final ClientProcessNode<T> pOrig) {
-    this(pOrig.aId, pOrig.aOwner);
+    this(pOrig.aId);
+    aOwner = null;
     aX = pOrig.aX;
     aY = pOrig.aY;
     aImports = CollectionUtil.copy(pOrig.aImports);
@@ -149,7 +149,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     if (aSuccessors.size()+1>getMaxSuccessorCount()) {
       throw new IllegalProcessModelException("Can not add more successors");
     }
-  
+
     aSuccessors.add(pNode);
     if (!pNode.getPredecessors().contains(this)) {
       pNode.addPredecessor(this.asT());
@@ -157,9 +157,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     if (aOwner!=null) {
       aOwner.addNode(pNode);
     }
-  
-    
-    
+
+
+
     if (aSuccessors.add(pNode)) {
       @SuppressWarnings("unchecked")
       final T pred = (T) this;
@@ -192,7 +192,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
       pNode.removePredecessor(this.asT());
     }
   }
-  
+
   @Override
   public void disconnect() {
     final T me = this.asT();
@@ -300,7 +300,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   public final ClientProcessModel<T> getOwner() {
     return aOwner;
   }
-  
+
   public void serializeCommonAttrs(SerializerAdapter pOut) {
     pOut.addAttribute("id", aId);
     if (aLabel!=null) { pOut.addAttribute("label", aLabel); }
@@ -310,7 +310,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
       pOut.addAttribute("predecessor", aPredecessors.get(0).getId());
     }
   }
-  
+
   public void serializeCommonChildren(SerializerAdapter pOut) {
     // TODO handle imports and exports.
   }

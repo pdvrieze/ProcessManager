@@ -1,14 +1,18 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYHEIGHT;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYROUNDX;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYROUNDY;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
 import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.Activity;
 
 
@@ -20,12 +24,12 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   private int aState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
-  public DrawableActivity(ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pOwner);
+  public DrawableActivity() {
+    super();
   }
 
-  public DrawableActivity(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pId, pOwner);
+  public DrawableActivity(String pId) {
+    super(pId);
   }
 
   public DrawableActivity(DrawableActivity pDrawableActivity) {
@@ -110,8 +114,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     }
   }
 
-  public static DrawableActivity from(DrawableProcessModel pOwner, Activity<?> pElem) {
-    DrawableActivity result = new DrawableActivity(pOwner);
+  public static DrawableActivity from(Activity<?> pElem) {
+    DrawableActivity result = new DrawableActivity();
     copyProcessNodeAttrs(pElem, result);
     result.setName(pElem.getName());
     result.setCondition(pElem.getCondition());

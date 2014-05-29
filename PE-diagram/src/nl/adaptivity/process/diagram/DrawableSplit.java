@@ -1,14 +1,15 @@
 package nl.adaptivity.process.diagram;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.Split;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
@@ -17,19 +18,19 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   private static final double ARROWHEADDX = JOINWIDTH*0.2;
   private static final double ARROWHEADDY = JOINWIDTH*0.2;
   private static final double ARROWHEADADJUST = (0.5*STROKEWIDTH)*Math.sqrt(0.5/(Math.sin(ARROWHEADANGLE)* Math.sin(ARROWHEADANGLE)));
-  /** The y coordinate if the line were horizontal. */ 
+  /** The y coordinate if the line were horizontal. */
   private static final double ARROWDFAR = ARROWLEN*Math.sin(0.25*Math.PI-ARROWHEADANGLE);
-  /** The x coordinate if the line were horizontal. */ 
+  /** The x coordinate if the line were horizontal. */
   private static final double ARROWDNEAR = ARROWLEN*Math.cos(0.25*Math.PI-ARROWHEADANGLE);
   private static final double INLEN = Math.sqrt(ARROWHEADDX*ARROWHEADDX+ARROWHEADDY*ARROWHEADDY);
-  
 
-  public DrawableSplit(ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pOwner);
+
+  public DrawableSplit() {
+    super();
   }
 
-  public DrawableSplit(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pId, pOwner);
+  public DrawableSplit(String pId) {
+    super(pId);
   }
 
   public DrawableSplit(DrawableJoinSplit pOrig) {
@@ -44,8 +45,8 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
-  public static DrawableJoinSplit from(DrawableProcessModel pOwner, Join<?> pElem) {
-    DrawableJoinSplit result = new DrawableSplit(pOwner);
+  public static DrawableJoinSplit from(Join<?> pElem) {
+    DrawableJoinSplit result = new DrawableSplit();
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());
     result.setMax(pElem.getMax());
@@ -77,14 +78,14 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
             .lineTo(CENTERX, CENTERY)
             .lineTo(CENTERX+ARROWHEADDX-ARROWHEADADJUST,CENTERY+ARROWHEADDY-ARROWHEADADJUST);
       }
-      
+
       path.moveTo(CENTERX+ARROWHEADDX-ARROWDNEAR,CENTERY-ARROWHEADDY+ARROWDFAR)
           .lineTo(CENTERX+ARROWHEADDX,CENTERY-ARROWHEADDY)
           .lineTo(CENTERX+ARROWHEADDX-ARROWDFAR,CENTERY-ARROWHEADDY+ARROWDNEAR)
           .moveTo(CENTERX+ARROWHEADDX-ARROWDFAR,CENTERY+ARROWHEADDY-ARROWDNEAR)
           .lineTo(CENTERX+ARROWHEADDX,CENTERY+ARROWHEADDY)
           .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR,CENTERY+ARROWHEADDY-ARROWDFAR);
-      
+
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {

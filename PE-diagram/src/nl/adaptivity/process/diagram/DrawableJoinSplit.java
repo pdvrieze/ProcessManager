@@ -1,6 +1,9 @@
 package nl.adaptivity.process.diagram;
 
 
+import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINHEIGHT;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.diagram.DiagramPath;
@@ -10,8 +13,6 @@ import nl.adaptivity.diagram.ItemCache;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode> implements DrawableProcessNode {
@@ -31,12 +32,12 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   protected final ItemCache aItems = new ItemCache();
   private int aState = STATE_DEFAULT;
 
-  public DrawableJoinSplit(ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pOwner);
+  public DrawableJoinSplit() {
+    super();
   }
 
-  public DrawableJoinSplit(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pId, pOwner);
+  public DrawableJoinSplit(String pId) {
+    super(pId);
   }
 
   public DrawableJoinSplit(DrawableJoinSplit pOrig) {
@@ -110,7 +111,7 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       if (getOwner()!=null || getMin()>=0 || getMax()>=0) {
         PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
         String s = getMinMaxText();
-  
+
         pCanvas.drawText(TextPos.DESCENT, hse+dx, -hse, s, Double.MAX_VALUE, textPen);
       }
     }

@@ -20,13 +20,13 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private IXmlMessage aMessage;
 
-  public ClientActivityNode(ClientProcessModel<T> pOwner) {
-    super(pOwner);
+  public ClientActivityNode() {
+    super();
   }
 
 
-  public ClientActivityNode(String pId, ClientProcessModel<T> pOwner) {
-    super(pId, pOwner);
+  public ClientActivityNode(String pId) {
+    super(pId);
   }
 
   protected ClientActivityNode(ClientActivityNode<T> pOrig) {

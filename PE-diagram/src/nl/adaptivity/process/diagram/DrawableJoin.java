@@ -1,11 +1,13 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINHEIGHT;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
 
@@ -16,20 +18,20 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   private static final double ARROWHEADDX = JOINWIDTH*0.375;
   private static final double ARROWHEADADJUST = 0.5*STROKEWIDTH/Math.sin(ARROWHEADANGLE);
 
-  /** The y coordinate if the line were horizontal. */ 
+  /** The y coordinate if the line were horizontal. */
   private static final double ARROWDFAR = ARROWLEN*Math.sin(ARROWHEADANGLE);
-  /** The x coordinate if the line were horizontal. */ 
+  /** The x coordinate if the line were horizontal. */
   private static final double ARROWDNEAR = ARROWLEN*Math.cos(ARROWHEADANGLE);
   private static final double INDX = JOINWIDTH*0.2;
   private static final double INDY = JOINHEIGHT*0.2;
   private static final double INLEN = Math.sqrt(INDX*INDX+INDY*INDY);
 
-  public DrawableJoin(ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pOwner);
+  public DrawableJoin() {
+    super();
   }
 
-  public DrawableJoin(String pId, ClientProcessModel<DrawableProcessNode> pOwner) {
-    super(pId, pOwner);
+  public DrawableJoin(String pId) {
+    super(pId);
   }
 
   public DrawableJoin(DrawableJoin pOrig) {
@@ -49,8 +51,8 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     return Integer.MAX_VALUE;
   }
 
-  public static DrawableJoin from(DrawableProcessModel pOwner, Join<?> pElem) {
-    DrawableJoin result = new DrawableJoin(pOwner);
+  public static DrawableJoin from(Join<?> pElem) {
+    DrawableJoin result = new DrawableJoin();
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());
     result.setMax(pElem.getMax());
