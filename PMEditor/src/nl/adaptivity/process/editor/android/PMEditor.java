@@ -1,5 +1,10 @@
 package nl.adaptivity.process.editor.android;
 
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM1;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM2;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM3;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +54,6 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import static nl.adaptivity.diagram.Drawable.*;
 
 public class PMEditor extends Activity implements OnNodeClickListener, NodeEditListener, PMProvider {
 
@@ -681,11 +685,11 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
 
       final AndroidTheme theme = new AndroidTheme(AndroidStrategy.INSTANCE);
 
-      addNodeView(theme, new DrawableStartNode((ClientProcessModel<DrawableProcessNode>) null));
-      addNodeView(theme, new DrawableActivity((ClientProcessModel<DrawableProcessNode>) null));
-      addNodeView(theme, new DrawableSplit((ClientProcessModel<DrawableProcessNode>) null));
-      addNodeView(theme, new DrawableJoin((ClientProcessModel<DrawableProcessNode>) null));
-      addNodeView(theme, new DrawableEndNode((ClientProcessModel<DrawableProcessNode>) null));
+      addNodeView(theme, new DrawableStartNode());
+      addNodeView(theme, new DrawableActivity());
+      addNodeView(theme, new DrawableSplit());
+      addNodeView(theme, new DrawableJoin());
+      addNodeView(theme, new DrawableEndNode());
 
       elementsView.requestLayout();
     }

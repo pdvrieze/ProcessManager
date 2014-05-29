@@ -112,7 +112,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
     }
   }
 
-  private void postProcessModel(ContentProviderClient pProvider, SyncResult pSyncResult, long pLong, String pModel) throws IOException, XmlPullParserException {
+  private void postProcessModel(ContentProviderClient pProvider, SyncResult pSyncResult, long pId, String pModel) throws IOException, XmlPullParserException {
     HttpPost post = new HttpPost(mBase+"processModels");
     try {
       final MultipartEntity entity = new MultipartEntity();
@@ -125,6 +125,19 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       XmlPullParser parser = mXpf.newPullParser();
+      try {
+        parseProcessModelRef(pProvider, pSyncResult, parser);
+      } catch (RemoteException e) {
+
+        ContentValues values = new ContentValues();
+        values.put(ProcessModels.COLUMN_SYNCSTATE, ProcessModels.SYNC_MODELPENDING);
+        try {
+          pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), values, null, null);
+        } catch (RemoteException e1) {
+          throw new RuntimeException(e1);
+        }
+        throw new RuntimeException(e);
+      }
     } else {
       pSyncResult.stats.numIoExceptions++;
     }
