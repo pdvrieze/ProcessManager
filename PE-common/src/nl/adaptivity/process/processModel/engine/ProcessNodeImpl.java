@@ -54,7 +54,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   }
 
 
-  public ProcessNodeImpl(final Collection<ProcessNodeImpl> pPredecessors) {
+  public ProcessNodeImpl(final Collection<? extends ProcessNodeImpl> pPredecessors) {
     if ((pPredecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
     }
@@ -255,11 +255,12 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   @Override
   public String toString() {
     final StringBuilder result = new StringBuilder();
-    result.append(getClass().getName()).append(" (").append(getId());
+    result.append(getClass().getSimpleName()).append(" (").append(getId());
     if ((this.getPredecessors() == null) || (getPredecessors().size() == 0)) {
       result.append(')');
     }
-    if (this.getPredecessors().size() > 1) {
+    final int predCount = this.getPredecessors().size();
+    if (predCount != 1) {
       result.append(", pred={");
       for (final ProcessNodeImpl pred : getPredecessors()) {
         result.append(pred.getId()).append(", ");
