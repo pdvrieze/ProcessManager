@@ -256,22 +256,23 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   public String toString() {
     final StringBuilder result = new StringBuilder();
     result.append(getClass().getSimpleName()).append(" (").append(getId());
-    if ((this.getPredecessors() == null) || (getPredecessors().size() == 0)) {
+    if ((this.getPredecessors() == null) || (getMaxPredecessorCount()==0)) {
       result.append(')');
-    }
-    final int predCount = this.getPredecessors().size();
-    if (predCount != 1) {
-      result.append(", pred={");
-      for (final ProcessNodeImpl pred : getPredecessors()) {
-        result.append(pred.getId()).append(", ");
-      }
-      if (result.charAt(result.length() - 2) == ',') {
-        result.setLength(result.length() - 2);
-      }
-      result.append("})");
     } else {
-      result.append(", pred=").append(getPredecessors().iterator().next().getId());
-      result.append(')');
+      final int predCount = this.getPredecessors().size();
+      if (predCount != 1) {
+        result.append(", pred={");
+        for (final ProcessNodeImpl pred : getPredecessors()) {
+          result.append(pred.getId()).append(", ");
+        }
+        if (result.charAt(result.length() - 2) == ',') {
+          result.setLength(result.length() - 2);
+        }
+        result.append("})");
+      } else {
+        result.append(", pred=").append(getPredecessors().iterator().next().getId());
+        result.append(')');
+      }
     }
     return result.toString();
   }
