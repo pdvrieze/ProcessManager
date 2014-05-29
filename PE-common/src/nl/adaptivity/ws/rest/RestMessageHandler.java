@@ -282,6 +282,7 @@ public class RestMessageHandler {
             paramValue = pPathInfo.substring(l, j);
           } else {
             paramValue = pPathInfo.substring(j);
+            j= pPathInfo.length();
           }
           pParamMatch.put(paramName, paramValue);
         }
