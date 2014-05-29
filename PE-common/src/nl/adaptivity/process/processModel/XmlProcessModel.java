@@ -74,7 +74,7 @@ public class XmlProcessModel {
   public XmlProcessModel(final ProcessModel<? extends ProcessNodeImpl> m) {
     nodes = CollectionUtil.copy(m.getModelNodes());
     name = m.getName();
-    owner = m.getOwner().getName();
+    owner = m.getOwner()==null ? null : m.getOwner().getName();
     roles = m.getRoles();
   }
 
