@@ -2,9 +2,12 @@ package nl.adaptivity.process.processModel.engine;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -24,8 +27,8 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
 
   public static final String ELEMENTNAME = "split";
 
-  public SplitImpl(final Collection<ProcessNodeImpl> pNodes, final int pMin, final int pMax) {
-    super(pNodes, pMin, pMax);
+  public SplitImpl(final ProcessNodeImpl pPredecessor, final int pMin, final int pMax) {
+    super(Collections.singleton(pPredecessor), pMin, pMax);
     if ((getMin() < 1) || (pMax < pMin)) {
       throw new IllegalProcessModelException("Join range (" + pMin + ", " + pMax + ") must be sane");
     }
@@ -33,8 +36,8 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
 
   public SplitImpl() {}
 
-  public static SplitImpl andSplit(final ProcessNodeImpl... pNodes) {
-    return new SplitImpl(Arrays.asList(pNodes), Integer.MAX_VALUE, Integer.MAX_VALUE);
+  public static SplitImpl andSplit(final ProcessNodeImpl pPredecessor) {
+    return new SplitImpl(pPredecessor, Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
   @Override
@@ -70,6 +73,19 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
   @Override
   public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
+  }
+
+  @XmlAttribute(name="predecessor")
+  @XmlIDREF
+  ProcessNodeImpl getPredecessor() {
+    int c = getPredecessors().size();
+    if (c>1) { throw new IllegalStateException("Too many predecessors"); }
+    if (c==0) { return null; }
+    return getPredecessors().iterator().next();
+  }
+
+  void setPredecessor(ProcessNodeImpl pred) {
+    setPredecessors(Collections.singleton(pred));
   }
 
 }
