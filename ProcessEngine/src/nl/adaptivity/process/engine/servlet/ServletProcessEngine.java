@@ -559,6 +559,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
     if (xmlpm != null) {
       final ProcessModelImpl processModel = xmlpm.toProcessModel();
+      if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
+        throw new AssertionError("Process model sizes don't match");
+      }
       return ProcessModelRef.get(aProcessEngine.addProcessModel(processModel, pOwner));
     }
 
