@@ -9,10 +9,16 @@ public interface SerializerAdapter {
 
   void endTag(String pNamespace, String pName, boolean pAddWs);
 
-  void addAttribute(String pName, String pValue);
+  void addAttribute(String pNamespace, String pName, String pValue);
 
   void text(String pString);
 
   void ignorableWhitespace(String pString);
+
+  void cdata(String pData);
+
+  void comment(String pData);
+
+  void entityReference(String pLocalName);
 
 }

@@ -47,8 +47,8 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   @Override
   public void serializeCommonAttrs(SerializerAdapter pOut) {
     super.serializeCommonAttrs(pOut);
-    if (aMin>=0) { pOut.addAttribute("min", Integer.toString(aMin)); }
-    if (aMax>=0) { pOut.addAttribute("max", Integer.toString(aMax)); }
+    if (aMin>=0) { pOut.addAttribute(null, "min", Integer.toString(aMin)); }
+    if (aMax>=0) { pOut.addAttribute(null, "max", Integer.toString(aMax)); }
   }
 
   protected void serializeSplit(SerializerAdapter pOut) {

@@ -302,12 +302,12 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   public void serializeCommonAttrs(SerializerAdapter pOut) {
-    pOut.addAttribute("id", aId);
-    if (aLabel!=null) { pOut.addAttribute("label", aLabel); }
-    if (!Double.isNaN(aX)) { pOut.addAttribute("x", Double.toString(aX)); }
-    if (!Double.isNaN(aY)) { pOut.addAttribute("y", Double.toString(aY)); }
+    pOut.addAttribute(null, "id", aId);
+    if (aLabel!=null) { pOut.addAttribute(null, "label", aLabel); }
+    if (!Double.isNaN(aX)) { pOut.addAttribute(null, "x", Double.toString(aX)); }
+    if (!Double.isNaN(aY)) { pOut.addAttribute(null, "y", Double.toString(aY)); }
     if (getMaxPredecessorCount()==1 && aPredecessors.size()==1) {
-      pOut.addAttribute("predecessor", aPredecessors.get(0).getId());
+      pOut.addAttribute(null, "predecessor", aPredecessors.get(0).getId());
     }
   }
 

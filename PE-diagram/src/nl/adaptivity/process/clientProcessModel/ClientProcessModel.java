@@ -301,7 +301,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
     pOut.startTag(NS_PM, "processModel", true);
     if (aName!=null) {
-      pOut.addAttribute("name", aName);
+      pOut.addAttribute(null, "name", aName);
     }
     for(T node:aNodes) {
       node.serialize(pOut);

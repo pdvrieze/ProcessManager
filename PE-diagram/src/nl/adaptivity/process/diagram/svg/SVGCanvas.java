@@ -47,10 +47,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     void serializeRect(SerializerAdapter pOut) {
       pOut.startTag(SVG_NAMESPACE, "rect", true);
-      pOut.addAttribute("x", Double.toString(aBounds.left));
-      pOut.addAttribute("y", Double.toString(aBounds.top));
-      pOut.addAttribute("width", Double.toString(aBounds.width));
-      pOut.addAttribute("height", Double.toString(aBounds.height));
+      pOut.addAttribute(null, "x", Double.toString(aBounds.left));
+      pOut.addAttribute(null, "y", Double.toString(aBounds.top));
+      pOut.addAttribute(null, "width", Double.toString(aBounds.width));
+      pOut.addAttribute(null, "height", Double.toString(aBounds.height));
     }
   }
 
@@ -96,8 +96,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     void serializeRoundRect(SerializerAdapter pOut) {
       serializeRect(pOut);
-      pOut.addAttribute("rx", Double.toString(aRx));
-      pOut.addAttribute("ry", Double.toString(aRy));
+      pOut.addAttribute(null, "rx", Double.toString(aRx));
+      pOut.addAttribute(null, "ry", Double.toString(aRy));
     }
   }
 
@@ -146,9 +146,9 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     public void serializeCircle(SerializerAdapter pOut) {
       pOut.startTag(SVG_NAMESPACE, "circle", true);
-      pOut.addAttribute("cx", Double.toString(mX));
-      pOut.addAttribute("cy", Double.toString(mY));
-      pOut.addAttribute("r", Double.toString(mRadius));
+      pOut.addAttribute(null, "cx", Double.toString(mX));
+      pOut.addAttribute(null, "cy", Double.toString(mY));
+      pOut.addAttribute(null, "r", Double.toString(mRadius));
     }
 
   }
@@ -200,7 +200,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       pOut.startTag(SVG_NAMESPACE, "path", true);
       serializeStyle(pOut, mStroke, mFill, null);
 
-      pOut.addAttribute("d", mPath.toPathData());
+      pOut.addAttribute(null, "d", mPath.toPathData());
 
       pOut.endTag(SVG_NAMESPACE, "path", true);
     }
@@ -229,8 +229,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     @Override
     public void serialize(SerializerAdapter pOut) {
       pOut.startTag(SVG_NAMESPACE, "text", true);
-      pOut.addAttribute("x", Double.toString(mX));
-      pOut.addAttribute("y", Double.toString(mY));
+      pOut.addAttribute(null, "x", Double.toString(mX));
+      pOut.addAttribute(null, "y", Double.toString(mY));
       serializeStyle(pOut, null, mColor, mTextPos);
       pOut.startTag(SVG_NAMESPACE, "tspan", false);
       pOut.text(mText);
@@ -257,9 +257,9 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     public void serialize(SerializerAdapter pOut) {
       pOut.startTag(SVG_NAMESPACE, "g", true);
       if (aX==0 && aY==0) {
-        pOut.addAttribute("transform", "scale("+aScale+")");
+        pOut.addAttribute(null, "transform", "scale("+aScale+")");
       } else {
-        pOut.addAttribute("transform", "matrix("+aScale+",0,0,"+aScale+","+aX*aScale+","+aY*aScale+")");
+        pOut.addAttribute(null, "transform", "matrix("+aScale+",0,0,"+aScale+","+aX*aScale+","+aY*aScale+")");
       }
       for (IPaintedElem element:this.aPath) {
         element.serialize(pOut);
@@ -331,7 +331,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       style.append("fill:none; ");
     }
 
-    pOut.addAttribute("style", style.toString());
+    pOut.addAttribute(null, "style", style.toString());
   }
 
   private static String toBaseline(TextPos pTextPos) {
@@ -532,9 +532,9 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   public void serialize(SerializerAdapter pOut) {
     pOut.addNamespace(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
     pOut.startTag(SVG_NAMESPACE, "svg", true);
-    pOut.addAttribute("version", "1.1");
-    pOut.addAttribute("width", Double.toString(aBounds.width+aBounds.left*2));
-    pOut.addAttribute("height", Double.toString(aBounds.height+aBounds.top*2));
+    pOut.addAttribute(null, "version", "1.1");
+    pOut.addAttribute(null, "width", Double.toString(aBounds.width+aBounds.left*2));
+    pOut.addAttribute(null, "height", Double.toString(aBounds.height+aBounds.top*2));
 
     for (IPaintedElem element:aPath) {
       element.serialize(pOut);

@@ -18,7 +18,7 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private String aCondition;
 
-  private IXmlMessage aMessage;
+  private ClientMessage aMessage;
 
   public ClientActivityNode() {
     super();
@@ -83,7 +83,7 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   @Override
   public void setMessage(IXmlMessage pMessage) {
-    aMessage = pMessage;
+    aMessage = ClientMessage.from(pMessage);
   }
 
 
@@ -112,10 +112,10 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   public void serialize(SerializerAdapter pOut) {
     pOut.startTag(NS_PM, "activity", true);
     serializeCommonAttrs(pOut);
-    if (aName!=null) { pOut.addAttribute("name", aName); }
-    if (aCondition!=null) { pOut.addAttribute("condition", aCondition); }
+    if (aName!=null) { pOut.addAttribute(null, "name", aName); }
+    if (aCondition!=null) { pOut.addAttribute(null, "condition", aCondition); }
     serializeCommonChildren(pOut);
-    if (aMessage!=null) { /* TODO serialize this */ }
+    if (aMessage!=null) { aMessage.serialize(pOut); }
     pOut.endTag(NS_PM, "activity", true);
   }
 
