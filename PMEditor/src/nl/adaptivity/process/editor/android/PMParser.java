@@ -7,6 +7,7 @@ import static org.xmlpull.v1.XmlPullParser.TEXT;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -259,12 +260,36 @@ public class PMParser {
     }
   }
 
-  public static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(Reader pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+    XmlPullParser in;
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
-      XmlPullParser in = factory.newPullParser();
+      in = factory.newPullParser();
+      in.setInput(pIn);
+    } catch (Exception e){
+      Log.e(PMEditor.class.getName(), e.getMessage(), e);
+      return null;
+    }
+    return parseProcessModel(in, pLayoutAlgorithm);
+  }
+
+  public static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+    XmlPullParser in;
+    try {
+      XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+      factory.setNamespaceAware(true);
+      in = factory.newPullParser();
       in.setInput(pIn, "utf-8");
+    } catch (Exception e){
+      Log.e(PMEditor.class.getName(), e.getMessage(), e);
+      return null;
+    }
+    return parseProcessModel(in, pLayoutAlgorithm);
+  }
+
+  public static DrawableProcessModel parseProcessModel(XmlPullParser in, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+    try {
 
       if(in.nextTag()==START_TAG && NS_PROCESSMODEL.equals(in.getNamespace()) && "processModel".equals(in.getName())){
         ArrayList<DrawableProcessNode> modelElems = new ArrayList<>();
