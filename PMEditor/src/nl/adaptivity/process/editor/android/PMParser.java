@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.DiagramPath;
@@ -22,6 +25,7 @@ import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.process.clientProcessModel.ClientMessage;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
@@ -34,7 +38,14 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.DrawableSplit;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.processModel.IXmlMessage;
 
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -111,9 +122,9 @@ public class PMParser {
     }
 
     @Override
-    public void addAttribute(String pName, String pValue) {
+    public void addAttribute(String pNamespace, String pName, String pValue) {
       try {
-        mSerializer.attribute(null, pName, pValue);
+        mSerializer.attribute(pNamespace, pName, pValue);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -127,6 +138,45 @@ public class PMParser {
         }
         printExtraIndent();
         mSerializer.text(pString);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void cdata(String pData) {
+      try {
+        if (aPendingBreak) {
+          printBreak();
+        }
+        printExtraIndent();
+        mSerializer.cdsect(pData);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void comment(String pData) {
+      try {
+        if (aPendingBreak) {
+          printBreak();
+        }
+        printExtraIndent();
+        mSerializer.comment(pData);
+      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void entityReference(String pEntityRef) {
+      try {
+        if (aPendingBreak) {
+          printBreak();
+        }
+        printExtraIndent();
+        mSerializer.entityRef(pEntityRef);;
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -370,13 +420,102 @@ public class PMParser {
     for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
       switch (type) {
       case START_TAG:
-        parseUnknownTag(pIn);
+        if (NS_PROCESSMODEL.equals(pIn.getNamespace())) {
+          if ("message".equals(pIn.getName())) {
+            result.setMessage(parseMessage(pIn));
+          } else {
+            parseUnknownTag(pIn);
+          }
+        } else {
+          parseUnknownTag(pIn);
+        }
         break;
       default:
           // ignore
       }
     }
     return result;
+  }
+
+  private static IXmlMessage parseMessage(XmlPullParser pIn) {
+    ClientMessage result = new ClientMessage();
+    String endpoint = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint");
+    QName operation = toQName(pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "operation"));
+    String url = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "url");
+    String method = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "method");
+    String type = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "type");
+    String serviceNS = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceNS");
+    String serviceName = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceName");
+    result.setEndpoint(endpoint);
+    result.setOperation(operation);
+    result.setUrl(url);
+    result.setMethod(method);
+    result.setType(type);
+    result.setServiceNS(serviceNS);
+    result.setServiceName(serviceName);
+
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    Document doc;
+    try {
+      doc = dbf.newDocumentBuilder().newDocument();
+    } catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+    int tagtype;
+    try {
+      while ((tagtype=pIn.next())!=END_TAG) {
+        switch (tagtype) {
+          case START_TAG: {
+            Node node = parseXmlTag(doc, pIn);
+            if (doc.getDocumentElement()!=null) {
+              doc.replaceChild(node, doc.getDocumentElement());
+            } else {
+              doc.appendChild(node);
+            }
+            break;
+          }
+          default: {
+            // ignore text, it
+          }
+        }
+      }
+    } catch (DOMException | XmlPullParserException | IOException e) {
+      Log.e(PMParser.class.getSimpleName(), "Error parsing activity body", e);
+    }
+    result.setMessageBody(doc.getDocumentElement());
+    return result;
+  }
+
+  private static Element parseXmlTag(Document pDoc, XmlPullParser pIn) throws IOException, XmlPullParserException {
+    Element element=pDoc.createElementNS(pIn.getNamespace(), pIn.getName());
+    element.setPrefix(pIn.getPrefix());
+    for(int i=0; i<pIn.getAttributeCount(); ++i) {
+      Attr a = pDoc.createAttributeNS(pIn.getAttributeNamespace(i), pIn.getAttributeName(i));
+      a.setPrefix(pIn.getAttributePrefix(i));
+      a.setNodeValue(pIn.getAttributeValue(i));
+      element.setAttributeNode(a);
+    }
+    int type;
+    while ((type=pIn.next())!=END_TAG) {
+      switch (type) {
+        case START_TAG: {
+          Element e = parseXmlTag(pDoc, pIn);
+          element.appendChild(e);
+          break;
+        }
+        case TEXT: {
+          Text text = pDoc.createTextNode(pIn.getText());
+          element.appendChild(text);
+          break;
+        }
+      }
+    }
+    return element;
+  }
+
+  private static QName toQName(String pValue) {
+    return pValue == null ? null : new QName(pValue);
   }
 
   private static void parseUnknownTag(XmlPullParser pIn) throws XmlPullParserException, IOException {
