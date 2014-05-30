@@ -7,7 +7,7 @@ import nl.adaptivity.process.processModel.ProcessModel;
 
 public interface IProcessEngine {
 
-  public HProcessInstance startProcess(ProcessModel pModel, Node pPayload);
+  public HProcessInstance startProcess(ProcessModel<?> pModel, Node pPayload);
 
   public void finishInstance(ProcessInstance pProcessInstance);
 
