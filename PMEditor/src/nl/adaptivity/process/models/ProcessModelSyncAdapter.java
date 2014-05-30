@@ -125,12 +125,21 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       XmlPullParser parser = mXpf.newPullParser();
+      parser.setInput(response.getEntity().getContent(), "UTF8");
       try {
-        parseProcessModelRef(pProvider, pSyncResult, parser);
+        parser.nextTag(); // Skip document start etc.
+        parseProcessModelRef(pProvider, pSyncResult, parser, pId);
+        ContentValues values = new ContentValues();
+        values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_UPTODATE));
+        try {
+          pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), values, null, null);
+        } catch (RemoteException e1) {
+          throw new RuntimeException(e1);
+        }
       } catch (RemoteException e) {
 
         ContentValues values = new ContentValues();
-        values.put(ProcessModels.COLUMN_SYNCSTATE, ProcessModels.SYNC_MODELPENDING);
+        values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_MODELPENDING));
         try {
           pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), values, null, null);
         } catch (RemoteException e1) {
@@ -155,7 +164,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
       while ((type = parser.next()) != END_TAG) {
         switch (type) {
           case START_TAG:
-            result.add(parseProcessModelRef(pProvider, pSyncResult, parser));
+            result.add(parseProcessModelRef(pProvider, pSyncResult, parser, -1)); // unknown id
             break;
           default:
             throw new XmlPullParserException("Unexpected tag type: " + type);
@@ -170,7 +179,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
   }
 
 
-  private Long parseProcessModelRef(ContentProviderClient pProvider, SyncResult pSyncResult, XmlPullParser parser) throws XmlPullParserException, IOException, RemoteException {
+  private Long parseProcessModelRef(ContentProviderClient pProvider, SyncResult pSyncResult, XmlPullParser parser, long pId) throws XmlPullParserException, IOException, RemoteException {
     parser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     String name = parser.getAttributeValue(null, "name");
     long handle;
@@ -184,7 +193,12 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
     parser.next();
     parser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     final long id;
-    Cursor localModel = pProvider.query(ProcessModels.CONTENT_ID_URI_BASE, ProcessModels.BASE_PROJECTION, ProcessModels.SELECT_HANDLE, new String[] { Long.toString(handle)}, null);
+    Cursor localModel;
+    if (pId<0) {
+      localModel = pProvider.query(ProcessModels.CONTENT_ID_URI_BASE, ProcessModels.BASE_PROJECTION, ProcessModels.SELECT_HANDLE, new String[] { Long.toString(handle)}, null);
+    } else {
+      localModel = pProvider.query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), ProcessModels.BASE_PROJECTION, null, null, null);
+    }
     if (localModel.moveToFirst()) {
       int col_id = localModel.getColumnIndex(BaseColumns._ID);
       int col_name = localModel.getColumnIndex(ProcessModels.COLUMN_NAME);
@@ -197,10 +211,16 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
         count = true;
       }
       values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_MODELPENDING));
+      if (handle!=-1) {
+        values.put(ProcessModels.COLUMN_HANDLE, handle);
+      }
       int cnt = pProvider.update(uri, values, null, null);
       if (count && cnt>0) {
         pSyncResult.stats.numUpdates+=cnt;
       }
+    } else if (pId>=0) {
+      pSyncResult.databaseError=true;
+      throw new IllegalStateException("The database does not contain the expected id");
     } else {
       ContentValues values = new ContentValues(3);
       if (name!=null) {
@@ -212,7 +232,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
       id = ContentUris.parseId(iduri);
       pSyncResult.stats.numInserts++;
     }
-    if (id>=0) {
+    if (id>=0 && handle!=-1) {
       // TODO implement loading actual models from the server.
     }
 

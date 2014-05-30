@@ -213,9 +213,9 @@ public class ProcessModelProvider extends ContentProvider {
     UriHelper helper = UriHelper.parseUri(pUri);
     if (helper.mTarget==QueryTarget.PROCESSMODEL) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = ProcessModels.COLUMN_HANDLE+" = ?";
+        pSelection = ProcessModels._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels.COLUMN_HANDLE+" = ? )";
+        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels._ID+" = ? )";
       }
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
@@ -265,9 +265,9 @@ public class ProcessModelProvider extends ContentProvider {
     UriHelper helper = UriHelper.parseUri(pUri);
     if (helper.mTarget==QueryTarget.PROCESSMODEL) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = ProcessModels.COLUMN_HANDLE+" = ?";
+        pSelection = ProcessModels._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels.COLUMN_HANDLE+" = ? )";
+        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels._ID+" = ? )";
       }
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }

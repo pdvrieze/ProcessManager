@@ -7,15 +7,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlSerializer;
-
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.svg.SVGCanvas;
+
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Fragment;
@@ -25,7 +26,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
