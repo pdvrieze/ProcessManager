@@ -146,7 +146,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
     @Override
     public CharSequence getHandleCondition(long pHandle) {
-      return aColNoHandle + " = ?";
+      return COL_HANDLE + " = ?";
     }
 
     @Override
