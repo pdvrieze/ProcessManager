@@ -8,6 +8,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -19,6 +20,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
@@ -138,6 +142,11 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
   @XmlAttribute(name = "endpoint")
   public String getEndpoint() {
     return super.getEndpoint();
+  }
+
+  @Override
+  public EndpointDescriptor getEndpointDescriptor() {
+    return new EndpointDescriptorImpl(getService(), getEndpoint(), URI.create(getUrl()));
   }
 
   @Override

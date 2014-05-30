@@ -1,7 +1,6 @@
 package nl.adaptivity.process.processModel;
 
 import java.io.StringWriter;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -14,13 +13,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.messaging.EndpointDescriptorImpl;
-
 import org.w3c.dom.Node;
 
 
-public class BaseMessage implements IXmlMessage{
+public abstract class BaseMessage implements IXmlMessage{
 
   private QName service;
   private String endpoint;
@@ -42,6 +38,16 @@ public class BaseMessage implements IXmlMessage{
     method = pMethod;
     type = pContentType;
     aBody = pMessageBody;
+  }
+
+  public BaseMessage(IXmlMessage pMessage) {
+    this(pMessage.getService(),
+         pMessage.getEndpoint(),
+         pMessage.getOperation(),
+         pMessage.getUrl(),
+         pMessage.getMethod(),
+         pMessage.getContentType(),
+         pMessage.getMessageBody());
   }
 
   @Override
@@ -90,11 +96,6 @@ public class BaseMessage implements IXmlMessage{
   @Override
   public void setEndpoint(final String value) {
     this.endpoint = value;
-  }
-
-  @Override
-  public EndpointDescriptor getEndpointDescriptor() {
-    return new EndpointDescriptorImpl(service, endpoint, URI.create(url));
   }
 
   @Override
