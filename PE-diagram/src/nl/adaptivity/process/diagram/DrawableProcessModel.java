@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Diagram;
@@ -50,17 +51,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private int idSeq=0;
 
   public DrawableProcessModel(ProcessModel<?> pOriginal) {
-    super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()));
-    setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
-    setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
-    setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
-    setVertSeparation(DEFAULT_VERT_SEPARATION);
-    ensureIds();
-    layout();
+    this(pOriginal, null);
   }
 
   public DrawableProcessModel(ProcessModel<?> pOriginal, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()), pLayoutAlgorithm);
+    super(pOriginal.getUuid(), pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()), pLayoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -69,18 +64,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  public DrawableProcessModel(String pName, Collection<? extends DrawableProcessNode> pNodes) {
-    super(pName, pNodes);
-    setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
-    setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
-    setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
-    setVertSeparation(DEFAULT_VERT_SEPARATION);
-    ensureIds();
-    layout();
+  public DrawableProcessModel(UUID pUuid, String pName, Collection<? extends DrawableProcessNode> pNodes) {
+    this(pUuid, pName, pNodes, null);
   }
 
-  public DrawableProcessModel(String pName, Collection<? extends DrawableProcessNode> pNodes, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pName, pNodes, pLayoutAlgorithm);
+  public DrawableProcessModel(UUID pUuid, String pName, Collection<? extends DrawableProcessNode> pNodes, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+    super(pUuid, pName, pNodes, pLayoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);

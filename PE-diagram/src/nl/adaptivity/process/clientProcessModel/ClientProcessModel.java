@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.xml.XMLConstants;
 
@@ -42,14 +43,17 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private boolean mNeedsLayout = false;
 
-  public ClientProcessModel(final String pName, final Collection<? extends T> pNodes) {
-    this(pName, pNodes, new LayoutAlgorithm<T>());
+  private UUID aUuid;
+
+  public ClientProcessModel(UUID pUuid, final String pName, final Collection<? extends T> pNodes) {
+    this(pUuid, pName, pNodes, new LayoutAlgorithm<T>());
   }
 
-  public ClientProcessModel(final String pName, final Collection<? extends T> pNodes, LayoutAlgorithm<T> pLayoutAlgorithm) {
+  public ClientProcessModel(UUID pUuid, final String pName, final Collection<? extends T> pNodes, LayoutAlgorithm<T> pLayoutAlgorithm) {
     aName = pName;
     aLayoutAlgorithm = pLayoutAlgorithm == null ? new LayoutAlgorithm<T>() : pLayoutAlgorithm;
     setNodes(pNodes);
+    aUuid = pUuid==null ? UUID.randomUUID() : pUuid;
   }
 
   public void setNodes(final Collection<? extends T> nodes) {
@@ -191,6 +195,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
+  public UUID getUuid() {
+    return aUuid;
+  }
+
+  public void setUuid(UUID pUuid) {
+    aUuid = pUuid;
+  }
+
+  @Override
   public int getEndNodeCount() {
     int i=0;
     for(T node: getModelNodes()) {
@@ -302,6 +315,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     pOut.startTag(NS_PM, "processModel", true);
     if (aName!=null) {
       pOut.addAttribute(null, "name", aName);
+    }
+    if (aUuid!=null) {
+      pOut.addAttribute(null, "uuid", aUuid.toString());
     }
     for(T node:aNodes) {
       node.serialize(pOut);
