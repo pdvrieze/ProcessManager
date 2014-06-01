@@ -12,4 +12,6 @@
            @javax.xml.bind.annotation.XmlNs(prefix=nl.adaptivity.process.ProcessConsts.Soap.SOAP_ENCODING_PREFIX, namespaceURI=nl.adaptivity.process.ProcessConsts.Soap.SOAP_ENCODING_NS),
            @javax.xml.bind.annotation.XmlNs(prefix=javax.xml.XMLConstants.DEFAULT_NS_PREFIX, namespaceURI=nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE)})
 
+@javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter(
+    type=java.util.UUID.class, value=nl.adaptivity.xml.UUIDAdapter.class)
 package nl.adaptivity.process.processModel.engine;

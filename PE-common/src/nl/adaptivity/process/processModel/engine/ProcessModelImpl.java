@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -19,7 +21,6 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelXmlAdapter;
 import nl.adaptivity.process.processModel.ProcessNode;
@@ -69,6 +70,8 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   private Principal aOwner;
 
   private Set<String> aRoles;
+
+  private UUID aUuid;
 
   private static Class<?> _cls_darwin_principal;
 
@@ -168,6 +171,16 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
         }
       }
     }
+  }
+
+  @Override
+  @XmlAttribute(name="uuid")
+  public UUID getUuid() {
+    return aUuid;
+  }
+
+  public void setUuid(UUID pUuid) {
+    aUuid = pUuid;
   }
 
   /**

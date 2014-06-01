@@ -3,11 +3,18 @@ package nl.adaptivity.process.processModel;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 
 
 public interface ProcessModel<T extends ProcessNode<? extends T>> {
+
+  /**
+   * Get the UUID for this process model.
+   * @return The UUID this process model has.
+   */
+  public UUID getUuid();
 
   /**
    * Get the amount of end nodes in the model
