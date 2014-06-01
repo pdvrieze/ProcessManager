@@ -3,10 +3,10 @@ package nl.adaptivity.process.editor.android;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import android.annotation.TargetApi;
@@ -335,7 +335,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
 
   void createNewPM(String name) {
 
-    DrawableProcessModel model = new DrawableProcessModel(name, new ArrayList<DrawableProcessNode>());
+    DrawableProcessModel model = new DrawableProcessModel(UUID.randomUUID(), name, new ArrayList<DrawableProcessNode>());
     Uri uri;
     try {
       uri = ProcessModelProvider.newProcessModel(getActivity(), model);
