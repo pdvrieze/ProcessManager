@@ -1,5 +1,6 @@
 package nl.adaptivity.process.messaging;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -11,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.devrieze.util.security.PermissionDeniedException;
-
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
@@ -112,22 +113,32 @@ public class EndpointServlet extends HttpServlet {
     try {
       final HttpMessage message = new HttpMessage(pRequest);
       try {
-        if (!SoapMessageHandler.isSoapMessage(pRequest)) {
-          final RestMessageHandler restHandler = getRestMessageHandler();
-          if (!restHandler.processRequest(pMethod, message, pResponse)) {
-            getLogger().warning("Error processing rest request");
+        try {
+          if (!SoapMessageHandler.isSoapMessage(pRequest)) {
+            final RestMessageHandler restHandler = getRestMessageHandler();
+            if (!restHandler.processRequest(pMethod, message, pResponse)) {
+              getLogger().warning("Error processing rest request");
+            }
+          } else {
+            final SoapMessageHandler soapHandler = getSoapMessageHandler();
+            if (!soapHandler.processRequest(message, pResponse)) {
+              getLogger().warning("Error processing soap request");
+            }
           }
-        } else {
-          final SoapMessageHandler soapHandler = getSoapMessageHandler();
-          if (!soapHandler.processRequest(message, pResponse)) {
-            getLogger().warning("Error processing soap request");
+        } catch (MessagingException e) {
+          if (e.getCause() instanceof Exception) {
+            throw (Exception) e.getCause();
+          } else {
+            throw e;
           }
         }
       } catch (final PermissionDeniedException e) {
-        pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action");
+        pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
         return;
+      } catch (final FileNotFoundException e) {
+        pResponse.sendError(HttpServletResponse.SC_NOT_FOUND, "The requested resource is not available.");
       }
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       try {
         pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         getLogger().log(Level.WARNING, "Error when processing REST/SOAP", e);
