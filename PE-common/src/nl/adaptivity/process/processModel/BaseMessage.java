@@ -52,7 +52,7 @@ public abstract class BaseMessage implements IXmlMessage{
 
   @Override
   public String getServiceName() {
-    return service.getLocalPart();
+    return service==null ? null : service.getLocalPart();
   }
 
   @Override
@@ -66,7 +66,7 @@ public abstract class BaseMessage implements IXmlMessage{
 
   @Override
   public String getServiceNS() {
-    return service.getNamespaceURI();
+    return service==null ? null : service.getNamespaceURI();
   }
 
   @Override
