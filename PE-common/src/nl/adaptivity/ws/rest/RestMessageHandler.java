@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.TransformerException;
 
 import net.devrieze.util.PrefixMap;
-
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
@@ -60,12 +60,7 @@ public class RestMessageHandler {
 
     if (method != null) {
       method.unmarshalParams(httpMessage);
-      try {
-        method.exec();
-      } catch (final RuntimeException e) {
-        pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        throw e;
-      }
+      method.exec();
       try {
         method.marshalResult(pResponse);
       } catch (final TransformerException e) {
