@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -48,7 +49,8 @@ public class ProcessEngine /* implements IProcessEngine */{
     ADD_MODEL,
     ASSIGN_OWNERSHIP,
     VIEW_ALL_INSTANCES,
-    CANCEL_ALL, ;
+    CANCEL_ALL,
+    UPDATE_MODEL, CHANGE_OWNERSHIP, ;
 
   }
 
@@ -142,6 +144,28 @@ public class ProcessEngine /* implements IProcessEngine */{
     final ProcessModelImpl pm = aProcessModels.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, pUser, pm);
     pm.setName(pName);
+  }
+
+  public ProcessModelRef updateProcessModel(Handle<? extends ProcessModelImpl> pHandle, ProcessModelImpl pProcessModel, Principal pUser) throws FileNotFoundException {
+
+    ProcessModelImpl oldModel = aProcessModels.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, oldModel);
+    aSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, pUser, oldModel);
+    if (!oldModel.getOwner().getName().equals(pProcessModel.getOwner().getName())) {
+      aSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, pUser, oldModel);
+    }
+    if(! (pHandle!=null && aProcessModels.contains(pHandle))) {
+      throw new FileNotFoundException("The process model with handle "+pHandle+" could not be found");
+    }
+    aProcessModels.set(pHandle, pProcessModel);
+    return ProcessModelRef.get(pProcessModel.getRef());
+  }
+
+  public boolean removeProcessModel(Handle<? extends ProcessModelImpl> pHandle, Principal pUser) {
+    ProcessModelImpl oldModel = aProcessModels.get(pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, pUser, oldModel);
+    return aProcessModels.remove(pHandle);
+
   }
 
   public void setSecurityProvider(final SecurityProvider pSecurityProvider) {

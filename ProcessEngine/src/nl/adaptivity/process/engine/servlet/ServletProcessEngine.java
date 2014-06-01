@@ -48,14 +48,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.PermissionDeniedException;
@@ -79,9 +71,9 @@ import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
-import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
@@ -91,6 +83,14 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
+
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
@@ -537,15 +537,34 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return list;
   }
 
-  @RestMethod(method = HttpMethod.GET, path = "/processInstances")
-  @XmlElementWrapper(name = "processInstances", namespace = PROCESS_ENGINE_NS)
-  public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
-    final Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(pOwner);
-    final Collection<ProcessInstanceRef> list = new ArrayList<>();
-    for (final ProcessInstance pi : processInstances) {
-      list.add(pi.getRef());
+  @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
+  public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
+    try {
+      return new XmlProcessModel(aProcessEngine.getProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser));
+    } catch (final NullPointerException e) {
+      throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }
-    return list;
+  }
+
+  @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
+  public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws IOException {
+    if (pUser==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    XmlProcessModel xmlpm;
+    try {
+      xmlpm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
+    } catch (final IOException e) {
+      throw e;
+    }
+    if (xmlpm != null) {
+      final ProcessModelImpl processModel = xmlpm.toProcessModel();
+      if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
+        throw new AssertionError("Process model sizes don't match");
+      }
+      return aProcessEngine.updateProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), processModel, pUser);
+    }
+
+    return null;
+
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
@@ -568,6 +587,16 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return null;
   }
 
+  @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
+  public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    aProcessEngine.renameProcessModel(pUser, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName);
+  }
+
+  @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
+  public boolean deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    return aProcessEngine.removeProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser);
+  }
+
   /**
    * Create a new process instance and start it.
    *
@@ -583,9 +612,15 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return aProcessEngine.startProcess(pOwner, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName, null);
   }
 
-  @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
-  public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    aProcessEngine.renameProcessModel(pUser, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName);
+  @RestMethod(method = HttpMethod.GET, path = "/processInstances")
+  @XmlElementWrapper(name = "processInstances", namespace = PROCESS_ENGINE_NS)
+  public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
+    final Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(pOwner);
+    final Collection<ProcessInstanceRef> list = new ArrayList<>();
+    for (final ProcessInstance pi : processInstances) {
+      list.add(pi.getRef());
+    }
+    return list;
   }
 
   @WebMethod(operationName = "updateTaskState")
@@ -609,15 +644,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return aProcessEngine.finishTask(MemHandleMap.<ProcessNodeInstance> handle(pHandle), pPayload, pUser);
   }
 
-
-  @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
-  public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
-    try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser));
-    } catch (final NullPointerException e) {
-      throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
-    }
-  }
 
   /**
    * Handle the completing of sending a message and receiving some sort of
