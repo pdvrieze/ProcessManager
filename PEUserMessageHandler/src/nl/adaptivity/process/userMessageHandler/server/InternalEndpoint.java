@@ -3,6 +3,8 @@ package nl.adaptivity.process.userMessageHandler.server;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -16,12 +18,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
@@ -30,6 +32,7 @@ import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
 import nl.adaptivity.process.util.Constants;
 
 
@@ -61,6 +64,55 @@ public class InternalEndpoint implements GenericEndpoint {
 
   }
 
+  @XmlRootElement(name="item")
+  @XmlAccessorType(XmlAccessType.NONE)
+  public static class XmlItem implements TaskItem{
+    private String aName;
+    private String aType;
+    private String aValue;
+    private List<String> aOptions;
+
+    @Override
+    @XmlAttribute(name="name")
+    public String getName() {
+      return aName;
+    }
+
+    public void setName(String pName) {
+      aName = pName;
+    }
+
+    @Override
+    @XmlAttribute(name="type")
+    public String getType() {
+      return aType;
+    }
+
+    public void setType(String pType) {
+      aType = pType;
+    }
+
+    @Override
+    @XmlAttribute(name="type")
+    public String getValue() {
+      return aValue;
+    }
+
+    public void setValue(String pValue) {
+      aValue = pValue;
+    }
+
+    @Override
+    public List<String> getOptions() {
+      return aOptions;
+    }
+
+    @XmlElement(name="option")
+    public void setOptions(List<String> pOptions) {
+      aOptions = pOptions;
+    }
+  }
+
   @XmlRootElement(name = "task")
   @XmlAccessorType(XmlAccessType.NONE)
   public static class XmlTask implements UserTask<XmlTask> {
@@ -76,6 +128,8 @@ public class InternalEndpoint implements GenericEndpoint {
     private EndpointDescriptorImpl aEndPoint = null;
 
     private Principal aOwner;
+
+    private List<XmlItem> aItems;
 
     public XmlTask() {
       aHandle = -1;
@@ -178,6 +232,22 @@ public class InternalEndpoint implements GenericEndpoint {
     void setOwnerString(final String pOwner) {
       aOwner = new SimplePrincipal(pOwner);
     }
+
+    @XmlElement(name="item")
+    @Override
+    public List<XmlItem> getItems() {
+      return aItems;
+    }
+
+    @Override
+    public void setItems(List<? extends TaskItem> pItems) {
+      aItems = new ArrayList<XmlItem>(pItems.size());
+      for(TaskItem item: pItems) {
+        aItems.add((XmlItem) item);
+      }
+    }
+
+
   }
 
   private static final String ENDPOINT = "internal";
