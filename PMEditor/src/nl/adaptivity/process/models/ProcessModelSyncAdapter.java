@@ -8,11 +8,13 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.MultipartEntity;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -23,7 +25,6 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.accounts.Account;
-import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -38,8 +39,8 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-
-public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
+@SuppressWarnings("boxing")
+public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
 
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
   private static final String TAG_PROCESSMODELS = "processModels";
@@ -50,11 +51,16 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
   private XmlPullParserFactory mXpf;
 
   public ProcessModelSyncAdapter(Context pContext) {
-    super(pContext, true, false);
+    super(pContext, true, false, ProcessModels.CONTENT_ID_URI_BASE);
   }
 
   @Override
-  public void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
+  protected String getSyncSource() {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+    return prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/ProcessEngine/");
+  }
+
+  private void onPerformSyncOld(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
     try {
       mXpf = XmlPullParserFactory.newInstance();
     } catch (XmlPullParserException e1) {
@@ -82,7 +88,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
       final int statusCode = result.getStatusLine().getStatusCode();
       if (statusCode>=200 && statusCode<400) {
         try {
-          updateProcessModelList(pProvider, pSyncResult, result.getEntity().getContent());
+          updateItemListFromServer(pProvider, pSyncResult, result.getEntity().getContent());
         } catch (IllegalStateException|XmlPullParserException e) {
           pSyncResult.stats.numParseExceptions++;
           Log.e(TAG, "Error parsing process model list", e);
@@ -101,7 +107,7 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
     }
   }
 
-  private void updateProcessModelList(ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, IOException, RemoteException {
+  private void updateItemListFromServer(ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, IOException, RemoteException {
     XmlPullParser parser = mXpf.newPullParser();
     parser.setInput(pContent, "UTF8");
     List<Long> handles = updateProcessModelList(pProvider, pSyncResult, parser);
@@ -238,4 +244,123 @@ public class ProcessModelSyncAdapter extends AbstractThreadedSyncAdapter {
 
     return Long.valueOf(handle);
   }
+
+  @Override
+  protected String getListUrl(String pBase) {
+    return pBase+"processModels";
+  }
+
+  @Override
+  protected ContentValues postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+    String model;
+    {
+      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL }, ProcessModels.COLUMN_SYNCSTATE+" = ?", new String[] {Integer.toString(ProcessModels.SYNC_UPDATE_SERVER)}, null);
+      try {
+        if (pendingPosts.moveToFirst()) {
+          model = pendingPosts.getString(0);
+        } else {
+          return null;
+        }
+
+      } finally {
+        pendingPosts.close();
+      }
+    }
+
+    HttpPost post = new HttpPost(mBase+"processModels");
+    try {
+      final MultipartEntity entity = new MultipartEntity();
+      entity.add("processUpload", new StringEntity(model, "UTF8"));
+      post.setEntity(entity);
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+    HttpResponse response = mHttpClient.execute(post);
+    int status = response.getStatusLine().getStatusCode();
+    if (status>=200 && status<400) {
+      XmlPullParser parser = mXpf.newPullParser();
+      parser.setInput(response.getEntity().getContent(), "UTF8");
+
+      parser.nextTag(); // Skip document start etc.
+      ContentValues values = parseItem(parser);
+      return values;
+
+    } else {
+      pSyncResult.stats.numIoExceptions++;
+    }
+    return null;
+  }
+
+  @Override
+  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValues pItem) throws RemoteException {
+    Cursor localItem = pProvider.query(pUri, null, null, null, null);
+    if (localItem.moveToFirst()) {
+      for(String key: pItem.keySet()){
+        if (! (getSyncStateColumn().equals(key) ||
+               BaseColumns._ID.equals(key) ||
+               getKeyColumn().equals(key))) {
+          int cursorIdx = localItem.getColumnIndex(key);
+          if (cursorIdx>=0) {
+            int colType=localItem.getType(cursorIdx);
+            switch (colType) {
+            case Cursor.FIELD_TYPE_BLOB:
+              pItem.put(key, localItem.getBlob(cursorIdx)); break;
+            case Cursor.FIELD_TYPE_FLOAT:
+              pItem.put(key, Float.valueOf(localItem.getFloat(cursorIdx))); break;
+            case Cursor.FIELD_TYPE_INTEGER:
+              pItem.put(key, Integer.valueOf(localItem.getInt(cursorIdx))); break;
+            case Cursor.FIELD_TYPE_NULL:
+              pItem.putNull(key); break;
+            case Cursor.FIELD_TYPE_STRING:
+              pItem.put(key, localItem.getString(cursorIdx)); break;
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  @Override
+  protected ContentValues parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
+    pParser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
+    String name = pParser.getAttributeValue(null, "name");
+    long handle;
+    try {
+      handle = Long.parseLong(pParser.getAttributeValue(null, "handle"));
+    } catch (NullPointerException|NumberFormatException e) {
+      throw new XmlPullParserException(e.getMessage(), pParser, e);
+    }
+    UUID uuid = UUID.fromString(pParser.getAttributeValue(null, "uuid"));
+    pParser.next();
+    pParser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
+    ContentValues result = new ContentValues(4);
+    result.put(ProcessModels.COLUMN_HANDLE, handle);
+    result.put(ProcessModels.COLUMN_NAME, name);
+    result.put(ProcessModels.COLUMN_UUID, uuid.toString());
+    result.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
+    return result;
+  }
+
+  @Override
+  protected String getKeyColumn() {
+    return ProcessModels.COLUMN_UUID;
+  }
+
+  @Override
+  protected String getSyncStateColumn() {
+    return ProcessModels.COLUMN_SYNCSTATE;
+  }
+
+  @Override
+  protected String getItemNamespace() {
+    return NS_PROCESSMODELS;
+  }
+
+  @Override
+  protected String getItemsTag() {
+    return TAG_PROCESSMODELS;
+  }
+
+
 }

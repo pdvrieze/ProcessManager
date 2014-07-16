@@ -41,6 +41,7 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String COLUMN_HANDLE="handle";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_MODEL = "model";
+    public static final String COLUMN_UUID = "uuid";
 
 
     public static final String COLUMN_SYNCSTATE = "syncstate";
@@ -343,6 +344,7 @@ public class ProcessModelProvider extends ContentProvider {
       ContentValues values = new ContentValues();
       values.put(ProcessModels.COLUMN_NAME, pProcessModel.getName());
       values.put(ProcessModels.COLUMN_MODEL, out.toString());
+      values.put(ProcessModels.COLUMN_UUID, pProcessModel.getUuid().toString());
       try {
         return client.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
       } catch (RemoteException e) {
