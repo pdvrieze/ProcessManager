@@ -11,10 +11,13 @@ import nl.adaptivity.process.tasks.UserTask.TaskItem;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -306,6 +309,22 @@ public class TaskProvider extends ContentProvider {
       getContext().getContentResolver().notifyChange(pUri, null);
     }
     return result;
+  }
+
+  /**
+   * This implementation of applyBatch wraps the operations into a database transaction that fails on exceptions.
+   */
+  @Override
+  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> pOperations) throws OperationApplicationException {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    db.beginTransaction();
+    try {
+      ContentProviderResult[] result = super.applyBatch(pOperations);
+      db.setTransactionSuccessful();
+      return result;
+    } finally {
+      db.endTransaction();
+    }
   }
 
   public static UserTask getTaskForHandle(Context pContext, long pHandle) {
