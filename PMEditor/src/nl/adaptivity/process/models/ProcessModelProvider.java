@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -15,13 +16,7 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.processModel.ProcessModel;
-import android.content.ContentProvider;
-import android.content.ContentProviderClient;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.UriMatcher;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -273,6 +268,22 @@ public class ProcessModelProvider extends ContentProvider {
       getContext().getContentResolver().notifyChange(pUri, null);
     }
     return result;
+  }
+
+  /**
+   * This implementation of applyBatch wraps the operations into a database transaction that fails on exceptions.
+   */
+  @Override
+  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> pOperations) throws OperationApplicationException {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    db.beginTransaction();
+    try {
+      ContentProviderResult[] result = super.applyBatch(pOperations);
+      db.setTransactionSuccessful();
+      return result;
+    } finally {
+      db.endTransaction();
+    }
   }
 
   public static ProcessModel<?> getProcessModelForHandle(Context pContext, long pHandle) {
