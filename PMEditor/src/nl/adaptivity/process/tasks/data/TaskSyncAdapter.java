@@ -2,28 +2,27 @@ package nl.adaptivity.process.tasks.data;
 
 import static nl.adaptivity.process.tasks.UserTask.NS_TASKS;
 import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
-import static nl.adaptivity.process.tasks.UserTask.TAG_TASKS;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.SettingsActivity;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.UserTask.TaskItem;
+import nl.adaptivity.process.tasks.data.TaskProvider.Items;
+import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.accounts.Account;
-import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -32,162 +31,257 @@ import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
-import android.util.Log;
+
+@SuppressWarnings("boxing")
+public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 
 
-public class TaskSyncAdapter extends AbstractThreadedSyncAdapter {
+  private static class TaskCVProvider implements ContentValuesProvider {
+
+    private final ContentValues mContentValues;
+    final List<TaskItem> mItems;
+
+    public TaskCVProvider(ContentValues pContentValues, List<TaskItem> pItems) {
+      mContentValues = pContentValues;
+      mItems = pItems;
+    }
+
+    @Override
+    public ContentValues getContentValues() {
+      return mContentValues;
+    }
+
+  }
 
   private static final String TAG = TaskSyncAdapter.class.getSimpleName();
-  private AuthenticatedWebClient mHttpClient;
   private String mBase;
   private XmlPullParserFactory mXpf;
 
   public TaskSyncAdapter(Context pContext) {
-    super(pContext, true, false);
+    super(pContext, true, false, Tasks.CONTENT_ID_URI_BASE);
+  }
+//
+//  @Override
+//  public void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
+//    try {
+//      mXpf = XmlPullParserFactory.newInstance();
+//    } catch (XmlPullParserException e1) {
+//      pSyncResult.stats.numParseExceptions++;
+//      return;
+//    }
+//    mXpf.setNamespaceAware(true);
+//
+//    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+//    mBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService/");
+//    if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
+//    {
+//      String authbase = AuthenticatedWebClient.getAuthBase(mBase);
+//      mHttpClient = new AuthenticatedWebClient(getContext(), authbase);
+//    }
+//    HttpGet getProcessesRequest = new HttpGet(mBase+"pendingTasks");
+//    HttpResponse result;
+//    try {
+//      result = mHttpClient.execute(getProcessesRequest);
+//    } catch (IOException e) {
+//      pSyncResult.stats.numIoExceptions++;
+//      return;
+//    }
+//    if (result!=null) {
+//      final int statusCode = result.getStatusLine().getStatusCode();
+//      if (statusCode>=200 && statusCode<400) {
+//        try {
+//          updateTaskList(pProvider, pSyncResult, result.getEntity().getContent());
+//        } catch (IllegalStateException|XmlPullParserException e) {
+//          pSyncResult.stats.numParseExceptions++;
+//          Log.e(TAG, "Error parsing process model list", e);
+//        } catch (IOException e) {
+//          pSyncResult.stats.numIoExceptions++;
+//          Log.e(TAG, "Error parsing process model list", e);
+//        } catch (RemoteException e) {
+//          pSyncResult.databaseError=true;
+//          Log.e(TAG, "Error parsing process model list", e);
+//        }
+//      } else {
+//        pSyncResult.stats.numIoExceptions++;
+//      }
+//    } else {
+//      pSyncResult.stats.numAuthExceptions++;
+//    }
+//  }
+
+  @Override
+  protected ContentValuesProvider postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult)
+      throws RemoteException, IOException, XmlPullParserException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
-    try {
-      mXpf = XmlPullParserFactory.newInstance();
-    } catch (XmlPullParserException e1) {
-      pSyncResult.stats.numParseExceptions++;
-      return;
-    }
-    mXpf.setNamespaceAware(true);
-
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-    mBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService/");
-    if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
-    {
-      String authbase = AuthenticatedWebClient.getAuthBase(mBase);
-      mHttpClient = new AuthenticatedWebClient(getContext(), authbase);
-    }
-    HttpGet getProcessesRequest = new HttpGet(mBase+"pendingTasks");
-    HttpResponse result;
-    try {
-      result = mHttpClient.execute(getProcessesRequest);
-    } catch (IOException e) {
-      pSyncResult.stats.numIoExceptions++;
-      return;
-    }
-    if (result!=null) {
-      final int statusCode = result.getStatusLine().getStatusCode();
-      if (statusCode>=200 && statusCode<400) {
-        try {
-          updateTaskList(pProvider, pSyncResult, result.getEntity().getContent());
-        } catch (IllegalStateException|XmlPullParserException e) {
-          pSyncResult.stats.numParseExceptions++;
-          Log.e(TAG, "Error parsing process model list", e);
-        } catch (IOException e) {
-          pSyncResult.stats.numIoExceptions++;
-          Log.e(TAG, "Error parsing process model list", e);
-        } catch (RemoteException e) {
-          pSyncResult.databaseError=true;
-          Log.e(TAG, "Error parsing process model list", e);
-        }
-      } else {
-        pSyncResult.stats.numIoExceptions++;
-      }
-    } else {
-      pSyncResult.stats.numAuthExceptions++;
-    }
+  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
+    // TODO Do more than take the server state
+    return true;
   }
 
-  private void updateTaskList(ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, IOException, RemoteException {
-    XmlPullParser parser = mXpf.newPullParser();
-    parser.setInput(pContent, "UTF8");
-    List<Long> handles = updateTaskList(pProvider, pSyncResult, parser);
-  }
+  @Override
+  protected boolean doUpdateItemDetails(AuthenticatedWebClient pHttpClient, ContentProviderClient pProvider, long pTaskId, CVPair pPair) throws RemoteException, IOException {
+    // TODO support transactions
+    boolean updated = false;
+    if (pPair==null) {
+      return false;
+    }
+    List<TaskItem> items = ((TaskCVProvider) pPair.mCV).mItems;
+    ListIterator<TaskItem> itemIterator = items.listIterator();
 
-  private List<Long> updateTaskList(ContentProviderClient pProvider, SyncResult pSyncResult, XmlPullParser parser) throws XmlPullParserException, IOException, RemoteException {
-    ContentValues values = new ContentValues(1);
-    values.put(Tasks.COLUMN_SYNCSTATE, Integer.valueOf(Tasks.SYNC_PENDING));
-    pProvider.update(Tasks.CONTENT_ID_URI_BASE, values, Tasks.COLUMN_SYNCSTATE + " = "+ProcessModels.SYNC_UPTODATE, null);
-    try {
-      List<Long> result = new ArrayList<>();
-      parser.next();
-      parser.require(START_TAG, NS_TASKS, TAG_TASKS);
-      int type;
-      while ((type = parser.next()) != END_TAG) {
-        switch (type) {
-          case START_TAG:
-            result.add(parseTask(pProvider, pSyncResult, parser, -1)); // unknown id
-            break;
-          default:
-            throw new XmlPullParserException("Unexpected tag type: " + type);
+    final Uri itemsUri = ContentUris.withAppendedId(Items.CONTENT_ID_URI_BASE,  pTaskId);
+    Cursor localItems = pProvider.query(itemsUri, null, null, null, BaseColumns._ID);
+    int nameColIdx = localItems.getColumnIndex(Items.COLUMN_NAME);
+    int idColIdx = localItems.getColumnIndex(Items._ID);
+    int typeColIdx = localItems.getColumnIndex(Items._ID);
+    int valueColIdx = localItems.getColumnIndex(Items._ID);
+    long deleteMinId = 0;
+    updateloop: while(localItems.moveToNext() && itemIterator.hasNext()) {
+      TaskItem remoteItem = itemIterator.next();
+      String localName = localItems.getString(nameColIdx);
+      long localItemId = localItems.getLong(idColIdx);
+      long deleteMaxId=0;
+      while (!remoteItem.getName().equals(localName)) {
+        deleteMaxId = localItemId;
+        if(localItems.moveToNext()) {
+          localName = localItems.getString(nameColIdx);
+          localItemId = localItems.getLong(idColIdx);
+        } else {
+          break updateloop;
         }
       }
-      return result;
-    } finally {
-      values.clear();
-      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_UPTODATE));
-      pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, ProcessModels.COLUMN_SYNCSTATE + " = "+ProcessModels.SYNC_PENDING, null);
+      if (deleteMaxId>0) {
+        updated=true;
+        pProvider.delete(itemsUri, Items._ID+" > ? AND "+Items._ID+" <= ?", new String[] {Long.toString(deleteMinId), Long.toString(deleteMaxId)});
+      }
+      deleteMinId=localItemId;
+      String localType = localItems.getString(typeColIdx);
+      String localValue = localItems.getString(valueColIdx);
+      ContentValues cv = new ContentValues(2);
+      if (!StringUtil.isEqual(remoteItem.getType(),localType)) {
+        cv.put(Items.COLUMN_TYPE, remoteItem.getType());
+      }
+      if (remoteItem.getValue()!=null && (! remoteItem.getValue().equals(localValue))){
+        cv.put(Items.COLUMN_VALUE, remoteItem.getValue());
+      }
+      if (cv.size()>0) {
+        updated=true;
+        pProvider.update(itemsUri, cv, BaseColumns._ID+" = ? ", new String[] {Long.toString(localItemId)} );
+      }
+      List<String> localOptions = new ArrayList<>();
+      Uri optionsUri = ContentUris.withAppendedId(Options.CONTENT_ID_URI_BASE, localItemId);
+      Cursor cursor = pProvider.query(optionsUri, new String[] {Options.COLUMN_VALUE}, null, null, null);
+      try {
+        while (cursor.moveToNext()) {
+          localOptions.add(cursor.getString(0));
+        }
+      } finally {
+        cursor.close();
+      }
+      if (! remoteItem.getOptions().equals(localOptions)) {
+        pProvider.delete(optionsUri, null, null);
+        ContentValues[] cvs = getContentValuesForTaskOptions(remoteItem, localItemId);
+        pProvider.bulkInsert(optionsUri, cvs);
+      }
+    } // finished all matches
+    // Delete items present locally but not remotely
+    if (! localItems.isAfterLast()) {
+      updated=true;
+      pProvider.delete(itemsUri, Items._ID+" > ?", new String[] {Long.toString(deleteMinId)});
     }
+    while(itemIterator.hasNext()) {
+      TaskItem remoteItem = itemIterator.next();
+      ContentValues itemCv = new ContentValues(4);
+      itemCv.put(Items.COLUMN_TASKID, pTaskId);
+      itemCv.put(Items.COLUMN_NAME, remoteItem.getName());
+      if (remoteItem.getType()!=null) { itemCv.put(Items.COLUMN_TYPE, remoteItem.getType()); }
+      if (remoteItem.getValue()!=null) { itemCv.put(Items.COLUMN_VALUE, remoteItem.getValue()); }
+      long taskItemId = ContentUris.parseId(pProvider.insert(itemsUri, itemCv));
+      Uri optionsUri = ContentUris.withAppendedId(Options.CONTENT_ID_URI_BASE, taskItemId);
+      ContentValues[] cvs = getContentValuesForTaskOptions(remoteItem, taskItemId);
+      updated=true;
+      pProvider.bulkInsert(optionsUri, cvs);
+    }
+    return updated;
+  }
+  private ContentValues[] getContentValuesForTaskOptions(TaskItem remoteItem, long localItemId) {
+    ContentValues[] cvs = new ContentValues[remoteItem.getOptions().size()];
+    int i=0;
+    for(String option: remoteItem.getOptions()) {
+      ContentValues cv2 = new ContentValues(2);
+      cv2.put(Options.COLUMN_ITEMID, localItemId);
+      cv2.put(Options.COLUMN_VALUE, option);
+      cvs[i++] = cv2;
+    }
+    return cvs;
+  }
+
+  @Override
+  protected ContentValuesProvider parseItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+
+    pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
+    String summary = pIn.getAttributeValue(null, "summary");
+    long handle = Long.parseLong(pIn.getAttributeValue(null, "handle"));
+    String owner = pIn.getAttributeValue(null, "owner");
+    String state = pIn.getAttributeValue(null, "state");
+    boolean hasItems = false;
+    List<TaskItem> items = new ArrayList<>();
+    while ((pIn.nextTag())==XmlPullParser.START_TAG) {
+      pIn.require(XmlPullParser.START_TAG, NS_TASKS, UserTask.TAG_ITEM);
+      items.add(UserTask.parseTaskItem(pIn));
+      pIn.require(XmlPullParser.END_TAG, NS_TASKS, UserTask.TAG_ITEM);
+      hasItems = true;
+    }
+
+    ContentValues result = new ContentValues(6);
+    pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASK);
+    result.put(Tasks.COLUMN_SYNCSTATE, hasItems ? SYNC_DETAILSPENDING : SYNC_UPTODATE);
+    result.put(Tasks.COLUMN_HANDLE, handle);
+    result.put(Tasks.COLUMN_SUMMARY, summary);
+    result.put(Tasks.COLUMN_OWNER, owner);
+    result.put(Tasks.COLUMN_STATE, state);
+    return new TaskCVProvider(result, items);
+  }
+
+  @Override
+  protected String getKeyColumn() {
+    return Tasks.COLUMN_HANDLE;
+  }
+
+  @Override
+  protected String getSyncStateColumn() {
+    return Tasks.COLUMN_SYNCSTATE;
+  }
+
+  @Override
+  protected String getItemNamespace() {
+    return UserTask.NS_TASKS;
+  }
+
+  @Override
+  protected String getItemsTag() {
+    return UserTask.TAG_TASKS;
+  }
+
+  @Override
+  protected String getListUrl(String pBase) {
+    return pBase+"pendingTasks";
+  }
+
+  @Override
+  protected String getSyncSource() {
+    if (mBase==null) {
+      SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+      mBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService/");
+      if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
+    }
+    return mBase;
   }
 
 
-  private Long parseTask(ContentProviderClient pProvider, SyncResult pSyncResult, XmlPullParser parser, long pId) throws XmlPullParserException, IOException, RemoteException {
-    parser.require(START_TAG, NS_TASKS, TAG_TASK);
-    String name = parser.getAttributeValue(null, "name");
-    long handle;
-    try {
-      handle = Long.parseLong(parser.getAttributeValue(null, "handle"));
-    } catch (NullPointerException|NumberFormatException e) {
-      pSyncResult.stats.numSkippedEntries++;
-      pSyncResult.stats.numParseExceptions++;
-      return null;
-    }
-    parser.next();
-    parser.require(END_TAG, NS_TASKS, TAG_TASK);
-    final long id;
-    Cursor localModel;
-    if (pId<0) {
-      localModel = pProvider.query(ProcessModels.CONTENT_ID_URI_BASE, ProcessModels.BASE_PROJECTION, ProcessModels.SELECT_HANDLE, new String[] { Long.toString(handle)}, null);
-    } else {
-      localModel = pProvider.query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), ProcessModels.BASE_PROJECTION, null, null, null);
-    }
-    if (localModel.moveToFirst()) {
-      int col_id = localModel.getColumnIndex(BaseColumns._ID);
-      int col_name = localModel.getColumnIndex(ProcessModels.COLUMN_NAME);
-      id = localModel.getLong(col_id);
-      Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
-      ContentValues values = new ContentValues(2);
-      boolean count = false;
-      if (name!=null && (!name.equals(localModel.getString(col_name)))) {
-        values.put(Tasks.COLUMN_SUMMARY, name);
-        count = true;
-      }
-      values.put(Tasks.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_UPTODATE));
-      if (handle!=-1) {
-        values.put(Tasks.COLUMN_HANDLE, handle);
-      }
-      int cnt = pProvider.update(uri, values, null, null);
-      if (count && cnt>0) {
-        pSyncResult.stats.numUpdates+=cnt;
-      }
-    } else if (pId>=0) {
-      pSyncResult.databaseError=true;
-      throw new IllegalStateException("The database does not contain the expected id");
-    } else {
-      ContentValues values = new ContentValues(3);
-      if (name!=null) {
-        values.put(Tasks.COLUMN_SUMMARY, name);
-      }
-      values.put(Tasks.COLUMN_HANDLE, Long.valueOf(handle));
-      values.put(Tasks.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_UPTODATE));
-      Uri iduri = pProvider.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
-      id = ContentUris.parseId(iduri);
-      pSyncResult.stats.numInserts++;
-    }
-    if (id>=0 && handle!=-1) {
-      // TODO implement loading actual models from the server.
-    }
-
-    return Long.valueOf(handle);
-  }
 }

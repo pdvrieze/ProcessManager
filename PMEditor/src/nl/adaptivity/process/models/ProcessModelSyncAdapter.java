@@ -3,9 +3,13 @@ package nl.adaptivity.process.models;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
+import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -112,7 +116,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     parser.setInput(pContent, "UTF8");
     List<Long> handles = updateProcessModelList(pProvider, pSyncResult, parser);
 
-    Cursor pendingPosts = pProvider.query(ProcessModels.CONTENT_ID_URI_BASE, new String[]{ BaseColumns._ID, ProcessModels.COLUMN_MODEL }, ProcessModels.COLUMN_SYNCSTATE+" = ?", new String[] {Integer.toString(ProcessModels.SYNC_UPDATE_SERVER)}, null);
+    Cursor pendingPosts = pProvider.query(ProcessModels.CONTENT_ID_URI_BASE, new String[]{ BaseColumns._ID, ProcessModels.COLUMN_MODEL }, ProcessModels.COLUMN_SYNCSTATE+" = ?", new String[] {Integer.toString(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER)}, null);
     while (pendingPosts.moveToNext()) {
       postProcessModel(pProvider, pSyncResult, pendingPosts.getLong(0), pendingPosts.getString(1));
     }
@@ -136,7 +140,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
         parser.nextTag(); // Skip document start etc.
         parseProcessModelRef(pProvider, pSyncResult, parser, pId);
         ContentValues values = new ContentValues();
-        values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_UPTODATE));
+        values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_UPTODATE));
         try {
           pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), values, null, null);
         } catch (RemoteException e1) {
@@ -145,7 +149,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       } catch (RemoteException e) {
 
         ContentValues values = new ContentValues();
-        values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_MODELPENDING));
+        values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DETAILSPENDING));
         try {
           pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), values, null, null);
         } catch (RemoteException e1) {
@@ -160,8 +164,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
 
   private List<Long> updateProcessModelList(ContentProviderClient pProvider, SyncResult pSyncResult, XmlPullParser parser) throws XmlPullParserException, IOException, RemoteException {
     ContentValues values = new ContentValues(1);
-    values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_PENDING));
-    pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, ProcessModels.COLUMN_SYNCSTATE + " = "+ProcessModels.SYNC_UPTODATE, null);
+    values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PENDING));
+    pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, ProcessModels.COLUMN_SYNCSTATE + " = "+RemoteXmlSyncAdapter.SYNC_UPTODATE, null);
     try {
       List<Long> result = new ArrayList<>();
       parser.next();
@@ -179,8 +183,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       return result;
     } finally {
       values.clear();
-      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_UPTODATE));
-      pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, ProcessModels.COLUMN_SYNCSTATE + " = "+ProcessModels.SYNC_PENDING, null);
+      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_UPTODATE));
+      pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, ProcessModels.COLUMN_SYNCSTATE + " = "+RemoteXmlSyncAdapter.SYNC_PENDING, null);
     }
   }
 
@@ -216,7 +220,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
         values.put(ProcessModels.COLUMN_NAME, name);
         count = true;
       }
-      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_MODELPENDING));
+      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DETAILSPENDING));
       if (handle!=-1) {
         values.put(ProcessModels.COLUMN_HANDLE, handle);
       }
@@ -233,7 +237,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
         values.put(ProcessModels.COLUMN_NAME, name);
       }
       values.put(ProcessModels.COLUMN_HANDLE, Long.valueOf(handle));
-      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(ProcessModels.SYNC_MODELPENDING));
+      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DETAILSPENDING));
       Uri iduri = pProvider.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
       id = ContentUris.parseId(iduri);
       pSyncResult.stats.numInserts++;
@@ -251,10 +255,10 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected ContentValues postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  protected ContentValuesProvider postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     String model;
     {
-      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL }, ProcessModels.COLUMN_SYNCSTATE+" = ?", new String[] {Integer.toString(ProcessModels.SYNC_UPDATE_SERVER)}, null);
+      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL }, ProcessModels.COLUMN_SYNCSTATE+" = ?", new String[] {Integer.toString(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER)}, null);
       try {
         if (pendingPosts.moveToFirst()) {
           model = pendingPosts.getString(0);
@@ -282,7 +286,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       parser.setInput(response.getEntity().getContent(), "UTF8");
 
       parser.nextTag(); // Skip document start etc.
-      ContentValues values = parseItem(parser);
+      ContentValuesProvider values = parseItem(parser);
       return values;
 
     } else {
@@ -292,10 +296,11 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValues pItem) throws RemoteException {
+  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
+    final ContentValues itemCv = pItem.getContentValues();
     Cursor localItem = pProvider.query(pUri, null, null, null, null);
     if (localItem.moveToFirst()) {
-      for(String key: pItem.keySet()){
+      for(String key: itemCv.keySet()){
         if (! (getSyncStateColumn().equals(key) ||
                BaseColumns._ID.equals(key) ||
                getKeyColumn().equals(key))) {
@@ -304,15 +309,15 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
             int colType=localItem.getType(cursorIdx);
             switch (colType) {
             case Cursor.FIELD_TYPE_BLOB:
-              pItem.put(key, localItem.getBlob(cursorIdx)); break;
+              itemCv.put(key, localItem.getBlob(cursorIdx)); break;
             case Cursor.FIELD_TYPE_FLOAT:
-              pItem.put(key, Float.valueOf(localItem.getFloat(cursorIdx))); break;
+              itemCv.put(key, Float.valueOf(localItem.getFloat(cursorIdx))); break;
             case Cursor.FIELD_TYPE_INTEGER:
-              pItem.put(key, Integer.valueOf(localItem.getInt(cursorIdx))); break;
+              itemCv.put(key, Integer.valueOf(localItem.getInt(cursorIdx))); break;
             case Cursor.FIELD_TYPE_NULL:
-              pItem.putNull(key); break;
+              itemCv.putNull(key); break;
             case Cursor.FIELD_TYPE_STRING:
-              pItem.put(key, localItem.getString(cursorIdx)); break;
+              itemCv.put(key, localItem.getString(cursorIdx)); break;
             }
           }
         }
@@ -322,7 +327,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected ContentValues parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
+  protected ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
     pParser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     String name = pParser.getAttributeValue(null, "name");
     long handle;
@@ -339,7 +344,49 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     result.put(ProcessModels.COLUMN_NAME, name);
     result.put(ProcessModels.COLUMN_UUID, uuid.toString());
     result.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
-    return result;
+    return new SimpleContentValuesProvider(result);
+  }
+
+  @Override
+  protected boolean doUpdateItemDetails(AuthenticatedWebClient pHttpClient, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException {
+    long handle;
+    if (pPair!=null && pPair.mCV.getContentValues().containsKey(ProcessModels.COLUMN_HANDLE)) {
+      handle = pPair.mCV.getContentValues().getAsLong(ProcessModels.COLUMN_HANDLE);
+    } else {
+      Cursor cursor = pProvider.query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), new String[] {ProcessModels.COLUMN_HANDLE}, null, null, null);
+      try {
+        if (cursor.moveToFirst()) {
+          handle = cursor.getLong(0);
+        } else {
+          throw new IllegalStateException("There is no handle for the given item");
+        }
+      } finally {
+        cursor.close();
+      }
+    }
+    String uri = getListUrl(getSyncSource())+"/"+handle;
+    HttpGet request = new HttpGet(uri);
+    HttpResponse response = pHttpClient.execute(request);
+    // TODO Auto-generated method stub
+    int status = response.getStatusLine().getStatusCode();
+    if (status>=200 && status<400) {
+      CharArrayWriter out = new CharArrayWriter();
+      Reader in = new InputStreamReader(response.getEntity().getContent(),Charset.forName("UTF-8"));
+      try {
+        char[] buffer = new char[2048];
+        int cnt;
+        while ((cnt=in.read(buffer))>=0) {
+          out.write(buffer, 0, cnt);
+        }
+      } finally {
+        in.close();
+      }
+      ContentValues cv = new ContentValues(2);
+      cv.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_UPTODATE);
+      cv.put(ProcessModels.COLUMN_MODEL, out.toString());
+      return pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), cv, null, null)>0;
+    }
+    return false;
   }
 
   @Override

@@ -21,7 +21,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-
+@SuppressWarnings("static-access")
 public class TaskProvider extends ContentProvider {
 
   public static final String AUTHORITY = "nl.adaptivity.process.tasks";
@@ -55,15 +55,21 @@ public class TaskProvider extends ContentProvider {
 
   }
 
-  public static class Items {
+  public static class Items implements BaseColumns {
     public static final Uri CONTENT_ID_URI_BASE = Uri.parse(Tasks.SCHEME+TaskProvider.AUTHORITY+Tasks.PATH_ITEMS);
     public static final Uri CONTENT_ID_URI_PATTERN = Uri.parse(Tasks.SCHEME+TaskProvider.AUTHORITY+Tasks.PATH_ITEMS+'#');
+    public static final String COLUMN_TASKID = "taskid";
+    public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_TYPE = "type";
+    public static final String COLUMN_VALUE = "value";
   }
 
-  public static class Options {
+  public static class Options implements BaseColumns {
 
     public static final Uri CONTENT_ID_URI_BASE = Uri.parse(Tasks.SCHEME+AUTHORITY+Tasks.PATH_OPTIONS);
     public static final Uri CONTENT_ID_URI_PATTERN = Uri.parse(Tasks.SCHEME+AUTHORITY+Tasks.PATH_OPTIONS+'#');
+    public static final String COLUMN_ITEMID = "itemid";
+    public static final String COLUMN_VALUE = "value";
 
   }
 
@@ -231,7 +237,7 @@ public class TaskProvider extends ContentProvider {
       pValues.put(Tasks._ID, Long.valueOf(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    long id = db.insert(TasksOpenHelper.TABLE_NAME, Tasks.COLUMN_SUMMARY, pValues);
+    long id = db.insert(helper.mTable, null, pValues);
     final Uri result = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_PATTERN, id);
     getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
     getContext().getContentResolver().notifyChange(result, null);
@@ -241,21 +247,46 @@ public class TaskProvider extends ContentProvider {
   @Override
   public int delete(Uri pUri, String pSelection, String[] pSelectionArgs) {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.TASK) {
-      if (pSelection==null || pSelection.length()==0) {
-        pSelection = Tasks._ID+" = ?";
-      } else {
-        pSelection = "( "+pSelection+" ) AND ( "+Tasks._ID+" = ? )";
-      }
-      pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
-    }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
-    final int result = db.delete(TasksOpenHelper.TABLE_NAME, pSelection, pSelectionArgs);
-    if (result>0) {
+    db.beginTransaction();
+    try {
+      if (helper.mTarget==QueryTarget.TASK) {
+        if (pSelection==null || pSelection.length()==0) {
+          pSelection = Tasks._ID+" = ?";
+        } else {
+          pSelection = "( "+pSelection+" ) AND ( "+Tasks._ID+" = ? )";
+        }
+        pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
+        String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
+                                    "SELECT " + Items._ID+
+                                    " FROM " + TasksOpenHelper.TABLE_NAME_ITEMS+
+                                    " WHERE " + Items.COLUMN_TASKID+" IN (" +
+                                      " SELECT " + Tasks._ID+
+                                      " FROM " + TasksOpenHelper.TABLE_NAME_TASKS +
+                                      " WHERE " + pSelection + " ) )";
+        db.delete(TasksOpenHelper.TABLE_NAME_OPTIONS, optionSelection, pSelectionArgs);
+        String itemSelection = Items.COLUMN_TASKID+" IN (" +
+              " SELECT " + Tasks._ID+
+              " FROM " + TasksOpenHelper.TABLE_NAME_TASKS +
+              " WHERE " + pSelection + " )";
+        db.delete(TasksOpenHelper.TABLE_NAME_ITEMS, itemSelection, pSelectionArgs);
+      } else if (helper.mTarget==QueryTarget.TASKITEMS) {
+        String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
+            "SELECT " + Items._ID+
+            " FROM " + TasksOpenHelper.TABLE_NAME_ITEMS+
+            " WHERE " + pSelection + " )";
+        db.delete(TasksOpenHelper.TABLE_NAME_OPTIONS, optionSelection, pSelectionArgs);
+      }
       getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
+      final int result = db.delete(helper.mTable, pSelection, pSelectionArgs);
+      if (result>0) {
+        getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
+      }
+      db.setTransactionSuccessful();
+      return result;
+    } finally {
+      db.endTransaction();
     }
-    return result;
   }
 
   @Override
@@ -270,7 +301,7 @@ public class TaskProvider extends ContentProvider {
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.update(TasksOpenHelper.TABLE_NAME, pValues, pSelection, pSelectionArgs);
+    final int result = db.update(helper.mTable, pValues, pSelection, pSelectionArgs);
     if (result>0) {
       getContext().getContentResolver().notifyChange(pUri, null);
     }

@@ -1,5 +1,7 @@
 package nl.adaptivity.process.tasks.data;
 
+import nl.adaptivity.process.tasks.data.TaskProvider.Items;
+import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -27,13 +29,10 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
       Items.COLUMN_NAME +" TEXT," +
       Items.COLUMN_TYPE + " TEXT," +
       Items.COLUMN_VALUE + " TEXT )";
-  private static final String SQL_CREATE_TASKS_TABLE = "CREATE TABLE " + TABLE_NAME_TASKS + " (" +
+  private static final String SQL_CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_NAME_TASKS + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
-      Tasks.COLUMN_HANDLE +" LONG," +
-      Tasks.COLUMN_SUMMARY + " TEXT," +
-      Tasks.COLUMN_OWNER + " TEXT," +
-      Tasks.COLUMN_STATE + " TEXT," +
-      Tasks.COLUMN_SYNCSTATE+ " INT )";
+      Options.COLUMN_ITEMID +" INTEGER," +
+      Options.COLUMN_VALUE + " TEXT )";
 
   public TasksOpenHelper(Context pContext) {
     super(pContext, DB_NAME, null, DB_VERSION);
@@ -41,7 +40,9 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
 
   @Override
   public void onCreate(SQLiteDatabase pDb) {
-    pDb.execSQL(SQL_CREATE_TABLE);
+    pDb.execSQL(SQL_CREATE_OPTIONS_TABLE);
+    pDb.execSQL(SQL_CREATE_ITEMS_TABLE);
+    pDb.execSQL(SQL_CREATE_TASKS_TABLE);
   }
 
   @Override
@@ -49,6 +50,8 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
     pDb.beginTransaction();
     try {
       pDb.execSQL("DROP TABLE "+TABLE_NAME_TASKS);
+      pDb.execSQL("DROP TABLE "+TABLE_NAME_ITEMS);
+      pDb.execSQL("DROP TABLE "+TABLE_NAME_OPTIONS);
       onCreate(pDb);
 
       pDb.setTransactionSuccessful();

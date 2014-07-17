@@ -7,10 +7,13 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -34,6 +37,44 @@ import android.util.Log;
 
 @SuppressWarnings("boxing")
 public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
+
+
+
+  public interface ContentValuesProvider {
+    public ContentValues getContentValues();
+  }
+
+  public static class SimpleContentValuesProvider implements ContentValuesProvider {
+
+    private final ContentValues mContentValues;
+
+    public SimpleContentValuesProvider(ContentValues pContentValues) {
+      mContentValues = pContentValues;
+    }
+
+    @Override
+    public ContentValues getContentValues() {
+      return mContentValues;
+    }
+
+  }
+
+  public static class CVPair implements Comparable<CVPair> {
+    public final ContentValuesProvider mCV;
+    public final long mId;
+
+    public CVPair(long pId, ContentValuesProvider pCV) {
+      mCV = pCV;
+      mId = pId;
+    }
+
+    @Override
+    public int compareTo(CVPair pAnother) {
+      long rhs = pAnother.mId;
+      return mId < rhs ? -1 : (mId == rhs ? 0 : 1);
+    }
+
+  }
 
   public static final int SYNC_UPDATE_SERVER = 1;
   public static final int SYNC_UPTODATE = 0;
@@ -74,7 +115,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
       @Override
       public void execute(RemoteXmlSyncAdapter pAdapter, ContentProviderClient pProvider, SyncResult pSyncResult)
           throws XmlPullParserException, IOException, RemoteException {
-        pAdapter.updateItemContentFromServer(pProvider, pSyncResult);
+        pAdapter.updateItemDetails(pProvider, pSyncResult);
       }};
 
     public abstract void execute(RemoteXmlSyncAdapter pAdapter, ContentProviderClient pProvider, SyncResult pSyncResult) throws XmlPullParserException, IOException, RemoteException;
@@ -86,6 +127,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
   private String mBase;
   private AuthenticatedWebClient mHttpClient;
   private final Uri mListContentUri;
+  private List<CVPair> mUpdateList;
 
   public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, Uri pListContentUri) {
     super(pContext, pAutoInitialize);
@@ -109,8 +151,9 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     if (result!=null) {
       final int statusCode = result.getStatusLine().getStatusCode();
       if (statusCode>=200 && statusCode<400) {
-        updateItemListFromServer(pProvider, pSyncResult, result.getEntity().getContent());
+        mUpdateList = updateItemListFromServer(pProvider, pSyncResult, result.getEntity().getContent());
       } else {
+        mUpdateList = null;
         pSyncResult.stats.numIoExceptions++;
       }
     } else {
@@ -132,7 +175,8 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     while(updateableItems.moveToNext()) {
       Uri itemuri = ContentUris.withAppendedId(mListContentUri, updateableItems.getLong(0));
       try {
-        ContentValues newValues = postItem(pProvider, mHttpClient, itemuri, pSyncResult);
+        ContentValuesProvider newValuesProvider = postItem(pProvider, mHttpClient, itemuri, pSyncResult);
+        ContentValues newValues  = newValuesProvider.getContentValues();
         if (newValues==null) {
           newValues = new ContentValues(1);
           newValues.put(colSyncstate, SYNC_UPTODATE);
@@ -150,10 +194,41 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
   }
 
-  protected void updateItemContentFromServer(ContentProviderClient pProvider, SyncResult pSyncResult) {
-    // TODO Auto-generated method stub
-
+  protected void updateItemDetails(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, IOException {
+    Collections.sort(mUpdateList);
+    final String colSyncstate = getSyncStateColumn();
+    final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
+    Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DETAILSPENDING /* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, Tasks._ID);
+    try {
+      ListIterator<CVPair> listIterator = mUpdateList.listIterator();
+      while(updateableItems.moveToNext()) {
+        long id = updateableItems.getLong(0);
+        CVPair pair=null;
+        while (listIterator.hasNext()) {
+          CVPair candidate = listIterator.next();
+          if (candidate.mId==id) {
+            pair = candidate;
+            break;
+          } else if (candidate.mId<id) {
+            listIterator.previous(); // back up the position
+            break;
+          }
+        }
+        if(doUpdateItemDetails(mHttpClient, pProvider, id, pair)) {
+          pSyncResult.stats.numUpdates++;
+        }
+      }
+    } finally {
+      updateableItems.close();
+    }
+    ContentValues values = new ContentValues(1);
+    if (colSyncstate!=null && colSyncstate.length()>0) {
+      values.put(colSyncstate, Integer.valueOf(SYNC_PENDING));
+      pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, colSyncstate + " = "+SYNC_UPTODATE, null);
+    }
   }
+
+  protected abstract boolean doUpdateItemDetails(AuthenticatedWebClient pHttpClient, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException;
 
   @Override
   public final void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
@@ -220,7 +295,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 //    }
   }
 
-  private List<Long> updateItemListFromServer(ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, RemoteException, IOException {
+  private List<CVPair> updateItemListFromServer(ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, RemoteException, IOException {
     final String itemNamespace = getItemNamespace();
     final String itemsTag = getItemsTag();
 
@@ -241,18 +316,19 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
 //    try {
-      List<Long> result = new ArrayList<>();
+      List<CVPair> result = new ArrayList<>();
       parser.next();
       parser.require(START_TAG, itemNamespace, itemsTag); // ensure the outer element
       int type;
       while ((type = parser.next()) != END_TAG) {
         switch (type) {
           case START_TAG:
-            ContentValues item = parseItem(parser);
-            Object key = item.get(colKey);
+            ContentValuesProvider item = parseItem(parser);
+            final ContentValues itemCv = item.getContentValues();
+            Object key = itemCv.get(colKey);
             if (key!=null) {
-              if (!item.containsKey(colSyncstate)) {
-                item.put(colSyncstate, SYNC_DETAILSPENDING);
+              if (!itemCv.containsKey(colSyncstate)) {
+                itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
               }
               Cursor localItem = pProvider.query(mListContentUri, projectionId, colKey+"= ?", new String[] {key.toString()}, null);
               if (localItem.moveToFirst()) {
@@ -261,26 +337,27 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
                 localItem.close();
                 Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
                 if (syncState==SYNC_UPDATE_SERVER_PENDING) {
-                  item.remove(colSyncstate);
-                  ContentValues itemCpy = new ContentValues(item);
+                  itemCv.remove(colSyncstate);
+                  ContentValues itemCpy = new ContentValues(itemCv);
                   itemCpy.remove(colSyncstate);
                   if (resolvePotentialConflict(pProvider, uri, item)) {
                     if (item.equals(itemCpy)) {
                       // no server update needed
-                      item.put(colSyncstate, SYNC_DETAILSPENDING);
+                      itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
                     } else {
-                      item.put(colSyncstate, SYNC_UPDATE_SERVER_DETAILSPENDING);
+                      itemCv.put(colSyncstate, SYNC_UPDATE_SERVER_DETAILSPENDING);
                     }
                   } else {
                     pSyncResult.stats.numConflictDetectedExceptions++;
                   }
                 }
-                pProvider.update(uri, item, null, null);
+                pProvider.update(uri, itemCv, null, null);
                 pSyncResult.stats.numUpdates++;
-                result.add(Long.valueOf(id));
+                result.add(new CVPair(id, item));
               } else {
                 localItem.close();
-                result.add(Long.valueOf(ContentUris.parseId(pProvider.insert(mListContentUri, item))));
+                final long newId = ContentUris.parseId(pProvider.insert(mListContentUri, itemCv));
+                result.add(new CVPair(newId, item));
                 pSyncResult.stats.numInserts++;
               }
               pSyncResult.stats.numEntries++;
@@ -303,11 +380,11 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
   }
 
-  protected abstract ContentValues postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
+  protected abstract ContentValuesProvider postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
 
-  protected abstract boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValues pItem) throws RemoteException;
+  protected abstract boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException;
 
-  protected abstract ContentValues parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException;
+  protected abstract ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException;
 
   protected abstract String getKeyColumn();
 

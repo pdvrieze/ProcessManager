@@ -13,6 +13,7 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -61,7 +62,7 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
     }
     cv.put(ProcessModels.COLUMN_MODEL, out.toString());
     cv.put(ProcessModels.COLUMN_NAME, modelName);
-    cv.put(ProcessModels.COLUMN_SYNCSTATE, ProcessModels.SYNC_UPDATE_SERVER);
+    cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER);
     UUID uuid = model.getUuid();
     if (uuid==null) { uuid = UUID.randomUUID(); }
     cv.put(ProcessModels.COLUMN_UUID, uuid.toString());

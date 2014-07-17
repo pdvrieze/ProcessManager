@@ -180,7 +180,7 @@ public class UserTask {
     return new UserTask(summary, handle, owner, state, items);
   }
 
-  private static TaskItem parseTaskItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+  public static TaskItem parseTaskItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
     pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_ITEM);
     String name = pIn.getAttributeValue(null, "name");
     String type = pIn.getAttributeValue(null, "type");

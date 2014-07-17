@@ -46,11 +46,6 @@ public class ProcessModelProvider extends ContentProvider {
 
     public static final String COLUMN_SYNCSTATE = "syncstate";
 
-    public static final int SYNC_UPDATE_SERVER = 1;
-    public static final int SYNC_UPTODATE = 0;
-    public static final int SYNC_PENDING = 2;
-    public static final int SYNC_MODELPENDING = 3;
-
     private static final String SCHEME = "content://";
 
     private static final String PATH_MODELS = "/processmodels";
