@@ -138,7 +138,8 @@ public class PMProcessesFragment extends Fragment {
   public void onCreate(Bundle pSavedInstanceState) {
     super.onCreate(pSavedInstanceState);
     if (pSavedInstanceState!=null) {
-      mProcessModel = pSavedInstanceState.<PMParcelable>getParcelable(KEY_PROCESSMODEL).getProcessModel();
+      final PMParcelable parcelable = pSavedInstanceState.<PMParcelable>getParcelable(KEY_PROCESSMODEL);
+      mProcessModel = parcelable==null ? null : parcelable.getProcessModel();
       String s = pSavedInstanceState.getString(KEY_FILE);
       mTmpFile = s==null ? null : new File(s);
       mMenu = pSavedInstanceState.getBoolean(ARG_MENU, true);
