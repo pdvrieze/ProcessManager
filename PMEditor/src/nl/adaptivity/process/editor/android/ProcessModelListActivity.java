@@ -144,9 +144,11 @@ public class ProcessModelListActivity extends Activity
             .commit();
       } else {
         Fragment frag = getFragmentManager().findFragmentById(R.id.processmodel_detail_container);
-        getFragmentManager().beginTransaction()
-            .remove(frag)
-            .commit();
+        if (frag!=null) {
+          getFragmentManager().beginTransaction()
+              .remove(frag)
+              .commit();
+        }
       }
 
     } else {
