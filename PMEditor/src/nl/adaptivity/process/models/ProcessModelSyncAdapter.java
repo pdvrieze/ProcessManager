@@ -251,7 +251,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
 
   @Override
   protected String getListUrl(String pBase) {
-    return pBase+"processModels";
+    return pBase+"/processModels";
   }
 
   @Override
@@ -336,7 +336,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     } catch (NullPointerException|NumberFormatException e) {
       throw new XmlPullParserException(e.getMessage(), pParser, e);
     }
-    UUID uuid = UUID.fromString(pParser.getAttributeValue(null, "uuid"));
+    UUID uuid = toUUID(pParser.getAttributeValue(null, "uuid"));
     pParser.next();
     pParser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     ContentValues result = new ContentValues(4);
@@ -345,6 +345,10 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     result.put(ProcessModels.COLUMN_UUID, uuid.toString());
     result.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
     return new SimpleContentValuesProvider(result);
+  }
+
+  private static UUID toUUID(final String val) {
+    return val==null ? null : UUID.fromString(val);
   }
 
   @Override
