@@ -453,8 +453,10 @@ public class PMParser {
     result.setUrl(url);
     result.setMethod(method);
     result.setType(type);
-    result.setServiceNS(serviceNS);
-    result.setServiceName(serviceName);
+    if(serviceName!=null) {
+      result.setServiceNS(serviceNS);
+      result.setServiceName(serviceName);
+    }
 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
