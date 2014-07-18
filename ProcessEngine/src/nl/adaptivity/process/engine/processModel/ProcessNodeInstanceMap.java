@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -154,13 +155,13 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public CharSequence getStoreColumns() {
-      return COL_NODEID+", "+COL_HPROCESSINSTANCE+", "+COL_STATE;
+    public List<CharSequence> getStoreColumns() {
+      return Arrays.<CharSequence>asList(COL_NODEID, COL_HPROCESSINSTANCE,COL_STATE);
     }
 
     @Override
-    public CharSequence getStoreParamHolders() {
-      return "?, ?, ?";
+    public List<CharSequence> getStoreParamHolders() {
+      return Arrays.<CharSequence>asList("?","?", "?");
     }
 
     @Override

@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXB;
@@ -123,13 +125,13 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public CharSequence getStoreParamHolders() {
-      return "?, ?";
+    public List<CharSequence> getStoreParamHolders() {
+      return Arrays.<CharSequence>asList("?","?");
     }
 
     @Override
-    public CharSequence getStoreColumns() {
-      return COL_OWNER + ", " + COL_MODEL;
+    public List<CharSequence> getStoreColumns() {
+      return Arrays.<CharSequence>asList(COL_OWNER,COL_MODEL);
     }
 
     @Override
