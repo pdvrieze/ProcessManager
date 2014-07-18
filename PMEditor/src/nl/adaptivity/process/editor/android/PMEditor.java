@@ -8,6 +8,7 @@ import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
@@ -59,6 +62,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";
+  private static final String KEY_PROCESSMODEL_URI = "processmodeluri";
   private static final int ITEM_MARGIN = 8/*dp*/;
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
@@ -132,6 +136,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   };
 
   private static final String TAG = PMEditor.class.getName();
+  public static final String EXTRA_PROCESS_MODEL = "nl.adaptivity.process.model";
 
   private static class MoveDrawable extends DiagramDrawable{
 
@@ -565,8 +570,8 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
             Class<?> nodeType = (Class<?>) pEvent.getLocalState();
             Constructor<?> constructor;
             try {
-              constructor = nodeType.getConstructor(ClientProcessModel.class);
-              DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(aPm);
+              constructor = nodeType.getConstructor();
+              DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance();
               float diagramX = diagramView1.toDiagramX(pEvent.getX());
               float diagramY = diagramView1.toDiagramY(pEvent.getY());
               final int gridSize = diagramView1.getGridSize();
@@ -667,6 +672,8 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
 
   private LayoutTask aLayoutTask;
   private LinearLayout elementsView;
+  private Uri aPmUri;
+  private boolean aCancelled = false;
 
   /** Called when the activity is first created. */
   @Override
@@ -699,9 +706,11 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
       if (pmparcelable!=null) {
         aPm = DrawableProcessModel.get(pmparcelable.getProcessModel());
       }
+      aPmUri = savedInstanceState.getParcelable(KEY_PROCESSMODEL_URI);
     } else {
-      if (getIntent().getData()!=null) {
-        aPm = loadProcessModel(getIntent().getData(), new LayoutAlgorithm<DrawableProcessNode>());
+      aPmUri = getIntent().getData();
+      if (aPmUri!=null) {
+        aPm = loadProcessModel(aPmUri, new LayoutAlgorithm<DrawableProcessNode>());
       }
     }
     if (aPm == null) {
@@ -819,6 +828,43 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     super.onDestroy();
   }
 
+
+
+  @Override
+  public void finish() {
+    updateActivityResult();
+    super.finish();
+  }
+
+  private void updateActivityResult() {
+    if (aCancelled ) {
+      setResult(RESULT_CANCELED);
+    } else {
+      Intent data = new Intent();
+      if (aPmUri!=null) {
+        data.setData(aPmUri);
+        if ("content".equals(aPmUri.getScheme())||"file".equals(aPmUri.getScheme())) {
+          OutputStream out;
+          try {
+            out = getContentResolver().openOutputStream(aPmUri);
+            try {
+              PMParser.serializeProcessModel(out, aPm);
+            } finally {
+              out.close();
+            }
+          } catch (XmlPullParserException|IOException e) {
+            Log.e(TAG, "Failure to save process model on closure", e);
+          }
+        }
+      }
+      if (aPm!=null) {
+        PMParcelable parcelable = new PMParcelable(aPm);
+        data.putExtra(EXTRA_PROCESS_MODEL, parcelable);
+      }
+      setResult(RESULT_OK, data);
+    }
+  }
+
   @Override
   public boolean onMenuItemSelected(int pFeatureId, MenuItem pItem) {
     switch (pItem.getItemId()) {
@@ -844,7 +890,10 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
           aLayoutTask.playAll();
         }
         break;
-      default:
+      case android.R.id.home:
+        updateActivityResult();
+      //$FALL-THROUGH$ we just add behaviour but then go to the parent.
+    default:
         return super.onMenuItemSelected(pFeatureId, pItem);
     }
     return true;
@@ -889,6 +938,9 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   protected void onSaveInstanceState(Bundle pOutState) {
     super.onSaveInstanceState(pOutState);
     pOutState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(aPm));
+    if (aPmUri!=null) {
+      pOutState.putParcelable(KEY_PROCESSMODEL_URI, aPmUri);
+    }
   }
 
   @Override
