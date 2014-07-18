@@ -71,7 +71,7 @@ public class ProcessModelDetailActivity extends Activity implements ProcessModel
       Intent intent = new Intent(this, ProcessModelDetailActivity.class);
       intent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
       startActivity(intent);
-      finish();
     }
+    finish();
   }
 }
