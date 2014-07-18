@@ -39,7 +39,6 @@ import android.util.Log;
 public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
 
-
   public interface ContentValuesProvider {
     public ContentValues getContentValues();
   }
@@ -259,35 +258,6 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
         Log.e(TAG, "Error parsing process model list", e);
       }
     }
-//    HttpGet getList = new HttpGet(getListUrl(mBase));
-//    HttpResponse result;
-//    try {
-//      result = mHttpClient.execute(getList);
-//    } catch (IOException e) {
-//      pSyncResult.stats.numIoExceptions++;
-//      return;
-//    }
-//    if (result!=null) {
-//      final int statusCode = result.getStatusLine().getStatusCode();
-//      if (statusCode>=200 && statusCode<400) {
-//        try {
-//          updateItemListFromServer(pProvider, pSyncResult, result.getEntity().getContent());
-//        } catch (IllegalStateException|XmlPullParserException e) {
-//          pSyncResult.stats.numParseExceptions++;
-//          Log.e(TAG, "Error parsing process model list", e);
-//        } catch (IOException e) {
-//          pSyncResult.stats.numIoExceptions++;
-//          Log.e(TAG, "Error parsing process model list", e);
-//        } catch (RemoteException e) {
-//          pSyncResult.databaseError=true;
-//          Log.e(TAG, "Error parsing process model list", e);
-//        }
-//      } else {
-//        pSyncResult.stats.numIoExceptions++;
-//      }
-//    } else {
-//      pSyncResult.stats.numAuthExceptions++;
-//    }
   }
 
   private List<CVPair> updateItemListFromServer(ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, RemoteException, IOException {
@@ -310,69 +280,61 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
       pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, colSyncstate + " = "+SYNC_UPDATE_SERVER, null);
     }
 
-//    try {
-      List<CVPair> result = new ArrayList<>();
-      parser.next();
-      parser.require(START_TAG, itemNamespace, itemsTag); // ensure the outer element
-      int type;
-      while ((type = parser.next()) != END_TAG) {
-        switch (type) {
-          case START_TAG:
-            ContentValuesProvider item = parseItem(parser);
-            final ContentValues itemCv = item.getContentValues();
-            Object key = itemCv.get(colKey);
-            if (key!=null) {
-              if (!itemCv.containsKey(colSyncstate)) {
-                itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
-              }
-              Cursor localItem = pProvider.query(mListContentUri, projectionId, colKey+"= ?", new String[] {key.toString()}, null);
-              if (localItem.moveToFirst()) {
-                long id = localItem.getLong(0); // we know from the projection that _id is always the first column
-                int syncState = localItem.getInt(1); // sync state is the second column
-                localItem.close();
-                Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
-                if (syncState==SYNC_UPDATE_SERVER_PENDING) {
-                  itemCv.remove(colSyncstate);
-                  ContentValues itemCpy = new ContentValues(itemCv);
-                  itemCpy.remove(colSyncstate);
-                  if (resolvePotentialConflict(pProvider, uri, item)) {
-                    if (item.equals(itemCpy)) {
-                      // no server update needed
-                      itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
-                    } else {
-                      itemCv.put(colSyncstate, SYNC_UPDATE_SERVER_DETAILSPENDING);
-                    }
-                  } else {
-                    pSyncResult.stats.numConflictDetectedExceptions++;
-                  }
-                }
-                pProvider.update(uri, itemCv, null, null);
-                pSyncResult.stats.numUpdates++;
-                result.add(new CVPair(id, item));
-              } else {
-                localItem.close();
-                final long newId = ContentUris.parseId(pProvider.insert(mListContentUri, itemCv));
-                result.add(new CVPair(newId, item));
-                pSyncResult.stats.numInserts++;
-              }
-              pSyncResult.stats.numEntries++;
-            } else {
-              // skip items without key, we can't match them up between the client and server
-              pSyncResult.stats.numSkippedEntries++;
+    List<CVPair> result = new ArrayList<>();
+    parser.next();
+    parser.require(START_TAG, itemNamespace, itemsTag); // ensure the outer element
+    int type;
+    while ((type = parser.next()) != END_TAG) {
+      switch (type) {
+        case START_TAG:
+          ContentValuesProvider item = parseItem(parser);
+          final ContentValues itemCv = item.getContentValues();
+          Object key = itemCv.get(colKey);
+          if (key!=null) {
+            if (!itemCv.containsKey(colSyncstate)) {
+              itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
             }
-            break;
-          default:
-            throw new XmlPullParserException("Unexpected tag type: " + type);
-        }
+            Cursor localItem = pProvider.query(mListContentUri, projectionId, colKey+"= ?", new String[] {key.toString()}, null);
+            if (localItem.moveToFirst()) {
+              long id = localItem.getLong(0); // we know from the projection that _id is always the first column
+              int syncState = localItem.getInt(1); // sync state is the second column
+              localItem.close();
+              Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
+              if (syncState==SYNC_UPDATE_SERVER_PENDING) {
+                itemCv.remove(colSyncstate);
+                ContentValues itemCpy = new ContentValues(itemCv);
+                itemCpy.remove(colSyncstate);
+                if (resolvePotentialConflict(pProvider, uri, item)) {
+                  if (item.equals(itemCpy)) {
+                    // no server update needed
+                    itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
+                  } else {
+                    itemCv.put(colSyncstate, SYNC_UPDATE_SERVER_DETAILSPENDING);
+                  }
+                } else {
+                  pSyncResult.stats.numConflictDetectedExceptions++;
+                }
+              }
+              pProvider.update(uri, itemCv, null, null);
+              pSyncResult.stats.numUpdates++;
+              result.add(new CVPair(id, item));
+            } else {
+              localItem.close();
+              final long newId = ContentUris.parseId(pProvider.insert(mListContentUri, itemCv));
+              result.add(new CVPair(newId, item));
+              pSyncResult.stats.numInserts++;
+            }
+            pSyncResult.stats.numEntries++;
+          } else {
+            // skip items without key, we can't match them up between the client and server
+            pSyncResult.stats.numSkippedEntries++;
+          }
+          break;
+        default:
+          throw new XmlPullParserException("Unexpected tag type: " + type);
       }
-      return result;
-//    } finally {
-//      values.clear();
-//      values.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(SYNC_UPTODATE));
-//      pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, ProcessModels.COLUMN_SYNCSTATE + " = "+SYNC_PENDING, null);
-//    }
-
-
+    }
+    return result;
   }
 
   protected abstract ContentValuesProvider postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
