@@ -6,6 +6,7 @@ import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -48,6 +49,8 @@ public class TaskListActivity extends Activity
    */
   private boolean mTwoPane;
 
+  private Account mAccount;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -75,8 +78,8 @@ public class TaskListActivity extends Activity
 
         @Override
         protected Account doInBackground(String... pParams) {
-          final Account account = AuthenticatedWebClient.ensureAccount(TaskListActivity.this, pParams[0]);
-          ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
+          mAccount = AuthenticatedWebClient.ensureAccount(TaskListActivity.this, pParams[0]);
+          ContentResolver.setIsSyncable(mAccount, ProcessModelProvider.AUTHORITY, 1);
           AccountManager accountManager = AccountManager.get(TaskListActivity.this);
           AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
 
@@ -87,15 +90,13 @@ public class TaskListActivity extends Activity
               } catch (OperationCanceledException | AuthenticatorException | IOException e) {
                 Log.e(TaskListActivity.class.getSimpleName(), "Failure to get auth token", e);
               }
-              if (account!=null) {
-                Bundle extras = new Bundle(1);
-                extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-                ContentResolver.requestSync(account, ProcessModelProvider.AUTHORITY, extras );
+              if (mAccount!=null) {
+                requestSync(mAccount);
               }
             }};
-          accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, TaskListActivity.this, callback  , null);
+          accountManager.getAuthToken(mAccount, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, TaskListActivity.this, callback  , null);
 
-          return account;
+          return mAccount;
         }
 
         @Override
@@ -149,5 +150,11 @@ public class TaskListActivity extends Activity
       detailIntent.putExtra(TaskDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
       startActivity(detailIntent);
     }
+  }
+
+  public static void requestSync(Account account) {
+    Bundle extras = new Bundle(1);
+    extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+    ContentResolver.requestSync(account, TaskProvider.AUTHORITY, extras );
   }
 }
