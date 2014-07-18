@@ -18,6 +18,7 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -113,8 +114,14 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 //  }
 
   @Override
-  protected ContentValuesProvider postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult)
+  protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult)
       throws RemoteException, IOException, XmlPullParserException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected ContentValuesProvider createItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri,
+                                                     SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 

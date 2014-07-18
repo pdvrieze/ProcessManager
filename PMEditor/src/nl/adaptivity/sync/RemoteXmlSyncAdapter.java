@@ -75,6 +75,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
   }
 
+  public static final int SYNC_PUBLISH_TO_SERVER = 6;
   public static final int SYNC_UPDATE_SERVER = 1;
   public static final int SYNC_UPTODATE = 0;
   public static final int SYNC_PENDING = 2;
@@ -90,7 +91,14 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
         pAdapter.updateListFromServer(pProvider, pSyncResult);
       }},
 
-    DELETE_ITEMS_MISSING_ON_SERVER {
+    PUBLISH_ITEMS_TO_SERVER{
+
+      @Override
+      public void execute(RemoteXmlSyncAdapter pAdapter, ContentProviderClient pProvider, SyncResult pSyncResult) throws XmlPullParserException, IOException, RemoteException {
+        pAdapter.publishItemsToServer(pProvider, pSyncResult);
+      }
+
+    }, DELETE_ITEMS_MISSING_ON_SERVER {
 
       @Override
       public void execute(RemoteXmlSyncAdapter pAdapter, ContentProviderClient pProvider, SyncResult pSyncResult)
@@ -131,6 +139,32 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
   public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, Uri pListContentUri) {
     super(pContext, pAutoInitialize);
     mListContentUri = pListContentUri;
+  }
+
+  protected void publishItemsToServer(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException {
+    final String colSyncstate = getSyncStateColumn();
+    final String[] projectionId = new String[] { BaseColumns._ID };
+
+    Cursor itemsToCreate = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_PUBLISH_TO_SERVER, null, null);
+    while(itemsToCreate.moveToNext()) {
+      Uri itemuri = ContentUris.withAppendedId(mListContentUri, itemsToCreate.getLong(0));
+      try {
+        ContentValuesProvider newValuesProvider = createItemOnServer(pProvider, mHttpClient, itemuri, pSyncResult);
+        ContentValues newValues  = newValuesProvider==null ? null : newValuesProvider.getContentValues();
+        if (newValues==null) {
+          newValues = new ContentValues(1);
+          newValues.put(colSyncstate, SYNC_UPTODATE);
+        } else if (!newValues.containsKey(colSyncstate)) {
+          newValues.put(colSyncstate, SYNC_UPTODATE);
+        }
+        pProvider.update(itemuri, newValues, null, null);
+        pSyncResult.stats.numUpdates++;
+      } catch (IOException e) {
+        pSyncResult.stats.numIoExceptions++;
+      } catch (XmlPullParserException e) {
+        pSyncResult.stats.numParseExceptions++;
+      }
+    }
   }
 
   public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, boolean pAllowParallelSyncs, Uri pListContentUri) {
@@ -174,7 +208,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     while(updateableItems.moveToNext()) {
       Uri itemuri = ContentUris.withAppendedId(mListContentUri, updateableItems.getLong(0));
       try {
-        ContentValuesProvider newValuesProvider = postItem(pProvider, mHttpClient, itemuri, pSyncResult);
+        ContentValuesProvider newValuesProvider = updateItemOnServer(pProvider, mHttpClient, itemuri, pSyncResult);
         ContentValues newValues  = newValuesProvider.getContentValues();
         if (newValues==null) {
           newValues = new ContentValues(1);
@@ -194,7 +228,11 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
   }
 
   protected void updateItemDetails(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, IOException {
-    Collections.sort(mUpdateList);
+    if (mUpdateList==null) {
+      mUpdateList = Collections.emptyList();
+    } else {
+      Collections.sort(mUpdateList);
+    }
     final String colSyncstate = getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
     Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DETAILSPENDING /* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, Tasks._ID);
@@ -337,7 +375,9 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     return result;
   }
 
-  protected abstract ContentValuesProvider postItem(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
+  protected abstract ContentValuesProvider createItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
+
+  protected abstract ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
 
   protected abstract boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException;
 
