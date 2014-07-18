@@ -12,15 +12,11 @@ import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.ListFragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
@@ -28,7 +24,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,7 +33,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -210,7 +204,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (mActivatedPosition != ListView.INVALID_POSITION) {
+    if (mActivatedPosition != AdapterView.INVALID_POSITION) {
       // Serialize and persist the activated item position.
       outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
     }
@@ -220,6 +214,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
    * Turns on activate-on-click mode. When this mode is on, list items will be
    * given the 'activated' state when touched.
    */
+  @SuppressWarnings("static-access")
   public void setActivateOnItemClick(boolean activateOnItemClick) {
     // When setting CHOICE_MODE_SINGLE, ListView will automatically
     // give items the 'activated' state when touched.
@@ -229,7 +224,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   }
 
   private void setActivatedPosition(int position) {
-    if (position == ListView.INVALID_POSITION) {
+    if (position == AdapterView.INVALID_POSITION) {
       getListView().setItemChecked(mActivatedPosition, false);
     } else {
       getListView().setItemChecked(position, true);
