@@ -10,6 +10,7 @@ import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ListFragment;
@@ -314,7 +315,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
 
   @Override
   public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
-    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, null, null, null);
+    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING, null, null);
   }
 
   @Override
