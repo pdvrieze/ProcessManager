@@ -12,7 +12,6 @@ import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelLoader.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
@@ -240,7 +239,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       --i;
     }
     String suggestedNewName;
-    if (i<previousName.length()) {
+    if ((i+1)<previousName.length()) {
       int prevNo = Integer.parseInt(previousName.subSequence(i+1, previousName.length()).toString());
       suggestedNewName = previousName.subSequence(0, i+1)+Integer.toString(prevNo+1);
     } else {
@@ -270,7 +269,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public void btnPmPublishClicked() {
     Uri itemUri = getCurrentProcessUri();
     ContentValues cv = new ContentValues(1);
-    cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER);
+    cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
     final ContentResolver contentResolver = getActivity().getContentResolver();
     contentResolver.update(itemUri, cv, null, null);
     mBtnPublish.setEnabled(false);
@@ -286,11 +285,26 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
     if (pItem.getItemId()==R.id.ac_delete) {
-      Uri uri = getCurrentProcessUri();
-      getActivity().getContentResolver().delete(uri, null, null);
+      onDeleteItem();
       return true;
     }
     return super.onOptionsItemSelected(pItem);
+  }
+
+  private boolean onDeleteItem() {
+    Uri uri = getCurrentProcessUri();
+    boolean result;
+    if (mModelHandle==null) {
+      result = getActivity().getContentResolver().delete(uri, null, null)>0;
+    } else {
+      ContentValues cv = new ContentValues(1);
+      cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER));
+      result = getActivity().getContentResolver().update(uri, cv , null, null)>0;
+    }
+    if (result && mCallbacks!=null) {
+      mCallbacks.onItemSelected(-1);
+    }
+    return result;
   }
 
   private Uri getCurrentProcessUri() {
