@@ -1,38 +1,20 @@
 package nl.adaptivity.process.tasks.android;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.UUID;
-
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.editor.android.PMEditor;
-import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.ListFragment;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
-import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -82,19 +63,19 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   private static final class TaskCursorAdapter extends CursorAdapter {
 
     private LayoutInflater mInflater;
-    private int mNameColumn;
+    private int mSummaryColIdx;
 
     private TaskCursorAdapter(Context pContext, Cursor pC) {
       super(pContext, pC, 0);
       mInflater = LayoutInflater.from(pContext);
-      updateNameColumn(pC);
+      updateColIdxs(pC);
     }
 
-    private void updateNameColumn(Cursor pC) {
+    private void updateColIdxs(Cursor pC) {
       if (pC==null) {
-        mNameColumn = -1;
+        mSummaryColIdx = -1;
       } else {
-        mNameColumn = pC.getColumnIndex(ProcessModels.COLUMN_NAME);
+        mSummaryColIdx = pC.getColumnIndex(Tasks.COLUMN_SUMMARY);
       }
     }
 
@@ -106,7 +87,7 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
     @Override
     public Cursor swapCursor(Cursor pNewCursor) {
       final Cursor result = super.swapCursor(pNewCursor);
-      updateNameColumn(pNewCursor);
+      updateColIdxs(pNewCursor);
       return result;
     }
 
@@ -117,50 +98,13 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
 
     @Override
     public void bindView(View pView, Context pContext, Cursor pCursor) {
-      TextView modelName = (TextView) pView.findViewById(R.id.model_name);
-      if (pCursor!=null && mNameColumn>=0) {
-        final String name = pCursor.getString(mNameColumn);
-        modelName.setText(name!=null ? name : "<Unnamed>");
+      TextView tvSummary = (TextView) pView.findViewById(R.id.model_name);
+      if (pCursor!=null && mSummaryColIdx>=0) {
+        final String summary = pCursor.getString(mSummaryColIdx);
+        tvSummary.setText(summary!=null ? summary : "<Unnamed>");
       } else {
-        modelName.setText("<Unnamed>");
+        tvSummary.setText("<Unnamed>");
       }
-    }
-  }
-
-  public static class GetPMNameDialogFragment extends DialogFragment {
-
-    private static final String ARG_PREV_NAME = "prevName";
-    TaskListFragment mOwner;
-
-    public GetPMNameDialogFragment() { /* empty */ }
-
-    @Override
-    public void onAttach(Activity activity) {
-      super.onAttach(activity);
-      mOwner = (TaskListFragment) activity.getFragmentManager().findFragmentById(R.id.processmodel_list);
-    }
-
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-      String prevName = getArguments()==null ? null : getArguments().getString(ARG_PREV_NAME);
-      AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-      final EditText editText = new EditText(getActivity());
-      editText.setInputType(InputType.TYPE_CLASS_TEXT);
-      editText.setText(prevName);
-      editText.selectAll();
-      builder.setTitle("Model name")
-             .setMessage("Provide the new name")
-             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-
-              @Override
-              public void onClick(DialogInterface pDialog, int id) {
-                mOwner.createNewPM(editText.getText().toString());
-              }
-            })
-            .setNegativeButton(android.R.string.cancel, null)
-            .setView(editText);
-      return builder.create();
-
     }
   }
 
@@ -184,7 +128,7 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   private static Callbacks sDummyCallbacks = new Callbacks() {
 
     @Override
-    public void onItemSelected(long pProcessModelRowId) {/*dummy*/}
+    public void onItemSelected(long pTaskRowId) {/*dummy*/}
   };
 
   private TaskCursorAdapter mAdapter;
@@ -198,7 +142,7 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    getLoaderManager().initLoader(LOADERID, null, this);
+    getLoaderManager().initLoader(TASKLISTLOADERID, null, this);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
     setListAdapter(mAdapter);
 
@@ -251,7 +195,7 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
     if (mActivatedPosition != ListView.INVALID_POSITION) {
-      // Serialize and persist the activated item position.
+      // Serialise and persist the activated item position.
       outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
     }
   }
@@ -282,27 +226,28 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
 
   @Override
   public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-    pInflater.inflate(R.menu.pmlist_menu, pMenu);
+//    pInflater.inflate(R.menu.pmlist_menu, pMenu);
+    super.onCreateOptionsMenu(pMenu, pInflater);
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
-    switch (pItem.getItemId()) {
-      case R.id.menu_add_pm:
-        createNewPM();
-        return true;
-      case R.id.ac_import:
-        Intent importIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        importIntent.addCategory(Intent.CATEGORY_OPENABLE);
-        importIntent.setType("*/*");
-        startActivityForResult(Intent.createChooser(importIntent, "Import from"),REQUEST_IMPORT);
-        return true;
-      case R.id.menu_settings: {
-        Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
-        startActivity(settingsIntent);
-        return true;
-      }
-    }
+//    switch (pItem.getItemId()) {
+//      case R.id.menu_add_pm:
+//        createNewPM();
+//        return true;
+//      case R.id.ac_import:
+//        Intent importIntent = new Intent(Intent.ACTION_GET_CONTENT);
+//        importIntent.addCategory(Intent.CATEGORY_OPENABLE);
+//        importIntent.setType("*/*");
+//        startActivityForResult(Intent.createChooser(importIntent, "Import from"),REQUEST_IMPORT);
+//        return true;
+//      case R.id.menu_settings: {
+//        Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
+//        startActivity(settingsIntent);
+//        return true;
+//      }
+//    }
     return super.onOptionsItemSelected(pItem);
   }
 

@@ -1,23 +1,13 @@
 package nl.adaptivity.process.tasks.android;
 
-import nl.adaptivity.diagram.android.DiagramView;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.editor.android.BaseProcessAdapter;
-import nl.adaptivity.process.editor.android.PMEditor;
-import nl.adaptivity.process.editor.android.PMProcessesFragment;
-import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.models.ProcessModelLoader;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.data.TaskLoader;
+import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.app.Fragment;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
-import android.content.Intent;
 import android.content.Loader;
-import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -26,7 +16,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -36,19 +25,7 @@ import android.widget.TextView;
  * either contained in a {@link TaskListActivity} in two-pane mode (on
  * tablets) or a {@link TaskDetailActivity} on handsets.
  */
-public class TaskDetailFragment extends Fragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener, PMProvider {
-
-
-  private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
-
-    @Override
-    public void onLayoutChange(View pV, int pLeft, int pTop, int pRight, int pBottom, int pOldLeft, int pOldTop, int pOldRight, int pOldBottom) {
-      if (mItem!=null && ((pOldRight-pOldLeft!=pRight-pLeft)||(pOldBottom-pOldTop!=pBottom-pTop))) {
-        updateDiagramScale();
-      }
-    }
-
-  }
+public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, OnClickListener {
 
   /**
    * The fragment argument representing the item ID that this fragment
@@ -58,20 +35,13 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Proc
 
   private static final int LOADER_TASKITEM = 0;
 
-  /**
-   * The process model represented by this fragment
-   */
-  private BaseProcessAdapter mItem;
-
-  private TextView mTVName;
-
-  private DiagramView mModelView;
+  private TextView mTVSummary;
 
   private ProgressBar mSpinner;
 
-  private PMProcessesFragment mProcessesFragment;
+  private long mTaskId;
 
-  private long mProcessModelId;
+  private UserTask mUserTask;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -79,42 +49,25 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Proc
    */
   public TaskDetailFragment() {}
 
-  void updateDiagramScale() {
-    RectF diagramBounds =new RectF();
-    mItem.getBounds(diagramBounds);
-    float scale = Math.min(mModelView.getWidth()/diagramBounds.width(),mModelView.getHeight()/diagramBounds.height());
-    mModelView.setScale(scale);
-
-    float w2 = mModelView.getWidth()/scale;
-
-    mModelView.setOffsetX(diagramBounds.left-(w2-diagramBounds.width())/2);
-
-    float h2 = mModelView.getHeight()/scale;
-    mModelView.setOffsetY(diagramBounds.top-(h2-diagramBounds.height())/2);
-  }
-
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     if (getArguments().containsKey(ARG_ITEM_ID)) {
-      getLoaderManager().initLoader(LOADER_ITEM, getArguments(), this);
+      getLoaderManager().initLoader(LOADER_TASKITEM, getArguments(), this);
     }
-    setHasOptionsMenu(true);
+//    setHasOptionsMenu(true);
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    View rootView = inflater.inflate(R.layout.fragment_processmodel_detail, container, false);
+    View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
 
-    mTVName = (TextView) rootView.findViewById(R.id.processmodel_name);
-    mModelView = (DiagramView) rootView.findViewById(R.id.diagramView1);
-    mModelView.addOnLayoutChangeListener(new ModelViewLayoutChangeListener());
+    mTVSummary = (TextView) rootView.findViewById(R.id.task_name);
 
     mSpinner = (ProgressBar) rootView.findViewById(R.id.spinner);
-    mTVName.setVisibility(View.GONE);
-    mModelView.setVisibility(View.GONE);
+    mTVSummary.setVisibility(View.GONE);
 
     rootView.findViewById(R.id.btn_pm_edit).setOnClickListener(this);
     rootView.findViewById(R.id.btn_pm_exec).setOnClickListener(this);
@@ -122,72 +75,48 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Proc
   }
 
   @Override
-  public Loader<ProcessModel<?>> onCreateLoader(int pId, Bundle pArgs) {
-    mProcessModelId = pArgs.getLong(ARG_ITEM_ID);
-    Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,mProcessModelId);
-    return new ProcessModelLoader(getActivity(), uri);
+  public Loader<UserTask> onCreateLoader(int pId, Bundle pArgs) {
+    mTaskId = pArgs.getLong(ARG_ITEM_ID);
+    Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE,mTaskId);
+    return new TaskLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<ProcessModel<?>> pLoader, ProcessModel<?> pData) {
+  public void onLoadFinished(Loader<UserTask> pLoader, UserTask pData) {
     mSpinner.setVisibility(View.GONE);
-    mTVName.setVisibility(View.VISIBLE);
-    mModelView.setVisibility(View.VISIBLE);
-    mModelView.getParent().requestLayout(); // Do a layout
-    mTVName.setText(pData.getName());
-    mItem = new BaseProcessAdapter(DrawableProcessModel.get(pData));
-    mModelView.setAdapter(mItem);
-    updateDiagramScale();
+    mTVSummary.setVisibility(View.VISIBLE);
+    mTVSummary.setText(pData.getSummary());
+    mUserTask = pData;
   }
 
   @Override
-  public void onLoaderReset(Loader<ProcessModel<?>> pLoader) {
-    mTVName.setText(null);
-    mItem = null;
-    mModelView.setAdapter(null);
-    // TODO Auto-generated method stub
-
+  public void onLoaderReset(Loader<UserTask> pLoader) {
+    mTVSummary.setText(null);
+    mUserTask = null;
   }
 
   @Override
   public void onClick(View pV) {
-    switch (pV.getId()) {
-      case R.id.btn_pm_edit:
-        btnPmEditClicked(); return;
-      case R.id.btn_pm_exec:
-        btnPmExecClicked(); return;
-    }
-  }
-
-  public void btnPmEditClicked() {
-    Intent intent = new Intent(getActivity(), PMEditor.class);
-    long id = getArguments().getLong(ARG_ITEM_ID);
-    intent.setData(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id));
-    startActivity(intent);
-  }
-
-  public void btnPmExecClicked() {
-    // Don't do anything yet
+//    switch (pV.getId()) {
+//      case R.id.btn_pm_edit:
+//        btnPmEditClicked(); return;
+//      case R.id.btn_pm_exec:
+//        btnPmExecClicked(); return;
+//    }
   }
 
   @Override
   public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-    pInflater.inflate(R.menu.pm_detail_menu, pMenu);
+//    pInflater.inflate(R.menu.pm_detail_menu, pMenu);
     super.onCreateOptionsMenu(pMenu, pInflater);
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
-    if (pItem.getItemId()==R.id.ac_delete) {
-      Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, mProcessModelId);
-      getActivity().getContentResolver().delete(uri, null, null);
-      return true;
-    }
     return super.onOptionsItemSelected(pItem);
   }
 
-  @Override
-  public ClientProcessModel<?> getProcessModel() {
-    return mItem.getDiagram();
+  public UserTask getUserTask() {
+    return mUserTask;
   }
 }
