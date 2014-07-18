@@ -11,6 +11,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -130,23 +131,32 @@ public class ProcessModelListActivity extends Activity
   @Override
   public void onItemSelected(long pProcessModelRowId) {
     if (mTwoPane) {
-      // In two-pane mode, show the detail view in this activity by
-      // adding or replacing the detail fragment using a
-      // fragment transaction.
-      Bundle arguments = new Bundle();
-      arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
-      ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
-      fragment.setArguments(arguments);
-      getFragmentManager().beginTransaction()
-          .replace(R.id.processmodel_detail_container, fragment)
-          .commit();
+      if (pProcessModelRowId>=0) {
+        // In two-pane mode, show the detail view in this activity by
+        // adding or replacing the detail fragment using a
+        // fragment transaction.
+        Bundle arguments = new Bundle();
+        arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
+        ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
+        fragment.setArguments(arguments);
+        getFragmentManager().beginTransaction()
+            .replace(R.id.processmodel_detail_container, fragment)
+            .commit();
+      } else {
+        Fragment frag = getFragmentManager().findFragmentById(R.id.processmodel_detail_container);
+        getFragmentManager().beginTransaction()
+            .remove(frag)
+            .commit();
+      }
 
     } else {
-      // In single-pane mode, simply start the detail activity
-      // for the selected item ID.
-      Intent detailIntent = new Intent(this, ProcessModelDetailActivity.class);
-      detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
-      startActivity(detailIntent);
+      if (pProcessModelRowId>=0) {
+        // In single-pane mode, simply start the detail activity
+        // for the selected item ID.
+        Intent detailIntent = new Intent(this, ProcessModelDetailActivity.class);
+        detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
+        startActivity(detailIntent);
+      }
     }
   }
 
