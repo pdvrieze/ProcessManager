@@ -1,5 +1,7 @@
 package nl.adaptivity.process.processModel.engine;
 
+import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -14,16 +16,20 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
 
   private long aHandle;
 
+  private UUID aUuid;
+
   public ProcessModelRef() {}
 
-  public ProcessModelRef(final String pName, final long pHandle) {
+  public ProcessModelRef(final String pName, final long pHandle, UUID pUuid) {
     aName = pName;
     aHandle = pHandle;
+    aUuid = pUuid;
   }
 
   public ProcessModelRef(IProcessModelRef<?> pSource) {
     aHandle = pSource.getHandle();
     aName = pSource.getName();
+    aUuid = pSource.getUuid();
   }
 
   public static ProcessModelRef get(IProcessModelRef<?> src) {
@@ -50,4 +56,19 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
   public long getHandle() {
     return aHandle;
   }
+
+  @Override
+  public UUID getUuid() {
+    return aUuid;
+  }
+
+  @XmlAttribute(name="uuid")
+  String getXmlUuid() {
+    return aUuid==null ? null : aUuid.toString();
+  }
+
+  void setXmlUuid(String pUuid) {
+    aUuid = pUuid==null ? null : UUID.fromString(pUuid);
+  }
+
 }

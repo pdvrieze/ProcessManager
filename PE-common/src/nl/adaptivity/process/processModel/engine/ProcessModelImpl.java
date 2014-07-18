@@ -130,6 +130,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
     setName(pXmlModel.getName());
     final String owner = pXmlModel.getOwner();
     aOwner = owner == null ? null : new SimplePrincipal(pXmlModel.getOwner());
+    aUuid = pXmlModel.getUuid()==null ? null : pXmlModel.getUuid();
   }
 
   /**
@@ -297,7 +298,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
    */
   @Override
   public IProcessModelRef<ProcessNodeImpl> getRef() {
-    return new ProcessModelRef(getName(), aHandle);
+    return new ProcessModelRef(getName(), aHandle, getUuid());
   }
 
   @Override

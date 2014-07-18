@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -76,9 +77,12 @@ public class XmlProcessModel {
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
     roles = m.getRoles();
+    uuid = m.getUuid();
   }
 
   private List<? extends ProcessNodeImpl> nodes;
+
+  private UUID uuid;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
@@ -178,6 +182,15 @@ public class XmlProcessModel {
     return result.toString();
   }
 
+  @XmlAttribute(name="uuid")
+  String getUuidString() {
+    return uuid==null ? null : uuid.toString();
+  }
+
+  void setUuidString(String pUuid) {
+    uuid = pUuid==null ? null : UUID.fromString(pUuid);
+  }
+
   /**
    * @todo Optimize this to use a cache of role names.
    */
@@ -193,6 +206,10 @@ public class XmlProcessModel {
       i = j + 1;
       j = pRoles.indexOf(',', i);
     }
+  }
+
+  public UUID getUuid() {
+    return uuid;
   }
 
 }
