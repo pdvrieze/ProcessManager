@@ -12,6 +12,7 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -46,6 +47,8 @@ public class ProcessModelListActivity extends Activity
    */
   private boolean mTwoPane;
 
+  private Account mAccount;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -73,8 +76,8 @@ public class ProcessModelListActivity extends Activity
 
         @Override
         protected Account doInBackground(String... pParams) {
-          final Account account = AuthenticatedWebClient.ensureAccount(ProcessModelListActivity.this, pParams[0]);
-          ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
+          mAccount = AuthenticatedWebClient.ensureAccount(ProcessModelListActivity.this, pParams[0]);
+          ContentResolver.setIsSyncable(mAccount, ProcessModelProvider.AUTHORITY, 1);
           AccountManager accountManager = AccountManager.get(ProcessModelListActivity.this);
           AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
 
@@ -85,15 +88,13 @@ public class ProcessModelListActivity extends Activity
               } catch (OperationCanceledException | AuthenticatorException | IOException e) {
                 Log.e(ProcessModelListActivity.class.getSimpleName(), "Failure to get auth token", e);
               }
-              if (account!=null) {
-                Bundle extras = new Bundle(1);
-                extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-                ContentResolver.requestSync(account, ProcessModelProvider.AUTHORITY, extras );
+              if (mAccount!=null) {
+                requestSync(mAccount);
               }
             }};
-          accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, ProcessModelListActivity.this, callback  , null);
+          accountManager.getAuthToken(mAccount, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, ProcessModelListActivity.this, callback  , null);
 
-          return account;
+          return mAccount;
         }
 
         @Override
@@ -147,5 +148,22 @@ public class ProcessModelListActivity extends Activity
       detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
       startActivity(detailIntent);
     }
+  }
+
+  public void requestSync() {
+    requestSync(mAccount);
+  }
+
+  public static void requestSync(Account account) {
+    Bundle extras = new Bundle(1);
+    extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+    ContentResolver.requestSync(account, ProcessModelProvider.AUTHORITY, extras );
+  }
+
+  public static void requestSync(Context pContext) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(pContext);
+    String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
+    String authbase = AuthenticatedWebClient.getAuthBase(source);
+    requestSync(AuthenticatedWebClient.ensureAccount(pContext, authbase));
   }
 }
