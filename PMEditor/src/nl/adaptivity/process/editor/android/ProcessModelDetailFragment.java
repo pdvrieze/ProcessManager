@@ -1,5 +1,9 @@
 package nl.adaptivity.process.editor.android;
 
+import java.io.IOException;
+import java.util.UUID;
+
+import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
@@ -10,6 +14,7 @@ import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -37,6 +42,9 @@ import android.widget.TextView;
  */
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
 
+  public interface Callbacks {
+    void onItemSelected(long pProcessModelRowId);
+  }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
 
@@ -56,6 +64,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public static final String ARG_ITEM_ID = "item_id";
 
   private static final int LOADER_ITEM = 0;
+
+  Callbacks mCallbacks;
 
   /**
    * The process model represented by this fragment
@@ -83,6 +93,14 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
    * fragment (e.g. upon screen orientation changes).
    */
   public ProcessModelDetailFragment() {}
+
+  @Override
+  public void onAttach(Activity pActivity) {
+    super.onAttach(pActivity);
+    if (pActivity instanceof Callbacks) {
+      mCallbacks = (Callbacks) pActivity;
+    }
+  }
 
   void updateDiagramScale() {
     RectF diagramBounds =new RectF();
@@ -198,7 +216,55 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   public void btnPmCloneClicked() {
+    CharSequence previousName = mTVName.getText();
+    String suggestedNewName = suggestNewName(previousName);
+
+    GetNameDialogFragment.show(getFragmentManager(), "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
+
+      @Override
+      public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, String pString) {
+        cloneWithName(pString);
+      }
+
+      @Override
+      public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog) {
+        // ignore
+      }
+    }, suggestedNewName);
     // Don't do anything yet
+  }
+
+  public static String suggestNewName(CharSequence previousName) {
+    int i=previousName.length()-1;
+    while (Character.isDigit(previousName.charAt(i))) {
+      --i;
+    }
+    String suggestedNewName;
+    if (i<previousName.length()) {
+      int prevNo = Integer.parseInt(previousName.subSequence(i+1, previousName.length()).toString());
+      suggestedNewName = previousName.subSequence(0, i+1)+Integer.toString(prevNo+1);
+    } else {
+      suggestedNewName = previousName + " 2";
+    }
+    return suggestedNewName;
+  }
+
+  protected void cloneWithName(String pNewName) {
+    // TODO Auto-generated method stub
+    DrawableProcessModel currentModel = ((BaseProcessAdapter) mModelView.getAdapter()).getDiagram();
+    DrawableProcessModel newModel = new DrawableProcessModel(currentModel);
+    newModel.setName(pNewName);
+    newModel.setUuid(UUID.randomUUID());
+
+    Uri uri;
+    try {
+      uri = ProcessModelProvider.newProcessModel(getActivity(), newModel);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    if (mCallbacks!=null) {
+      mCallbacks.onItemSelected(ContentUris.parseId(uri));
+    }
   }
 
   public void btnPmPublishClicked() {

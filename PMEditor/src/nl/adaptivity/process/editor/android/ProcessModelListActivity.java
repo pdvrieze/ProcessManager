@@ -39,7 +39,7 @@ import android.view.MenuItem;
  * selections.
  */
 public class ProcessModelListActivity extends Activity
-    implements ProcessModelListFragment.Callbacks {
+    implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
 
   /**
    * Whether or not the activity is in two-pane mode, i.e. running on a tablet

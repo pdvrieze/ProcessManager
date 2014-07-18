@@ -15,7 +15,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link ProcessModelDetailFragment}.
  */
-public class ProcessModelDetailActivity extends Activity {
+public class ProcessModelDetailActivity extends Activity implements ProcessModelDetailFragment.Callbacks {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -63,5 +63,15 @@ public class ProcessModelDetailActivity extends Activity {
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void onItemSelected(long pProcessModelRowId) {
+    if (pProcessModelRowId>=0) {
+      Intent intent = new Intent(this, ProcessModelDetailActivity.class);
+      intent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
+      startActivity(intent);
+      finish();
+    }
   }
 }
