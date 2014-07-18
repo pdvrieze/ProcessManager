@@ -28,5 +28,7 @@
     <string name="ac_import">Import</string>
     <string name="ac_delete">Delete</string>
     <string name="ac_cancel">Cancel</string>
-    
+    <string name="btn_pm_clone">Copy as new</string>
+    <string name="btn_pm_publish">Publish to server</string>
+
 </resources>

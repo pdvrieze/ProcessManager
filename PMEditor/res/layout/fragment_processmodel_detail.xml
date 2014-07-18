@@ -1,52 +1,67 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
-	xmlns:app="http://schemas.android.com/apk/res-auto"
-	android:id="@+id/processmodel_detail"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:orientation="vertical" >
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/processmodel_detail"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/default_margin" >
 
-	<ProgressBar
-		android:id="@+id/spinner"
-		style="?android:attr/progressBarStyleLarge"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_gravity="center"
-		android:layout_weight="1" />
+    <ProgressBar
+        android:id="@+id/spinner"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:layout_weight="1" />
 
-	<TextView
-		android:id="@+id/processmodel_name"
-		style="?android:attr/textAppearanceLarge"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_margin="16dp"
-		android:gravity="center"
-		android:padding="16dp"
-		android:textIsSelectable="true"
-		tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
+    <TextView
+        android:id="@+id/processmodel_name"
+        style="?android:attr/textAppearanceLarge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:gravity="center"
+        android:textIsSelectable="true"
+        tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
 
-	<nl.adaptivity.diagram.android.DiagramView
-		android:id="@+id/diagramView1"
-		android:layout_width="wrap_content"
-		android:layout_height="0dp"
-		android:layout_marginLeft="36dp"
-		android:layout_marginRight="36dp"
-		android:layout_weight="1"
-		app:editable="false" />
+    <nl.adaptivity.diagram.android.DiagramView
+        android:id="@+id/diagramView1"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:layout_marginLeft="@dimen/default_margin"
+        android:layout_marginRight="@dimen/default_margin"
+        android:layout_weight="1"
+        app:editable="false" />
 
-	<Button
-		android:id="@+id/btn_pm_edit"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_margin="8dp"
-		android:text="@string/btn_pm_edit" />
+    <Button
+        android:id="@+id/btn_pm_clone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:text="@string/btn_pm_clone" />
 
-	<Button
-		android:id="@+id/btn_pm_exec"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_margin="8dp"
-		android:enabled="false"
-		android:text="@string/btn_pm_execute" />
+    <Button
+        android:id="@+id/btn_pm_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:text="@string/btn_pm_edit" />
+
+    <Button
+        android:id="@+id/btn_pm_publish"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/default_margin"
+        android:text="@string/btn_pm_publish" />
+
+    <Button
+        android:id="@+id/btn_pm_exec"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:text="@string/btn_pm_execute" />
 
 </LinearLayout>

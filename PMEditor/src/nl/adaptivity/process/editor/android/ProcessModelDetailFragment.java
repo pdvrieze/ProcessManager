@@ -5,12 +5,15 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.models.ProcessModelLoader;
+import nl.adaptivity.process.models.ProcessModelLoader.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
-import android.app.Activity;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.Loader;
 import android.graphics.RectF;
@@ -32,7 +35,7 @@ import android.widget.TextView;
  * either contained in a {@link ProcessModelListActivity} in two-pane mode (on
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
-public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModel<?>>, OnClickListener, PMProvider {
+public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
 
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -68,6 +71,12 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   private PMProcessesFragment mProcessesFragment;
 
   private long mProcessModelId;
+
+  private View mBtnPublish;
+
+  private View mBtnExec;
+
+  private Long mModelHandle;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -113,31 +122,49 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     mModelView.setVisibility(View.GONE);
 
     rootView.findViewById(R.id.btn_pm_edit).setOnClickListener(this);
-    rootView.findViewById(R.id.btn_pm_exec).setOnClickListener(this);
+
+    mBtnExec = rootView.findViewById(R.id.btn_pm_exec);
+    mBtnExec.setOnClickListener(this);
+    mBtnExec.setVisibility(View.GONE);
+
+    rootView.findViewById(R.id.btn_pm_clone).setOnClickListener(this);
+
+    mBtnPublish = rootView.findViewById(R.id.btn_pm_publish);
+    mBtnPublish.setOnClickListener(this);
+    mBtnPublish.setVisibility(View.GONE);
+
     return rootView;
   }
 
   @Override
-  public Loader<ProcessModel<?>> onCreateLoader(int pId, Bundle pArgs) {
+  public Loader<ProcessModelHolder> onCreateLoader(int pId, Bundle pArgs) {
     mProcessModelId = pArgs.getLong(ARG_ITEM_ID);
     Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,mProcessModelId);
     return new ProcessModelLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<ProcessModel<?>> pLoader, ProcessModel<?> pData) {
+  public void onLoadFinished(Loader<ProcessModelHolder> pLoader, ProcessModelHolder pData) {
     mSpinner.setVisibility(View.GONE);
     mTVName.setVisibility(View.VISIBLE);
     mModelView.setVisibility(View.VISIBLE);
     mModelView.getParent().requestLayout(); // Do a layout
-    mTVName.setText(pData.getName());
-    mItem = new BaseProcessAdapter(DrawableProcessModel.get(pData));
+    mTVName.setText(pData.model.getName());
+    mItem = new BaseProcessAdapter(DrawableProcessModel.get(pData.model));
+    mModelHandle = pData.handle;
+    if (pData.handle!=null) {
+      mBtnPublish.setVisibility(View.GONE);
+      mBtnExec.setVisibility(View.VISIBLE);
+    } else {
+      mBtnPublish.setVisibility(View.VISIBLE);
+      mBtnExec.setVisibility(View.GONE);
+    }
     mModelView.setAdapter(mItem);
     updateDiagramScale();
   }
 
   @Override
-  public void onLoaderReset(Loader<ProcessModel<?>> pLoader) {
+  public void onLoaderReset(Loader<ProcessModelHolder> pLoader) {
     mTVName.setText(null);
     mItem = null;
     mModelView.setAdapter(null);
@@ -150,6 +177,10 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     switch (pV.getId()) {
       case R.id.btn_pm_edit:
         btnPmEditClicked(); return;
+      case R.id.btn_pm_clone:
+        btnPmCloneClicked(); return;
+      case R.id.btn_pm_publish:
+        btnPmPublishClicked(); return;
       case R.id.btn_pm_exec:
         btnPmExecClicked(); return;
     }
@@ -166,6 +197,20 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     // Don't do anything yet
   }
 
+  public void btnPmCloneClicked() {
+    // Don't do anything yet
+  }
+
+  public void btnPmPublishClicked() {
+    Uri itemUri = getCurrentProcessUri();
+    ContentValues cv = new ContentValues(1);
+    cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER);
+    final ContentResolver contentResolver = getActivity().getContentResolver();
+    contentResolver.update(itemUri, cv, null, null);
+    mBtnPublish.setEnabled(false);
+    ProcessModelListActivity.requestSync(getActivity());
+  }
+
   @Override
   public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
     pInflater.inflate(R.menu.pm_detail_menu, pMenu);
@@ -175,11 +220,15 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
     if (pItem.getItemId()==R.id.ac_delete) {
-      Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, mProcessModelId);
+      Uri uri = getCurrentProcessUri();
       getActivity().getContentResolver().delete(uri, null, null);
       return true;
     }
     return super.onOptionsItemSelected(pItem);
+  }
+
+  private Uri getCurrentProcessUri() {
+    return ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, mProcessModelId);
   }
 
   @Override
