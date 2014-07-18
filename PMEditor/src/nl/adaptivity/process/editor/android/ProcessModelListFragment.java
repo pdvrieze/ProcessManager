@@ -315,7 +315,7 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
 
   @Override
   public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
-    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING, null, null);
+    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, ProcessModels.COLUMN_SYNCSTATE+" IS NULL OR ( " + ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING+ " )", null, null);
   }
 
   @Override
