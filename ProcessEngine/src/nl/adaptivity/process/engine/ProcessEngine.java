@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.activation.DataSource;
 import javax.servlet.http.HttpServletResponse;
@@ -101,7 +102,9 @@ public class ProcessEngine /* implements IProcessEngine */{
     }
 
     pPm.cacheStrings(aStringCache);
-    return new ProcessModelRef(pPm.getName(), aProcessModels.put(pPm));
+    UUID uuid = pPm.getUuid();
+    if (uuid==null) { uuid = UUID.randomUUID(); pPm.setUuid(uuid); }
+    return new ProcessModelRef(pPm.getName(), aProcessModels.put(pPm), uuid);
   }
 
   /**
@@ -116,6 +119,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     final ProcessModelImpl result = aProcessModels.get(pHandle);
     if (result != null) {
       aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+      if (result.getUuid()==null) { result.setUuid(UUID.randomUUID());aProcessModels.set(pHandle, result); }
     }
     return result;
   }
@@ -130,6 +134,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     final ProcessModelImpl result = aProcessModels.get(pHandle);
     if (result != null) {
       aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+      if (result.getUuid()==null) { result.setUuid(UUID.randomUUID());aProcessModels.set(pHandle, result); }
     }
     return result;
   }
@@ -144,6 +149,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     final ProcessModelImpl pm = aProcessModels.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, pUser, pm);
     pm.setName(pName);
+    aProcessModels.set(pHandle, pm); // set it to ensure update on the database
   }
 
   public ProcessModelRef updateProcessModel(Handle<? extends ProcessModelImpl> pHandle, ProcessModelImpl pProcessModel, Principal pUser) throws FileNotFoundException {
