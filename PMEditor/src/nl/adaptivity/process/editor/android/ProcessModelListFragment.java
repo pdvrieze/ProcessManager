@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.models.ProcessModelProvider;
@@ -50,7 +51,7 @@ import android.widget.TextView;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ProcessModelListFragment extends ListFragment implements LoaderCallbacks<Cursor> {
+public class ProcessModelListFragment extends ListFragment implements LoaderCallbacks<Cursor>, nl.adaptivity.android.util.GetNameDialogFragment.Callbacks {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -120,43 +121,6 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
       } else {
         modelName.setText("<Unnamed>");
       }
-    }
-  }
-
-  public static class GetPMNameDialogFragment extends DialogFragment {
-
-    private static final String ARG_PREV_NAME = "prevName";
-    ProcessModelListFragment mOwner;
-
-    public GetPMNameDialogFragment() { /* empty */ }
-
-    @Override
-    public void onAttach(Activity activity) {
-      super.onAttach(activity);
-      mOwner = (ProcessModelListFragment) activity.getFragmentManager().findFragmentById(R.id.processmodel_list);
-    }
-
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-      String prevName = getArguments()==null ? null : getArguments().getString(ARG_PREV_NAME);
-      AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-      final EditText editText = new EditText(getActivity());
-      editText.setInputType(InputType.TYPE_CLASS_TEXT);
-      editText.setText(prevName);
-      editText.selectAll();
-      builder.setTitle("Model name")
-             .setMessage("Provide the new name")
-             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-
-              @Override
-              public void onClick(DialogInterface pDialog, int id) {
-                mOwner.createNewPM(editText.getText().toString());
-              }
-            })
-            .setNegativeButton(android.R.string.cancel, null)
-            .setView(editText);
-      return builder.create();
-
     }
   }
 
@@ -326,11 +290,17 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   }
 
   private void createNewPM() {
-    GetPMNameDialogFragment f = new GetPMNameDialogFragment();
-//    Bundle args = new Bundle(1);
-//    args.putString(ARG_PREV_NAME, null);
-//    f.setArguments(args);
-    f.show(getFragmentManager(), "getName");
+    GetNameDialogFragment.show(getFragmentManager(), "Model name", "Provide the new name", this);
+  }
+
+  @Override
+  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, String pString) {
+    createNewPM(pString);
+  }
+
+  @Override
+  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog) {
+    // ignore
   }
 
   void createNewPM(String name) {
