@@ -5,6 +5,7 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 import java.io.CharArrayWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
@@ -19,6 +20,7 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -37,6 +39,7 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 @SuppressWarnings("boxing")
 public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
@@ -104,7 +107,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     return postToServer(pHttpClient, getSyncSource()+"/processModels", model, pSyncResult);
   }
 
-  private ContentValuesProvider postToServer(AuthenticatedWebClient mHttpClient, final String url, String model, SyncResult pSyncResult) throws ClientProtocolException,
+  private ContentValuesProvider postToServer(AuthenticatedWebClient pHttpClient, final String url, String model, SyncResult pSyncResult) throws ClientProtocolException,
       IOException, XmlPullParserException {
     HttpPost post = new HttpPost(url);
     try {
@@ -114,7 +117,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-    HttpResponse response = mHttpClient.execute(post);
+    HttpResponse response = pHttpClient.execute(post);
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       XmlPullParser parser = mXpf.newPullParser();
@@ -126,6 +129,46 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
 
     } else {
       pSyncResult.stats.numIoExceptions++;
+    }
+    return null;
+  }
+
+  @Override
+  protected ContentValuesProvider deleteItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri,
+                                                     SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+    long handle;
+    {
+      Cursor itemCursor = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL, ProcessModels.COLUMN_HANDLE }, null, null, null);
+      try {
+        if (itemCursor.moveToFirst()) {
+          handle = itemCursor.getLong(1);
+        } else {
+          return null;
+        }
+
+      } finally {
+        itemCursor.close();
+      }
+    }
+
+    String uri = getSyncSource()+"/processModels/"+handle;
+    HttpDelete request = new HttpDelete(uri);
+    HttpResponse response = pHttpClient.execute(request);
+    int status = response.getStatusLine().getStatusCode();
+    if (status>=200 && status<400) {
+      CharArrayWriter out = new CharArrayWriter();
+      InputStream ins = response.getEntity().getContent();
+      Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
+      char[] buffer = new char[2048];
+      int cnt;
+      while ((cnt=in.read(buffer))>=0) {
+        out.write(buffer, 0, cnt);
+      }
+      Log.i(TAG, "Response on deleting item: \""+out.toString()+"\"");
+
+      ContentValues cv = new ContentValues(1);
+      cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+      return new SimpleContentValuesProvider(cv);
     }
     return null;
   }

@@ -126,6 +126,12 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
+  protected ContentValuesProvider deleteItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri,
+                                                     SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
     // TODO Do more than take the server state
     return true;

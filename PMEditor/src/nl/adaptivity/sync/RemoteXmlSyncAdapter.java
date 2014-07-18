@@ -76,6 +76,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
   }
 
   public static final int SYNC_PUBLISH_TO_SERVER = 6;
+  public static final int SYNC_DELETE_ON_SERVER = 7;
   public static final int SYNC_UPDATE_SERVER = 1;
   public static final int SYNC_UPTODATE = 0;
   public static final int SYNC_PENDING = 2;
@@ -84,6 +85,14 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
   public static final int SYNC_UPDATE_SERVER_DETAILSPENDING = 5;
 
   private enum Phases {
+    DELETE_ON_SERVER {
+
+      @Override
+      public void execute(RemoteXmlSyncAdapter pAdapter, ContentProviderClient pProvider, SyncResult pSyncResult) throws XmlPullParserException, IOException, RemoteException {
+        pAdapter.deleteOnServer(pProvider, pSyncResult);
+      }
+
+    },
     UPDATE_LIST_FROM_SERVER {
 
       @Override
@@ -103,7 +112,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
       @Override
       public void execute(RemoteXmlSyncAdapter pAdapter, ContentProviderClient pProvider, SyncResult pSyncResult)
           throws XmlPullParserException, IOException, RemoteException {
-        pAdapter.delete_items_missing_on_server(pProvider, pSyncResult);
+        pAdapter.deleteItemsMissingOnServer(pProvider, pSyncResult);
 
       }
 
@@ -172,6 +181,34 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     mListContentUri = pListContentUri;
   }
 
+  protected void deleteOnServer(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException {
+    final String colSyncstate = getSyncStateColumn();
+    final String[] projectionId = new String[] { BaseColumns._ID };
+
+    Cursor itemsToDelete = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DELETE_ON_SERVER, null, null);
+    while(itemsToDelete.moveToNext()) {
+      Uri itemuri = ContentUris.withAppendedId(mListContentUri, itemsToDelete.getLong(0));
+      try {
+        ContentValuesProvider newValuesProvider = deleteItemOnServer(pProvider, mHttpClient, itemuri, pSyncResult);
+        ContentValues newValues  = newValuesProvider==null ? null : newValuesProvider.getContentValues();
+        if (newValues==null) {
+          newValues = new ContentValues(1);
+          newValues.put(colSyncstate, SYNC_PENDING);
+        } else if (!newValues.containsKey(colSyncstate)) {
+          newValues.put(colSyncstate, SYNC_PENDING);
+        }
+        pProvider.update(itemuri, newValues, null, null);
+        pSyncResult.stats.numDeletes++;
+      } catch (IOException e) {
+        pSyncResult.stats.numIoExceptions++;
+      } catch (XmlPullParserException e) {
+        pSyncResult.stats.numParseExceptions++;
+      }
+    }
+    // TODO Auto-generated method stub
+
+  }
+
   protected void updateListFromServer(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, XmlPullParserException, IOException {
     HttpGet getList = new HttpGet(getListUrl(mBase));
     HttpResponse result;
@@ -194,7 +231,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     }
   }
 
-  protected void delete_items_missing_on_server(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException {
+  protected void deleteItemsMissingOnServer(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException {
     final String colSyncstate = getSyncStateColumn();
     int cnt = pProvider.delete(mListContentUri, colSyncstate + " = "+SYNC_PENDING+ " OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_PENDING, null);
     pSyncResult.stats.numDeletes+=cnt;
@@ -374,6 +411,8 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     }
     return result;
   }
+
+  protected abstract ContentValuesProvider deleteItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException;
 
   protected abstract ContentValuesProvider createItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
 
