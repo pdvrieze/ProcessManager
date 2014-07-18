@@ -221,11 +221,6 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     } finally {
       updateableItems.close();
     }
-    ContentValues values = new ContentValues(1);
-    if (colSyncstate!=null && colSyncstate.length()>0) {
-      values.put(colSyncstate, Integer.valueOf(SYNC_PENDING));
-      pProvider.update(ProcessModels.CONTENT_ID_URI_BASE, values, colSyncstate + " = "+SYNC_UPTODATE, null);
-    }
   }
 
   protected abstract boolean doUpdateItemDetails(AuthenticatedWebClient pHttpClient, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException;
