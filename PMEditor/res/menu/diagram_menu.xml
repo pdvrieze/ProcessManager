@@ -2,10 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
+        android:id="@+id/ac_cancel"
+        android:showAsAction="always|withText"
+        android:title="@string/ac_cancel">
+    </item>
+    <item
         android:id="@+id/ac_next"
         android:enabled="true"
         android:icon="@drawable/ic_action_step"
-        android:showAsAction="always"
+        android:showAsAction="always|ifRoom"
         android:title="@string/ac_next">
     </item>
     <item
@@ -23,5 +28,5 @@
         android:id="@+id/ac_reset"
         android:title="Reset">
     </item>
-    
+
 </menu>

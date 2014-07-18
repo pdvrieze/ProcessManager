@@ -868,6 +868,10 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   @Override
   public boolean onMenuItemSelected(int pFeatureId, MenuItem pItem) {
     switch (pItem.getItemId()) {
+      case R.id.ac_cancel:
+        aCancelled = true;
+        finish();
+        break;
       case R.id.ac_next:
         if (aLayoutTask!=null) {
           aLayoutTask.next();
