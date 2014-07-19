@@ -118,6 +118,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     DrawableActivity result = new DrawableActivity();
     copyProcessNodeAttrs(pElem, result);
     result.setName(pElem.getName());
+    result.setLabel(pElem.getLabel());
     result.setCondition(pElem.getCondition());
     result.setImports(pElem.getImports());
     result.setExports(pElem.getExports());
