@@ -19,6 +19,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 
 
@@ -110,6 +111,11 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     //    pProcessInstance.finish();
     return true;
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitEndNode(this);
   }
 
 }

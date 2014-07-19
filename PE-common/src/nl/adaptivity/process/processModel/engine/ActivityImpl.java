@@ -19,6 +19,7 @@ import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.XmlExportType;
 import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.XmlMessage;
@@ -237,6 +238,11 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   @Override
   public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return false;
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitActivity(this);
   }
 
 

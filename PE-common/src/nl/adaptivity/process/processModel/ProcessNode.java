@@ -8,6 +8,14 @@ import nl.adaptivity.diagram.Positioned;
 
 public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
 
+  public static interface Visitor<R> {
+    R visitStartNode(StartNode<?> pStartNode);
+    R visitActivity(Activity<?> pActivity);
+    R visitSplit(Split<?> pSplit);
+    R visitJoin(Join<?> pJoin);
+    R visitEndNode(EndNode<?> pEndNode);
+  }
+
   public Set<? extends T> getPredecessors();
 
   public void setPredecessors(Collection<? extends T> predecessors);
@@ -33,5 +41,7 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
   public String getLabel();
 
   public boolean isPredecessorOf(T pNode);
+
+  public <R> R visit(Visitor<R> pVisitor);
 
 }

@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlImportType;
 
@@ -63,4 +64,10 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitStartNode(this);
+  }
+
 }

@@ -1,7 +1,5 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,14 +12,14 @@ import javax.xml.bind.annotation.XmlType;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
-import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.Split;
 
 
 @XmlRootElement(name = SplitImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Split")
-public class SplitImpl extends
-JoinSplitImpl implements Join<ProcessNodeImpl> {
+public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
 
   private static final long serialVersionUID = -8598245023280025173L;
 
@@ -86,6 +84,11 @@ JoinSplitImpl implements Join<ProcessNodeImpl> {
 
   void setPredecessor(ProcessNodeImpl pred) {
     setPredecessors(Collections.singleton(pred));
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitSplit(this);
   }
 
 }
