@@ -90,7 +90,7 @@ public class ProcessModelListActivity extends Activity
                 Log.e(ProcessModelListActivity.class.getSimpleName(), "Failure to get auth token", e);
               }
               if (mAccount!=null) {
-                requestSync(mAccount);
+                requestSync(mAccount, true);
               }
             }};
           accountManager.getAuthToken(mAccount, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, ProcessModelListActivity.this, callback  , null);
@@ -162,20 +162,21 @@ public class ProcessModelListActivity extends Activity
     }
   }
 
-  public void requestSync() {
-    requestSync(mAccount);
+  public void requestSync(boolean pExpedited) {
+    requestSync(mAccount, pExpedited);
   }
 
-  public static void requestSync(Account account) {
+  public static void requestSync(Account account, boolean pExpedited) {
     Bundle extras = new Bundle(1);
     extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+    extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, pExpedited);
     ContentResolver.requestSync(account, ProcessModelProvider.AUTHORITY, extras );
   }
 
-  public static void requestSync(Context pContext) {
+  public static void requestSync(Context pContext, boolean pExpedited) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(pContext);
     String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
     String authbase = AuthenticatedWebClient.getAuthBase(source);
-    requestSync(AuthenticatedWebClient.ensureAccount(pContext, authbase));
+    requestSync(AuthenticatedWebClient.ensureAccount(pContext, authbase), pExpedited);
   }
 }
