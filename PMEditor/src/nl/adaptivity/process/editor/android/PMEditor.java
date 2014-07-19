@@ -679,7 +679,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.main);
+    setContentView(R.layout.activity_processmodel_editor);
     diagramView1 = (DiagramView) findViewById(R.id.diagramView1);
     diagramView1.setOffsetX(0d);
     diagramView1.setOffsetY(0d);
