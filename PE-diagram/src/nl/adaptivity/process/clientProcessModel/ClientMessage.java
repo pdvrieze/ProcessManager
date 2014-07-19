@@ -35,6 +35,7 @@ public class ClientMessage extends BaseMessage {
   }
 
   public static ClientMessage from(IXmlMessage pMessage) {
+    if (pMessage==null) { return null; }
     if (pMessage instanceof ClientMessage) { return (ClientMessage) pMessage; }
     return new ClientMessage(pMessage);
   }
