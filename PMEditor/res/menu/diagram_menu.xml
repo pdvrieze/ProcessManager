@@ -10,7 +10,7 @@
         android:id="@+id/ac_next"
         android:enabled="true"
         android:icon="@drawable/ic_action_step"
-        android:showAsAction="always|ifRoom"
+        android:showAsAction="ifRoom"
         android:title="@string/ac_next">
     </item>
     <item
