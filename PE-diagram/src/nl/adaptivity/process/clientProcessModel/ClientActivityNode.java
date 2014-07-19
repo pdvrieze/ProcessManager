@@ -7,8 +7,8 @@ import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
-
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.*;
 
 
@@ -117,6 +117,11 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
     serializeCommonChildren(pOut);
     if (aMessage!=null) { aMessage.serialize(pOut); }
     pOut.endTag(NS_PM, "activity", true);
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitActivity(this);
   }
 
 }

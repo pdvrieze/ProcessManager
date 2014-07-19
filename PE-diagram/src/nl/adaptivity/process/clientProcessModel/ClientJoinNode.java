@@ -1,6 +1,7 @@
 package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
 
 
 public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Join<T> {
@@ -25,6 +26,11 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinS
   @Override
   public void serialize(SerializerAdapter pOut) {
     serializeJoin(pOut);
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitJoin(this);
   }
 
 }

@@ -10,6 +10,7 @@ import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
 
 
 
@@ -96,6 +97,11 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   @Override
   public void serialize(SerializerAdapter pOut) {
     serializeJoin(pOut);
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitJoin(this);
   }
 
 }

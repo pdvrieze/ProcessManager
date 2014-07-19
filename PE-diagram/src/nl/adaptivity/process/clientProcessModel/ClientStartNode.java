@@ -5,6 +5,7 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 import java.util.List;
 
 import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
@@ -38,6 +39,11 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
     pOut.endTag(NS_PM, "start", true);
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitStartNode(this);
   }
 
 }

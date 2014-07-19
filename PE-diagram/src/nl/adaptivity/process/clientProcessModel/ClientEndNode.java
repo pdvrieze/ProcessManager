@@ -7,6 +7,7 @@ import java.util.List;
 
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
 
@@ -60,6 +61,11 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
     pOut.endTag(NS_PM, "end", true);
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitEndNode(this);
   }
 
 }

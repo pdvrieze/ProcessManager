@@ -9,6 +9,7 @@ import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
 
 
@@ -45,8 +46,8 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
-  public static DrawableJoinSplit from(Join<?> pElem) {
-    DrawableJoinSplit result = new DrawableSplit();
+  public static DrawableSplit from(Split<?> pElem) {
+    DrawableSplit result = new DrawableSplit();
     copyProcessNodeAttrs(pElem, result);
     result.setMin(pElem.getMin());
     result.setMax(pElem.getMax());
@@ -97,6 +98,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   @Override
   public void serialize(SerializerAdapter pOut) {
     serializeSplit(pOut);
+  }
+
+  @Override
+  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+    return pVisitor.visitSplit(this);
   }
 
 }

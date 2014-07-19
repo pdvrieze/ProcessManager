@@ -2,9 +2,9 @@ package nl.adaptivity.process.diagram;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
 
 import nl.adaptivity.diagram.Canvas;
@@ -21,6 +21,7 @@ import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.processModel.StartNode;
 
@@ -55,13 +56,37 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   public DrawableProcessModel(ProcessModel<?> pOriginal, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pOriginal.getUuid(), pOriginal.getName(), getDrawableNodes(pOriginal.getStartNodes()), pLayoutAlgorithm);
+    super(pOriginal.getUuid(), pOriginal.getName(), cloneNodes(pOriginal), pLayoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
     setVertSeparation(DEFAULT_VERT_SEPARATION);
     ensureIds();
     layout();
+  }
+
+  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?>> pOriginal) {
+    Map<String,DrawableProcessNode> cache = new HashMap<>(pOriginal.getModelNodes().size());
+    return cloneNodes(cache, pOriginal.getModelNodes());
+  }
+
+  private static Collection<? extends DrawableProcessNode> cloneNodes(Map<String, DrawableProcessNode> cache, Collection<? extends ProcessNode<?>> pNodes) {
+    List<DrawableProcessNode> result = new ArrayList<>(pNodes.size());
+    for(ProcessNode<?> orig: pNodes) {
+      DrawableProcessNode val = cache.get(orig.getId());
+      if (val==null) {
+        DrawableProcessNode cpy = toDrawableNode(orig);
+        result.add(cpy);
+        cache.put(cpy.getId(), cpy);
+        cpy.setSuccessors(Collections.<DrawableProcessNode>emptyList());
+        cpy.setPredecessors(cloneNodes(cache, orig.getPredecessors()));
+      } else {
+        result.add(val);
+      }
+
+    }
+    // TODO Auto-generated method stub
+    return result;
   }
 
   public DrawableProcessModel(UUID pUuid, String pName, Collection<? extends DrawableProcessNode> pNodes) {
@@ -88,57 +113,35 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 	return new DrawableProcessModel(this);
   }
 
-  private static Collection<? extends DrawableProcessNode> getDrawableNodes(Collection<? extends StartNode<?>> pStartNodes) {
-    Set<EndNode<?>> origEndNodes = getDrawableNodes(new HashSet<EndNode<?>>(), pStartNodes);
-    ArrayList<DrawableProcessNode> result = new ArrayList<>(pStartNodes.size());
-    for(EndNode<?> n: origEndNodes) {
-      result.add(toDrawableEndNode(n));
-    }
-    return result;
-  }
-
-  private static Set<EndNode<?>> getDrawableNodes(Set<EndNode<?>> pSet, Collection<? extends ProcessNode<?>> pNodes) {
-    for(ProcessNode<?> node: pNodes) {
-      if (node instanceof EndNode<?>) {
-        pSet.add((EndNode<?>) node);
-      }
-      getDrawableNodes(pSet, node.getSuccessors());
-
-    }
-    return pSet;
-  }
-
-  private static DrawableEndNode toDrawableEndNode(EndNode<?> pN) {
-    DrawableEndNode result = DrawableEndNode.from(pN);
-    result.setPredecessors(toDrawableNodes(pN.getPredecessors()));
-    return result;
-  }
-
-  private static Collection<? extends DrawableProcessNode> toDrawableNodes(Collection<? extends ProcessNode<?>> pPredecessors) {
-    if (pPredecessors.size()==0) { return Collections.emptyList(); }
-    if (pPredecessors.size()==1) { return Collections.singleton(toDrawableNode(pPredecessors.iterator().next())); }
-
-    List<DrawableProcessNode> result = new ArrayList<>(pPredecessors.size());
-    for(ProcessNode<?> elem: pPredecessors) {
-      result.add(toDrawableNode(elem));
-    }
-    return result;
-  }
-
   private static DrawableProcessNode toDrawableNode(ProcessNode<?> pElem) {
-    if (pElem instanceof StartNode) {
-      return DrawableStartNode.from((StartNode<?>) pElem);
-    } else if (pElem instanceof EndNode) {
-      throw new IllegalArgumentException("EndNodes should not see this function");
-    } else if (pElem instanceof Join) {
-      return DrawableJoin.from((Join<?>) pElem);
-    } else if (pElem instanceof Split) {
-      return DrawableSplit.from((Join<?>) pElem);
-    } else if (pElem instanceof Activity) {
-      return DrawableActivity.from((Activity<?>) pElem);
-    } else {
-      throw new UnsupportedOperationException("Unsupported subclass to ProcessNode");
-    }
+    return pElem.visit(new Visitor<DrawableProcessNode>() {
+
+      @Override
+      public DrawableProcessNode visitStartNode(StartNode<?> pStartNode) {
+        return DrawableStartNode.from(pStartNode);
+      }
+
+      @Override
+      public DrawableProcessNode visitActivity(Activity<?> pActivity) {
+        return DrawableActivity.from(pActivity);
+      }
+
+      @Override
+      public DrawableProcessNode visitSplit(Split<?> pSplit) {
+        return DrawableSplit.from(pSplit);
+      }
+
+      @Override
+      public DrawableProcessNode visitJoin(Join<?> pJoin) {
+        return DrawableJoin.from(pJoin);
+      }
+
+      @Override
+      public DrawableProcessNode visitEndNode(EndNode<?> pEndNode) {
+        return DrawableEndNode.from(pEndNode);
+      }
+
+    });
   }
 
   @SuppressWarnings("unchecked")
