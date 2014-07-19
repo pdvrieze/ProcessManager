@@ -85,7 +85,6 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       }
 
     }
-    // TODO Auto-generated method stub
     return result;
   }
 
