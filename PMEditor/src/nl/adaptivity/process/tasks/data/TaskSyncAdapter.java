@@ -17,12 +17,9 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
@@ -59,7 +56,6 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 
   private static final String TAG = TaskSyncAdapter.class.getSimpleName();
   private String mBase;
-  private XmlPullParserFactory mXpf;
 
   public TaskSyncAdapter(Context pContext) {
     super(pContext, true, false, Tasks.CONTENT_ID_URI_BASE);
