@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.diagram.android.DiagramView;
+import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
@@ -217,7 +218,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   public void btnPmCloneClicked() {
     CharSequence previousName = mTVName.getText();
-    String suggestedNewName = Util.suggestNewName(previousName);
+    String suggestedNewName = ProcessModelUtil.suggestNewName(getActivity(), previousName);
 
     GetNameDialogFragment.show(getFragmentManager(), "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
 

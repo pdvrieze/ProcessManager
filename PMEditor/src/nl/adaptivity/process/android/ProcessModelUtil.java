@@ -12,7 +12,7 @@ import android.provider.BaseColumns;
 public final class ProcessModelUtil {
   private ProcessModelUtil() {}
 
-  public static String suggestNewName(final Context pContext, String pPreviousName) {
+  public static String suggestNewName(final Context pContext, CharSequence pPreviousName) {
 
 
     return Util.suggestNewName(pPreviousName, new NameChecker() {
