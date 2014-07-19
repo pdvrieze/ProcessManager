@@ -58,6 +58,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     aY = pOrig.aY;
     aImports = CollectionUtil.copy(pOrig.aImports);
     aExports = CollectionUtil.copy(pOrig.aExports);
+    aLabel = pOrig.aLabel;
 
     aPredecessors.addAll(pOrig.aPredecessors);
     aSuccessors.addAll(pOrig.aSuccessors);
