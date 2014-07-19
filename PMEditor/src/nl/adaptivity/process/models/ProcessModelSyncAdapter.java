@@ -26,7 +26,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
@@ -48,7 +47,6 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
   private static final String TAG_PROCESSMODELS = "processModels";
   private static final String TAG_PROCESSMODEL = "processModel";
   private static final String TAG = ProcessModelSyncAdapter.class.getSimpleName();
-  private XmlPullParserFactory mXpf;
 
   public ProcessModelSyncAdapter(Context pContext) {
     super(pContext, true, false, ProcessModels.CONTENT_ID_URI_BASE);
@@ -120,7 +118,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     HttpResponse response = pHttpClient.execute(post);
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
-      XmlPullParser parser = mXpf.newPullParser();
+      XmlPullParser parser = newPullParser();
       parser.setInput(response.getEntity().getContent(), "UTF8");
 
       parser.nextTag(); // Skip document start etc.

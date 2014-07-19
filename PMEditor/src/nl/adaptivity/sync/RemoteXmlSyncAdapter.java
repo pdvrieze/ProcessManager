@@ -13,7 +13,6 @@ import java.util.ListIterator;
 
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -150,6 +149,18 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     mListContentUri = pListContentUri;
   }
 
+  protected XmlPullParser newPullParser() throws XmlPullParserException {
+    return getParserFactory().newPullParser();
+  }
+
+  protected XmlPullParserFactory getParserFactory() throws XmlPullParserException {
+    if (mXpf==null) {
+      mXpf = XmlPullParserFactory.newInstance();
+      mXpf.setNamespaceAware(true);
+    }
+    return mXpf;
+  }
+
   protected void publishItemsToServer(ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException {
     final String colSyncstate = getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID };
@@ -272,7 +283,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
     }
     final String colSyncstate = getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
-    Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DETAILSPENDING /* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, Tasks._ID);
+    Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DETAILSPENDING /* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, BaseColumns._ID);
     try {
       ListIterator<CVPair> listIterator = mUpdateList.listIterator();
       while(updateableItems.moveToNext()) {
@@ -301,16 +312,6 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
   @Override
   public final void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
-    if (mXpf==null) {
-      try {
-        mXpf = XmlPullParserFactory.newInstance();
-      } catch (XmlPullParserException e1) {
-        pSyncResult.stats.numParseExceptions++;
-        return;
-      }
-      mXpf.setNamespaceAware(true);
-    }
-
     mBase = getSyncSource();
     if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
 
@@ -344,7 +345,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
     final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
 
-    XmlPullParser parser = mXpf.newPullParser();
+    XmlPullParser parser = newPullParser();
     parser.setInput(pContent, "UTF8");
 
     ContentValues values = new ContentValues(1);
