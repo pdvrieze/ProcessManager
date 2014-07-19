@@ -251,7 +251,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   protected void cloneWithName(String pNewName) {
     // TODO Auto-generated method stub
     DrawableProcessModel currentModel = ((BaseProcessAdapter) mModelView.getAdapter()).getDiagram();
-    DrawableProcessModel newModel = new DrawableProcessModel(currentModel);
+    DrawableProcessModel newModel = currentModel.clone();
     newModel.setName(pNewName);
     newModel.setUuid(UUID.randomUUID());
 
