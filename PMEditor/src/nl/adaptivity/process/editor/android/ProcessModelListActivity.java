@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 import java.io.IOException;
 
+import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import android.accounts.Account;
@@ -42,6 +43,52 @@ import android.view.MenuItem;
 public class ProcessModelListActivity extends Activity
     implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
 
+  private static final class SyncTask extends AsyncTask<String, Object, Account> {
+
+    private boolean mExpedited;
+    private Context mContext;
+    private AccountManagerFuture<Bundle> mFuture;
+
+    public SyncTask(Context pContext, boolean pExpedited) {
+      mContext = pContext;
+      mExpedited = pExpedited;
+    }
+
+    @Override
+    protected Account doInBackground(String... pParams) {
+      Account account = AuthenticatedWebClient.ensureAccount(mContext, pParams[0]);
+      ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
+      AccountManager accountManager = AccountManager.get(mContext);
+      AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+
+        @Override
+        public void run(AccountManagerFuture<Bundle> pFuture) {
+          try {
+            pFuture.getResult();
+          } catch (OperationCanceledException | AuthenticatorException | IOException e) {
+            Log.e(ProcessModelListActivity.class.getSimpleName(), "Failure to get auth token", e);
+          }
+        }};
+      if (mContext instanceof Activity) {
+        mFuture = accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, (Activity) mContext, callback  , null);
+      } else {
+        mFuture = Compat.getAuthToken(accountManager, account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, true, callback, null);
+      }
+
+      return account;
+    }
+
+    @Override
+    protected void onPostExecute(Account account) {
+      if (account!=null) {
+        if (mContext instanceof ProcessModelListActivity) {
+          ((ProcessModelListActivity)mContext).mAccount = account;
+        }
+        requestSync(account, mExpedited);
+      }
+    }
+  }
+
   /**
    * Whether or not the activity is in two-pane mode, i.e. running on a tablet
    * device.
@@ -69,42 +116,7 @@ public class ProcessModelListActivity extends Activity
           .setActivateOnItemClick(true);
     }
 
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-    String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
-    String authbase = AuthenticatedWebClient.getAuthBase(source);
-    if (source!=null) {
-      AsyncTask<String, Object, Account> task = new AsyncTask<String, Object, Account>() {
-
-        @Override
-        protected Account doInBackground(String... pParams) {
-          mAccount = AuthenticatedWebClient.ensureAccount(ProcessModelListActivity.this, pParams[0]);
-          ContentResolver.setIsSyncable(mAccount, ProcessModelProvider.AUTHORITY, 1);
-          AccountManager accountManager = AccountManager.get(ProcessModelListActivity.this);
-          AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
-
-            @Override
-            public void run(AccountManagerFuture<Bundle> pFuture) {
-              try {
-                Bundle result = pFuture.getResult();
-              } catch (OperationCanceledException | AuthenticatorException | IOException e) {
-                Log.e(ProcessModelListActivity.class.getSimpleName(), "Failure to get auth token", e);
-              }
-              if (mAccount!=null) {
-                requestSync(mAccount, true);
-              }
-            }};
-          accountManager.getAuthToken(mAccount, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, ProcessModelListActivity.this, callback  , null);
-
-          return mAccount;
-        }
-
-        @Override
-        protected void onPostExecute(Account account) {
-        }
-
-      };
-      task.execute(authbase);
-    }
+    requestSync(this, true);
   }
 
   @Override
@@ -177,6 +189,8 @@ public class ProcessModelListActivity extends Activity
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(pContext);
     String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
     String authbase = AuthenticatedWebClient.getAuthBase(source);
-    requestSync(AuthenticatedWebClient.ensureAccount(pContext, authbase), pExpedited);
+    if (source!=null) {
+      (new SyncTask(pContext, pExpedited)).execute(authbase);
+    }
   }
 }
