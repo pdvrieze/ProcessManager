@@ -1,9 +1,17 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/processmodel_list"
-	android:name="nl.adaptivity.process.editor.android.ProcessModelListFragment"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	tools:context="nl.adaptivity.process.editor.android.ProcessModelListActivity"
-	tools:layout="@android:layout/list_content" />
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
+    <fragment
+        android:id="@+id/processmodel_list"
+        android:name="nl.adaptivity.process.editor.android.ProcessModelListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="nl.adaptivity.process.editor.android.ProcessModelListActivity"
+        tools:layout="@android:layout/list_content" />
+
+    <include layout="@layout/slider_main" />
+
+</android.support.v4.widget.DrawerLayout>

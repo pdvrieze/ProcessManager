@@ -17,12 +17,20 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.NavUtils;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 /**
  * An activity representing a list of ProcessModels. This activity has different
@@ -41,14 +49,12 @@ import android.view.MenuItem;
  * selections.
  */
 public class ProcessModelListActivity extends Activity
-    implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
+    implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks, OnItemClickListener {
 
   private static final class SyncTask extends AsyncTask<String, Object, Account> {
 
     private boolean mExpedited;
     private Context mContext;
-    private AccountManagerFuture<Bundle> mFuture;
-
     public SyncTask(Context pContext, boolean pExpedited) {
       mContext = pContext;
       mExpedited = pExpedited;
@@ -70,9 +76,9 @@ public class ProcessModelListActivity extends Activity
           }
         }};
       if (mContext instanceof Activity) {
-        mFuture = accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, (Activity) mContext, callback  , null);
+        accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, (Activity) mContext, callback  , null);
       } else {
-        mFuture = Compat.getAuthToken(accountManager, account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, true, callback, null);
+        Compat.getAuthToken(accountManager, account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, true, callback, null);
       }
 
       return account;
@@ -97,10 +103,19 @@ public class ProcessModelListActivity extends Activity
 
   private Account mAccount;
 
+  private DrawerLayout mDrawerLayout;
+  private ActionBarDrawerToggle mDrawerToggle;
+
+  private ListView mDrawerList;
+
+  private CharSequence mTitle;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_processmodel_list);
+
+    String[] sliderElems = getResources().getStringArray(R.array.array_slider_main_items);
 
     if (findViewById(R.id.processmodel_detail_container) != null) {
       // The detail container view will be present only in the
@@ -116,11 +131,60 @@ public class ProcessModelListActivity extends Activity
           .setActivateOnItemClick(true);
     }
 
+    mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_main);
+    mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+    // Set the adapter for the list view
+    mDrawerList.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, sliderElems));
+    mDrawerList.setOnItemClickListener(this);
+    mTitle = getTitle();
+
+    mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+        R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close) {
+
+      /** Called when a drawer has settled in a completely closed state. */
+      @Override
+      public void onDrawerClosed(View view) {
+        super.onDrawerClosed(view);
+        getActionBar().setTitle(mTitle);
+        invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+      }
+
+      /** Called when a drawer has settled in a completely open state. */
+      @Override
+      public void onDrawerOpened(View drawerView) {
+        super.onDrawerOpened(drawerView);
+        getActionBar().setTitle(mTitle);
+        invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+      }
+    };
+
+    // Set the drawer toggle as the DrawerListener
+    mDrawerLayout.setDrawerListener(mDrawerToggle);
+    getActionBar().setDisplayHomeAsUpEnabled(true);
+    getActionBar().setHomeButtonEnabled(true);
+
     requestSync(this, true);
   }
 
   @Override
+  protected void onPostCreate(Bundle savedInstanceState) {
+    super.onPostCreate(savedInstanceState);
+    // Sync the toggle state after onRestoreInstanceState has occurred.
+    mDrawerToggle.syncState();
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    mDrawerToggle.onConfigurationChanged(newConfig);
+  }
+
+  @Override
   public boolean onOptionsItemSelected(MenuItem item) {
+    if (mDrawerToggle.onOptionsItemSelected(item)) {
+      return true;
+    }
     int id = item.getItemId();
     if (id == android.R.id.home) {
       // This ID represents the Home or Up button. In the case of this
@@ -192,5 +256,11 @@ public class ProcessModelListActivity extends Activity
     if (source!=null) {
       (new SyncTask(pContext, pExpedited)).execute(authbase);
     }
+  }
+
+  @Override
+  public void onItemClick(AdapterView<?> pParent, View pView, int pPosition, long pId) {
+    // TODO Auto-generated method stub
+
   }
 }

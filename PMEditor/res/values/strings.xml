@@ -30,5 +30,7 @@
     <string name="ac_cancel">Cancel</string>
     <string name="btn_pm_clone">Copy as new</string>
     <string name="btn_pm_publish">Publish to server</string>
+    <string name="drawer_open">Open drawer</string>
+    <string name="drawer_close">Close drawer</string>
 
 </resources>
