@@ -40,6 +40,7 @@ import nl.adaptivity.process.diagram.DrawableSplit;
 import nl.adaptivity.process.diagram.DrawableStartNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.ProcessNode;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
@@ -256,6 +257,10 @@ public class PMParser {
     @Override
     public String getId() {
       return aRef;
+    }
+
+    public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
+      throw new UnsupportedOperationException("Not implemented");
     }
 
   }
