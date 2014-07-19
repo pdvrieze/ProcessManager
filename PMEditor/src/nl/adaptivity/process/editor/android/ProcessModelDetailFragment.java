@@ -13,6 +13,7 @@ import nl.adaptivity.process.models.ProcessModelLoader.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.util.Util;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
@@ -216,7 +217,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   public void btnPmCloneClicked() {
     CharSequence previousName = mTVName.getText();
-    String suggestedNewName = suggestNewName(previousName);
+    String suggestedNewName = Util.suggestNewName(previousName);
 
     GetNameDialogFragment.show(getFragmentManager(), "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
 
@@ -231,21 +232,6 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       }
     }, suggestedNewName);
     // Don't do anything yet
-  }
-
-  public static String suggestNewName(CharSequence previousName) {
-    int i=previousName.length()-1;
-    while (Character.isDigit(previousName.charAt(i))) {
-      --i;
-    }
-    String suggestedNewName;
-    if ((i+1)<previousName.length()) {
-      int prevNo = Integer.parseInt(previousName.subSequence(i+1, previousName.length()).toString());
-      suggestedNewName = previousName.subSequence(0, i+1)+Integer.toString(prevNo+1);
-    } else {
-      suggestedNewName = previousName + " 2";
-    }
-    return suggestedNewName;
   }
 
   protected void cloneWithName(String pNewName) {
