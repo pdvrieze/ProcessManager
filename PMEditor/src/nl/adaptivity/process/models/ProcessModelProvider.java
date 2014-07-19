@@ -243,7 +243,6 @@ public class ProcessModelProvider extends ContentProvider {
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
     final int result = db.delete(ProcessModelsOpenHelper.TABLE_NAME, pSelection, pSelectionArgs);
     if (result>0) {
       getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
