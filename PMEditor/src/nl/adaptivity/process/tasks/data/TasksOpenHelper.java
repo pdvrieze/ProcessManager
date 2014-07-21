@@ -15,7 +15,7 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
   static final String TABLE_NAME_ITEMS = "items";
   static final String TABLE_NAME_OPTIONS = "options";
   private static final String DB_NAME = "tasks.db";
-  private static final int DB_VERSION = 0;
+  private static final int DB_VERSION = 1;
   private static final String SQL_CREATE_TASKS_TABLE = "CREATE TABLE " + TABLE_NAME_TASKS + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       Tasks.COLUMN_HANDLE +" LONG," +
