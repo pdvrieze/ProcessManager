@@ -1,12 +1,12 @@
 package nl.adaptivity.process.tasks.android;
 
+import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.accounts.Account;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +27,7 @@ import android.view.ViewGroup;
  * {@link TaskListFragment.Callbacks} interface to listen for item
  * selections.
  */
-public class TaskListOuterFragment extends Fragment implements TaskListFragment.Callbacks {
+public class TaskListOuterFragment extends TitleFragment implements TaskListFragment.Callbacks {
 
 
   public interface TaskListCallbacks {
@@ -101,5 +101,10 @@ public class TaskListOuterFragment extends Fragment implements TaskListFragment.
     Bundle extras = new Bundle(1);
     extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
     ContentResolver.requestSync(account, TaskProvider.AUTHORITY, extras );
+  }
+
+  @Override
+  public CharSequence getTitle() {
+    return getString(R.string.title_tasklist);
   }
 }

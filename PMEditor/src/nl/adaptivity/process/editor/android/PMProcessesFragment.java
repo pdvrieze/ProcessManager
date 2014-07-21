@@ -19,7 +19,6 @@ import org.xmlpull.v1.XmlSerializer;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -27,6 +26,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -158,7 +158,7 @@ public class PMProcessesFragment extends Fragment {
   @Override
   public void onAttach(Activity pActivity) {
     super.onAttach(pActivity);
-    Fragment parent = Compat.getParentFragment(this);
+    Fragment parent = getParentFragment();
     if (this instanceof PMProvider) {
       mProvider = (PMProvider) this;
     } else if (parent!=null && (parent instanceof PMProvider)) {

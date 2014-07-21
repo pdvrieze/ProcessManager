@@ -3,8 +3,11 @@ package nl.adaptivity.process.editor.android;
 import java.io.IOException;
 
 import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
 import nl.adaptivity.process.tasks.android.TaskListOuterFragment.TaskListCallbacks;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.accounts.Account;
@@ -26,17 +29,63 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 /**
  * The main activity that contains the navigation drawer.
  */
-public class MainActivity extends FragmentActivity implements OnItemClickListener, TaskListCallbacks {
+public class MainActivity extends FragmentActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks {
+
+  private static final class DrawerAdapter extends BaseAdapter {
+
+    private LayoutInflater mInflater;
+
+    @Override
+    public TitleFragment getItem(int pPosition) {
+      switch (pPosition) {
+      case 0:
+        return new TaskListOuterFragment();
+      }
+      return null;
+    }
+
+    @Override
+    public int getCount() {
+      return 1;
+    }
+
+    @Override
+    public long getItemId(int pPosition) {
+      return pPosition;
+    }
+
+    @Override
+    public boolean hasStableIds() {
+      return true;
+    }
+
+    @Override
+    public View getView(int pPosition, View pConvertView, ViewGroup pParent) {
+      final TextView result;
+      if (pConvertView==null) {
+        if (mInflater == null) { mInflater = LayoutInflater.from(pParent.getContext()); }
+        result = (TextView) mInflater.inflate(R.layout.drawer_list_item, pParent, false);
+      } else {
+        result = (TextView) pConvertView;
+      }
+      result.setText(getItem(pPosition).getTitle());
+      return result;
+    }
+
+  }
 
   private static final class SyncTask extends AsyncTask<String, Void, Account> {
 
@@ -87,6 +136,8 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
 
   private Account mAccount;
 
+  private DrawerAdapter mDrawerAdapter;
+
   private DrawerLayout mDrawerLayout;
   private ActionBarDrawerToggle mDrawerToggle;
 
@@ -99,13 +150,13 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    String[] sliderElems = getResources().getStringArray(R.array.array_slider_main_items);
-
     mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_main);
     mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
+    mDrawerAdapter = new DrawerAdapter();
+
     // Set the adapter for the list view
-    mDrawerList.setAdapter(new ArrayAdapter<>(this,android.R.layout.simple_list_item_1, sliderElems));
+    mDrawerList.setAdapter(mDrawerAdapter);
     mDrawerList.setOnItemClickListener(this);
     mTitle = getTitle();
 
@@ -116,7 +167,8 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
       @Override
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
-        getActionBar().setTitle(mTitle);
+        CharSequence title = getActiveFragment().getTitle();
+        getActionBar().setTitle(title);
         invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
       }
 
@@ -133,8 +185,10 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
     mDrawerLayout.setDrawerListener(mDrawerToggle);
     getActionBar().setDisplayHomeAsUpEnabled(true);
     getActionBar().setHomeButtonEnabled(true);
+  }
 
-    requestSyncProcessList(this, true);
+  protected TitleFragment getActiveFragment() {
+    return (TitleFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_main_content);
   }
 
   @Override
@@ -171,11 +225,18 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
   }
 
   @Override
+  public void onItemClick(AdapterView<?> pParent, View pView, int pPosition, long pId) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
   public void requestSyncTaskList(boolean pExpedited) {
     requestSync(TaskProvider.AUTHORITY, pExpedited);
   }
 
-  public void requestSyncProcessList(boolean pExpedited) {
+  @Override
+  public void requestSyncProcessModelList(boolean pExpedited) {
     requestSync(ProcessModelProvider.AUTHORITY, pExpedited);
   }
 
@@ -190,7 +251,7 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
     ContentResolver.requestSync(account, authority, extras );
   }
 
-  public static void requestSyncProcessList(Context pContext, boolean pExpedited) {
+  public static void requestSyncProcessModelList(Context pContext, boolean pExpedited) {
     requestSync(pContext, ProcessModelProvider.AUTHORITY, pExpedited);
   }
 
@@ -214,11 +275,5 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
   private static String getAuthbase(Context pContext) {
     final String source = getSyncSource(pContext);
     return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
-  }
-
-  @Override
-  public void onItemClick(AdapterView<?> pParent, View pView, int pPosition, long pId) {
-    // TODO Auto-generated method stub
-
   }
 }

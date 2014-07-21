@@ -3,6 +3,7 @@ package nl.adaptivity.process.tasks.android;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -259,7 +260,7 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
 
   @Override
   public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
-    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, null, null, null);
+    return new CursorLoader(getActivity(), TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY}, null, null, null);
   }
 
   @Override
