@@ -33,13 +33,25 @@
                 android:value="nl.adaptivity.process.editor.android.ProcessModelListActivity" />
         </activity>
         <activity
-            android:name="nl.adaptivity.process.editor.android.ProcessModelListActivity"
-            android:label="@string/title_processmodel_list" >
+            android:name="nl.adaptivity.process.editor.android.MainActivity"
+            android:label="@string/title_main" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="nl.adaptivity.process.editor.android.ProcessModelListActivity"
+            android:label="@string/title_processmodel_list" >
+
+            <!--
+                 <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            -->
         </activity>
         <activity
             android:name="nl.adaptivity.process.editor.android.ProcessModelDetailActivity"

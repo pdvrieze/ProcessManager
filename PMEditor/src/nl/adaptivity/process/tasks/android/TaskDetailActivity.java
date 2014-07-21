@@ -1,9 +1,9 @@
 package nl.adaptivity.process.tasks.android;
 
 import nl.adaptivity.process.editor.android.R;
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
@@ -11,12 +11,16 @@ import android.view.MenuItem;
  * An activity representing a single ProcessModel detail screen. This activity
  * is only used on handset devices. On tablet-size devices, item details are
  * presented side-by-side with a list of items in a
- * {@link TaskListActivity}.
+ * {@link TaskListOuterFragment}.
  * <p>
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link TaskDetailFragment}.
+ *
+ * @deprecated Not needed as this is never the actual activity. The only
+ *             activity is the MainActivity.
  */
-public class TaskDetailActivity extends Activity {
+@Deprecated
+public class TaskDetailActivity extends FragmentActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +47,7 @@ public class TaskDetailActivity extends Activity {
           getIntent().getLongExtra(TaskDetailFragment.ARG_ITEM_ID,-1));
       TaskDetailFragment fragment = new TaskDetailFragment();
       fragment.setArguments(arguments);
-      getFragmentManager().beginTransaction()
+      getSupportFragmentManager().beginTransaction()
           .add(R.id.task_detail_container, fragment)
           .commit();
     }
@@ -60,7 +64,7 @@ public class TaskDetailActivity extends Activity {
       //
       // http://developer.android.com/design/patterns/navigation.html#up-vs-back
       //
-      NavUtils.navigateUpTo(this, new Intent(this, TaskListActivity.class));
+      NavUtils.navigateUpTo(this, new Intent(this, TaskListOuterFragment.class));
       return true;
     }
     return super.onOptionsItemSelected(item);

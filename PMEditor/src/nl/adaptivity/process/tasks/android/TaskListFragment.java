@@ -6,15 +6,16 @@ import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ListFragment;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,8 +45,6 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
   private static final int TASKLISTLOADERID = 3;
-
-  private static final int REQUEST_IMPORT = 31;
 
   private static final String TAG = TaskListFragment.class.getSimpleName();
 
@@ -165,12 +164,19 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   public void onAttach(Activity activity) {
     super.onAttach(activity);
 
-    // Activities containing this fragment must implement its callbacks.
-    if (!(activity instanceof Callbacks)) {
-      throw new IllegalStateException("Activity must implement fragment's callbacks.");
+    Fragment parentFragment = getParentFragment();
+    while (parentFragment!=null) {
+      if (parentFragment instanceof Callbacks) {
+        mCallbacks = (Callbacks) parentFragment;
+        break;
+      }
+      parentFragment = parentFragment.getParentFragment();
     }
-
-    mCallbacks = (Callbacks) activity;
+    if (parentFragment==null && (!(activity instanceof Callbacks))) {
+      throw new IllegalStateException("Activity or parent must implement fragment's callbacks.");
+    } else {
+      mCallbacks = (Callbacks) activity;
+    }
   }
 
   @Override

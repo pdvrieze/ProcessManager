@@ -4,12 +4,12 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.data.TaskLoader;
 import nl.adaptivity.process.tasks.data.TaskProvider;
-import android.app.Fragment;
-import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentUris;
-import android.content.Loader;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,7 +22,7 @@ import android.widget.TextView;
 
 /**
  * A fragment representing a single ProcessModel detail screen. This fragment is
- * either contained in a {@link TaskListActivity} in two-pane mode (on
+ * either contained in a {@link TaskListOuterFragment} in two-pane mode (on
  * tablets) or a {@link TaskDetailActivity} on handsets.
  */
 public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, OnClickListener {

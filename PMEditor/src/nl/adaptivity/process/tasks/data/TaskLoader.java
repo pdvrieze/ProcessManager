@@ -1,9 +1,9 @@
 package nl.adaptivity.process.tasks.data;
 
 import nl.adaptivity.process.tasks.UserTask;
-import android.content.AsyncTaskLoader;
 import android.content.Context;
 import android.net.Uri;
+import android.support.v4.content.AsyncTaskLoader;
 
 
 public class TaskLoader extends AsyncTaskLoader<UserTask> {
