@@ -3,6 +3,7 @@ package nl.adaptivity.process.editor.android;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
@@ -15,7 +16,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link ProcessModelDetailFragment}.
  */
-public class ProcessModelDetailActivity extends Activity implements ProcessModelDetailFragment.Callbacks {
+public class ProcessModelDetailActivity extends FragmentActivity implements ProcessModelDetailFragment.Callbacks {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +43,7 @@ public class ProcessModelDetailActivity extends Activity implements ProcessModel
           getIntent().getLongExtra(ProcessModelDetailFragment.ARG_ITEM_ID,-1));
       ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
       fragment.setArguments(arguments);
-      getFragmentManager().beginTransaction()
+      getSupportFragmentManager().beginTransaction()
           .add(R.id.processmodel_detail_container, fragment)
           .commit();
     }

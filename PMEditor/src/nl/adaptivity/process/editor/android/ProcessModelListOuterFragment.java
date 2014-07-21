@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.android.compat.TitleFragment;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -52,14 +53,20 @@ public class ProcessModelListOuterFragment extends TitleFragment implements Proc
       // res/values-sw600dp). If this view is present, then the
       // activity should be in two-pane mode.
       mTwoPane = true;
+    }
+    return result;
+  }
 
+  @Override
+  public void onActivityCreated(Bundle pSavedInstanceState) {
+    super.onActivityCreated(pSavedInstanceState);
+    if (mTwoPane) {
       // In two-pane mode, list items should be given the
       // 'activated' state when touched.
       ((ProcessModelListFragment) getFragmentManager()
           .findFragmentById(R.id.processmodel_list))
           .setActivateOnItemClick(true);
     }
-    return result;
   }
 
 
@@ -89,11 +96,11 @@ public class ProcessModelListOuterFragment extends TitleFragment implements Proc
         arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
         ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
         fragment.setArguments(arguments);
-        getFragmentManager().beginTransaction()
+        getChildFragmentManager().beginTransaction()
             .replace(R.id.processmodel_detail_container, fragment)
             .commit();
       } else {
-        Fragment frag = getFragmentManager().findFragmentById(R.id.processmodel_detail_container);
+        Fragment frag = getChildFragmentManager().findFragmentById(R.id.processmodel_detail_container);
         if (frag!=null) {
           getFragmentManager().beginTransaction()
               .remove(frag)
@@ -113,7 +120,7 @@ public class ProcessModelListOuterFragment extends TitleFragment implements Proc
   }
 
   @Override
-  public CharSequence getTitle() {
-    return getString(R.string.title_processmodel_list);
+  public CharSequence getTitle(Context pContext) {
+    return pContext.getString(R.string.title_processmodel_list);
   }
 }

@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -175,13 +176,39 @@ public class ProcessModelListFragment extends ListFragment implements LoaderCall
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
-
-    // Activities containing this fragment must implement its callbacks.
-    if (!(activity instanceof Callbacks)) {
-      throw new IllegalStateException("Activity must implement fragment's callbacks.");
+    Fragment parent = getParentFragment();
+    while (parent!=null) {
+      if (parent instanceof Callbacks) {
+        mCallbacks = (Callbacks) parent;
+        break;
+      }
+      parent = getParentFragment();
     }
+    if (parent==null) {
 
-    mCallbacks = (Callbacks) activity;
+      // Activities containing this fragment must implement its callbacks.
+      if (!(activity instanceof Callbacks)) {
+//        throw new IllegalStateException("Activity must implement fragment's callbacks.");
+      } else {
+        mCallbacks = (Callbacks) activity;
+      }
+    }
+  }
+
+  @Override
+  public void onActivityCreated(Bundle pSavedInstanceState) {
+    super.onActivityCreated(pSavedInstanceState);
+    if (mCallbacks==null) {
+      Fragment parent = getParentFragment();
+      while (parent!=null) {
+        if (parent instanceof Callbacks) {
+          mCallbacks = (Callbacks) parent;
+          break;
+        }
+        parent = getParentFragment();
+      }
+
+    }
   }
 
   @Override

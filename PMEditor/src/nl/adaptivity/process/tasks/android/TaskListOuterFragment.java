@@ -6,6 +6,7 @@ import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.accounts.Account;
 import android.app.Activity;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -104,7 +105,7 @@ public class TaskListOuterFragment extends TitleFragment implements TaskListFrag
   }
 
   @Override
-  public CharSequence getTitle() {
-    return getString(R.string.title_tasklist);
+  public CharSequence getTitle(Context pContext) {
+    return pContext.getString(R.string.title_tasklist);
   }
 }

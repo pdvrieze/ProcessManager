@@ -22,8 +22,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,8 +50,7 @@ import android.widget.ListView;
  * {@link ProcessModelListFragment.Callbacks} interface to listen for item
  * selections.
  */
-public class ProcessModelListActivity extends Activity
-    implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks, OnItemClickListener {
+public class ProcessModelListActivity extends ActionBarActivity implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks, OnItemClickListener {
 
   private static final class SyncTask extends AsyncTask<String, Object, Account> {
 
@@ -126,7 +127,7 @@ public class ProcessModelListActivity extends Activity
 
       // In two-pane mode, list items should be given the
       // 'activated' state when touched.
-      ((ProcessModelListFragment) getFragmentManager()
+      ((ProcessModelListFragment) getSupportFragmentManager()
           .findFragmentById(R.id.processmodel_list))
           .setActivateOnItemClick(true);
     }
@@ -161,8 +162,8 @@ public class ProcessModelListActivity extends Activity
 
     // Set the drawer toggle as the DrawerListener
     mDrawerLayout.setDrawerListener(mDrawerToggle);
-    getActionBar().setDisplayHomeAsUpEnabled(true);
-    getActionBar().setHomeButtonEnabled(true);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setHomeButtonEnabled(true);
 
     requestSync(this, true);
   }
@@ -215,7 +216,7 @@ public class ProcessModelListActivity extends Activity
         arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
         ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
         fragment.setArguments(arguments);
-        getFragmentManager().beginTransaction()
+        getSupportFragmentManager().beginTransaction()
             .replace(R.id.processmodel_detail_container, fragment)
             .commit();
       } else {

@@ -1,10 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM1;
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM2;
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM3;
-import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +44,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.*;
 import android.view.View.DragShadowBuilder;
@@ -57,8 +53,9 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import static nl.adaptivity.diagram.Drawable.*;
 
-public class PMEditor extends Activity implements OnNodeClickListener, NodeEditListener, PMProvider {
+public class PMEditor extends FragmentActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";
@@ -716,7 +713,7 @@ public class PMEditor extends Activity implements OnNodeClickListener, NodeEditL
     if (aPm == null) {
       aPm = loadInitialProcessModel();
     }
-    getFragmentManager().beginTransaction().add(new PMProcessesFragment(), "processModelHelper").commit();
+    getSupportFragmentManager().beginTransaction().add(new PMProcessesFragment(), "processModelHelper").commit();
   }
 
   /**

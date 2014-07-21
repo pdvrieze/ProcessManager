@@ -72,7 +72,7 @@
       <file leaf-file-name="DiagramAdapter.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramAdapter.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="17" selection-start="126" selection-end="126" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="420">
+            <state line="15" column="17" selection-start="396" selection-end="396" vertical-scroll-proportion="0.0" vertical-offset="225" max-vertical-offset="825">
               <folding />
             </state>
           </provider>
@@ -81,7 +81,7 @@
       <file leaf-file-name="MyDiagramAdapter.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/MyDiagramAdapter.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="83" column="31" selection-start="2911" selection-end="2911" vertical-scroll-proportion="0.0" vertical-offset="450" max-vertical-offset="2100">
+            <state line="127" column="5" selection-start="5462" selection-end="5462" vertical-scroll-proportion="0.0" vertical-offset="1905" max-vertical-offset="3945">
               <folding />
             </state>
           </provider>
@@ -90,7 +90,7 @@
       <file leaf-file-name="AndroidTheme.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidTheme.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="34" selection-start="706" selection-end="706" vertical-scroll-proportion="0.0" vertical-offset="99" max-vertical-offset="600">
+            <state line="32" column="34" selection-start="1207" selection-end="1207" vertical-scroll-proportion="0.0" vertical-offset="480" max-vertical-offset="1545">
               <folding />
             </state>
           </provider>
@@ -99,7 +99,7 @@
       <file leaf-file-name="PMParser.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/PMParser.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="157" column="35" selection-start="5193" selection-end="5193" vertical-scroll-proportion="0.0" vertical-offset="1728" max-vertical-offset="4020">
+            <state line="308" column="7" selection-start="10292" selection-end="10292" vertical-scroll-proportion="0.0" vertical-offset="4620" max-vertical-offset="7935">
               <folding />
             </state>
           </provider>
@@ -108,8 +108,15 @@
       <file leaf-file-name="PMEditor.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/PMEditor.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="562" column="0" selection-start="17809" selection-end="17809" vertical-scroll-proportion="0.4231537" vertical-offset="7363" max-vertical-offset="8535">
-              <folding />
+            <state line="797" column="0" selection-start="26863" selection-end="26863" vertical-scroll-proportion="-1.0046893" vertical-offset="11987" max-vertical-offset="12840">
+              <folding>
+                <element signature="e#4024#4221#0" expanded="true" />
+                <element signature="e#4215#4216#0" expanded="true" />
+                <element signature="e#5741#5913#0" expanded="true" />
+                <element signature="e#5905#5906#0" expanded="true" />
+                <element signature="e#24853#24983#0" expanded="true" />
+                <element signature="e#24975#24976#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -117,7 +124,7 @@
       <file leaf-file-name="DiagramView.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramView.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="268" column="17" selection-start="8261" selection-end="8261" vertical-scroll-proportion="0.0" vertical-offset="3238" max-vertical-offset="8985">
+            <state line="403" column="17" selection-start="12467" selection-end="12467" vertical-scroll-proportion="0.0" vertical-offset="6045" max-vertical-offset="14115">
               <folding />
             </state>
           </provider>
@@ -126,7 +133,7 @@
       <file leaf-file-name="AndroidCanvas.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidCanvas.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="132" column="34" selection-start="4428" selection-end="4428" vertical-scroll-proportion="0.0" vertical-offset="1678" max-vertical-offset="3765">
+            <state line="167" column="34" selection-start="5410" selection-end="5410" vertical-scroll-proportion="0.0" vertical-offset="2505" max-vertical-offset="5715">
               <folding />
             </state>
           </provider>
@@ -135,7 +142,7 @@
       <file leaf-file-name="Compat12.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/android/compat/Compat12.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="6" selection-start="131" selection-end="131" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="285">
+            <state line="6" column="6" selection-start="131" selection-end="131" vertical-scroll-proportion="0.0" vertical-offset="90" max-vertical-offset="300">
               <folding />
             </state>
           </provider>
@@ -678,19 +685,6 @@
       <option name="PORT" value="5005" />
       <method />
     </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <method />
-    </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <module name="" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
@@ -716,6 +710,19 @@
       <envs />
       <properties />
       <listeners />
+      <method />
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method />
     </configuration>
     <configuration default="true" type="Application" factoryName="Application">
@@ -817,7 +824,6 @@
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -831,12 +837,13 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="true" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -851,65 +858,126 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramAdapter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="17" selection-start="126" selection-end="126" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="420">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/MyDiagramAdapter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="83" column="31" selection-start="2911" selection-end="2911" vertical-scroll-proportion="0.0" vertical-offset="450" max-vertical-offset="2100">
+        <state line="83" column="31" selection-start="2911" selection-end="2911" vertical-scroll-proportion="0.0" vertical-offset="1245" max-vertical-offset="2400">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidTheme.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="34" selection-start="706" selection-end="706" vertical-scroll-proportion="0.0" vertical-offset="99" max-vertical-offset="600">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="58" selection-start="900" selection-end="900" vertical-scroll-proportion="1.1676646" vertical-offset="0" max-vertical-offset="870">
+        <state line="22" column="34" selection-start="706" selection-end="706" vertical-scroll-proportion="0.0" vertical-offset="330" max-vertical-offset="630">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/PMParser.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="157" column="35" selection-start="5193" selection-end="5193" vertical-scroll-proportion="0.0" vertical-offset="1728" max-vertical-offset="4020">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidCanvas.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="132" column="34" selection-start="4428" selection-end="4428" vertical-scroll-proportion="0.0" vertical-offset="1678" max-vertical-offset="3765">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/android/compat/Compat12.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="6" selection-start="131" selection-end="131" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="285">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramView.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="268" column="17" selection-start="8261" selection-end="8261" vertical-scroll-proportion="0.0" vertical-offset="3238" max-vertical-offset="8985">
+        <state line="157" column="35" selection-start="5193" selection-end="5193" vertical-scroll-proportion="0.0" vertical-offset="2355" max-vertical-offset="4485">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/PMEditor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="562" column="0" selection-start="17809" selection-end="17809" vertical-scroll-proportion="0.4231537" vertical-offset="7363" max-vertical-offset="8535">
+        <state line="562" column="0" selection-start="17809" selection-end="17809" vertical-scroll-proportion="0.0" vertical-offset="8430" max-vertical-offset="8790">
+          <folding>
+            <element signature="e#4024#4221#0" expanded="true" />
+            <element signature="e#4215#4216#0" expanded="true" />
+            <element signature="e#5741#5913#0" expanded="true" />
+            <element signature="e#5905#5906#0" expanded="true" />
+            <element signature="e#24853#24983#0" expanded="true" />
+            <element signature="e#24975#24976#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramView.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="268" column="17" selection-start="8261" selection-end="8261" vertical-scroll-proportion="0.0" vertical-offset="4020" max-vertical-offset="9600">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidCanvas.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="132" column="34" selection-start="4428" selection-end="4428" vertical-scroll-proportion="0.0" vertical-offset="1980" max-vertical-offset="3960">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/android/compat/Compat12.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="6" selection-start="131" selection-end="131" vertical-scroll-proportion="0.0" vertical-offset="90" max-vertical-offset="300">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="17" selection-start="396" selection-end="396" vertical-scroll-proportion="0.0" vertical-offset="225" max-vertical-offset="825">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/MyDiagramAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="127" column="5" selection-start="5462" selection-end="5462" vertical-scroll-proportion="0.0" vertical-offset="1905" max-vertical-offset="3945">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidTheme.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="32" column="34" selection-start="1207" selection-end="1207" vertical-scroll-proportion="0.0" vertical-offset="480" max-vertical-offset="1545">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="39" column="58" selection-start="900" selection-end="900" vertical-scroll-proportion="1.1676646" vertical-offset="0" max-vertical-offset="870" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/PMParser.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="308" column="7" selection-start="10292" selection-end="10292" vertical-scroll-proportion="0.0" vertical-offset="4620" max-vertical-offset="7935">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/AndroidCanvas.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="167" column="34" selection-start="5410" selection-end="5410" vertical-scroll-proportion="0.0" vertical-offset="2505" max-vertical-offset="5715">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/diagram/android/DiagramView.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="403" column="17" selection-start="12467" selection-end="12467" vertical-scroll-proportion="0.0" vertical-offset="6045" max-vertical-offset="14115">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/process/editor/android/PMEditor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="797" column="0" selection-start="26863" selection-end="26863" vertical-scroll-proportion="-1.0046893" vertical-offset="11987" max-vertical-offset="12840">
+          <folding>
+            <element signature="e#4024#4221#0" expanded="true" />
+            <element signature="e#4215#4216#0" expanded="true" />
+            <element signature="e#5741#5913#0" expanded="true" />
+            <element signature="e#5905#5906#0" expanded="true" />
+            <element signature="e#24853#24983#0" expanded="true" />
+            <element signature="e#24975#24976#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/nl/adaptivity/android/compat/Compat12.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="6" selection-start="131" selection-end="131" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="285">
           <folding />
         </state>
       </provider>

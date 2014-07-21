@@ -25,9 +25,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -42,24 +42,24 @@ import android.widget.TextView;
 /**
  * The main activity that contains the navigation drawer.
  */
-public class MainActivity extends FragmentActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks {
+public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks {
 
   private static final class DrawerAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
+    private final TitleFragment mItems[] = new TitleFragment[] {
+       new TaskListOuterFragment(),
+       new ProcessModelListOuterFragment(),
+    };
 
     @Override
     public TitleFragment getItem(int pPosition) {
-      switch (pPosition) {
-      case 0:
-        return new TaskListOuterFragment();
-      }
-      return null;
+      return mItems[pPosition];
     }
 
     @Override
     public int getCount() {
-      return 1;
+      return mItems.length;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
       } else {
         result = (TextView) pConvertView;
       }
-      result.setText(getItem(pPosition).getTitle());
+      result.setText(getItem(pPosition).getTitle(pParent.getContext()));
       return result;
     }
 
@@ -167,7 +167,7 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
       @Override
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
-        CharSequence title = getActiveFragment().getTitle();
+        CharSequence title = getActiveFragment().getTitle(MainActivity.this);
         getActionBar().setTitle(title);
         invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
       }
@@ -183,8 +183,8 @@ public class MainActivity extends FragmentActivity implements OnItemClickListene
 
     // Set the drawer toggle as the DrawerListener
     mDrawerLayout.setDrawerListener(mDrawerToggle);
-    getActionBar().setDisplayHomeAsUpEnabled(true);
-    getActionBar().setHomeButtonEnabled(true);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setHomeButtonEnabled(true);
   }
 
   protected TitleFragment getActiveFragment() {
