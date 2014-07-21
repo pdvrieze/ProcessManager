@@ -13,9 +13,11 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
 import android.widget.RadioGroup;
@@ -58,7 +60,17 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   public Dialog onCreateDialog(Bundle pSavedInstanceState) {
     mPos = getArguments().getInt(NODE_POS,-1);
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-    View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, null);
+    builder.setTitle("Edit node")
+    .setCancelable(true)
+//    .setView(myDialogView)
+    .setPositiveButton(android.R.string.ok, this)
+    .setNegativeButton(android.R.string.cancel, this);
+
+    final AlertDialog dialog = builder.create();
+    FrameLayout container = (FrameLayout) dialog.findViewById(android.R.id.custom);
+
+    View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, container, false);
+    container.addView(myDialogView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
     mNpMin = (NumberPicker) myDialogView.findViewById(R.id.np_min);
     mNpMax = (NumberPicker) myDialogView.findViewById(R.id.np_max);
@@ -102,13 +114,6 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
         mVgMinMax.setVisibility(View.GONE);
       }
     }
-    builder.setTitle("Edit node")
-           .setCancelable(true)
-           .setView(myDialogView)
-           .setPositiveButton(android.R.string.ok, this)
-           .setNegativeButton(android.R.string.cancel, this);
-
-    final AlertDialog dialog = builder.create();
     if (mEtLabel.getVisibility()!=View.VISIBLE) {
       // Don't display the keyboard initially if we can't edit the label
       dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED);
