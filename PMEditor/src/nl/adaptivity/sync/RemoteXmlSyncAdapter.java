@@ -317,7 +317,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
     {
       String authbase = AuthenticatedWebClient.getAuthBase(mBase);
-      mHttpClient = new AuthenticatedWebClient(getContext(), authbase);
+      mHttpClient = new AuthenticatedWebClient(getContext(), pAccount, authbase);
     }
 
     for(Phases phase:Phases.values()) {

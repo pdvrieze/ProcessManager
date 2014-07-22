@@ -1,19 +1,15 @@
 package nl.adaptivity.process.tasks.android;
 
+import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -37,7 +33,7 @@ import android.widget.TextView;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cursor> {
+public class TaskListFragment extends MasterListFragment implements LoaderCallbacks<Cursor> {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -48,12 +44,6 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   private static final int TASKLISTLOADERID = 3;
 
   private static final String TAG = TaskListFragment.class.getSimpleName();
-
-  /**
-   * The fragment's current callback object, which is notified of list item
-   * clicks.
-   */
-  private Callbacks mCallbacks = sDummyCallbacks;
 
   /**
    * The current activated item position. Only used on tablets.
@@ -108,27 +98,14 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
     }
   }
 
-  /**
-   * A callback interface that all activities containing this fragment must
-   * implement. This mechanism allows activities to be notified of item
-   * selections.
-   */
-  public interface Callbacks {
-
-    /**
-     * Callback for when an item has been selected.
-     */
-    public void onItemSelected(long pProcessModelRowId);
-  }
-
-  /**
+   /**
    * A dummy implementation of the {@link Callbacks} interface that does
    * nothing. Used only when this fragment is not attached to an activity.
    */
   private static Callbacks sDummyCallbacks = new Callbacks() {
 
     @Override
-    public void onItemSelected(long pTaskRowId) {/*dummy*/}
+    public void onItemSelected(int pRow, long pId) {/*dummy*/}
   };
 
   private TaskCursorAdapter mAdapter;
@@ -162,40 +139,13 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
   }
 
   @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-
-    Fragment parentFragment = getParentFragment();
-    while (parentFragment!=null) {
-      if (parentFragment instanceof Callbacks) {
-        mCallbacks = (Callbacks) parentFragment;
-        break;
-      }
-      parentFragment = parentFragment.getParentFragment();
-    }
-    if (parentFragment==null && (!(activity instanceof Callbacks))) {
-      throw new IllegalStateException("Activity or parent must implement fragment's callbacks.");
-    } else {
-      mCallbacks = (Callbacks) activity;
-    }
-  }
-
-  @Override
-  public void onDetach() {
-    super.onDetach();
-
-    // Reset the active callbacks interface to the dummy implementation.
-    mCallbacks = sDummyCallbacks;
-  }
-
-  @Override
   public void onListItemClick(ListView listView, View view, int position, long id) {
     super.onListItemClick(listView, view, position, id);
 
     long modelid = mAdapter.getItemId(position);
     // Notify the active callbacks interface (the activity, if the
     // fragment is attached to one) that an item has been selected.
-    mCallbacks.onItemSelected(modelid);
+    doOnItemSelected(position, modelid);
   }
 
   @Override
@@ -205,18 +155,6 @@ public class TaskListFragment extends ListFragment implements LoaderCallbacks<Cu
       // Serialise and persist the activated item position.
       outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
     }
-  }
-
-  /**
-   * Turns on activate-on-click mode. When this mode is on, list items will be
-   * given the 'activated' state when touched.
-   */
-  public void setActivateOnItemClick(boolean activateOnItemClick) {
-    // When setting CHOICE_MODE_SINGLE, ListView will automatically
-    // give items the 'activated' state when touched.
-    getListView().setChoiceMode(activateOnItemClick
-        ? ListView.CHOICE_MODE_SINGLE
-        : ListView.CHOICE_MODE_NONE);
   }
 
   private void setActivatedPosition(int position) {

@@ -16,10 +16,7 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link TaskDetailFragment}.
  *
- * @deprecated Not needed as this is never the actual activity. The only
- *             activity is the MainActivity.
  */
-@Deprecated
 public class TaskDetailActivity extends FragmentActivity {
 
   @Override

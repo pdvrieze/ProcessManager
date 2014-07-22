@@ -3,6 +3,7 @@
     android:id="@+id/modellist_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?android:attr/activatedBackgroundIndicator"
     android:minHeight="?android:attr/listPreferredItemHeight"
     android:orientation="vertical" >
 

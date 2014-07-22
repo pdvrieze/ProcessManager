@@ -44,7 +44,9 @@ import android.widget.TextView;
  */
 public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks {
 
-  private static final class DrawerAdapter extends BaseAdapter {
+  private static final String TAG = MainActivity.class.getSimpleName();
+
+  static final class DrawerAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
     private final TitleFragment mItems[] = new TitleFragment[] {
@@ -111,7 +113,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
           try {
             pFuture.getResult();
           } catch (OperationCanceledException | AuthenticatorException | IOException e) {
-            Log.e(ProcessModelListActivity.class.getSimpleName(), "Failure to get auth token", e);
+            Log.e(TAG, "Failure to get auth token", e);
           }
         }};
       if (mContext instanceof Activity) {
@@ -224,10 +226,22 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     return super.onOptionsItemSelected(item);
   }
 
+  // Handles the drawer click
   @Override
   public void onItemClick(AdapterView<?> pParent, View pView, int pPosition, long pId) {
-    // TODO Auto-generated method stub
+//    int oldPos = mDrawerList.getCheckedItemPosition();
+//    if (oldPos!=ListView.INVALID_POSITION) {
+//      mDrawerList.setItemChecked(oldPos, false);
+//    }
 
+    // TODO, ignore staying on same item
+    TitleFragment newFragment = mDrawerAdapter.getItem(pPosition);
+    getSupportFragmentManager()
+        .beginTransaction()
+        .replace(R.id.fragment_main_content, newFragment)
+        .commit();
+    mDrawerList.setItemChecked(pPosition, true);
+    mDrawerLayout.closeDrawer(mDrawerList);
   }
 
   @Override
@@ -242,6 +256,14 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
 
   public void requestSync(final String authority, boolean pExpedited) {
     requestSync(mAccount, authority, pExpedited);
+  }
+
+  public static void requestSyncProcessModelList(Account account, boolean pExpedited) {
+    requestSync(account, ProcessModelProvider.AUTHORITY, pExpedited);
+  }
+
+  public static void requestSyncTaskList(Account account, boolean pExpedited) {
+    requestSync(account, TaskProvider.AUTHORITY, pExpedited);
   }
 
   private static void requestSync(Account account, final String authority, boolean pExpedited) {

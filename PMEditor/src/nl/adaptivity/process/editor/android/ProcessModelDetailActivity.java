@@ -1,6 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -60,7 +59,7 @@ public class ProcessModelDetailActivity extends FragmentActivity implements Proc
       //
       // http://developer.android.com/design/patterns/navigation.html#up-vs-back
       //
-      NavUtils.navigateUpTo(this, new Intent(this, ProcessModelListActivity.class));
+      NavUtils.navigateUpTo(this, new Intent(this, MainActivity.class));
       return true;
     }
     return super.onOptionsItemSelected(item);

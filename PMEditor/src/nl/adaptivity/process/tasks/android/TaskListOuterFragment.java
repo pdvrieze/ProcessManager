@@ -1,16 +1,13 @@
 package nl.adaptivity.process.tasks.android;
 
-import nl.adaptivity.android.compat.TitleFragment;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
+import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.editor.android.ProcessModelDetailFragment;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.tasks.data.TaskProvider;
-import android.accounts.Account;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 /**
  * An activity representing a list of ProcessModels. This activity has different
@@ -28,13 +25,19 @@ import android.view.ViewGroup;
  * {@link TaskListFragment.Callbacks} interface to listen for item
  * selections.
  */
-public class TaskListOuterFragment extends TitleFragment implements TaskListFragment.Callbacks {
+public class TaskListOuterFragment extends MasterDetailOuterFragment {
 
 
   public interface TaskListCallbacks {
 
     void requestSyncTaskList(boolean pImmediate);
 
+  }
+
+
+
+  public TaskListOuterFragment() {
+    super(R.layout.outer_task_list, R.id.task_list, R.id.task_detail_container);
   }
 
   /**
@@ -45,22 +48,24 @@ public class TaskListOuterFragment extends TitleFragment implements TaskListFrag
   private TaskListCallbacks mCallbacks;
 
   @Override
-  public View onCreateView(LayoutInflater pInflater, ViewGroup pContainer, Bundle pSavedInstanceState) {
-    View view = pInflater.inflate(R.layout.activity_task_list, pContainer, false);
-    if (view.findViewById(R.id.task_detail_container) != null) {
-      // The detail container view will be present only in the
-      // large-screen layouts (res/values-large and
-      // res/values-sw600dp). If this view is present, then the
-      // activity should be in two-pane mode.
-      mTwoPane = true;
+  protected MasterListFragment createListFragment() {
+    return new TaskListFragment();
+  }
 
-      // In two-pane mode, list items should be given the
-      // 'activated' state when touched.
-      ((TaskListFragment) getChildFragmentManager()
-          .findFragmentById(R.id.task_list))
-          .setActivateOnItemClick(true);
-    }
-    return view;
+  @Override
+  protected ProcessModelDetailFragment createDetailFragment(int pRow, long pItemId) {
+    ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
+    Bundle arguments = new Bundle();
+    arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, pItemId);
+    fragment.setArguments(arguments);
+    return fragment;
+  }
+
+  @Override
+  protected Intent getDetailIntent(int pRow, long pItemId) {
+    Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
+    intent.putExtra(TaskDetailFragment.ARG_ITEM_ID, pItemId);
+    return intent;
   }
 
   @Override
@@ -70,38 +75,6 @@ public class TaskListOuterFragment extends TitleFragment implements TaskListFrag
       mCallbacks = (TaskListCallbacks) pActivity;
       mCallbacks.requestSyncTaskList(true); // request immediate sync
     }
-  }
-
-
-
-  /**
-   * Callback method from {@link TaskListFragment.Callbacks} indicating
-   * that the item with the given ID was selected.
-   */
-  @Override
-  public void onItemSelected(long pProcessModelRowId) {
-    Bundle arguments = new Bundle();
-    arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
-    TaskDetailFragment fragment = new TaskDetailFragment();
-    fragment.setArguments(arguments);
-    if (mTwoPane) {
-      // In two-pane mode, show the detail in the detail pane
-      getChildFragmentManager().beginTransaction()
-          .replace(R.id.processmodel_detail_container, fragment)
-          .commit();
-
-    } else {
-      // In single pane mode replace the main content
-      getFragmentManager().beginTransaction()
-          .replace(R.id.fragment_main_content, fragment)
-          .commit();
-    }
-  }
-
-  public static void requestSync(Account account) {
-    Bundle extras = new Bundle(1);
-    extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-    ContentResolver.requestSync(account, TaskProvider.AUTHORITY, extras );
   }
 
   @Override

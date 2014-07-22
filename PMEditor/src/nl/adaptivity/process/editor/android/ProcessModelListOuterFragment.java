@@ -1,14 +1,11 @@
 package nl.adaptivity.process.editor.android;
 
-import nl.adaptivity.android.compat.TitleFragment;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 /**
  * An activity representing a list of ProcessModels. This activity has different
@@ -26,12 +23,17 @@ import android.view.ViewGroup;
  * {@link ProcessModelListFragment.Callbacks} interface to listen for item
  * selections.
  */
-public class ProcessModelListOuterFragment extends TitleFragment implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
+public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
 
   public interface ProcessModelListCallbacks {
 
     void requestSyncProcessModelList(boolean pImmediate);
 
+  }
+
+
+  public ProcessModelListOuterFragment() {
+    super(R.layout.outer_processmodel_list, R.id.processmodel_list_container, R.id.processmodel_detail_container);
   }
 
   /**
@@ -42,35 +44,10 @@ public class ProcessModelListOuterFragment extends TitleFragment implements Proc
 
   private ProcessModelListCallbacks mCallbacks;
 
-
-
   @Override
-  public View onCreateView(LayoutInflater pInflater, ViewGroup pContainer, Bundle pSavedInstanceState) {
-    View result = pInflater.inflate(R.layout.activity_processmodel_list, pContainer, false);
-    if (result.findViewById(R.id.processmodel_detail_container) != null) {
-      // The detail container view will be present only in the
-      // large-screen layouts (res/values-large and
-      // res/values-sw600dp). If this view is present, then the
-      // activity should be in two-pane mode.
-      mTwoPane = true;
-    }
-    return result;
+  protected ProcessModelListFragment createListFragment() {
+    return new ProcessModelListFragment();
   }
-
-  @Override
-  public void onActivityCreated(Bundle pSavedInstanceState) {
-    super.onActivityCreated(pSavedInstanceState);
-    if (mTwoPane) {
-      // In two-pane mode, list items should be given the
-      // 'activated' state when touched.
-      ((ProcessModelListFragment) getFragmentManager()
-          .findFragmentById(R.id.processmodel_list))
-          .setActivateOnItemClick(true);
-    }
-  }
-
-
-
 
   @Override
   public void onAttach(Activity pActivity) {
@@ -117,6 +94,22 @@ public class ProcessModelListOuterFragment extends TitleFragment implements Proc
         startActivity(detailIntent);
       }
     }
+  }
+
+  @Override
+  protected ProcessModelDetailFragment createDetailFragment(int pRow, long pItemId) {
+    ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
+    Bundle arguments = new Bundle();
+    arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pItemId);
+    fragment.setArguments(arguments);
+    return fragment;
+  }
+
+  @Override
+  protected Intent getDetailIntent(int pRow, long pItemId) {
+    Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
+    detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pItemId);
+    return detailIntent;
   }
 
   @Override
