@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.devrieze.util.security.PermissionDeniedException;
+import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
@@ -132,6 +133,8 @@ public class EndpointServlet extends HttpServlet {
             throw e;
           }
         }
+      } catch (HttpResponseException e) {
+        pResponse.sendError(e.getResponseCode(), e.getMessage());
       } catch (final PermissionDeniedException e) {
         pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
         return;
