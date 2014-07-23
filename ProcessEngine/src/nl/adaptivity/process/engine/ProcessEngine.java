@@ -234,7 +234,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    */
   public HProcessInstance startProcess(final Principal pUser, final ProcessModelImpl pModel, final String pName, final Node pPayload) {
     if (pUser == null) {
-      throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous processes are not allowed");
+      throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
     aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
     final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, this);
