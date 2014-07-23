@@ -1,16 +1,16 @@
-<android.support.v4.widget.DrawerLayout
-	xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
-	android:id="@+id/drawer_main" android:layout_width="match_parent"
-	android:layout_height="match_parent">
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
 
-	<fragment android:id="@+id/fragment_main_content"
-		android:name="nl.adaptivity.process.editor.android.ProcessModelListOuterFragment"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		tools:context="nl.adaptivity.process.editor.android.MainActivity"
-		tools:layout="@android:layout/list_content" />
-	<!-- android:name="nl.adaptivity.process.editor.android.ProcessModelListOuterFragment" -->
+    <FrameLayout
+        android:id="@+id/fragment_main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="nl.adaptivity.process.editor.android.MainActivity" />
+    <!-- android:name="nl.adaptivity.process.editor.android.ProcessModelListOuterFragment" -->
 
-	<include layout="@layout/slider_main" />
+    <include layout="@layout/slider_main" />
 
 </android.support.v4.widget.DrawerLayout>

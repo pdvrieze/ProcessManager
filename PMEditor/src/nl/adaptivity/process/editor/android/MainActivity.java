@@ -187,6 +187,12 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     mDrawerLayout.setDrawerListener(mDrawerToggle);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
+
+    showDrawerItem(getInitialDrawerItem());
+  }
+
+  private int getInitialDrawerItem() {
+    return 1;
   }
 
   protected TitleFragment getActiveFragment() {
@@ -235,13 +241,17 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
 //    }
 
     // TODO, ignore staying on same item
+    showDrawerItem(pPosition);
+    mDrawerLayout.closeDrawer(mDrawerList);
+  }
+
+  protected void showDrawerItem(int pPosition) {
     TitleFragment newFragment = mDrawerAdapter.getItem(pPosition);
     getSupportFragmentManager()
         .beginTransaction()
         .replace(R.id.fragment_main_content, newFragment)
         .commit();
     mDrawerList.setItemChecked(pPosition, true);
-    mDrawerLayout.closeDrawer(mDrawerList);
   }
 
   @Override
