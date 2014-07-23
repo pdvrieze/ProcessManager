@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
 
 public abstract class MasterDetailOuterFragment extends TitleFragment implements MasterListFragment.Callbacks {
@@ -21,6 +23,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   private int mListContainerId;
   private int mDetailContainerId;
   private boolean mTwoPane;
+  private MasterListFragment mListFragment;
 
   public MasterDetailOuterFragment(int pLayoutId, int pListContainerId, int pDetailContainerId) {
     mLayoutId = pLayoutId;
@@ -37,24 +40,21 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
 
     Fragment existingFragment = getChildFragmentManager().findFragmentById(mListContainerId);
     if (existingFragment==null) {
-      ListFragment newFragment = createListFragment();
+      mListFragment = createListFragment();
       getChildFragmentManager().beginTransaction()
-                               .replace(mListContainerId, newFragment)
+                               .replace(mListContainerId, mListFragment)
                                .commit();
+    } else {
+      mListFragment = (MasterListFragment) existingFragment;
     }
 
     return result;
   }
 
   @Override
-  public void onActivityCreated(Bundle pSavedInstanceState) {
-    super.onActivityCreated(pSavedInstanceState);
-    Fragment existingFragment = getChildFragmentManager().findFragmentById(mListContainerId);
-    if (existingFragment!=null && mTwoPane) {
-      ((ListFragment) existingFragment).getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-    }
+  public boolean isTwoPane() {
+    return mTwoPane;
   }
-
 
   /**
    * Callback method from {@link ProcessModelListFragment.Callbacks} indicating
@@ -63,7 +63,17 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   @Override
   public void onItemSelected(int pRow, long pItemId) {
     if (mTwoPane) {
+      final ListView listView = mListFragment.getListView();
+      {
+        int oldCheckedItem = listView.getCheckedItemPosition();
+        if (oldCheckedItem!=AdapterView.INVALID_POSITION) {
+          listView.setItemChecked(oldCheckedItem, false);
+        }
+      }
       if (pItemId>=0) {
+        if (pRow!=AdapterView.INVALID_POSITION) {
+          listView.setItemChecked(pRow, true);
+        }
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.

@@ -4,12 +4,20 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
+import android.widget.AbsListView;
+import android.widget.ListView;
 
 
 public class MasterListFragment extends ListFragment {
 
+  public MasterListFragment() {
+    Log.i(MasterListFragment.class.getSimpleName(), "Creating a new instanceo of "+getClass().getSimpleName());
+  }
+
   public interface Callbacks {
     public void onItemSelected(int pRow, long pId);
+    public boolean isTwoPane();
   }
 
   /**
@@ -19,6 +27,11 @@ public class MasterListFragment extends ListFragment {
   public static Callbacks sDummyCallbacks = new Callbacks() {
     @Override
     public void onItemSelected(int pRow, long pId) {/*dummy*/}
+
+    @Override
+    public boolean isTwoPane() {
+      return false;
+    }
   };
 
   /**
@@ -31,6 +44,9 @@ public class MasterListFragment extends ListFragment {
   public void onActivityCreated(Bundle pSavedInstanceState) {
     super.onActivityCreated(pSavedInstanceState);
     getCallbacks();
+    if (mCallbacks.isTwoPane()) {
+      getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
+    }
   }
 
   @Override
