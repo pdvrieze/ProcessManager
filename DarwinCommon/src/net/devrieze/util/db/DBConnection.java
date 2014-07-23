@@ -1,5 +1,7 @@
 package net.devrieze.util.db;
 
+import static net.devrieze.util.Annotations.notNull;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,8 +18,6 @@ import java.util.logging.Logger;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-
-import static net.devrieze.util.Annotations.*;
 
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
@@ -689,6 +689,21 @@ public class DBConnection implements AutoCloseable{
    */
   public void setStringCache(@NotNull final StringCache pStringCache) {
     aStringCache = pStringCache;
+  }
+
+  @Deprecated
+  public static DBConnection getDbHelper(String pDbresource, Object pKey) {
+    return newInstance(pDbresource);
+  }
+
+  public static DBConnection newInstance(String pDbresource) {
+    try {
+      final InitialContext initialContext = new InitialContext();
+      return new DBConnection(new DataSourceWrapper((DataSource)notNull(Objects.requireNonNull(initialContext.lookup(pDbresource)))));
+    } catch (SQLException | NamingException e) {
+      logException("Failure to get database connection", e);
+      return null;
+    }
   }
 
 }

@@ -19,12 +19,14 @@ import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import static net.devrieze.util.Annotations.*;
-
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.CompoundException;
 import net.devrieze.util.StringCache;
+import net.devrieze.util.db.DBConnection.DBInsert;
+import net.devrieze.util.db.DBConnection.DBQuery;
 //import net.devrieze.util.StringCacheImpl;
+import net.devrieze.util.db.DBConnection.DBStatement;
 
 /**
  *
@@ -54,32 +56,6 @@ public class DBHelper implements AutoCloseable{
       aConnectionMap = CACHE ? new ConcurrentHashMap<Object, Connection>(5) : null;
     }
   }
-
-
-  public interface DBStatement extends AutoCloseable {
-
-    @NotNull
-    DBStatement addParam(int pColumn, String pValue);
-
-    @NotNull
-    DBStatement addParam(int pColumn, int pValue);
-
-    @NotNull
-    DBStatement addParam(int pColumn, long pValue);
-
-    boolean exec();
-
-    boolean execCommit();
-
-    @Override
-    void close();
-
-    void closeHelper();
-
-    @NotNull
-    StringCache getStringCache();
-  }
-
 
   private class DBStatementImpl implements DBStatement {
 
@@ -294,33 +270,7 @@ public class DBHelper implements AutoCloseable{
 
   }
 
-
-  public interface DBQuery extends DBStatement {
-
-    @Override
-    DBQuery addParam(int pColumn, String pValue);
-
-    @Override
-    DBQuery addParam(int pColumn, int pValue);
-
-    @Override
-    DBQuery addParam(int pColumn, long pValue);
-
-    boolean execQueryEmpty();
-
-    boolean execQueryNotEmpty();
-
-    /** Execute the query and get the result set. */
-    ResultSet execQuery();
-
-    /** Execute the query and return the integer value */
-    Integer intQuery();
-
-    /** Execute the query and return the long value */
-    Long longQuery();
-  }
-
-  public class DBQueryImpl extends DBStatementImpl implements DBQuery {
+  private class DBQueryImpl extends DBStatementImpl implements DBQuery {
     List<ResultSet> aResultSets;
 
     public DBQueryImpl() {
@@ -487,13 +437,6 @@ public class DBHelper implements AutoCloseable{
       }
       super.close();
     }
-
-  }
-
-  public interface DBInsert extends DBStatement {
-
-    @Override
-    DBInsert addParam(int pColumn, String pValue);
 
   }
 
