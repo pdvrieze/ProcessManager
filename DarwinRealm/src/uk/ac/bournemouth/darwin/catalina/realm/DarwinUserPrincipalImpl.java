@@ -1,32 +1,30 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
 import java.security.Principal;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.catalina.Realm;
-
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
 import net.devrieze.util.StringCache;
-import net.devrieze.util.db.DBConnection.DBHelper;
-import net.devrieze.util.db.DBConnection.DBQuery;
 import net.devrieze.util.db.DBConnection;
+import net.devrieze.util.db.DBConnection.DBQuery;
 import net.devrieze.util.db.StringAdapter;
+
+import org.apache.catalina.Realm;
 
 
 public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements DarwinUserPrincipal {
 
   private static final String DOMAIN = "bournemouth.ac.uk";
 
-  private final DBHelper aDbHelper;
+  private final DBConnection aDbConnection;
 
-  public DarwinUserPrincipalImpl(final DBHelper dbHelper, final Realm pRealm, final String pName) {
+  public DarwinUserPrincipalImpl(final DBConnection dbHelper, final Realm pRealm, final String pName) {
     super(pRealm, pName);
-    aDbHelper = dbHelper;
+    aDbConnection = dbHelper;
   }
 
   @SuppressWarnings("null")
@@ -41,11 +39,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   @Override
   @NotNull
   public synchronized Set<? extends String> getRolesSet() {
-    try {
-      refreshIfNeeded();
-    } catch (SQLException e) {
-      return Collections.emptySet();
-    }
+    refreshIfNeeded();
     return Collections.unmodifiableSet(new HashSet<>(aRoles));
   }
 
@@ -55,11 +49,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   public String[] getRoles() {
     Set<? extends String> lroles;
     synchronized (this) {
-      try {
-        refreshIfNeeded();
-      } catch (SQLException e) {
-        return new String[0];
-      }
+      refreshIfNeeded();
       lroles = aRoles;
       if (roles == null) {
         roles = lroles.toArray(new String[lroles.size()]);
@@ -69,12 +59,11 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     return roles;
   }
 
-  private synchronized void refreshIfNeeded() throws SQLException {
+  private synchronized void refreshIfNeeded() {
     if ((!(aRoles instanceof HashSet)) || needsRefresh()) {
       aRoles = new HashSet<>();
       roles = null;
-      try(final DBConnection db = aDbHelper.getConnection();
-          final DBQuery query = db.makeQuery("SELECT role FROM user_roles WHERE user=?")) {
+      try(final DBQuery query = aDbConnection.makeQuery("SELECT role FROM user_roles WHERE user=?")) {
         query.addParam(1, getName());
         try (final StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true)){
           for (final String role : queryResult.all()) {
@@ -82,7 +71,6 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
           }
         }
       }
-      markRefresh();
     }
   }
 
@@ -94,11 +82,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     if (pRole == null) {
       return false;
     }
-    try {
-      refreshIfNeeded();
-    } catch (SQLException e) {
-      return false;
-    }
+    refreshIfNeeded();
     return aRoles.contains(pRole);
   }
 
@@ -114,9 +98,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   public String toString() {
     final StringBuilder result = new StringBuilder();
     result.append("DarwinUserPrincipal[").append(getName());
-    if (needsRefresh()) {
-      result.append("stale|");
-    }
+    refreshIfNeeded();
     char sep = '(';
     for (final String role : aRoles) {
       result.append(sep).append(role);
@@ -148,7 +130,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   @Override
   public synchronized Principal cacheStrings(final StringCache pStringCache) {
     name = pStringCache.lookup(this.name);
-    aDbHelper.setStringCache(pStringCache);
+    aDbConnection.setStringCache(pStringCache);
 
     // Instead of resetting the roles holder, just update the set to prevent database
     // roundtrips.

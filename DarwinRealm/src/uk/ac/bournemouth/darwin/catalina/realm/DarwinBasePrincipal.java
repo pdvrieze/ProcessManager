@@ -21,7 +21,7 @@ public abstract class DarwinBasePrincipal extends GenericPrincipal implements Da
    * Attribute to record when we last checked the database. By default very far
    * in the past so that we will certainly need to check.
    */
-  private long aLastChecked = Long.MIN_VALUE;
+  private final long aLastChecked = Long.MIN_VALUE;
 
 
   /**
@@ -40,14 +40,6 @@ public abstract class DarwinBasePrincipal extends GenericPrincipal implements Da
   protected boolean needsRefresh() {
     final long now = System.currentTimeMillis();
     return now < (aLastChecked + MAX_CACHE);
-  }
-
-  protected void invalidateRefresh() {
-    aLastChecked = Long.MIN_VALUE;
-  }
-
-  protected void markRefresh() {
-    aLastChecked = System.currentTimeMillis();
   }
 
 }

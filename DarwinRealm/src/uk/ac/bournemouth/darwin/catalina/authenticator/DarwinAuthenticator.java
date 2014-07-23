@@ -6,12 +6,17 @@ import java.security.Principal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+
+import net.devrieze.annotations.NotNull;
+import net.devrieze.annotations.Nullable;
+import net.devrieze.util.db.DBConnection.DBQuery;
+import net.devrieze.util.db.DBConnection;
+import net.devrieze.util.db.StringAdapter;
 
 import org.apache.catalina.Authenticator;
 import org.apache.catalina.Container;
@@ -30,13 +35,6 @@ import org.apache.catalina.valves.ValveBase;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
 import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
-
-import net.devrieze.annotations.NotNull;
-import net.devrieze.annotations.Nullable;
-import net.devrieze.util.db.DBConnection;
-import net.devrieze.util.db.DBConnection.DBHelper;
-import net.devrieze.util.db.DBConnection.DBQuery;
-import net.devrieze.util.db.StringAdapter;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
@@ -67,7 +65,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
 
   @Nullable
-  private DBHelper aDb;
+  private DBConnection aDb;
 
   @Nullable
   private Context aContext;
@@ -112,6 +110,11 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   public void stop() throws LifecycleException {
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
+
+    if (aDb != null) {
+      aDb.close();
+    }
+    aDb = null;
   }
 
   @Override
@@ -196,35 +199,24 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   public static DarwinPrincipal getPrincipal(final String pUser) {
-    DBHelper db;
-    try {
-      db = DBHelper.getDbHelper(DBRESOURCE);
-    } catch (SQLException e) {
-      getLogger().log(Level.WARNING, "Failure querying principal", e);
-      return null;
+    try(final DBConnection db = DBConnection.newInstance(DBRESOURCE)) {
+      return getDarwinPrincipal(db, null, pUser);
     }
-    return getDarwinPrincipal(db, null, pUser);
   }
 
   public static DarwinPrincipal asDarwinPrincipal(final Principal pUser) {
-    if (pUser instanceof DarwinPrincipal) { return (DarwinPrincipal) pUser; }
-    DBHelper db;
-    try {
-      db = DBHelper.getDbHelper(DBRESOURCE);
-    } catch (SQLException e) {
-      getLogger().log(Level.WARNING, "Failure querying principal", e);
-      return null;
-    }
-    final Realm realm = null;
+    try (final DBConnection db = getDatabaseStatic()) {
+      final Realm realm = null;
 
-    return toDarwinPrincipal(db, realm, pUser);
+      return toDarwinPrincipal(db, realm, pUser);
+    }
   }
 
-  private static DarwinUserPrincipal getDarwinPrincipal(final DBHelper pDbHelper, final Realm pRealm, final String pUserName) {
+  private static DarwinUserPrincipal getDarwinPrincipal(final DBConnection pDbHelper, final Realm pRealm, final String pUserName) {
     return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pUserName);
   }
 
-  private static DarwinUserPrincipal toDarwinPrincipal(final DBHelper pDbHelper, final Realm pRealm, final Principal pPrincipal) {
+  private static DarwinUserPrincipal toDarwinPrincipal(final DBConnection pDbHelper, final Realm pRealm, final Principal pPrincipal) {
     if (pPrincipal == null) {
       return null;
     }
@@ -236,23 +228,16 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   @NotNull
   private AuthResult authenticate(final Request pRequest) {
-    DBHelper dbHelper;
-    try {
-      dbHelper = getDatabase();
-    } catch (SQLException e2) {
-      getLogger().log(Level.WARNING, "Failure getting authentication connection", e2);
-      return AuthResult.ERROR;
-    }
-    DarwinUserPrincipal principal = toDarwinPrincipal(dbHelper, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
-    if (principal != null) {
-      logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
-      pRequest.setAuthType(AUTHTYPE);
-      pRequest.setUserPrincipal(principal);
-      return AuthResult.AUTHENTICATED;
-    }
+    try (final DBConnection db = getDatabase()){
+      DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
+      if (principal != null) {
+        logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
+        pRequest.setAuthType(AUTHTYPE);
+        pRequest.setUserPrincipal(principal);
+        return AuthResult.AUTHENTICATED;
+      }
 
 
-    try (DBConnection db = dbHelper.getConnection();) {
       String user = null;
       final Cookie[] cookies = pRequest.getCookies();
       if (cookies != null) {
@@ -288,22 +273,23 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       if (user != null) {
         logInfo("Authenticated user " + user);
         pRequest.setAuthType(AUTHTYPE);
-        principal = getDarwinPrincipal(dbHelper, pRequest.getContext().getRealm(), user);
+        principal = getDarwinPrincipal(db, pRequest.getContext().getRealm(), user);
         pRequest.setUserPrincipal(principal);
         return AuthResult.AUTHENTICATED;
       }
-    } catch (SQLException e1) {
-      getLogger().log(Level.WARNING, "Error while attempting to authenticate", e1);
-      return AuthResult.ERROR;
     }
     return AuthResult.LOGIN_NEEDED;
   }
 
-  DBHelper getDatabase() throws SQLException {
+  DBConnection getDatabase() {
     if (aDb == null) {
-      aDb = DBHelper.getDbHelper(DBRESOURCE);
+      aDb = DBConnection.newInstance(DBRESOURCE);
     }
     return aDb;
+  }
+
+  private static DBConnection getDatabaseStatic() {
+    return DBConnection.newInstance(DBRESOURCE);
   }
 
   private static void denyPermission(final Response pResponse) throws IOException {
