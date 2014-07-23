@@ -23,13 +23,13 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
       Tasks.COLUMN_OWNER + " TEXT," +
       Tasks.COLUMN_STATE + " TEXT," +
       Tasks.COLUMN_SYNCSTATE+ " INT )";
-  private static final String SQL_CREATE_ITEMS_TABLE = "CREATE TABLE " + TABLE_NAME_TASKS + " (" +
+  private static final String SQL_CREATE_ITEMS_TABLE = "CREATE TABLE " + TABLE_NAME_ITEMS + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       Items.COLUMN_TASKID+ " INTEGER," +
       Items.COLUMN_NAME +" TEXT," +
       Items.COLUMN_TYPE + " TEXT," +
       Items.COLUMN_VALUE + " TEXT )";
-  private static final String SQL_CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_NAME_TASKS + " (" +
+  private static final String SQL_CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_NAME_OPTIONS + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       Options.COLUMN_ITEMID +" INTEGER," +
       Options.COLUMN_VALUE + " TEXT )";
