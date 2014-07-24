@@ -340,6 +340,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
         if (tempCoords) {
           tmpX=node.getX();node.setX(0);
           tmpY=node.getY();node.setY(0);
+          mNeedsLayout=true; // we need layout as we have undefined coordinates.
         }
         Rectangle bounds = ((Bounded)node).getBounds();
         leftExtend = node.getX()-bounds.left;
