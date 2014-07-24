@@ -6,11 +6,14 @@ import java.security.Principal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import net.devrieze.annotations.NotNull;
 import net.devrieze.annotations.Nullable;
@@ -191,52 +194,66 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   public static DarwinPrincipal getPrincipal(final String pUser) {
-    try(final DBConnection db = DBConnection.newInstance(DBRESOURCE)) {
-      return getDarwinPrincipal(db, null, pUser);
+    try {
+      return getDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), null, pUser);
+    } catch (NamingException e) {
+      getLogger().log(Level.WARNING, "Failure to connect to database", e);
+      return null;
     }
   }
 
   public static DarwinPrincipal asDarwinPrincipal(final Principal pUser) {
-    try (final DBConnection db = getDatabaseStatic()) {
+    try {
       final Realm realm = null;
 
-      return toDarwinPrincipal(db, realm, pUser);
+      return toDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), realm, pUser);
+    } catch (NamingException e) {
+      getLogger().log(Level.WARNING, "Failure to connect to database", e);
+      return null;
     }
   }
 
-  private static DarwinUserPrincipal getDarwinPrincipal(final DBConnection pDbHelper, final Realm pRealm, final String pUserName) {
-    return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pUserName);
+  private static DarwinUserPrincipal getDarwinPrincipal(final DataSource pDataSource, final Realm pRealm, final String pUserName) {
+    return new DarwinUserPrincipalImpl(pDataSource, pRealm, pUserName);
   }
 
-  private static DarwinUserPrincipal toDarwinPrincipal(final DBConnection pDbHelper, final Realm pRealm, final Principal pPrincipal) {
+  private static DarwinUserPrincipal toDarwinPrincipal(final DataSource pDataSource, final Realm pRealm, final Principal pPrincipal) {
     if (pPrincipal == null) {
       return null;
     }
     if (pPrincipal instanceof DarwinUserPrincipal) {
       return (DarwinUserPrincipal) pPrincipal;
     }
-    return new DarwinUserPrincipalImpl(pDbHelper, pRealm, pPrincipal.getName());
+    return new DarwinUserPrincipalImpl(pDataSource, pRealm, pPrincipal.getName());
   }
 
   @NotNull
-  private AuthResult authenticate(final Request pRequest) {
-    try (final DBConnection db = getDatabase()){
-      DarwinUserPrincipal principal = toDarwinPrincipal(db, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
-      if (principal != null) {
-        logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
-        pRequest.setAuthType(AUTHTYPE);
-        pRequest.setUserPrincipal(principal);
-        return AuthResult.AUTHENTICATED;
-      }
+  private static AuthResult authenticate(final Request pRequest) {
+    DarwinUserPrincipal principal;
+    final DataSource dataSource;
+    try {
+      dataSource = DBConnection.getDataSource(DBRESOURCE);
+    } catch (NamingException e) {
+      getLogger().log(Level.WARNING, "Failure to connect to database", e);
+      return AuthResult.ERROR;
+    }
+    principal = toDarwinPrincipal(dataSource, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
+    if (principal != null) {
+      logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
+      pRequest.setAuthType(AUTHTYPE);
+      pRequest.setUserPrincipal(principal);
+      return AuthResult.AUTHENTICATED;
+    }
 
 
-      String user = null;
-      final Cookie[] cookies = pRequest.getCookies();
-      if (cookies != null) {
-        for (final Cookie cookie : cookies) {
-          if ("DWNID".equals(cookie.getName())) {
-            final String requestIp = pRequest.getRemoteAddr();
-            logFine("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
+    String user = null;
+    final Cookie[] cookies = pRequest.getCookies();
+    if (cookies != null) {
+      for (final Cookie cookie : cookies) {
+        if ("DWNID".equals(cookie.getName())) {
+          final String requestIp = pRequest.getRemoteAddr();
+          logFine("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
+          try (final DBConnection db = DBConnection.newInstance(dataSource)){
             try (final DBQuery query = db.makeQuery(QUERY_USER_FROM_DWNID)){
               query.addParam(1, requestIp);
               query.addParam(2, cookie.getValue());
@@ -256,29 +273,21 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
                 throw new RuntimeException(e);
               }
             }
-            break;
           }
+          break;
         }
-      } else {
-        logFine("No authentication cookie found");
       }
-      if (user != null) {
-        logInfo("Authenticated user " + user);
-        pRequest.setAuthType(AUTHTYPE);
-        principal = getDarwinPrincipal(db, pRequest.getContext().getRealm(), user);
-        pRequest.setUserPrincipal(principal);
-        return AuthResult.AUTHENTICATED;
-      }
+    } else {
+      logFine("No authentication cookie found");
+    }
+    if (user != null) {
+      logInfo("Authenticated user " + user);
+      pRequest.setAuthType(AUTHTYPE);
+      principal = getDarwinPrincipal(dataSource, pRequest.getContext().getRealm(), user);
+      pRequest.setUserPrincipal(principal);
+      return AuthResult.AUTHENTICATED;
     }
     return AuthResult.LOGIN_NEEDED;
-  }
-
-  DBConnection getDatabase() {
-    return DBConnection.newInstance(DBRESOURCE);
-  }
-
-  private static DBConnection getDatabaseStatic() {
-    return DBConnection.newInstance(DBRESOURCE);
   }
 
   private static void denyPermission(final Response pResponse) throws IOException {

@@ -8,10 +8,11 @@ import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import net.devrieze.util.db.DBConnection;
-import net.devrieze.util.db.DBHelper;
 
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
@@ -65,8 +66,6 @@ public class DarwinRealm implements Realm, Lifecycle {
   public void stop() throws LifecycleException {
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
-
-    DBHelper.closeConnections(this);
   }
 
 
@@ -420,7 +419,12 @@ public class DarwinRealm implements Realm, Lifecycle {
     if (principal instanceof CoyotePrincipal) {
       // Look up this user in the UserDatabaseRealm.  The new
       // principal will contain UserDatabaseRealm role info.
-      final DarwinUserPrincipalImpl p = getDarwinPrincipal(principal.getName());
+      final DarwinUserPrincipalImpl p;
+      try {
+        p = getDarwinPrincipal(principal.getName());
+      } catch (NamingException e) {
+        return false;
+      }
       if (p != null) {
         return p.hasRole(role);
       }
@@ -429,12 +433,12 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
 
-  private DarwinUserPrincipalImpl getDarwinPrincipal(final String pName) {
-    return new DarwinUserPrincipalImpl(getDbHelper(), this, pName);
+  private DarwinUserPrincipalImpl getDarwinPrincipal(final String pName) throws NamingException {
+    return new DarwinUserPrincipalImpl(getDataSource(), this, pName);
   }
 
-  private static DBConnection getDbHelper() {
-    return DBConnection.newInstance(getDBResource());
+  private static DataSource getDataSource() throws NamingException {
+    return DBConnection.getDataSource(getDBResource());
   }
 
   private static String getDBResource() {
