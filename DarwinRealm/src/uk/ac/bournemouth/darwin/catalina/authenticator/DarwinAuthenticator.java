@@ -65,9 +65,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
 
   @Nullable
-  private DBConnection aDb;
-
-  @Nullable
   private Context aContext;
 
   private String aLoginPage = "/accounts/login";
@@ -110,11 +107,6 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   public void stop() throws LifecycleException {
     aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
     aStarted = false;
-
-    if (aDb != null) {
-      aDb.close();
-    }
-    aDb = null;
   }
 
   @Override
@@ -282,10 +274,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   DBConnection getDatabase() {
-    if (aDb == null) {
-      aDb = DBConnection.newInstance(DBRESOURCE);
-    }
-    return aDb;
+    return DBConnection.newInstance(DBRESOURCE);
   }
 
   private static DBConnection getDatabaseStatic() {
