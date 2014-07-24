@@ -134,6 +134,7 @@ public class LayoutAlgorithm<T extends Positioned> {
       if (Double.isNaN(node.getX()) || Double.isNaN(node.getY())) {
         changed = layoutNodeInitial(pNodes, node, pMinY) || changed; // always force as that should be slightly more efficient
       }
+      changed |= node.getTarget().getX()!=node.getX() || node.getTarget().getY()!=node.getY();
     }
     if (! changed) {
       if (aTighten) {
@@ -404,8 +405,6 @@ public class LayoutAlgorithm<T extends Positioned> {
    * @param pNode The node to focus on.
    */
   private boolean layoutNodeInitial(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, double pMinY) {
-    boolean changed = false;
-
     List<DiagramNode<T>> leftNodes = pNode.getLeftNodes();
     List<DiagramNode<T>> aboveNodes = getPrecedingSiblings(pNode);
 
@@ -445,8 +444,9 @@ public class LayoutAlgorithm<T extends Positioned> {
 //      System.err.println("Moving node "+pNode.getTarget()+ "to ("+x+", "+y+')');
       pNode.setX(x);
       pNode.setY(y);
+      return true;
     }
-    return changed;
+    return false;
   }
 
   private boolean layoutNodeRight(List<? extends DiagramNode<T>> pNodes, DiagramNode<T> pNode, int pass) {
