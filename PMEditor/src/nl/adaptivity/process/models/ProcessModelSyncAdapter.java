@@ -64,7 +64,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     String model;
     long handle;
     {
@@ -126,9 +126,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       return values;
 
     } else {
-      pSyncResult.stats.numIoExceptions++;
+      throw new IOException("The server could not be updated");
     }
-    return null;
   }
 
   @Override
@@ -174,32 +173,36 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
   @Override
   protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
     final ContentValues itemCv = pItem.getContentValues();
-    Cursor localItem = pProvider.query(pUri, null, null, null, null);
-    if (localItem.moveToFirst()) {
-      for(String key: itemCv.keySet()){
-        if (! (getSyncStateColumn().equals(key) ||
-               BaseColumns._ID.equals(key) ||
-               getKeyColumn().equals(key))) {
-          int cursorIdx = localItem.getColumnIndex(key);
-          if (cursorIdx>=0) {
-            int colType=localItem.getType(cursorIdx);
-            switch (colType) {
-            case Cursor.FIELD_TYPE_BLOB:
-              itemCv.put(key, localItem.getBlob(cursorIdx)); break;
-            case Cursor.FIELD_TYPE_FLOAT:
-              itemCv.put(key, Float.valueOf(localItem.getFloat(cursorIdx))); break;
-            case Cursor.FIELD_TYPE_INTEGER:
-              itemCv.put(key, Integer.valueOf(localItem.getInt(cursorIdx))); break;
-            case Cursor.FIELD_TYPE_NULL:
-              itemCv.putNull(key); break;
-            case Cursor.FIELD_TYPE_STRING:
-              itemCv.put(key, localItem.getString(cursorIdx)); break;
-            }
-          }
-        }
-      }
-    }
+    itemCv.clear();
+    itemCv.put(getSyncStateColumn(), Integer.valueOf(SYNC_UPDATE_SERVER));
     return true;
+//
+//    Cursor localItem = pProvider.query(pUri, null, null, null, null);
+//    if (localItem.moveToFirst()) {
+//      for(String key: itemCv.keySet()){
+//        if (! (getSyncStateColumn().equals(key) ||
+//               BaseColumns._ID.equals(key) ||
+//               getKeyColumn().equals(key))) {
+//          int cursorIdx = localItem.getColumnIndex(key);
+//          if (cursorIdx>=0) {
+//            int colType=localItem.getType(cursorIdx);
+//            switch (colType) {
+//            case Cursor.FIELD_TYPE_BLOB:
+//              itemCv.put(key, localItem.getBlob(cursorIdx)); break;
+//            case Cursor.FIELD_TYPE_FLOAT:
+//              itemCv.put(key, Float.valueOf(localItem.getFloat(cursorIdx))); break;
+//            case Cursor.FIELD_TYPE_INTEGER:
+//              itemCv.put(key, Integer.valueOf(localItem.getInt(cursorIdx))); break;
+//            case Cursor.FIELD_TYPE_NULL:
+//              itemCv.putNull(key); break;
+//            case Cursor.FIELD_TYPE_STRING:
+//              itemCv.put(key, localItem.getString(cursorIdx)); break;
+//            }
+//          }
+//        }
+//      }
+//    }
+//    return true;
   }
 
   @Override

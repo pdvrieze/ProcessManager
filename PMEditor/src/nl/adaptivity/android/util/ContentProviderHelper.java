@@ -10,9 +10,11 @@ import java.io.Writer;
 
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -24,14 +26,14 @@ public class ContentProviderHelper {
 
   private static class ProcessModelThread extends Thread {
 
-    protected SQLiteDatabase mDb;
+    protected SQLiteOpenHelper mDbHelper;
     protected String mTable;
     protected String mColumn;
     protected long mId;
     protected ParcelFileDescriptor mFileDescriptor;
 
-    public ProcessModelThread(SQLiteDatabase pDb, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
-      mDb = pDb;
+    public ProcessModelThread(SQLiteOpenHelper pDbHelper, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
+      mDbHelper = pDbHelper;
       mTable = pTable;
       mColumn = pColumn;
       mId = pId;
@@ -42,13 +44,14 @@ public class ContentProviderHelper {
 
   private static class ProcessModelWriteThread extends ProcessModelThread {
 
-    public ProcessModelWriteThread(SQLiteDatabase pDb, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
-      super(pDb, pTable, pColumn, pId, pParcelFileDescriptor);
+    public ProcessModelWriteThread(SQLiteOpenHelper pDbHelper, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
+      super(pDbHelper, pTable, pColumn, pId, pParcelFileDescriptor);
     }
 
     @Override
     public void run() {
-      Cursor cursor = mDb.query(mTable, new String[] {mColumn}, BaseColumns._ID+" = ?", new String[]{Long.toString(mId)}, null, null, null);
+      SQLiteDatabase db = mDbHelper.getReadableDatabase();
+      Cursor cursor = db.query(mTable, new String[] {mColumn}, BaseColumns._ID+" = ?", new String[]{Long.toString(mId)}, null, null, null);
       String data;
       if (! cursor.moveToFirst()) {
         data = "";
@@ -81,8 +84,11 @@ public class ContentProviderHelper {
 
   private static class ProcessModelReadThread extends ProcessModelThread {
 
-    public ProcessModelReadThread(SQLiteDatabase pDb, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
-      super(pDb, pTable, pColumn, pId, pParcelFileDescriptor);
+    private final String mSyncStateColumn;
+
+    public ProcessModelReadThread(SQLiteOpenHelper pDbHelper, String pTable, String pColumn, long pId, String pSyncStateColumn, ParcelFileDescriptor pParcelFileDescriptor) {
+      super(pDbHelper, pTable, pColumn, pId, pParcelFileDescriptor);
+      mSyncStateColumn = pSyncStateColumn;
     }
 
     @Override
@@ -104,9 +110,24 @@ public class ContentProviderHelper {
         } finally {
           is.close();
         }
-        ContentValues values = new ContentValues();
+        ContentValues values = new ContentValues(mSyncStateColumn==null? 1 : 2);
         values.put(mColumn, data.toString());
-        mDb.update(mTable, values , BaseColumns._ID+" = ?", new String[] {Long.toString(mId)});
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        db.beginTransaction();
+        try {
+          if (mSyncStateColumn!=null) {
+            values.put(mSyncStateColumn, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
+          }
+          int updateCount = db.update(mTable, values , BaseColumns._ID+" = ?", new String[] {Long.toString(mId)});
+          if (updateCount!=1) {
+            Log.e(TAG, "Failure to update the database");
+            Compat.closeWithError(mFileDescriptor, "Database update failure");
+          } else {
+            db.setTransactionSuccessful();
+          }
+        } finally {
+          db.endTransaction();
+        }
       } catch (IOException e) {
         Log.e(TAG, "Failure to excute pipe", e);
         Compat.closeWithError(mFileDescriptor, e.getMessage());
@@ -115,7 +136,7 @@ public class ContentProviderHelper {
 
   }
 
-  public static ParcelFileDescriptor createPipe(ProcessModelProvider pProcessModelProvider, SQLiteDatabase db, String table, String column, long id, String mode) {
+  public static ParcelFileDescriptor createPipe(ProcessModelProvider pProcessModelProvider, SQLiteOpenHelper dbHelper, String table, String column, long id, String pSyncStateColumn, String mode) {
     final boolean readMode;
     switch  (mode) {
       case "r":
@@ -146,10 +167,10 @@ public class ContentProviderHelper {
 
     Thread th;
     if (readMode) {
-      th = new ProcessModelWriteThread(db, table, column, id, pair[1]);
+      th = new ProcessModelWriteThread(dbHelper, table, column, id, pair[1]);
       th.run();
     } else {
-      th = new ProcessModelReadThread(db, table, column, id, pair[0]);
+      th = new ProcessModelReadThread(dbHelper, table, column, id, pSyncStateColumn, pair[0]);
       th.start();
     }
 

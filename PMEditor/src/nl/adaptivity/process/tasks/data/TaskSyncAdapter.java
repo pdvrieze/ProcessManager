@@ -110,14 +110,12 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 //  }
 
   @Override
-  protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult)
-      throws RemoteException, IOException, XmlPullParserException {
+  protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, int pSyncState, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected ContentValuesProvider createItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri,
-                                                     SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
+  protected ContentValuesProvider createItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 

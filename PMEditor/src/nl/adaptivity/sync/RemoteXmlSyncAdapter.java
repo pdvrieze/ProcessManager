@@ -349,15 +349,16 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
     Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_UPDATE_SERVER +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING, null, null);
     while(updateableItems.moveToNext()) {
+      int syncState = updateableItems.getInt(1);
       Uri itemuri = ContentUris.withAppendedId(mListContentUri, updateableItems.getLong(0));
       try {
-        ContentValuesProvider newValuesProvider = updateItemOnServer(pProvider, mHttpClient, itemuri, pSyncResult);
+        ContentValuesProvider newValuesProvider = updateItemOnServer(pProvider, mHttpClient, itemuri, syncState, pSyncResult);
         ContentValues newValues  = newValuesProvider.getContentValues();
         if (newValues==null) {
           newValues = new ContentValues(1);
-          newValues.put(colSyncstate, SYNC_UPTODATE);
+          newValues.put(colSyncstate, syncState==SYNC_UPDATE_SERVER_DETAILSPENDING ? SYNC_DETAILSPENDING : SYNC_UPTODATE);
         } else if (!newValues.containsKey(colSyncstate)) {
-          newValues.put(colSyncstate, SYNC_UPTODATE);
+          newValues.put(colSyncstate, syncState==SYNC_UPDATE_SERVER_DETAILSPENDING ? SYNC_DETAILSPENDING : SYNC_UPTODATE);
         }
         pProvider.update(itemuri, newValues, colSyncstate+" = "+SYNC_UPDATE_SERVER +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING, null);
         pSyncResult.stats.numUpdates++;
@@ -572,13 +573,14 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
   /**
    * Hook for that should be used by subclasses to create an item on the server.
-   *
-   * @param pHttpClient The {@link AuthenticatedWebClient} to use.
    * @param pProvider The {@link ContentProviderClient}
+   * @param pHttpClient The {@link AuthenticatedWebClient} to use.
    * @param pItemuri The local content uri of the item.
+   * @param pSyncState TODO
    * @param pPair The details (if available) of the item, based upon the return
    *          of {@link #parseItem(XmlPullParser)}.
    * @param pSyncResult The sync status.
+   *
    * @return The new values to be stored in the database for the object.
    * @throws RemoteException
    * @throws IOException
@@ -600,7 +602,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
    * @throws IOException
    * @category Hooks
    */
-  protected abstract ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
+  protected abstract ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, int pSyncState, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
 
   /**
    * Hook for that should be used by subclasses to resolve conflicts between the

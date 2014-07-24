@@ -155,6 +155,12 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
+  public void shutdown() {
+    super.shutdown();
+    mDbHelper.close();
+  }
+
+  @Override
   public String getType(Uri pUri) {
     UriHelper helper = UriHelper.parseUri(pUri);
     switch (helper.mTarget) {
@@ -195,8 +201,7 @@ public class ProcessModelProvider extends ContentProvider {
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    return ContentProviderHelper.createPipe(this, db, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, pMode);
+    return ContentProviderHelper.createPipe(this, mDbHelper, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, pMode);
   }
 
   @Override
