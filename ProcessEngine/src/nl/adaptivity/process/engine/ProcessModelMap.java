@@ -95,7 +95,9 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
         result.setHandle(handle);
         result.cacheStrings(aStringCache);
-        result.setOwner(owner);
+        if (result.getOwner()==null) {
+          result.setOwner(owner);
+        }
         return result;
       }
     }

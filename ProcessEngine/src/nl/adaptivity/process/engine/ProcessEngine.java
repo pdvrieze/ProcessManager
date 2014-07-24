@@ -157,7 +157,9 @@ public class ProcessEngine /* implements IProcessEngine */{
     ProcessModelImpl oldModel = aProcessModels.get(pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, oldModel);
     aSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, pUser, oldModel);
-    if (!oldModel.getOwner().getName().equals(pProcessModel.getOwner().getName())) {
+    if (pProcessModel.getOwner()==null) { // If no owner was set, use the old one.
+      pProcessModel.setOwner(oldModel.getOwner());
+    } else if (!oldModel.getOwner().getName().equals(pProcessModel.getOwner().getName())) {
       aSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, pUser, oldModel);
     }
     if(! (pHandle!=null && aProcessModels.contains(pHandle))) {
