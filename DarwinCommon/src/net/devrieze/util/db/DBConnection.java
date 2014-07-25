@@ -11,7 +11,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,38 +26,41 @@ import net.devrieze.util.StringCache;
 
 public class DBConnection implements AutoCloseable{
 
+  public static final boolean DEBUG = DBConnection.class.desiredAssertionStatus();
+
   public static class DBHelper {
 
     @NotNull
-    private DataSourceWrapper aDataSource;
+    private DataSource aDataSource;
     private StringCache aStringCache;
 
-    public DBHelper(@NotNull DataSourceWrapper pDataSource) {
+    public DBHelper(@NotNull DataSource pDataSource) {
       aDataSource = pDataSource;
     }
 
     @NotNull
     public static DBHelper getDbHelper(final String pResourceName) throws SQLException {
-      DBConnection.DataSourceWrapper dataSource;
+      DataSource dataSource;
       if (true) {
         try {
-          final InitialContext initialContext = new InitialContext();
-          dataSource = new DBConnection.DataSourceWrapper((DataSource)notNull(Objects.requireNonNull(initialContext.lookup(pResourceName))));
-        } catch (final NamingException|NullPointerException e) {
-          throw new SQLException("Failure to register access permission in database", e);
+          dataSource = getDataSource(pResourceName);
+        } catch (final NamingException e) {
+          throw new SQLException("Failure to link to database", e);
         }
       }
       if (DBConnection.getLogger().isLoggable(DBConnection.DETAIL_LOG_LEVEL)) { // Do this only when we log this is going to be output
         final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         final StringBuilder message = new StringBuilder();
-        message.append("dbHelper invoked for ").append(pResourceName).append(" from ");
-        for (int i = 2; (i < stackTraceElements.length) && (i < 7); ++i) {
-          if (i > 2) {
-            message.append(" -> ");
+        if (DEBUG) {
+          message.append("dbHelper invoked for ").append(pResourceName).append(" from ");
+          for (int i = 2; (i < stackTraceElements.length) && (i < 7); ++i) {
+            if (i > 2) {
+              message.append(" -> ");
+            }
+            message.append(stackTraceElements[i]);
           }
-          message.append(stackTraceElements[i]);
+          DBConnection.getLogger().log(DBConnection.DETAIL_LOG_LEVEL, message.toString());
         }
-        DBConnection.getLogger().log(DBConnection.DETAIL_LOG_LEVEL, message.toString());
       }
       return new DBHelper(dataSource);
     }
@@ -83,17 +85,14 @@ public class DBConnection implements AutoCloseable{
 
   private static final String LOGGER_NAME = "DBHelper";
 
+  @Deprecated
   static class DataSourceWrapper {
 
     @NotNull
     final DataSource aDataSource;
 
-    @Nullable
-    final ConcurrentHashMap<Object, Connection> aConnectionMap;
-
     DataSourceWrapper(@NotNull final DataSource pDataSource) {
       aDataSource = pDataSource;
-      aConnectionMap = null;
     }
   }
 
@@ -501,10 +500,10 @@ public class DBConnection implements AutoCloseable{
   private List<DBStatement> aStatements;
 
   @NotNull
-  private StringCache aStringCache;
+  private static StringCache aStringCache;
 
-  private DBConnection(@NotNull final DataSourceWrapper pDataSource) throws SQLException {
-    aConnection = notNull(pDataSource.aDataSource.getConnection());
+  private DBConnection(@NotNull final DataSource pDataSource) throws SQLException {
+    aConnection = notNull(pDataSource.getConnection());
     notNull(aConnection).setAutoCommit(false);
     aStatements = new ArrayList<>();
     aStringCache = StringCache.NOPCACHE;
@@ -687,7 +686,7 @@ public class DBConnection implements AutoCloseable{
    *
    * @param pStringCache The string cache.
    */
-  public void setStringCache(@NotNull final StringCache pStringCache) {
+  public static void setStringCache(@NotNull final StringCache pStringCache) {
     aStringCache = pStringCache;
   }
 
@@ -696,14 +695,28 @@ public class DBConnection implements AutoCloseable{
     return newInstance(pDbresource);
   }
 
+  @Deprecated
   public static DBConnection newInstance(String pDbresource) {
     try {
-      final InitialContext initialContext = new InitialContext();
-      return new DBConnection(new DataSourceWrapper((DataSource)notNull(Objects.requireNonNull(initialContext.lookup(pDbresource)))));
-    } catch (SQLException | NamingException e) {
+      return newInstance(getDataSource(pDbresource));
+    } catch (NamingException e) {
+      logException("Failure to get data source: "+pDbresource, e);
+      return null;
+    }
+  }
+
+  public static DBConnection newInstance(final DataSource dataSource) {
+    try {
+      return new DBConnection(dataSource);
+    } catch (SQLException e) {
       logException("Failure to get database connection", e);
       return null;
     }
+  }
+
+  public static DataSource getDataSource(String pDbresource) throws NamingException {
+    final InitialContext initialContext = new InitialContext();
+    return (DataSource)notNull(Objects.requireNonNull(initialContext.lookup(pDbresource)));
   }
 
 }
