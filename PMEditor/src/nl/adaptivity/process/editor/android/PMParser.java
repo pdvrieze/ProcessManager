@@ -351,6 +351,7 @@ public class PMParser {
         ArrayList<DrawableProcessNode> modelElems = new ArrayList<>();
         String modelName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
         String uuid = in.getAttributeValue(XMLConstants.NULL_NS_URI, "uuid");
+        String owner = in.getAttributeValue(XMLConstants.NULL_NS_URI, "owner");
         Map<String, DrawableProcessNode> nodeMap = new HashMap<>();
         for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
 
@@ -365,7 +366,9 @@ public class PMParser {
         for(int i=0; i< modelElems.size(); ++i) {
           resolveRefs(modelElems.get(i), nodeMap, modelElems);
         }
-        return new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, pLayoutAlgorithm);
+        final DrawableProcessModel drawableProcessModel = new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, pLayoutAlgorithm);
+        if (owner!=null) { drawableProcessModel.setOwner(owner); }
+        return drawableProcessModel;
 
       } else {
         return null;
