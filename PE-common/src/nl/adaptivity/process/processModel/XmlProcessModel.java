@@ -87,7 +87,6 @@ public class XmlProcessModel {
   @XmlAttribute(name = ATTR_NAME)
   private String name;
 
-  @XmlAttribute(name = "owner")
   private String owner;
 
   private Set<String> roles;
@@ -153,6 +152,7 @@ public class XmlProcessModel {
     return name;
   }
 
+  @XmlAttribute(name = "owner")
   public String getOwner() {
     return owner;
   }
