@@ -124,6 +124,10 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
     return body;
   }
 
+  @Override
+  public void setServiceName(String pName) {
+    super.setServiceName(pName);
+  }
 
   @Override
   @XmlAttribute(name = "serviceName", required = true)
@@ -131,11 +135,20 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
     return super.getServiceName();
   }
 
+  @Override
+  public void setServiceNS(String pNamespace) {
+    super.setServiceNS(pNamespace);
+  }
 
   @Override
   @XmlAttribute(name = "serviceNS")
   public String getServiceNS() {
     return super.getServiceNS();
+  }
+
+  @Override
+  public void setEndpoint(String pValue) {
+    super.setEndpoint(pValue);
   }
 
   @Override
@@ -146,8 +159,15 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
 
   @Override
   public EndpointDescriptor getEndpointDescriptor() {
-    return new EndpointDescriptorImpl(getService(), getEndpoint(), URI.create(getUrl()));
+    final String url = getUrl();
+    return new EndpointDescriptorImpl(getService(), getEndpoint(), url==null ? null : URI.create(url));
   }
+
+  @Override
+  public void setOperation(QName pValue) {
+    super.setOperation(pValue);
+  }
+
 
   @Override
   @XmlAttribute(name = "operation")
@@ -156,17 +176,31 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
   }
 
   @Override
+  public void setUrl(String pValue) {
+    super.setUrl(pValue);
+  }
+
+  @Override
   @XmlAttribute(name = "url")
   public String getUrl() {
     return super.getUrl();
   }
 
+  @Override
+  public void setMethod(String pValue) {
+    super.setMethod(pValue);
+  }
 
   @Override
   @XmlAttribute(name = "method")
   public String getMethod() {
     return super.getMethod();
   }
+
+  public void setContentType(String pType) {
+    super.setType(pType);
+  }
+
 
   @Override
   @XmlAttribute(name = "type")
