@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.xml.XMLConstants;
 
+import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
@@ -44,6 +45,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   private boolean mNeedsLayout = false;
 
   private UUID aUuid;
+
+  private Principal aOwner;
+
+  private Set<String> aRoles;
 
   public ClientProcessModel(UUID pUuid, final String pName, final Collection<? extends T> pNodes) {
     this(pUuid, pName, pNodes, new LayoutAlgorithm<T>());
@@ -244,18 +249,22 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     aName = pName;
   }
 
+  public void setOwner(String pOwner) {
+    aOwner = new SimplePrincipal(pOwner);
+  }
+
+  public void setOwner(Principal pOwner) {
+    aOwner = pOwner;
+  }
+
   @Override
   public Principal getOwner() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+    return aOwner;
   }
 
   @Override
   public Set<String> getRoles() {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
+    return aRoles;
   }
 
   @Override
