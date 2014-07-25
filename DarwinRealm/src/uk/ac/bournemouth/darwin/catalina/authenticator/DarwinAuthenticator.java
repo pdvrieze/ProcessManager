@@ -239,7 +239,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     }
     principal = toDarwinPrincipal(dataSource, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
     if (principal != null) {
-      logInfo("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
+      logFine("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
       pRequest.setAuthType(AUTHTYPE);
       pRequest.setUserPrincipal(principal);
       return AuthResult.AUTHENTICATED;
@@ -252,7 +252,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       for (final Cookie cookie : cookies) {
         if ("DWNID".equals(cookie.getName())) {
           final String requestIp = pRequest.getRemoteAddr();
-          logFine("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
+          logFiner("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
           try (final DBConnection db = DBConnection.newInstance(dataSource)){
             try (final DBQuery query = db.makeQuery(QUERY_USER_FROM_DWNID)){
               query.addParam(1, requestIp);
@@ -278,10 +278,10 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
         }
       }
     } else {
-      logFine("No authentication cookie found");
+      logFiner("No authentication cookie found");
     }
     if (user != null) {
-      logInfo("Authenticated user " + user);
+      logFine("Authenticated user " + user);
       pRequest.setAuthType(AUTHTYPE);
       principal = getDarwinPrincipal(dataSource, pRequest.getContext().getRealm(), user);
       pRequest.setUserPrincipal(principal);
@@ -296,6 +296,10 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   private static Logger getLogger() {
     return Logger.getLogger(LOGGERNAME);
+  }
+
+  private static void logFiner(final String pString) {
+    getLogger().finer(pString);
   }
 
   private static void logFine(final String pString) {
