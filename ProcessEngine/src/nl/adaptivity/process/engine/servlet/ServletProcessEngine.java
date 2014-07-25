@@ -593,8 +593,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
-  public boolean deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.removeProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser);
+  public void deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    boolean result = aProcessEngine.removeProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser);
+    if (! result) {
+      throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
+    }
   }
 
   /**
