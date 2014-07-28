@@ -3,6 +3,7 @@
 	<name>PE-common</name>
 	<comment></comment>
 	<projects>
+		<project>java-common</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
