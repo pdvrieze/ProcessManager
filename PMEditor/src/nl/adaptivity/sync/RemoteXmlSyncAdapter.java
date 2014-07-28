@@ -13,7 +13,6 @@ import java.util.ListIterator;
 import java.util.UUID;
 
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -172,13 +171,13 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
         phase.execute(this, pProvider, pSyncResult);
       } catch (IllegalStateException|XmlPullParserException e) {
         pSyncResult.stats.numParseExceptions++;
-        Log.e(TAG, "Error parsing process model list", e);
+        Log.e(TAG, "Error parsing list", e);
       } catch (IOException e) {
         pSyncResult.stats.numIoExceptions++;
-        Log.e(TAG, "Error contacting process model server", e);
+        Log.e(TAG, "Error contacting server", e);
       } catch (RemoteException|OperationApplicationException e) {
         pSyncResult.databaseError=true;
-        Log.e(TAG, "Error updating process model database", e);
+        Log.e(TAG, "Error updating database", e);
       }
     }
   }
@@ -455,12 +454,12 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
       ArrayList<ContentProviderOperation> operations = new ArrayList<>(2);
       values.put(colSyncstate, Integer.valueOf(SYNC_PENDING));
 
-      operations.add(ContentProviderOperation.newUpdate(ProcessModels.CONTENT_ID_URI_BASE)
+      operations.add(ContentProviderOperation.newUpdate(mListContentUri)
           .withSelection(colSyncstate + " = "+SYNC_UPTODATE, null)
           .withValue(colSyncstate,  Integer.valueOf(SYNC_PENDING))
           .build());
 
-      operations.add(ContentProviderOperation.newUpdate(ProcessModels.CONTENT_ID_URI_BASE)
+      operations.add(ContentProviderOperation.newUpdate(mListContentUri)
           .withSelection(colSyncstate + " = "+SYNC_UPDATE_SERVER, null)
           .withValue(colSyncstate,  Integer.valueOf(SYNC_UPDATE_SERVER_PENDING))
           .build());
@@ -490,7 +489,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
               final ArrayList<ContentProviderOperation> operations = new ArrayList<>();
 
-              Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, id);
+              Uri uri = ContentUris.withAppendedId(mListContentUri, id);
               if (syncState==SYNC_UPDATE_SERVER_PENDING) {
                 itemCv.remove(colSyncstate);
                 ContentValues itemCpy = new ContentValues(itemCv);
