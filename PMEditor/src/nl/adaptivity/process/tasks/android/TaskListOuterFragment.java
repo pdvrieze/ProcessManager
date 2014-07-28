@@ -2,7 +2,6 @@ package nl.adaptivity.process.tasks.android;
 
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.process.editor.android.ProcessModelDetailFragment;
 import nl.adaptivity.process.editor.android.R;
 import android.app.Activity;
 import android.content.Context;
@@ -53,8 +52,8 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  protected ProcessModelDetailFragment createDetailFragment(int pRow, long pItemId) {
-    ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
+  protected TaskDetailFragment createDetailFragment(int pRow, long pItemId) {
+    TaskDetailFragment fragment = new TaskDetailFragment();
     Bundle arguments = new Bundle();
     arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, pItemId);
     fragment.setArguments(arguments);
