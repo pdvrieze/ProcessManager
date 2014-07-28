@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
+import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.userMessageHandler.server.InternalEndpoint.XmlTask;
@@ -53,18 +54,24 @@ public class ExternalEndpoint implements GenericEndpoint {
   @Override
   public void initEndpoint(final ServletConfig pConfig) {
     final StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
-    path.append("/internal");
+    path.append("/UserMessageService");
     try {
       aURI = new URI(null, null, path.toString(), null);
     } catch (final URISyntaxException e) {
       throw new RuntimeException(e); // Should never happen
     }
+    MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
   public Collection<UserTask<?>> getPendingTasks() {
     return aService.getPendingTasks();
+  }
+
+  @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
+  public UserTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    return aService.getPendingTask(Long.parseLong(pHandle), pUser);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
