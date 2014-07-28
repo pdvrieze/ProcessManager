@@ -11,6 +11,8 @@ import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -22,7 +24,6 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.InputStreamOutputStream;
-
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.util.activation.Sources;
@@ -486,8 +487,10 @@ public class DarwinMessenger implements IMessenger {
 
 
   @Override
-  public void registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
-    registerEndpoint(new EndpointDescriptorImpl(pService, pEndPoint, pTarget));
+  public EndpointDescriptor registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
+    final EndpointDescriptorImpl endpoint = new EndpointDescriptorImpl(pService, pEndPoint, pTarget);
+    registerEndpoint(endpoint);
+    return endpoint;
   }
 
 
@@ -504,6 +507,32 @@ public class DarwinMessenger implements IMessenger {
       service.remove(pEndpoint.getEndpointName());
     }
     service.put(pEndpoint.getEndpointName(), pEndpoint);
+  }
+
+  @Override
+  public List<EndpointDescriptor> getRegisteredEndpoints() {
+    ArrayList<EndpointDescriptor> result = new ArrayList<>();
+    synchronized (aServices) {
+      for (ConcurrentMap<String, EndpointDescriptor> service:aServices.values()) {
+        for(EndpointDescriptor endpoint:service.values()) {
+          result.add(endpoint);
+        }
+      }
+    }
+    return result;
+  }
+
+  @Override
+  public boolean unregisterEndpoint(EndpointDescriptor pEndpoint) {
+    synchronized (aServices) {
+      ConcurrentMap<String, EndpointDescriptor> service = aServices.get(pEndpoint.getServiceName());
+      if (service==null) { return false; }
+      EndpointDescriptor result = service.remove(pEndpoint.getEndpointName());
+      if (service.isEmpty()) {
+        aServices.remove(pEndpoint.getServiceName());
+      }
+      return result!=null;
+    }
   }
 
   /**
