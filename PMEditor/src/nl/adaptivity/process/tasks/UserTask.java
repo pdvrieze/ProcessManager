@@ -70,7 +70,7 @@ public class UserTask {
 
   }
 
-  public static final String NS_TASKS = "http://adaptivity.nl/ProcessEngine/";
+  public static final String NS_TASKS = "http://adaptivity.nl/userMessageHandler";
   public static final String TAG_TASKS = "tasks";
   public static final String TAG_TASK = "task";
   public static final String TAG_ITEM = "item";
