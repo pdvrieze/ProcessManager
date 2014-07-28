@@ -23,6 +23,8 @@ public final class Constants {
 
   public static final String USER_MESSAGE_HANDLER_NS = "http://adaptivity.nl/userMessageHandler";
 
+  public static final String DARWIN_NS = "http://darwin.bournemouth.ac.uk/services";
+
   private Constants() {
 
   }
