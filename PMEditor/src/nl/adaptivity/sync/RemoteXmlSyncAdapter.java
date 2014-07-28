@@ -303,6 +303,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
       if (statusCode>=200 && statusCode<400) {
         mUpdateList = updateItemListFromServer(pProvider, pSyncResult, result.getEntity().getContent());
       } else {
+        result.getEntity().consumeContent();
         mUpdateList = null;
         pSyncResult.stats.numIoExceptions++;
       }

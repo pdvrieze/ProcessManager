@@ -1,8 +1,5 @@
 package nl.adaptivity.process.models;
 
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
-
 import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,12 +8,6 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.UUID;
-
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.android.util.MultipartEntity;
-import nl.adaptivity.process.editor.android.SettingsActivity;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -27,6 +18,12 @@ import org.apache.http.entity.StringEntity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import static org.xmlpull.v1.XmlPullParser.*;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.util.MultipartEntity;
+import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -37,7 +34,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.provider.BaseColumns;
 import android.util.Log;
 
 @SuppressWarnings("boxing")
@@ -126,6 +122,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       return values;
 
     } else {
+      response.getEntity().consumeContent();
+
       throw new IOException("The server could not be updated");
     }
   }
@@ -166,6 +164,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       ContentValues cv = new ContentValues(1);
       cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
       return new SimpleContentValuesProvider(cv);
+    } else {
+      response.getEntity().consumeContent();
     }
     return null;
   }
@@ -176,33 +176,6 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     itemCv.clear();
     itemCv.put(getSyncStateColumn(), Integer.valueOf(SYNC_UPDATE_SERVER));
     return true;
-//
-//    Cursor localItem = pProvider.query(pUri, null, null, null, null);
-//    if (localItem.moveToFirst()) {
-//      for(String key: itemCv.keySet()){
-//        if (! (getSyncStateColumn().equals(key) ||
-//               BaseColumns._ID.equals(key) ||
-//               getKeyColumn().equals(key))) {
-//          int cursorIdx = localItem.getColumnIndex(key);
-//          if (cursorIdx>=0) {
-//            int colType=localItem.getType(cursorIdx);
-//            switch (colType) {
-//            case Cursor.FIELD_TYPE_BLOB:
-//              itemCv.put(key, localItem.getBlob(cursorIdx)); break;
-//            case Cursor.FIELD_TYPE_FLOAT:
-//              itemCv.put(key, Float.valueOf(localItem.getFloat(cursorIdx))); break;
-//            case Cursor.FIELD_TYPE_INTEGER:
-//              itemCv.put(key, Integer.valueOf(localItem.getInt(cursorIdx))); break;
-//            case Cursor.FIELD_TYPE_NULL:
-//              itemCv.putNull(key); break;
-//            case Cursor.FIELD_TYPE_STRING:
-//              itemCv.put(key, localItem.getString(cursorIdx)); break;
-//            }
-//          }
-//        }
-//      }
-//    }
-//    return true;
   }
 
   @Override
@@ -268,6 +241,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
       cv.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_UPTODATE);
       cv.put(ProcessModels.COLUMN_MODEL, out.toString());
       return pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), cv, null, null)>0;
+    } else {
+      response.getEntity().consumeContent();
     }
     return false;
   }
