@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import net.devrieze.util.StringUtil;
+
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.tasks.UserTask;
@@ -284,8 +285,19 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   protected String getSyncSource() {
     if (mBase==null) {
       SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-      mBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService/");
-      if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
+      String prefBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService");
+      if (prefBase.endsWith("/")) {
+        if (prefBase.endsWith("ProcessEngine/")) {
+          prefBase = prefBase.substring(0, prefBase.length()-14);
+        }
+      } else {
+        if (prefBase.endsWith("ProcessEngine")) {
+          prefBase = prefBase.substring(0, prefBase.length()-13);
+        } else {
+          prefBase = prefBase+"/";
+        }
+      }
+      mBase = prefBase+"PEUserMessageHandler/UserMessageService/";
     }
     return mBase;
   }
