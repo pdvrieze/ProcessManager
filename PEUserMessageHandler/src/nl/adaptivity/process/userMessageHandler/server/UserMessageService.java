@@ -38,6 +38,10 @@ public class UserMessageService implements CompletionListener {
     return tasks.toCollection();
   }
 
+  public UserTask getPendingTask(long pHandle, Principal pUser) {
+    return tasks.get(pHandle);
+  }
+
   public TaskState finishTask(final long pHandle, final Principal pUser) {
     final UserTask<?> task = getTask(pHandle);
     task.setState(TaskState.Complete, pUser);
