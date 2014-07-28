@@ -93,7 +93,7 @@ public class InternalEndpoint implements GenericEndpoint {
     }
 
     @Override
-    @XmlAttribute(name="type")
+    @XmlAttribute(name="value")
     public String getValue() {
       return aValue;
     }
