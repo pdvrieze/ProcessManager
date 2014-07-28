@@ -9,6 +9,7 @@ import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
@@ -210,7 +211,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         try {
           InputStream in = getActivity().getContentResolver().openInputStream(pData.getData());
           try {
-            DrawableProcessModel pm = PMParser.parseProcessModel(in, null /*LayoutAlgorithm.<DrawableProcessNode>nullalgorithm()*/);
+            DrawableProcessModel pm = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
             Uri uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
             long id = ContentUris.parseId(uri);
             doOnItemSelected(AbsListView.INVALID_POSITION, id);

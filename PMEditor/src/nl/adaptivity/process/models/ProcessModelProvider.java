@@ -339,7 +339,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   private static ProcessModel<?> getProcessModel(InputStream in) {
-    return PMParser.parseProcessModel(in, new LayoutAlgorithm<DrawableProcessNode>());
+    final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+    return PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
   }
 
   public static Uri newProcessModel(Context context, ClientProcessModel<?> pProcessModel) throws IOException {

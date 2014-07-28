@@ -483,7 +483,7 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
       if (pParams.length>0) {
         aPm = pParams[0];
       } else if (aPm == null || aPm.getModelNodes().isEmpty()) {
-        aPm = loadInitialProcessModel(NULL_LAYOUT_ALGORITHM);
+        aPm = loadInitialProcessModel(NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>());
       }
       if (aPm!=null) {
         LayoutAlgorithm<DrawableProcessNode> alg = new LayoutAlgorithm<>();
@@ -707,7 +707,8 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
     } else {
       aPmUri = getIntent().getData();
       if (aPmUri!=null) {
-        aPm = loadProcessModel(aPmUri, new LayoutAlgorithm<DrawableProcessNode>());
+        final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+        aPm = loadProcessModel(aPmUri, layoutAlgorithm, layoutAlgorithm);
       }
     }
     if (aPm == null) {
@@ -780,24 +781,25 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
   }
 
   private DrawableProcessModel loadInitialProcessModel() {
-    return loadInitialProcessModel(new LayoutAlgorithm<DrawableProcessNode>());
+    final LayoutAlgorithm<DrawableProcessNode> layout = new LayoutAlgorithm<>();
+    return loadInitialProcessModel(layout, layout);
   }
 
-  private DrawableProcessModel loadInitialProcessModel(LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
-    return loadProcessModel(getResources().openRawResource(R.raw.processmodel), layoutAlgorithm);
+  private DrawableProcessModel loadInitialProcessModel(LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
+    return loadProcessModel(getResources().openRawResource(R.raw.processmodel), simpleLayoutAlgorithm, pAdvancedAlgorithm);
   }
 
-  private DrawableProcessModel loadProcessModel(Uri uri, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  private DrawableProcessModel loadProcessModel(Uri uri, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
     try {
-      return loadProcessModel(getContentResolver().openInputStream(uri), layoutAlgorithm);
+      return loadProcessModel(getContentResolver().openInputStream(uri), simpleLayoutAlgorithm, pAdvancedAlgorithm);
     } catch (FileNotFoundException e1) {
       throw new RuntimeException(e1);
     }
   }
 
-  public DrawableProcessModel loadProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  public DrawableProcessModel loadProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
     try {
-      return PMParser.parseProcessModel(in, layoutAlgorithm);
+      return PMParser.parseProcessModel(in, simpleLayoutAlgorithm, pAdvancedAlgorithm);
     } finally {
       try {
         in.close();

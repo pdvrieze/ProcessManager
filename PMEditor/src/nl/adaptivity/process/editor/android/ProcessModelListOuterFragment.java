@@ -54,6 +54,13 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
     super.onAttach(pActivity);
     if (pActivity instanceof ProcessModelListCallbacks) {
       mCallbacks = (ProcessModelListCallbacks) pActivity;
+    }
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    if (mCallbacks!=null) {
       mCallbacks.requestSyncProcessModelList(true);
     }
   }

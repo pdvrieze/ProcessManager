@@ -8,6 +8,8 @@ import java.io.InputStream;
 import org.xmlpull.v1.XmlPullParserException;
 
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -29,7 +31,7 @@ public class PMParcelable implements Parcelable {
   private ClientProcessModel<?> mProcessModel;
 
   public PMParcelable(Parcel pSource) {
-    this(PMParser.parseProcessModel(readInputStream(pSource), PMEditor.NULL_LAYOUT_ALGORITHM));
+    this(PMParser.parseProcessModel(readInputStream(pSource), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
   public PMParcelable(ClientProcessModel<?> pProcessModel) {

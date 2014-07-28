@@ -316,7 +316,7 @@ public class PMParser {
     }
   }
 
-  public static DrawableProcessModel parseProcessModel(Reader pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(Reader pIn, LayoutAlgorithm<DrawableProcessNode> pSimpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
     XmlPullParser in;
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -327,10 +327,10 @@ public class PMParser {
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseProcessModel(in, pLayoutAlgorithm);
+    return parseProcessModel(in, pSimpleLayoutAlgorithm, pAdvancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pSimpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
     XmlPullParser in;
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -341,10 +341,10 @@ public class PMParser {
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseProcessModel(in, pLayoutAlgorithm);
+    return parseProcessModel(in, pSimpleLayoutAlgorithm, pAdvancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(XmlPullParser in, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(XmlPullParser in, LayoutAlgorithm<DrawableProcessNode> pSimpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
     try {
 
       if(in.nextTag()==START_TAG && NS_PROCESSMODEL.equals(in.getNamespace()) && "processModel".equals(in.getName())){
@@ -363,10 +363,13 @@ public class PMParser {
         }
         // Use list indexing as resolveRefs may add elements to the list.
         // We will need to still check those
+        boolean noPos = false;
         for(int i=0; i< modelElems.size(); ++i) {
-          resolveRefs(modelElems.get(i), nodeMap, modelElems);
+          final DrawableProcessNode elem = modelElems.get(i);
+          resolveRefs(elem, nodeMap, modelElems);
+          noPos|=Double.isNaN(elem.getX())||Double.isNaN(elem.getY());
         }
-        final DrawableProcessModel drawableProcessModel = new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, pLayoutAlgorithm);
+        final DrawableProcessModel drawableProcessModel = new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, noPos ? pAdvancedAlgorithm : pSimpleLayoutAlgorithm);
         if (owner!=null) { drawableProcessModel.setOwner(owner); }
         return drawableProcessModel;
 

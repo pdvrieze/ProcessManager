@@ -47,7 +47,8 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
     final String modelName = mContext.getString(R.string.example_1_name);
     ContentValues cv = new ContentValues();
     InputStream in = mContext.getResources().openRawResource(R.raw.processmodel);
-    DrawableProcessModel model = PMParser.parseProcessModel(in, new LayoutAlgorithm<DrawableProcessNode>());
+    final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+    DrawableProcessModel model = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
     model.setName(modelName);
     CharArrayWriter out = new CharArrayWriter();
     try {

@@ -189,6 +189,19 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     getSupportActionBar().setHomeButtonEnabled(true);
 
     showDrawerItem(getInitialDrawerItem());
+    Thread t = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        AuthenticatedWebClient.ensureAccount(MainActivity.this, getAuthbase(MainActivity.this));
+      }
+    });
+    t.start();
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
   }
 
   private int getInitialDrawerItem() {
@@ -277,10 +290,12 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   }
 
   private static void requestSync(Account account, final String authority, boolean pExpedited) {
-    Bundle extras = new Bundle(1);
-    extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-    extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, pExpedited);
-    ContentResolver.requestSync(account, authority, extras );
+    if (account!=null) {
+      Bundle extras = new Bundle(1);
+      extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+      extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, pExpedited);
+      ContentResolver.requestSync(account, authority, extras );
+    }
   }
 
   public static void requestSyncProcessModelList(Context pContext, boolean pExpedited) {
