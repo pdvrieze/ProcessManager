@@ -6,6 +6,7 @@
   <servlet>
     <servlet-name>processEngine</servlet-name>
     <servlet-class>nl.adaptivity.process.engine.servlet.ServletProcessEngine</servlet-class>
+    <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
