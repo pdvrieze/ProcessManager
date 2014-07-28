@@ -2,6 +2,7 @@ package nl.adaptivity.messaging;
 
 import java.net.URI;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +32,36 @@ import javax.xml.namespace.QName;
  * @author Paul de Vrieze
  */
 public final class MessagingRegistry {
+
+
+  private static class SimpleEndpointDescriptor implements EndpointDescriptor {
+
+    private final QName aServiceName;
+    private final String aEndpointName;
+    private final URI aEndpointLocation;
+
+    public SimpleEndpointDescriptor(QName pServiceName, String pEndpointName, URI pEndpointLocation) {
+      aServiceName = pServiceName;
+      aEndpointName = pEndpointName;
+      aEndpointLocation = pEndpointLocation;
+    }
+
+    @Override
+    public QName getServiceName() {
+      return aServiceName;
+    }
+
+    @Override
+    public String getEndpointName() {
+      return aEndpointName;
+    }
+
+    @Override
+    public URI getEndpointLocation() {
+      return aEndpointLocation;
+    }
+
+  }
 
   /**
    * A future class that makes StubMessenger work. It will basically fulfill the
@@ -190,7 +221,7 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public void registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
+    public EndpointDescriptor registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
       synchronized (this) {
         if (aRealMessenger == null) {
           aCommandQueue.add(new MessengerCommand() {
@@ -201,10 +232,10 @@ public final class MessagingRegistry {
             }
 
           });
-          return;
+          return new SimpleEndpointDescriptor(pService, pEndPoint, pTarget);
         }
       }
-      aRealMessenger.registerEndpoint(pService, pEndPoint, pTarget);
+      return aRealMessenger.registerEndpoint(pService, pEndPoint, pTarget);
     }
 
     @Override
@@ -240,6 +271,34 @@ public final class MessagingRegistry {
     @Override
     public void shutdown() {
       System.err.println("Shutting down stub messenger. This should never happen. Do register an actual messenger!");
+    }
+
+    @Override
+    public List<EndpointDescriptor> getRegisteredEndpoints() {
+      synchronized (this) {
+        if (aRealMessenger == null) {
+          return null;
+        }
+      }
+      return aRealMessenger.getRegisteredEndpoints();
+    }
+
+    @Override
+    public boolean unregisterEndpoint(final EndpointDescriptor pEndpoint) {
+      synchronized (this) {
+        if (aRealMessenger == null) {
+          aCommandQueue.add(new MessengerCommand() {
+
+            @Override
+            public void execute(final IMessenger pMessenger) {
+              pMessenger.unregisterEndpoint(pEndpoint);
+            }
+
+          });
+          return true;
+        }
+      }
+      return aRealMessenger.unregisterEndpoint(pEndpoint);
     }
 
   }
