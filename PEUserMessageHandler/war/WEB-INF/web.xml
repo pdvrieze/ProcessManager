@@ -9,13 +9,14 @@
     <servlet-name>internalEndpointServlet</servlet-name>
     <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
     <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.InternalEndpoint</param-value></init-param>
-    <load-on-startup>2</load-on-startup>
+    <load-on-startup>1</load-on-startup>
   </servlet>
 
   <servlet>
     <servlet-name>externalEndpointServlet</servlet-name>
     <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
     <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.ExternalEndpoint</param-value></init-param>
+    <load-on-startup>1</load-on-startup>
   </servlet>
   
   <servlet-mapping>
