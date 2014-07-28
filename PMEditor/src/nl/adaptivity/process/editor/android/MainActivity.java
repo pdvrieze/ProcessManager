@@ -189,14 +189,23 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     getSupportActionBar().setHomeButtonEnabled(true);
 
     showDrawerItem(getInitialDrawerItem());
-    Thread t = new Thread(new Runnable() {
+    AccountManager am = AccountManager.get(this);
+    Account[] accounts = am.getAccountsByType(AuthenticatedWebClient.ACCOUNT_TYPE);
+    if (accounts.length==0) {
+      Bundle options = new Bundle(1);
+      String authbase = getAuthBase(this);
+      options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase);
+      am.addAccount(AuthenticatedWebClient.ACCOUNT_TYPE, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, options, this, null, null);
+    } else {
+      Thread t = new Thread(new Runnable() {
 
-      @Override
-      public void run() {
-        AuthenticatedWebClient.ensureAccount(MainActivity.this, getAuthbase(MainActivity.this));
-      }
-    });
-    t.start();
+        @Override
+        public void run() {
+          AuthenticatedWebClient.ensureAccount(MainActivity.this, getAuthBase(MainActivity.this));
+        }
+      });
+      t.start();
+    }
   }
 
   @Override
@@ -307,7 +316,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   }
 
   private static void requestSync(Context pContext, final String pAuthority, boolean pExpedited) {
-    String authbase = getAuthbase(pContext);
+    String authbase = getAuthBase(pContext);
     if (authbase!=null) {
       (new SyncTask(pContext, pAuthority, pExpedited)).execute(authbase);
     }
@@ -319,7 +328,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     return source;
   }
 
-  private static String getAuthbase(Context pContext) {
+  private static String getAuthBase(Context pContext) {
     final String source = getSyncSource(pContext);
     return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
   }
