@@ -117,10 +117,13 @@ public class RestMessageHandler {
 
   private Collection<Method> getCandidatesFor(final HttpMethod pHttpMethod, final String pPathInfo) {
     final Class<? extends Object> targetClass = aTarget.getClass();
+    EnumMap<HttpMethod, PrefixMap<Method>> v;
     if (cache == null) {
       cache = new HashMap<>();
+      v = null;
+    } else {
+      v = cache.get(targetClass);
     }
-    EnumMap<HttpMethod, PrefixMap<Method>> v = cache.get(targetClass);
     if (v == null) {
       v = createCacheElem(targetClass);
       cache.put(targetClass, v);
