@@ -1,18 +1,13 @@
 package nl.adaptivity.android.util;
 
 import nl.adaptivity.android.compat.TitleFragment;
-import nl.adaptivity.process.editor.android.ProcessModelDetailActivity;
-import nl.adaptivity.process.editor.android.ProcessModelDetailFragment;
-import nl.adaptivity.process.editor.android.ProcessModelListFragment;
 import nl.adaptivity.process.editor.android.R;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -77,7 +72,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.
-        ProcessModelDetailFragment fragment = createDetailFragment(pRow, pItemId);
+        Fragment fragment = createDetailFragment(pRow, pItemId);
         getChildFragmentManager().beginTransaction()
             .replace(R.id.processmodel_detail_container, fragment)
             .commit();
@@ -100,7 +95,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
     }
   }
 
-  protected abstract ProcessModelDetailFragment createDetailFragment(int pRow, long pItemId);
+  protected abstract Fragment createDetailFragment(int pRow, long pItemId);
 
   protected abstract Intent getDetailIntent(int pRow, long pItemId);
 
