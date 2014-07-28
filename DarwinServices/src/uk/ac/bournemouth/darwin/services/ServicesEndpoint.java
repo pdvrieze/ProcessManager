@@ -15,7 +15,7 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 
 public class ServicesEndpoint {
 
-  @XmlElementWrapper(name = "actionsGroups", namespace = Constants.USER_MESSAGE_HANDLER_NS)
+  @XmlElementWrapper(name = "actionsGroups", namespace = Constants.DARWIN_NS)
   @RestMethod(method = HttpMethod.GET, path = "/actions")
   public Collection<ActionDescriptorGroup> getAvailableActions(@RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     final ArrayList<ActionDescriptorGroup> result = new ArrayList<>();
