@@ -19,11 +19,13 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlList;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
@@ -105,12 +107,56 @@ public class InternalEndpoint implements GenericEndpoint {
 
     @Override
     public List<String> getOptions() {
+      if (aOptions==null) { aOptions = new ArrayList<String>(); }
       return aOptions;
     }
 
-    @XmlElement(name="option")
+    @XmlElement(name="option", namespace=Constants.USER_MESSAGE_HANDLER_NS)
     public void setOptions(List<String> pOptions) {
       aOptions = pOptions;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((aName == null) ? 0 : aName.hashCode());
+      result = prime * result + ((aOptions == null || aOptions.isEmpty()) ? 0 : aOptions.hashCode());
+      result = prime * result + ((aType == null) ? 0 : aType.hashCode());
+      result = prime * result + ((aValue == null) ? 0 : aValue.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      XmlItem other = (XmlItem) obj;
+      if (aName == null) {
+        if (other.aName != null)
+          return false;
+      } else if (!aName.equals(other.aName))
+        return false;
+      if (aOptions==null || aOptions.isEmpty()) {
+        if (other.aOptions!=null && ! aOptions.isEmpty())
+          return false;
+      } else if (!aOptions.equals(other.aOptions))
+        return false;
+      if (aType == null) {
+        if (other.aType != null)
+          return false;
+      } else if (!aType.equals(other.aType))
+        return false;
+      if (aValue == null) {
+        if (other.aValue != null)
+          return false;
+      } else if (!aValue.equals(other.aValue))
+        return false;
+      return true;
     }
   }
 
@@ -234,9 +280,10 @@ public class InternalEndpoint implements GenericEndpoint {
       aOwner = pOwner==null ? null : new SimplePrincipal(pOwner);
     }
 
-    @XmlElement(name="item")
+    @XmlElement(name ="item", namespace=Constants.USER_MESSAGE_HANDLER_NS)
     @Override
     public List<XmlItem> getItems() {
+      if (aItems==null) { aItems = new ArrayList<XmlItem>(); }
       return aItems;
     }
 
@@ -246,6 +293,58 @@ public class InternalEndpoint implements GenericEndpoint {
       for(TaskItem item: pItems) {
         aItems.add((XmlItem) item);
       }
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((aEndPoint == null) ? 0 : aEndPoint.hashCode());
+      result = prime * result + (int) (aHandle ^ (aHandle >>> 32));
+      result = prime * result + ((aItems == null||aItems.isEmpty()) ? 0 : aItems.hashCode());
+      result = prime * result + ((aOwner == null) ? 0 : aOwner.hashCode());
+      result = prime * result + (int) (aRemoteHandle ^ (aRemoteHandle >>> 32));
+      result = prime * result + ((aState == null) ? 0 : aState.hashCode());
+      result = prime * result + ((aSummary == null) ? 0 : aSummary.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      XmlTask other = (XmlTask) obj;
+      if (aEndPoint == null) {
+        if (other.aEndPoint != null)
+          return false;
+      } else if (!aEndPoint.equals(other.aEndPoint))
+        return false;
+      if (aHandle != other.aHandle)
+        return false;
+      if (aItems == null || aItems.isEmpty()) {
+        if (other.aItems != null && ! aItems.isEmpty())
+          return false;
+      } else if (!aItems.equals(other.aItems))
+        return false;
+      if (aOwner == null) {
+        if (other.aOwner != null)
+          return false;
+      } else if (!aOwner.equals(other.aOwner))
+        return false;
+      if (aRemoteHandle != other.aRemoteHandle)
+        return false;
+      if (aState != other.aState)
+        return false;
+      if (aSummary == null) {
+        if (other.aSummary != null)
+          return false;
+      } else if (!aSummary.equals(other.aSummary))
+        return false;
+      return true;
     }
 
 
