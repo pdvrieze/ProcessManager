@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 
@@ -43,10 +44,13 @@ public interface IMessenger {
    * @param pCompletionListener The completionListener to use when the message
    *          response is ready.
    * @param pReturnType The type of the return value of the sending.
+   * @param pReturnTypeContext The jaxb context to be used when marshaling and
+   *          umarshaling the return value. Basically this uses
+   *          {@link XmlSeeAlso}.
    * @return A future that can be used to retrieve the result of the sending.
    *         This result will also be passed along to the completionListener.
    */
-  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType);
+  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType, Class<?>[] pReturnTypeContext);
 
   /**
    * Get a list of all the registered enpoints.

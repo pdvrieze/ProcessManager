@@ -83,10 +83,13 @@ public final class MessagingRegistry {
 
     private final Class<T> aReturnType;
 
-    public WrappingFuture(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
+    private Class<?>[] aReturnTypeContext;
+
+    public WrappingFuture(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, final Class<?>[] pReturnTypeContext) {
       aMessage = pMessage;
       aCompletionListener = pCompletionListener;
       aReturnType = pReturnType;
+      aReturnTypeContext = pReturnTypeContext;
     }
 
     @Override
@@ -164,7 +167,7 @@ public final class MessagingRegistry {
     @Override
     public synchronized void execute(final IMessenger pMessenger) {
       if (!aCancelled) {
-        aOrigin = pMessenger.sendMessage(aMessage, this, aReturnType);
+        aOrigin = pMessenger.sendMessage(aMessage, this, aReturnType, aReturnTypeContext);
       }
       notifyAll(); // Wake up all waiters (should be only one)
     }
@@ -257,15 +260,15 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
+    public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, Class<?>[] pReturnTypeContext) {
       synchronized (this) {
         if (aRealMessenger == null) {
-          final WrappingFuture<T> future = new WrappingFuture<>(pMessage, pCompletionListener, pReturnType);
+          final WrappingFuture<T> future = new WrappingFuture<>(pMessage, pCompletionListener, pReturnType, pReturnTypeContext);
           aCommandQueue.add(future);
           return future;
         }
       }
-      return aRealMessenger.sendMessage(pMessage, pCompletionListener, pReturnType);
+      return aRealMessenger.sendMessage(pMessage, pCompletionListener, pReturnType, pReturnTypeContext);
     }
 
     @Override
@@ -354,12 +357,13 @@ public final class MessagingRegistry {
    * @param pCompletionListener The completionListener to use when the message
    *          response is ready.
    * @param pReturnType The type of the return value of the sending.
+   * @param pReturnTypeContext
    * @return A future that can be used to retrieve the result of the sending.
    *         This result will also be passed along to the completionListener.
    * @see IMessenger#sendMessage(ISendableMessage, CompletionListener, Class)
    */
-  public static <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
-    return getMessenger().sendMessage(pMessage, pCompletionListener, pReturnType);
+  public static <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, Class<?>[] pReturnTypeContext) {
+    return getMessenger().sendMessage(pMessage, pCompletionListener, pReturnType, pReturnTypeContext);
   }
 
 }
