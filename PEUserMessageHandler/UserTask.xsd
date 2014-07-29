@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://adaptivity.nl/userMessageHandler" elementFormDefault="qualified" xmlns:umh="http://adaptivity.nl/userMessageHandler">
+  <simpleType name="taskState">
+    <restriction base="string">
+      <enumeration value="Sent"/>
+      <enumeration value="Acknowledged"/>
+      <enumeration value="Taken"/>
+      <enumeration value="Started"/>
+      <enumeration value="Complete"/>
+      <enumeration value="Failed"/>
+      <enumeration value="Cancelled"/>
+    </restriction>
+  </simpleType>
 
     <complexType name="ItemT">
     	<sequence maxOccurs="unbounded">
@@ -11,12 +22,13 @@
     </complexType>
 
     <complexType name="TaskT">
-    	<sequence maxOccurs="unbounded">
+    	<sequence minOccurs="0" maxOccurs="unbounded">
     		<element name="item" type="umh:ItemT"></element>
     	</sequence>
     	<attribute name="handle" type="int"></attribute>
     	<attribute name="remotehandle" type="int"></attribute>
-    	<attribute name="state" type="string"></attribute>
+    	<attribute name="state" type="umh:taskState"></attribute>
+    	<attribute name="summary" type="string"></attribute>
     </complexType>
 
     <element name="task" type="umh:TaskT"></element>
