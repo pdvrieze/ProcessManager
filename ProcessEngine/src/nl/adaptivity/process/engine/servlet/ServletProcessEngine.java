@@ -174,19 +174,24 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       return aMessage.getContentType();
     }
 
+    public Source getSource() {
+      Source messageBody = aMessage.getBodySource();
+      if (messageBody==null) {
+        throw new NullPointerException();
+      }
+      if (messageBody instanceof DOMSource) {
+        ((DOMSource) messageBody).getNode();
+        messageBody = new StreamSource(Sources.toReader(messageBody));
+      }
+      return messageBody;
+    }
+
     @Override
     public InputStream getInputStream() throws IOException {
-      Source messageBody = aMessage.getBodySource();
+      Source messageBody;
       try {
         final XMLInputFactory xif = XMLInputFactory.newInstance();
-        if (messageBody == null) {
-          throw new NullPointerException();
-        }
-
-        if (messageBody instanceof DOMSource) {
-          ((DOMSource) messageBody).getNode();
-          messageBody = new StreamSource(Sources.toReader(messageBody));
-        }
+        messageBody = getSource();
 
         final XMLEventReader xer = xif.createXMLEventReader(messageBody);
         final XMLOutputFactory xof = XMLOutputFactory.newInstance();
@@ -488,10 +493,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       } else {
         localURL = URI.create("http://" + hostname + ":" + port + pConfig.getServletContext().getContextPath());
       }
-      aLocalEndPoint = new EndpointDescriptorImpl(getServiceName(), getEndpointName(), localURL);
+      setLocalEndpoint(localURL);
     }
     MessagingRegistry.getMessenger().registerEndpoint(this);
   }
+
+
 
   /*
    * IMessageService methods
@@ -507,7 +514,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     final long handle = aProcessEngine.registerMessage(pInstance);
     pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner());
 
-    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(MemHandleMap.<ProcessNodeInstance> handle(pMessage.aHandle), pMessage.aOwner), DataSource.class);
+    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(MemHandleMap.<ProcessNodeInstance> handle(pMessage.aHandle), pMessage.aOwner), DataSource.class, new Class<?>[0]);
     return true;
   }
 
@@ -724,5 +731,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     // We know our config, don't do anything.
   }
 
+  void setLocalEndpoint(URI localURL) {
+    aLocalEndPoint = new EndpointDescriptorImpl(getServiceName(), getEndpointName(), localURL);
+  }
 
 }

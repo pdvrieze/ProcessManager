@@ -11,15 +11,15 @@
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <replies>
+                <repliesParam>
                   <jbi:element value="endpoint"/>
-                </replies>
-                <task>
+                </repliesParam>
+                <taskParam>
                   <task summary="Task Foo">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
-                </task>
+                </taskParam>
               </postTask>
             </Body>
           </Envelope>
@@ -30,15 +30,15 @@
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <replies>
+                <repliesParam>
                   <jbi:element value="endpoint"/>
-                </replies>
-                <task>
+                </repliesParam>
+                <taskParam>
                   <task summary="Task Bar">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
-                </task>
+                </taskParam>
               </postTask>
             </Body>
           </Envelope>
@@ -49,15 +49,15 @@
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <replies>
+                <repliesParam>
                   <jbi:element value="endpoint"/>
-                </replies>
-                <task>
+                </repliesParam>
+                <taskParam>
                   <task summary="Task Baz1">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
-                </task>
+                </taskParam>
               </postTask>
             </Body>
           </Envelope>
@@ -68,15 +68,15 @@
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <replies>
+                <repliesParam>
                   <jbi:element value="endpoint"/>
-                </replies>
-                <task>
+                </repliesParam>
+                <taskParam>
                   <task summary="Task Baz2">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
-                </task>
+                </taskParam>
               </postTask>
             </Body>
           </Envelope>
@@ -91,15 +91,15 @@
           <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
             <Body>
               <postTask xmlns="http://adaptivity.nl/userMessageHandler">
-                <replies>
+                <repliesParam>
                   <jbi:element value="endpoint"/>
-                </replies>
-                <task>
+                </repliesParam>
+                <taskParam>
                   <task summary="Task Last">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
-                </task>
+                </taskParam>
               </postTask>
             </Body>
           </Envelope>
