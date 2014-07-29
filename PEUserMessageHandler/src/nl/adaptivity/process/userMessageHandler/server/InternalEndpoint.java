@@ -226,11 +226,11 @@ public class InternalEndpoint implements GenericEndpoint {
 
     @XmlAttribute(name = "owner")
     String getOwnerString() {
-      return aOwner.getName();
+      return aOwner==null ? null : aOwner.getName();
     }
 
     void setOwnerString(final String pOwner) {
-      aOwner = new SimplePrincipal(pOwner);
+      aOwner = pOwner==null ? null : new SimplePrincipal(pOwner);
     }
 
     @XmlElement(name="item")
@@ -292,7 +292,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "replies", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "task", mode = Mode.IN) final UserTask<?> pTask) {
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "taskParam", mode = Mode.IN) final UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     final boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
