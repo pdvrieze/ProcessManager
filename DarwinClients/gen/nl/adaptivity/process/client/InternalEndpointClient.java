@@ -35,15 +35,15 @@ public class InternalEndpointClient {
 
   private InternalEndpointClient() { }
 
-  public static Future<ActivityResponse<Boolean>> postTask(EndpointDescriptorImpl replies, UserTask<?> task, CompletionListener completionListener) throws JAXBException {
-    final Tripple<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl> param0 = Tripple.<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl>tripple("repliesParam", EndpointDescriptorImpl.class, replies);
-    final Tripple<String, Class<UserTask>, UserTask<?>> param1 = Tripple.<String, Class<UserTask>, UserTask<?>>tripple("taskParam", UserTask.class, task);
+  public static Future<ActivityResponse<Boolean>> postTask(EndpointDescriptorImpl repliesParam, UserTask<?> taskParam, CompletionListener completionListener) throws JAXBException {
+    final Tripple<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl> param0 = Tripple.<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl>tripple("repliesParam", EndpointDescriptorImpl.class, repliesParam);
+    final Tripple<String, Class<UserTask>, UserTask<?>> param1 = Tripple.<String, Class<UserTask>, UserTask<?>>tripple("taskParam", UserTask.class, taskParam);
 
     Source message = SoapHelper.createMessage(new QName(""), Arrays.asList(param0, param1));
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ActivityResponse.class);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ActivityResponse.class, new Class<?>[0]);
   }
 
 }

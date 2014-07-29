@@ -45,7 +45,7 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class, new Class<?>[0]);
   }
 
   public static Future<TaskState> finishTask(long handle, Node payload, String principal, CompletionListener completionListener) throws JAXBException {
@@ -57,7 +57,7 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class, new Class<?>[0]);
   }
 
   public static Future<TaskState> updateTaskState(long handle, TaskState state, Principal user, CompletionListener completionListener) throws JAXBException {
@@ -69,7 +69,7 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class, new Class<?>[0]);
   }
 
 }
