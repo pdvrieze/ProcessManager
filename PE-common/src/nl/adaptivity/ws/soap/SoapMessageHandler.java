@@ -105,7 +105,7 @@ public class SoapMessageHandler {
       }
     }
     if (operationElem == null) {
-      throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation not found");
+      throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation element not found");
     }
 
     final QName operation = new QName(operationElem.getNamespaceURI(), operationElem.getLocalName());
@@ -117,7 +117,7 @@ public class SoapMessageHandler {
       method.exec();
       return method.getResultSource();
     }
-    throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation not found");
+    throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "Operation "+operation+" not found");
   }
 
 

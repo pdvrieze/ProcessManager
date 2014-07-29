@@ -23,19 +23,18 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
-import org.w3.soapEnvelope.Body;
-import org.w3.soapEnvelope.Envelope;
-import org.w3.soapEnvelope.Header;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.Annotations;
 import net.devrieze.util.Tripple;
-
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
+
+import org.w3.soapEnvelope.Body;
+import org.w3.soapEnvelope.Envelope;
+import org.w3.soapEnvelope.Header;
+import org.w3c.dom.Node;
 
 
 public class SoapMethodWrapper {
@@ -121,7 +120,9 @@ public class SoapMethodWrapper {
       if (value == null) {
         throw new MessagingFormatException("Parameter \"" + name + "\" not found");
       }
-      aParams[i] = SoapHelper.unMarshalNode(aMethod, parameterTypes[i], value);
+
+      final SoapSeeAlso seeAlso = Annotations.getAnnotation(parameterAnnotations[i], SoapSeeAlso.class);
+      aParams[i] = SoapHelper.unMarshalNode(aMethod, parameterTypes[i], seeAlso==null ? new Class<?>[0] : seeAlso.value(), value);
 
     }
     if (params.size() > 0) {

@@ -551,7 +551,7 @@ public class DarwinMessenger implements IMessenger {
    * </p>
    */
   @Override
-  public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
+  public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, final Class<?>[] pReturnContext) {
     EndpointDescriptor registeredEndpoint = getEndpoint(pMessage.getDestination());
 
     if (registeredEndpoint instanceof DirectEndpoint) {
@@ -582,7 +582,7 @@ public class DarwinMessenger implements IMessenger {
           }
           resultfuture = new MessageTask<>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
         } else {
-          final T resultval = SoapHelper.processResponse(pReturnType, resultSource);
+          final T resultval = SoapHelper.processResponse(pReturnType, pReturnContext, resultSource);
           resultfuture = new MessageTask<>(resultval);
         }
 

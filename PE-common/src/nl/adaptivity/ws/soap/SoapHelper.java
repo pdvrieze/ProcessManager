@@ -2,6 +2,7 @@ package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,10 +32,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.util.XmlUtil;
 
@@ -218,7 +219,7 @@ public class SoapHelper {
     return wrapper;
   }
 
-  public static <T> T processResponse(final Class<T> pClass, final Source pContent) {
+  public static <T> T processResponse(final Class<T> pClass, Class<?>[] pContext, final Source pContent) {
     final Envelope env = JAXB.unmarshal(pContent, Envelope.class);
     final List<Object> elements = env.getBody().getAny();
     if (elements.size() != 1) {
@@ -229,7 +230,7 @@ public class SoapHelper {
       return null; // Must be void method
     }
     final LinkedHashMap<String, Node> results = getParamMap(wrapper);
-    return pClass.cast(unMarshalNode(null, pClass, results.get(RESULT)));
+    return pClass.cast(unMarshalNode(null, pClass, pContext, results.get(RESULT)));
   }
 
   static LinkedHashMap<String, Node> getParamMap(final Node bodyParamRoot) {
@@ -280,7 +281,7 @@ public class SoapHelper {
     return result;
   }
 
-  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Node pAttrWrapper) {
+  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) {
     final Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
     Object result;
     if ((value != null) && (!pClass.isInstance(value))) {
@@ -311,9 +312,9 @@ public class SoapHelper {
           JAXBContext context;
 
           if (pClass.isInterface()) {
-            context = newJAXBContext(pMethod, Collections.<Class<?>> emptyList());
+            context = newJAXBContext(pMethod, Arrays.asList(pContext));
           } else {
-            context = newJAXBContext(pMethod, Collections.<Class<?>> singletonList(pClass));
+            context = newJAXBContext(pMethod, CollectionUtil.concatenate(Collections.<Class<?>> singletonList(pClass), Arrays.asList(pContext)));
           }
           final Unmarshaller um = context.createUnmarshaller();
           if (pClass.isInterface()) {
