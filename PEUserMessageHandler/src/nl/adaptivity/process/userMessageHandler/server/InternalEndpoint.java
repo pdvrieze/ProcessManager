@@ -34,6 +34,7 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.ws.soap.SoapSeeAlso;
 
 
 @XmlSeeAlso(InternalEndpoint.XmlTask.class)
@@ -292,7 +293,7 @@ public class InternalEndpoint implements GenericEndpoint {
   }
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "taskParam", mode = Mode.IN) final UserTask<?> pTask) {
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask.class) final UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
     final boolean result = aService.postTask(pTask);
     pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
