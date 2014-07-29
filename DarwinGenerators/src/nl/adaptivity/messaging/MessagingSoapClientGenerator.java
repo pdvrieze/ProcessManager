@@ -30,10 +30,13 @@ import java.util.Map;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
+import net.devrieze.util.Annotations;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.ws.soap.SoapSeeAlso;
 
 
 /**
@@ -64,12 +67,12 @@ public class MessagingSoapClientGenerator {
       // First sort on name
       int result = m1.getName().compareTo(m2.getName());
       if (result!=0) { return result; }
-      
+
       Class<?>[] p1 = m1.getParameterTypes();
       Class<?>[] p2 = m2.getParameterTypes();
       // Next on parameter list length
       if (p1.length!=p2.length) { return p1.length-p2.length; }
-      
+
       // Next on the parameter types
       for(int i=0; i<p1.length; ++i) {
         result = p1[i].getSimpleName().compareTo(p2[i].getSimpleName());
@@ -78,7 +81,7 @@ public class MessagingSoapClientGenerator {
       // This should not happen as methods can not be the same but for return type in Java (but in jvm can)
       return m1.getReturnType().getSimpleName().compareTo(m2.getReturnType().getSimpleName());
     }
-    
+
   };
 
   /**
@@ -471,10 +474,33 @@ public class MessagingSoapClientGenerator {
     pOut.write("    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ");
     writeType(pOut, getRawType(pMethod.getGenericReturnType()), true, false, pImports);
 
-    pOut.write(".class);\n");
+    pOut.write(".class, ");
+
+    SoapSeeAlso seeAlso = Annotations.getAnnotation(pMethod.getAnnotations(),SoapSeeAlso.class);
+    if (seeAlso==null) {
+      pOut.write("new Class<?>[0]");
+    } else {
+      writeClassArray(pOut, seeAlso.value(), pImports);
+    }
+
+    pOut.write(");\n");
 
     pOut.write("  }\n\n");
 
+  }
+
+  private static void writeClassArray(Writer pOut, Class<?>[] pValue, Map<String, String> pImports) throws IOException {
+    if (pValue.length==0) {
+      pOut.write("new Class<?>[0]");
+      return;
+    }
+    pOut.write("new Class<?>[] {");
+    writeType(pOut, pValue[0], false, false, pImports);
+    for(int i=1; i<pValue.length; ++i) {
+      pOut.write(", ");
+      writeType(pOut, pValue[i], false, false, pImports);
+    }
+    pOut.write('}');
   }
 
   private static Class<?> getRawType(Type pType) {
