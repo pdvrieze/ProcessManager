@@ -88,4 +88,47 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
     return new QName(aServiceNamespace, aServiceLocalName);
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((aEndpointLocation == null) ? 0 : aEndpointLocation.hashCode());
+    result = prime * result + ((aEndpointName == null) ? 0 : aEndpointName.hashCode());
+    result = prime * result + ((aServiceLocalName == null) ? 0 : aServiceLocalName.hashCode());
+    result = prime * result + ((aServiceNamespace == null) ? 0 : aServiceNamespace.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    EndpointDescriptorImpl other = (EndpointDescriptorImpl) obj;
+    if (aEndpointLocation == null) {
+      if (other.aEndpointLocation != null)
+        return false;
+    } else if (!aEndpointLocation.equals(other.aEndpointLocation))
+      return false;
+    if (aEndpointName == null) {
+      if (other.aEndpointName != null)
+        return false;
+    } else if (!aEndpointName.equals(other.aEndpointName))
+      return false;
+    if (aServiceLocalName == null) {
+      if (other.aServiceLocalName != null)
+        return false;
+    } else if (!aServiceLocalName.equals(other.aServiceLocalName))
+      return false;
+    if (aServiceNamespace == null) {
+      if (other.aServiceNamespace != null)
+        return false;
+    } else if (!aServiceNamespace.equals(other.aServiceNamespace))
+      return false;
+    return true;
+  }
+
 }
