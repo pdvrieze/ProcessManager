@@ -183,12 +183,17 @@ public class SoapMethodWrapper {
 
     List<Tripple<String, ? extends Class<? extends Object>, ?>> params;
     List<Object> headers;
-    if (aResult instanceof ActivityResponse) {
+    if (aResult == null && aMethod.getReturnType()==Void.class) {
+      params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
+                             Tripple.tripple("result", Void.class, null));
+      headers = Collections.emptyList();
+
+    } else if (aResult instanceof ActivityResponse) {
       final ActivityResponse<?> activityResponse = (ActivityResponse<?>) aResult;
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) );
       headers = Collections.<Object> singletonList(aResult);
-    } else if ("nl.adaptivity.process.messaging.ActivityResponse".equals(aResult.getClass().getName())) {
+    } else if (aResult!=null && "nl.adaptivity.process.messaging.ActivityResponse".equals(aResult.getClass().getName())) {
       /*
        * If the ActivityResponse was created by a different classloader like
        * when we directly invoke the endpoint through DarwinMessenger shortcut
