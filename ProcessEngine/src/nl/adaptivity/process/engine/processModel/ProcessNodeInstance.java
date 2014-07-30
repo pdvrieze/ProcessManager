@@ -100,19 +100,26 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   @Override
   public <U> boolean provideTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
     setState(TaskState.Sent);
-    return aNode.provideTask(pMessageService, this);
+    try {
+      return aNode.provideTask(pMessageService, this);
+    } catch (RuntimeException e) {
+      failTask(e);
+      throw e;
+    }
   }
 
   @Override
   public <U> boolean takeTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
+    final boolean result = aNode.takeTask(pMessageService, this);
     setState(TaskState.Taken);
-    return aNode.takeTask(pMessageService, this);
+    return result;
   }
 
   @Override
   public <U> boolean startTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
+    final boolean startTask = aNode.startTask(pMessageService, this);
     setState(TaskState.Started);
-    return aNode.startTask(pMessageService, this);
+    return startTask;
   }
 
   @Override
