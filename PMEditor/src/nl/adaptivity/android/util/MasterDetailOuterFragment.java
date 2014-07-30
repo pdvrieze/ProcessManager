@@ -74,7 +74,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         // fragment transaction.
         Fragment fragment = createDetailFragment(pRow, pItemId);
         getChildFragmentManager().beginTransaction()
-            .replace(R.id.processmodel_detail_container, fragment)
+            .replace(mDetailContainerId, fragment)
             .commit();
       } else {
         Fragment frag = getChildFragmentManager().findFragmentById(mDetailContainerId);
