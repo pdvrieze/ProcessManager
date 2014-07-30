@@ -34,5 +34,6 @@
     <string name="drawer_close">Close drawer</string>
     <string name="title_main">Process Manager</string>
     <string name="title_tasklist">Tasks</string>
+    <string name="btn_task_complete">Complete task</string>
 
 </resources>

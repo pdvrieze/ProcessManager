@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -43,6 +44,10 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   private UserTask mUserTask;
 
+  private LinearLayout mDetailView;
+
+  private TextView mTVState;
+
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
@@ -63,14 +68,16 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
     View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
+    mSpinner = (ProgressBar) rootView.findViewById(R.id.task_detail_spinner);
+    mDetailView = (LinearLayout) rootView.findViewById(R.id.task_detail);
+    mSpinner.setVisibility(View.VISIBLE);
+    mDetailView.setVisibility(View.GONE);
 
-    mTVSummary = (TextView) rootView.findViewById(R.id.task_name);
 
-    mSpinner = (ProgressBar) rootView.findViewById(R.id.spinner);
-    mTVSummary.setVisibility(View.GONE);
+    mTVSummary = (TextView) mDetailView.findViewById(R.id.task_name);
+    mTVState = (TextView) mDetailView.findViewById(R.id.task_state);
 
-    rootView.findViewById(R.id.btn_pm_edit).setOnClickListener(this);
-    rootView.findViewById(R.id.btn_pm_exec).setOnClickListener(this);
+    mDetailView.findViewById(R.id.btn_task_complete).setOnClickListener(this);
     return rootView;
   }
 
@@ -84,14 +91,16 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   @Override
   public void onLoadFinished(Loader<UserTask> pLoader, UserTask pData) {
     mSpinner.setVisibility(View.GONE);
-    mTVSummary.setVisibility(View.VISIBLE);
+    mDetailView.setVisibility(View.VISIBLE);
     mTVSummary.setText(pData.getSummary());
+    mTVState.setText(pData.getState());
     mUserTask = pData;
   }
 
   @Override
   public void onLoaderReset(Loader<UserTask> pLoader) {
     mTVSummary.setText(null);
+    mTVState.setText(null);
     mUserTask = null;
   }
 

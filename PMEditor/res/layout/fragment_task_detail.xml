@@ -1,43 +1,55 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/task_detail"
+    android:id="@+id/task_detail_frame"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="match_parent" >
 
     <ProgressBar
-        android:id="@+id/spinner"
+        android:id="@+id/task_detail_spinner"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_gravity="center"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/task_name"
-        style="?android:attr/textAppearanceLarge"
+    <LinearLayout
+        android:id="@+id/task_detail"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:gravity="center"
-        android:padding="16dp"
-        android:textIsSelectable="true"
-        tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
+        android:layout_height="match_parent"
+        android:orientation="vertical" 
+        android:padding="@dimen/default_margin">
 
-    <Button
-        android:id="@+id/btn_pm_edit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:text="@string/btn_pm_edit" />
+        <TextView
+            android:id="@+id/task_name"
+            style="?android:attr/textAppearanceLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_margin"
+            android:gravity="center"
+            android:textIsSelectable="true"
+            tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
 
-    <Button
-        android:id="@+id/btn_pm_exec"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:enabled="false"
-        android:text="@string/btn_pm_execute" />
+        <TextView
+            android:id="@+id/task_state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/default_margin"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
-</LinearLayout>
+        <View
+            android:id="@+id/view1"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/btn_task_complete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/btn_task_complete" />
+    </LinearLayout>
+
+</FrameLayout>
