@@ -8,7 +8,7 @@
     android:padding="@dimen/default_margin" >
 
     <ProgressBar
-        android:id="@+id/spinner"
+        android:id="@+id/processmodel_detail_spinner"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

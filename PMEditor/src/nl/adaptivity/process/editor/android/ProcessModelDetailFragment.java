@@ -135,7 +135,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     mModelView = (DiagramView) rootView.findViewById(R.id.diagramView1);
     mModelView.addOnLayoutChangeListener(new ModelViewLayoutChangeListener());
 
-    mSpinner = (ProgressBar) rootView.findViewById(R.id.spinner);
+    mSpinner = (ProgressBar) rootView.findViewById(R.id.processmodel_detail_spinner);
     mTVName.setVisibility(View.GONE);
     mModelView.setVisibility(View.GONE);
 
