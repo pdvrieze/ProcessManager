@@ -34,4 +34,14 @@ public class LabelItem extends TaskItem {
     ((TextView) pV).setText(mValue);
   }
 
+  @Override
+  public boolean isDirty() {
+    return false; // This is not an editor, so never dirty
+  }
+
+  @Override
+  public String getValue() {
+    return mValue;
+  }
+
 }

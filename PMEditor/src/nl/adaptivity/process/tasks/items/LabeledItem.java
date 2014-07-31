@@ -1,36 +1,56 @@
 package nl.adaptivity.process.tasks.items;
 
+import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.tasks.TaskItem;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.tasks.TaskItem;
 
 
 public abstract class LabeledItem extends TaskItem {
 
-  private String mLabel;
+  private String aLabel;
+  private String aValue;
+  private boolean aDirty = false;
 
-  public LabeledItem(String pName, String pLabel) {
+  public LabeledItem(String pName, String pLabel, String pValue) {
     super(pName);
+    aValue = pValue;
     setLabel(pLabel);
   }
 
   public String getLabel() {
-    return mLabel;
+    return aLabel;
   }
 
   public void setLabel(String pLabel) {
-    mLabel = pLabel;
+    aLabel = pLabel;
+  }
+
+  public void setValue(String pValue) {
+    if (aValue==null) {
+      if (pValue!=null) { aDirty = true; }
+    } else if (! aValue.equals(pValue)) {
+      aDirty = true;
+    }
+    aValue = pValue;
+  }
+
+  public final String getValue() {
+    return aValue;
+  }
+
+  public boolean isDirty() {
+    return aDirty;
   }
 
   @Override
   public View createView(LayoutInflater pInflater, ViewGroup pParent) {
     View view = pInflater.inflate(R.layout.taskitem_labeled, pParent, false);
     TextView labelView = (TextView) view.findViewById(R.id.taskitem_labeled_label);
-    labelView.setText(mLabel);
+    labelView.setText(aLabel);
     FrameLayout detailContainer = (FrameLayout) view.findViewById(R.id.taskitem_labeled_detail);
     View detail = createDetailView(pInflater, detailContainer);
     detailContainer.removeAllViews();
@@ -43,7 +63,7 @@ public abstract class LabeledItem extends TaskItem {
   @Override
   public void updateView(View view) {
     TextView labelView = (TextView) view.findViewById(R.id.taskitem_labeled_label);
-    labelView.setText(mLabel);
+    labelView.setText(aLabel);
     FrameLayout detailContainer = (FrameLayout) view.findViewById(R.id.taskitem_labeled_detail);
     View detail = detailContainer.getChildAt(0);
     updateDetailView(detail);

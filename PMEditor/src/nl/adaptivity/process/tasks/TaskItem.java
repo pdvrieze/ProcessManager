@@ -120,6 +120,10 @@ public abstract class TaskItem {
 
   public abstract Type getType();
 
+  public abstract boolean isDirty();
+
+  public abstract String getValue();
+
   protected String getDBType() {
     return getType().toString();
   }
