@@ -2,12 +2,12 @@ package nl.adaptivity.process.tasks.items;
 
 import java.util.List;
 
+import nl.adaptivity.process.editor.android.R;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.TextView;
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.tasks.TaskItem;
+import android.widget.Spinner;
 
 
 public class ListItem extends LabeledItem {
@@ -35,8 +35,10 @@ public class ListItem extends LabeledItem {
 
   @Override
   protected void updateDetailView(View pDetail) {
-    TextView view = (TextView) pDetail;
-    view.setText(mValue);
+    Spinner view = (Spinner) pDetail;
+
+    view.setAdapter(new ArrayAdapter<>(pDetail.getContext(), android.R.layout.simple_dropdown_item_1line, mOptions));
+//    view.setText(mValue);
     // TODO use the options as suggestions
   }
 

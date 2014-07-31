@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/half_margin"
-    android:layout_marginTop="@dimen/half_margin"
-    android:minHeight="?android:attr/listPreferredItemHeight"
-    android:orientation="horizontal" >
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginBottom="@dimen/half_margin"
+	android:layout_marginTop="@dimen/half_margin"
+	android:minHeight="?android:attr/listPreferredItemHeight"
+	android:orientation="horizontal" >
 
     <TextView
         android:id="@+id/taskitem_labeled_label"

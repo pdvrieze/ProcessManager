@@ -39,10 +39,12 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <ListView
-            android:id="@+id/task_items"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+        	android:id="@+id/task_items"
+        	android:layout_width="match_parent"
+        	android:layout_height="0dp"
+        	android:layout_weight="1"
+          android:layout_marginBottom="@dimen/default_margin"
+        	tools:listitem="@layout/taskitem_labeled" />
 
         <Button
             android:id="@+id/btn_task_complete"

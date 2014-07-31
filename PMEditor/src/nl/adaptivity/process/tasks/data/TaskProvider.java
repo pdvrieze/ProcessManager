@@ -91,7 +91,7 @@ public class TaskProvider extends ContentProvider {
     public static final Uri CONTENT_ID_URI_PATTERN = Uri.parse(Tasks.SCHEME+TaskProvider.AUTHORITY+Tasks.PATH_ITEMS+'#');
     public static final String COLUMN_TASKID = "taskid";
     public static final String COLUMN_NAME = "name";
-    public static final String COLUMN_LABEL = "name";
+    public static final String COLUMN_LABEL = "label";
     public static final String COLUMN_TYPE = "type";
     public static final String COLUMN_VALUE = "value";
   }
@@ -108,8 +108,10 @@ public class TaskProvider extends ContentProvider {
   private static enum QueryTarget{
     TASKS(Tasks.CONTENT_URI, TasksOpenHelper.TABLE_NAME_TASKS),
     TASK(Tasks.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_TASKS),
-    TASKITEMS(TaskProvider.Items.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_ITEMS),
-    TASKOPTIONS(Options.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_OPTIONS);
+    TASKITEMS(TaskProvider.Items.CONTENT_ID_URI_BASE, TasksOpenHelper.TABLE_NAME_ITEMS),
+    TASKITEM(TaskProvider.Items.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_ITEMS),
+    TASKOPTIONS(Options.CONTENT_ID_URI_BASE, TasksOpenHelper.TABLE_NAME_OPTIONS),
+    TASKOPTION(Options.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_OPTIONS);
 
     private final String path;
     private final String table;
@@ -159,8 +161,8 @@ public class TaskProvider extends ContentProvider {
 
       switch (u) {
       case TASK:
-      case TASKOPTIONS:
-      case TASKITEMS:
+      case TASKOPTION:
+      case TASKITEM:
         return new UriHelper(u, ContentUris.parseId(query));
       default:
         return new UriHelper(u);
@@ -247,9 +249,9 @@ public class TaskProvider extends ContentProvider {
   @Override
   public Cursor query(Uri pUri, String[] pProjection, String pSelection, String[] pSelectionArgs, String pSortOrder) {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.TASK) {
+    if (helper.mId>=0) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = Tasks._ID+" = ?";
+        pSelection = BaseColumns._ID+" = ?";
       } else {
         pSelection = "( "+pSelection+" ) AND ( "+Tasks._ID+" = ? )";
       }
@@ -395,7 +397,7 @@ public class TaskProvider extends ContentProvider {
 
 
     List<TaskItem> items = new ArrayList<>();
-    Cursor itemCursor = pContentResolver.query(ContentUris.withAppendedId(Items.CONTENT_ID_URI_BASE, id), null, null, null, null);
+    Cursor itemCursor = pContentResolver.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID+" = "+id, null, null);
     try {
       while (itemCursor.moveToNext()) {
         ItemCols itemCols = ItemCols.init(itemCursor);
@@ -416,7 +418,7 @@ public class TaskProvider extends ContentProvider {
     String value = pCursor.getString(pItemCols.colValue);
 
     List<String> options = new ArrayList<>();
-    Cursor optionCursor = pContentResolver.query(ContentUris.withAppendedId(Options.CONTENT_ID_URI_BASE, id), new String[] { Options.COLUMN_VALUE }, null, null, null);
+    Cursor optionCursor = pContentResolver.query(Options.CONTENT_ID_URI_BASE, new String[] { Options.COLUMN_VALUE }, Options.COLUMN_ITEMID+" = "+id, null, null);
     try {
       while (optionCursor.moveToNext()) {
         options.add(optionCursor.getString(0));

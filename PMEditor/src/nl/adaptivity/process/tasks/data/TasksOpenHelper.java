@@ -51,7 +51,7 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
     pDb.beginTransaction();
     try {
       if (pOldVersion==1 && pNewVersion==2) {
-        pDb.execSQL("ALTER TABLE "+TABLE_NAME_ITEMS+ " ADD COLUMN "+Items.COLUMN_LABEL);
+        pDb.execSQL("ALTER TABLE "+TABLE_NAME_ITEMS+ " ADD COLUMN "+Items.COLUMN_LABEL+ " TEXT");
       } else {
         pDb.execSQL("DROP TABLE "+TABLE_NAME_TASKS);
         pDb.execSQL("DROP TABLE "+TABLE_NAME_ITEMS);
