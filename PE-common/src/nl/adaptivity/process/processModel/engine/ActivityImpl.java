@@ -211,8 +211,13 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
     // TODO handle imports
     final T message = pMessageService.createMessage(aMessage);
-    if (!pMessageService.sendMessage(message, pInstance)) {
-      pInstance.failTask(new MessagingException("Failure to send message"));
+    try {
+      if (!pMessageService.sendMessage(message, pInstance)) {
+        pInstance.failTask(new MessagingException("Failure to send message"));
+      }
+    } catch (RuntimeException e) {
+      pInstance.failTask(e);
+      throw e;
     }
 
     return false;
