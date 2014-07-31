@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.UserTask.TaskItem;
 
 import org.xmlpull.v1.XmlPullParserException;
 

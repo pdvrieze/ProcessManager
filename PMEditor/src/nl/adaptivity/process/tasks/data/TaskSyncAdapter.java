@@ -9,11 +9,10 @@ import java.util.List;
 import java.util.ListIterator;
 
 import net.devrieze.util.StringUtil;
-
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.UserTask.TaskItem;
 import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
