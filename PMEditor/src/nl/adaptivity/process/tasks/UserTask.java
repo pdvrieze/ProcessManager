@@ -133,6 +133,7 @@ public class UserTask {
   private static <T extends TaskItem> T parseTaskItemHelper(XmlPullParser pIn, TaskItem.Factory<T> pFactory) throws XmlPullParserException, IOException {
     pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_ITEM);
     String name = pIn.getAttributeValue(null, "name");
+    String label = pIn.getAttributeValue(null, "label");
     String type = pIn.getAttributeValue(null, "type");
     String value = pIn.getAttributeValue(null, "value");
     List<String> options = new ArrayList<>();
@@ -143,7 +144,7 @@ public class UserTask {
       pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_OPTION);
     }
     pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_ITEM);
-    return pFactory.create(name, type, value, options);
+    return pFactory.create(name, label, type, value, options);
   }
 
   public static GenericItem parseTaskGenericItem(XmlPullParser pIn) throws XmlPullParserException, IOException {

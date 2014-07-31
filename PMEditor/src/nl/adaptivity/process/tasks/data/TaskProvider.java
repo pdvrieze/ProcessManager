@@ -32,12 +32,14 @@ public class TaskProvider extends ContentProvider {
 
     public final int colId;
     public final int colName;
+    public final int colLabel;
     public final int colType;
     public final int colValue;
 
-    public ItemCols(int pColId, int pColName, int pColType, int pColValue) {
+    public ItemCols(int pColId, int pColName, int pColLabel, int pColType, int pColValue) {
       colId = pColId;
       colName = pColName;
+      colLabel = pColLabel;
       colType = pColType;
       colValue = pColValue;
     }
@@ -45,9 +47,10 @@ public class TaskProvider extends ContentProvider {
     public static ItemCols init(Cursor pItemCursor) {
       int colId = pItemCursor.getColumnIndex(Items._ID);
       int colName = pItemCursor.getColumnIndex(Items.COLUMN_NAME);
+      int colLabel = pItemCursor.getColumnIndex(Items.COLUMN_LABEL);
       int colType = pItemCursor.getColumnIndex(Items.COLUMN_TYPE);
       int colValue = pItemCursor.getColumnIndex(Items.COLUMN_VALUE);
-      return new ItemCols(colId, colName, colType, colValue);
+      return new ItemCols(colId, colName, colLabel, colType, colValue);
     }
 
   }
@@ -88,6 +91,7 @@ public class TaskProvider extends ContentProvider {
     public static final Uri CONTENT_ID_URI_PATTERN = Uri.parse(Tasks.SCHEME+TaskProvider.AUTHORITY+Tasks.PATH_ITEMS+'#');
     public static final String COLUMN_TASKID = "taskid";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_LABEL = "name";
     public static final String COLUMN_TYPE = "type";
     public static final String COLUMN_VALUE = "value";
   }
@@ -407,6 +411,7 @@ public class TaskProvider extends ContentProvider {
   private static TaskItem getItem(ContentResolver pContentResolver, ItemCols pItemCols, Cursor pCursor) {
     long id = pCursor.getLong(pItemCols.colId);
     String name = pCursor.getString(pItemCols.colName);
+    String label = pCursor.getString(pItemCols.colLabel);
     String type = pCursor.getString(pItemCols.colType);
     String value = pCursor.getString(pItemCols.colValue);
 
@@ -420,7 +425,7 @@ public class TaskProvider extends ContentProvider {
       optionCursor.close();
     }
 
-    return TaskItem.defaultFactory().create(name, type, value, options);
+    return TaskItem.defaultFactory().create(name, label, type, value, options);
   }
 
   private static List<UserTask> getTasks(InputStream in) throws XmlPullParserException, IOException {

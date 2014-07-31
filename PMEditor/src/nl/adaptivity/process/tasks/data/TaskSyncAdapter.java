@@ -145,8 +145,9 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     Cursor localItems = pProvider.query(itemsUri, null, null, null, BaseColumns._ID);
     int nameColIdx = localItems.getColumnIndex(Items.COLUMN_NAME);
     int idColIdx = localItems.getColumnIndex(Items._ID);
-    int typeColIdx = localItems.getColumnIndex(Items._ID);
-    int valueColIdx = localItems.getColumnIndex(Items._ID);
+    int labelColIdx = localItems.getColumnIndex(Items.COLUMN_LABEL);
+    int typeColIdx = localItems.getColumnIndex(Items.COLUMN_TYPE);
+    int valueColIdx = localItems.getColumnIndex(Items.COLUMN_VALUE);
     long deleteMinId = 0;
     updateloop: while(localItems.moveToNext() && itemIterator.hasNext()) {
       GenericItem remoteItem = itemIterator.next();
@@ -208,6 +209,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       itemCv.put(Items.COLUMN_NAME, remoteItem.getName());
       if (remoteItem.getType()!=null) { itemCv.put(Items.COLUMN_TYPE, remoteItem.getDBType()); }
       if (remoteItem.getValue()!=null) { itemCv.put(Items.COLUMN_VALUE, remoteItem.getValue()); }
+      if (remoteItem.getLabel()!=null) { itemCv.put(Items.COLUMN_LABEL, remoteItem.getLabel()); }
       long taskItemId = ContentUris.parseId(pProvider.insert(itemsUri, itemCv));
       Uri optionsUri = ContentUris.withAppendedId(Options.CONTENT_ID_URI_BASE, taskItemId);
       ContentValues[] cvs = getContentValuesForTaskOptions(remoteItem, taskItemId);

@@ -15,7 +15,7 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
   static final String TABLE_NAME_ITEMS = "items";
   static final String TABLE_NAME_OPTIONS = "options";
   private static final String DB_NAME = "tasks.db";
-  private static final int DB_VERSION = 1;
+  private static final int DB_VERSION = 2;
   private static final String SQL_CREATE_TASKS_TABLE = "CREATE TABLE " + TABLE_NAME_TASKS + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       Tasks.COLUMN_HANDLE +" LONG," +
@@ -27,6 +27,7 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       Items.COLUMN_TASKID+ " INTEGER," +
       Items.COLUMN_NAME +" TEXT," +
+      Items.COLUMN_LABEL + " TEXT," +
       Items.COLUMN_TYPE + " TEXT," +
       Items.COLUMN_VALUE + " TEXT )";
   private static final String SQL_CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_NAME_OPTIONS + " (" +
@@ -49,10 +50,14 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
   public void onUpgrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
     pDb.beginTransaction();
     try {
-      pDb.execSQL("DROP TABLE "+TABLE_NAME_TASKS);
-      pDb.execSQL("DROP TABLE "+TABLE_NAME_ITEMS);
-      pDb.execSQL("DROP TABLE "+TABLE_NAME_OPTIONS);
-      onCreate(pDb);
+      if (pOldVersion==1 && pNewVersion==2) {
+        pDb.execSQL("ALTER TABLE "+TABLE_NAME_ITEMS+ " ADD COLUMN "+Items.COLUMN_LABEL);
+      } else {
+        pDb.execSQL("DROP TABLE "+TABLE_NAME_TASKS);
+        pDb.execSQL("DROP TABLE "+TABLE_NAME_ITEMS);
+        pDb.execSQL("DROP TABLE "+TABLE_NAME_OPTIONS);
+        onCreate(pDb);
+      }
 
       pDb.setTransactionSuccessful();
     } finally {

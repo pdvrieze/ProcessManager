@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -45,6 +46,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   private UserTask mUserTask;
 
   private LinearLayout mDetailView;
+
+  private ListView mTaskItemView;
 
   private TextView mTVState;
 
@@ -77,6 +80,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mTVSummary = (TextView) mDetailView.findViewById(R.id.task_name);
     mTVState = (TextView) mDetailView.findViewById(R.id.task_state);
 
+    mTaskItemView = (ListView) mDetailView.findViewById(R.id.task_items);
+
     mDetailView.findViewById(R.id.btn_task_complete).setOnClickListener(this);
     return rootView;
   }
@@ -94,6 +99,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mDetailView.setVisibility(View.VISIBLE);
     mTVSummary.setText(pData.getSummary());
     mTVState.setText(pData.getState());
+    mTaskItemView.setAdapter(pData==null ? null : new TaskItemAdapter(pData));
     mUserTask = pData;
   }
 

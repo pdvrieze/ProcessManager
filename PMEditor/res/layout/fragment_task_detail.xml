@@ -38,8 +38,8 @@
             android:gravity="right"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        <View
-            android:id="@+id/view1"
+        <ListView
+            android:id="@+id/task_items"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_weight="1" />
