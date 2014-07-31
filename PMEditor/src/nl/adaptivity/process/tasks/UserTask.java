@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.adaptivity.process.tasks.items.GenericItem;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -125,6 +127,10 @@ public class UserTask {
   }
 
   public static TaskItem parseTaskItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+    return parseTaskItemHelper(pIn, TaskItem.defaultFactory());
+  }
+
+  private static <T extends TaskItem> T parseTaskItemHelper(XmlPullParser pIn, TaskItem.Factory<T> pFactory) throws XmlPullParserException, IOException {
     pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_ITEM);
     String name = pIn.getAttributeValue(null, "name");
     String type = pIn.getAttributeValue(null, "type");
@@ -137,7 +143,11 @@ public class UserTask {
       pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_OPTION);
     }
     pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_ITEM);
-    return new TaskItem(name, type, value, options);
+    return pFactory.create(name, type, value, options);
+  }
+
+  public static GenericItem parseTaskGenericItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+    return parseTaskItemHelper(pIn, TaskItem.genericFactory());
   }
 
 }

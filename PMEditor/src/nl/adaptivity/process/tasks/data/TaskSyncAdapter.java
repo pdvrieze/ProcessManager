@@ -11,11 +11,11 @@ import java.util.ListIterator;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.SettingsActivity;
-import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
+import nl.adaptivity.process.tasks.items.GenericItem;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -40,9 +40,9 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   private static class TaskCVProvider implements ContentValuesProvider {
 
     private final ContentValues mContentValues;
-    final List<TaskItem> mItems;
+    final List<GenericItem> mItems;
 
-    public TaskCVProvider(ContentValues pContentValues, List<TaskItem> pItems) {
+    public TaskCVProvider(ContentValues pContentValues, List<GenericItem> pItems) {
       mContentValues = pContentValues;
       mItems = pItems;
     }
@@ -138,8 +138,8 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     if (pPair==null) {
       return false;
     }
-    List<TaskItem> items = ((TaskCVProvider) pPair.mCV).mItems;
-    ListIterator<TaskItem> itemIterator = items.listIterator();
+    List<GenericItem> items = ((TaskCVProvider) pPair.mCV).mItems;
+    ListIterator<GenericItem> itemIterator = items.listIterator();
 
     final Uri itemsUri = ContentUris.withAppendedId(Items.CONTENT_ID_URI_BASE,  pTaskId);
     Cursor localItems = pProvider.query(itemsUri, null, null, null, BaseColumns._ID);
@@ -149,7 +149,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     int valueColIdx = localItems.getColumnIndex(Items._ID);
     long deleteMinId = 0;
     updateloop: while(localItems.moveToNext() && itemIterator.hasNext()) {
-      TaskItem remoteItem = itemIterator.next();
+      GenericItem remoteItem = itemIterator.next();
       String localName = localItems.getString(nameColIdx);
       long localItemId = localItems.getLong(idColIdx);
       long deleteMaxId=0;
@@ -170,8 +170,8 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       String localType = localItems.getString(typeColIdx);
       String localValue = localItems.getString(valueColIdx);
       ContentValues cv = new ContentValues(2);
-      if (!StringUtil.isEqual(remoteItem.getType(),localType)) {
-        cv.put(Items.COLUMN_TYPE, remoteItem.getType());
+      if (!StringUtil.isEqual(remoteItem.getDBType(),localType)) {
+        cv.put(Items.COLUMN_TYPE, remoteItem.getDBType());
       }
       if (remoteItem.getValue()!=null && (! remoteItem.getValue().equals(localValue))){
         cv.put(Items.COLUMN_VALUE, remoteItem.getValue());
@@ -202,11 +202,11 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       pProvider.delete(itemsUri, Items._ID+" > ?", new String[] {Long.toString(deleteMinId)});
     }
     while(itemIterator.hasNext()) {
-      TaskItem remoteItem = itemIterator.next();
+      GenericItem remoteItem = itemIterator.next();
       ContentValues itemCv = new ContentValues(4);
       itemCv.put(Items.COLUMN_TASKID, pTaskId);
       itemCv.put(Items.COLUMN_NAME, remoteItem.getName());
-      if (remoteItem.getType()!=null) { itemCv.put(Items.COLUMN_TYPE, remoteItem.getType()); }
+      if (remoteItem.getType()!=null) { itemCv.put(Items.COLUMN_TYPE, remoteItem.getDBType()); }
       if (remoteItem.getValue()!=null) { itemCv.put(Items.COLUMN_VALUE, remoteItem.getValue()); }
       long taskItemId = ContentUris.parseId(pProvider.insert(itemsUri, itemCv));
       Uri optionsUri = ContentUris.withAppendedId(Options.CONTENT_ID_URI_BASE, taskItemId);
@@ -216,7 +216,8 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     }
     return updated;
   }
-  private ContentValues[] getContentValuesForTaskOptions(TaskItem remoteItem, long localItemId) {
+
+  private ContentValues[] getContentValuesForTaskOptions(GenericItem remoteItem, long localItemId) {
     ContentValues[] cvs = new ContentValues[remoteItem.getOptions().size()];
     int i=0;
     for(String option: remoteItem.getOptions()) {
@@ -237,10 +238,10 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     String owner = pIn.getAttributeValue(null, "owner");
     String state = pIn.getAttributeValue(null, "state");
     boolean hasItems = false;
-    List<TaskItem> items = new ArrayList<>();
+    List<GenericItem> items = new ArrayList<>();
     while ((pIn.nextTag())==XmlPullParser.START_TAG) {
       pIn.require(XmlPullParser.START_TAG, NS_TASKS, UserTask.TAG_ITEM);
-      items.add(UserTask.parseTaskItem(pIn));
+      items.add(UserTask.parseTaskGenericItem(pIn));
       pIn.require(XmlPullParser.END_TAG, NS_TASKS, UserTask.TAG_ITEM);
       hasItems = true;
     }

@@ -27,6 +27,31 @@ import android.provider.BaseColumns;
 @SuppressWarnings("static-access")
 public class TaskProvider extends ContentProvider {
 
+
+  private static class ItemCols {
+
+    public final int colId;
+    public final int colName;
+    public final int colType;
+    public final int colValue;
+
+    public ItemCols(int pColId, int pColName, int pColType, int pColValue) {
+      colId = pColId;
+      colName = pColName;
+      colType = pColType;
+      colValue = pColValue;
+    }
+
+    public static ItemCols init(Cursor pItemCursor) {
+      int colId = pItemCursor.getColumnIndex(Items._ID);
+      int colName = pItemCursor.getColumnIndex(Items.COLUMN_NAME);
+      int colType = pItemCursor.getColumnIndex(Items.COLUMN_TYPE);
+      int colValue = pItemCursor.getColumnIndex(Items.COLUMN_VALUE);
+      return new ItemCols(colId, colName, colType, colValue);
+    }
+
+  }
+
   public static final String AUTHORITY = "nl.adaptivity.process.tasks";
 
   public static class Tasks implements BaseColumns {
@@ -332,7 +357,7 @@ public class TaskProvider extends ContentProvider {
     Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, null, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(pHandle)} , null);
     try {
       if (! idresult.moveToFirst()) { return null; }
-      return getTask(idresult);
+      return getTask(contentResolver, idresult);
     } finally {
       idresult.close();
     }
@@ -348,7 +373,7 @@ public class TaskProvider extends ContentProvider {
     Cursor cursor = contentResolver.query(pUri, null, null, null, null);
     try {
       if (cursor.moveToFirst()) {
-        return getTask(cursor);
+        return getTask(contentResolver, cursor);
       } else {
         return null;
       }
@@ -357,15 +382,45 @@ public class TaskProvider extends ContentProvider {
     }
   }
 
-  private static UserTask getTask(Cursor pCursor) {
+  private static UserTask getTask(ContentResolver pContentResolver, Cursor pCursor) {
+    long id = pCursor.getLong(pCursor.getColumnIndex(BaseColumns._ID));
     String summary = pCursor.getString(pCursor.getColumnIndexOrThrow(Tasks.COLUMN_SUMMARY));
     long handle = pCursor.getLong(pCursor.getColumnIndexOrThrow(Tasks.COLUMN_HANDLE));
     String owner = pCursor.getString(pCursor.getColumnIndexOrThrow(Tasks.COLUMN_OWNER));
     String state  =  pCursor.getString(pCursor.getColumnIndexOrThrow(Tasks.COLUMN_STATE));
 
+
     List<TaskItem> items = new ArrayList<>();
-    // TODO actually store and retrieve items
+    Cursor itemCursor = pContentResolver.query(ContentUris.withAppendedId(Items.CONTENT_ID_URI_BASE, id), null, null, null, null);
+    try {
+      while (itemCursor.moveToNext()) {
+        ItemCols itemCols = ItemCols.init(itemCursor);
+        items.add(getItem(pContentResolver, itemCols, itemCursor));
+      }
+    } finally {
+      itemCursor.close();
+    }
+
     return new UserTask(summary, handle, owner, state, items);
+  }
+
+  private static TaskItem getItem(ContentResolver pContentResolver, ItemCols pItemCols, Cursor pCursor) {
+    long id = pCursor.getLong(pItemCols.colId);
+    String name = pCursor.getString(pItemCols.colName);
+    String type = pCursor.getString(pItemCols.colType);
+    String value = pCursor.getString(pItemCols.colValue);
+
+    List<String> options = new ArrayList<>();
+    Cursor optionCursor = pContentResolver.query(ContentUris.withAppendedId(Options.CONTENT_ID_URI_BASE, id), new String[] { Options.COLUMN_VALUE }, null, null, null);
+    try {
+      while (optionCursor.moveToNext()) {
+        options.add(optionCursor.getString(0));
+      }
+    } finally {
+      optionCursor.close();
+    }
+
+    return TaskItem.defaultFactory().create(name, type, value, options);
   }
 
   private static List<UserTask> getTasks(InputStream in) throws XmlPullParserException, IOException {
