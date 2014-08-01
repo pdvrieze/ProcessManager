@@ -70,8 +70,10 @@ public class InternalEndpoint implements GenericEndpoint {
   @XmlAccessorType(XmlAccessType.NONE)
   public static class XmlItem implements TaskItem{
     private String aName;
+    private String aLabel;
     private String aType;
     private String aValue;
+    private String aParams;
     private List<String> aOptions;
 
     @Override
@@ -82,6 +84,26 @@ public class InternalEndpoint implements GenericEndpoint {
 
     public void setName(String pName) {
       aName = pName;
+    }
+
+    @Override
+    @XmlAttribute(name="label")
+    public String getLabel() {
+      return aLabel;
+    }
+
+    public void setLabel(String pLabel) {
+      aLabel = pLabel;
+    }
+
+    @Override
+    @XmlAttribute(name="params")
+    public String getParams() {
+      return aParams;
+    }
+
+    public void setParams(String pParams) {
+      aParams = pParams;
     }
 
     @Override
