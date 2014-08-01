@@ -36,9 +36,8 @@ import org.w3c.dom.Text;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.util.XmlUtil;
+import nl.adaptivity.util.xml.XmlUtil;
 
 
 /**

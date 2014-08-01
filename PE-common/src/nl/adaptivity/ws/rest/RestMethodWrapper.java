@@ -16,6 +16,7 @@ import java.util.Map;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
@@ -26,6 +27,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
@@ -40,7 +45,6 @@ import org.w3c.dom.NodeList;
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Types;
-
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -48,6 +52,7 @@ import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XmlSerializable;
 
 
 public class RestMethodWrapper {
@@ -61,6 +66,8 @@ public class RestMethodWrapper {
   private Object[] aParams;
 
   private Object aResult;
+
+  private boolean aContentTypeSet = false;
 
   public RestMethodWrapper(final Object pOwner, final Method pMethod) {
     aOwner = pOwner;
@@ -272,28 +279,50 @@ public class RestMethodWrapper {
       } catch (final JAXBException e) {
         throw new MessagingException(e);
       }
-    } else if (aResult instanceof Source) {
+    } else {
+      serializeValue(pResponse, this.aResult);
+    }
+  }
+
+  private void serializeValue(final HttpServletResponse pResponse, Object value) throws TransformerException, IOException, FactoryConfigurationError {
+    if (value instanceof Source) {
       setContentType(pResponse, "application/binary");// Unknown content type
-      Sources.writeToStream((Source) aResult, pResponse.getOutputStream());
-    } else if (aResult instanceof Node) {
+      Sources.writeToStream((Source) value, pResponse.getOutputStream());
+    } else if (value instanceof Node) {
       pResponse.setContentType("text/xml");
-      Sources.writeToStream(new DOMSource((Node) aResult), pResponse.getOutputStream());
-    } else if (aResult instanceof Collection) {
+      Sources.writeToStream(new DOMSource((Node) value), pResponse.getOutputStream());
+    } else if (value instanceof XmlSerializable) {
+      pResponse.setContentType("text/xml");
+      XMLOutputFactory factory = XMLOutputFactory.newInstance();
+      factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
+      try {
+        XMLStreamWriter out = factory.createXMLStreamWriter(pResponse.getOutputStream());
+        try {
+          out.writeStartDocument();
+          ((XmlSerializable) value).serialize(out);
+          out.writeEndDocument();
+        } finally {
+          out.close();
+        }
+      } catch (XMLStreamException e) {
+        throw new TransformerException(e);
+      }
+    } else if (value instanceof Collection) {
       final XmlElementWrapper annotation = aMethod.getAnnotation(XmlElementWrapper.class);
       if (annotation != null) {
         setContentType(pResponse, "text/xml");
-        Sources.writeToStream(collectionToSource(aMethod.getGenericReturnType(), (Collection<?>) aResult, getQName(annotation)), pResponse.getOutputStream());
+        Sources.writeToStream(collectionToSource(aMethod.getGenericReturnType(), (Collection<?>) value, getQName(annotation)), pResponse.getOutputStream());
       }
-    } else if (aResult instanceof CharSequence) {
+    } else if (value instanceof CharSequence) {
       setContentType(pResponse, "text/plain");
-      pResponse.getWriter().append((CharSequence) aResult);
+      pResponse.getWriter().append((CharSequence) value);
     } else {
-      if (aResult != null) {
+      if (value != null) {
         try {
           final JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
           setContentType(pResponse, "text/xml");
 
-          final JAXBSource jaxbSource = new JAXBSource(jaxbContext, aResult);
+          final JAXBSource jaxbSource = new JAXBSource(jaxbContext, value);
           Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
 
         } catch (final JAXBException e) {
@@ -304,30 +333,33 @@ public class RestMethodWrapper {
   }
 
   private void setContentType(final HttpServletResponse pResponse, final String pDefault) {
-    final RestMethod methodAnnotation = aMethod.getAnnotation(RestMethod.class);
-    if ((methodAnnotation == null) || (methodAnnotation.contentType().length() == 0)) {
-      pResponse.setContentType(pDefault);
-    } else {
-      pResponse.setContentType(methodAnnotation.contentType());
+    if (! aContentTypeSet) {
+      final RestMethod methodAnnotation = aMethod.getAnnotation(RestMethod.class);
+      if ((methodAnnotation == null) || (methodAnnotation.contentType().length() == 0)) {
+        pResponse.setContentType(pDefault);
+      } else {
+        pResponse.setContentType(methodAnnotation.contentType());
+      }
+      aContentTypeSet =true;
     }
   }
 
-  private Source collectionToSource(final Type pReturnType, final Collection<?> pResult, final QName pName) {
+  private Source collectionToSource(final Type pGenericCollectionType, final Collection<?> pCollection, final QName pOutertagName) {
     final Class<?> rawType;
-    if (pReturnType instanceof ParameterizedType) {
-      final ParameterizedType returnType = (ParameterizedType) pReturnType;
+    if (pGenericCollectionType instanceof ParameterizedType) {
+      final ParameterizedType returnType = (ParameterizedType) pGenericCollectionType;
       rawType = (Class<?>) returnType.getRawType();
-    } else if (pReturnType instanceof Class<?>) {
-      rawType = (Class<?>) pReturnType;
-    } else if (pReturnType instanceof WildcardType) {
-      final Type[] UpperBounds = ((WildcardType) pReturnType).getUpperBounds();
+    } else if (pGenericCollectionType instanceof Class<?>) {
+      rawType = (Class<?>) pGenericCollectionType;
+    } else if (pGenericCollectionType instanceof WildcardType) {
+      final Type[] UpperBounds = ((WildcardType) pGenericCollectionType).getUpperBounds();
       if (UpperBounds.length > 0) {
         rawType = (Class<?>) UpperBounds[0];
       } else {
         rawType = Object.class;
       }
-    } else if (pReturnType instanceof TypeVariable) {
-      final Type[] UpperBounds = ((TypeVariable<?>) pReturnType).getBounds();
+    } else if (pGenericCollectionType instanceof TypeVariable) {
+      final Type[] UpperBounds = ((TypeVariable<?>) pGenericCollectionType).getBounds();
       if (UpperBounds.length > 0) {
         rawType = (Class<?>) UpperBounds[0];
       } else {
@@ -338,14 +370,14 @@ public class RestMethodWrapper {
     }
     Class<?> elementType = null;
     if (Collection.class.isAssignableFrom(rawType)) {
-      final Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pReturnType);
+      final Type[] paramTypes = Types.getTypeParametersFor(Collection.class, pGenericCollectionType);
       elementType = Types.toRawType(paramTypes[0]);
       if (elementType.isInterface()) {
         // interfaces not supported by jaxb
-        elementType = Types.commonAncestor(pResult);
+        elementType = Types.commonAncestor(pCollection);
       }
     } else {
-      elementType = Types.commonAncestor(pResult);
+      elementType = Types.commonAncestor(pCollection);
     }
     try {
       JAXBContext context;
@@ -354,7 +386,7 @@ public class RestMethodWrapper {
       } else {
         context = newJAXBContext(JAXBCollectionWrapper.class, elementType);
       }
-      return new JAXBSource(context, new JAXBCollectionWrapper(pResult, elementType).getJAXBElement(pName));
+      return new JAXBSource(context, new JAXBCollectionWrapper(pCollection, elementType).getJAXBElement(pOutertagName));
     } catch (final JAXBException e) {
       throw new MessagingException(e);
     }
