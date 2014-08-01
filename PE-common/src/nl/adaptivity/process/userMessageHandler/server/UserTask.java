@@ -21,6 +21,10 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
     public abstract String getName();
 
+    public abstract String getParams();
+
+    public abstract String getLabel();
+
   }
 
   public TaskState getState();

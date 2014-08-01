@@ -2,6 +2,7 @@ package nl.adaptivity.ws.soap;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,10 +33,10 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.util.XmlUtil;
 
@@ -314,7 +315,10 @@ public class SoapHelper {
           if (pClass.isInterface()) {
             context = newJAXBContext(pMethod, Arrays.asList(pContext));
           } else {
-            context = newJAXBContext(pMethod, CollectionUtil.concatenate(Collections.<Class<?>> singletonList(pClass), Arrays.asList(pContext)));
+            List<Class<?>> list = new ArrayList<>(1+(pContext==null ? 0 : pContext.length));
+            list.add(pClass);
+            if (pContext!=null) { list.addAll(Arrays.asList(pContext)); }
+            context = newJAXBContext(pMethod, list);
           }
           final Unmarshaller um = context.createUnmarshaller();
           if (pClass.isInterface()) {
