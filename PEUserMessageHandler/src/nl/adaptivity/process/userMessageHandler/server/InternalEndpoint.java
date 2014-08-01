@@ -189,6 +189,8 @@ public class InternalEndpoint implements GenericEndpoint {
 
     private long aRemoteHandle;
 
+    private long aInstanceHandle;
+
     private TaskState aState = TaskState.Sent;
 
     private String aSummary;
@@ -266,6 +268,15 @@ public class InternalEndpoint implements GenericEndpoint {
 
     public long getRemoteHandle() {
       return aRemoteHandle;
+    }
+
+    @XmlAttribute(name = "instancehandle")
+    public void setInstanceHandle(final long pHandle) {
+      aInstanceHandle = pHandle;
+    }
+
+    public long getInstanceHandle() {
+      return aInstanceHandle;
     }
 
     @XmlAttribute(name = "summary")
