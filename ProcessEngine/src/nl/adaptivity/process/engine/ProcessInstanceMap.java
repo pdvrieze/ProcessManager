@@ -13,10 +13,11 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.MemHandleMap;
+import net.devrieze.util.Handles;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -87,7 +88,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     @Override
     public ProcessInstance create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
       Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
-      Handle<ProcessModelImpl> hProcessModel = MemHandleMap.handle(pRow.getLong(aColNoHProcessModel));
+      Handle<ProcessModelImpl> hProcessModel = Handles.handle(pRow.getLong(aColNoHProcessModel));
       ProcessModelImpl processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
@@ -103,7 +104,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
         if (statement.execute()) {
           try (ResultSet resultset = statement.getResultSet()){
             while (resultset.next()) {
-              handles.add(MemHandleMap.<ProcessNodeInstance>handle(resultset.getLong(1)));
+              handles.add(Handles.<ProcessNodeInstance>handle(resultset.getLong(1)));
             }
           }
         }

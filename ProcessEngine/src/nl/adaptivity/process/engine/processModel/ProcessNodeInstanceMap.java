@@ -12,11 +12,12 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.MemHandleMap;
+import net.devrieze.util.Handles;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -121,7 +122,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
         if(statement.execute()) {
           try (ResultSet resultset = statement.getResultSet()){
             while(resultset.next()) {
-              Handle<? extends ProcessNodeInstance> predecessor = MemHandleMap.handle(resultset.getLong(1));
+              Handle<? extends ProcessNodeInstance> predecessor = Handles.handle(resultset.getLong(1));
               predecessors.add(predecessor);
             }
           }

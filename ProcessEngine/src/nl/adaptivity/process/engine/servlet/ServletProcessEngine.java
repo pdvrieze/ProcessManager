@@ -49,9 +49,11 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handles;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -133,15 +135,23 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     //    private String aContentType;
     private final EndpointDescriptor aLocalEndpoint;
 
-    private Principal aOwner;
-
-    private long aHandle;
+    private ProcessNodeInstance aNodeInstance;
 
     private IXmlMessage aMessage;
 
     public NewServletMessage(final IXmlMessage pMessage, final EndpointDescriptor pLocalEndPoint) {
       aMessage = pMessage;
       aLocalEndpoint = pLocalEndPoint;
+    }
+
+
+    private Principal getOwner() {
+      return aNodeInstance.getProcessInstance().getOwner();
+    }
+
+
+    private long getHandle() {
+      return aNodeInstance.getHandle();
     }
 
     @Override
@@ -217,9 +227,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
               @SuppressWarnings("unchecked")
               final Iterator<Attribute> attributes = se.getAttributes();
               if (eName.getLocalPart().equals("attribute")) {
-                writeAttribute(xer, attributes, xew, aHandle, aOwner);
+                writeAttribute(xer, attributes, xew);
               } else if (eName.getLocalPart().equals("element")) {
-                writeElement(xer, attributes, xew, aHandle);
+                writeElement(xer, attributes, xew);
               } else {
                 baos.reset(); baos.close();
                 throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
@@ -277,7 +287,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    private void writeElement(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out, final long pHandle) throws XMLStreamException {
+    private void writeElement(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
       String valueName = null;
       {
         while (pAttributes.hasNext()) {
@@ -308,7 +318,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         final XMLEventFactory xef = XMLEventFactory.newInstance();
 
         if ("handle".equals(valueName)) {
-          out.add(xef.createCharacters(Long.toString(pHandle)));
+          out.add(xef.createCharacters(Long.toString(getHandle())));
         } else if ("endpoint".equals(valueName)) {
           // TODO Why can't we use STAX?
           final QName qname1 = new QName(MY_JBI_NS, "endpointDescriptor", "");
@@ -330,7 +340,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    private static void writeAttribute(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out, final long pHandle, final Principal pOwner) throws XMLStreamException {
+    private void writeAttribute(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
       String valueName = null;
       String paramName = null;
       {
@@ -370,17 +380,25 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         if ("handle".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, Long.toString(pHandle));
+            attr = xef.createAttribute(paramName, Long.toString(getHandle()));
           } else {
-            attr = xef.createAttribute("handle", Long.toString(pHandle));
+            attr = xef.createAttribute("handle", Long.toString(getHandle()));
           }
           out.add(attr);
         } else if ("owner".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, pOwner.getName());
+            attr = xef.createAttribute(paramName, getOwner().getName());
           } else {
-            attr = xef.createAttribute("owner", pOwner.getName());
+            attr = xef.createAttribute("owner", getOwner().getName());
+          }
+          out.add(attr);
+        } else if ("instancehandle".equals(valueName)) {
+          Attribute attr;
+          if (paramName != null) {
+            attr = xef.createAttribute(paramName, getOwner().getName());
+          } else {
+            attr = xef.createAttribute("instancehandle", getOwner().getName());
           }
           out.add(attr);
         }
@@ -403,9 +421,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
 
 
-    public void setHandle(final long pHandle, final Principal pOwner) {
-      aHandle = pHandle;
-      aOwner = pOwner;
+    public void setHandle(final long pHandle, final Principal pOwner, final ProcessNodeInstance pNodeInstance) {
+      aNodeInstance = pNodeInstance;
     }
 
     @Override
@@ -512,9 +529,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @Override
   public boolean sendMessage(final NewServletMessage pMessage, final ProcessNodeInstance pInstance) {
     final long handle = aProcessEngine.registerMessage(pInstance);
-    pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner());
+    assert handle == pInstance.getHandle();
+    pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner(), pInstance);
 
-    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(MemHandleMap.<ProcessNodeInstance> handle(pMessage.aHandle), pMessage.aOwner), DataSource.class, new Class<?>[0]);
+    MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(pMessage.getHandle()), pMessage.getOwner()), DataSource.class, new Class<?>[0]);
     return true;
   }
 
@@ -619,7 +637,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
   public HProcessInstance startProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
-    return aProcessEngine.startProcess(pOwner, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName, null);
+    return aProcessEngine.startProcess(pOwner, Handles.<ProcessModelImpl>handle(pHandle), pName, null);
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
@@ -640,7 +658,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
   public TaskState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "state", type = ParamType.QUERY) final TaskState pNewState, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.updateTaskState(MemHandleMap.<ProcessNodeInstance> handle(pHandle), pNewState, pUser);
+    return aProcessEngine.updateTaskState(Handles.<ProcessNodeInstance>handle(pHandle), pNewState, pUser);
   }
 
   @WebMethod(operationName = "finishTask")
@@ -651,7 +669,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @WebMethod(operationName = "finishTask")
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state=Complete" })
   public TaskState finishTask(@WebParam(name = "handle", mode = Mode.IN) @RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @WebParam(name = "payload", mode = Mode.IN) @RestParam(name = "payload", type = ParamType.QUERY) final Node pPayload, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.finishTask(MemHandleMap.<ProcessNodeInstance> handle(pHandle), pPayload, pUser);
+    return aProcessEngine.finishTask(Handles.<ProcessNodeInstance> handle(pHandle), pPayload, pUser);
   }
 
 
