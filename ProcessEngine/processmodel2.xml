@@ -19,6 +19,8 @@
                             <task summary="Task Foo">
                                 <jbi:attribute name="remotehandle"
                                     value="handle" />
+                                <jbi:attribute name="instancehandle"
+                                    value="instancehandle" />
                                 <jbi:attribute name="owner"
                                     value="owner" />
                                 <item type="label"
@@ -47,6 +49,8 @@
                             <task summary="Task Bar">
                                 <jbi:attribute name="remotehandle"
                                     value="handle" />
+                                <jbi:attribute name="instancehandle"
+                                    value="instancehandle" />
                                 <jbi:attribute name="owner"
                                     value="owner" />
                             </task>
@@ -71,6 +75,8 @@
                             <task summary="Task Baz1">
                                 <jbi:attribute name="remotehandle"
                                     value="handle" />
+                                <jbi:attribute name="instancehandle"
+                                    value="instancehandle" />
                                 <jbi:attribute name="owner"
                                     value="owner" />
                             </task>
@@ -95,6 +101,8 @@
                             <task summary="Task Baz2">
                                 <jbi:attribute name="remotehandle"
                                     value="handle" />
+                                <jbi:attribute name="instancehandle"
+                                    value="instancehandle" />
                                 <jbi:attribute name="owner"
                                     value="owner" />
                             </task>
@@ -123,6 +131,8 @@
                             <task summary="Task Last">
                                 <jbi:attribute name="remotehandle"
                                     value="handle" />
+                                <jbi:attribute name="instancehandle"
+                                    value="instancehandle" />
                                 <jbi:attribute name="owner"
                                     value="owner" />
                             </task>

@@ -18,6 +18,7 @@
                   <task summary="Task Foo">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
+                    <jbi:attribute name="instancehandle" value="instancehandle" />
                   </task>
                 </taskParam>
               </postTask>
@@ -37,6 +38,7 @@
                   <task summary="Task Bar">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
+                    <jbi:attribute name="instancehandle" value="instancehandle" />
                   </task>
                 </taskParam>
               </postTask>
@@ -56,6 +58,7 @@
                   <task summary="Task Baz1">
                     <jbi:attribute name="remotehandle" value="handle"/>
                     <jbi:attribute name="owner" value="owner"/>
+                    <jbi:attribute name="instancehandle" value="instancehandle" />
                   </task>
                 </taskParam>
               </postTask>
@@ -74,6 +77,7 @@
                 <taskParam>
                   <task summary="Task Baz2">
                     <jbi:attribute name="remotehandle" value="handle"/>
+                    <jbi:attribute name="instancehandle" value="instancehandle" />
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
                 </taskParam>
@@ -97,6 +101,7 @@
                 <taskParam>
                   <task summary="Task Last">
                     <jbi:attribute name="remotehandle" value="handle"/>
+                    <jbi:attribute name="instancehandle" value="instancehandle" />
                     <jbi:attribute name="owner" value="owner"/>
                   </task>
                 </taskParam>
