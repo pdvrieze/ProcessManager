@@ -34,6 +34,7 @@ import net.devrieze.util.Iterators;
 import net.devrieze.util.Streams;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
+import nl.adaptivity.util.xml.XmlUtil;
 
 
 // TODO change this to handle regular request bodies.
