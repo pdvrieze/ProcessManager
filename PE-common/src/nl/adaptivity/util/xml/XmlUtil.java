@@ -1,4 +1,4 @@
-package nl.adaptivity.util;
+package nl.adaptivity.util.xml;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,13 +8,19 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXResult;
+
+import net.devrieze.util.StringUtil;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
-
-import net.devrieze.util.StringUtil;
 
 
 public class XmlUtil {
@@ -91,7 +97,7 @@ public class XmlUtil {
 
   /**
    * Return the first child that is an element.
-   * 
+   *
    * @param pParent The parent element.
    * @return The first element child, or <code>null</code> if there is none.
    */
@@ -106,7 +112,7 @@ public class XmlUtil {
 
   /**
    * Return the next sibling that is an element.
-   * 
+   *
    * @param pParent The reference element.
    * @return The next element sibling, or <code>null</code> if there is none.
    */
@@ -117,5 +123,16 @@ public class XmlUtil {
       }
     }
     return null;
+  }
+
+  public static void serialize(XMLStreamWriter pOut, Node pNode) throws XMLStreamException {
+    try {
+      TransformerFactory
+          .newInstance()
+          .newTransformer()
+          .transform(new DOMSource(pNode), new StAXResult(pOut));
+    } catch (TransformerException e) {
+      throw new XMLStreamException(e);
+    }
   }
 }
