@@ -7,32 +7,40 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.w3c.dom.Node;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
+import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
+
+import org.w3c.dom.Node;
 
 
-public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject {
+public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
 
-  @XmlRootElement(name = "processInstance", namespace = "http://adaptivity.nl/ProcessEngine/")
+  @XmlRootElement(name = "processInstance", namespace = Constants.PROCESS_ENGINE_NS)
   @XmlAccessorType(XmlAccessType.NONE)
   public static class ProcessInstanceRef implements Handle<ProcessInstance> {
 
@@ -195,6 +203,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return aProcessModel;
   }
 
+  /**
+   * Get the payload that was passed to start the instance.
+   * @return The process initial payload.
+   */
   public Node getPayload() {
     return aPayload;
   }
@@ -227,8 +239,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  public synchronized void finishTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Node pPayload) {
-    pNode.finishTask(pPayload);
+  public synchronized void finishTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Node pResultPayload) {
+    pNode.finishTask(pResultPayload);
     if (pNode.getNode() instanceof EndNode) {
       aEndResults.add(pNode);
       aThreads.remove(pNode);
@@ -309,6 +321,105 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       ProcessNodeInstance node = pCandidate.getProcessInstance().getEngine().getNodeInstance(hnode.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
       addDirectSuccessor(pResult, node, pPredecessor);
     }
+  }
+
+  @Override
+  public void serialize(XMLStreamWriter pOut) throws XMLStreamException {
+    //
+    if(pOut.getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
+      pOut.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
+    }
+    pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "processInstance");
+    try {
+      pOut.writeAttribute("handle", Long.toString(aHandle));
+      pOut.writeAttribute("name", aName);
+      pOut.writeAttribute("processModel", Long.toString(getProcessModel().getHandle()));
+      pOut.writeAttribute("owner", aOwner.getName());
+
+      if (aPayload!=null) {
+        pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "payload");
+        try {
+          XmlUtil.serialize(pOut, aPayload);
+        } finally {
+          pOut.writeEndElement();
+        }
+      }
+      Set<String> completedIds = new TreeSet<>();
+      ArrayList<ProcessNodeInstance> completed = new ArrayList<>();
+      for(ProcessNodeInstance thread: aThreads) {
+        addPredecessors(completedIds, completed, thread);
+      }
+      for(ProcessNodeInstance endresult: aEndResults) {
+        addPredecessors(completedIds, completed, endresult);
+      }
+
+      if (aThreads.size()>0) {
+        try {
+          pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
+        } finally {
+          for(ProcessNodeInstance active: aThreads) {
+            writeActiveNodeRef(pOut, active);
+          }
+          pOut.writeEndElement();
+        }
+      }
+      if (aEndResults.size()>0) {
+        try {
+          pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "endresults");
+          for(ProcessNodeInstance result: aEndResults) {
+            writeResultNodeRef(pOut, result);
+          }
+        } finally {
+          pOut.writeEndElement();
+        }
+      }
+    } finally {
+      pOut.writeEndElement();
+    }
+
+  }
+
+  private void addPredecessors(Set<String> pSeen, ArrayList<ProcessNodeInstance> pResult, ProcessNodeInstance pProcessNodeInstance) {
+    for(Handle<? extends ProcessNodeInstance> pred:pProcessNodeInstance.getDirectPredecessors()) {
+      if (pSeen.contains(pred))
+    }
+    // TODO Auto-generated method stub
+
+  }
+
+  private static void writeActiveNodeRef(XMLStreamWriter pOut, ProcessNodeInstance pNodeInstance) throws XMLStreamException {
+    pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
+    try {
+      writeNodeRefCommon(pOut, pNodeInstance);
+    } finally{
+      pOut.writeEndElement();
+    }
+  }
+
+  private static void writeResultNodeRef(XMLStreamWriter pOut, ProcessNodeInstance pNodeInstance) throws XMLStreamException {
+    pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
+    try {
+      writeNodeRefCommon(pOut, pNodeInstance);
+      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "result");
+      try {
+        XmlUtil.serialize(pOut, pNodeInstance.getResult());
+      } finally {
+        pOut.writeEndElement();
+      }
+    } finally{
+      pOut.writeEndElement();
+    }
+  }
+
+  private static void writeNodeRefCommon(XMLStreamWriter pOut, ProcessNodeInstance pNodeInstance) throws XMLStreamException {
+    pOut.writeAttribute("nodeid", pNodeInstance.getNode().getId());
+    pOut.writeAttribute("handle", Long.toString(pNodeInstance.getHandle()));
+    pOut.writeAttribute("state", pNodeInstance.getState().toString());
+    if (pNodeInstance.getState()==TaskState.Failed) {
+      final Throwable failureCause = pNodeInstance.getFailureCause();
+      pOut.writeAttribute("failureCause", failureCause.getClass().getName()+": "+failureCause.getMessage());
+    }
+
   }
 
 }

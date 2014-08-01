@@ -53,7 +53,6 @@ import net.devrieze.util.Handles;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -83,8 +82,8 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
-import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XmlUtil;
 
 import org.apache.catalina.ServerFactory;
 import org.apache.catalina.Service;
@@ -649,6 +648,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       list.add(pi.getRef());
     }
     return list;
+  }
+
+  @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
+  public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    return aProcessEngine.getProcessInstance(pHandle, pUser);
   }
 
   @WebMethod(operationName = "updateTaskState")
