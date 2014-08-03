@@ -48,6 +48,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.Service;
+import org.apache.catalina.connector.Connector;
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.MemHandleMap;
@@ -83,16 +91,8 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
-import nl.adaptivity.util.XmlUtil;
 import nl.adaptivity.util.activation.Sources;
-
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import nl.adaptivity.util.xml.XmlUtil;
 
 
 public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
