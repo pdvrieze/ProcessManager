@@ -4,6 +4,9 @@ import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -13,6 +16,7 @@ import java.lang.reflect.WildcardType;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -55,13 +59,61 @@ import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.XmlSerializable;
 
 
-public class RestMethodWrapper {
+public abstract class RestMethodWrapper {
+
+
+
+  private static class Java6RestMethodWrapper extends RestMethodWrapper {
+
+    private final Method aMethod;
+
+    public Java6RestMethodWrapper(Object pOwner, Method pMethod) {
+      super(pOwner);
+      aMethod = pMethod;
+    }
+
+    @Override
+    protected Class<?>[] getParameterTypes() {
+      return aMethod.getParameterTypes();
+    }
+
+    @Override
+    protected Annotation[][] getParameterAnnotations() {
+      return aMethod.getParameterAnnotations();
+    }
+
+  }
+
+  private static class Java7RestMethodWrapper extends RestMethodWrapper {
+
+    private final MethodHandle aMethodHandle;
+    private Annotation[][] aParameterAnnotations;
+
+    public Java7RestMethodWrapper(Object pOwner, Method pMethod) {
+      super(pOwner);
+      try {
+        aMethodHandle = MethodHandles.lookup().unreflect(pMethod);
+        aParameterAnnotations = pMethod.getParameterAnnotations();
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    protected Class<?>[] getParameterTypes() {
+      return aMethodHandle.type().parameterArray();
+    }
+
+    @Override
+    protected Annotation[][] getParameterAnnotations() {
+      return aParameterAnnotations;
+    }
+
+  }
 
   private Map<String, String> aPathParams;
 
   private final Object aOwner;
-
-  private final Method aMethod;
 
   private Object[] aParams;
 
@@ -69,9 +121,30 @@ public class RestMethodWrapper {
 
   private boolean aContentTypeSet = false;
 
-  public RestMethodWrapper(final Object pOwner, final Method pMethod) {
+  private static class HasMethodHandleHelper {
+    private static final boolean HASHANDLES;
+
+    static {
+      boolean hashandles;
+      try {
+        hashandles = MethodHandle.class.getName()!=null;
+      } catch (RuntimeException e) {
+        hashandles = false;
+      }
+      HASHANDLES = hashandles;
+    }
+  }
+
+  public static RestMethodWrapper get(final Object pOwner, final Method pMethod) {
+    if (HasMethodHandleHelper.HASHANDLES) {
+      return new Java7RestMethodWrapper(pOwner, pMethod);
+    } else {
+      return new Java6RestMethodWrapper(pOwner, pMethod);
+    }
+  }
+
+  private RestMethodWrapper(final Object pOwner) {
     aOwner = pOwner;
-    aMethod = pMethod;
   }
 
   public void setPathParams(final Map<String, String> pPathParams) {
@@ -82,8 +155,8 @@ public class RestMethodWrapper {
     if (aParams != null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
-    final Class<?>[] parameterTypes = aMethod.getParameterTypes();
-    final Annotation[][] parameterAnnotations = aMethod.getParameterAnnotations();
+    final Class<?>[] parameterTypes = getParameterTypes();
+    final Annotation[][] parameterAnnotations = getParameterAnnotations();
     final int argCnt = 0;
     aParams = new Object[parameterTypes.length];
 
@@ -106,6 +179,10 @@ public class RestMethodWrapper {
 
     }
   }
+
+  protected abstract Annotation[][] getParameterAnnotations();
+
+  protected abstract Class<?>[] getParameterTypes();
 
   private Object getParam(final Class<?> pClass, final String pName, final ParamType pType, final String pXpath, final HttpMessage pMessage) {
     Object result = null;
