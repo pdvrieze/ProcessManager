@@ -190,7 +190,7 @@ public abstract class RestMethodWrapper {
         throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
       }
       try {
-        aResult = aMethodHandle.invokeExact(aParams);
+        aResult = aMethodHandle.invokeWithArguments(aParams);
       } catch (final InvocationTargetException e) {
         final Throwable cause = e.getCause();
         throw new MessagingException(cause != null ? cause : e);
