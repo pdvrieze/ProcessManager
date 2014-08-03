@@ -67,6 +67,8 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
   private Button aNewProcessButton;
 
+  private Button aDeleteProcessButton;
+
   public ProcessesPanel(final Label pStatusLabel) {
     aRoot = new SplittedFillLeftPanel<Widget>();
     aRoot.setTopLeftWidget(new HTML("Top Left"));
@@ -110,6 +112,7 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
     aNewProcessButton = createLeftButton("New process", false);
     aEditProcessButton = createLeftButton("View process", true);
     aRenameProcessButton = createLeftButton("Rename process", true);
+    aDeleteProcessButton = createLeftButton("Delete process", true);
 
     initUploadPanel();
 
@@ -241,6 +244,8 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
       submitProcessFile();
     } else if (pEvent.getSource() == aEditProcessButton) {
       viewProcess();
+    } else if (pEvent.getSource() == aDeleteProcessButton) {
+      deleteProcess();
     } else if (pEvent.getSource() == aNewProcessButton) {
       newProcess();
     }
@@ -310,6 +315,31 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
   }
 
+  private void deleteProcess() {
+    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    final String url = PROCESSLISTURL + "/" + handle;
+    RequestBuilder rb = new RequestBuilder(RequestBuilder.DELETE, url);
+    try {
+      rb.sendRequest(null, new RequestCallback() {
+
+        @Override
+        public void onError(final Request pRequest, final Throwable pException) {
+          aStatusLabel.setText("Error (" + pException.getMessage() + ")");
+          GWT.log("Error deleting process", pException);
+        }
+
+        @Override
+        public void onResponseReceived(final Request pRequest, final Response pResponse) {
+          aStatusLabel.setText("Process deleted");
+          aProcessListBox.update();
+        }
+
+      });
+    } catch (final RequestException e) {
+      GWT.log(e.getMessage(), e);
+      aStatusLabel.setText("Error (" + e.getMessage() + ")");
+    }
+  }
 
   private void renameProcess() {
     final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
@@ -328,7 +358,6 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
     renamePopup.show();
 
   }
-
 
   private void submitRenameProcess(final String pHandle, final String pNewValue) {
     final String url = PROCESSLISTURL + "/" + pHandle;

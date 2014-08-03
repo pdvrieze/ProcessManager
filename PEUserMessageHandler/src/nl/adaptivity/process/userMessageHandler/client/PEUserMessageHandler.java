@@ -57,7 +57,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   /**
    * This is the entry point method.
-   * 
+   *
    * @category UI
    */
   @Override
@@ -111,7 +111,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
       label.addStyleName("span");
       aStatusPanel.add(label);
     } else {
-      aStatusPanel.add(new HTML("Status"));
+      aStatusPanel.add(new HTML("Compiled mode"));
     }
 
     //    aDockPanel.addSouth(new HTML("South"), 20);
@@ -175,7 +175,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   /**
    * Handle history
-   * 
+   *
    * @category action
    */
   @Override

@@ -1,11 +1,13 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
+import nl.adaptivity.gwt.ext.client.ControllingListBox;
 import nl.adaptivity.gwt.ext.client.RemoteListBox;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.ResizeComposite;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
@@ -19,6 +21,8 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
   private final Button aShowInstanceStatusButton;
 
   private final Label aStatusLabel;
+
+  private Button aCancelInstanceButton;
 
   public InstancesPanel(final Label pStatusLabel) {
     aStatusLabel = pStatusLabel;
@@ -40,19 +44,20 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
     root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
-    aShowInstanceStatusButton = new Button("Show status");
-    aInstanceListBox.addControlledWidget(aShowInstanceStatusButton);
-    aShowInstanceStatusButton.addStyleName("inTabButton");
-    vp1.add(aShowInstanceStatusButton);
-    aShowInstanceStatusButton.addClickHandler(this);
+    aShowInstanceStatusButton = addButtonToPanel(aInstanceListBox, vp1, "Show status");
+
+    aCancelInstanceButton = addButtonToPanel(aInstanceListBox, vp1, "Cancel instance");
+
     initWidget(root);
   }
 
-  /**
-   * @category action
-   */
-  private void showInstance() {
-    aStatusLabel.setText("showInstance");
+  Button addButtonToPanel(ControllingListBox pController, Panel pContainer, String pLabel) {
+    Button result = new Button(pLabel);
+    pController.addControlledWidget(result);
+    result.addStyleName("inTabButton");
+    pContainer.add(result);
+    result.addClickHandler(this);
+    return result;
   }
 
   /**
@@ -62,9 +67,24 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
   public void onClick(final ClickEvent pEvent) {
     if (pEvent.getSource() == aShowInstanceStatusButton) {
       showInstance();
+    } else if (pEvent.getSource() == aCancelInstanceButton) {
+      cancelInstance();
     }
   }
 
+
+  private void cancelInstance() {
+    // TODO Auto-generated method stub
+    //
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  /**
+   * @category action
+   */
+  private void showInstance() {
+    aStatusLabel.setText("showInstance");
+  }
 
   public void start() {
     aInstanceListBox.start();

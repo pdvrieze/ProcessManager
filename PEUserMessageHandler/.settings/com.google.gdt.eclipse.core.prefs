@@ -1,3 +1,5 @@
 eclipse.preferences.version=1
 jarsExcludedFromWebInfLib=
-launchConfigExternalUrlPrefix=
+launchConfigExternalUrlPrefix=http\://localhost/PEUserMessageHandler/
+warSrcDir=war
+warSrcDirIsOutput=true
