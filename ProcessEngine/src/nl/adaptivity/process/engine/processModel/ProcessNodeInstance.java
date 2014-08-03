@@ -20,7 +20,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private final ProcessNodeImpl aNode;
 
-  private Node aPayload;
+  private Node aResult;
 
   private Collection<Handle<? extends ProcessNodeInstance>> aPredecessors;
 
@@ -62,8 +62,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return aNode;
   }
 
-  public Node getPayload() {
-    return aPayload;
+  public Node getResult() {
+    return aResult;
   }
 
   public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
@@ -123,9 +123,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public void finishTask(final Node pPayload) {
+  public void finishTask(final Node pResultPayload) {
     setState(TaskState.Complete);
-    aPayload = pPayload;
+    aResult = pResultPayload;
   }
 
   @Override

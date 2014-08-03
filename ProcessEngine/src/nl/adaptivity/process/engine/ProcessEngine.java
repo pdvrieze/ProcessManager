@@ -51,7 +51,9 @@ public class ProcessEngine /* implements IProcessEngine */{
     ASSIGN_OWNERSHIP,
     VIEW_ALL_INSTANCES,
     CANCEL_ALL,
-    UPDATE_MODEL, CHANGE_OWNERSHIP, ;
+    UPDATE_MODEL,
+    CHANGE_OWNERSHIP,
+    VIEW_INSTANCE, ;
 
   }
 
@@ -212,6 +214,12 @@ public class ProcessEngine /* implements IProcessEngine */{
       }
     }
     return result;
+  }
+
+  public ProcessInstance getProcessInstance(long pHandle, Principal pUser) {
+    ProcessInstance instance = aInstanceMap.get(pHandle);
+    aSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, pUser, instance);
+    return instance;
   }
 
   /**

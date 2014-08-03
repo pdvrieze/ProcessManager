@@ -58,7 +58,6 @@ import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
-import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SimplePrincipal;
 
@@ -565,7 +564,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
     try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser));
+      return new XmlProcessModel(aProcessEngine.getProcessModel(Handles.<ProcessModelImpl>handle(pHandle), pUser));
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }
@@ -585,7 +584,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
         throw new AssertionError("Process model sizes don't match");
       }
-      return aProcessEngine.updateProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), processModel, pUser);
+      return aProcessEngine.updateProcessModel(Handles.<ProcessModelImpl>handle(pHandle), processModel, pUser);
     }
 
     return null;
@@ -614,12 +613,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public void renameProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    aProcessEngine.renameProcessModel(pUser, MemHandleMap.<ProcessModelImpl> handle(pHandle), pName);
+    aProcessEngine.renameProcessModel(pUser, Handles.<ProcessModelImpl>handle(pHandle), pName);
   }
 
   @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
   public void deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    boolean result = aProcessEngine.removeProcessModel(MemHandleMap.<ProcessModelImpl> handle(pHandle), pUser);
+    boolean result = aProcessEngine.removeProcessModel(Handles.<ProcessModelImpl>handle(pHandle), pUser);
     if (! result) {
       throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
     }
@@ -649,6 +648,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       list.add(pi.getRef());
     }
     return list;
+  }
+
+  @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
+  public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    return aProcessEngine.getProcessInstance(pHandle, pUser);
   }
 
   @WebMethod(operationName = "updateTaskState")
