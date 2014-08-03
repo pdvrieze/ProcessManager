@@ -89,7 +89,7 @@ public class RestMessageHandler {
           && pathFits(pathParams, annotation.path(), pHttpMessage.getRequestPath())
           && conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pHttpMessage)) {
         if ((resultAnnotation == null) || isMoreSpecificThan(resultAnnotation, annotation)) {
-          result = new RestMethodWrapper(aTarget, candidate);
+          result = RestMethodWrapper.get(aTarget, candidate);
           result.setPathParams(pathParams);
           resultAnnotation = annotation;
         }

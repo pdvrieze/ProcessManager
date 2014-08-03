@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -16,11 +15,9 @@ import java.lang.reflect.WildcardType;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
@@ -49,6 +46,7 @@ import org.w3c.dom.NodeList;
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
 import net.devrieze.util.Types;
+
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -65,10 +63,12 @@ public abstract class RestMethodWrapper {
 
   private static class Java6RestMethodWrapper extends RestMethodWrapper {
 
+    protected final Object aOwner;
+
     private final Method aMethod;
 
     public Java6RestMethodWrapper(Object pOwner, Method pMethod) {
-      super(pOwner);
+      aOwner = pOwner;
       aMethod = pMethod;
     }
 
@@ -82,18 +82,68 @@ public abstract class RestMethodWrapper {
       return aMethod.getParameterAnnotations();
     }
 
+    @Override
+    protected XmlElementWrapper getElementWrapper() {
+      return aMethod.getAnnotation(XmlElementWrapper.class);
+    }
+
+
+    @Override
+    protected Class<?> getReturnType() {
+      return aMethod.getReturnType();
+    }
+
+    @Override
+    protected Type getGenericReturnType() {
+      return aMethod.getGenericReturnType();
+    }
+
+    @Override
+    protected RestMethod getRestMethod() {
+      return aMethod.getAnnotation(RestMethod.class);
+    }
+
+    @Override
+    protected Class<?> getDeclaringClass() {
+      return aMethod.getDeclaringClass();
+    }
+
+    @Override
+    public void exec() {
+      if (aParams == null) {
+        throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
+      }
+      try {
+        aResult = aMethod.invoke(aOwner, aParams);
+      } catch (final IllegalArgumentException| IllegalAccessException e) {
+        throw new MessagingException(e);
+      } catch (final InvocationTargetException e) {
+        final Throwable cause = e.getCause();
+        throw new MessagingException(cause != null ? cause : e);
+      }
+    }
+
   }
 
   private static class Java7RestMethodWrapper extends RestMethodWrapper {
 
     private final MethodHandle aMethodHandle;
-    private Annotation[][] aParameterAnnotations;
+    private final Annotation[][] aParameterAnnotations;
+    private final XmlElementWrapper aElementWrapper;
+    private final Type aGenericReturnType;
+    private final Class<?> aReturnType;
+    private final RestMethod aRestMethod;
+    private final Class<?> aDeclaringClass;
 
     public Java7RestMethodWrapper(Object pOwner, Method pMethod) {
-      super(pOwner);
       try {
-        aMethodHandle = MethodHandles.lookup().unreflect(pMethod);
+        aMethodHandle = MethodHandles.lookup().unreflect(pMethod).bindTo(pOwner);
         aParameterAnnotations = pMethod.getParameterAnnotations();
+        aElementWrapper = pMethod.getAnnotation(XmlElementWrapper.class);
+        aGenericReturnType = pMethod.getGenericReturnType();
+        aReturnType = pMethod.getReturnType();
+        aRestMethod = pMethod.getAnnotation(RestMethod.class);
+        aDeclaringClass = pMethod.getDeclaringClass();
       } catch (IllegalAccessException e) {
         throw new RuntimeException(e);
       }
@@ -109,15 +159,53 @@ public abstract class RestMethodWrapper {
       return aParameterAnnotations;
     }
 
+    @Override
+    protected XmlElementWrapper getElementWrapper() {
+      return aElementWrapper;
+    }
+
+    @Override
+    protected RestMethod getRestMethod() {
+      return aRestMethod;
+    }
+
+    @Override
+    protected Class<?> getReturnType() {
+      return aReturnType;
+    }
+
+    @Override
+    protected Type getGenericReturnType() {
+      return aGenericReturnType;
+    }
+
+    @Override
+    protected Class<?> getDeclaringClass() {
+      return aDeclaringClass;
+    }
+
+    @Override
+    public void exec() {
+      if (aParams == null) {
+        throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
+      }
+      try {
+        aResult = aMethodHandle.invokeExact(aParams);
+      } catch (final InvocationTargetException e) {
+        final Throwable cause = e.getCause();
+        throw new MessagingException(cause != null ? cause : e);
+      } catch (final Throwable e) {
+        throw new MessagingException(e);
+      }
+    }
+
   }
 
   private Map<String, String> aPathParams;
 
-  private final Object aOwner;
+  protected Object[] aParams;
 
-  private Object[] aParams;
-
-  private Object aResult;
+  protected Object aResult;
 
   private boolean aContentTypeSet = false;
 
@@ -141,10 +229,6 @@ public abstract class RestMethodWrapper {
     } else {
       return new Java6RestMethodWrapper(pOwner, pMethod);
     }
-  }
-
-  private RestMethodWrapper(final Object pOwner) {
-    aOwner = pOwner;
   }
 
   public void setPathParams(final Map<String, String> pPathParams) {
@@ -179,10 +263,6 @@ public abstract class RestMethodWrapper {
 
     }
   }
-
-  protected abstract Annotation[][] getParameterAnnotations();
-
-  protected abstract Class<?>[] getParameterTypes();
 
   private Object getParam(final Class<?> pClass, final String pName, final ParamType pType, final String pXpath, final HttpMessage pMessage) {
     Object result = null;
@@ -321,46 +401,6 @@ public abstract class RestMethodWrapper {
     return result.item(0);
   }
 
-  public void exec() {
-    if (aParams == null) {
-      throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
-    }
-    try {
-      aResult = aMethod.invoke(aOwner, aParams);
-    } catch (final IllegalArgumentException e) {
-      throw new MessagingException(e);
-    } catch (final IllegalAccessException e) {
-      throw new MessagingException(e);
-    } catch (final InvocationTargetException e) {
-      final Throwable cause = e.getCause();
-      throw new MessagingException(cause != null ? cause : e);
-    }
-  }
-
-  /**
-   * @deprecated use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored
-   */
-  @Deprecated
-  public void marshalResult(@SuppressWarnings("unused") final HttpMessage pRequest, final HttpServletResponse pResponse) throws TransformerException, IOException {
-    marshalResult(pResponse);
-  }
-
-  public void marshalResult(final HttpServletResponse pResponse) throws TransformerException, IOException {
-    final XmlRootElement xmlRootElement = aResult == null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
-    if (xmlRootElement != null) {
-      try {
-        final JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
-        final JAXBSource jaxbSource = new JAXBSource(jaxbContext, aResult);
-        setContentType(pResponse, "text/xml");
-        Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
-      } catch (final JAXBException e) {
-        throw new MessagingException(e);
-      }
-    } else {
-      serializeValue(pResponse, this.aResult);
-    }
-  }
-
   private void serializeValue(final HttpServletResponse pResponse, Object value) throws TransformerException, IOException, FactoryConfigurationError {
     if (value instanceof Source) {
       setContentType(pResponse, "application/binary");// Unknown content type
@@ -385,10 +425,10 @@ public abstract class RestMethodWrapper {
         throw new TransformerException(e);
       }
     } else if (value instanceof Collection) {
-      final XmlElementWrapper annotation = aMethod.getAnnotation(XmlElementWrapper.class);
+      final XmlElementWrapper annotation = getElementWrapper();
       if (annotation != null) {
         setContentType(pResponse, "text/xml");
-        Sources.writeToStream(collectionToSource(aMethod.getGenericReturnType(), (Collection<?>) value, getQName(annotation)), pResponse.getOutputStream());
+        Sources.writeToStream(collectionToSource(getGenericReturnType(), (Collection<?>) value, getQName(annotation)), pResponse.getOutputStream());
       }
     } else if (value instanceof CharSequence) {
       setContentType(pResponse, "text/plain");
@@ -396,7 +436,7 @@ public abstract class RestMethodWrapper {
     } else {
       if (value != null) {
         try {
-          final JAXBContext jaxbContext = JAXBContext.newInstance(aMethod.getReturnType());
+          final JAXBContext jaxbContext = JAXBContext.newInstance(getReturnType());
           setContentType(pResponse, "text/xml");
 
           final JAXBSource jaxbSource = new JAXBSource(jaxbContext, value);
@@ -409,9 +449,49 @@ public abstract class RestMethodWrapper {
     }
   }
 
+  protected abstract XmlElementWrapper getElementWrapper();
+
+  protected abstract RestMethod getRestMethod();
+
+  protected abstract Annotation[][] getParameterAnnotations();
+
+  protected abstract Class<?>[] getParameterTypes();
+
+  protected abstract Class<?> getReturnType();
+
+  protected abstract Type getGenericReturnType();
+
+  protected abstract Class<?> getDeclaringClass();
+
+  public abstract void exec();
+
+  /**
+   * @deprecated use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored
+   */
+  @Deprecated
+  public void marshalResult(@SuppressWarnings("unused") final HttpMessage pRequest, final HttpServletResponse pResponse) throws TransformerException, IOException {
+    marshalResult(pResponse);
+  }
+
+  public void marshalResult(final HttpServletResponse pResponse) throws TransformerException, IOException {
+    final XmlRootElement xmlRootElement = aResult == null ? null : aResult.getClass().getAnnotation(XmlRootElement.class);
+    if (xmlRootElement != null) {
+      try {
+        final JAXBContext jaxbContext = JAXBContext.newInstance(getReturnType());
+        final JAXBSource jaxbSource = new JAXBSource(jaxbContext, aResult);
+        setContentType(pResponse, "text/xml");
+        Sources.writeToStream(jaxbSource, pResponse.getOutputStream());
+      } catch (final JAXBException e) {
+        throw new MessagingException(e);
+      }
+    } else {
+      serializeValue(pResponse, this.aResult);
+    }
+  }
+
   private void setContentType(final HttpServletResponse pResponse, final String pDefault) {
     if (! aContentTypeSet) {
-      final RestMethod methodAnnotation = aMethod.getAnnotation(RestMethod.class);
+      final RestMethod methodAnnotation = getRestMethod();
       if ((methodAnnotation == null) || (methodAnnotation.contentType().length() == 0)) {
         pResponse.setContentType(pDefault);
       } else {
@@ -471,7 +551,7 @@ public abstract class RestMethodWrapper {
 
   private JAXBContext newJAXBContext(final Class<?>... pClasses) throws JAXBException {
     Class<?>[] classList;
-    final Class<?> clazz = aMethod.getDeclaringClass();
+    final Class<?> clazz = getDeclaringClass();
     final XmlSeeAlso seeAlso = clazz.getAnnotation(XmlSeeAlso.class);
     if ((seeAlso != null) && (seeAlso.value().length > 0)) {
       final Class<?>[] seeAlsoClasses = seeAlso.value();
