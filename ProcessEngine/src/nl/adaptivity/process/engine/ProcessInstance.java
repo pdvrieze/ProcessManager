@@ -99,6 +99,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final Collection<ProcessNodeInstance> aThreads;
 
+  private final Collection<ProcessNodeInstance> aFinishedNodes;
+
   private final Collection<ProcessNodeInstance> aEndResults;
 
   private HashMap<JoinImpl, JoinInstance> aJoins;
@@ -122,6 +124,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aThreads = new LinkedList<>();
     aJoins = new HashMap<>();
     aEndResults = new ArrayList<>();
+    aFinishedNodes = new ArrayList<>();
   }
 
   void setThreads(final Collection<? extends Handle<? extends ProcessNodeInstance>> pThreads) {
@@ -142,6 +145,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
     aJoins = new HashMap<>();
     aEndResults = new ArrayList<>();
+    aFinishedNodes = new ArrayList<>();
   }
 
   public synchronized void finish() {
@@ -246,6 +250,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       aThreads.remove(pNode);
       finish();
     } else {
+      aFinishedNodes.add(pNode);
       aThreads.remove(pNode);
       final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
       for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
@@ -344,20 +349,22 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
           pOut.writeEndElement();
         }
       }
-      Set<String> completedIds = new TreeSet<>();
-      ArrayList<ProcessNodeInstance> completed = new ArrayList<>();
-      for(ProcessNodeInstance thread: aThreads) {
-        addPredecessors(completedIds, completed, thread);
-      }
-      for(ProcessNodeInstance endresult: aEndResults) {
-        addPredecessors(completedIds, completed, endresult);
-      }
 
       if (aThreads.size()>0) {
         try {
           pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
         } finally {
           for(ProcessNodeInstance active: aThreads) {
+            writeActiveNodeRef(pOut, active);
+          }
+          pOut.writeEndElement();
+        }
+      }
+      if (aThreads.size()>0) {
+        try {
+          pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
+        } finally {
+          for(ProcessNodeInstance active: aFinishedNodes) {
             writeActiveNodeRef(pOut, active);
           }
           pOut.writeEndElement();
@@ -376,14 +383,6 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     } finally {
       pOut.writeEndElement();
     }
-
-  }
-
-  private void addPredecessors(Set<String> pSeen, ArrayList<ProcessNodeInstance> pResult, ProcessNodeInstance pProcessNodeInstance) {
-//    for(Handle<? extends ProcessNodeInstance> pred:pProcessNodeInstance.getDirectPredecessors()) {
-//      if (pSeen.contains(pred))
-//    }
-    // TODO Auto-generated method stub
 
   }
 
