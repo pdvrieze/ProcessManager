@@ -224,6 +224,8 @@ public abstract class RestMethodWrapper {
   }
 
   public static RestMethodWrapper get(final Object pOwner, final Method pMethod) {
+    // Make it work with private methods and
+    pMethod.setAccessible(true);
     if (HasMethodHandleHelper.HASHANDLES) {
       return new Java7RestMethodWrapper(pOwner, pMethod);
     } else {
