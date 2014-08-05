@@ -11,7 +11,7 @@ public class PEContextListener implements ServletContextListener {
 
   @Override
   public void contextDestroyed(final ServletContextEvent pSce) {
-    MessagingRegistry.getMessenger().shutdown();
+    MessagingRegistry.registerMessenger(null);
   }
 
   @Override
