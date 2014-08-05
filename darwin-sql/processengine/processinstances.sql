@@ -1,6 +1,8 @@
-DROP TABLE `processinstances`;
-DROP TABLE `processnodeinstances`;
+DROP TABLE `pnipredecessors`;
 DROP TABLE `nodedata`;
+DROP TABLE `instancedata`;
+DROP TABLE `processnodeinstances`;
+DROP TABLE `processinstances`;
 
 CREATE TABLE `processinstances` (
   `pihandle` BIGINT NOT NULL AUTO_INCREMENT,
@@ -24,9 +26,18 @@ CREATE TABLE `processnodeinstances` (
 CREATE TABLE `pnipredecessors` (
   `pnihandle` BIGINT NOT NULL,
   `predecessor` BIGINT NOT NULL,
-  PRIMARY KEY ( `pnihandle`, `predecessors` ),
+  PRIMARY KEY ( `pnihandle`, `predecessor` ),
   FOREIGN KEY ( `predecessor` ) REFERENCES `processnodeinstances` ( `pnihandle` ),
   FOREIGN KEY ( `pnihandle` ) REFERENCES `processnodeinstances` ( `pnihandle` )
+) ENGINE=InnoDB CHARSET=utf8;
+
+CREATE TABLE `instancedata` (
+  `name` VARCHAR(30) NOT NULL,
+  `pihandle` BIGINT NOT NULL,
+  `data` TEXT NOT NULL,
+  PRIMARY KEY ( `name`, `pihandle` ),
+  FOREIGN KEY ( `pihandle` ) REFERENCES `processinstances` ( `pihandle` )
+
 ) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE `nodedata` (
@@ -37,3 +48,4 @@ CREATE TABLE `nodedata` (
   FOREIGN KEY ( `pnihandle` ) REFERENCES `processnodeinstances` ( `pnihandle` )
 
 ) ENGINE=InnoDB CHARSET=utf8;
+
