@@ -143,9 +143,10 @@ public class EndpointServlet extends HttpServlet {
       }
     } catch (final Exception e) {
       try {
-        pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         getLogger().log(Level.WARNING, "Error when processing REST/SOAP", e);
+        pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
       } catch (final IOException e1) {
+        e1.addSuppressed(e);
         getLogger().log(Level.WARNING, "Failure to notify client of error", e);
       }
     }
