@@ -224,7 +224,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return 1;//Integer.MAX_VALUE;
   }
 
-  protected List<IXmlImportType> getImports() {
+  @Override
+  public List<IXmlImportType> getImports() {
     return aImports;
   }
 
@@ -232,7 +233,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     aImports = CollectionUtil.copy(pImports);
   }
 
-  protected List<IXmlExportType> getExports() {
+  @Override
+  public List<IXmlExportType> getExports() {
     return aExports;
   }
 
