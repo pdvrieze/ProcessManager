@@ -38,7 +38,7 @@ import org.w3c.dom.Node;
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
 
   public enum State {
-    UNINITIALIZED,
+    INITIALIZED,
     STARTED,
     FINISHED,
     FAILED,
@@ -156,13 +156,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public void initialize() {
-    if (aState!=State.UNINITIALIZED || aThreads.size()>0) {
+    if (aState!=null || aThreads.size()>0) {
       throw new IllegalStateException("The instance already appears to be initialised");
     }
     for (final StartNodeImpl node : aProcessModel.getStartNodes()) {
       final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
       aThreads.add(instance);
     }
+    aState = State.INITIALIZED;
   }
 
   public synchronized void finish() {
@@ -237,7 +238,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public synchronized void start(final IMessageService<?, ProcessNodeInstance> pMessageService, final Node pPayload) {
-    if (aState==State.UNINITIALIZED) {
+    if (aState==null) {
       initialize();
     }
     if (aThreads.size() == 0) {
