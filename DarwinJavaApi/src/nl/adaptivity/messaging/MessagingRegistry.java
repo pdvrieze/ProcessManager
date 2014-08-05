@@ -207,15 +207,46 @@ public final class MessagingRegistry {
    */
   private static class StubMessenger implements IMessenger {
 
+    private static final class RegisterEndpointCommand implements MessengerCommand {
+
+      private final String mEndPoint;
+
+      private final QName mService;
+
+      private final URI mTarget;
+
+      private RegisterEndpointCommand(String pEndPoint, QName pService, URI pTarget) {
+        mEndPoint = pEndPoint;
+        mService = pService;
+        mTarget = pTarget;
+      }
+
+      public RegisterEndpointCommand(EndpointDescriptor pEndpoint) {
+        mEndPoint = pEndpoint.getEndpointName();
+        mService = pEndpoint.getServiceName();
+        mTarget = pEndpoint.getEndpointLocation();
+      }
+
+      @Override
+      public void execute(final IMessenger pMessenger) {
+        pMessenger.registerEndpoint(mService, mEndPoint, mTarget);
+      }
+    }
+
     IMessenger aRealMessenger = null;
 
     Queue<MessengerCommand> aCommandQueue;
 
-    StubMessenger() {
+    StubMessenger(IMessenger pOldMessenger) {
       aCommandQueue = new ArrayDeque<>();
+      if (pOldMessenger!=null) {
+        for(EndpointDescriptor endpoint: pOldMessenger.getRegisteredEndpoints()) {
+          aCommandQueue.add(new RegisterEndpointCommand(endpoint));
+        }
+      }
     }
 
-    public synchronized void setMessenger(final IMessenger pMessenger) {
+    public synchronized void flushTo(final IMessenger pMessenger) {
       aRealMessenger = pMessenger;
       for (final MessengerCommand command : aCommandQueue) {
         command.execute(aRealMessenger);
@@ -227,14 +258,7 @@ public final class MessagingRegistry {
     public EndpointDescriptor registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
       synchronized (this) {
         if (aRealMessenger == null) {
-          aCommandQueue.add(new MessengerCommand() {
-
-            @Override
-            public void execute(final IMessenger pMessenger) {
-              pMessenger.registerEndpoint(pService, pEndPoint, pTarget);
-            }
-
-          });
+          aCommandQueue.add(new RegisterEndpointCommand(pEndPoint, pService, pTarget));
           return new SimpleEndpointDescriptor(pService, pEndPoint, pTarget);
         }
       }
@@ -319,9 +343,11 @@ public final class MessagingRegistry {
    */
   public static synchronized void registerMessenger(final IMessenger pMessenger) {
     if (pMessenger == null) {
-      aMessenger = new StubMessenger();
+      if (! (aMessenger instanceof StubMessenger)) {
+        aMessenger = new StubMessenger(aMessenger);
+      }
     } else if (aMessenger instanceof StubMessenger) {
-      ((StubMessenger) aMessenger).setMessenger(pMessenger);
+      ((StubMessenger) aMessenger).flushTo(pMessenger);
       aMessenger = pMessenger;
     } else if (aMessenger != null) {
 
@@ -343,7 +369,7 @@ public final class MessagingRegistry {
    */
   public static synchronized IMessenger getMessenger() {
     if (aMessenger == null) {
-      aMessenger = new StubMessenger();
+      aMessenger = new StubMessenger(null);
     }
     return aMessenger;
   }
