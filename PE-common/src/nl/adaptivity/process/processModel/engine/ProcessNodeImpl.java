@@ -49,6 +49,10 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   private double aX=Double.NaN;
   private double aY=Double.NaN;
 
+  private Collection<? extends IXmlImportType> aImports;
+
+  private Collection<? extends IXmlExportType> aExports;
+
   protected ProcessNodeImpl() {
 
   }
@@ -292,6 +296,18 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     }
     return false;
   }
+
+  @Override
+  public Collection<? extends IXmlImportType> getImports() {
+    return aImports;
+  }
+
+
+  @Override
+  public Collection<? extends IXmlExportType> getExports() {
+    return aExports;
+  }
+
 
   protected static List<XmlExportType> toExportableExports(Collection<? extends IXmlExportType> pExports) {
     List<XmlExportType> newExports;

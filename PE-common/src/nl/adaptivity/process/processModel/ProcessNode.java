@@ -44,4 +44,8 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
 
   public <R> R visit(Visitor<R> pVisitor);
 
+  public Collection<? extends IXmlImportType> getImports();
+
+  public Collection<? extends IXmlExportType> getExports();
+
 }

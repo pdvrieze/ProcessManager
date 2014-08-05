@@ -18,6 +18,10 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlType;
 
+import nl.adaptivity.process.engine.ProcessData;
+
+import org.w3c.dom.Node;
+
 
 /**
  * May contain literal elements as content. In that case only the paramName
@@ -150,6 +154,11 @@ public class XmlExportType implements IXmlExportType {
     result.paramName = pExport.getParamName();
     result.path = pExport.getPath();
     return result;
+  }
+
+  public ProcessData apply(Node pPayload) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

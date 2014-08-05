@@ -13,6 +13,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 
+import nl.adaptivity.process.engine.ProcessData;
+
+import org.w3c.dom.Node;
+
 
 /**
  * <p>
@@ -82,6 +86,16 @@ public class XmlImportType implements IXmlImportType {
     result.name = pImport.getName();
     result.path = pImport.getPath();
     return result;
+  }
+
+  /**
+   * Transform the given payload as specified by the import.
+   * @param pPayload
+   * @return
+   */
+  public ProcessData apply(Node pPayload) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

@@ -47,4 +47,8 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
 
   public Collection<? extends StartNode<? extends T>> getStartNodes();
 
+  public Collection<? extends IXmlImportType> getImports();
+
+  public Collection<? extends IXmlExportType> getExports();
+
 }

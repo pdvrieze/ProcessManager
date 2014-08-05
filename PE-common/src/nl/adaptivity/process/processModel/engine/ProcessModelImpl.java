@@ -21,12 +21,18 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlImportType;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelXmlAdapter;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.XmlExportType;
+import nl.adaptivity.process.processModel.XmlImportType;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
+
+import org.w3c.dom.Node;
 
 
 /**
@@ -72,6 +78,10 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   private Set<String> aRoles;
 
   private UUID aUuid;
+
+  private List<XmlImportType> aImports = new ArrayList<>();
+
+  private List<XmlExportType> aExports = new ArrayList<>();
 
   private static Class<?> _cls_darwin_principal;
 
@@ -323,6 +333,17 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
     return aRoles;
   }
 
+  @Override
+  public Collection<? extends IXmlImportType> getImports() {
+    return aImports;
+  }
+
+  @Override
+  public Collection<? extends IXmlExportType> getExports() {
+    // TODO Auto-generated method stub
+    return aExports;
+  }
+
   public void cacheStrings(final StringCache pStringCache) {
     if (aOwner instanceof SimplePrincipal) {
       aOwner = new SimplePrincipal(pStringCache.lookup(aOwner.getName()));
@@ -374,6 +395,24 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
       }
     }
     return null;
+  }
+
+  public List<ProcessData> toInputs(Node pPayload) {
+    Collection<? extends IXmlImportType> imports = getImports();
+    ArrayList<ProcessData> result = new ArrayList<>(imports.size());
+    for(IXmlImportType import_:imports) {
+      result.add(XmlImportType.get(import_).apply(pPayload));
+    }
+    return result;
+  }
+
+  public List<ProcessData> toOutputs(Node pPayload) {
+    Collection<? extends IXmlExportType> exports = getExports();
+    ArrayList<ProcessData> result = new ArrayList<>(exports.size());
+    for(IXmlExportType export:exports) {
+      result.add(XmlExportType.get(export).apply(pPayload));
+    }
+    return result;
   }
 
 }
