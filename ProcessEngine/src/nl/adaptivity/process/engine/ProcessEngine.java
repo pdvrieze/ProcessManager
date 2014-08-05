@@ -15,7 +15,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
-import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringCacheImpl;
 import net.devrieze.util.security.PermissiveProvider;
