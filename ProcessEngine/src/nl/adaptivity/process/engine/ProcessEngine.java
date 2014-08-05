@@ -53,13 +53,14 @@ public class ProcessEngine /* implements IProcessEngine */{
     CANCEL_ALL,
     UPDATE_MODEL,
     CHANGE_OWNERSHIP,
-    VIEW_INSTANCE, ;
+    VIEW_INSTANCE,
+    CANCEL, ;
 
   }
 
   private final StringCache aStringCache = new StringCacheImpl();
 
-  private final HandleMap<ProcessInstance> aInstanceMap = new MemHandleMap<>();
+  private final HandleMap<ProcessInstance> aInstanceMap = new ProcessInstanceMap(this, DBRESOURCENAME);
 
   private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new MemHandleMap<>();
 
@@ -247,8 +248,11 @@ public class ProcessEngine /* implements IProcessEngine */{
       throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
     aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
-    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, this);
+    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, ProcessInstance.State.UNINITIALIZED, this);
     final HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
+
+    instance.initialize();
+
     instance.start(aMessageService, pPayload);
     return result;
   }
@@ -286,6 +290,16 @@ public class ProcessEngine /* implements IProcessEngine */{
    */
   public void finishInstance(final ProcessInstance pProcessInstance) {
     aInstanceMap.remove(pProcessInstance);
+  }
+
+  public ProcessInstance cancelInstance(long pHandle, Principal pUser) {
+    ProcessInstance result = aInstanceMap.get(pHandle);
+    aSecurityProvider.ensurePermission(Permissions.CANCEL, pUser, result);
+    if (aInstanceMap.remove(result)) {
+      return result;
+    } else {
+      throw new ProcessException("The instance could not be cancelled");
+    }
   }
 
   /**

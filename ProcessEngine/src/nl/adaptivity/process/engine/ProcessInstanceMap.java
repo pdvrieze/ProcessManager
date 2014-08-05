@@ -17,7 +17,7 @@ import net.devrieze.util.Handles;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
+import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -25,10 +25,11 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
-  public static final String TABLE = "processinstances";
+  public static final String TABLE_INSTANCES = "processinstances";
   public static final String COL_HANDLE = "pihandle";
   public static final String COL_OWNER = "owner";
   public static final String COL_NAME = "name";
+  public static final String COL_STATE = "state";
   public static final String COL_HPROCESSMODEL = "pmhandle";
 
   static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
@@ -42,6 +43,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     private int aColNoHProcessModel;
     private int aColNoName;
     private final ProcessEngine aProcessEngine;
+    private int aColNoState;
 
     public ProcessInstanceElementFactory(ProcessEngine pProcessEngine) {
       aProcessEngine = pProcessEngine;
@@ -60,6 +62,8 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
           aColNoHProcessModel = i;
         } else if (COL_NAME.equals(colName)) {
           aColNoName = i;
+        } else if (COL_STATE.equals(colName)) {
+          aColNoState = i;
         } // ignore other columns
       }
     }
@@ -77,7 +81,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public CharSequence getTableName() {
-      return TABLE;
+      return TABLE_INSTANCES;
     }
 
     @Override
@@ -92,9 +96,15 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       ProcessModelImpl processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
+      ProcessInstance.State state = toState(pRow.getString(aColNoState));
 
-      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, aProcessEngine);
+      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, state, aProcessEngine);
       return result;
+    }
+
+    private static State toState(String pString) {
+      if (pString==null) { return null; }
+      return State.valueOf(pString);
     }
 
     @Override
@@ -132,25 +142,26 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public CharSequence getCreateColumns() {
-      return COL_HANDLE+", "+COL_HPROCESSMODEL+", "+COL_NAME+", "+COL_OWNER;
+      return COL_HANDLE+", "+COL_HPROCESSMODEL+", "+COL_NAME+", "+COL_OWNER+", "+COL_STATE;
     }
 
     @Override
     public List<CharSequence> getStoreColumns() {
-      return Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER);
+      return Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER, COL_STATE);
     }
 
     @Override
     public List<CharSequence> getStoreParamHolders() {
-      return Arrays.<CharSequence>asList("?","?","?");
+      return Arrays.<CharSequence>asList("?","?","?", "?");
     }
 
     @Override
     public int setStoreParams(PreparedStatement pStatement, ProcessInstance pElement, int pOffset) throws SQLException {
       pStatement.setLong(pOffset, pElement.getProcessModel().getHandle());
-      pStatement.setString(pOffset+1, COL_NAME);
+      pStatement.setString(pOffset+1, pElement.getName());
       pStatement.setString(pOffset+2, pElement.getOwner().getName());
-      return 3;
+      pStatement.setString(pOffset+3, pElement.getState().name());
+      return 4;
     }
 
     public void createTable(Connection pConnection) throws SQLException {

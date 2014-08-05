@@ -655,6 +655,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     return aProcessEngine.getProcessInstance(pHandle, pUser);
   }
 
+  @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
+  public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    return aProcessEngine.cancelInstance(pHandle, pUser);
+  }
+
   @WebMethod(operationName = "updateTaskState")
   public TaskState updateTaskStateSoap(@WebParam(name = "handle", mode = Mode.IN) final long pHandle, @WebParam(name = "state", mode = Mode.IN) final TaskState pNewState, @WebParam(name = "user", mode = Mode.IN) final Principal pUser) {
     return updateTaskState(pHandle, pNewState, pUser);

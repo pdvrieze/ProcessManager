@@ -7,8 +7,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -39,6 +37,14 @@ import org.w3c.dom.Node;
 
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
+
+  public enum State {
+    UNINITIALIZED,
+    STARTED,
+    FINISHED,
+    FAILED,
+    CANCELLED;
+  }
 
   @XmlRootElement(name = "processInstance", namespace = Constants.PROCESS_ENGINE_NS)
   @XmlAccessorType(XmlAccessType.NONE)
@@ -115,16 +121,31 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final Principal aOwner;
 
-  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final ProcessEngine pEngine) {
+  private State aState;
+
+  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final State pState, final ProcessEngine pEngine) {
     aHandle = pHandle;
     aProcessModel = pProcessModel;
     aOwner = pOwner;
     aEngine = pEngine;
     aName =pName;
+    aState = pState;
     aThreads = new LinkedList<>();
     aJoins = new HashMap<>();
     aEndResults = new ArrayList<>();
     aFinishedNodes = new ArrayList<>();
+  }
+
+  public ProcessInstance(final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final State pState, final ProcessEngine pEngine) {
+    aProcessModel = pProcessModel;
+    aName = pName;
+    aEngine = pEngine;
+    aThreads = new LinkedList<>();
+    aOwner = pOwner;
+    aJoins = new HashMap<>();
+    aEndResults = new ArrayList<>();
+    aFinishedNodes = new ArrayList<>();
+    aState = pState;
   }
 
   void setThreads(final Collection<? extends Handle<? extends ProcessNodeInstance>> pThreads) {
@@ -133,19 +154,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  public ProcessInstance(final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final ProcessEngine pEngine) {
-    aProcessModel = pProcessModel;
-    aName = pName;
-    aEngine = pEngine;
-    aThreads = new LinkedList<>();
-    aOwner = pOwner;
+  public void initialize() {
+    if (aState!=State.UNINITIALIZED || aThreads.size()>0) {
+      throw new IllegalStateException("The instance already appears to be initialised");
+    }
     for (final StartNodeImpl node : aProcessModel.getStartNodes()) {
       final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
       aThreads.add(instance);
     }
-    aJoins = new HashMap<>();
-    aEndResults = new ArrayList<>();
-    aFinishedNodes = new ArrayList<>();
   }
 
   public synchronized void finish() {
@@ -215,7 +231,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     return aPayload;
   }
 
+  public synchronized State getState() {
+    return aState;
+  }
+
   public synchronized void start(final IMessageService<?, ProcessNodeInstance> pMessageService, final Node pPayload) {
+    if (aState==State.UNINITIALIZED) {
+      initialize();
+    }
     if (aThreads.size() == 0) {
       throw new IllegalStateException("No starting nodes in process");
     }
