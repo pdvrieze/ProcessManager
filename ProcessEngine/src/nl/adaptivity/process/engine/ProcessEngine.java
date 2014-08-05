@@ -25,6 +25,7 @@ import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
@@ -62,7 +63,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   private final HandleMap<ProcessInstance> aInstanceMap = new ProcessInstanceMap(this, DBRESOURCENAME);
 
-  private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new MemHandleMap<>();
+  private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new ProcessNodeInstanceMap(DBRESOURCENAME, this, aStringCache);
 
   private final HandleMap<ProcessModelImpl> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
 

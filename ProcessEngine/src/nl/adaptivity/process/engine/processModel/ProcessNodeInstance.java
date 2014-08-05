@@ -3,24 +3,25 @@ package nl.adaptivity.process.engine.processModel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-
-import org.w3c.dom.Node;
+import java.util.List;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SecureObject;
-
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+
+import org.w3c.dom.Node;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
 
   private final ProcessNodeImpl aNode;
 
-  private Node aResult;
+  private List<ProcessData> aResult = new ArrayList<>();
 
   private Collection<Handle<? extends ProcessNodeInstance>> aPredecessors;
 
@@ -62,7 +63,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return aNode;
   }
 
-  public Node getResult() {
+  public List<ProcessData> getResult() {
     return aResult;
   }
 
@@ -125,7 +126,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   @Override
   public void finishTask(final Node pResultPayload) {
     setState(TaskState.Complete);
-    aResult = pResultPayload;
+    // TODO make this work
+    aResult.add(new ProcessData(null, pResultPayload.toString()));
   }
 
   @Override
@@ -146,6 +148,15 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public void failTask(final Throwable pCause) {
     setState(TaskState.Failed);
     aFailureCause = pCause;
+  }
+
+  /** package internal method for use when retrieving from the database.
+   * Note that this method does not store the results into the database.
+   * @param pResults the new results.
+   */
+  void setResult(List<ProcessData> pResults) {
+    aResult.clear();
+    aResult.addAll(pResults);
   }
 
 }

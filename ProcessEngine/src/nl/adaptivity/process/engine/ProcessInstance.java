@@ -31,7 +31,6 @@ import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
 
 import org.w3c.dom.Node;
 
@@ -115,7 +114,9 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final ProcessEngine aEngine;
 
-  private Node aPayload;
+  private List<ProcessData> aInputs = new ArrayList<>();
+
+  private List<ProcessData> aOutputs = new ArrayList<>();
 
   private final String aName;
 
@@ -227,8 +228,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
    * Get the payload that was passed to start the instance.
    * @return The process initial payload.
    */
-  public Node getPayload() {
-    return aPayload;
+  public List<ProcessData> getInputs() {
+    return aInputs;
   }
 
   public synchronized State getState() {
@@ -242,7 +243,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     if (aThreads.size() == 0) {
       throw new IllegalStateException("No starting nodes in process");
     }
-    aPayload = pPayload;
+    aInputs = aProcessModel.toInputs(pPayload);
     for (final ProcessNodeInstance node : aThreads) {
       provideTask(pMessageService, node);
     }
@@ -364,13 +365,22 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       pOut.writeAttribute("processModel", Long.toString(getProcessModel().getHandle()));
       pOut.writeAttribute("owner", aOwner.getName());
 
-      if (aPayload!=null) {
-        pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "payload");
-        try {
-          XmlUtil.serialize(pOut, aPayload);
-        } finally {
-          pOut.writeEndElement();
+      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "inputs");
+      try {
+        for(ProcessData input:aInputs) {
+          input.serialize(pOut);
         }
+      } finally {
+        pOut.writeEndElement();
+      }
+
+      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "outputs");
+      try {
+        for(ProcessData output:aOutputs) {
+          output.serialize(pOut);
+        }
+      } finally {
+        pOut.writeEndElement();
       }
 
       if (aThreads.size()>0) {
@@ -422,9 +432,12 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
     try {
       writeNodeRefCommon(pOut, pNodeInstance);
-      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "result");
+      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "results");
       try {
-        XmlUtil.serialize(pOut, pNodeInstance.getResult());
+        List<ProcessData> results = pNodeInstance.getResult();
+        for(ProcessData result:results) {
+          result.serialize(pOut);
+        }
       } finally {
         pOut.writeEndElement();
       }
@@ -442,6 +455,16 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       pOut.writeAttribute("failureCause", failureCause.getClass().getName()+": "+failureCause.getMessage());
     }
 
+  }
+
+  void setInputs(List<ProcessData> pInputs) {
+    aInputs.clear();
+    aInputs.addAll(pInputs);
+  }
+
+  public void setOutputs(List<ProcessData> pOutputs) {
+    aOutputs.clear();
+    aOutputs.addAll(pOutputs);
   }
 
 }

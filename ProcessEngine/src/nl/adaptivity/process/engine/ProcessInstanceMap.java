@@ -26,13 +26,18 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   public static final String TABLE_INSTANCES = "processinstances";
+  public static final String TABLE_NODEDATA = null;
   public static final String COL_HANDLE = "pihandle";
   public static final String COL_OWNER = "owner";
   public static final String COL_NAME = "name";
   public static final String COL_STATE = "state";
   public static final String COL_HPROCESSMODEL = "pmhandle";
+  public static final String COL_DATA = "data";
+  public static final String COL_ISOUTPUT = "isoutput";
 
   static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
+
+    private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"`, `"+COL_ISOUTPUT+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
 
     private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
     " FROM "+ProcessNodeInstanceMap.TABLE+
@@ -109,16 +114,39 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public void postCreate(Connection pConnection, ProcessInstance pElement) throws SQLException {
-      try (PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE)) {
-        List<Handle<ProcessNodeInstance>> handles = new ArrayList<>();
-        if (statement.execute()) {
-          try (ResultSet resultset = statement.getResultSet()){
-            while (resultset.next()) {
-              handles.add(Handles.<ProcessNodeInstance>handle(resultset.getLong(1)));
+      {
+        try (PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE)) {
+          List<Handle<ProcessNodeInstance>> handles = new ArrayList<>();
+          if (statement.execute()) {
+            try (ResultSet resultset = statement.getResultSet()){
+              while (resultset.next()) {
+                handles.add(Handles.<ProcessNodeInstance>handle(resultset.getLong(1)));
+              }
             }
           }
+          pElement.setThreads(handles);
         }
-        pElement.setThreads(handles);
+      }
+      {
+        try (PreparedStatement statement = pConnection.prepareStatement(QUERY_DATA)) {
+          List<ProcessData> inputs = new ArrayList<>();
+          List<ProcessData> outputs = new ArrayList<>();
+
+          if (statement.execute()) {
+            try (ResultSet resultset = statement.getResultSet()){
+              while (resultset.next()) {
+                ProcessData data = new ProcessData(resultset.getString(1), resultset.getString(2));
+                if (resultset.getBoolean(3)) {
+                  outputs.add(data);
+                } else {
+                  inputs.add(data);
+                }
+              }
+            }
+          }
+          pElement.setInputs(inputs);
+          pElement.setOutputs(outputs);
+        }
       }
     }
 

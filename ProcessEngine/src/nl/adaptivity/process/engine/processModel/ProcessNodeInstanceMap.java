@@ -17,11 +17,10 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.SecurityProvider;
-
+import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
@@ -34,11 +33,14 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
   public static final String COL_STATE = "state";
   public static final String COL_PREDECESSOR = "predecessor";
   public static final String COL_HPROCESSINSTANCE = "pihandle";
+  public static final String COL_NAME = "name";
+  public static final String COL_DATA = "data";
   public static final String TABLE_PREDECESSORS = "pnipredecessors";
   public static final String TABLE_NODEDATA = "nodedata";
 
   static class ProcessNodeInstanceFactory extends AbstractElementFactory<ProcessNodeInstance> {
 
+    private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
     private static final String QUERY_PREDECESSOR = "SELECT `"+COL_PREDECESSOR+"` FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;";
     private int aColNoHandle;
     private int aColNoHProcessInstance;
@@ -97,7 +99,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       ProcessInstance processInstance = aProcessEngine.getAllProcessInstances(SecurityProvider.SYSTEMPRINCIPAL).get(hProcessInstance);
 
       String nodeId = aStringCache.lookup(pRow.getString(aColNoNodeId));
-      ProcessNode node = processInstance.getProcessModel().getNode(nodeId);
+      ProcessNodeImpl node = processInstance.getProcessModel().getNode(nodeId);
 
       long handle = pRow.getLong(aColNoHandle);
 
@@ -107,7 +109,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       if (node instanceof JoinImpl) {
         result =  new JoinInstance((JoinImpl) node, processInstance, state);
       } else {
-        result = new ProcessNodeInstance((ProcessNodeImpl) node, processInstance, state);
+        result = new ProcessNodeInstance(node, processInstance, state);
       }
       result.setHandle(handle);
       return result;
@@ -117,19 +119,34 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public void postCreate(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
-      List<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>();
-      try (PreparedStatement statement = pConnection.prepareStatement(QUERY_PREDECESSOR)) {
-        if(statement.execute()) {
-          try (ResultSet resultset = statement.getResultSet()){
-            while(resultset.next()) {
-              Handle<? extends ProcessNodeInstance> predecessor = Handles.handle(resultset.getLong(1));
-              predecessors.add(predecessor);
+      {
+        List<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>();
+        try (PreparedStatement statement = pConnection.prepareStatement(QUERY_PREDECESSOR)) {
+          if(statement.execute()) {
+            try (ResultSet resultset = statement.getResultSet()){
+              while(resultset.next()) {
+                Handle<? extends ProcessNodeInstance> predecessor = Handles.handle(resultset.getLong(1));
+                predecessors.add(predecessor);
+              }
             }
           }
         }
+        pElement.getDirectPredecessors().clear();
+        pElement.getDirectPredecessors().addAll(predecessors);
       }
-      pElement.getDirectPredecessors().clear();
-      pElement.getDirectPredecessors().addAll(predecessors);
+      {
+        List<ProcessData> data = new ArrayList<>();
+        try (PreparedStatement statement = pConnection.prepareStatement(QUERY_DATA)) {
+          if(statement.execute()) {
+            try (ResultSet resultset = statement.getResultSet()){
+              while(resultset.next()) {
+                data.add(new ProcessData(resultset.getString(1), resultset.getString(1)));
+              }
+            }
+          }
+        }
+        pElement.setResult(data);
+      }
     }
 
     @Override
