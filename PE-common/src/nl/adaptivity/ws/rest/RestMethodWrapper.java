@@ -378,8 +378,7 @@ public abstract class RestMethodWrapper {
         }
       }
     }
-    // TODO Auto-generated method stub
-    // return null;
+    // TODO Implement more
     throw new UnsupportedOperationException("Not yet implemented");
 
   }

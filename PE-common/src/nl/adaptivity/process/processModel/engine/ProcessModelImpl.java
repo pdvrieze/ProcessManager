@@ -340,7 +340,6 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
 
   @Override
   public Collection<? extends IXmlExportType> getExports() {
-    // TODO Auto-generated method stub
     return aExports;
   }
 
