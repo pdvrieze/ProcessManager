@@ -319,7 +319,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         if ("handle".equals(valueName)) {
           out.add(xef.createCharacters(Long.toString(getHandle())));
         } else if ("endpoint".equals(valueName)) {
-          // TODO Why can't we use STAX?
           final QName qname1 = new QName(MY_JBI_NS, "endpointDescriptor", "");
           final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", MY_JBI_NS));
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
@@ -420,8 +419,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
 
 
-    public void setHandle(final long pHandle, final Principal pOwner, final ProcessNodeInstance pNodeInstance) {
-      // XXX remove stale parameters.
+    public void setHandle(final ProcessNodeInstance pNodeInstance) {
       aNodeInstance = pNodeInstance;
     }
 
@@ -529,7 +527,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @Override
   public boolean sendMessage(final NewServletMessage pMessage, final ProcessNodeInstance pInstance) {
     assert pInstance.getHandle()>=0;
-    pMessage.setHandle(pInstance.getHandle(), pInstance.getProcessInstance().getOwner(), pInstance);
+    pMessage.setHandle(pInstance);
 
     MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(pMessage.getHandle()), pMessage.getOwner()), DataSource.class, new Class<?>[0]);
     return true;
