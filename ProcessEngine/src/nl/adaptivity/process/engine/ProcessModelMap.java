@@ -1,7 +1,5 @@
 package nl.adaptivity.process.engine;
 
-import java.io.CharArrayReader;
-import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.security.Principal;
@@ -15,6 +13,9 @@ import java.util.List;
 
 import javax.sql.DataSource;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.util.JAXBSource;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
@@ -140,11 +141,15 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     public int setStoreParams(PreparedStatement pStatement, ProcessModelImpl pElement, int pOffset) throws SQLException {
       pStatement.setString(pOffset, pElement.getOwner().getName());
 
-      // TODO see if this can be done in a streaming way.
-      XmlProcessModel xmlModel = new XmlProcessModel(pElement);
-      CharArrayWriter out = new CharArrayWriter();
-      JAXB.marshal(xmlModel, out);
-      pStatement.setCharacterStream(pOffset+1, new CharArrayReader(out.toCharArray()));
+      JAXBSource jbs;
+      try {
+        JAXBContext jbc = JAXBContext.newInstance(XmlProcessModel.class);
+        XmlProcessModel xmlModel = new XmlProcessModel(pElement);
+        jbs = new JAXBSource(jbc, xmlModel);
+      } catch (JAXBException e) {
+        throw new RuntimeException(e);
+      }
+      pStatement.setCharacterStream(pOffset+1, JAXBSource.sourceToInputSource(jbs).getCharacterStream());
       return 2;
     }
 
