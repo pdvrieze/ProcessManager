@@ -11,7 +11,7 @@ import nl.adaptivity.process.IMessageService;
 
 /**
  * Class representing the instantiation of an executable process node.
- * 
+ *
  * @author Paul de Vrieze
  * @param <V> The actual type of the implementing class.
  */
@@ -19,13 +19,17 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
 
   /**
    * Enumeration representing the various states a task can be in.
-   * 
+   *
    * @author Paul de Vrieze
    */
   @XmlRootElement(name = "taskState", namespace = "http://adaptivity.nl/userMessageHandler")
   public static enum TaskState {
     /**
-     * Initial task state. Indicates that the task has been communicated to a
+     * Initial task state. The instance has been created, but has not been successfully sent to a receiver.
+     */
+    Pending,
+    /**
+     * Indicates that the task has been communicated to a
      * handler.
      */
     Sent,
@@ -62,21 +66,21 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
 
   /**
    * Get the state of the task.
-   * 
+   *
    * @return the state.
    */
   public TaskState getState();
 
   /**
    * Set the state of the task.
-   * 
+   *
    * @param aNewState The new state of the task.
    */
   public void setState(TaskState aNewState);
 
   /**
    * Called by the processEngine so indicate starting of the task.
-   * 
+   *
    * @param pMessageService Service to use for communication of change of state.
    * @return <code>true</code> if this stage is complete and the engine should
    *         progress to {@link #takeTask(IMessageService)
@@ -86,7 +90,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
 
   /**
    * Called by the processEngine to let the task be taken.
-   * 
+   *
    * @param pMessageService Service to use for communication of change of state.
    * @return <code>true</code> if this stage has completed and the task should
    *         be {@link #startTask(IMessageService) started}.
@@ -95,7 +99,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
 
   /**
    * Called by the processEngine to let the system start the task.
-   * 
+   *
    * @param pMessageService Service to use for communication of change of state.
    * @return <code>true</code> if the task has completed and
    *         {@link #finishTask(Node)} should be called.
@@ -105,7 +109,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
   /**
    * Called by the processEngine to signify to the task that it is finished
    * (with the given payload).
-   * 
+   *
    * @param pPayload The payload which is the result of the processing.
    */
   public void finishTask(Node pPayload);
