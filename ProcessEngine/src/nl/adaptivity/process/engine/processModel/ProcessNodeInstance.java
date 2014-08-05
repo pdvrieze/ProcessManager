@@ -135,7 +135,6 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   @Override
   public void finishTask(final Node pResultPayload) {
     setState(TaskState.Complete);
-    // TODO make this work
     aResult.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload.toString()));
   }
 
