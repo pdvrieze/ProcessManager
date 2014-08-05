@@ -26,7 +26,7 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   public static final String TABLE_INSTANCES = "processinstances";
-  public static final String TABLE_NODEDATA = null;
+  public static final String TABLE_INSTANCEDATA = "instancedata";
   public static final String COL_HANDLE = "pihandle";
   public static final String COL_OWNER = "owner";
   public static final String COL_NAME = "name";
@@ -37,7 +37,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   static class ProcessInstanceElementFactory extends AbstractElementFactory<ProcessInstance> {
 
-    private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"`, `"+COL_ISOUTPUT+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
+    private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"`, `"+COL_ISOUTPUT+"` FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
 
     private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
     " FROM "+ProcessNodeInstanceMap.TABLE+
@@ -116,6 +116,8 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     public void postCreate(Connection pConnection, ProcessInstance pElement) throws SQLException {
       {
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE)) {
+          statement.setLong(1, pElement.getHandle());
+
           List<Handle<ProcessNodeInstance>> handles = new ArrayList<>();
           if (statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
@@ -129,6 +131,8 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       }
       {
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_DATA)) {
+          statement.setLong(1, pElement.getHandle());
+
           List<ProcessData> inputs = new ArrayList<>();
           List<ProcessData> outputs = new ArrayList<>();
 
@@ -148,6 +152,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
           pElement.setOutputs(outputs);
         }
       }
+      pElement.reinitialize();
     }
 
     @Override
@@ -188,7 +193,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       pStatement.setLong(pOffset, pElement.getProcessModel().getHandle());
       pStatement.setString(pOffset+1, pElement.getName());
       pStatement.setString(pOffset+2, pElement.getOwner().getName());
-      pStatement.setString(pOffset+3, pElement.getState().name());
+      pStatement.setString(pOffset+3, pElement.getState()==null? null : pElement.getState().name());
       return 4;
     }
 

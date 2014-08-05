@@ -421,6 +421,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
     public void setHandle(final long pHandle, final Principal pOwner, final ProcessNodeInstance pNodeInstance) {
+      // XXX remove stale parameters.
       aNodeInstance = pNodeInstance;
     }
 
@@ -527,9 +528,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   public boolean sendMessage(final NewServletMessage pMessage, final ProcessNodeInstance pInstance) {
-    final long handle = aProcessEngine.registerMessage(pInstance);
-    assert handle == pInstance.getHandle();
-    pMessage.setHandle(handle, pInstance.getProcessInstance().getOwner(), pInstance);
+    assert pInstance.getHandle()>=0;
+    pMessage.setHandle(pInstance.getHandle(), pInstance.getProcessInstance().getOwner(), pInstance);
 
     MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(pMessage.getHandle()), pMessage.getOwner()), DataSource.class, new Class<?>[0]);
     return true;

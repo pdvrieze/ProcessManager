@@ -25,7 +25,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Collection<Handle<? extends ProcessNodeInstance>> aPredecessors;
 
-  private TaskState aState = null;
+  private TaskState aState = TaskState.Pending;
 
   private long aHandle = -1;
 
@@ -36,7 +36,15 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public ProcessNodeInstance(final ProcessNodeImpl pNode, final Handle<? extends ProcessNodeInstance> pPredecessor, final ProcessInstance pProcessInstance) {
     super();
     aNode = pNode;
-    aPredecessors = Collections.<Handle<? extends ProcessNodeInstance>>singletonList(pPredecessor);
+    if (pPredecessor==null) {
+      if (pNode instanceof StartNode) {
+        aPredecessors = Collections.emptyList();
+      } else {
+        throw new NullPointerException("Nodes that are not startNodes need predecessors");
+      }
+    } else {
+      aPredecessors = Collections.<Handle<? extends ProcessNodeInstance>>singletonList(pPredecessor);
+    }
     aProcessInstance = pProcessInstance;
     if ((pPredecessor == null) && !(pNode instanceof StartNode)) {
       throw new NullPointerException();
@@ -86,6 +94,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       throw new IllegalArgumentException("State can only be increased (was:" + aState + " new:" + pNewState);
     }
     aState = pNewState;
+    aProcessInstance.getEngine().updateStorage(this);
   }
 
   @Override
@@ -127,7 +136,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public void finishTask(final Node pResultPayload) {
     setState(TaskState.Complete);
     // TODO make this work
-    aResult.add(new ProcessData(null, pResultPayload.toString()));
+    aResult.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload.toString()));
   }
 
   @Override

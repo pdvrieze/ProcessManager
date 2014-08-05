@@ -161,9 +161,11 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
     for (final StartNodeImpl node : aProcessModel.getStartNodes()) {
       final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
+      aEngine.registerNodeInstance(instance);
       aThreads.add(instance);
     }
     aState = State.INITIALIZED;
+    aEngine.updateStorage(this);
   }
 
   public synchronized void finish() {
@@ -250,6 +252,12 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
+  /** Method called when the instance is loaded from the server. This should reinitialise the instance. */
+  public void reinitialize() {
+    // TODO Auto-generated method stub
+
+  }
+
   public synchronized void provideTask(final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) {
     if (pNode.provideTask(pMessageService)) {
       takeTask(pMessageService, pNode);
@@ -282,6 +290,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
         final ProcessNodeInstance instance = getProcessNodeInstance(pNode, successorNode);
         aThreads.add(instance);
         startedTasks.add(instance);
+        aEngine.registerNodeInstance(instance);
       }
       for (final ProcessNodeInstance task : startedTasks) {
         provideTask(pMessageService, task);

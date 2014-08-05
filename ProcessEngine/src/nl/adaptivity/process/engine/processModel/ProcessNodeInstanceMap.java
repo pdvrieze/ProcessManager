@@ -5,8 +5,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -103,7 +105,8 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
       long handle = pRow.getLong(aColNoHandle);
 
-      TaskState state = TaskState.valueOf(pRow.getString(aColNoState));
+      final String sState = pRow.getString(aColNoState);
+      TaskState state = sState==null ? null : TaskState.valueOf(sState);
 
       ProcessNodeInstance result;
       if (node instanceof JoinImpl) {
@@ -122,6 +125,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       {
         List<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>();
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_PREDECESSOR)) {
+          statement.setLong(1, pElement.getHandle());
           if(statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
               while(resultset.next()) {
@@ -137,6 +141,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       {
         List<ProcessData> data = new ArrayList<>();
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_DATA)) {
+          statement.setLong(1, pElement.getHandle());
           if(statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
               while(resultset.next()) {
@@ -186,17 +191,21 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     public int setStoreParams(PreparedStatement pStatement, ProcessNodeInstance pElement, int pOffset) throws SQLException {
       pStatement.setString(pOffset, pElement.getNode().getId());
       pStatement.setLong(pOffset+1, pElement.getProcessInstance().getHandle());
-      pStatement.setString(pOffset+1, pElement.getState().name());
+      pStatement.setString(pOffset+2, pElement.getState()==null ? null : pElement.getState().name());
       return 3;
     }
 
     @Override
-    public void postStore(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+    public void postStore(Connection pConnection, long pHandle, ProcessNodeInstance pElement) throws SQLException {
       try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
-        long handle = pElement.getHandle();
-        for(Handle<? extends ProcessNodeInstance> predecessor:pElement.getDirectPredecessors()) {
-          statement.setLong(1, handle);
-          statement.setLong(2, predecessor.getHandle());
+        final Collection<net.devrieze.util.HandleMap.Handle<? extends ProcessNodeInstance>> directPredecessors = pElement.getDirectPredecessors();
+        for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
+          statement.setLong(1, pHandle);
+          if (predecessor==null) {
+            statement.setNull(2, Types.BIGINT);
+          } else {
+            statement.setLong(2, predecessor.getHandle());
+          }
           statement.addBatch();
         }
         statement.executeBatch();

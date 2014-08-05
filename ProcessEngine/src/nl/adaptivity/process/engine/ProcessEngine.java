@@ -54,7 +54,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     UPDATE_MODEL,
     CHANGE_OWNERSHIP,
     VIEW_INSTANCE,
-    CANCEL, ;
+    CANCEL, LIST_INSTANCES, ;
 
   }
 
@@ -191,9 +191,11 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return All instances.
    */
   public Iterable<ProcessInstance> getOwnedProcessInstances(final Principal pUser) {
+    aSecurityProvider.ensurePermission(Permissions.LIST_INSTANCES, pUser);
+    // If security allows this, return an empty list.
     final List<ProcessInstance> result = new ArrayList<>();
     for (final ProcessInstance instance : aInstanceMap) {
-      if (instance.getOwner().getName().equals(pUser.getName())) {
+      if ((pUser==null && instance.getOwner()==null) || (pUser!=null && instance.getOwner().getName().equals(pUser.getName()))) {
         result.add(instance);
       }
     }
@@ -249,8 +251,8 @@ public class ProcessEngine /* implements IProcessEngine */{
     }
     aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
     final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, null, this);
-    final HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
 
+    final HProcessInstance result = new HProcessInstance(aInstanceMap.put(instance));
     instance.initialize();
 
     instance.start(aMessageService, pPayload);
@@ -380,7 +382,7 @@ public class ProcessEngine /* implements IProcessEngine */{
   public void finishedTask(final Handle<ProcessNodeInstance> pHandle, final DataSource pResult, final Principal pUser) {
     InputSource result;
     try {
-      result = new InputSource(pResult.getInputStream());
+      result = pResult==null ? null : new InputSource(pResult.getInputStream());
     } catch (final IOException e) {
       throw new MessagingException(e);
     }
@@ -400,7 +402,7 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   }
 
-  public long registerMessage(final ProcessNodeInstance pInstance) {
+  public long registerNodeInstance(final ProcessNodeInstance pInstance) {
     if (pInstance.getHandle() >= 0) {
       throw new IllegalArgumentException("Process node already registered");
     }
@@ -421,6 +423,20 @@ public class ProcessEngine /* implements IProcessEngine */{
     aSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
     final ProcessInstance pi = task.getProcessInstance();
     pi.failTask(aMessageService, task, pCause);
+  }
+
+  public void updateStorage(ProcessNodeInstance pProcessNodeInstance) {
+    if (pProcessNodeInstance.getHandle()<0) {
+      throw new IllegalArgumentException("You can't update storage state of an unregistered node");
+    }
+    aNodeInstanceMap.set(pProcessNodeInstance, pProcessNodeInstance);
+  }
+
+  public void updateStorage(ProcessInstance pProcessInstance) {
+    if (pProcessInstance.getHandle()<0) {
+      throw new IllegalArgumentException("You can't update storage state of an unregistered node");
+    }
+    aInstanceMap.set(pProcessInstance, pProcessInstance);
   }
 
 }
