@@ -10,8 +10,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 
@@ -126,11 +128,16 @@ public class XmlUtil {
   }
 
   public static void serialize(XMLStreamWriter pOut, Node pNode) throws XMLStreamException {
+    serialize(pOut, new DOMSource(pNode));
+  }
+
+  public static void serialize(XMLStreamWriter pOut, final Source source) throws TransformerFactoryConfigurationError,
+      XMLStreamException {
     try {
       TransformerFactory
           .newInstance()
           .newTransformer()
-          .transform(new DOMSource(pNode), new StAXResult(pOut));
+          .transform(source, new StAXResult(pOut));
     } catch (TransformerException e) {
       throw new XMLStreamException(e);
     }
