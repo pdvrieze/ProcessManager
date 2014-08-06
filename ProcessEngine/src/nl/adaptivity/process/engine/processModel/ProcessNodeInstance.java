@@ -1,11 +1,13 @@
 package nl.adaptivity.process.engine.processModel;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessData;
@@ -89,12 +91,12 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public void setState(final TaskState pNewState) {
+  public void setState(DBTransaction pTransaction, final TaskState pNewState) throws SQLException {
     if ((aState != null) && (aState.compareTo(pNewState) > 0)) {
       throw new IllegalArgumentException("State can only be increased (was:" + aState + " new:" + pNewState);
     }
     aState = pNewState;
-    aProcessInstance.getEngine().updateStorage(this);
+    aProcessInstance.getEngine().updateStorage(pTransaction, this);
   }
 
   @Override
@@ -108,39 +110,40 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public <U> boolean provideTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
-    setState(TaskState.Sent);
+  public <U> boolean provideTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     try {
-      return aNode.provideTask(pMessageService, this);
+      final boolean result = aNode.provideTask(pTransaction, pMessageService, this);
+      setState(pTransaction, TaskState.Sent);
+      return result;
     } catch (RuntimeException e) {
-      failTask(e);
+      failTask(pTransaction, e);
       throw e;
     }
   }
 
   @Override
-  public <U> boolean takeTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
+  public <U> boolean takeTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     final boolean result = aNode.takeTask(pMessageService, this);
-    setState(TaskState.Taken);
+    setState(pTransaction, TaskState.Taken);
     return result;
   }
 
   @Override
-  public <U> boolean startTask(final IMessageService<U, ProcessNodeInstance> pMessageService) {
+  public <U> boolean startTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     final boolean startTask = aNode.startTask(pMessageService, this);
-    setState(TaskState.Started);
+    setState(pTransaction, TaskState.Started);
     return startTask;
   }
 
   @Override
-  public void finishTask(final Node pResultPayload) {
-    setState(TaskState.Complete);
+  public void finishTask(DBTransaction pTransaction, final Node pResultPayload) throws SQLException {
     aResult.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload.toString()));
+    setState(pTransaction, TaskState.Complete);
   }
 
   @Override
-  public void cancelTask() {
-    setState(TaskState.Cancelled);
+  public void cancelTask(DBTransaction pTransaction) throws SQLException {
+    setState(pTransaction, TaskState.Cancelled);
   }
 
   @Override
@@ -153,9 +156,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public void failTask(final Throwable pCause) {
-    setState(TaskState.Failed);
+  public void failTask(DBTransaction pTransaction, final Throwable pCause) throws SQLException {
     aFailureCause = pCause;
+    setState(pTransaction, TaskState.Failed);
   }
 
   /** package internal method for use when retrieving from the database.

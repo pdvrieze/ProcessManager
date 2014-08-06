@@ -97,7 +97,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     @Override
     public ProcessNodeInstance create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
       long hProcessInstance = pRow.getLong(aColNoHProcessInstance);
-      ProcessInstance processInstance = aProcessEngine.getAllProcessInstances(SecurityProvider.SYSTEMPRINCIPAL).get(hProcessInstance);
+      ProcessInstance processInstance = aProcessEngine.getProcessInstance(pConnection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
 
       String nodeId = aStringCache.lookup(pRow.getString(aColNoNodeId));
       ProcessNodeImpl node = processInstance.getProcessModel().getNode(nodeId);

@@ -98,7 +98,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     public ProcessInstance create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
       Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
       Handle<ProcessModelImpl> hProcessModel = Handles.handle(pRow.getLong(aColNoHProcessModel));
-      ProcessModelImpl processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
+      ProcessModelImpl processModel = aProcessEngine.getProcessModel(pConnection, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
       ProcessInstance.State state = toState(pRow.getString(aColNoState));
@@ -126,7 +126,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
               }
             }
           }
-          pElement.setThreads(handles);
+          pElement.setThreads(pConnection, handles);
         }
       }
       {

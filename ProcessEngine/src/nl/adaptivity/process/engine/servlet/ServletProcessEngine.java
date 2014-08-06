@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.security.Principal;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,9 +59,9 @@ import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
+import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -561,10 +562,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
-    try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(Handles.<ProcessModelImpl>handle(pHandle), pUser));
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(new XmlProcessModel(aProcessEngine.getProcessModel(transaction, Handles.<ProcessModelImpl>handle(pHandle), pUser)));
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
     }
   }
 
@@ -634,28 +637,45 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
   public HProcessInstance startProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
-    return aProcessEngine.startProcess(pOwner, Handles.<ProcessModelImpl>handle(pHandle), pName, null);
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(aProcessEngine.startProcess(transaction, pOwner, Handles.<ProcessModelImpl>handle(pHandle), pName, null));
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
+    }
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
   @XmlElementWrapper(name = "processInstances", namespace = PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
-    final Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(pOwner);
-    final Collection<ProcessInstanceRef> list = new ArrayList<>();
-    for (final ProcessInstance pi : processInstances) {
-      list.add(pi.getRef());
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      final Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(transaction, pOwner);
+      final Collection<ProcessInstanceRef> list = new ArrayList<>();
+      for (final ProcessInstance pi : processInstances) {
+        list.add(pi.getRef());
+      }
+      transaction.commit();
+      return list;
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
     }
-    return list;
   }
 
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
   public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.getProcessInstance(pHandle, pUser);
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(aProcessEngine.getProcessInstance(transaction, pHandle, pUser));
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
+    }
   }
 
   @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
   public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.cancelInstance(pHandle, pUser);
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(aProcessEngine.cancelInstance(transaction, pHandle, pUser));
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
+    }
   }
 
   @WebMethod(operationName = "updateTaskState")
@@ -665,7 +685,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
   public TaskState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "state", type = ParamType.QUERY) final TaskState pNewState, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.updateTaskState(Handles.<ProcessNodeInstance>handle(pHandle), pNewState, pUser);
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(aProcessEngine.updateTaskState(transaction, Handles.<ProcessNodeInstance>handle(pHandle), pNewState, pUser));
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
+    }
   }
 
   @WebMethod(operationName = "finishTask")
@@ -676,7 +700,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @WebMethod(operationName = "finishTask")
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state=Complete" })
   public TaskState finishTask(@WebParam(name = "handle", mode = Mode.IN) @RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @WebParam(name = "payload", mode = Mode.IN) @RestParam(name = "payload", type = ParamType.QUERY) final Node pPayload, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aProcessEngine.finishTask(Handles.<ProcessNodeInstance> handle(pHandle), pPayload, pUser);
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(aProcessEngine.finishTask(transaction, Handles.<ProcessNodeInstance> handle(pHandle), pPayload, pUser));
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
+    }
   }
 
 
@@ -684,55 +712,77 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    * Handle the completing of sending a message and receiving some sort of
    * reply. If the reply is an ActivityResponse message we handle that
    * specially.
+   * @throws SQLException
    */
   public void onMessageCompletion(final Future<DataSource> pFuture, final Handle<ProcessNodeInstance> pHandle, final Principal pOwner) {
-    if (pFuture.isCancelled()) {
-      aProcessEngine.cancelledTask(pHandle, pOwner);
-    } else {
-      try {
-        final DataSource result = pFuture.get();
+    // XXX do this better
+    try {
+      if (pFuture.isCancelled()) {
+        try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+          aProcessEngine.cancelledTask(transaction, pHandle, pOwner);
+          transaction.commit();
+        }
+      } else {
         try {
-          final Document domResult = XmlUtil.tryParseXml(result.getInputStream());
-          Element rootNode = domResult.getDocumentElement();
-          // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
-          if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
-            final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
-            if (header != null) {
-              rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
-            }
-          }
-          if (rootNode != null) {
-            // If we receive an ActivityResponse, treat that specially.
-            if (PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
-              final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
-              try {
-                final TaskState taskState = TaskState.valueOf(taskStateAttr);
-                aProcessEngine.updateTaskState(pHandle, taskState, pOwner);
-                return;
-              } catch (final NullPointerException e) {
-                // ignore
-              } catch (final IllegalArgumentException e) {
-                aProcessEngine.errorTask(pHandle, e, pOwner);
+          final DataSource result = pFuture.get();
+          try {
+            final Document domResult = XmlUtil.tryParseXml(result.getInputStream());
+            Element rootNode = domResult.getDocumentElement();
+            // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
+            if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
+              final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
+              if (header != null) {
+                rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
               }
             }
+            if (rootNode != null) {
+              // If we receive an ActivityResponse, treat that specially.
+              if (PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
+                final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
+                try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+                  final TaskState taskState = TaskState.valueOf(taskStateAttr);
+                  aProcessEngine.updateTaskState(transaction, pHandle, taskState, pOwner);
+                  transaction.commit();
+                  return;
+                } catch (final NullPointerException e) {
+                  // ignore
+                } catch (final IllegalArgumentException e) {
+                  try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+                    aProcessEngine.errorTask(transaction, pHandle, e, pOwner);
+                    transaction.commit();
+                  }
+                }
+              }
+            } else {
+              try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+                // XXX By default assume that we have finished the task
+                aProcessEngine.finishedTask(transaction, pHandle, result, pOwner);
+                transaction.commit();
+              }
+            }
+
+          } catch (final NullPointerException e) {
+            // ignore
+          } catch (final IOException e) {
+            // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
           }
 
-        } catch (final NullPointerException e) {
-          // ignore
-        } catch (final IOException e) {
-          // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
+        } catch (final ExecutionException e) {
+          getLogger().log(Level.INFO, "Task " + pHandle + ": Error in messaging", e.getCause());
+          try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+            aProcessEngine.errorTask(transaction, pHandle, e.getCause(), pOwner);
+            transaction.commit();
+          }
+        } catch (final InterruptedException e) {
+          getLogger().log(Level.INFO, "Task " + pHandle + ": Interrupted", e);
+          try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+            aProcessEngine.cancelledTask(transaction, pHandle, pOwner);
+            transaction.commit();
+          }
         }
-
-
-        // By default assume that we have finished the task
-        aProcessEngine.finishedTask(pHandle, result, pOwner);
-      } catch (final ExecutionException e) {
-        getLogger().log(Level.INFO, "Task " + pHandle + ": Error in messaging", e.getCause());
-        aProcessEngine.errorTask(pHandle, e.getCause(), pOwner);
-      } catch (final InterruptedException e) {
-        getLogger().log(Level.INFO, "Task " + pHandle + ": Interrupted", e);
-        aProcessEngine.cancelledTask(pHandle, pOwner);
       }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
   }
 
