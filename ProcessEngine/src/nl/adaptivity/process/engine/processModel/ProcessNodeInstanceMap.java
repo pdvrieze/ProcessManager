@@ -217,7 +217,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
         statement.setLong(1, pHandle);
         statement.executeUpdate();
       }
-      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` ?;")) {
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
         statement.setLong(1, pHandle);
         statement.executeUpdate();
       }
