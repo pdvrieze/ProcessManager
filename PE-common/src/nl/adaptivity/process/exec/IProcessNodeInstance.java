@@ -1,11 +1,13 @@
 package nl.adaptivity.process.exec;
 
+import java.sql.SQLException;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.HandleAware;
-
+import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 
 
@@ -76,17 +78,18 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    *
    * @param aNewState The new state of the task.
    */
-  public void setState(TaskState aNewState);
+  public void setState(DBTransaction pTransaction, TaskState aNewState) throws SQLException;
 
   /**
    * Called by the processEngine so indicate starting of the task.
    *
    * @param pMessageService Service to use for communication of change of state.
    * @return <code>true</code> if this stage is complete and the engine should
-   *         progress to {@link #takeTask(IMessageService)
+   *         progress to {
+   * @throws SQLException @link #takeTask(IMessageService)
 
    */
-  public <T> boolean provideTask(IMessageService<T, V> pMessageService);
+  public <T> boolean provideTask(DBTransaction pTransaction, IMessageService<T, V> pMessageService) throws SQLException;
 
   /**
    * Called by the processEngine to let the task be taken.
@@ -95,7 +98,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @return <code>true</code> if this stage has completed and the task should
    *         be {@link #startTask(IMessageService) started}.
    */
-  public <T> boolean takeTask(IMessageService<T, V> pMessageService);
+  public <T> boolean takeTask(DBTransaction pTransaction, IMessageService<T, V> pMessageService) throws SQLException;
 
   /**
    * Called by the processEngine to let the system start the task.
@@ -104,7 +107,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @return <code>true</code> if the task has completed and
    *         {@link #finishTask(Node)} should be called.
    */
-  public <T> boolean startTask(IMessageService<T, V> pMessageService);
+  public <T> boolean startTask(DBTransaction pTransaction, IMessageService<T, V> pMessageService) throws SQLException;
 
   /**
    * Called by the processEngine to signify to the task that it is finished
@@ -112,15 +115,16 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    *
    * @param pPayload The payload which is the result of the processing.
    */
-  public void finishTask(Node pPayload);
+  public void finishTask(DBTransaction pTransaction, Node pPayload) throws SQLException;
 
   /**
    * Called to signify that this task has failed.
    */
-  public void failTask(Throwable pCause);
+  public void failTask(DBTransaction pTransaction, Throwable pCause) throws SQLException;
 
   /**
    * Called to signify that this task has been cancelled.
+   * @throws SQLException
    */
-  public void cancelTask();
+  public void cancelTask(DBTransaction pTransaction) throws SQLException;
 }

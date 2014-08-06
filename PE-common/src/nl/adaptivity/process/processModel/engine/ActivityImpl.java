@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +13,7 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -205,18 +207,19 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @param pMessageService The message service to use to send the message.
    * @param pInstance The processInstance that represents the actual activity
    *          instance that the message responds to.
+   * @throws SQLException
    * @todo handle imports.
    */
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(DBTransaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) throws SQLException {
     // TODO handle imports
     final T message = pMessageService.createMessage(aMessage);
     try {
       if (!pMessageService.sendMessage(message, pInstance)) {
-        pInstance.failTask(new MessagingException("Failure to send message"));
+        pInstance.failTask(pTransaction, new MessagingException("Failure to send message"));
       }
     } catch (RuntimeException e) {
-      pInstance.failTask(e);
+      pInstance.failTask(pTransaction, e);
       throw e;
     }
 

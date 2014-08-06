@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +18,7 @@ import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import net.devrieze.util.IdFactory;
-
+import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IXmlExportType;
@@ -243,7 +244,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(DBTransaction pTransaction, IMessageService<T, U> pMessageService, U pInstance) throws SQLException;
 
   /**
    * Take action to accept the task (but not start it yet)
