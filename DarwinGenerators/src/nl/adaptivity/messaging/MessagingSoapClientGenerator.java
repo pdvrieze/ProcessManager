@@ -422,7 +422,12 @@ public class MessagingSoapClientGenerator {
         ++paramNo;
       }
     }
-    pOut.write(", CompletionListener completionListener) throws JAXBException {\n");
+    SoapSeeAlso seeAlso = Annotations.getAnnotation(pMethod.getAnnotations(),SoapSeeAlso.class);
+    if (seeAlso == null) {
+      pOut.write(", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {\n");
+    } else {
+      pOut.write(", CompletionListener completionListener) throws JAXBException {\n");
+    }
     {
       int paramNo = 0;
       for (final ParamInfo param : params) {
@@ -476,9 +481,8 @@ public class MessagingSoapClientGenerator {
 
     pOut.write(".class, ");
 
-    SoapSeeAlso seeAlso = Annotations.getAnnotation(pMethod.getAnnotations(),SoapSeeAlso.class);
     if (seeAlso==null) {
-      pOut.write("new Class<?>[0]");
+      pOut.write("jaxbcontext");
     } else {
       writeClassArray(pOut, seeAlso.value(), pImports);
     }
