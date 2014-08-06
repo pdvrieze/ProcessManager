@@ -3,6 +3,7 @@ package nl.adaptivity.process.engine;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.Principal;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +18,8 @@ import net.devrieze.util.HandleMap;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringCacheImpl;
+import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
@@ -60,11 +63,13 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   private final StringCache aStringCache = new StringCacheImpl();
 
-  private final HandleMap<ProcessInstance> aInstanceMap = new ProcessInstanceMap(this, DBRESOURCENAME);
+  private final javax.sql.DataSource aDBResource = DbSet.resourceNameToDataSource(DBRESOURCENAME);
 
-  private final HandleMap<ProcessNodeInstance> aNodeInstanceMap = new ProcessNodeInstanceMap(DBRESOURCENAME, this, aStringCache);
+  private final ProcessInstanceMap aInstanceMap = new ProcessInstanceMap(aDBResource, this);
 
-  private final HandleMap<ProcessModelImpl> aProcessModels = new ProcessModelMap(DBRESOURCENAME, aStringCache);
+  private final ProcessNodeInstanceMap aNodeInstanceMap = new ProcessNodeInstanceMap(aDBResource, this, aStringCache);
+
+  private final ProcessModelMap aProcessModels = new ProcessModelMap(aDBResource, aStringCache);
 
   private final IMessageService<?, ProcessNodeInstance> aMessageService;
 
@@ -297,10 +302,15 @@ public class ProcessEngine /* implements IProcessEngine */{
   public ProcessInstance cancelInstance(long pHandle, Principal pUser) {
     ProcessInstance result = aInstanceMap.get(pHandle);
     aSecurityProvider.ensurePermission(Permissions.CANCEL, pUser, result);
-    if (aInstanceMap.remove(result)) {
-      return result;
-    } else {
+    try (DBTransaction transaction = new DBTransaction(aDBResource)) {
+      aNodeInstanceMap.removeAll(transaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle));
+      if(aInstanceMap.remove(transaction, result)) {
+        transaction.commit();
+        return result;
+      }
       throw new ProcessException("The instance could not be cancelled");
+    } catch (SQLException e) {
+      throw new ProcessException("The instance could not be cancelled", e);
     }
   }
 

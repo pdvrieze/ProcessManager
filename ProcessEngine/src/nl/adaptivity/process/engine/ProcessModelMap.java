@@ -3,7 +3,6 @@ package nl.adaptivity.process.engine;
 import java.io.IOException;
 import java.io.Reader;
 import java.security.Principal;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -20,7 +19,7 @@ import javax.xml.bind.util.JAXBSource;
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
-import net.devrieze.util.db.DbSet;
+import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
@@ -86,7 +85,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public ProcessModelImpl create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException, IOException {
+    public ProcessModelImpl create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
       Principal owner = new SimplePrincipal(aStringCache.lookup(pRow.getString(aColNoOwner)));
       try(Reader modelReader = pRow.getCharacterStream(aColNoModel)) {
         long handle = pRow.getLong(aColNoHandle);
@@ -100,6 +99,8 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
           result.setOwner(owner);
         }
         return result;
+      } catch (IOException e) {
+        throw new SQLException(e);
       }
     }
 
@@ -164,14 +165,15 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
       return 1;
     }
 
-    public void createTable(Connection pConnection) throws SQLException {
-      throw new UnsupportedOperationException("This is not yet supported");
+    @Override
+    public void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException {
+      // Ignore. Don't even use the default implementation
     }
 
   }
 
-  public ProcessModelMap(String pResourceName, StringCache pStringCache) {
-    super(DbSet.resourceNameToDataSource(pResourceName), new ProcessModelFactory(pStringCache));
+  public ProcessModelMap(DataSource pDBResource, StringCache pStringCache) {
+    super(pDBResource, new ProcessModelFactory(pStringCache));
   }
 
 }

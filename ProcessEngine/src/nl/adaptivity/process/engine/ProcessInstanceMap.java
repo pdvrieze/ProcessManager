@@ -1,7 +1,6 @@
 package nl.adaptivity.process.engine;
 
 import java.security.Principal;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -15,6 +14,7 @@ import javax.sql.DataSource;
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
 import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessInstance.State;
@@ -95,7 +95,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public ProcessInstance create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
+    public ProcessInstance create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
       Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
       Handle<ProcessModelImpl> hProcessModel = Handles.handle(pRow.getLong(aColNoHProcessModel));
       ProcessModelImpl processModel = aProcessEngine.getProcessModel(hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
@@ -113,7 +113,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public void postCreate(Connection pConnection, ProcessInstance pElement) throws SQLException {
+    public void postCreate(DBTransaction pConnection, ProcessInstance pElement) throws SQLException {
       {
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE)) {
           statement.setLong(1, pElement.getHandle());
@@ -153,6 +153,41 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
         }
       }
       pElement.reinitialize();
+    }
+
+    @Override
+    public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      }
+    }
+
+    @Override
+    public void preRemove(DBTransaction pConnection, ProcessInstance pElement) throws SQLException {
+      preRemove(pConnection, pElement.getHandle());
+    }
+
+    @Override
+    public void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException {
+      preRemove(pConnection, pElementSource.getLong(aColNoHandle));
+    }
+
+    @Override
+    public void preClear(DBTransaction pConnection) throws SQLException {
+      CharSequence filter = getFilterExpression();
+      {
+        final String sql;
+        if (filter==null || filter.length()==0) {
+          sql= "DELETE FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE_INSTANCES+"`);";
+        } else {
+          sql= "DELETE FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE_INSTANCES+"` WHERE "+filter+");";
+        }
+        try (PreparedStatement statement = pConnection.prepareStatement(sql)) {
+          setFilterParams(statement, 1);
+          statement.executeUpdate();
+        }
+      }
     }
 
     @Override
@@ -197,14 +232,10 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       return 4;
     }
 
-    public void createTable(Connection pConnection) throws SQLException {
-      throw new UnsupportedOperationException("This is not yet supported");
-    }
-
   }
 
-  public ProcessInstanceMap(ProcessEngine pProcessEngine, String pResourceName) {
-    super(resourceNameToDataSource(pResourceName), new ProcessInstanceElementFactory(pProcessEngine));
+  public ProcessInstanceMap(DataSource pResource, ProcessEngine pProcessEngine) {
+    super(pResource, new ProcessInstanceElementFactory(pProcessEngine));
   }
 
 }

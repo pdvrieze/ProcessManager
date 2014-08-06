@@ -1,6 +1,5 @@
 package nl.adaptivity.process.engine.processModel;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -17,7 +16,7 @@ import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
-import net.devrieze.util.db.DbSet;
+import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
@@ -96,7 +95,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public ProcessNodeInstance create(DataSource pConnectionProvider, ResultSet pRow) throws SQLException {
+    public ProcessNodeInstance create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
       long hProcessInstance = pRow.getLong(aColNoHProcessInstance);
       ProcessInstance processInstance = aProcessEngine.getAllProcessInstances(SecurityProvider.SYSTEMPRINCIPAL).get(hProcessInstance);
 
@@ -121,7 +120,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
 
     @Override
-    public void postCreate(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+    public void postCreate(DBTransaction pConnection, ProcessNodeInstance pElement) throws SQLException {
       {
         List<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>();
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_PREDECESSOR)) {
@@ -196,7 +195,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public void postStore(Connection pConnection, long pHandle, ProcessNodeInstance pElement) throws SQLException {
+    public void postStore(DBTransaction pConnection, long pHandle, ProcessNodeInstance pElement) throws SQLException {
       try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
         final Collection<net.devrieze.util.HandleMap.Handle<? extends ProcessNodeInstance>> directPredecessors = pElement.getDirectPredecessors();
         for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
@@ -213,7 +212,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public void preRemove(Connection pConnection, long pHandle) throws SQLException {
+    public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
       try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
         statement.setLong(1, pHandle);
         statement.executeUpdate();
@@ -225,12 +224,17 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public void preRemove(Connection pConnection, ProcessNodeInstance pElement) throws SQLException {
+    public void preRemove(DBTransaction pConnection, ProcessNodeInstance pElement) throws SQLException {
       preRemove(pConnection, pElement.getHandle());
     }
 
     @Override
-    public void preClear(Connection pConnection) throws SQLException {
+    public void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException {
+      preRemove(pConnection, pElementSource.getLong(aColNoHandle));
+    }
+
+    @Override
+    public void preClear(DBTransaction pConnection) throws SQLException {
       CharSequence filter = getFilterExpression();
       {
         final String sql;
@@ -258,16 +262,10 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       }
     }
 
-    public void createTable(Connection pConnection) throws SQLException {
-      throw new UnsupportedOperationException("This is not yet supported");
-    }
-
-
-
   }
 
-  public ProcessNodeInstanceMap(String pResourceName, ProcessEngine pProcessEngine, StringCache pStringCache) {
-    super(DbSet.resourceNameToDataSource(pResourceName), new ProcessNodeInstanceFactory(pProcessEngine, pStringCache));
+  public ProcessNodeInstanceMap(DataSource pDBResource, ProcessEngine pProcessEngine, StringCache pStringCache) {
+    super(pDBResource, new ProcessNodeInstanceFactory(pProcessEngine, pStringCache));
   }
 
 }
