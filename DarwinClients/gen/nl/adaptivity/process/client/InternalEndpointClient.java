@@ -35,7 +35,7 @@ public class InternalEndpointClient {
 
   private InternalEndpointClient() { }
 
-  public static Future<ActivityResponse<Boolean>> postTask(EndpointDescriptorImpl repliesParam, UserTask<?> taskParam, CompletionListener completionListener) throws JAXBException {
+  public static Future<ActivityResponse<Boolean>> postTask(EndpointDescriptorImpl repliesParam, UserTask<?> taskParam, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {
     final Tripple<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl> param0 = Tripple.<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl>tripple("repliesParam", EndpointDescriptorImpl.class, repliesParam);
     final Tripple<String, Class<UserTask>, UserTask<?>> param1 = Tripple.<String, Class<UserTask>, UserTask<?>>tripple("taskParam", UserTask.class, taskParam);
 
@@ -43,7 +43,7 @@ public class InternalEndpointClient {
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ActivityResponse.class, new Class<?>[0]);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ActivityResponse.class, jaxbcontext);
   }
 
 }
