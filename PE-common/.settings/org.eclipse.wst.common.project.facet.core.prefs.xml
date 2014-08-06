@@ -1,0 +1,7 @@
+<root>
+  <facet id="jpt.jaxb">
+    <node name="classgen">
+      <attribute name="package" value="nl.adaptivity.process.exec"/>
+    </node>
+  </facet>
+</root>
