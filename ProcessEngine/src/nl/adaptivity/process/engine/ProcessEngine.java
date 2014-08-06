@@ -22,6 +22,8 @@ import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissiveProvider;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
+
+import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
@@ -441,6 +443,10 @@ public class ProcessEngine /* implements IProcessEngine */{
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public EndpointDescriptor getLocalEndpoint() {
+    return aMessageService.getLocalEndpoint();
   }
 
 }
