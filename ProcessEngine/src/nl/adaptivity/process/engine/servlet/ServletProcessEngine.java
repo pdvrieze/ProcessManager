@@ -552,12 +552,16 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public ProcessModelRefs<?> getProcesModelRefs() {
-    final Iterable<ProcessModelImpl> processModels = aProcessEngine.getProcessModels();
-    final ProcessModelRefs<?> list = new ProcessModelRefs<>();
-    for (final ProcessModel<?> pm : processModels) {
-      list.add(pm.getRef());
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      final Iterable<ProcessModelImpl> processModels = aProcessEngine.getProcessModels(transaction);
+      final ProcessModelRefs<?> list = new ProcessModelRefs<>();
+      for (final ProcessModel<?> pm : processModels) {
+        list.add(pm.getRef());
+      }
+      return transaction.commit(list);
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
     }
-    return list;
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
@@ -567,7 +571,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -585,11 +589,13 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
         throw new AssertionError("Process model sizes don't match");
       }
-      return aProcessEngine.updateProcessModel(Handles.<ProcessModelImpl>handle(pHandle), processModel, pUser);
+      try (DBTransaction transaction = aProcessEngine.startTransaction()){
+        return transaction.commit(aProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(pHandle), processModel, pUser));
+      } catch (SQLException e) {
+        throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
+      }
     }
-
-    return null;
-
+    throw new HttpResponseException(HttpServletResponse.SC_BAD_REQUEST, "The posted process model is not valid");
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
@@ -606,7 +612,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
         throw new AssertionError("Process model sizes don't match");
       }
-      return ProcessModelRef.get(aProcessEngine.addProcessModel(processModel, pOwner));
+      try (DBTransaction transaction = aProcessEngine.startTransaction()){
+        return transaction.commit(ProcessModelRef.get(aProcessEngine.addProcessModel(transaction, processModel, pOwner)));
+      } catch (SQLException e) {
+        throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
+      }
     }
 
     return null;
@@ -619,9 +629,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
   public void deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    boolean result = aProcessEngine.removeProcessModel(Handles.<ProcessModelImpl>handle(pHandle), pUser);
-    if (! result) {
-      throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      if (! aProcessEngine.removeProcessModel(transaction, Handles.<ProcessModelImpl>handle(pHandle), pUser)) {
+        throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
+      }
+    } catch (SQLException e) {
+      throw new HttpResponseException(500, e);
     }
   }
 
@@ -656,7 +669,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       transaction.commit();
       return list;
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -665,7 +678,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.getProcessInstance(transaction, pHandle, pUser));
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -674,7 +687,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.cancelInstance(transaction, pHandle, pUser));
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -688,7 +701,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.updateTaskState(transaction, Handles.<ProcessNodeInstance>handle(pHandle), pNewState, pUser));
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -703,7 +716,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.finishTask(transaction, Handles.<ProcessNodeInstance> handle(pHandle), pPayload, pUser));
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 

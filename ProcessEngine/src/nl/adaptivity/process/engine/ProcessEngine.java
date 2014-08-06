@@ -17,7 +17,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringCacheImpl;
-import net.devrieze.util.db.DBHandleMap;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissiveProvider;
@@ -89,8 +88,8 @@ public class ProcessEngine /* implements IProcessEngine */{
    *
    * @return The list of process models.
    */
-  public Iterable<ProcessModelImpl> getProcessModels() {
-    return aProcessModels;
+  public Iterable<ProcessModelImpl> getProcessModels(DBTransaction pTransaction) {
+    return aProcessModels.iterable(pTransaction);
   }
 
   /**
@@ -98,8 +97,9 @@ public class ProcessEngine /* implements IProcessEngine */{
    *
    * @param pPm The process model to add.
    * @return The processModel to add.
+   * @throws SQLException
    */
-  public IProcessModelRef<ProcessNodeImpl> addProcessModel(final ProcessModelImpl pPm, final Principal pUser) {
+  public IProcessModelRef<ProcessNodeImpl> addProcessModel(DBTransaction pTransaction, final ProcessModelImpl pPm, final Principal pUser) throws SQLException {
     aSecurityProvider.ensurePermission(Permissions.ADD_MODEL, pUser);
 
     if (pPm.getOwner() == null) {
@@ -111,7 +111,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     pPm.cacheStrings(aStringCache);
     UUID uuid = pPm.getUuid();
     if (uuid==null) { uuid = UUID.randomUUID(); pPm.setUuid(uuid); }
-    return new ProcessModelRef(pPm.getName(), aProcessModels.put(pPm), uuid);
+    return new ProcessModelRef(pPm.getName(), aProcessModels.put(pTransaction, pPm), uuid);
   }
 
   /**
@@ -147,42 +147,32 @@ public class ProcessEngine /* implements IProcessEngine */{
     }
   }
 
-  public ProcessModelRef updateProcessModel(Handle<? extends ProcessModelImpl> pHandle, ProcessModelImpl pProcessModel, Principal pUser) throws FileNotFoundException {
-    try (DBTransaction transaction= new DBTransaction(aDBResource)) {
+  public ProcessModelRef updateProcessModel(DBTransaction pTransaction, Handle<? extends ProcessModelImpl> pHandle, ProcessModelImpl pProcessModel, Principal pUser) throws FileNotFoundException, SQLException {
+    ProcessModelImpl oldModel = aProcessModels.get(pTransaction, pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, oldModel);
+    aSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, pUser, oldModel);
 
-      ProcessModelImpl oldModel = aProcessModels.get(transaction, pHandle);
-      aSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, oldModel);
-      aSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, pUser, oldModel);
-
-      if (pProcessModel.getOwner()==null) { // If no owner was set, use the old one.
-        pProcessModel.setOwner(oldModel.getOwner());
-      } else if (!oldModel.getOwner().getName().equals(pProcessModel.getOwner().getName())) {
-        aSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, pUser, oldModel);
-      }
-      if(! (pHandle!=null && aProcessModels.contains(pHandle))) {
-        throw new FileNotFoundException("The process model with handle "+pHandle+" could not be found");
-      }
-      aProcessModels.set(transaction, pHandle, pProcessModel);
-      transaction.commit();
-      return ProcessModelRef.get(pProcessModel.getRef());
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
+    if (pProcessModel.getOwner()==null) { // If no owner was set, use the old one.
+      pProcessModel.setOwner(oldModel.getOwner());
+    } else if (!oldModel.getOwner().getName().equals(pProcessModel.getOwner().getName())) {
+      aSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, pUser, oldModel);
     }
+    if(! (pHandle!=null && aProcessModels.contains(pTransaction, pHandle))) {
+      throw new FileNotFoundException("The process model with handle "+pHandle+" could not be found");
+    }
+    aProcessModels.set(pTransaction, pHandle, pProcessModel);
+    return ProcessModelRef.get(pProcessModel.getRef());
   }
 
-  public boolean removeProcessModel(Handle<? extends ProcessModelImpl> pHandle, Principal pUser) {
-    try (DBTransaction transaction= new DBTransaction(aDBResource)) {
-      ProcessModelImpl oldModel = aProcessModels.get(transaction, pHandle);
-      aSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, pUser, oldModel);
+  public boolean removeProcessModel(DBTransaction transaction, Handle<? extends ProcessModelImpl> pHandle, Principal pUser) throws SQLException {
+    ProcessModelImpl oldModel = aProcessModels.get(transaction, pHandle);
+    aSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, pUser, oldModel);
 
-      if (aProcessModels.remove(transaction, pHandle)) {
-        transaction.commit();
-        return true;
-      }
-      return false;
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
+    if (aProcessModels.remove(transaction, pHandle)) {
+      transaction.commit();
+      return true;
     }
+    return false;
   }
 
   public void setSecurityProvider(final SecurityProvider pSecurityProvider) {
@@ -229,19 +219,6 @@ public class ProcessEngine /* implements IProcessEngine */{
     ProcessInstance instance = aInstanceMap.get(pTransaction, pHandle);
     aSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, pUser, instance);
     return instance;
-  }
-
-  /**
-   * Get all process instances known. Note that most users should not have
-   * permission to do this.
-   *
-   * @param pUser The user that wants to perform this action.
-   * @return The instances.
-   */
-  @Deprecated
-  public DBHandleMap<ProcessInstance> getAllProcessInstances(final Principal pUser) {
-    aSecurityProvider.ensurePermission(Permissions.VIEW_ALL_INSTANCES, pUser);
-    return aInstanceMap;
   }
 
   /**
