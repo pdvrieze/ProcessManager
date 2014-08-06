@@ -4,19 +4,48 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Characters;
+import javax.xml.stream.events.Namespace;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMResult;
+
+import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
+
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.exec.XmlProcessNodeInstance;
+import nl.adaptivity.process.exec.XmlProcessNodeInstance.Body;
+import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
-
-import org.w3c.dom.Node;
+import nl.adaptivity.process.util.Constants;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -168,6 +197,227 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   void setResult(List<ProcessData> pResults) {
     aResult.clear();
     aResult.addAll(pResults);
+  }
+
+  public void instantiateXmlPlaceholders(Source source, final Result result) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newInstance();
+    final XMLOutputFactory xof = XMLOutputFactory.newInstance();
+    final XMLEventReader xer = xif.createXMLEventReader(source);
+    final XMLEventWriter xew = xof.createXMLEventWriter(result);
+
+    while (xer.hasNext()) {
+      final XMLEvent event = xer.nextEvent();
+      if (event.isStartElement()) {
+        final StartElement se = event.asStartElement();
+        final QName eName = se.getName();
+        if (Constants.MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
+          @SuppressWarnings("unchecked")
+          final Iterator<Attribute> attributes = se.getAttributes();
+          if (eName.getLocalPart().equals("attribute")) {
+            writeAttribute(this, xer, attributes, xew);
+          } else if (eName.getLocalPart().equals("element")) {
+            writeElement(this, xer, attributes, xew);
+          } else {
+            throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
+          }
+        } else {
+          xew.add(se);
+        }
+      } else {
+        if (event.isCharacters()) {
+          final Characters c = event.asCharacters();
+          final String charData = c.getData();
+          int i;
+          for (i = 0; i < charData.length(); ++i) {
+            if (!Character.isWhitespace(charData.charAt(i))) {
+              break;
+            }
+          }
+          if (i == charData.length()) {
+            continue; // ignore it, and go to next event
+          }
+        }
+
+        if (event instanceof Namespace) {
+
+          final Namespace ns = (Namespace) event;
+          if (!ns.getNamespaceURI().equals(Constants.MODIFY_NS)) {
+            xew.add(event);
+          }
+        } else {
+          try {
+            xew.add(event);
+          } catch (final IllegalStateException e) {
+            final StringBuilder errorMessage = new StringBuilder("Error adding event: ");
+            errorMessage.append(event.toString()).append(' ');
+            if (event.isStartElement()) {
+              errorMessage.append('<').append(event.asStartElement().getName()).append('>');
+            } else if (event.isEndElement()) {
+              errorMessage.append("</").append(event.asEndElement().getName()).append('>');
+            }
+            getLogger().log(Level.WARNING, errorMessage.toString(), e);
+
+            throw e;
+          }
+        }
+      }
+    }
+  }
+
+  private static Logger getLogger() {
+    Logger logger = Logger.getLogger(nl.adaptivity.process.engine.processModel.ProcessNodeInstance.class.getName());
+    return logger;
+  }
+
+  private static void writeElement(ProcessNodeInstance pNodeInstance, final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
+    String valueName = null;
+    {
+      while (pAttributes.hasNext()) {
+        final Attribute attr = pAttributes.next();
+        final String attrName = attr.getName().getLocalPart();
+        if ("value".equals(attrName)) {
+          valueName = attr.getValue();
+        }
+      }
+    }
+    {
+      final XMLEvent ev = in.nextEvent();
+
+      while (!ev.isEndElement()) {
+        if (ev.isStartElement()) {
+          throw new MessagingFormatException("Violation of schema");
+        }
+        if (ev.isAttribute()) {
+          final Attribute attr = (Attribute) ev;
+          final String attrName = attr.getName().getLocalPart();
+          if ("value".equals(attrName)) {
+            valueName = attr.getValue();
+          }
+        }
+      }
+    }
+    if (valueName != null) {
+      final XMLEventFactory xef = XMLEventFactory.newInstance();
+
+      if ("handle".equals(valueName)) {
+        out.add(xef.createCharacters(Long.toString(pNodeInstance.getHandle())));
+      } else if ("endpoint".equals(valueName)) {
+        final QName qname1 = new QName(Constants.MY_JBI_NS, "endpointDescriptor", "");
+        final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", Constants.MY_JBI_NS));
+        out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
+
+        {
+          EndpointDescriptor localEndpoint = pNodeInstance.getProcessInstance().getEngine().getLocalEndpoint();
+          out.add(xef.createAttribute("serviceNS", localEndpoint.getServiceName().getNamespaceURI()));
+          out.add(xef.createAttribute("serviceLocalName", localEndpoint.getServiceName().getLocalPart()));
+          out.add(xef.createAttribute("endpointName", localEndpoint.getEndpointName()));
+          out.add(xef.createAttribute("endpointLocation", localEndpoint.getEndpointLocation().toString()));
+        }
+
+        out.add(xef.createEndElement(qname1, namespaces.iterator()));
+      }
+    } else {
+      throw new MessagingFormatException("Missing parameter name");
+    }
+
+  }
+
+  private static void writeAttribute(ProcessNodeInstance pNodeInstance, final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
+    String valueName = null;
+    String paramName = null;
+    {
+      while (pAttributes.hasNext()) {
+        final Attribute attr = pAttributes.next();
+        final String attrName = attr.getName().getLocalPart();
+        if ("value".equals(attrName)) {
+          valueName = attr.getValue();
+        } else if ("name".equals(attrName)) {
+          paramName = attr.getValue();
+        }
+      }
+    }
+    {
+      final XMLEvent ev = in.nextEvent();
+
+      while (!ev.isEndElement()) {
+        if (ev.isStartElement()) {
+          throw new MessagingFormatException("Violation of schema");
+        }
+        if (ev.isAttribute()) {
+          final Attribute attr = (Attribute) ev;
+          final String attrName = attr.getName().getLocalPart();
+          if ("value".equals(attrName)) {
+            valueName = attr.getValue();
+          } else if ("name".equals(attrName)) {
+            paramName = attr.getValue();
+          }
+        }
+      }
+    }
+    if (valueName != null) {
+
+
+      final XMLEventFactory xef = XMLEventFactory.newInstance();
+
+      if ("handle".equals(valueName)) {
+        Attribute attr;
+        if (paramName != null) {
+          attr = xef.createAttribute(paramName, Long.toString(pNodeInstance.getHandle()));
+        } else {
+          attr = xef.createAttribute("handle", Long.toString(pNodeInstance.getHandle()));
+        }
+        out.add(attr);
+      } else if ("owner".equals(valueName)) {
+        Attribute attr;
+        if (paramName != null) {
+          attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
+        } else {
+          attr = xef.createAttribute("owner", pNodeInstance.getProcessInstance().getOwner().getName());
+        }
+        out.add(attr);
+      } else if ("instancehandle".equals(valueName)) {
+        Attribute attr;
+        if (paramName != null) {
+          attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
+        } else {
+          attr = xef.createAttribute("instancehandle", pNodeInstance.getProcessInstance().getOwner().getName());
+        }
+        out.add(attr);
+      }
+
+
+    } else {
+      throw new MessagingFormatException("Missing parameter name");
+    }
+
+  }
+
+  public XmlProcessNodeInstance toXmlNode() {
+    XmlProcessNodeInstance result = new XmlProcessNodeInstance();
+    result.setState(aState);
+    result.setHandle(aHandle);
+
+    if (aNode instanceof Activity<?>) {
+      Activity<?> act = (Activity<?>) aNode;
+      IXmlMessage message = act.getMessage();
+      Source source = message.getBodySource();
+
+      final DOMResult transformResult = new DOMResult();
+      try {
+        instantiateXmlPlaceholders(source, transformResult);
+        result.setBody(new Body(transformResult.getNode()));
+      } catch (XMLStreamException e) {
+        getLogger().log(Level.WARNING, "Error processing body", e);
+      }
+    }
+
+    result.setProcessinstance(aProcessInstance.getHandle());
+
+    List<Long> predecessors = result.getPredecessors();
+    for(Handle<? extends ProcessNodeInstance> h: aPredecessors) {
+      predecessors.add(Long.valueOf(h.getHandle()));
+    }
+    return result;
   }
 
 }

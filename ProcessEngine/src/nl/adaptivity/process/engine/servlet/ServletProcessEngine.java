@@ -44,6 +44,7 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.Namespace;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -62,6 +63,7 @@ import net.devrieze.util.Handles;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -78,6 +80,7 @@ import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.exec.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
@@ -87,6 +90,7 @@ import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
@@ -100,13 +104,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   private static final long serialVersionUID = -6277449163953383974L;
 
-  public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
-
-  public static final String PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/";
-
-  public static final URI MODIFY_NS = URI.create("http://adaptivity.nl/ProcessEngine/activity");
-
-  public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS, "ProcessEngine");
+  public static final QName SERVICE_QNAME = new QName(Constants.PROCESS_ENGINE_NS, "ProcessEngine");
 
   private class MessagingCompletionListener implements CompletionListener {
 
@@ -200,82 +198,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     public InputStream getInputStream() throws IOException {
       Source messageBody;
       try {
-        final XMLInputFactory xif = XMLInputFactory.newInstance();
         messageBody = getSource();
-
-        final XMLEventReader xer = xif.createXMLEventReader(messageBody);
-        final XMLOutputFactory xof = XMLOutputFactory.newInstance();
-        //        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        //        dbf.setNamespaceAware(true);
-        //        DocumentBuilder db;
-        //        try {
-        //          db = dbf.newDocumentBuilder();
-        //        } catch (ParserConfigurationException e) {
-        //          throw new MyMessagingException(e);
-        //        }
-        @SuppressWarnings("resource")
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final StreamResult result = new StreamResult(baos);
-        final XMLEventWriter xew = xof.createXMLEventWriter(result);
 
-        while (xer.hasNext()) {
-          final XMLEvent event = xer.nextEvent();
-          if (event.isStartElement()) {
-            final StartElement se = event.asStartElement();
-            final QName eName = se.getName();
-            if (MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
-              @SuppressWarnings("unchecked")
-              final Iterator<Attribute> attributes = se.getAttributes();
-              if (eName.getLocalPart().equals("attribute")) {
-                writeAttribute(xer, attributes, xew);
-              } else if (eName.getLocalPart().equals("element")) {
-                writeElement(xer, attributes, xew);
-              } else {
-                baos.reset(); baos.close();
-                throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
-              }
-            } else {
-              xew.add(se);
-            }
-          } else {
-            if (event.isCharacters()) {
-              final Characters c = event.asCharacters();
-              final String charData = c.getData();
-              int i;
-              for (i = 0; i < charData.length(); ++i) {
-                if (!Character.isWhitespace(charData.charAt(i))) {
-                  break;
-                }
-              }
-              if (i == charData.length()) {
-                continue; // ignore it, and go to next event
-              }
-            }
-
-            if (event instanceof Namespace) {
-
-              final Namespace ns = (Namespace) event;
-              if (!ns.getNamespaceURI().equals(MODIFY_NS)) {
-                xew.add(event);
-              }
-            } else {
-              try {
-                xew.add(event);
-              } catch (final IllegalStateException e) {
-                final StringBuilder errorMessage = new StringBuilder("Error adding event: ");
-                errorMessage.append(event.toString()).append(' ');
-                if (event.isStartElement()) {
-                  errorMessage.append('<').append(event.asStartElement().getName()).append('>');
-                } else if (event.isEndElement()) {
-                  errorMessage.append("</").append(event.asEndElement().getName()).append('>');
-                }
-                getLogger().log(Level.WARNING, errorMessage.toString(), e);
-                baos.reset(); baos.close();
-                throw e;
-              }
-            }
-          }
-        }
+        aNodeInstance.instantiateXmlPlaceholders(messageBody, result);
         return new ByteArrayInputStream(baos.toByteArray());
 
       } catch (final FactoryConfigurationError e) {
@@ -287,7 +214,74 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    private void writeElement(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
+
+    public static void fillInActivityMessage(Source messageBody, final Result result, ProcessNodeInstance pNodeInstance) throws FactoryConfigurationError, XMLStreamException {
+      final XMLInputFactory xif = XMLInputFactory.newInstance();
+      final XMLOutputFactory xof = XMLOutputFactory.newInstance();
+      final XMLEventReader xer = xif.createXMLEventReader(messageBody);
+      final XMLEventWriter xew = xof.createXMLEventWriter(result);
+
+      while (xer.hasNext()) {
+        final XMLEvent event = xer.nextEvent();
+        if (event.isStartElement()) {
+          final StartElement se = event.asStartElement();
+          final QName eName = se.getName();
+          if (Constants.MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
+            @SuppressWarnings("unchecked")
+            final Iterator<Attribute> attributes = se.getAttributes();
+            if (eName.getLocalPart().equals("attribute")) {
+              writeAttribute(pNodeInstance, xer, attributes, xew);
+            } else if (eName.getLocalPart().equals("element")) {
+              writeElement(pNodeInstance, xer, attributes, xew);
+            } else {
+//                baos.reset(); baos.close();
+              throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
+            }
+          } else {
+            xew.add(se);
+          }
+        } else {
+          if (event.isCharacters()) {
+            final Characters c = event.asCharacters();
+            final String charData = c.getData();
+            int i;
+            for (i = 0; i < charData.length(); ++i) {
+              if (!Character.isWhitespace(charData.charAt(i))) {
+                break;
+              }
+            }
+            if (i == charData.length()) {
+              continue; // ignore it, and go to next event
+            }
+          }
+
+          if (event instanceof Namespace) {
+
+            final Namespace ns = (Namespace) event;
+            if (!ns.getNamespaceURI().equals(Constants.MODIFY_NS)) {
+              xew.add(event);
+            }
+          } else {
+            try {
+              xew.add(event);
+            } catch (final IllegalStateException e) {
+              final StringBuilder errorMessage = new StringBuilder("Error adding event: ");
+              errorMessage.append(event.toString()).append(' ');
+              if (event.isStartElement()) {
+                errorMessage.append('<').append(event.asStartElement().getName()).append('>');
+              } else if (event.isEndElement()) {
+                errorMessage.append("</").append(event.asEndElement().getName()).append('>');
+              }
+              getLogger().log(Level.WARNING, errorMessage.toString(), e);
+//                baos.reset(); baos.close();
+              throw e;
+            }
+          }
+        }
+      }
+    }
+
+    private static void writeElement(ProcessNodeInstance pNodeInstance, final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
       String valueName = null;
       {
         while (pAttributes.hasNext()) {
@@ -318,17 +312,18 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         final XMLEventFactory xef = XMLEventFactory.newInstance();
 
         if ("handle".equals(valueName)) {
-          out.add(xef.createCharacters(Long.toString(getHandle())));
+          out.add(xef.createCharacters(Long.toString(pNodeInstance.getHandle())));
         } else if ("endpoint".equals(valueName)) {
-          final QName qname1 = new QName(MY_JBI_NS, "endpointDescriptor", "");
-          final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", MY_JBI_NS));
+          final QName qname1 = new QName(Constants.MY_JBI_NS, "endpointDescriptor", "");
+          final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", Constants.MY_JBI_NS));
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {
-            out.add(xef.createAttribute("serviceNS", aLocalEndpoint.getServiceName().getNamespaceURI()));
-            out.add(xef.createAttribute("serviceLocalName", aLocalEndpoint.getServiceName().getLocalPart()));
-            out.add(xef.createAttribute("endpointName", aLocalEndpoint.getEndpointName()));
-            out.add(xef.createAttribute("endpointLocation", aLocalEndpoint.getEndpointLocation().toString()));
+            EndpointDescriptor localEndpoint = pNodeInstance.getProcessInstance().getEngine().getLocalEndpoint();
+            out.add(xef.createAttribute("serviceNS", localEndpoint.getServiceName().getNamespaceURI()));
+            out.add(xef.createAttribute("serviceLocalName", localEndpoint.getServiceName().getLocalPart()));
+            out.add(xef.createAttribute("endpointName", localEndpoint.getEndpointName()));
+            out.add(xef.createAttribute("endpointLocation", localEndpoint.getEndpointLocation().toString()));
           }
 
           out.add(xef.createEndElement(qname1, namespaces.iterator()));
@@ -339,7 +334,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    private void writeAttribute(final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
+    private static void writeAttribute(ProcessNodeInstance pNodeInstance, final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
       String valueName = null;
       String paramName = null;
       {
@@ -379,25 +374,25 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         if ("handle".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, Long.toString(getHandle()));
+            attr = xef.createAttribute(paramName, Long.toString(pNodeInstance.getHandle()));
           } else {
-            attr = xef.createAttribute("handle", Long.toString(getHandle()));
+            attr = xef.createAttribute("handle", Long.toString(pNodeInstance.getHandle()));
           }
           out.add(attr);
         } else if ("owner".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, getOwner().getName());
+            attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
           } else {
-            attr = xef.createAttribute("owner", getOwner().getName());
+            attr = xef.createAttribute("owner", pNodeInstance.getProcessInstance().getOwner().getName());
           }
           out.add(attr);
         } else if ("instancehandle".equals(valueName)) {
           Attribute attr;
           if (paramName != null) {
-            attr = xef.createAttribute(paramName, getOwner().getName());
+            attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
           } else {
-            attr = xef.createAttribute("instancehandle", getOwner().getName());
+            attr = xef.createAttribute("instancehandle", pNodeInstance.getProcessInstance().getOwner().getName());
           }
           out.add(attr);
         }
@@ -538,6 +533,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    * Methods inherited from JBIProcessEngine
    */
 
+  @Override
+  public EndpointDescriptor getLocalEndpoint() {
+    return aLocalEndPoint;
+  }
+
   static Logger getLogger() {
     final Logger logger = Logger.getLogger(ServletProcessEngine.class.getName());
     logger.setLevel(Level.ALL);
@@ -658,7 +658,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
-  @XmlElementWrapper(name = "processInstances", namespace = PROCESS_ENGINE_NS)
+  @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       final Iterable<ProcessInstance> processInstances = aProcessEngine.getOwnedProcessInstances(transaction, pOwner);
@@ -686,6 +686,28 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.cancelInstance(transaction, pHandle, pUser));
+    } catch (SQLException e) {
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
+    }
+  }
+
+  @WebMethod(operationName="getProcessNodeInstance")
+  public XmlProcessNodeInstance getProcessNodeInstanceSoap(
+          @WebParam(name="handle", mode=Mode.IN) final long pHandle,
+          @WebParam(name="user", mode=Mode.IN) final Principal pUser)
+  {
+    return getProcessNodeInstance(pHandle, pUser).toXmlNode();
+  }
+
+  @RestMethod(method = HttpMethod.GET, path = "/tasks/${handle}")
+  public ProcessNodeInstance getProcessNodeInstance(
+          @RestParam(name = "handle", type = ParamType.VAR)
+              final long pHandle,
+          @RestParam(type = ParamType.PRINCIPAL)
+              final Principal pUser)
+  {
+    try (DBTransaction transaction = aProcessEngine.startTransaction()){
+      return transaction.commit(aProcessEngine.getNodeInstance(transaction, pHandle, pUser));
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
@@ -745,12 +767,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
             if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
               final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
               if (header != null) {
-                rootNode = XmlUtil.getFirstChild(header, PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
+                rootNode = XmlUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
               }
             }
             if (rootNode != null) {
               // If we receive an ActivityResponse, treat that specially.
-              if (PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
+              if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
                 final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
                 try (DBTransaction transaction = aProcessEngine.startTransaction()) {
                   final TaskState taskState = TaskState.valueOf(taskStateAttr);
@@ -801,7 +823,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   public QName getServiceName() {
-    return new QName(PROCESS_ENGINE_NS, "ProcessEngine");
+    return new QName(Constants.PROCESS_ENGINE_NS, "ProcessEngine");
   }
 
   @Override
