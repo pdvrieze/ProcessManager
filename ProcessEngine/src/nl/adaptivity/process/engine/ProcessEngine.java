@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.activation.DataSource;
 import javax.servlet.http.HttpServletResponse;
@@ -243,8 +245,11 @@ public class ProcessEngine /* implements IProcessEngine */{
     final HProcessInstance result = new HProcessInstance(aInstanceMap.put(pTransaction, instance));
     instance.initialize(pTransaction);
     pTransaction.commit();
-
-    instance.start(pTransaction, aMessageService, pPayload);
+    try {
+      instance.start(pTransaction, aMessageService, pPayload);
+    } catch (Exception e) {
+      Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error starting instance (it is already stored)", e);
+    }
     return result;
   }
 
