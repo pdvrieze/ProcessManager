@@ -18,6 +18,7 @@ import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
@@ -134,8 +135,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
             }
           }
         }
-        pElement.getDirectPredecessors().clear();
-        pElement.getDirectPredecessors().addAll(predecessors);
+        pElement.setDirectPredecessors(predecessors);
       }
       {
         List<ProcessData> data = new ArrayList<>();
