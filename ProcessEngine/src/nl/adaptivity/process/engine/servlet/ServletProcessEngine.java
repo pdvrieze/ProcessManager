@@ -560,7 +560,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       }
       return transaction.commit(list);
     } catch (SQLException e) {
-      throw new HttpResponseException(500, e);
+      getLogger().log(Level.WARNING, "Error getting process model references", e);
+      throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
 
@@ -571,6 +572,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Error getting process model", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
@@ -592,6 +594,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       try (DBTransaction transaction = aProcessEngine.startTransaction()){
         return transaction.commit(aProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(pHandle), processModel, pUser));
       } catch (SQLException e) {
+        getLogger().log(Level.WARNING, "Error updating process model", e);
         throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
       }
     }
@@ -615,6 +618,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       try (DBTransaction transaction = aProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(aProcessEngine.addProcessModel(transaction, processModel, pOwner)));
       } catch (SQLException e) {
+        getLogger().log(Level.WARNING, "Error adding process model", e);
         throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
       }
     }
@@ -634,6 +638,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
       }
     } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Error renaming process model", e);
       throw new HttpResponseException(500, e);
     }
   }
@@ -653,6 +658,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.startProcess(transaction, pOwner, Handles.<ProcessModelImpl>handle(pHandle), pName, null));
     } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Error starting process", e);
       throw new HttpResponseException(500, e);
     }
   }
@@ -669,6 +675,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       transaction.commit();
       return list;
     } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Error getting process instances", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
@@ -678,6 +685,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.getProcessInstance(transaction, pHandle, pUser));
     } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Error getting process instance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
@@ -687,6 +695,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.cancelInstance(transaction, pHandle, pUser));
     } catch (SQLException e) {
+      getLogger().log(Level.WARNING, "Error cancelling process intance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
   }
@@ -696,18 +705,18 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           @WebParam(name="handle", mode=Mode.IN) final long pHandle,
           @WebParam(name="user", mode=Mode.IN) final Principal pUser)
   {
-    return getProcessNodeInstance(pHandle, pUser).toXmlNode();
+    return getProcessNodeInstance(pHandle, pUser);
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/tasks/${handle}")
-  public ProcessNodeInstance getProcessNodeInstance(
+  public XmlProcessNodeInstance getProcessNodeInstance(
           @RestParam(name = "handle", type = ParamType.VAR)
               final long pHandle,
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal pUser)
   {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      return transaction.commit(aProcessEngine.getNodeInstance(transaction, pHandle, pUser));
+      return transaction.commit(aProcessEngine.getNodeInstance(transaction, pHandle, pUser)).toXmlNode();
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
