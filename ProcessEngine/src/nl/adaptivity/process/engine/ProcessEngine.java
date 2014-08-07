@@ -27,6 +27,7 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -237,10 +238,11 @@ public class ProcessEngine /* implements IProcessEngine */{
       throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
     aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
-    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, null, this);
+    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, State.NEW, this);
 
     final HProcessInstance result = new HProcessInstance(aInstanceMap.put(pTransaction, instance));
     instance.initialize(pTransaction);
+    pTransaction.commit();
 
     instance.start(pTransaction, aMessageService, pPayload);
     return result;
