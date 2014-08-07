@@ -263,11 +263,6 @@ public class InternalEndpoint implements GenericEndpoint {
       return aHandle;
     }
 
-    @Override
-    public int compareTo(Handle<XmlTask> pO) {
-      return Long.compare(aHandle, pO.getHandle());
-    }
-
     @XmlAttribute(name = "remotehandle")
     public void setRemoteHandle(final long pHandle) {
       aRemoteHandle = pHandle;
