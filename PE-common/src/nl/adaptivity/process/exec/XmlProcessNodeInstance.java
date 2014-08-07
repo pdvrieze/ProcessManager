@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.w3c.dom.Node;
 
@@ -56,8 +56,8 @@ import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "XmlProcessNodeInstance", propOrder = { "predecessor", "body" })
+@XmlAccessorType(XmlAccessType.NONE)
+@XmlRootElement(name="nodeInstance")
 public class XmlProcessNodeInstance {
 
   protected List<Long> predecessors;
@@ -72,11 +72,15 @@ public class XmlProcessNodeInstance {
 
   private long processinstance = -1;
 
+  @XmlAttribute(name = "nodeid")
+  private String aNodeId;
+
   public XmlProcessNodeInstance() {}
 
   /**
    * Gets the value of the predecessor property.
    */
+  @XmlElement(name="predecessor")
   public List<Long> getPredecessors() {
     if (predecessors == null) {
       predecessors = new ArrayList<>();
@@ -205,6 +209,15 @@ public class XmlProcessNodeInstance {
       return this.any;
     }
 
+  }
+
+
+  public void setNodeId(String pId) {
+    aNodeId = pId;
+  }
+
+  public String getNodeId() {
+    return aNodeId;
   }
 
 }
