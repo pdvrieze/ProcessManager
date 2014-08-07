@@ -305,11 +305,6 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
     aHandle = pHandle;
   }
 
-  @Override
-  public int compareTo(Handle<ProcessModelImpl> pO) {
-    return Long.compare(aHandle, pO.getHandle());
-  }
-
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
    */

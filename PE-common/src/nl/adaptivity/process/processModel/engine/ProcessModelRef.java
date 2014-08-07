@@ -62,11 +62,6 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
   }
 
   @Override
-  public int compareTo(Handle<ProcessModel<ProcessNodeImpl>> pO) {
-    return Long.compare(aHandle, pO.getHandle());
-  }
-
-  @Override
   public UUID getUuid() {
     return aUuid;
   }
