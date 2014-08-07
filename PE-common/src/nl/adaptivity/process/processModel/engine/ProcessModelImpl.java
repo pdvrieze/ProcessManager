@@ -16,11 +16,13 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.IXmlExportType;
 import nl.adaptivity.process.processModel.IXmlImportType;
@@ -301,6 +303,11 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   @Override
   public void setHandle(final long pHandle) {
     aHandle = pHandle;
+  }
+
+  @Override
+  public int compareTo(Handle<ProcessModelImpl> pO) {
+    return Long.compare(aHandle, pO.getHandle());
   }
 
   /* (non-Javadoc)

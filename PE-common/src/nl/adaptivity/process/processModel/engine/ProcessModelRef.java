@@ -7,6 +7,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import net.devrieze.util.HandleMap.Handle;
+
+import nl.adaptivity.process.processModel.ProcessModel;
+
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "processModel")
@@ -55,6 +59,11 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
   @XmlAttribute(required = true)
   public long getHandle() {
     return aHandle;
+  }
+
+  @Override
+  public int compareTo(Handle<ProcessModel<ProcessNodeImpl>> pO) {
+    return Long.compare(aHandle, pO.getHandle());
   }
 
   @Override
