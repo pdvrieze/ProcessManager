@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -26,6 +28,7 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
@@ -108,6 +111,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
     return aPredecessors;
+  }
+
+  void setDirectPredecessors(Collection<Handle<? extends ProcessNodeInstance>> preds) {
+    if (preds==null || preds.size()==0) {
+      aPredecessors = Collections.emptyList();
+    } else {
+      aPredecessors = new ArrayList<>(preds);
+    }
   }
 
   public Throwable getFailureCause() {
@@ -402,20 +413,33 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       IXmlMessage message = act.getMessage();
       Source source = message.getBodySource();
 
-      final DOMResult transformResult = new DOMResult();
+      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+      Document document;
+      try {
+        document = dbf.newDocumentBuilder().newDocument();
+      } catch (ParserConfigurationException e1) {
+        throw new RuntimeException(e1);
+      }
+      final DOMResult transformResult = new DOMResult(document);
       try {
         instantiateXmlPlaceholders(source, transformResult);
-        result.setBody(new Body(transformResult.getNode()));
+        result.setBody(new Body(document.getDocumentElement()));
       } catch (XMLStreamException e) {
         getLogger().log(Level.WARNING, "Error processing body", e);
+        throw new RuntimeException(e);
       }
     }
 
     result.setProcessinstance(aProcessInstance.getHandle());
 
-    List<Long> predecessors = result.getPredecessors();
-    for(Handle<? extends ProcessNodeInstance> h: aPredecessors) {
-      predecessors.add(Long.valueOf(h.getHandle()));
+    result.setNodeId(aNode.getId());
+
+    if (aPredecessors!=null && aPredecessors.size()>0) {
+      List<Long> predecessors = result.getPredecessors();
+      for(Handle<? extends ProcessNodeInstance> h: aPredecessors) {
+        predecessors.add(Long.valueOf(h.getHandle()));
+      }
     }
     return result;
   }
