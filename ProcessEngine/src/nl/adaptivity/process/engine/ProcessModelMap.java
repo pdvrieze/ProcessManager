@@ -15,12 +15,14 @@ import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.util.JAXBSource;
+import javax.xml.transform.sax.SAXSource;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
@@ -150,7 +152,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
       } catch (JAXBException e) {
         throw new RuntimeException(e);
       }
-      pStatement.setCharacterStream(pOffset+1, JAXBSource.sourceToInputSource(jbs).getCharacterStream());
+      pStatement.setCharacterStream(pOffset+1, SAXSource.sourceToInputSource(jbs).getCharacterStream());
       return 2;
     }
 
