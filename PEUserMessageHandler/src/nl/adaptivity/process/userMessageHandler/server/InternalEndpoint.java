@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.messaging.CompletionListener;
@@ -33,6 +34,7 @@ import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.process.userMessageHandler.server.InternalEndpoint.XmlTask;
 import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.ws.soap.SoapSeeAlso;
@@ -259,6 +261,11 @@ public class InternalEndpoint implements GenericEndpoint {
     @Override
     public long getHandle() {
       return aHandle;
+    }
+
+    @Override
+    public int compareTo(Handle<XmlTask> pO) {
+      return Long.compare(aHandle, pO.getHandle());
     }
 
     @XmlAttribute(name = "remotehandle")
