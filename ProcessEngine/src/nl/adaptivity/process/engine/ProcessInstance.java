@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -17,11 +18,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.w3c.dom.Node;
+
+import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.Handles;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -34,12 +40,11 @@ import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XmlSerializable;
 
-import org.w3c.dom.Node;
-
 
 public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
 
   public enum State {
+    NEW,
     INITIALIZED,
     STARTED,
     FINISHED,
@@ -132,7 +137,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aOwner = pOwner;
     aEngine = pEngine;
     aName =pName;
-    aState = pState;
+    aState = pState==null ? State.NEW : pState;
     aThreads = new LinkedList<>();
     aJoins = new HashMap<>();
     aEndResults = new ArrayList<>();
@@ -148,7 +153,43 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aJoins = new HashMap<>();
     aEndResults = new ArrayList<>();
     aFinishedNodes = new ArrayList<>();
-    aState = pState;
+    aState = pState == null ? State.NEW : pState;
+  }
+
+  void setChildren(DBTransaction pTransaction, final Collection<? extends Handle<? extends ProcessNodeInstance>> pChildren) throws SQLException {
+    aThreads.clear();
+    aFinishedNodes.clear();
+    aEndResults.clear();
+
+    List<ProcessNodeInstance> nodes = new ArrayList<>();
+    TreeMap<ComparableHandle<? extends ProcessNodeInstance>,ProcessNodeInstance> threads = new TreeMap<>();
+
+    for(Handle<? extends ProcessNodeInstance> handle: pChildren) {
+      final ProcessNodeInstance inst = aEngine.getNodeInstance(pTransaction, handle.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
+      nodes.add(inst);
+      threads.put(Handles.handle(handle), inst);
+    }
+
+    for(ProcessNodeInstance instance: nodes) {
+
+      if (instance.getNode() instanceof EndNode<?>) {
+        aEndResults.add(instance);
+        threads.remove(instance);
+      }
+
+      final Collection<Handle<? extends ProcessNodeInstance>> preds = instance.getDirectPredecessors();
+      if (preds!=null) {
+        for(Handle<? extends ProcessNodeInstance> pred:preds) {
+          ComparableHandle<? extends ProcessNodeInstance> handle = Handles.handle(pred);
+          if (threads.containsKey(handle)) {
+            aFinishedNodes.add(threads.get(handle));
+            threads.remove(handle);
+          }
+        }
+      }
+
+    }
+    aThreads.addAll(threads.values());
   }
 
   void setThreads(DBTransaction pTransaction, final Collection<? extends Handle<? extends ProcessNodeInstance>> pThreads) throws SQLException {
@@ -158,7 +199,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public void initialize(DBTransaction pTransaction) throws SQLException {
-    if (aState!=null || aThreads.size()>0) {
+    if (aState!=State.NEW || aThreads.size()>0) {
       throw new IllegalStateException("The instance already appears to be initialised");
     }
     for (final StartNodeImpl node : aProcessModel.getStartNodes()) {

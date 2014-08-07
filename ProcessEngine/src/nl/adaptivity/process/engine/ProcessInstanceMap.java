@@ -41,8 +41,9 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
     " FROM "+ProcessNodeInstanceMap.TABLE+
-    " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? AND "+
-    ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );";
+    " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? ;";
+//    AND "+
+//    ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );";
     private int aColNoHandle;
     private int aColNoOwner;
     private int aColNoHProcessModel;
@@ -126,7 +127,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
               }
             }
           }
-          pElement.setThreads(pConnection, handles);
+          pElement.setChildren(pConnection, handles);
         }
       }
       {
