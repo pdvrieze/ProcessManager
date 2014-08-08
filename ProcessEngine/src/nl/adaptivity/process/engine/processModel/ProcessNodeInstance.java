@@ -153,7 +153,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public <U> boolean provideTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     try {
       final boolean result = aNode.provideTask(pTransaction, pMessageService, this);
-      setState(pTransaction, TaskState.Sent);
+      if (result) { // the task must be automatically taken. Mostly this is false and we don't set the state.
+        setState(pTransaction, TaskState.Sent);
+      }
       return result;
     } catch (RuntimeException e) {
       failTask(pTransaction, e);

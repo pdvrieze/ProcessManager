@@ -62,8 +62,8 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
+import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
@@ -760,6 +760,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       } else {
         try {
           final DataSource result = pFuture.get();
+          try (DBTransaction transaction = aProcessEngine.startTransaction()) {
+            ProcessNodeInstance inst = aProcessEngine.getNodeInstance(transaction, pHandle.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
+            inst.setState(transaction, TaskState.Sent);
+            transaction.commit();
+          }
           try {
             final Document domResult = XmlUtil.tryParseXml(result.getInputStream());
             Element rootNode = domResult.getDocumentElement();
