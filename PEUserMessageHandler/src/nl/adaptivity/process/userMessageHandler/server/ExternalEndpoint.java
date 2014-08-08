@@ -3,6 +3,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
+import java.sql.SQLException;
 import java.util.Collection;
 
 import javax.servlet.ServletConfig;
@@ -10,6 +11,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
+import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.messaging.GenericEndpoint;
@@ -64,8 +66,10 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
-  public Collection<UserTask<?>> getPendingTasks() {
-    return aService.getPendingTasks();
+  public Collection<UserTask<?>> getPendingTasks() throws SQLException {
+    try (DBTransaction transaction = aService.newTransaction()) {
+      return transaction.commit(aService.getPendingTasks(transaction));
+    }
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")

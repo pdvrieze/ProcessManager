@@ -1,11 +1,14 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import java.security.Principal;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Future;
 
-import net.devrieze.util.HandleMap;
-import net.devrieze.util.MemHandleMap;
+import javax.sql.DataSource;
+
+import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -23,6 +26,7 @@ public class UserMessageService implements CompletionListener {
   }
 
   private UserTaskMap aTasks;
+  private DataSource mDataSource;
 
   public UserMessageService() {
     //    DummyTask task = new DummyTask("blabla");
@@ -32,17 +36,29 @@ public class UserMessageService implements CompletionListener {
 
   private UserTaskMap getTasks() {
     if (aTasks==null) {
-      aTasks = new UserTaskMap(DbSet.resourceNameToDataSource(DBRESOURCENAME));
+      aTasks = new UserTaskMap(getDataSource());
     }
     return aTasks;
+  }
+
+  private DataSource getDataSource() {
+    if (mDataSource==null) {
+      mDataSource = DbSet.resourceNameToDataSource(DBRESOURCENAME);
+    }
+    return mDataSource;
   }
 
   public boolean postTask(final UserTask<?> pTask) {
     return getTasks().put(pTask) >= 0;
   }
 
-  public Collection<UserTask<?>> getPendingTasks() {
-    return getTasks().toCollection();
+  public Collection<UserTask<?>> getPendingTasks(DBTransaction pTransaction) {
+    final Iterable<UserTask<?>> tasks = getTasks().iterable(pTransaction);
+    ArrayList<UserTask<?>> result = new ArrayList<UserTask<?>>();
+    for(UserTask<?> task:tasks) {
+      result.add(task);
+    }
+    return result;
   }
 
   public UserTask getPendingTask(long pHandle, Principal pUser) {
@@ -84,6 +100,10 @@ public class UserMessageService implements CompletionListener {
   public void onMessageCompletion(final Future<?> pFuture) {
     // TODO Auto-generated method stub
     //
+  }
+
+  public DBTransaction newTransaction() throws SQLException {
+    return new DBTransaction(getDataSource());
   }
 
 }
