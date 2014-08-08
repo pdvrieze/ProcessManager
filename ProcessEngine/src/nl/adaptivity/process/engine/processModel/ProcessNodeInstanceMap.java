@@ -134,8 +134,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
             }
           }
         }
-        pElement.getDirectPredecessors().clear();
-        pElement.getDirectPredecessors().addAll(predecessors);
+        pElement.setDirectPredecessors(predecessors);
       }
       {
         List<ProcessData> data = new ArrayList<>();

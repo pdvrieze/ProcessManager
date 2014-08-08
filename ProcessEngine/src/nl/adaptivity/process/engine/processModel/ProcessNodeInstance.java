@@ -110,6 +110,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return aPredecessors;
   }
 
+  public void setDirectPredecessors(Collection<Handle<? extends ProcessNodeInstance>> pPredecessors) {
+    if (pPredecessors==null || pPredecessors.isEmpty()) {
+      aPredecessors = Collections.emptyList();
+    } else {
+      aPredecessors = new ArrayList<>(pPredecessors);
+    }
+  }
+
   public Throwable getFailureCause() {
     return aFailureCause;
   }
