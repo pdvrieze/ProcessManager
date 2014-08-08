@@ -696,18 +696,18 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           @WebParam(name="handle", mode=Mode.IN) final long pHandle,
           @WebParam(name="user", mode=Mode.IN) final Principal pUser)
   {
-    return getProcessNodeInstance(pHandle, pUser).toXmlNode();
+    return getProcessNodeInstance(pHandle, pUser);
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/tasks/${handle}")
-  public ProcessNodeInstance getProcessNodeInstance(
+  public XmlProcessNodeInstance getProcessNodeInstance(
           @RestParam(name = "handle", type = ParamType.VAR)
               final long pHandle,
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal pUser)
   {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      return transaction.commit(aProcessEngine.getNodeInstance(transaction, pHandle, pUser));
+      return transaction.commit(aProcessEngine.getNodeInstance(transaction, pHandle, pUser)).toXmlNode();
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
