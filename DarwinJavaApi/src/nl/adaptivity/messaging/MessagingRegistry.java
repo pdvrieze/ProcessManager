@@ -346,6 +346,7 @@ public final class MessagingRegistry {
       if (! (aMessenger instanceof StubMessenger)) {
         aMessenger = new StubMessenger(aMessenger);
       }
+      return;
     } else if (aMessenger instanceof StubMessenger) {
       ((StubMessenger) aMessenger).flushTo(pMessenger);
       aMessenger = pMessenger;
