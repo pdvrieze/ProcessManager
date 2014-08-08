@@ -6,12 +6,14 @@ import java.util.concurrent.Future;
 
 import net.devrieze.util.HandleMap;
 import net.devrieze.util.MemHandleMap;
-
+import net.devrieze.util.db.DbSet;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
 
 public class UserMessageService implements CompletionListener {
+
+  public static final String DBRESOURCENAME="java:/comp/env/jdbc/usertasks";
 
 
   private static class InstantiationHelper {
@@ -20,39 +22,44 @@ public class UserMessageService implements CompletionListener {
 
   }
 
-  private final HandleMap<UserTask<?>> tasks;
+  private UserTaskMap aTasks;
 
   public UserMessageService() {
-    tasks = new MemHandleMap<UserTask<?>>();
-
     //    DummyTask task = new DummyTask("blabla");
     //    task.setHandle(1);
     //    tasks.add(task);
   }
 
+  private UserTaskMap getTasks() {
+    if (aTasks==null) {
+      aTasks = new UserTaskMap(DbSet.resourceNameToDataSource(DBRESOURCENAME));
+    }
+    return aTasks;
+  }
+
   public boolean postTask(final UserTask<?> pTask) {
-    return tasks.put(pTask) >= 0;
+    return getTasks().put(pTask) >= 0;
   }
 
   public Collection<UserTask<?>> getPendingTasks() {
-    return tasks.toCollection();
+    return getTasks().toCollection();
   }
 
   public UserTask getPendingTask(long pHandle, Principal pUser) {
-    return tasks.get(pHandle);
+    return getTasks().get(pHandle);
   }
 
   public TaskState finishTask(final long pHandle, final Principal pUser) {
     final UserTask<?> task = getTask(pHandle);
     task.setState(TaskState.Complete, pUser);
     if ((task.getState() == TaskState.Complete) || (task.getState() == TaskState.Failed)) {
-      tasks.remove(task);
+      getTasks().remove(task);
     }
     return task.getState();
   }
 
   private UserTask<?> getTask(final long pHandle) {
-    return tasks.get(pHandle);
+    return getTasks().get(pHandle);
   }
 
   public TaskState takeTask(final long pHandle, final Principal pUser) {

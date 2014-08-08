@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.messaging.GenericEndpoint;
-import nl.adaptivity.process.userMessageHandler.server.InternalEndpoint.XmlTask;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
