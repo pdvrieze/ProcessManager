@@ -392,9 +392,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       } else if ("instancehandle".equals(valueName)) {
         Attribute attr;
         if (paramName != null) {
-          attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
+          attr = xef.createAttribute(paramName, Long.toString(pNodeInstance.getProcessInstance().getHandle()));
         } else {
-          attr = xef.createAttribute("instancehandle", pNodeInstance.getProcessInstance().getOwner().getName());
+          attr = xef.createAttribute("instancehandle", Long.toString(pNodeInstance.getProcessInstance().getHandle()));
         }
         out.add(attr);
       }
