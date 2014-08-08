@@ -56,6 +56,10 @@ public class XmlTask implements UserTask<XmlTask> {
     return aState;
   }
 
+  void setState(TaskState pState) {
+    aState = pState;
+  }
+
   @Override
   public void setState(final TaskState pNewState, final Principal pUser) {
     try {
@@ -82,11 +86,11 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   private Future<TaskState> updateRemoteTaskState(final TaskState pState, final Principal pUser) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.updateTaskState(aHandle, pState, pUser, null);
+    return ServletProcessEngineClient.updateTaskState(aRemoteHandle, pState, pUser, null);
   }
 
   private Future<TaskState> finishRemoteTask(final Principal pUser) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.finishTask(aHandle, null, pUser, null); // Ignore completion???
+    return ServletProcessEngineClient.finishTask(aRemoteHandle, null, pUser, null); // Ignore completion???
     // TODO Do something with reply!
   }
 
