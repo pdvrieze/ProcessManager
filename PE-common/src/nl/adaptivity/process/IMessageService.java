@@ -29,7 +29,7 @@ public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
    * @param pMessage The message to send. (Created by
    *          {@link #createMessage(IXmlMessage)}).
    * @param pInstance The task instance to link the sending to.
-   * @return <code>true</code> on success, <code>false</code> on failure.
+   * @return <code>true</code> or lack of failure, <code>false</code> on failure.
    */
   boolean sendMessage(T pMessage, U pInstance);
 
