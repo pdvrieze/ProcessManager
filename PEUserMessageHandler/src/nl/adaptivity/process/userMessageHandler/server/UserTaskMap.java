@@ -96,6 +96,7 @@ public class UserTaskMap extends CachingDBHandleMap<UserTask<?>> {
               XmlTask result = JAXB.unmarshal(Sources.toReader(new DOMSource(elem.getFirstChild().cloneNode(true))), XmlTask.class);
               result.setInstanceHandle(instance.getProcessinstance());
               result.setHandle(handle);
+              result.setState(instance.getState());
               return result;
             }
           }
