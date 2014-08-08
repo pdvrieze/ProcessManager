@@ -3,9 +3,8 @@ DROP TABLE `usertasks`;
 
 CREATE TABLE `usertasks` (
   `taskhandle` BIGINT NOT NULL AUTO_INCREMENT,
-  `remotehandle` varchar(30) NOT NULL,
-  PRIMARY KEY ( `taskhandle` ),
-  FOREIGN KEY ( `remotehandle` )
+  `remotehandle` BIGINT NOT NULL,
+  PRIMARY KEY ( `taskhandle` )
 ) ENGINE=InnoDB CHARSET=utf8;
 
 CREATE TABLE `nodedata` (
@@ -13,5 +12,5 @@ CREATE TABLE `nodedata` (
   `taskhandle` BIGINT NOT NULL,
   `data` TEXT NOT NULL,
   PRIMARY KEY ( `name`, `taskhandle` ),
-  FOREIGN KEY ( `taskhandle` ) REFERENCES `processnodeinstances` ( `taskhandle` )
+  FOREIGN KEY ( `taskhandle` ) REFERENCES `usertasks` ( `taskhandle` )
 ) ENGINE=InnoDB CHARSET=utf8;
