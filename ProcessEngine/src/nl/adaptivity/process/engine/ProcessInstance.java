@@ -280,7 +280,9 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public synchronized void finishTask(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Node pResultPayload) throws SQLException {
     pNode.finishTask(pTransaction, pResultPayload);
-    // TODO ensure that finishing a task is always committed.
+    // Make sure the finish is recorded.
+    pTransaction.commit();
+
     if (pNode.getNode() instanceof EndNode) {
       aEndResults.add(pNode);
       aThreads.remove(pNode);
@@ -295,6 +297,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
         startedTasks.add(instance);
         aEngine.registerNodeInstance(pTransaction, instance);
       }
+      // Commit the registration of the follow up nodes before starting them.
+      pTransaction.commit();
       for (final ProcessNodeInstance task : startedTasks) {
         provideTask(pTransaction, pMessageService, task);
       }
