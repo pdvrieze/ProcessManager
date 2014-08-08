@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -26,12 +28,12 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
-
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.IMessageService;
@@ -46,6 +48,7 @@ import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.activation.Sources;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -210,7 +213,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public void instantiateXmlPlaceholders(Source source, final Result result) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newInstance();
     final XMLOutputFactory xof = XMLOutputFactory.newInstance();
-    final XMLEventReader xer = xif.createXMLEventReader(source);
+    // Use a reader as a DOMSource is not directly supported by stax for some stupid reason.
+    final XMLEventReader xer = xif.createXMLEventReader(Sources.toReader(source));
     final XMLEventWriter xew = xof.createXMLEventWriter(result);
 
     while (xer.hasNext()) {
@@ -410,10 +414,20 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       IXmlMessage message = act.getMessage();
       Source source = message.getBodySource();
 
-      final DOMResult transformResult = new DOMResult();
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+
+      Document d;
+      try {
+        d = dbf.newDocumentBuilder().newDocument();
+      } catch (ParserConfigurationException e1) {
+        throw new RuntimeException(e1);
+      }
+
+      final DOMResult transformResult = new DOMResult(d);
       try {
         instantiateXmlPlaceholders(source, transformResult);
-        result.setBody(new Body(transformResult.getNode()));
+        result.setBody(new Body(d.getDocumentElement()));
       } catch (XMLStreamException e) {
         getLogger().log(Level.WARNING, "Error processing body", e);
       }
