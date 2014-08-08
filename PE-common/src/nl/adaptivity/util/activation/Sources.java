@@ -1,7 +1,16 @@
 package nl.adaptivity.util.activation;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.CharArrayReader;
+import java.io.CharArrayWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 
+import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -31,10 +40,12 @@ public final class Sources {
 
   public static InputStream toInputStream(final Source pSource) {
     if (pSource instanceof StreamSource) {
-      return ((StreamSource) pSource).getInputStream();
+      final InputStream result = ((StreamSource) pSource).getInputStream();
+      if (result!=null) { return result; }
     }
-    if (pSource instanceof SAXSource) {
-      return ((SAXSource) pSource).getInputSource().getByteStream();
+    if (pSource instanceof SAXSource && (! (pSource instanceof JAXBSource))) {
+      final InputStream result = ((SAXSource) pSource).getInputSource().getByteStream();
+      if (result!=null) { return result; }
     }
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
@@ -47,11 +58,15 @@ public final class Sources {
   }
 
   public static Reader toReader(final Source pSource) {
-    if (pSource instanceof StreamSource) {
-      return ((StreamSource) pSource).getReader();
-    }
-    if (pSource instanceof SAXSource) {
-      return new InputStreamReader(((SAXSource) pSource).getInputSource().getByteStream());
+    {
+      if (pSource instanceof StreamSource) {
+        Reader result = ((StreamSource) pSource).getReader();
+        if (result!=null) { return result; }
+      }
+      if (pSource instanceof SAXSource && (! (pSource instanceof JAXBSource))) {
+        final InputStream byteStream = ((SAXSource) pSource).getInputSource().getByteStream();
+        if (byteStream!=null) { return new InputStreamReader(byteStream); }
+      }
     }
     final CharArrayWriter caw = new CharArrayWriter();
     try {
