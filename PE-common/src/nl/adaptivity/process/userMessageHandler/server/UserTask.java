@@ -39,4 +39,6 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
   public void setItems(List<? extends TaskItem> pItems);
 
+  public long getRemoteHandle();
+
 }
