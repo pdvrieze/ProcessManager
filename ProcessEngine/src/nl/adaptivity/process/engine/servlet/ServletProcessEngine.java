@@ -637,6 +637,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       if (! aProcessEngine.removeProcessModel(transaction, Handles.<ProcessModelImpl>handle(pHandle), pUser)) {
         throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
       }
+      transaction.commit();
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error renaming process model", e);
       throw new HttpResponseException(500, e);
@@ -688,6 +689,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
       getLogger().log(Level.WARNING, "Error getting process instance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
+  }
+
+  @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}", query= {"op=tickle"} )
+  public String tickleProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+    aProcessEngine.tickleInstance(pHandle);
+    return "success";
   }
 
   @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")

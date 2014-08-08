@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -298,7 +300,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   /** Method called when the instance is loaded from the server. This should reinitialise the instance. */
-  public void reinitialize() {
+  public void reinitialize(DBTransaction pTransaction) {
     // TODO Auto-generated method stub
 
   }
@@ -331,26 +333,33 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       aThreads.remove(pNode);
       finish(pTransaction);
     } else {
+      startSuccessors(pTransaction, pMessageService, pNode);
+    }
+  }
+
+  private void startSuccessors(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) throws SQLException {
+    if (! aFinishedNodes.contains(pNode)) {
       aFinishedNodes.add(pNode);
-      aThreads.remove(pNode);
-      final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
-      for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
-        final ProcessNodeInstance instance = getProcessNodeInstance(pTransaction, pNode, successorNode);
-        if (instance instanceof JoinInstance) {
-          JoinInstance join = (JoinInstance) instance;
-          if (join.getComplete()>0) {
-            continue;
-          }
+    }
+    aThreads.remove(pNode);
+
+    final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
+    for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
+      final ProcessNodeInstance instance = getProcessNodeInstance(pTransaction, pNode, successorNode);
+      if (instance instanceof JoinInstance) {
+        JoinInstance join = (JoinInstance) instance;
+        if (join.getComplete()>0) {
+          continue;
         }
-        aThreads.add(instance);
-        startedTasks.add(instance);
-        aEngine.registerNodeInstance(pTransaction, instance);
       }
-      // Commit the registration of the follow up nodes before starting them.
-      pTransaction.commit();
-      for (final ProcessNodeInstance task : startedTasks) {
-        provideTask(pTransaction, pMessageService, task);
-      }
+      aThreads.add(instance);
+      startedTasks.add(instance);
+      aEngine.registerNodeInstance(pTransaction, instance);
+    }
+    // Commit the registration of the follow up nodes before starting them.
+    pTransaction.commit();
+    for (final ProcessNodeInstance task : startedTasks) {
+      provideTask(pTransaction, pMessageService, task);
     }
   }
 
@@ -531,6 +540,30 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public void setOutputs(List<ProcessData> pOutputs) {
     aOutputs.clear();
     aOutputs.addAll(pOutputs);
+  }
+
+  /**
+   * Trigger the instance to reactivate pending tasks.
+   * @param pTransaction The database transaction to use
+   * @param pMessageService The message service to use for messenging.
+   */
+  public void tickle(DBTransaction pTransaction, IMessageService<?, ProcessNodeInstance> pMessageService) {
+    for(ProcessNodeInstance instance: aThreads) {
+      try {
+        switch (instance.getState()) {
+          case Pending:
+            provideTask(pTransaction, pMessageService, instance);
+            break;
+          case Complete: {
+            startSuccessors(pTransaction, pMessageService, instance);
+          }
+          default:
+            // ignore
+        }
+      } catch (SQLException e) {
+        Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when tickling process instance", e);
+      }
+    }
   }
 
 }

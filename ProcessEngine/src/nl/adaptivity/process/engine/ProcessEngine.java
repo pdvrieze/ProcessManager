@@ -173,7 +173,7 @@ public class ProcessEngine /* implements IProcessEngine */{
     ProcessModelImpl oldModel = aProcessModels.get(transaction, pHandle);
     aSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, pUser, oldModel);
 
-    if (aProcessModels.remove(transaction, pHandle)) {
+    if (aProcessModels.remove(transaction, pHandle.getHandle())) {
       transaction.commit();
       return true;
     }
@@ -224,6 +224,17 @@ public class ProcessEngine /* implements IProcessEngine */{
     ProcessInstance instance = aInstanceMap.get(pTransaction, pHandle);
     aSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, pUser, instance);
     return instance;
+  }
+
+  public boolean tickleInstance(long pHandle) {
+    try (DBTransaction transaction=startTransaction()) {
+      ProcessInstance instance = aInstanceMap.getUncached(transaction, pHandle);
+      if (instance==null) { return false; }
+      instance.tickle(transaction, aMessageService);
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**

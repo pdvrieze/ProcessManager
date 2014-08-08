@@ -153,7 +153,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
           pElement.setOutputs(outputs);
         }
       }
-      pElement.reinitialize();
+      pElement.reinitialize(pConnection);
     }
 
     @Override
