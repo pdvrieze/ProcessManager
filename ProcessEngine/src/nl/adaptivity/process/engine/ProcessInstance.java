@@ -293,6 +293,12 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
       for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
         final ProcessNodeInstance instance = getProcessNodeInstance(pTransaction, pNode, successorNode);
+        if (instance instanceof JoinInstance) {
+          JoinInstance join = (JoinInstance) instance;
+          if (join.getComplete()>0) {
+            continue;
+          }
+        }
         aThreads.add(instance);
         startedTasks.add(instance);
         aEngine.registerNodeInstance(pTransaction, instance);
