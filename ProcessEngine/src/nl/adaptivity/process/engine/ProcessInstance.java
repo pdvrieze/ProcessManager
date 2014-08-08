@@ -252,6 +252,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     for (final ProcessNodeInstance node : aThreads) {
       provideTask(pTransaction, pMessageService, node);
     }
+    aState = State.STARTED;
+    aEngine.updateStorage(pTransaction, this);
   }
 
   /** Method called when the instance is loaded from the server. This should reinitialise the instance. */
@@ -409,20 +411,20 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       if (aThreads.size()>0) {
         try {
           pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
-        } finally {
           for(ProcessNodeInstance active: aThreads) {
             writeActiveNodeRef(pOut, active);
           }
+        } finally {
           pOut.writeEndElement();
         }
       }
-      if (aThreads.size()>0) {
+      if (aFinishedNodes.size()>0) {
         try {
           pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
-        } finally {
-          for(ProcessNodeInstance active: aFinishedNodes) {
-            writeActiveNodeRef(pOut, active);
+          for(ProcessNodeInstance finished: aFinishedNodes) {
+            writeActiveNodeRef(pOut, finished);
           }
+        } finally {
           pOut.writeEndElement();
         }
       }
