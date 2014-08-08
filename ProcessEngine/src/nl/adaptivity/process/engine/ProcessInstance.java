@@ -293,6 +293,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     for (final ProcessNodeInstance node : aThreads) {
       provideTask(pTransaction, pMessageService, node);
     }
+    aState = State.STARTED;
+    aEngine.updateStorage(pTransaction, this);
   }
 
   /** Method called when the instance is loaded from the server. This should reinitialise the instance. */
@@ -321,7 +323,9 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public synchronized void finishTask(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Node pResultPayload) throws SQLException {
     pNode.finishTask(pTransaction, pResultPayload);
-    // TODO ensure that finishing a task is always committed.
+    // Make sure the finish is recorded.
+    pTransaction.commit();
+
     if (pNode.getNode() instanceof EndNode) {
       aEndResults.add(pNode);
       aThreads.remove(pNode);
@@ -332,10 +336,18 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
       for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
         final ProcessNodeInstance instance = getProcessNodeInstance(pTransaction, pNode, successorNode);
+        if (instance instanceof JoinInstance) {
+          JoinInstance join = (JoinInstance) instance;
+          if (join.getComplete()>0) {
+            continue;
+          }
+        }
         aThreads.add(instance);
         startedTasks.add(instance);
         aEngine.registerNodeInstance(pTransaction, instance);
       }
+      // Commit the registration of the follow up nodes before starting them.
+      pTransaction.commit();
       for (final ProcessNodeInstance task : startedTasks) {
         provideTask(pTransaction, pMessageService, task);
       }
@@ -440,20 +452,20 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       if (aThreads.size()>0) {
         try {
           pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
-        } finally {
           for(ProcessNodeInstance active: aThreads) {
             writeActiveNodeRef(pOut, active);
           }
+        } finally {
           pOut.writeEndElement();
         }
       }
-      if (aThreads.size()>0) {
+      if (aFinishedNodes.size()>0) {
         try {
           pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
-        } finally {
-          for(ProcessNodeInstance active: aFinishedNodes) {
-            writeActiveNodeRef(pOut, active);
+          for(ProcessNodeInstance finished: aFinishedNodes) {
+            writeActiveNodeRef(pOut, finished);
           }
+        } finally {
           pOut.writeEndElement();
         }
       }

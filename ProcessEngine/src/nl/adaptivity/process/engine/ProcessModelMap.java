@@ -25,6 +25,7 @@ import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.util.activation.Sources;
 
 
 public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
@@ -152,7 +153,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
       } catch (JAXBException e) {
         throw new RuntimeException(e);
       }
-      pStatement.setCharacterStream(pOffset+1, SAXSource.sourceToInputSource(jbs).getCharacterStream());
+      pStatement.setCharacterStream(pOffset+1, Sources.toReader(jbs));
       return 2;
     }
 

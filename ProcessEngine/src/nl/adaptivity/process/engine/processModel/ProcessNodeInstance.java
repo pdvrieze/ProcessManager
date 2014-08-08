@@ -34,7 +34,6 @@ import org.w3c.dom.Node;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
-
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.IMessageService;
@@ -49,6 +48,7 @@ import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.activation.Sources;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -113,11 +113,11 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return aPredecessors;
   }
 
-  void setDirectPredecessors(Collection<Handle<? extends ProcessNodeInstance>> preds) {
-    if (preds==null || preds.size()==0) {
+  public void setDirectPredecessors(Collection<Handle<? extends ProcessNodeInstance>> pPredecessors) {
+    if (pPredecessors==null || pPredecessors.isEmpty()) {
       aPredecessors = Collections.emptyList();
     } else {
-      aPredecessors = new ArrayList<>(preds);
+      aPredecessors = new ArrayList<>(pPredecessors);
     }
   }
 
@@ -153,7 +153,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public <U> boolean provideTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     try {
       final boolean result = aNode.provideTask(pTransaction, pMessageService, this);
-      setState(pTransaction, TaskState.Sent);
+      if (result) { // the task must be automatically taken. Mostly this is false and we don't set the state.
+        setState(pTransaction, TaskState.Sent);
+      }
       return result;
     } catch (RuntimeException e) {
       failTask(pTransaction, e);
@@ -213,7 +215,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public void instantiateXmlPlaceholders(Source source, final Result result) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newInstance();
     final XMLOutputFactory xof = XMLOutputFactory.newInstance();
-    final XMLEventReader xer = xif.createXMLEventReader(source);
+    // Use a reader as a DOMSource is not directly supported by stax for some stupid reason.
+    final XMLEventReader xer = xif.createXMLEventReader(Sources.toReader(source));
     final XMLEventWriter xew = xof.createXMLEventWriter(result);
 
     while (xer.hasNext()) {
@@ -389,9 +392,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       } else if ("instancehandle".equals(valueName)) {
         Attribute attr;
         if (paramName != null) {
-          attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
+          attr = xef.createAttribute(paramName, Long.toString(pNodeInstance.getProcessInstance().getHandle()));
         } else {
-          attr = xef.createAttribute("instancehandle", pNodeInstance.getProcessInstance().getOwner().getName());
+          attr = xef.createAttribute("instancehandle", Long.toString(pNodeInstance.getProcessInstance().getHandle()));
         }
         out.add(attr);
       }
@@ -413,8 +416,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       IXmlMessage message = act.getMessage();
       Source source = message.getBodySource();
 
-      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
+
       Document document;
       try {
         document = dbf.newDocumentBuilder().newDocument();
