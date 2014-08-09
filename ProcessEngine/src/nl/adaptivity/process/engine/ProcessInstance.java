@@ -176,7 +176,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
       if (instance.getNode() instanceof EndNode<?>) {
         aEndResults.add(instance);
-        threads.remove(instance);
+        threads.remove(Handles.handle(instance));
       }
 
       final Collection<Handle<? extends ProcessNodeInstance>> preds = instance.getDirectPredecessors();
@@ -216,6 +216,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   public synchronized void finish(DBTransaction pTransaction) throws SQLException {
     int aFinished = getFinishedCount();
     if (aFinished >= aProcessModel.getEndNodeCount()) {
+      // TODO mark and store results
+      aState=State.FINISHED;
+      aEngine.updateStorage(pTransaction, this);
+
       aEngine.finishInstance(pTransaction, this);
     }
   }
@@ -337,24 +341,22 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private void startSuccessors(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode) throws SQLException {
-    if (! aFinishedNodes.contains(pNode)) {
-      aFinishedNodes.add(pNode);
+  private void startSuccessors(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pPredecessor) throws SQLException {
+    if (! aFinishedNodes.contains(pPredecessor)) {
+      aFinishedNodes.add(pPredecessor);
     }
-    aThreads.remove(pNode);
+    aThreads.remove(pPredecessor);
 
-    final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pNode.getNode().getSuccessors().size());
-    for (final ProcessNodeImpl successorNode : pNode.getNode().getSuccessors()) {
-      final ProcessNodeInstance instance = getProcessNodeInstance(pTransaction, pNode, successorNode);
-      if (instance instanceof JoinInstance) {
-        JoinInstance join = (JoinInstance) instance;
-        if (join.getComplete()>0) {
-          continue;
-        }
+    final List<ProcessNodeInstance> startedTasks = new ArrayList<>(pPredecessor.getNode().getSuccessors().size());
+    for (final ProcessNodeImpl successorNode : pPredecessor.getNode().getSuccessors()) {
+      final ProcessNodeInstance instance = getProcessNodeInstance(pTransaction, pPredecessor, successorNode);
+      if (instance instanceof JoinInstance && aThreads.contains(instance)) {
+        continue;
+      } else {
+        aThreads.add(instance);
+        startedTasks.add(instance);
+        aEngine.registerNodeInstance(pTransaction, instance);
       }
-      aThreads.add(instance);
-      startedTasks.add(instance);
-      aEngine.registerNodeInstance(pTransaction, instance);
     }
     // Commit the registration of the follow up nodes before starting them.
     pTransaction.commit();
@@ -439,6 +441,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       pOut.writeAttribute("name", aName);
       pOut.writeAttribute("processModel", Long.toString(getProcessModel().getHandle()));
       pOut.writeAttribute("owner", aOwner.getName());
+      pOut.writeAttribute("state", aState.name());
 
       pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "inputs");
       try {
