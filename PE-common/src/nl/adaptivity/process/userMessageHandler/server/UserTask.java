@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.util.List;
 
 import net.devrieze.util.HandleMap.HandleAware;
+
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
@@ -40,5 +41,9 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
   public void setItems(List<? extends TaskItem> pItems);
 
   public long getRemoteHandle();
+
+  public long getInstanceHandle();
+
+  public String getSummary();
 
 }
