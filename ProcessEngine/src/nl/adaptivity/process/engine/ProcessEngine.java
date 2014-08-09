@@ -299,7 +299,9 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @todo evaluate whether this should not retain some results
    */
   public void finishInstance(DBTransaction pTransaction, final ProcessInstance pProcessInstance) throws SQLException {
-    aInstanceMap.remove(pTransaction, pProcessInstance);
+    aNodeInstanceMap.removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pProcessInstance.getHandle()));
+    // TODO retain instance
+    aInstanceMap.remove(pTransaction, pProcessInstance.getHandle());
   }
 
   public ProcessInstance cancelInstance(DBTransaction pTransaction, long pHandle, Principal pUser) throws SQLException {
