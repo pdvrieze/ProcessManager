@@ -750,7 +750,16 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @WebMethod(operationName = "finishTask")
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state=Complete" })
-  public TaskState finishTask(@WebParam(name = "handle", mode = Mode.IN) @RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @WebParam(name = "payload", mode = Mode.IN) @RestParam(name = "payload", type = ParamType.QUERY) final Node pPayload, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+  public TaskState finishTask(
+        @WebParam(name = "handle", mode = Mode.IN)
+        @RestParam(name = "handle", type = ParamType.VAR)
+        final long pHandle,
+        @WebParam(name = "payload", mode = Mode.IN)
+        @RestParam(name = "payload", type = ParamType.QUERY)
+        final Node pPayload,
+        @RestParam(type = ParamType.PRINCIPAL)
+        @WebParam(name = "principal", mode = Mode.IN, header = true)
+        final Principal pUser) {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       return transaction.commit(aProcessEngine.finishTask(transaction, Handles.<ProcessNodeInstance> handle(pHandle), pPayload, pUser));
     } catch (SQLException e) {
