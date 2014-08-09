@@ -106,6 +106,9 @@ public class SoapMethodWrapper {
       final WebParam annotation = Annotations.getAnnotation(parameterAnnotations[i], WebParam.class);
       String name;
       if (annotation == null) {
+        if (params.isEmpty()) {
+          throw new MessagingFormatException("Missing parameter "+(i+1)+" of type "+parameterTypes[i]+" for method "+aMethod);
+        }
         name = params.keySet().iterator().next();
       } else {
         name = annotation.name();
