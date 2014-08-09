@@ -44,4 +44,9 @@ public class LabelItem extends TaskItem {
     return mValue;
   }
 
+  @Override
+  public boolean isReadOnly() {
+    return true;
+  }
+
 }

@@ -42,6 +42,11 @@ public abstract class LabeledItem extends TaskItem {
     return aValue;
   }
 
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
   public boolean isDirty() {
     return aDirty;
   }

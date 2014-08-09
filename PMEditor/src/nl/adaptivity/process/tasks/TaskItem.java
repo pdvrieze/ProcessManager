@@ -1,6 +1,13 @@
 package nl.adaptivity.process.tasks;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
 
 import nl.adaptivity.process.tasks.items.GenericItem;
 import nl.adaptivity.process.tasks.items.LabelItem;
@@ -144,5 +151,54 @@ public abstract class TaskItem {
   public abstract View createView(LayoutInflater pInflater, ViewGroup pParent);
 
   public abstract void updateView(View pV);
+
+  public abstract boolean isReadOnly();
+
+  /** Default implementation of getOptions() that returns the empty list. */
+  protected List<String> getOptions() {
+    return Collections.emptyList();
+  }
+
+  public void serialize(XmlSerializer pSerializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
+    pSerializer.startTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    pSerializer.attribute(null, "name", getName());
+    pSerializer.attribute(null, "label", getValue());
+    pSerializer.attribute(null, "type", getDBType());
+    pSerializer.attribute(null, "value", getValue());
+    if (serializeOptions) {
+      for(String option: getOptions()) {
+        pSerializer.startTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
+        pSerializer.text(option);
+        pSerializer.endTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
+
+      }
+    }
+    pSerializer.endTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
+  }
+
+  public static GenericItem parseTaskGenericItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+    return parseTaskItemHelper(pIn, genericFactory());
+  }
+
+  private static <T extends TaskItem> T parseTaskItemHelper(XmlPullParser pIn, TaskItem.Factory<T> pFactory) throws XmlPullParserException, IOException {
+    pIn.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    String name = pIn.getAttributeValue(null, "name");
+    String label = pIn.getAttributeValue(null, "label");
+    String type = pIn.getAttributeValue(null, "type");
+    String value = pIn.getAttributeValue(null, "value");
+    List<String> options = new ArrayList<>();
+    while ((pIn.nextTag())==XmlPullParser.START_TAG) {
+      pIn.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
+      options.add(pIn.nextText());
+      pIn.nextTag();
+      pIn.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
+    }
+    pIn.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    return pFactory.create(name, label, type, value, options);
+  }
+
+  public static TaskItem parseTaskItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+    return TaskItem.parseTaskItemHelper(pIn, defaultFactory());
+  }
 
 }

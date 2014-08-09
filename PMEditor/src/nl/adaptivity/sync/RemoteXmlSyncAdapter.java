@@ -596,6 +596,7 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
    * @param pItemuri The local content uri of the item.
    * @param pPair The details (if available) of the item, based upon the return
    *          of {@link #parseItem(XmlPullParser)}.
+   * @param pSyncState The state of the item in the local database.
    * @param pSyncResult The sync status.
    * @return The new values to be stored in the database for the object.
    * @throws RemoteException

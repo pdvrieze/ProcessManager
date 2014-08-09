@@ -4,13 +4,17 @@ import static nl.adaptivity.process.tasks.UserTask.NS_TASKS;
 import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
 import net.devrieze.util.StringUtil;
+
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 import nl.adaptivity.process.tasks.data.TaskProvider.Options;
@@ -18,8 +22,13 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.tasks.items.GenericItem;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
 
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
@@ -60,58 +69,43 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   public TaskSyncAdapter(Context pContext) {
     super(pContext, true, false, Tasks.CONTENT_ID_URI_BASE);
   }
-//
-//  @Override
-//  public void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
-//    try {
-//      mXpf = XmlPullParserFactory.newInstance();
-//    } catch (XmlPullParserException e1) {
-//      pSyncResult.stats.numParseExceptions++;
-//      return;
-//    }
-//    mXpf.setNamespaceAware(true);
-//
-//    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-//    mBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService/");
-//    if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
-//    {
-//      String authbase = AuthenticatedWebClient.getAuthBase(mBase);
-//      mHttpClient = new AuthenticatedWebClient(getContext(), authbase);
-//    }
-//    HttpGet getProcessesRequest = new HttpGet(mBase+"pendingTasks");
-//    HttpResponse result;
-//    try {
-//      result = mHttpClient.execute(getProcessesRequest);
-//    } catch (IOException e) {
-//      pSyncResult.stats.numIoExceptions++;
-//      return;
-//    }
-//    if (result!=null) {
-//      final int statusCode = result.getStatusLine().getStatusCode();
-//      if (statusCode>=200 && statusCode<400) {
-//        try {
-//          updateTaskList(pProvider, pSyncResult, result.getEntity().getContent());
-//        } catch (IllegalStateException|XmlPullParserException e) {
-//          pSyncResult.stats.numParseExceptions++;
-//          Log.e(TAG, "Error parsing process model list", e);
-//        } catch (IOException e) {
-//          pSyncResult.stats.numIoExceptions++;
-//          Log.e(TAG, "Error parsing process model list", e);
-//        } catch (RemoteException e) {
-//          pSyncResult.databaseError=true;
-//          Log.e(TAG, "Error parsing process model list", e);
-//        }
-//      } else {
-//        pSyncResult.stats.numIoExceptions++;
-//      }
-//    } else {
-//      pSyncResult.stats.numAuthExceptions++;
-//    }
-//  }
 
   @Override
   protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, int pSyncState, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
-    throw new UnsupportedOperationException();
+    UserTask task = TaskProvider.getTask(getContext(), pItemuri);
+    HttpPost request;
+    final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+    factory.setNamespaceAware(true);
+    if (! task.getItems().isEmpty()) {
+      XmlSerializer serializer = factory.newSerializer();
+      StringWriter writer = new StringWriter(0x100);
+      serializer.setOutput(writer);
+      serializer.startTag(NS_TASKS, TAG_TASK);
+      serializer.attribute(null, "state", task.getState());
+      for(TaskItem item: task.getItems()) {
+        if (! item.isReadOnly()) {
+          item.serialize(serializer, false);
+        }
+      }
+      request = new HttpPost(getListUrl(mBase)+'/'+task.getHandle());
+      request.setEntity(new StringEntity(writer.toString(), "UTF-8"));
+    } else {
+      request = new HttpPost(getListUrl(mBase)+'/'+task.getHandle()+"?state="+task.getState());
+    }
+    HttpResponse result = pHttpClient.execute(request);
+    int resultCode = result.getStatusLine().getStatusCode();
+    if (resultCode>=200 && resultCode<400) {
+      XmlPullParser parser = factory.newPullParser();
+      final InputStream inputStream = result.getEntity().getContent();
+      parser.setInput(inputStream, result.getEntity().getContentEncoding().getValue());
+      try {
+        return parseItem(parser);
+      } finally {
+        inputStream.close();
+      }
+    } else {
+      throw new IOException("Update request returned an unexpected response: "+resultCode+" "+result.getStatusLine().getReasonPhrase());
+    }
   }
 
   @Override
@@ -243,7 +237,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     List<GenericItem> items = new ArrayList<>();
     while ((pIn.nextTag())==XmlPullParser.START_TAG) {
       pIn.require(XmlPullParser.START_TAG, NS_TASKS, UserTask.TAG_ITEM);
-      items.add(UserTask.parseTaskGenericItem(pIn));
+      items.add(TaskItem.parseTaskGenericItem(pIn));
       pIn.require(XmlPullParser.END_TAG, NS_TASKS, UserTask.TAG_ITEM);
       hasItems = true;
     }
