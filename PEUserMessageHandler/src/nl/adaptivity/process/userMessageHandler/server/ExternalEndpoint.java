@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import net.devrieze.util.db.DBTransaction;
+
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.messaging.GenericEndpoint;
@@ -66,14 +67,25 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
-  public Collection<UserTask<?>> getPendingTasks() throws SQLException {
+  public Collection<XmlTask> getPendingTasks() throws SQLException {
     try (DBTransaction transaction = aService.newTransaction()) {
       return transaction.commit(aService.getPendingTasks(transaction));
     }
   }
 
+  @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}")
+  public XmlTask updateTask(
+      @RestParam(name="handle", type=ParamType.VAR) final String pHandle,
+      @RestParam(name="task", type=ParamType.POST) final XmlTask pNewTask,
+      @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws SQLException
+  {
+    try (DBTransaction transaction = aService.newTransaction()) {
+      return aService.updateTask(transaction, Long.parseLong(pHandle), pNewTask, pUser);
+    }
+  }
+
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
-  public UserTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+  public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     return aService.getPendingTask(Long.parseLong(pHandle), pUser);
   }
 

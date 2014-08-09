@@ -224,5 +224,18 @@ public class XmlTask implements UserTask<XmlTask> {
     return true;
   }
 
+  public static XmlTask get(UserTask<?> pTask) {
+    if (pTask instanceof XmlTask) { return (XmlTask) pTask; }
+    XmlTask result = new XmlTask(pTask.getHandle());
+    result.aRemoteHandle = pTask.getRemoteHandle();
+    result.aInstanceHandle = pTask.getInstanceHandle();
+    result.aState = pTask.getState();
+    result.aSummary = pTask.getSummary();
+    result.aEndPoint = null;
+    result.aOwner = pTask.getOwner();
+    result.aItems = new ArrayList<>(XmlItem.get(pTask.getItems()));
+    return result;
+  }
+
 
 }

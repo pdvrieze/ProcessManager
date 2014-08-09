@@ -98,7 +98,7 @@ public class InternalEndpoint implements GenericEndpoint {
   @WebMethod
   public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask.class) final UserTask<?> pTask) {
     pTask.setEndpoint(pEndPoint);
-    final boolean result = aService.postTask(pTask);
+    final boolean result = aService.postTask(XmlTask.get(pTask));
     pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
     return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
   }

@@ -32,14 +32,14 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
 
 
-public class UserTaskMap extends CachingDBHandleMap<UserTask<?>> {
+public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
 
   public static final String TABLE = "usertasks";
   public static final String COL_HANDLE = "taskhandle";
   public static final String COL_REMOTEHANDLE = "remotehandle";
 
-  private static final class UserTaskFactory extends AbstractElementFactory<UserTask<?>> {
+  private static final class UserTaskFactory extends AbstractElementFactory<XmlTask> {
 
     private static final int TASK_LOOKUP_TIMEOUT_MILIS = 1;
     private int aColNoHandle;
@@ -69,7 +69,7 @@ public class UserTaskMap extends CachingDBHandleMap<UserTask<?>> {
     }
 
     @Override
-    public UserTask<?> create(DBTransaction pConnection, ResultSet pResultSet) throws SQLException {
+    public XmlTask create(DBTransaction pConnection, ResultSet pResultSet) throws SQLException {
       long handle = pResultSet.getLong(aColNoHandle);
       long remoteHandle = pResultSet.getLong(aColNoRemoteHandle);
 
@@ -117,19 +117,19 @@ public class UserTaskMap extends CachingDBHandleMap<UserTask<?>> {
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(UserTask<?> pObject) {
+    public CharSequence getPrimaryKeyCondition(XmlTask pObject) {
       return getHandleCondition(pObject.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement pStatement, UserTask<?> pObject, int pOffset) throws SQLException {
+    public int setPrimaryKeyParams(PreparedStatement pStatement, XmlTask pObject, int pOffset) throws SQLException {
       return setHandleParams(pStatement, pObject.getHandle(), pOffset);
     }
 
     @Override
-    public UserTask<?> asInstance(Object pO) {
-      if (pO instanceof UserTask<?>) {
-        return (UserTask<?>) pO;
+    public XmlTask asInstance(Object pO) {
+      if (pO instanceof XmlTask) {
+        return (XmlTask) pO;
       }
       return null;
     }
@@ -145,7 +145,7 @@ public class UserTaskMap extends CachingDBHandleMap<UserTask<?>> {
     }
 
     @Override
-    public int setStoreParams(PreparedStatement pStatement, UserTask<?> pElement, int pOffset) throws SQLException {
+    public int setStoreParams(PreparedStatement pStatement, XmlTask pElement, int pOffset) throws SQLException {
       pStatement.setLong(pOffset, pElement.getRemoteHandle());
       return 1;
     }

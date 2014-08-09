@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
+
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
@@ -48,20 +49,20 @@ public class UserMessageService implements CompletionListener {
     return mDataSource;
   }
 
-  public boolean postTask(final UserTask<?> pTask) {
+  public boolean postTask(final XmlTask pTask) {
     return getTasks().put(pTask) >= 0;
   }
 
-  public Collection<UserTask<?>> getPendingTasks(DBTransaction pTransaction) {
-    final Iterable<UserTask<?>> tasks = getTasks().iterable(pTransaction);
-    ArrayList<UserTask<?>> result = new ArrayList<UserTask<?>>();
-    for(UserTask<?> task:tasks) {
+  public Collection<XmlTask> getPendingTasks(DBTransaction pTransaction) {
+    final Iterable<XmlTask> tasks = getTasks().iterable(pTransaction);
+    ArrayList<XmlTask> result = new ArrayList<>();
+    for(XmlTask task:tasks) {
       result.add(task);
     }
     return result;
   }
 
-  public UserTask getPendingTask(long pHandle, Principal pUser) {
+  public XmlTask getPendingTask(long pHandle, Principal pUser) {
     return getTasks().get(pHandle);
   }
 
@@ -74,13 +75,34 @@ public class UserMessageService implements CompletionListener {
     return task.getState();
   }
 
-  private UserTask<?> getTask(final long pHandle) {
+  private XmlTask getTask(final long pHandle) {
     return getTasks().get(pHandle);
   }
 
   public TaskState takeTask(final long pHandle, final Principal pUser) {
     getTask(pHandle).setState(TaskState.Taken, pUser);
     return TaskState.Taken;
+  }
+
+  public XmlTask updateTask(DBTransaction transaction, long pHandle, XmlTask pNewTask, Principal pUser) throws SQLException {
+    XmlTask currentTask = getTask(pHandle);
+    if (currentTask==null) { return null; }
+    for(XmlItem newItem: pNewTask.getItems()) {
+      XmlItem currentItem = getItemWithName(currentTask, newItem.getName());
+      if (currentItem!=null) {
+        currentItem.setValue(newItem.getValue());
+      }
+    }
+
+    currentTask.setState(pNewTask.getState(), pUser);
+    aTasks.set(transaction, pHandle, currentTask);
+    return currentTask;
+  }
+
+  private XmlItem getItemWithName(UserTask<?> pCurrentTask, String pName) {
+    // TODO Auto-generated method stub
+    // return null;
+    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   public TaskState startTask(final long pHandle, final Principal pUser) {

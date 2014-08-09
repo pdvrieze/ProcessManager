@@ -1,6 +1,8 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -124,5 +126,32 @@ public class XmlItem implements TaskItem{
     } else if (!aValue.equals(other.aValue))
       return false;
     return true;
+  }
+
+  public static Collection<XmlItem> get(Collection<? extends TaskItem> pSource) {
+    if (pSource.isEmpty()) {
+      return Collections.emptyList();
+    }
+    if (pSource.size()==1) {
+      return Collections.singleton(get(pSource.iterator().next()));
+    }
+    ArrayList<XmlItem> result = new ArrayList<>(pSource.size());
+    for(TaskItem item: pSource) {
+      result.add(get(item));
+    }
+    return result;
+  }
+
+  public static XmlItem get(TaskItem pOrig) {
+    if (pOrig instanceof XmlItem) { return (XmlItem) pOrig; }
+    if (pOrig == null) { return null; }
+    XmlItem result = new XmlItem();
+    result.aName = pOrig.getName();
+    result.aLabel = pOrig.getLabel();
+    result.aType = pOrig.getType();
+    result.aValue = pOrig.getValue();
+    result.aParams = pOrig.getParams();
+    result.aOptions = new ArrayList<>(pOrig.getOptions());
+    return result;
   }
 }
