@@ -1,5 +1,6 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -76,11 +77,14 @@ public class ExternalEndpoint implements GenericEndpoint {
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}")
   public XmlTask updateTask(
       @RestParam(name="handle", type=ParamType.VAR) final String pHandle,
-      @RestParam(name="task", type=ParamType.POST) final XmlTask pNewTask,
-      @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws SQLException
+      @RestParam(type=ParamType.BODY) final XmlTask pNewTask,
+      @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws SQLException, FileNotFoundException
   {
     try (DBTransaction transaction = aService.newTransaction()) {
-      return aService.updateTask(transaction, Long.parseLong(pHandle), pNewTask, pUser);
+      final XmlTask result = aService.updateTask(transaction, Long.parseLong(pHandle), pNewTask, pUser);
+      if (result==null) { throw new FileNotFoundException(); }
+      transaction.commit();
+      return result;
     }
   }
 
