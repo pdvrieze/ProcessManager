@@ -51,6 +51,16 @@ public class XmlTask implements UserTask<XmlTask> {
     aHandle = pHandle;
   }
 
+  public XmlTask(UserTask<?> pTask) {
+    this.aRemoteHandle = pTask.getRemoteHandle();
+    this.aInstanceHandle = pTask.getInstanceHandle();
+    this.aState = pTask.getState();
+    this.aSummary = pTask.getSummary();
+    this.aEndPoint = null;
+    this.aOwner = pTask.getOwner();
+    this.aItems = new ArrayList<>(XmlItem.get(pTask.getItems()));
+  }
+
   @XmlAttribute
   @Override
   public TaskState getState() {
@@ -229,15 +239,7 @@ public class XmlTask implements UserTask<XmlTask> {
 
   public static XmlTask get(UserTask<?> pTask) {
     if (pTask instanceof XmlTask) { return (XmlTask) pTask; }
-    XmlTask result = new XmlTask(pTask.getHandle());
-    result.aRemoteHandle = pTask.getRemoteHandle();
-    result.aInstanceHandle = pTask.getInstanceHandle();
-    result.aState = pTask.getState();
-    result.aSummary = pTask.getSummary();
-    result.aEndPoint = null;
-    result.aOwner = pTask.getOwner();
-    result.aItems = new ArrayList<>(XmlItem.get(pTask.getItems()));
-    return result;
+    return new XmlTask(pTask);
   }
 
   public XmlItem getItem(String pName) {
