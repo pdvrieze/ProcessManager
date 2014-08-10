@@ -14,6 +14,12 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import net.devrieze.util.security.SimplePrincipal;
 
@@ -82,7 +88,6 @@ public class XmlTask implements UserTask<XmlTask> {
         newState = pNewState; // Just shortcircuit. This is just record keeping
       } else {
         newState = updateRemoteTaskState(pNewState, pUser).get();
-        //          newState = pNewState; // TODO make this just reflect engine state, as returned by web methods.
       }
       aState = newState;
     } catch (final JAXBException e) {
@@ -101,8 +106,32 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   private Future<TaskState> finishRemoteTask(final Principal pUser) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.finishTask(aRemoteHandle, null, pUser, null); // Ignore completion???
-    // TODO Do something with reply!
+    return ServletProcessEngineClient.finishTask(aRemoteHandle, createResult(), pUser, null); // Ignore completion???
+  }
+
+  private Node createResult() {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);;
+    Document document;
+    try {
+      document = dbf.newDocumentBuilder().newDocument();
+    } catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+
+    Element outer = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "result");
+    for(XmlItem item: getItems()) {
+      if (! "label".equals(item.getType())) {
+        Element inner = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "value");
+        inner.setAttribute("name", item.getName());
+        if (item.getValue()!=null) {
+          inner.setTextContent(item.getValue());
+        }
+        outer.appendChild(inner);
+      }
+    }
+
+    return outer;
   }
 
   @XmlAttribute(name = "handle")
