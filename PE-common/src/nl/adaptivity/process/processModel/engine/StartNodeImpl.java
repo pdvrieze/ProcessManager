@@ -39,7 +39,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
    */
   @Override
   @XmlElement(name = "import")
-  public List<? extends XmlResultType> getImports() {
+  public List<? extends XmlResultType> getResults() {
     if (aImports == null) {
       aImports = new ArrayList<>();
     }

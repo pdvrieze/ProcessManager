@@ -78,7 +78,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
    */
   @Override
   @XmlElement(name = "export")
-  public List<? extends XmlDefineType> getExports() {
+  public List<? extends XmlDefineType> getDefines() {
     if (aExports == null) {
       aExports = new ArrayList<>();
     }

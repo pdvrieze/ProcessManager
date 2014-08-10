@@ -117,7 +117,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   @XmlElement(name = XmlResultType.ELEMENTNAME)
-  public List<? extends XmlResultType> getImports() {
+  public List<? extends XmlResultType> getResults() {
     return aImports;
   }
 
@@ -134,7 +134,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   @XmlElement(name = XmlDefineType.ELEMENTNAME)
-  public List<? extends XmlDefineType> getExports() {
+  public List<? extends XmlDefineType> getDefines() {
     return aExports;
   }
 

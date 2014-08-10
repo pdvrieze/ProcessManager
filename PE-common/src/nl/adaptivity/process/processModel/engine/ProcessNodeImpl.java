@@ -301,7 +301,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   }
 
   @Override
-  public Collection<? extends IXmlResultType> getImports() {
+  public Collection<? extends IXmlResultType> getResults() {
     return null;
 //    if (aImports==null) { aImports = new ArrayList<>(); }
 //    return aImports;
@@ -309,7 +309,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
 
   @Override
-  public Collection<? extends IXmlDefineType> getExports() {
+  public Collection<? extends IXmlDefineType> getDefines() {
     return null;
 //    if (aExports==null) { aExports = new ArrayList<>(); }
 //    return aExports;
