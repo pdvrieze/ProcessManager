@@ -26,6 +26,7 @@ import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance;
 import nl.adaptivity.process.util.Constants;
@@ -36,12 +37,18 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
 
   public static final String TABLE = "usertasks";
+  public static final String TABLEDATA = "nodedata";
   public static final String COL_HANDLE = "taskhandle";
   public static final String COL_REMOTEHANDLE = "remotehandle";
+  public static final String COL_NAME = "name";
+  public static final String COL_DATA = "data";
+
+
 
   private static final class UserTaskFactory extends AbstractElementFactory<XmlTask> {
 
     private static final int TASK_LOOKUP_TIMEOUT_MILIS = 1;
+    private static final String QUERY_GET_DATA_FOR_TASK = "SELECT "+COL_NAME+", "+COL_DATA+" FROM "+TABLEDATA+" WHERE "+COL_HANDLE+" = ?";
     private int aColNoHandle;
     private int aColNoRemoteHandle;
 
@@ -102,18 +109,24 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
           }
         }
       }
-//
-//      instance.getBody().getAny().iterator().next();
-//
-//      XmlTask result = new XmlTask();
-//      result.setHandle(handle);
-//      result.setRemoteHandle(remoteHandle);
-//      result.setEndpoint(instance.getEndpoint());
+      return null;
+    }
 
+    @Override
+    public void postCreate(DBTransaction pConnection, XmlTask pElement) throws SQLException {
+      try(PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_DATA_FOR_TASK)) {
+        statement.setLong(1, pElement.getHandle());
+        if(statement.execute()) {
+          try (ResultSet resultset = statement.getResultSet()) {
+            String name = resultset.getString(1);
+            XmlItem item = pElement.getItem(name);
+            if (item!=null) {
+              item.setValue(resultset.getString(2));
+            }
 
-      // TODO Auto-generated method stub
-      // return null;
-      throw new UnsupportedOperationException("Not yet implemented");
+          }
+        }
+      }
     }
 
     @Override
