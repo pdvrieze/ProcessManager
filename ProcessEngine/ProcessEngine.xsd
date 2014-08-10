@@ -19,7 +19,7 @@
 			<xsd:extension base="tns:ProcessModelNode">
 
 				<xsd:choice minOccurs="0" maxOccurs="unbounded">
-					<xsd:element name="import" type="tns:ImportType" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+					<xsd:element name="result" type="tns:ResultType" minOccurs="0" maxOccurs="unbounded"></xsd:element>
 				</xsd:choice>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -30,11 +30,11 @@
 			<xsd:extension base="tns:ProcessModelNode">
 			  <xsd:sequence>
 			  	<xsd:choice minOccurs="0" maxOccurs="unbounded">
-			  		<xsd:element name="import"
-			  			type="tns:ImportType">
+			  		<xsd:element name="define"
+			  			type="tns:DefineType">
 			  		</xsd:element>
-			  		<xsd:element name="export"
-			  			type="tns:ExportType">
+			  		<xsd:element name="result"
+			  			type="tns:ResultType">
 			  		</xsd:element>
 			  	</xsd:choice>
 			  	<xsd:element name="message" type="tns:Message"
@@ -55,7 +55,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ProcessModelNode">
 				<xsd:sequence>
-					<xsd:element name="export" type="tns:ExportType" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+					<xsd:element name="define" type="tns:DefineType" minOccurs="0" maxOccurs="unbounded"></xsd:element>
 				</xsd:sequence>
 				<xsd:attribute name="predecessor" type="xsd:IDREF"
 					use="required">
@@ -87,7 +87,7 @@
 
 	<xsd:complexType name="MessageType" mixed="true">
     	<xsd:sequence>
-    		<xsd:any minOccurs="0" maxOccurs="unbounded"></xsd:any>
+    		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"></xsd:any>
     	</xsd:sequence></xsd:complexType>
 
     <xsd:complexType name="Message">
@@ -113,25 +113,43 @@
     	<xsd:attribute name="type" type="xsd:string" default="application/soap+xml"></xsd:attribute>
     </xsd:complexType>
 
-    <xsd:complexType name="ExportType" mixed="true">
+    <xsd:complexType name="DefineType" mixed="true">
         <xsd:annotation>
-        	<xsd:documentation>May contain literal elements as content. In that case only the paramName attribute is used.</xsd:documentation>
+        	<xsd:documentation>A node that allows the definition of variables to be used in the message bodies of the engine.</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:any maxOccurs="unbounded" minOccurs="0"></xsd:any>
+        	<xsd:any maxOccurs="unbounded" minOccurs="0" processContents="lax"></xsd:any>
         </xsd:sequence>
-        <xsd:attribute name="node" type="xsd:string" use="optional"></xsd:attribute>
-    	<xsd:attribute name="name" type="xsd:string" use="optional"></xsd:attribute>
-    	<xsd:attribute name="paramName" type="xsd:string"
+        <xsd:attribute name="refnode" type="xsd:IDREF" use="optional">
+	        <xsd:annotation>
+	          <xsd:documentation>A reference to the (indirect) predecessor from which to get the result</xsd:documentation>
+	        </xsd:annotation>
+        </xsd:attribute>
+    	<xsd:attribute name="name" type="xsd:string" use="required">
+          <xsd:annotation>
+            <xsd:documentation>The name of the newly defined value</xsd:documentation>
+          </xsd:annotation>
+    	</xsd:attribute>
+    	<xsd:attribute name="refname" type="xsd:string"
     		use="required">
+          <xsd:annotation>
+            <xsd:documentation>A reference to the actual name of the result from the predecessor to use</xsd:documentation>
+          </xsd:annotation>
     	</xsd:attribute>
     	<xsd:attribute name="path" type="xsd:string" use="optional">
     		<xsd:annotation>
-    			<xsd:documentation>XPath query within the data to use as parameter</xsd:documentation>
+    			<xsd:documentation>XPath query within the data to use as the actual value. This can be omitted in which case
+    			the value is the result of the processing of the body.</xsd:documentation>
     		</xsd:annotation></xsd:attribute>
     </xsd:complexType>
 
-    <xsd:complexType name="ImportType">
+    <xsd:complexType name="ResultType">
+        <xsd:annotation>
+          <xsd:documentation>A node that allows the definition of variables as results of an activity</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+          <xsd:any maxOccurs="unbounded" minOccurs="0" processContents="lax"></xsd:any>
+        </xsd:sequence>
       <xsd:attribute name="name" type="xsd:string" use="required">
       	<xsd:annotation>
       		<xsd:documentation>Name to store the result as</xsd:documentation>
