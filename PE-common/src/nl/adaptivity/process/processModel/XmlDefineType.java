@@ -16,9 +16,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
 
 import org.w3c.dom.Node;
 
@@ -49,8 +51,9 @@ import org.w3c.dom.Node;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ExportType", propOrder = { "content" })
-public class XmlExportType implements IXmlExportType {
+@XmlType(name = "DefineType", propOrder = { "content" })
+@XmlRootElement(name=XmlDefineType.ELEMENTNAME)
+public class XmlDefineType implements IXmlDefineType {
 
   public static final String ELEMENTNAME = "export";
 
@@ -58,16 +61,16 @@ public class XmlExportType implements IXmlExportType {
   @XmlAnyElement(lax = true)
   protected List<Object> content;
 
-  @XmlAttribute
-  protected String node;
+  @XmlAttribute(name="refnode")
+  protected String refNode;
 
-  @XmlAttribute
+  @XmlAttribute(name="refname")
+  protected String refName;
+
+  @XmlAttribute(name="name", required = true)
   protected String name;
 
-  @XmlAttribute(required = true)
-  protected String paramName;
-
-  @XmlAttribute
+  @XmlAttribute(name="path")
   protected String path;
 
   /* (non-Javadoc)
@@ -82,23 +85,39 @@ public class XmlExportType implements IXmlExportType {
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#getNode()
+   * @see nl.adaptivity.process.processModel.IXmlDefineType#getRefNode()
    */
   @Override
-  public String getNode() {
-    return node;
+  public String getRefNode() {
+    return refNode;
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#setNode(java.lang.String)
+   * @see nl.adaptivity.process.processModel.IXmlDefineType#setRefNode(String)
    */
   @Override
-  public void setNode(final String value) {
-    this.node = value;
+  public void setRefNode(final String value) {
+    this.refNode = value;
   }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.XmlImportType#getName()
+   */
+  @Override
+  public String getRefName() {
+    return refName;
+  }
+
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#setName(java.lang.String)
+   */
+  @Override
+  public void setRefName(final String value) {
+    this.refName = value;
+  }
+
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.XmlImportType#getParamName()
    */
   @Override
   public String getName() {
@@ -106,27 +125,11 @@ public class XmlExportType implements IXmlExportType {
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#setName(java.lang.String)
+   * @see nl.adaptivity.process.processModel.XmlImportType#setParamName(java.lang.String)
    */
   @Override
   public void setName(final String value) {
     this.name = value;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#getParamName()
-   */
-  @Override
-  public String getParamName() {
-    return paramName;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#setParamName(java.lang.String)
-   */
-  @Override
-  public void setParamName(final String value) {
-    this.paramName = value;
   }
 
   /* (non-Javadoc)
@@ -145,18 +148,18 @@ public class XmlExportType implements IXmlExportType {
     this.path = value;
   }
 
-  public static XmlExportType get(IXmlExportType pExport) {
-    if (pExport instanceof XmlExportType) { return (XmlExportType) pExport; }
-    XmlExportType result = new XmlExportType();
+  public static XmlDefineType get(IXmlDefineType pExport) {
+    if (pExport instanceof XmlDefineType) { return (XmlDefineType) pExport; }
+    XmlDefineType result = new XmlDefineType();
     result.content = pExport.getContent();
+    result.refName = pExport.getRefName();
+    result.refNode = pExport.getRefNode();
     result.name = pExport.getName();
-    result.node = pExport.getNode();
-    result.paramName = pExport.getParamName();
     result.path = pExport.getPath();
     return result;
   }
 
-  public ProcessData apply(Node pPayload) {
+  public <T extends IProcessNodeInstance<T>> ProcessData apply(IProcessNodeInstance<T> pNode) {
     // TODO Auto-generated method stub
     return null;
   }

@@ -24,13 +24,13 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.processModel.IXmlExportType;
-import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessModelXmlAdapter;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlExportType;
-import nl.adaptivity.process.processModel.XmlImportType;
+import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
 
@@ -81,9 +81,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
 
   private UUID aUuid;
 
-  private List<XmlImportType> aImports = new ArrayList<>();
+  private List<XmlResultType> aImports = new ArrayList<>();
 
-  private List<XmlExportType> aExports = new ArrayList<>();
+  private List<XmlDefineType> aExports = new ArrayList<>();
 
   private static Class<?> _cls_darwin_principal;
 
@@ -336,12 +336,12 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   }
 
   @Override
-  public Collection<? extends IXmlImportType> getImports() {
+  public Collection<? extends IXmlResultType> getImports() {
     return aImports;
   }
 
   @Override
-  public Collection<? extends IXmlExportType> getExports() {
+  public Collection<? extends IXmlDefineType> getExports() {
     return aExports;
   }
 
@@ -399,19 +399,21 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
   }
 
   public List<ProcessData> toInputs(Node pPayload) {
-    Collection<? extends IXmlImportType> imports = getImports();
+    // TODO make this work properly
+    Collection<? extends IXmlResultType> imports = getImports();
     ArrayList<ProcessData> result = new ArrayList<>(imports.size());
-    for(IXmlImportType import_:imports) {
-      result.add(XmlImportType.get(import_).apply(pPayload));
+    for(IXmlResultType import_:imports) {
+      result.add(XmlResultType.get(import_).apply(pPayload));
     }
     return result;
   }
 
   public List<ProcessData> toOutputs(Node pPayload) {
-    Collection<? extends IXmlExportType> exports = getExports();
+    // TODO make this work properly
+    Collection<? extends IXmlDefineType> exports = getExports();
     ArrayList<ProcessData> result = new ArrayList<>(exports.size());
-    for(IXmlExportType export:exports) {
-      result.add(XmlExportType.get(export).apply(pPayload));
+    for(IXmlDefineType export:exports) {
+//      result.add(XmlDefineType.get(export).apply(pPayload));
     }
     return result;
   }

@@ -3,7 +3,7 @@ package nl.adaptivity.process.processModel;
 import java.util.List;
 
 
-public interface IXmlExportType {
+public interface IXmlDefineType {
 
   /**
    * May contain literal elements as content. In that case only the paramName
@@ -30,42 +30,42 @@ public interface IXmlExportType {
    *
    * @return possible object is {@link String }
    */
-  public String getNode();
+  public String getRefNode();
 
   /**
    * Sets the value of the node property.
    *
    * @param value allowed object is {@link String }
    */
-  public void setNode(String value);
+  public void setRefNode(String value);
 
   /**
    * Gets the value of the name property.
    *
    * @return possible object is {@link String }
    */
-  public String getName();
+  public String getRefName();
 
   /**
    * Sets the value of the name property.
    *
    * @param value allowed object is {@link String }
    */
-  public void setName(String value);
+  public void setRefName(String value);
 
   /**
    * Gets the value of the paramName property.
    *
    * @return possible object is {@link String }
    */
-  public String getParamName();
+  public String getName();
 
   /**
    * Sets the value of the paramName property.
    *
    * @param value allowed object is {@link String }
    */
-  public void setParamName(String value);
+  public void setName(String value);
 
   /**
    * Gets the value of the path property.

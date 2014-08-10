@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -19,17 +20,18 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import net.devrieze.util.IdFactory;
 import net.devrieze.util.db.DBTransaction;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.IXmlExportType;
-import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlExportType;
-import nl.adaptivity.process.processModel.XmlImportType;
+import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.processModel.XmlResultType;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -49,10 +51,10 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
   private double aX=Double.NaN;
   private double aY=Double.NaN;
-
-  private Collection<? extends IXmlImportType> aImports;
-
-  private Collection<? extends IXmlExportType> aExports;
+//
+//  private Collection<? extends IXmlImportType> aImports;
+//
+//  private Collection<? extends IXmlExportType> aExports;
 
   protected ProcessNodeImpl() {
 
@@ -299,23 +301,27 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   }
 
   @Override
-  public Collection<? extends IXmlImportType> getImports() {
-    return aImports;
+  public Collection<? extends IXmlResultType> getImports() {
+    return null;
+//    if (aImports==null) { aImports = new ArrayList<>(); }
+//    return aImports;
   }
 
 
   @Override
-  public Collection<? extends IXmlExportType> getExports() {
-    return aExports;
+  public Collection<? extends IXmlDefineType> getExports() {
+    return null;
+//    if (aExports==null) { aExports = new ArrayList<>(); }
+//    return aExports;
   }
 
 
-  protected static List<XmlExportType> toExportableExports(Collection<? extends IXmlExportType> pExports) {
-    List<XmlExportType> newExports;
+  protected static List<XmlDefineType> toExportableExports(Collection<? extends IXmlDefineType> pExports) {
+    List<XmlDefineType> newExports;
     if (pExports!=null) {
       newExports = new ArrayList<>(pExports.size());
-      for(IXmlExportType export:pExports) {
-        newExports.add(XmlExportType.get(export));
+      for(IXmlDefineType export:pExports) {
+        newExports.add(XmlDefineType.get(export));
       }
     } else {
       newExports = new ArrayList<>();
@@ -323,12 +329,12 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     return newExports;
   }
 
-  protected static List<XmlImportType> toExportableImports(Collection<? extends IXmlImportType> pImports) {
-    List<XmlImportType> newImports;
+  protected static List<XmlResultType> toExportableImports(Collection<? extends IXmlResultType> pImports) {
+    List<XmlResultType> newImports;
     if (pImports!=null) {
       newImports = new ArrayList<>(pImports.size());
-      for(IXmlImportType imp:pImports) {
-        newImports.add(XmlImportType.get(imp));
+      for(IXmlResultType imp:pImports) {
+        newImports.add(XmlResultType.get(imp));
       }
     } else {
       newImports = new ArrayList<>();

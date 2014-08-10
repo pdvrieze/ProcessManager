@@ -287,6 +287,9 @@ public abstract class RestMethodWrapper {
       case XPATH:
         result = getParamXPath(pClass, pXpath, pMessage.getBody());
         break;
+      case BODY:
+        result = getBody(pClass, pMessage);
+        break;
       case ATTACHMENT:
         result = getAttachment(pClass, pName, pMessage);
         break;
@@ -301,6 +304,8 @@ public abstract class RestMethodWrapper {
       }
 
     }
+    // XXX generizice this and share the same approach to unmarshalling in ALL code
+    // TODO support collection/list parameters
     if ((result != null) && (!pClass.isInstance(result))) {
       if (Types.isPrimitive(pClass) || ((Types.isPrimitiveWrapper(pClass)) && (result instanceof String))) {
         result = Types.parsePrimitive(pClass, ((String) result));
@@ -310,6 +315,8 @@ public abstract class RestMethodWrapper {
         @SuppressWarnings("unchecked")
         final Enum<?> tmpResult = Enum.valueOf(clazz, result.toString());
         result = tmpResult;
+      } else if (result instanceof Node) {
+        result = JAXB.unmarshal(new DOMSource((Node) result), pClass);
       } else {
         final String s = result.toString();
         // Only wrap when we don't start with <
@@ -323,6 +330,18 @@ public abstract class RestMethodWrapper {
     }
 
     return result;
+  }
+
+  private static Object getBody(final Class<?> pClass, final HttpMessage pMessage) {
+    Body body = pMessage.getBody();
+    if (body!=null) {
+      if (body.getElements().size()==1) {
+        return body.getElements().get(0);
+      }
+      return body;
+    } else {
+      return getAttachment(pClass, null, pMessage);
+    }
   }
 
   private static Object getAttachment(final Class<?> pClass, final String pName, final HttpMessage pMessage) {

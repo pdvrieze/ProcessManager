@@ -43,7 +43,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of imports.
    */
-  public abstract List<? extends IXmlImportType> getImports();
+  public abstract List<? extends IXmlResultType> getImports();
 
   /**
    * Set the import requirements for this activity. This will create a copy of
@@ -51,7 +51,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pImports The imports to set.
    */
-  public abstract void setImports(Collection<? extends IXmlImportType> pImports);
+  public abstract void setImports(Collection<? extends IXmlResultType> pImports);
 
   /**
    * Get the list of exports. Exports will allow storing the response of an
@@ -59,7 +59,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of exports.
    */
-  public abstract List<? extends IXmlExportType> getExports();
+  public abstract List<? extends IXmlDefineType> getExports();
 
   /**
    * Set the export requirements for this activity. This will create a copy of
@@ -67,7 +67,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pExports The exports to set.
    */
-  public abstract void setExports(Collection<? extends IXmlExportType> pExports);
+  public abstract void setExports(Collection<? extends IXmlDefineType> pExports);
 
   /**
    * Get the predecessor node for this activity.

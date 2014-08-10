@@ -19,9 +19,9 @@ import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.XmlExportType;
+import nl.adaptivity.process.processModel.XmlDefineType;
 
 
 @XmlRootElement(name = EndNodeImpl.ELEMENTNAME)
@@ -29,7 +29,7 @@ import nl.adaptivity.process.processModel.XmlExportType;
 @XmlType(name = "EndNode")
 public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl> {
 
-  private List<XmlExportType> aExports;
+  private List<XmlDefineType> aExports;
 
   public EndNodeImpl(final ProcessNodeImpl pPrevious) {
     super(Collections.singletonList(pPrevious));
@@ -78,7 +78,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
    */
   @Override
   @XmlElement(name = "export")
-  public List<? extends XmlExportType> getExports() {
+  public List<? extends XmlDefineType> getExports() {
     if (aExports == null) {
       aExports = new ArrayList<>();
     }
@@ -86,7 +86,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public void setExports(Collection<? extends IXmlExportType> pExports) {
+  public void setExports(Collection<? extends IXmlDefineType> pExports) {
     aExports = toExportableExports(pExports);
   }
 

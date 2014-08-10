@@ -1,12 +1,13 @@
 package nl.adaptivity.process.engine;
 
-import java.io.StringReader;
-
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.dom.DOMSource;
+
+import org.w3c.dom.Node;
 
 import net.devrieze.util.Named;
+
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -15,9 +16,9 @@ import nl.adaptivity.util.xml.XmlUtil;
 public class ProcessData implements Named, XmlSerializable {
 
   private final String mName;
-  private final String mValue;
+  private final Node mValue;
 
-  public ProcessData(String pName, String pValue) {
+  public ProcessData(String pName, Node pValue) {
     mName = pName;
     mValue = pValue;
   }
@@ -35,7 +36,7 @@ public class ProcessData implements Named, XmlSerializable {
   }
 
 
-  public String getValue() {
+  public Node getValue() {
     return mValue;
   }
 
@@ -76,7 +77,7 @@ public class ProcessData implements Named, XmlSerializable {
     pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "value");
     try {
       pOut.writeAttribute("name", mName);
-      XmlUtil.serialize(pOut, new StreamSource(new StringReader(mValue)));
+      XmlUtil.serialize(pOut, new DOMSource(mValue));
     } finally {
       pOut.writeEndElement();
     }

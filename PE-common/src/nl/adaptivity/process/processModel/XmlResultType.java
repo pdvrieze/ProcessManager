@@ -8,9 +8,15 @@
 
 package nl.adaptivity.process.processModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlMixed;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import nl.adaptivity.process.engine.ProcessData;
@@ -37,17 +43,33 @@ import org.w3c.dom.Node;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "ImportType")
-public class XmlImportType implements IXmlImportType {
+@XmlType(name = "ResultType")
+@XmlRootElement(name=XmlResultType.ELEMENTNAME)
+public class XmlResultType implements IXmlResultType {
 
-  public static final String ELEMENTNAME = "import";
+  public static final String ELEMENTNAME = "result";
+
+  @XmlMixed
+  @XmlAnyElement(lax = true)
+  protected List<Object> content;
 
   private String name;
 
   private String path;
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlImportType#getName()
+   * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
+   */
+  @Override
+  public List<Object> getContent() {
+    if (content == null) {
+      content = new ArrayList<>();
+    }
+    return this.content;
+  }
+
+  /* (non-Javadoc)
+   * @see nl.adaptivity.process.processModel.IXmlResultType#getName()
    */
   @Override
   @XmlAttribute(required = true)
@@ -56,7 +78,7 @@ public class XmlImportType implements IXmlImportType {
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlImportType#setName(java.lang.String)
+   * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
    */
   @Override
   public void setName(final String value) {
@@ -64,7 +86,7 @@ public class XmlImportType implements IXmlImportType {
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlImportType#getPath()
+   * @see nl.adaptivity.process.processModel.IXmlResultType#getPath()
    */
   @Override
   @XmlAttribute
@@ -73,23 +95,23 @@ public class XmlImportType implements IXmlImportType {
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlImportType#setPath(java.lang.String)
+   * @see nl.adaptivity.process.processModel.IXmlResultType#setPath(java.lang.String)
    */
   @Override
   public void setPath(final String value) {
     this.path = value;
   }
 
-  public static XmlImportType get(IXmlImportType pImport) {
-    if (pImport instanceof XmlImportType) { return (XmlImportType) pImport; }
-    XmlImportType result = new XmlImportType();
+  public static XmlResultType get(IXmlResultType pImport) {
+    if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
+    XmlResultType result = new XmlResultType();
     result.name = pImport.getName();
     result.path = pImport.getPath();
     return result;
   }
 
   /**
-   * Transform the given payload as specified by the import.
+   * Transform the given payload as specified by tag.
    * @param pPayload
    * @return
    */

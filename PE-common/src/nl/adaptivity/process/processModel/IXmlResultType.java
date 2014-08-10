@@ -1,6 +1,10 @@
 package nl.adaptivity.process.processModel;
 
-public interface IXmlImportType {
+import java.util.List;
+
+public interface IXmlResultType {
+
+  List<Object> getContent();
 
   /**
    * Gets the value of the name property.
