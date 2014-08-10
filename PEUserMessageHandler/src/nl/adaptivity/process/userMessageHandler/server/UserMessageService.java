@@ -85,19 +85,26 @@ public class UserMessageService implements CompletionListener {
   }
 
   public XmlTask updateTask(DBTransaction transaction, long pHandle, XmlTask pNewTask, Principal pUser) throws SQLException {
-    XmlTask currentTask = getTask(pHandle);
-    if (currentTask==null) { return null; }
+    // This needs to be a copy otherwise the cache will interfere with the changes
+    XmlTask currentTask;
+    {
+      final XmlTask t = getTask(pHandle);
+      if (t==null) { return null; }
+      currentTask = new XmlTask(t);
+    }
     for(XmlItem newItem: pNewTask.getItems()) {
-      XmlItem currentItem = currentTask.getItem(newItem.getName());
-      if (currentItem!=null) {
-        currentItem.setValue(newItem.getValue());
+      if (newItem.getName()!=null && newItem.getName().length()>0) {
+        XmlItem currentItem = currentTask.getItem(newItem.getName());
+        if (currentItem!=null) {
+          currentItem.setValue(newItem.getValue());
+        }
       }
     }
 
     // This may update the server.
     currentTask.setState(pNewTask.getState(), pUser);
 
-    aTasks.set(transaction, pHandle, currentTask);
+    getTasks().set(transaction, pHandle, currentTask);
     return currentTask;
   }
 
