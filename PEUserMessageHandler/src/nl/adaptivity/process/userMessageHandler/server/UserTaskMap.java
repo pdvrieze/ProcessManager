@@ -118,12 +118,13 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
         statement.setLong(1, pElement.getHandle());
         if(statement.execute()) {
           try (ResultSet resultset = statement.getResultSet()) {
-            String name = resultset.getString(1);
-            XmlItem item = pElement.getItem(name);
-            if (item!=null) {
-              item.setValue(resultset.getString(2));
+            while(resultset.next()) {
+              String name = resultset.getString(1);
+              XmlItem item = pElement.getItem(name);
+              if (item!=null) {
+                item.setValue(resultset.getString(2));
+              }
             }
-
           }
         }
       }
