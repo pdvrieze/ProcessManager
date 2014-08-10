@@ -165,16 +165,21 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public void postStore(DBTransaction pConnection, long pHandle, XmlTask pElement) throws SQLException {
-      try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? );")) {
-        final List<XmlItem> items = pElement.getItems();
+    public void postStore(DBTransaction pConnection, long pHandle, XmlTask pOldValue, XmlTask pNewValue) throws SQLException {
+      try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
+        final List<XmlItem> items = pNewValue.getItems();
         for(XmlItem item:items) {
-          if (item!=null) {
-            statement.setLong(1, pHandle);
-            statement.setString(2, item.getName());
-            statement.setString(3, item.getValue());
+          if (item!=null && item.getName()!=null) {
+            XmlItem oldItem = pOldValue==null ? null : pOldValue.getItem(item.getName());
+            if (oldItem==null ||
+                oldItem.getValue()==null ||
+                (! oldItem.getValue().equals(item.getValue()))) {
+              statement.setLong(1, pHandle);
+              statement.setString(2, item.getName());
+              statement.setString(3, item.getValue());
+              statement.addBatch();
+            }
           }
-          statement.addBatch();
         }
         statement.executeBatch();
       }
