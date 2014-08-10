@@ -1,5 +1,7 @@
 package nl.adaptivity.process.engine;
 
+import java.io.IOException;
+import java.io.StringReader;
 import java.security.Principal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +12,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.DataSource;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
@@ -17,6 +25,7 @@ import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
@@ -139,14 +148,18 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
           if (statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
+              DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+              DocumentBuilder db = dbf.newDocumentBuilder();
               while (resultset.next()) {
-                ProcessData data = new ProcessData(resultset.getString(1), resultset.getString(2));
+                ProcessData data = new ProcessData(resultset.getString(1), db.parse(new InputSource(new StringReader(resultset.getString(2)))));
                 if (resultset.getBoolean(3)) {
                   outputs.add(data);
                 } else {
                   inputs.add(data);
                 }
               }
+            } catch (SAXException | IOException | ParserConfigurationException e) {
+              throw new RuntimeException(e);
             }
           }
           pElement.setInputs(inputs);

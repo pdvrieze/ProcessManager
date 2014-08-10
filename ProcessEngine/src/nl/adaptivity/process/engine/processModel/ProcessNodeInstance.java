@@ -179,7 +179,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   @Override
   public void finishTask(DBTransaction pTransaction, final Node pResultPayload) throws SQLException {
-    aResult.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload.toString()));
+    aResult.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload));
     setState(pTransaction, TaskState.Complete);
   }
 

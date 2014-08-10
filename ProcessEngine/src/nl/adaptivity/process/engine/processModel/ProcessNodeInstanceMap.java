@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.processModel;
 
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -11,6 +12,12 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.sql.DataSource;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
@@ -144,8 +151,19 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
           if(statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
               while(resultset.next()) {
-                data.add(new ProcessData(resultset.getString(1), resultset.getString(1)));
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                dbf.setNamespaceAware(true);
+                Document doc = dbf.newDocumentBuilder().parse("<value>"+resultset.getString(1)+"</value>");
+                Node value;
+                if (doc.getDocumentElement().getChildNodes().getLength()==1) {
+                  value = doc.getDocumentElement().getFirstChild();
+                } else {
+                  value = doc.getDocumentElement();
+                }
+                data.add(new ProcessData(resultset.getString(1), value));
               }
+            } catch (SAXException | IOException | ParserConfigurationException e) {
+              throw new RuntimeException(e);
             }
           }
         }
@@ -195,7 +213,14 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public void postStore(DBTransaction pConnection, long pHandle, ProcessNodeInstance pElement) throws SQLException {
+    public void postStore(DBTransaction pConnection, long pHandle, ProcessNodeInstance pOldValue, ProcessNodeInstance pElement) throws SQLException {
+      if (pOldValue!=null) { // update
+        try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
+          statement.setLong(1, pHandle);
+          statement.executeUpdate();
+        }
+      }
+      // TODO allow for updating/storing node data
       try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
         final Collection<net.devrieze.util.HandleMap.Handle<? extends ProcessNodeInstance>> directPredecessors = pElement.getDirectPredecessors();
         for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
