@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.devrieze.util.CollectionUtil;
-import nl.adaptivity.process.processModel.IXmlExportType;
-import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
@@ -22,9 +22,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private double aY=Double.NaN;
 
-  private List<IXmlImportType> aImports;
+  private List<IXmlResultType> aImports;
 
-  private List<IXmlExportType> aExports;
+  private List<IXmlDefineType> aExports;
 
   private ClientProcessModel<T> aOwner;
 
@@ -225,20 +225,20 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public List<IXmlImportType> getImports() {
+  public List<IXmlResultType> getResults() {
     return aImports;
   }
 
-  protected void setImports(Collection<? extends IXmlImportType> pImports) {
+  protected void setImports(Collection<? extends IXmlResultType> pImports) {
     aImports = CollectionUtil.copy(pImports);
   }
 
   @Override
-  public List<IXmlExportType> getExports() {
+  public List<IXmlDefineType> getDefines() {
     return aExports;
   }
 
-  protected void setExports(Collection<? extends IXmlExportType> pExports) {
+  protected void setExports(Collection<? extends IXmlDefineType> pExports) {
     aExports = CollectionUtil.copy(pExports);
   }
 

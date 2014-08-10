@@ -4,7 +4,7 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 import java.util.List;
 
-import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 
@@ -23,8 +23,8 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  public List<IXmlImportType> getImports() {
-    return super.getImports();
+  public List<IXmlResultType> getResults() {
+    return super.getResults();
   }
 
 

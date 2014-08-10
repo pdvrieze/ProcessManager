@@ -16,8 +16,8 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IXmlExportType;
-import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
@@ -52,9 +52,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private Set<String> aRoles;
 
-  private Collection<IXmlImportType> aImports;
+  private Collection<IXmlResultType> aImports;
 
-  private Collection<IXmlExportType> aExports;
+  private Collection<IXmlDefineType> aExports;
 
   public ClientProcessModel(UUID pUuid, final String pName, final Collection<? extends T> pNodes) {
     this(pUuid, pName, pNodes, new LayoutAlgorithm<T>());
@@ -269,12 +269,12 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
-  public Collection<IXmlImportType> getImports() {
+  public Collection<IXmlResultType> getImports() {
     return aImports;
   }
 
   @Override
-  public Collection<IXmlExportType> getExports() {
+  public Collection<IXmlDefineType> getExports() {
     return aExports;
   }
 

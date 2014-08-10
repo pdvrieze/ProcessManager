@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IXmlExportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 
@@ -31,12 +31,12 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public List<IXmlExportType> getExports() {
-    return super.getExports();
+  public List<IXmlDefineType> getDefines() {
+    return super.getDefines();
   }
 
   @Override
-  public void setExports(Collection<? extends IXmlExportType> pExports) {
+  public void setExports(Collection<? extends IXmlDefineType> pExports) {
     super.setExports(pExports);
   }
 

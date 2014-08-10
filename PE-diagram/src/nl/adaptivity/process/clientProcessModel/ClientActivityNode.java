@@ -4,8 +4,8 @@ import java.util.Collection;
 import java.util.List;
 
 import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.IXmlExportType;
-import nl.adaptivity.process.processModel.IXmlImportType;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
@@ -88,22 +88,22 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
 
   @Override
-  public List<IXmlImportType> getImports() {
-    return super.getImports();
+  public List<IXmlResultType> getResults() {
+    return super.getResults();
   }
 
   @Override
-  public void setImports(Collection<? extends IXmlImportType> pImports) {
+  public void setImports(Collection<? extends IXmlResultType> pImports) {
     super.setImports(pImports);
   }
 
   @Override
-  public List<IXmlExportType> getExports() {
-    return super.getExports();
+  public List<IXmlDefineType> getDefines() {
+    return super.getDefines();
   }
 
   @Override
-  public void setExports(Collection<? extends IXmlExportType> pExports) {
+  public void setExports(Collection<? extends IXmlDefineType> pExports) {
     super.setExports(pExports);
   }
 

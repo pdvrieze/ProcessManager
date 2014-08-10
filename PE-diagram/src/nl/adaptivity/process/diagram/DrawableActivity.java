@@ -120,8 +120,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     result.setName(pElem.getName());
     result.setLabel(pElem.getLabel());
     result.setCondition(pElem.getCondition());
-    result.setImports(pElem.getImports());
-    result.setExports(pElem.getExports());
+    result.setImports(pElem.getResults());
+    result.setExports(pElem.getDefines());
     result.setMessage(pElem.getMessage());
     return result;
   }
