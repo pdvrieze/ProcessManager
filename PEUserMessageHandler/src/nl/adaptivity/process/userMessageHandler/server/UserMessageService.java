@@ -94,7 +94,9 @@ public class UserMessageService implements CompletionListener {
       }
     }
 
+    // This may update the server.
     currentTask.setState(pNewTask.getState(), pUser);
+
     aTasks.set(transaction, pHandle, currentTask);
     return currentTask;
   }
