@@ -88,7 +88,7 @@ public class UserMessageService implements CompletionListener {
     XmlTask currentTask = getTask(pHandle);
     if (currentTask==null) { return null; }
     for(XmlItem newItem: pNewTask.getItems()) {
-      XmlItem currentItem = getItemWithName(currentTask, newItem.getName());
+      XmlItem currentItem = currentTask.getItem(newItem.getName());
       if (currentItem!=null) {
         currentItem.setValue(newItem.getValue());
       }
@@ -97,12 +97,6 @@ public class UserMessageService implements CompletionListener {
     currentTask.setState(pNewTask.getState(), pUser);
     aTasks.set(transaction, pHandle, currentTask);
     return currentTask;
-  }
-
-  private XmlItem getItemWithName(UserTask<?> pCurrentTask, String pName) {
-    // TODO Auto-generated method stub
-    // return null;
-    throw new UnsupportedOperationException("Not yet implemented");
   }
 
   public TaskState startTask(final long pHandle, final Principal pUser) {

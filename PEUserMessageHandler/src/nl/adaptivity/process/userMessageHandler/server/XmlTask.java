@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import net.devrieze.util.security.SimplePrincipal;
+
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
@@ -120,10 +121,12 @@ public class XmlTask implements UserTask<XmlTask> {
     aInstanceHandle = pHandle;
   }
 
+  @Override
   public long getInstanceHandle() {
     return aInstanceHandle;
   }
 
+  @Override
   @XmlAttribute(name = "summary")
   public String getSummary() {
     return aSummary;
@@ -235,6 +238,15 @@ public class XmlTask implements UserTask<XmlTask> {
     result.aOwner = pTask.getOwner();
     result.aItems = new ArrayList<>(XmlItem.get(pTask.getItems()));
     return result;
+  }
+
+  public XmlItem getItem(String pName) {
+    for(XmlItem item: getItems()) {
+      if (pName.equals(item.getName())) {
+        return item;
+      }
+    }
+    return null;
   }
 
 
