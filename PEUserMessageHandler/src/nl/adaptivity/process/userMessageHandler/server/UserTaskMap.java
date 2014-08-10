@@ -164,6 +164,22 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
+    public void postStore(DBTransaction pConnection, long pHandle, XmlTask pElement) throws SQLException {
+      try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? );")) {
+        final List<XmlItem> items = pElement.getItems();
+        for(XmlItem item:items) {
+          if (item!=null) {
+            statement.setLong(1, pHandle);
+            statement.setString(2, item.getName());
+            statement.setString(3, item.getValue());
+          }
+          statement.addBatch();
+        }
+        statement.executeBatch();
+      }
+    }
+
+    @Override
     public CharSequence getHandleCondition(long pElement) {
       return COL_HANDLE+" = ?";
     }
@@ -172,6 +188,40 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     public int setHandleParams(PreparedStatement pStatement, long pHandle, int pOffset) throws SQLException {
       pStatement.setLong(pOffset, pHandle);
       return 1;
+    }
+
+    @Override
+    public void preClear(DBTransaction pConnection) throws SQLException {
+      CharSequence filter = getFilterExpression();
+      final String sql;
+      if (filter==null) {
+        sql = "DELETE FROM "+TABLEDATA;
+      } else {
+        sql= "DELETE FROM `"+TABLEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"` WHERE "+filter+");";
+      }
+      try (PreparedStatement statement = pConnection.prepareStatement(sql)) {
+        setFilterParams(statement, 1);
+        statement.execute();
+      }
+    }
+
+    @Override
+    public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
+      final String sql = "DELETE FROM "+TABLEDATA+" WHERE `"+COL_HANDLE+"` = ?";
+      try (PreparedStatement statement = pConnection.prepareStatement(sql)) {
+        statement.setLong(1, pHandle);
+        statement.execute();
+      }
+    }
+
+    @Override
+    public void preRemove(DBTransaction pConnection, XmlTask pElement) throws SQLException {
+      preRemove(pConnection, pElement.getHandle());
+    }
+
+    @Override
+    public void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException {
+      preRemove(pConnection, pElementSource.getLong(aColNoHandle));
     }
 
   }
