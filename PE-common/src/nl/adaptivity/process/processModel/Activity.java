@@ -43,15 +43,16 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of imports.
    */
+  @Override
   public abstract List<? extends IXmlResultType> getResults();
 
   /**
    * Set the import requirements for this activity. This will create a copy of
    * the parameter for safety.
    *
-   * @param pImports The imports to set.
+   * @param pResults The imports to set.
    */
-  public abstract void setImports(Collection<? extends IXmlResultType> pImports);
+  public abstract void setResults(Collection<? extends IXmlResultType> pResults);
 
   /**
    * Get the list of exports. Exports will allow storing the response of an
@@ -59,15 +60,16 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The list of exports.
    */
+  @Override
   public abstract List<? extends IXmlDefineType> getDefines();
 
   /**
    * Set the export requirements for this activity. This will create a copy of
    * the parameter for safety.
    *
-   * @param pExports The exports to set.
+   * @param pDefines The exports to set.
    */
-  public abstract void setExports(Collection<? extends IXmlDefineType> pExports);
+  public abstract void setDefines(Collection<? extends IXmlDefineType> pDefines);
 
   /**
    * Get the predecessor node for this activity.

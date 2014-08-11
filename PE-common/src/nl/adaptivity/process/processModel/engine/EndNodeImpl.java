@@ -86,8 +86,8 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public void setExports(Collection<? extends IXmlDefineType> pExports) {
-    aExports = toExportableExports(pExports);
+  public void setDefines(Collection<? extends IXmlDefineType> pExports) {
+    aExports = toExportableDefines(pExports);
   }
 
   /* (non-Javadoc)

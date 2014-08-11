@@ -10,7 +10,6 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlID;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -20,7 +19,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import net.devrieze.util.IdFactory;
 import net.devrieze.util.db.DBTransaction;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IXmlDefineType;
@@ -316,7 +314,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   }
 
 
-  protected static List<XmlDefineType> toExportableExports(Collection<? extends IXmlDefineType> pExports) {
+  protected static List<XmlDefineType> toExportableDefines(Collection<? extends IXmlDefineType> pExports) {
     List<XmlDefineType> newExports;
     if (pExports!=null) {
       newExports = new ArrayList<>(pExports.size());
@@ -329,7 +327,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     return newExports;
   }
 
-  protected static List<XmlResultType> toExportableImports(Collection<? extends IXmlResultType> pImports) {
+  protected static List<XmlResultType> toExportableResults(Collection<? extends IXmlResultType> pImports) {
     List<XmlResultType> newImports;
     if (pImports!=null) {
       newImports = new ArrayList<>(pImports.size());

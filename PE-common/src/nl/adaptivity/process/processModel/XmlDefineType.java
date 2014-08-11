@@ -55,7 +55,7 @@ import org.w3c.dom.Node;
 @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
 public class XmlDefineType implements IXmlDefineType {
 
-  public static final String ELEMENTNAME = "export";
+  public static final String ELEMENTNAME = "define";
 
   @XmlMixed
   @XmlAnyElement(lax = true)

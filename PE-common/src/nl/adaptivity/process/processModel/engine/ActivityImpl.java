@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +40,7 @@ import nl.adaptivity.process.processModel.XmlMessage;
  */
 @XmlRootElement(name = ActivityImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = ActivityImpl.ELEMENTNAME + "Type", propOrder = { "imports", "exports", XmlMessage.ELEMENTNAME, "condition" })
+@XmlType(name = ActivityImpl.ELEMENTNAME + "Type", propOrder = { "defines", "results", XmlMessage.ELEMENTNAME, "condition" })
 public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl> {
 
   private static final long serialVersionUID = 282944120294737322L;
@@ -55,9 +56,9 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
   private ConditionImpl aCondition;
 
-  private List<XmlResultType> aImports;
+  private List<XmlResultType> aResults;
 
-  private List<XmlDefineType> aExports;
+  private List<XmlDefineType> aDefines;
 
   private XmlMessage aMessage;
 
@@ -118,15 +119,18 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   @Override
   @XmlElement(name = XmlResultType.ELEMENTNAME)
   public List<? extends XmlResultType> getResults() {
-    return aImports;
+    if (aResults==null) {
+      aResults = new ArrayList<>();
+    }
+    return aResults;
   }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.IActivity#setImports(java.util.Collection)
    */
   @Override
-  public void setImports(final Collection<? extends IXmlResultType> pImports) {
-    aImports = toExportableImports(pImports);
+  public void setResults(final Collection<? extends IXmlResultType> pImports) {
+    aResults = toExportableResults(pImports);
   }
 
   /* (non-Javadoc)
@@ -135,15 +139,18 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   @Override
   @XmlElement(name = XmlDefineType.ELEMENTNAME)
   public List<? extends XmlDefineType> getDefines() {
-    return aExports;
+    if (aDefines==null) {
+      aDefines = new ArrayList<>();
+    }
+    return aDefines;
   }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.IActivity#setExports(java.util.Collection)
    */
   @Override
-  public void setExports(final Collection<? extends IXmlDefineType> pExports) {
-    aExports = toExportableExports(pExports);
+  public void setDefines(final Collection<? extends IXmlDefineType> pExports) {
+    aDefines = toExportableDefines(pExports);
   }
 
   /* (non-Javadoc)
