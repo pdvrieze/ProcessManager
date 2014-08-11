@@ -2,6 +2,7 @@ package nl.adaptivity.util.xml;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -10,12 +11,15 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
+import javax.xml.transform.stream.StreamResult;
 
 import net.devrieze.util.StringUtil;
 
@@ -141,5 +145,19 @@ public class XmlUtil {
     } catch (TransformerException e) {
       throw new XMLStreamException(e);
     }
+  }
+
+  public static String toString(Node pValue) {
+    StringWriter out =new StringWriter();
+    try {
+      final Transformer t = TransformerFactory
+        .newInstance()
+        .newTransformer();
+      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      t.transform(new DOMSource(pValue), new StreamResult(out));
+    } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    }
+    return out.toString();
   }
 }
