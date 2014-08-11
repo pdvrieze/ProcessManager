@@ -125,7 +125,7 @@ public abstract class RestMethodWrapper {
 
   }
 
-  private static class Java7RestMethodWrapper extends RestMethodWrapper {
+  private static class Java8RestMethodWrapper extends RestMethodWrapper {
 
     private final MethodHandle aMethodHandle;
     private final Annotation[][] aParameterAnnotations;
@@ -135,7 +135,7 @@ public abstract class RestMethodWrapper {
     private final RestMethod aRestMethod;
     private final Class<?> aDeclaringClass;
 
-    public Java7RestMethodWrapper(Object pOwner, Method pMethod) {
+    public Java8RestMethodWrapper(Object pOwner, Method pMethod) {
       try {
         aMethodHandle = MethodHandles.lookup().unreflect(pMethod).bindTo(pOwner);
         aParameterAnnotations = pMethod.getParameterAnnotations();
@@ -226,8 +226,8 @@ public abstract class RestMethodWrapper {
   public static RestMethodWrapper get(final Object pOwner, final Method pMethod) {
     // Make it work with private methods and
     pMethod.setAccessible(true);
-    if (HasMethodHandleHelper.HASHANDLES) {
-      return new Java7RestMethodWrapper(pOwner, pMethod);
+    if (HasMethodHandleHelper.HASHANDLES && (!"1.7".equals("java.specification.version"))) {
+      return new Java8RestMethodWrapper(pOwner, pMethod);
     } else {
       return new Java6RestMethodWrapper(pOwner, pMethod);
     }
