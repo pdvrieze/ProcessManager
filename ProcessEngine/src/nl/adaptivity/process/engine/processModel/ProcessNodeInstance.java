@@ -34,6 +34,8 @@ import org.w3c.dom.Node;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
+import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.IMessageService;
@@ -55,7 +57,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private final ProcessNodeImpl aNode;
 
-  private List<ProcessData> aResult = new ArrayList<>();
+  private List<ProcessData> aResults = new ArrayList<>();
 
   private Collection<Handle<? extends ProcessNodeInstance>> aPredecessors;
 
@@ -105,8 +107,18 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return aNode;
   }
 
-  public List<ProcessData> getResult() {
-    return aResult;
+  public List<ProcessData> getResults() {
+    return aResults;
+  }
+
+  @Override
+  public ProcessData getResult(DBTransaction pTransaction, String pName) throws SQLException {
+    for(ProcessData result:getResults()) {
+      if (pName.equals(result.getName())) {
+        return result;
+      }
+    }
+    return null;
   }
 
   public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
@@ -119,6 +131,21 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     } else {
       aPredecessors = new ArrayList<>(pPredecessors);
     }
+  }
+
+  @Override
+  public ProcessNodeInstance getPredecessor(DBTransaction pTransaction, String pNodeName) throws SQLException {
+    // TODO Use process structure knowledge to do this better/faster without as many database lookups.
+    for(Handle<? extends ProcessNodeInstance> hpred: aPredecessors) {
+      ProcessNodeInstance instance = getProcessInstance().getEngine().getNodeInstance(pTransaction, hpred.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
+      if (pNodeName.equals(instance.getNode().getId())) {
+        return instance;
+      } else {
+        ProcessNodeInstance result = instance.getPredecessor(pTransaction, pNodeName);
+        if (result!=null) { return result; }
+      }
+    }
+    return null;
   }
 
   public Throwable getFailureCause() {
@@ -179,7 +206,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   @Override
   public void finishTask(DBTransaction pTransaction, final Node pResultPayload) throws SQLException {
-    aResult.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload));
+    aResults.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload));
     setState(pTransaction, TaskState.Complete);
   }
 
@@ -208,8 +235,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
    * @param pResults the new results.
    */
   void setResult(List<ProcessData> pResults) {
-    aResult.clear();
-    aResult.addAll(pResults);
+    aResults.clear();
+    aResults.addAll(pResults);
   }
 
   public void instantiateXmlPlaceholders(Source source, final Result result) throws XMLStreamException {

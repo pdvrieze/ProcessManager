@@ -512,7 +512,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       writeNodeRefCommon(pOut, pNodeInstance);
       pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "results");
       try {
-        List<ProcessData> results = pNodeInstance.getResult();
+        List<ProcessData> results = pNodeInstance.getResults();
         for(ProcessData result:results) {
           result.serialize(pOut);
         }
