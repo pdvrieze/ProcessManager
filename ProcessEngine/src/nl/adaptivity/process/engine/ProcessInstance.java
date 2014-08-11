@@ -559,6 +559,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
             break;
           case Complete: {
             startSuccessors(pTransaction, pMessageService, instance);
+            break;
           }
           default:
             // ignore
