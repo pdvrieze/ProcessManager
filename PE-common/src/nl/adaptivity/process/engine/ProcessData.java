@@ -1,10 +1,18 @@
 package nl.adaptivity.process.engine;
 
+import java.util.List;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXResult;
 
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import net.devrieze.util.Named;
 
@@ -15,12 +23,73 @@ import nl.adaptivity.util.xml.XmlUtil;
 /** Class to represent data attached to process instances. */
 public class ProcessData implements Named, XmlSerializable {
 
-  private final String mName;
-  private final Node mValue;
 
-  public ProcessData(String pName, Node pValue) {
+
+  private static class MyNodeList implements NodeList{
+    private final Node[] nodes;
+
+    public MyNodeList(List<Node> pList) {
+      nodes = new Node[pList.size()];
+      for(int i=nodes.length-1; i>=0; --i) {
+        nodes[i]=pList.get(i);
+      }
+    }
+
+    @Override
+    public Node item(int pIndex) {
+      try {
+        return nodes[pIndex];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        return null;
+      }
+    }
+
+    @Override
+    public int getLength() {
+      return nodes.length;
+    }
+
+  }
+
+  private static class SingletonNodeList implements NodeList {
+
+    private final Node node;
+
+    public SingletonNodeList(Node pNode) {
+      node = pNode;
+    }
+
+    @Override
+    public Node item(int pIndex) {
+      if (pIndex!=0) { return null; }
+      return node;
+    }
+
+    @Override
+    public int getLength() {
+      return 1;
+    }
+
+  }
+
+  private final String mName;
+  private final Object mValue;
+
+  private ProcessData(String pName, Object pValue) {
     mName = pName;
     mValue = pValue;
+  }
+
+  public ProcessData(String pName, Node pValue) {
+    this(pName,(Object) pValue);
+  }
+
+  public ProcessData(String pName, NodeList pValue) {
+    this(pName,(Object) pValue);
+  }
+
+  public ProcessData(String pName, List<Node> pValue) {
+    this(pName, new MyNodeList(pValue));
   }
 
 
@@ -35,8 +104,29 @@ public class ProcessData implements Named, XmlSerializable {
     return mName;
   }
 
+  public Node getNodeValue() {
+    if (mValue instanceof Node) {
+      return (Node) mValue;
+    }
+    if (mValue instanceof NodeList) {
+      NodeList nl = (NodeList) mValue;
+      if (nl.getLength()==1) {
+        return nl.item(0);
+      }
+    }
+    return null;
+  }
 
-  public Node getValue() {
+  public NodeList getNodeListValue() {
+    if (mValue instanceof NodeList) {
+      return (NodeList) mValue;
+    } else if (mValue instanceof Node) {
+      return new SingletonNodeList((Node) mValue);
+    }
+    return null;
+  }
+
+  public Object getGenericValue() {
     return mValue;
   }
 
@@ -77,9 +167,29 @@ public class ProcessData implements Named, XmlSerializable {
     pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "value");
     try {
       pOut.writeAttribute("name", mName);
-      XmlUtil.serialize(pOut, new DOMSource(mValue));
+      if (mValue instanceof Node) {
+        XmlUtil.serialize(pOut, new DOMSource((Node) mValue));
+      } else if (mValue instanceof NodeList) {
+        serializeNodeList(pOut);
+      }
     } finally {
       pOut.writeEndElement();
+    }
+  }
+
+  protected void serializeNodeList(XMLStreamWriter pOut) throws XMLStreamException {
+    NodeList nodelist = (NodeList) mValue;
+    try {
+      final Transformer transformer = TransformerFactory
+          .newInstance()
+          .newTransformer();
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+      for(int i = 0; i<nodelist.getLength(); ++i) {
+        transformer.transform(new DOMSource(nodelist.item(i)), new StAXResult(pOut));
+      }
+    } catch (TransformerException e) {
+      throw new XMLStreamException(e);
     }
   }
 

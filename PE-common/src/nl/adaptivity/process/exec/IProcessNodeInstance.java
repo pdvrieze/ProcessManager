@@ -8,7 +8,9 @@ import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.db.DBTransaction;
+
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.ProcessData;
 
 
 /**
@@ -127,4 +129,12 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @throws SQLException
    */
   public void cancelTask(DBTransaction pTransaction) throws SQLException;
+
+  /** Get the predecessor instance with the given node name.
+   * @throws SQLException
+   * */
+  public IProcessNodeInstance<V> getPredecessor(DBTransaction pTransaction, String pNodeName) throws SQLException;
+
+  /** Get the result instance with the given data name. */
+  public ProcessData getResult(DBTransaction pTransaction, String pName) throws SQLException;
 }

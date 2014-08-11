@@ -9,6 +9,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
@@ -21,12 +22,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamResult;
 
-import net.devrieze.util.StringUtil;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import net.devrieze.util.StringUtil;
 
 
 public class XmlUtil {
@@ -156,6 +158,34 @@ public class XmlUtil {
       t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
       t.transform(new DOMSource(pValue), new StreamResult(out));
     } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    }
+    return out.toString();
+  }
+
+  public static String toString(NodeList pNodeList) {
+    StringWriter out =new StringWriter();
+    try {
+      final Transformer t = TransformerFactory
+        .newInstance()
+        .newTransformer();
+      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      for(int i=0; i<pNodeList.getLength(); ++i) {
+        t.transform(new DOMSource(pNodeList.item(i)), new StreamResult(out));
+      }
+    } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    }
+    return out.toString();
+  }
+
+  public static String toString(XmlSerializable pSerializable) {
+    StringWriter out =new StringWriter();
+    XMLOutputFactory factory = XMLOutputFactory.newInstance();
+    try {
+      XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
+      pSerializable.serialize(serializer);
+    } catch (XMLStreamException e) {
       throw new RuntimeException(e);
     }
     return out.toString();

@@ -18,15 +18,12 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import nl.adaptivity.process.engine.ProcessData;
 
 import org.w3c.dom.Node;
+
+import nl.adaptivity.process.engine.ProcessData;
 
 
 /**
@@ -50,7 +47,7 @@ import org.w3c.dom.Node;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ResultType")
 @XmlRootElement(name=XmlResultType.ELEMENTNAME)
-public class XmlResultType implements IXmlResultType {
+public class XmlResultType extends XPathHolder implements IXmlResultType {
 
   public static final String ELEMENTNAME = "result";
 
@@ -59,8 +56,6 @@ public class XmlResultType implements IXmlResultType {
   protected List<Object> content;
 
   private String name;
-
-  private String path;
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
@@ -90,28 +85,11 @@ public class XmlResultType implements IXmlResultType {
     this.name = value;
   }
 
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlResultType#getPath()
-   */
-  @Override
-  @XmlAttribute
-  public String getPath() {
-    return path;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlResultType#setPath(java.lang.String)
-   */
-  @Override
-  public void setPath(final String value) {
-    this.path = value;
-  }
-
   public static XmlResultType get(IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
     XmlResultType result = new XmlResultType();
     result.name = pImport.getName();
-    result.path = pImport.getPath();
+    result.setPath(pImport.getPath());
     return result;
   }
 
@@ -122,11 +100,8 @@ public class XmlResultType implements IXmlResultType {
    */
   public ProcessData apply(Node pPayload) {
     // TODO add support for varialble and function resolvers.
-    XPathFactory factory = XPathFactory.newInstance();
-    XPath myPath = factory.newXPath();
     try {
-      XPathExpression path2 = myPath.compile(path);
-      Node result = (Node) path2.evaluate(pPayload, XPathConstants.NODE);
+      Node result = (Node) path.evaluate(pPayload, XPathConstants.NODE);
       return new ProcessData(name, result);
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
