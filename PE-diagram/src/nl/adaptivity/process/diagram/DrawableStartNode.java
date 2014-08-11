@@ -92,7 +92,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   public static DrawableStartNode from(StartNode<?> pN) {
     DrawableStartNode result = new DrawableStartNode();
     copyProcessNodeAttrs(pN, result);
-    result.setImports(pN.getResults());
+    result.setDefines(pN.getDefines());
     return result;
   }
 

@@ -1,15 +1,16 @@
 package nl.adaptivity.process.clientProcessModel;
 
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
+
 import java.util.Collection;
 import java.util.List;
 
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.*;
 
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
@@ -93,8 +94,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setImports(Collection<? extends IXmlResultType> pImports) {
-    super.setImports(pImports);
+  public void setDefines(Collection<? extends IXmlDefineType> pImports) {
+    super.setDefines(pImports);
   }
 
   @Override
@@ -103,8 +104,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setExports(Collection<? extends IXmlDefineType> pExports) {
-    super.setExports(pExports);
+  public void setResults(Collection<? extends IXmlResultType> pExports) {
+    super.setResults(pExports);
   }
 
 

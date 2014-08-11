@@ -22,9 +22,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private double aY=Double.NaN;
 
-  private List<IXmlResultType> aImports;
+  private List<IXmlResultType> aResults;
 
-  private List<IXmlDefineType> aExports;
+  private List<IXmlDefineType> aDefines;
 
   private ClientProcessModel<T> aOwner;
 
@@ -56,8 +56,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     aOwner = null;
     aX = pOrig.aX;
     aY = pOrig.aY;
-    aImports = CollectionUtil.copy(pOrig.aImports);
-    aExports = CollectionUtil.copy(pOrig.aExports);
+    aResults = CollectionUtil.copy(pOrig.aResults);
+    aDefines = CollectionUtil.copy(pOrig.aDefines);
     aLabel = pOrig.aLabel;
 
     aPredecessors.addAll(pOrig.aPredecessors);
@@ -226,20 +226,20 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   @Override
   public List<IXmlResultType> getResults() {
-    return aImports;
+    return aResults;
   }
 
-  protected void setImports(Collection<? extends IXmlResultType> pImports) {
-    aImports = CollectionUtil.copy(pImports);
+  protected void setResults(Collection<? extends IXmlResultType> pExports) {
+    aResults = CollectionUtil.copy(pExports);
   }
 
   @Override
   public List<IXmlDefineType> getDefines() {
-    return aExports;
+    return aDefines;
   }
 
-  protected void setExports(Collection<? extends IXmlDefineType> pExports) {
-    aExports = CollectionUtil.copy(pExports);
+  protected void setDefines(Collection<? extends IXmlDefineType> pImports) {
+    aDefines = CollectionUtil.copy(pImports);
   }
 
   public void unsetPos() {

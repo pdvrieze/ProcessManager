@@ -36,8 +36,8 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public void setExports(Collection<? extends IXmlDefineType> pExports) {
-    super.setExports(pExports);
+  public void setDefines(Collection<? extends IXmlDefineType> pDefines) {
+    super.setDefines(pDefines);
   }
 
   @Override
