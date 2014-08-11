@@ -18,6 +18,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import nl.adaptivity.process.engine.ProcessData;
 
@@ -116,8 +121,16 @@ public class XmlResultType implements IXmlResultType {
    * @return
    */
   public ProcessData apply(Node pPayload) {
-    // TODO Auto-generated method stub
-    return null;
+    // TODO add support for varialble and function resolvers.
+    XPathFactory factory = XPathFactory.newInstance();
+    XPath myPath = factory.newXPath();
+    try {
+      XPathExpression path2 = myPath.compile(path);
+      Node result = (Node) path2.evaluate(pPayload, XPathConstants.NODE);
+      return new ProcessData(name, result);
+    } catch (XPathExpressionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }
