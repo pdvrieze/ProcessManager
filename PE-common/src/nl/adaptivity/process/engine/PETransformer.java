@@ -1,10 +1,10 @@
 package nl.adaptivity.process.engine;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,6 +35,8 @@ import org.w3c.dom.NodeList;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.AbstractBufferedEventReader;
+import nl.adaptivity.util.xml.NodeEventReader;
 import nl.adaptivity.util.xml.XmlUtil;
 
 
@@ -43,25 +45,16 @@ public class PETransformer {
 
 
 
-  private static class MyFilter implements XMLEventReader {
+  public static class MyFilter extends AbstractBufferedEventReader {
 
     private PETransformerContext aContext;
     private XMLEventReader aInput;
-    private ArrayDeque<XMLEvent> aPeekBuffer;
+    private XMLEventFactory aXef;
 
     public MyFilter(PETransformerContext pContext, XMLEventReader pInput) {
       aContext = pContext;
       aInput = pInput;
-      aPeekBuffer = new ArrayDeque<>();
-    }
-
-    @Override
-    public Object next() {
-      try {
-        return nextEvent();
-      } catch (XMLStreamException e) {
-        throw new RuntimeException(e);
-      }
+      aXef = XMLEventFactory.newInstance();
     }
 
     @Override
@@ -69,78 +62,108 @@ public class PETransformer {
       throw new UnsupportedOperationException("Deletion is not supported on this read-only filter");
     }
 
-    @Override
-    public XMLEvent nextEvent() throws XMLStreamException {
-      if (! aPeekBuffer.isEmpty()) {
-        return aPeekBuffer.removeFirst();
-      }
-      if (! hasNext()) { throw new NoSuchElementException(); }
-      peek();
-      return aPeekBuffer.removeFirst();
-    }
 
-    @Override
-    public boolean hasNext() {
-      if (! aPeekBuffer.isEmpty()) { return true; }
-      if (! aInput.hasNext()) { return false; }
-      try {
-        return peek()!=null;
-      } catch (XMLStreamException e) {
-        throw new RuntimeException(e);
-      }
-    }
 
     @Override
     public XMLEvent peek() throws XMLStreamException {
-      if (! aPeekBuffer.isEmpty()) {
-        return aPeekBuffer.getFirst();
+      if (! isPeekBufferEmpty()) {
+        return peekFirst();
       }
-      if (! aInput.hasNext()) { return null; }
-      XMLEvent event = aInput.nextEvent();
-      if (event.isStartElement()) {
-        return peekStartElement(event.asStartElement());
-      } else if (event.isNamespace()){
-        if (! Constants.MODIFY_NS.equals(((Namespace)event).getNamespaceURI())) {
-          aPeekBuffer.add(event);
+      while(aInput.hasNext()) {
+        XMLEvent event = aInput.nextEvent();
+        if (event.isStartElement()) {
+          return peekStartElement(event.asStartElement());
+        } else if (event.isNamespace()){
+          if (! Constants.MODIFY_NS.equals(((Namespace)event).getNamespaceURI())) {
+            add(event);
+            return event;
+          }
+        } else if (event.isCharacters()) {
+          if (! event.asCharacters().isIgnorableWhiteSpace()) {
+            add(event);
+            return event;
+          }
+        } else {
+          add(event);
+          return event;
+        }
+      }
+      return null;
+    }
+
+    private XMLEvent peekStartElement(StartElement pElement) throws XMLStreamException {
+      if (Constants.MODIFY_NS.equals(pElement.getName().getNamespaceURI())) {
+        String localname = pElement.getName().getLocalPart();
+
+        final Map<String, String> attributes = parseAttributes(aInput, pElement);
+
+        switch (localname) {
+          case "attribute":
+            add(getAttribute(attributes));
+            return peekFirst();
+          case "element":
+          case "value":
+            processElement(attributes);
+            return peekFirst();
+          default:
+            throw new XMLStreamException("Unsupported element: "+pElement.getName());
         }
       } else {
-        aPeekBuffer.add(event);
-        return event;
+        add(pElement);
+        return pElement;
       }
     }
 
-    private XMLEvent peekStartElement(StartElement pAsStartElement) {
-      // TODO Auto-generated method stub
-      // return null;
-      throw new UnsupportedOperationException("Not yet implemented");
+    private void processElement(Map<String,String> pAttributes) {
+      String valueName = pAttributes.get("value");
+
+      addAll(aContext.resolveElementValue(aXef, valueName));
     }
 
-    @Override
-    public String getElementText() throws XMLStreamException {
-      // TODO Auto-generated method stub
-      // return null;
-      throw new UnsupportedOperationException("Not yet implemented");
+    private static Map<String,String> parseAttributes(XMLEventReader pIn, StartElement pStartElement) throws XMLStreamException {
+      TreeMap<String, String> result = new TreeMap<>();
+
+      @SuppressWarnings("unchecked")
+      Iterator<Attribute> attributes = pStartElement.getAttributes();
+      while (attributes.hasNext()) {
+        Attribute attribute = attributes.next();
+        result.put(attribute.getName().getLocalPart(), attribute.getValue());
+      }
+
+      while(pIn.peek().isAttribute()) {
+        Attribute attribute = (Attribute) pIn.nextEvent();
+        result.put(attribute.getName().getLocalPart(), attribute.getValue());
+      }
+      return result;
     }
 
-    @Override
-    public XMLEvent nextTag() throws XMLStreamException {
-      // TODO Auto-generated method stub
-      // return null;
-      throw new UnsupportedOperationException("Not yet implemented");
+    private XMLEvent getAttribute(Map<String,String> pAttributes) {
+      String valueName = pAttributes.get("value");
+      String paramName = pAttributes.get("name");
+
+      if (valueName != null) {
+        if (paramName==null) {
+          paramName = aContext.resolveAttributeName(valueName);
+        }
+        String value = aContext.resolveAttributeValue(valueName);
+        return aXef.createAttribute(paramName, value);
+      } else {
+        throw new MessagingFormatException("Missing parameter name");
+      }
     }
 
     @Override
     public Object getProperty(String pName) throws IllegalArgumentException {
-      // TODO Auto-generated method stub
-      // return null;
-      throw new UnsupportedOperationException("Not yet implemented");
+      return aInput.getProperty(pName);
     }
 
     @Override
     public void close() throws XMLStreamException {
-      // TODO Auto-generated method stub
-      //
-      throw new UnsupportedOperationException("Not yet implemented");
+      aInput.close();
+      aInput = null;
+      aContext = null;
+      aXef = null;
+      super.close();
     }
 
   }
@@ -166,9 +189,7 @@ public class PETransformer {
       ProcessData data = getData(pValueName);
       List<XMLEvent> result = new ArrayList<>();
       NodeList nl = data.getNodeListValue();
-      for(int i=0; i<nl.getLength(); ++i) {
-        pXef;
-      }
+      XMLEventReader dataReader = new NodeEventReader(nl);
       XMLInputFactory xef = XMLInputFactory.newInstance();
       xef.
 

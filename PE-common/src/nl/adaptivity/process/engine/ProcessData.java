@@ -17,6 +17,7 @@ import org.w3c.dom.NodeList;
 import net.devrieze.util.Named;
 
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.SingletonNodeList;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 
@@ -47,27 +48,6 @@ public class ProcessData implements Named, XmlSerializable {
     @Override
     public int getLength() {
       return nodes.length;
-    }
-
-  }
-
-  private static class SingletonNodeList implements NodeList {
-
-    private final Node node;
-
-    public SingletonNodeList(Node pNode) {
-      node = pNode;
-    }
-
-    @Override
-    public Node item(int pIndex) {
-      if (pIndex!=0) { return null; }
-      return node;
-    }
-
-    @Override
-    public int getLength() {
-      return 1;
     }
 
   }
