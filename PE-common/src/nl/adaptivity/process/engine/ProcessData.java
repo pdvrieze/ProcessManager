@@ -11,15 +11,14 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import net.devrieze.util.Named;
-
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.SingletonNodeList;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /** Class to represent data attached to process instances. */
 public class ProcessData implements Named, XmlSerializable {
@@ -54,18 +53,20 @@ public class ProcessData implements Named, XmlSerializable {
 
   private final String mName;
   private final Object mValue;
+  private final boolean mIsNodeList;
 
-  private ProcessData(String pName, Object pValue) {
+  private ProcessData(String pName, Object pValue, boolean pIsNodeList) {
     mName = pName;
     mValue = pValue;
+    mIsNodeList = pIsNodeList;
   }
 
   public ProcessData(String pName, Node pValue) {
-    this(pName,(Object) pValue);
+    this(pName, pValue, false);
   }
 
   public ProcessData(String pName, NodeList pValue) {
-    this(pName,(Object) pValue);
+    this(pName, pValue, true);
   }
 
   public ProcessData(String pName, List<Node> pValue) {
@@ -75,7 +76,7 @@ public class ProcessData implements Named, XmlSerializable {
 
   @Override
   public Named newWithName(String pName) {
-    return new ProcessData(pName, mValue);
+    return new ProcessData(pName, mValue, mIsNodeList);
   }
 
 
@@ -98,10 +99,12 @@ public class ProcessData implements Named, XmlSerializable {
   }
 
   public NodeList getNodeListValue() {
-    if (mValue instanceof NodeList) {
-      return (NodeList) mValue;
-    } else if (mValue instanceof Node) {
+    // First check for node as for some reason the implementation in java
+    // also implements NodeList (but that would be the list of children)
+    if (mValue instanceof Node) {
       return new SingletonNodeList((Node) mValue);
+    } else if (mValue instanceof NodeList) {
+      return (NodeList) mValue;
     }
     return null;
   }
@@ -147,7 +150,7 @@ public class ProcessData implements Named, XmlSerializable {
     pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "value");
     try {
       pOut.writeAttribute("name", mName);
-      if (mValue instanceof Node) {
+      if (! mIsNodeList) {
         XmlUtil.serialize(pOut, new DOMSource((Node) mValue));
       } else if (mValue instanceof NodeList) {
         serializeNodeList(pOut);
