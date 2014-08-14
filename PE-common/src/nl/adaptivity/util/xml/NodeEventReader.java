@@ -16,6 +16,7 @@ public class NodeEventReader extends AbstractBufferedEventReader {
   private int mNodesPos;
   private Node mCurrent;
   private XMLEventFactory mXef = XMLEventFactory.newInstance();
+  private Node mGuardParent;
 
   public NodeEventReader(NodeList pNodeList) {
     mNodes = pNodeList;
@@ -34,7 +35,15 @@ public class NodeEventReader extends AbstractBufferedEventReader {
   public XMLEvent peek() throws XMLStreamException {
     if (!isPeekBufferEmpty()) { return peekFirst(); }
     while (mNodesPos<mNodes.getLength()) {
-      Node node = mCurrent==null ? mNodes.item(mNodesPos) : mCurrent.getFirstChild();
+      Node node;
+      if (mCurrent==null) {
+        node = mNodes.item(mNodesPos);
+        // This guard will allow nodes that have parents to be looped over
+        // without the loop spilling into the parent nodes.
+        mGuardParent = node.getParentNode();
+      } else {
+        node = mCurrent.getFirstChild();
+      }
       if (node==null) { node = mCurrent.getNextSibling(); }
       if (node==null) {
         if (mCurrent.getNodeType()==Node.ELEMENT_NODE || mCurrent.getNodeType()==Node.DOCUMENT_NODE || mCurrent.getNodeType()==Node.DOCUMENT_FRAGMENT_NODE) {
@@ -42,7 +51,7 @@ public class NodeEventReader extends AbstractBufferedEventReader {
           add(createEndEvent(mCurrent));
         }
         Node parent = mCurrent.getParentNode();
-        while (parent!=null && node==null) {
+        while (parent!=mGuardParent && parent!=null && node==null) {
           add(createEndEvent(parent));
           node = parent.getNextSibling();
           parent = parent.getParentNode();
