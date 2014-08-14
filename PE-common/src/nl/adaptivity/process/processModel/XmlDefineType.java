@@ -24,6 +24,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.engine.PETransformer;
+import nl.adaptivity.process.engine.PETransformer.PETransformerContext;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 
@@ -156,18 +157,23 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       IProcessNodeInstance<T> predecessor = pNode.getPredecessor(pTransaction, refNode);
       ProcessData origpair = predecessor.getResult(pTransaction, refName);
       try {
-        newValue = (NodeList) getXPath().evaluate(origpair.getGenericValue(), XPathConstants.NODESET);
+        if (getXPath()==null) {
+          newValue = origpair.getNodeListValue();
+        } else {
+          newValue = (NodeList) getXPath().evaluate(origpair.getGenericValue(), XPathConstants.NODESET);
+        }
       } catch (XPathExpressionException e) {
         throw new RuntimeException(e);
       }
     } else {
       newValue = null;
     }
+    final ProcessData processData = new ProcessData(name, newValue);
     if (content!=null && content.size()>0) {
-      List<Node> result = PETransformer.create(new ProcessData(name, newValue)).transform(content);
+      List<Node> result = PETransformer.create(processData).transform(content);
       return new ProcessData(name, result);
     } else {
-      return new ProcessData(name, newValue);
+      return processData;
     }
   }
 
