@@ -28,10 +28,6 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
@@ -39,8 +35,13 @@ import nl.adaptivity.util.xml.AbstractBufferedEventReader;
 import nl.adaptivity.util.xml.NodeEventReader;
 import nl.adaptivity.util.xml.XmlUtil;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 
 public class PETransformer {
+
 
 
 
@@ -114,7 +115,7 @@ public class PETransformer {
       }
     }
 
-    private void processElement(Map<String,String> pAttributes) {
+    private void processElement(Map<String,String> pAttributes) throws XMLStreamException {
       String valueName = pAttributes.get("value");
 
       addAll(aContext.resolveElementValue(aXef, valueName));
@@ -137,7 +138,7 @@ public class PETransformer {
       return result;
     }
 
-    private XMLEvent getAttribute(Map<String,String> pAttributes) {
+    private XMLEvent getAttribute(Map<String,String> pAttributes) throws XMLStreamException {
       String valueName = pAttributes.get("value");
       String paramName = pAttributes.get("name");
 
@@ -170,46 +171,54 @@ public class PETransformer {
 
   public interface PETransformerContext {
 
-    List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName);
-    String resolveAttributeValue(String pValueName);
+    List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) throws XMLStreamException;
+    String resolveAttributeValue(String pValueName) throws XMLStreamException;
     String resolveAttributeName(String pValueName);
 
   }
 
-  public static class ProcessDataContext implements PETransformerContext {
+  public static abstract class AbstractDataContext implements PETransformerContext {
 
-    private ProcessData[] aProcessData;
-
-    public ProcessDataContext(ProcessData[] pProcessData) {
-      aProcessData = pProcessData;
-    }
+    protected abstract ProcessData getData(String pValueName);
 
     @Override
-    public List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) {
+    public List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
       List<XMLEvent> result = new ArrayList<>();
       NodeList nl = data.getNodeListValue();
-      XMLEventReader dataReader = new NodeEventReader(nl);
-      XMLInputFactory xef = XMLInputFactory.newInstance();
-      xef.
-
+      for(XMLEventReader dataReader = new NodeEventReader(nl);dataReader.hasNext();) {
+        result.add(dataReader.nextEvent());
+      }
       return result;
     }
 
-    private ProcessData getData(String pValueName) {
-      for(ProcessData candidate: aProcessData) {
-        if (pValueName.equals(candidate)) { return candidate; }
-      }
-      return null;
-    }
-
     @Override
-    public String resolveAttributeValue(String pValueName) {
+    public String resolveAttributeValue(String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
-
-      // TODO Auto-generated method stub
-      // return null;
-      throw new UnsupportedO perationException("Not yet implemented");
+      XMLEventReader dataReader = new NodeEventReader(data.getNodeListValue());
+      StringBuilder result = new StringBuilder();
+      while (dataReader.hasNext()) {
+        XMLEvent event = dataReader.nextEvent();
+        switch (event.getEventType()) {
+        case XMLEvent.ATTRIBUTE:
+        case XMLEvent.DTD:
+        case XMLEvent.START_ELEMENT:
+        case XMLEvent.END_ELEMENT:
+          throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: "+event);
+        case XMLEvent.CDATA:
+        case XMLEvent.CHARACTERS:
+          result.append(event.asCharacters().getData());
+          break;
+        case XMLEvent.START_DOCUMENT:
+        case XMLEvent.END_DOCUMENT:
+        case XMLEvent.COMMENT:
+        case XMLEvent.PROCESSING_INSTRUCTION:
+          break; // ignore
+        default:
+          throw new XMLStreamException("Unexpected node type: "+event);
+        }
+      }
+      return result.toString();
     }
 
     @Override
@@ -220,14 +229,36 @@ public class PETransformer {
 
   }
 
+  public static class ProcessDataContext extends AbstractDataContext {
+
+    private ProcessData[] aProcessData;
+
+    public ProcessDataContext(ProcessData[] pProcessData) {
+      aProcessData = pProcessData;
+    }
+
+    @Override
+    protected ProcessData getData(String pValueName) {
+      for(ProcessData candidate: aProcessData) {
+        if (pValueName.equals(candidate)) { return candidate; }
+      }
+      return null;
+    }
+
+  }
+
   private final PETransformerContext aContext;
 
-  public PETransformer(PETransformerContext pContext) {
+  private PETransformer(PETransformerContext pContext) {
     aContext = pContext;
   }
 
   public static PETransformer create(ProcessData... pProcessData) {
     return new PETransformer(new ProcessDataContext(pProcessData));
+  }
+
+  public static PETransformer create(PETransformerContext pContext) {
+    return new PETransformer(pContext);
   }
 
   public List<Node> transform(List<? extends Node> pContent) {
@@ -367,7 +398,9 @@ public class PETransformer {
       }
     }
     if (valueName != null) {
-      out.add(pContext.resolveElementValue(pXef, valueName));
+      for(XMLEvent value: pContext.resolveElementValue(pXef, valueName)){
+        out.add(value);
+      }
     } else {
       throw new MessagingFormatException("Missing parameter name");
     }
