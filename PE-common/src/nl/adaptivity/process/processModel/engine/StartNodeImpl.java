@@ -13,6 +13,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 
 
@@ -39,7 +40,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
    */
   @Override
   @XmlElement(name = "import")
-  public List<? extends XmlResultType> getResults() {
+  public List<XmlResultType> getResults() {
     if (aImports == null) {
       aImports = new ArrayList<>();
     }
