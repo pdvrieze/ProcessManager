@@ -1,11 +1,13 @@
 package nl.adaptivity.process.processModel;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-
+@XmlAccessorType(XmlAccessType.NONE)
 public class XPathHolder {
 
   protected XPathExpression path;
