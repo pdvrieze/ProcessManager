@@ -3,7 +3,7 @@ package nl.adaptivity.util.xml;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-class SingletonNodeList implements NodeList {
+public class SingletonNodeList implements NodeList {
 
   private final Node node;
 
