@@ -2,6 +2,10 @@ package nl.adaptivity.process.processModel;
 
 import java.util.List;
 
+import nl.adaptivity.process.engine.ProcessData;
+
+import org.w3c.dom.Node;
+
 public interface IXmlResultType {
 
   List<Object> getContent();
@@ -33,5 +37,7 @@ public interface IXmlResultType {
    * @param value allowed object is {@link String }
    */
   public void setPath(String value);
+
+  ProcessData apply(Node pPayload);
 
 }
