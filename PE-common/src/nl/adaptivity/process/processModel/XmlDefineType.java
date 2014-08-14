@@ -8,6 +8,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,16 +20,15 @@ import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import javax.xml.xpath.XPathExpressionException;
 
 import net.devrieze.util.db.DBTransaction;
-
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
 /**
@@ -75,9 +75,6 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @XmlAttribute(name="name", required = true)
   protected String name;
-
-  @XmlAttribute(name="path")
-  protected XPathExpression path;
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.XmlImportType#getContent()
@@ -153,17 +150,23 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     return result;
   }
 
-  public <T extends IProcessNodeInstance<T>> ProcessData apply(DBTransaction pTransaction, IProcessNodeInstance<T> pNode) {
+  public <T extends IProcessNodeInstance<T>> ProcessData apply(DBTransaction pTransaction, IProcessNodeInstance<T> pNode) throws SQLException {
     final NodeList newValue;
     if (refNode!=null) {
       IProcessNodeInstance<T> predecessor = pNode.getPredecessor(pTransaction, refNode);
       ProcessData origpair = predecessor.getResult(pTransaction, refName);
-      newValue = (NodeList) getXPath().evaluate(origpair.getGenericValue(), XPathConstants.NODESET);
+      try {
+        newValue = (NodeList) getXPath().evaluate(origpair.getGenericValue(), XPathConstants.NODESET);
+      } catch (XPathExpressionException e) {
+        throw new RuntimeException(e);
+      }
     } else {
       newValue = null;
     }
     if (content!=null && content.size()>0) {
-      List<Node> result = PETransformer.create(new ProcessData(name, newValue)).transform(content);
+      @SuppressWarnings({ "unchecked", "rawtypes" }) // This should be nodes only
+      final List<Node> nodeContent = (List)content;
+      List<Node> result = PETransformer.create(new ProcessData(name, newValue)).transform(nodeContent);
       return new ProcessData(name, result);
     } else {
       return new ProcessData(name, newValue);
