@@ -35,11 +35,11 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.MessagingFormatException;
+import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -240,6 +240,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   public void instantiateXmlPlaceholders(Source source, final Result result) throws XMLStreamException {
+    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this));
+    transformer.transform(source, result);
+    /*
     final XMLInputFactory xif = XMLInputFactory.newInstance();
     final XMLOutputFactory xof = XMLOutputFactory.newInstance();
     // Use a reader as a DOMSource is not directly supported by stax for some stupid reason.
@@ -303,6 +306,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
         }
       }
     }
+    */
   }
 
   private static Logger getLogger() {
