@@ -11,10 +11,14 @@ import java.io.Reader;
 import java.io.Writer;
 
 import javax.xml.bind.util.JAXBSource;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
@@ -25,17 +29,34 @@ public final class Sources {
   private Sources() {}
 
   public static void writeToStream(final Source pSource, final OutputStream pOutputStream) throws TransformerException {
-    final StreamResult outResult = new StreamResult(pOutputStream);
-    final TransformerFactory factory = TransformerFactory.newInstance();
-    final Transformer identityTransformer = factory.newTransformer();
-    identityTransformer.transform(pSource, outResult);
+    writeToResult(pSource, new StreamResult(pOutputStream), false);
+  }
+
+  public static void writeToStream(final Source pSource, final OutputStream pOutputStream, boolean pIndent) throws TransformerException {
+    writeToResult(pSource, new StreamResult(pOutputStream), pIndent);
   }
 
   public static void writeToWriter(final Source pSource, final Writer pWriter) throws TransformerException {
-    final StreamResult outResult = new StreamResult(pWriter);
+    writeToWriter(pSource, pWriter, false);
+  }
+
+  public static void writeToWriter(final Source pSource, final Writer pWriter, final boolean pIndent) throws TransformerException {
+    writeToResult(pSource, new StreamResult(pWriter), pIndent);
+  }
+
+  public static void writeToResult(final Source pSource, final Result pResult) throws TransformerException{
+    writeToResult(pSource, pResult, false);
+  }
+
+  public static void writeToResult(final Source pSource, final Result pResult, final boolean pIndent)
+      throws TransformerFactoryConfigurationError, TransformerConfigurationException, TransformerException {
     final TransformerFactory factory = TransformerFactory.newInstance();
     final Transformer identityTransformer = factory.newTransformer();
-    identityTransformer.transform(pSource, outResult);
+    if (pIndent) {
+      identityTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      identityTransformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+    }
+    identityTransformer.transform(pSource, pResult);
   }
 
   public static InputStream toInputStream(final Source pSource) {
