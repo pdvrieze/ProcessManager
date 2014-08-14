@@ -187,6 +187,9 @@ public class PETransformer {
     @Override
     public List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
+      if (data==null) {
+        throw new IllegalArgumentException("No value with name "+pValueName+" found");
+      }
       List<XMLEvent> result = new ArrayList<>();
       NodeList nl = data.getNodeListValue();
       for(XMLEventReader dataReader = new NodeEventReader(nl);dataReader.hasNext();) {
@@ -352,10 +355,11 @@ public class PETransformer {
           final Iterator<Attribute> attributes = se.getAttributes();
           if (eName.getLocalPart().equals("attribute")) {
             writeAttribute(aContext, xef, xer, attributes, xew);
-          } else if (eName.getLocalPart().equals("element")) {
+          } else if (eName.getLocalPart().equals("element") ||
+              eName.getLocalPart().equals("value")) {
             writeElement(aContext, xef, xer, attributes, xew);
           } else {
-            throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier");
+            throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unsupported activity modifier ");
           }
         } else {
           xew.add(se);
