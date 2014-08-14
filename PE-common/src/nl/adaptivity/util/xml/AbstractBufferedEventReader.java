@@ -9,7 +9,7 @@ import javax.xml.stream.events.XMLEvent;
 
 
 public abstract class AbstractBufferedEventReader extends AbstractEventReader {
-  private ArrayDeque<XMLEvent> aPeekBuffer;
+  private ArrayDeque<XMLEvent> aPeekBuffer = new ArrayDeque<>();
 
   @Override
   public XMLEvent nextEvent() throws XMLStreamException {
