@@ -164,9 +164,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       newValue = null;
     }
     if (content!=null && content.size()>0) {
-      @SuppressWarnings({ "unchecked", "rawtypes" }) // This should be nodes only
-      final List<Node> nodeContent = (List)content;
-      List<Node> result = PETransformer.create(new ProcessData(name, newValue)).transform(nodeContent);
+      List<Node> result = PETransformer.create(new ProcessData(name, newValue)).transform(content);
       return new ProcessData(name, result);
     } else {
       return new ProcessData(name, newValue);

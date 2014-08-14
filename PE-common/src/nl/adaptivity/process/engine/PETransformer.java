@@ -9,6 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,6 +38,7 @@ import nl.adaptivity.util.xml.NodeEventReader;
 import nl.adaptivity.util.xml.XmlUtil;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -261,15 +264,48 @@ public class PETransformer {
     return new PETransformer(pContext);
   }
 
-  public List<Node> transform(List<? extends Node> pContent) {
-    ArrayList<Node> result = new ArrayList<>(pContent.size());
-    for(Node node: pContent) {
-      Node v = transform(node);
-      if (v!=null) {
-        result.add(v);
+  public List<Node> transform(List<? extends Object> pContent) {
+    try {
+      Document document = null;
+      ArrayList<Node> result = new ArrayList<>(pContent.size());
+      for(Object obj: pContent) {
+        if (obj instanceof CharSequence) {
+          if (document == null) {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            document = dbf.newDocumentBuilder().newDocument();
+          }
+          result.add(document.createTextNode(obj.toString()));
+        } else if (obj instanceof Node) {
+          if (document==null) { document = ((Node) obj).getOwnerDocument(); }
+          Node v = transform((Node) obj);
+          if (v!=null) {
+            result.add(v);
+          }
+        } else if (obj instanceof JAXBElement<?>) {
+          if (document == null) {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            dbf.setNamespaceAware(true);
+            document = dbf.newDocumentBuilder().newDocument();
+          }
+          JAXBElement<?> jbe = (JAXBElement<?>) obj;
+          final DocumentFragment df = document.createDocumentFragment();
+          DOMResult domResult = new DOMResult(df);
+          JAXB.marshal(jbe, domResult);
+          for(Node n = df.getFirstChild(); n!=null; n=n.getNextSibling()) {
+            Node v = transform(n);
+            if (v!=null) {
+              result.add(v);
+            }
+          }
+        } else if (obj!=null) {
+          throw new IllegalArgumentException("The node "+obj.toString()+" of type "+obj.getClass()+" is not understood");
+        }
       }
+      return result;
+    } catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
     }
-    return result;
   }
 
   public Node transform(Node pNode) {
