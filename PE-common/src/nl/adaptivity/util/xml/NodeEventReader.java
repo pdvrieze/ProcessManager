@@ -77,7 +77,7 @@ public class NodeEventReader extends AbstractBufferedEventReader {
       ++mNodesPos;
       mNamespaceContext.clear();
     }
-    return null; // end of stream
+    return peekFirst(); // end of stream, but still may have put some end nodes into the peek buffer
   }
 
   private XMLEvent createEndEvent(Node pNode) {
@@ -155,6 +155,7 @@ public class NodeEventReader extends AbstractBufferedEventReader {
   }
 
   private boolean isKnownNs(String pPrefix, String pNamespaceURI) {
+    if (pNamespaceURI==null) { return true; /* no need */ }
     for(Iterator<List<Namespace>> it = mNamespaceContext.descendingIterator(); it.hasNext();) {
       final List<Namespace> namespaces = it.next();
       for(Namespace namespace:namespaces) {
