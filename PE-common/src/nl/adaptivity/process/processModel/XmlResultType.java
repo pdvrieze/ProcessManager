@@ -53,7 +53,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
 
   @XmlMixed
   @XmlAnyElement(lax = true)
-  protected List<Object> content;
+  private List<Object> content;
 
   private String name;
 
@@ -98,10 +98,11 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
    * @param pPayload
    * @return
    */
+  @Override
   public ProcessData apply(Node pPayload) {
-    // TODO add support for varialble and function resolvers.
+    // TODO add support for variable and function resolvers.
     try {
-      Node result = (Node) path.evaluate(pPayload, XPathConstants.NODE);
+      Node result = (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
       return new ProcessData(name, result);
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
