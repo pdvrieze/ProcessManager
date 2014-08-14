@@ -22,4 +22,9 @@ public class SingletonNodeList implements NodeList {
     return 1;
   }
 
+  @Override
+  public String toString() {
+    return "[" + node.toString()+"]";
+  }
+
 }
