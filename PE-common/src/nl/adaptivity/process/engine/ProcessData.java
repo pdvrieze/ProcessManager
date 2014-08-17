@@ -17,6 +17,7 @@ import nl.adaptivity.util.xml.SingletonNodeList;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -77,9 +78,14 @@ public class ProcessData implements Named, XmlSerializable {
 
   private static DocumentFragment toDocFragment(List<Node> pValue) {
     if (pValue==null || pValue.size()==0) { return null; }
-    DocumentFragment fragment = pValue.get(0).getOwnerDocument().createDocumentFragment();
+    final Document document = pValue.get(0).getOwnerDocument();
+    DocumentFragment fragment = document.createDocumentFragment();
     for(Node n: pValue) {
-      fragment.appendChild(n);
+      if (n.getOwnerDocument()!=document) {
+        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
+      } else {
+        fragment.appendChild(n.cloneNode(true));
+      }
     }
     return fragment;
   }
