@@ -1,8 +1,13 @@
 package nl.adaptivity.process.engine.processModel;
 
+import java.util.List;
+
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.XMLEvent;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.process.engine.PETransformer.AbstractDataContext;
@@ -53,6 +58,11 @@ public class ProcessNodeInstanceContext extends AbstractDataContext {
     endPoint.setAttributeNS(XMLConstants.NULL_NS_URI, "serviceLocalName", localEndpoint.getServiceName().getLocalPart());
     endPoint.setAttributeNS(XMLConstants.NULL_NS_URI, "serviceNS", localEndpoint.getServiceName().getNamespaceURI());
     return endPoint;
+  }
+
+  @Override
+  public List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException {
+    throw new UnsupportedOperationException("There is no default in this context");
   }
 
 }
