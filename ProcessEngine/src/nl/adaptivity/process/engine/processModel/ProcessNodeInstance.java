@@ -9,34 +9,25 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.engine.PETransformer;
@@ -47,10 +38,14 @@ import nl.adaptivity.process.exec.XmlProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance.Body;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.activation.Sources;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -206,7 +201,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   @Override
   public void finishTask(DBTransaction pTransaction, final Node pResultPayload) throws SQLException {
-    aResults.add(new ProcessData(null, pResultPayload==null ? null : pResultPayload));
+    for(IXmlResultType resultType: getNode().getResults()) {
+      aResults.add(resultType.apply(pResultPayload));
+    }
     setState(pTransaction, TaskState.Complete);
   }
 
