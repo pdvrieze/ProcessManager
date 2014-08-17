@@ -35,6 +35,8 @@ import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import net.devrieze.util.StringUtil;
+
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
@@ -83,7 +85,7 @@ public class PETransformer {
             return event;
           }
         } else if (event.isCharacters()) {
-          if (! event.asCharacters().isIgnorableWhiteSpace()) {
+          if (! isIgnorableWhiteSpace(event.asCharacters())) {
             add(event);
             return event;
           }
@@ -93,6 +95,13 @@ public class PETransformer {
         }
       }
       return null;
+    }
+
+    private static boolean isIgnorableWhiteSpace(Characters pCharacters) {
+      if (pCharacters.isIgnorableWhiteSpace()) {
+        return true;
+      }
+      return XmlUtil.isXmlWhitespace(pCharacters.getData());
     }
 
     private XMLEvent peekStartElement(StartElement pElement) throws XMLStreamException {

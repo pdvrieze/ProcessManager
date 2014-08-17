@@ -190,4 +190,14 @@ public class XmlUtil {
     }
     return out.toString();
   }
+
+  public static boolean isXmlWhitespace(String pData) {
+    for(int i=pData.length()-1; i>=0; --i) {
+      final char c = pData.charAt(i);
+      if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
