@@ -61,16 +61,24 @@ public class NodeEventReader extends AbstractBufferedEventReader {
         }
         Node parent = mCurrent.getParentNode();
         while (parent!=mGuardParent && parent!=null && node==null) {
-          add(createEndEvent(parent));
+          if (parent.getNodeType()!=Node.DOCUMENT_FRAGMENT_NODE) {
+            add(createEndEvent(parent));
+          }
           node = parent.getNextSibling();
           parent = parent.getParentNode();
         }
       }
 
       if (node!=null) {
-        createEvents(node);
         mCurrent = node;
-        return peekFirst();
+        createEvents(node);
+        XMLEvent elem = peekFirst();
+        if (elem!=null) {
+          return elem;
+        } else {
+          continue;
+          // retry the loop.
+        }
       } else {
         mCurrent = null;
       }
@@ -117,7 +125,8 @@ public class NodeEventReader extends AbstractBufferedEventReader {
       case Node.TEXT_NODE:
         add(mXef.createCharacters(((Text) pNode).getData()));
         return;
-      case Node.DOCUMENT_FRAGMENT_NODE:
+      case Node.DOCUMENT_FRAGMENT_NODE: // ignore as event. The children get processed by themselves.
+        return;
       default:
         throw new IllegalArgumentException("Nodes of type "+pNode.getNodeType()+" ("+pNode.getClass().getSimpleName()+") are not supported");
     }

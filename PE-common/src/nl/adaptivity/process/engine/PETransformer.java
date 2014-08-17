@@ -30,17 +30,17 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.AbstractBufferedEventReader;
 import nl.adaptivity.util.xml.NodeEventReader;
 import nl.adaptivity.util.xml.XmlUtil;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 
 public class PETransformer {
@@ -96,7 +96,7 @@ public class PETransformer {
     }
 
     private XMLEvent peekStartElement(StartElement pElement) throws XMLStreamException {
-      if (Constants.MODIFY_NS.equals(pElement.getName().getNamespaceURI())) {
+      if (Constants.MODIFY_NS.toString().equals(pElement.getName().getNamespaceURI())) {
         String localname = pElement.getName().getLocalPart();
 
         final Map<String, String> attributes = parseAttributes(aInput, pElement);
@@ -104,10 +104,15 @@ public class PETransformer {
         switch (localname) {
           case "attribute":
             add(getAttribute(attributes));
+            readEndTag(pElement.getName());
             return peekFirst();
           case "element":
+            processElement(attributes, false);
+            readEndTag(pElement.getName());
+            return peekFirst();
           case "value":
-            processElement(attributes);
+            processElement(attributes, true);
+            readEndTag(pElement.getName());
             return peekFirst();
           default:
             throw new XMLStreamException("Unsupported element: "+pElement.getName());
@@ -118,10 +123,24 @@ public class PETransformer {
       }
     }
 
-    private void processElement(Map<String,String> pAttributes) throws XMLStreamException {
-      String valueName = pAttributes.get("value");
+    private void readEndTag(QName pName) throws XMLStreamException {
+      XMLEvent ev = aInput.nextTag();
+      if (! (ev.isEndElement() && ev.asEndElement().getName().equals(pName))) {
+        throw new XMLStreamException("Unexpected tag found ("+ev+")when expecting an end tag for "+pName);
+      }
+    }
 
-      addAll(aContext.resolveElementValue(aXef, valueName));
+    private void processElement(Map<String,String> pAttributes, boolean pHasDefault) throws XMLStreamException {
+      String valueName = pAttributes.get("value");
+      if (valueName==null) {
+        if (pHasDefault) {
+          addAll(aContext.resolveDefaultValue(aXef));
+        } else {
+          throw new XMLStreamException("This context does not allow for a missing value parameter");
+        }
+      } else {
+        addAll(aContext.resolveElementValue(aXef, valueName));
+      }
     }
 
     private static Map<String,String> parseAttributes(XMLEventReader pIn, StartElement pStartElement) throws XMLStreamException {
@@ -175,6 +194,7 @@ public class PETransformer {
   public interface PETransformerContext {
 
     List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) throws XMLStreamException;
+    List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException;
     String resolveAttributeValue(String pValueName) throws XMLStreamException;
     String resolveAttributeName(String pValueName);
 
@@ -190,6 +210,10 @@ public class PETransformer {
       if (data==null) {
         throw new IllegalArgumentException("No value with name "+pValueName+" found");
       }
+      return toEvents(data);
+    }
+
+    protected List<XMLEvent> toEvents(ProcessData data) throws XMLStreamException {
       List<XMLEvent> result = new ArrayList<>();
       NodeList nl = data.getNodeListValue();
       for(XMLEventReader dataReader = new NodeEventReader(nl);dataReader.hasNext();) {
@@ -198,6 +222,7 @@ public class PETransformer {
       return result;
     }
 
+    @SuppressWarnings("static-access")
     @Override
     public String resolveAttributeValue(String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
@@ -238,9 +263,17 @@ public class PETransformer {
   public static class ProcessDataContext extends AbstractDataContext {
 
     private ProcessData[] aProcessData;
+    private int aDefaultIdx;
 
-    public ProcessDataContext(ProcessData[] pProcessData) {
+    public ProcessDataContext(ProcessData... pProcessData) {
       aProcessData = pProcessData;
+      aDefaultIdx = pProcessData.length==1 ? 0 : -1;
+    }
+
+    public ProcessDataContext(int pDefaultIdx, ProcessData... pProcessData) {
+      assert pDefaultIdx>=-1 && pDefaultIdx<pProcessData.length;
+      aProcessData = pProcessData;
+      aDefaultIdx = pDefaultIdx;
     }
 
     @Override
@@ -249,6 +282,11 @@ public class PETransformer {
         if (pValueName.equals(candidate)) { return candidate; }
       }
       return null;
+    }
+
+    @Override
+    public List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException {
+      return toEvents(aProcessData[aDefaultIdx]);
     }
 
   }
@@ -281,7 +319,7 @@ public class PETransformer {
           result.add(document.createTextNode(obj.toString()));
         } else if (obj instanceof Node) {
           if (document==null) { document = ((Node) obj).getOwnerDocument(); }
-          Node v = transform((Node) obj);
+          DocumentFragment v = transform((Node) obj);
           if (v!=null) {
             result.add(v);
           }
@@ -296,7 +334,7 @@ public class PETransformer {
           DOMResult domResult = new DOMResult(df);
           JAXB.marshal(jbe, domResult);
           for(Node n = df.getFirstChild(); n!=null; n=n.getNextSibling()) {
-            Node v = transform(n);
+            DocumentFragment v = transform(n);
             if (v!=null) {
               result.add(v);
             }
@@ -311,20 +349,21 @@ public class PETransformer {
     }
   }
 
-  public Node transform(Node pNode) {
+  public DocumentFragment transform(Node pNode) {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     Document document;
     try {
       document = dbf.newDocumentBuilder().newDocument();
-      DOMResult result = new DOMResult(document);
+      DocumentFragment fragment = document.createDocumentFragment();
+      DOMResult result = new DOMResult(fragment);
       transform(new DOMSource(pNode), result);
-      return document.getDocumentElement();
+      return fragment;
     } catch (ParserConfigurationException | XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void transform2(Source source, final Result result) throws XMLStreamException {
+  public void transform(Source source, final Result result) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newInstance();
     final XMLOutputFactory xof = XMLOutputFactory.newInstance();
     final XMLEventReader xer = createFilter(xif.createXMLEventReader(Sources.toReader(source)));
@@ -336,7 +375,7 @@ public class PETransformer {
     return new MyFilter(aContext, pInput);
   }
 
-  public void transform(Source source, final Result result) throws XMLStreamException {
+  public void transform2(Source source, final Result result) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newInstance();
     final XMLOutputFactory xof = XMLOutputFactory.newInstance();
     // Use a reader as a DOMSource is not directly supported by stax for some stupid reason.
