@@ -122,9 +122,15 @@ public class NodeEventReader extends AbstractBufferedEventReader {
         add(mXef.createProcessingInstruction(pi.getTarget(), pi.getData()));
         return;
       }
-      case Node.TEXT_NODE:
-        add(mXef.createCharacters(((Text) pNode).getData()));
+      case Node.TEXT_NODE: {
+        final Text text = (Text) pNode;
+        if (text.isElementContentWhitespace()) {
+          add(mXef.createIgnorableSpace(text.getData()));
+        } else {
+          add(mXef.createCharacters(text.getData()));
+        }
         return;
+      }
       case Node.DOCUMENT_FRAGMENT_NODE: // ignore as event. The children get processed by themselves.
         return;
       default:
