@@ -23,6 +23,7 @@ import javax.xml.xpath.XPathExpressionException;
 
 import org.w3c.dom.Node;
 
+import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 
 
@@ -102,8 +103,16 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
   public ProcessData apply(Node pPayload) {
     // TODO add support for variable and function resolvers.
     try {
-      Node result = (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
-      return new ProcessData(name, result);
+      Node resultNode = (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
+      ProcessData processData = new ProcessData(name, resultNode);
+      if (content!=null && content.size()>0) {
+        List<Node> result = PETransformer.create(processData).transform(content);
+        return new ProcessData(name, result);
+      } else {
+        return processData;
+      }
+
+
     } catch (XPathExpressionException e) {
       throw new RuntimeException(e);
     }
