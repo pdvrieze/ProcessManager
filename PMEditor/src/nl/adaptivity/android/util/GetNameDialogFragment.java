@@ -25,9 +25,9 @@ public class GetNameDialogFragment extends DialogFragment {
     @Override
     public void onClick(DialogInterface pDialog, int pWhich) {
       if (pWhich==DialogInterface.BUTTON_POSITIVE) {
-        mOwner.onNameDialogCompletePositive(GetNameDialogFragment.this, mEditText.getText().toString());
+        mOwner.onNameDialogCompletePositive(GetNameDialogFragment.this, mId, mEditText.getText().toString());
       } else {
-        mOwner.onNameDialogCompleteNegative(GetNameDialogFragment.this);
+        mOwner.onNameDialogCompleteNegative(GetNameDialogFragment.this, mId);
       }
 
     }
@@ -46,13 +46,15 @@ public class GetNameDialogFragment extends DialogFragment {
 
   public static interface Callbacks {
 
-    void onNameDialogCompletePositive(GetNameDialogFragment pDialog, String pString);
+    void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pString);
 
-    void onNameDialogCompleteNegative(GetNameDialogFragment pDialog);
+    void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId);
 
   }
 
   Callbacks mOwner;
+
+  private int mId;
 
   public GetNameDialogFragment() { /* empty */}
 
@@ -98,13 +100,14 @@ public class GetNameDialogFragment extends DialogFragment {
 
   }
 
-  public static GetNameDialogFragment show(FragmentManager pFragmentManager, String pTitle, String pMessage, Callbacks pCallbacks) {
-    return show(pFragmentManager, pTitle, pMessage, pCallbacks, null);
+  public static GetNameDialogFragment show(FragmentManager pFragmentManager, int pId, String pTitle, String pMessage, Callbacks pCallbacks) {
+    return show(pFragmentManager, pId, pTitle, pMessage, pCallbacks, null);
   }
 
-  public static GetNameDialogFragment show(FragmentManager pFragmentManager, String pTitle, String pMessage, Callbacks pCallbacks, String pPrevious) {
+  public static GetNameDialogFragment show(FragmentManager pFragmentManager, int pId, String pTitle, String pMessage, Callbacks pCallbacks, String pPrevious) {
     GetNameDialogFragment f = new GetNameDialogFragment();
     f.setCallbacks(pCallbacks);
+    f.setId(pId);
     Bundle args = new Bundle(3);
     if (pTitle!=null) { args.putString(ARG_TITLE, pTitle); }
     if (pMessage!=null) { args.putString(ARG_MESSAGE, pMessage); }
@@ -114,5 +117,9 @@ public class GetNameDialogFragment extends DialogFragment {
     }
     f.show(pFragmentManager, "getName");
     return f;
+  }
+
+  private void setId(int pId) {
+    mId = pId;
   }
 }

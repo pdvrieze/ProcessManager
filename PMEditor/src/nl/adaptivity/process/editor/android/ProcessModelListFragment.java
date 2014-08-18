@@ -13,6 +13,7 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentUris;
@@ -61,6 +62,8 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   private static final int REQUEST_IMPORT = 31;
 
   private static final String TAG = ProcessModelListFragment.class.getSimpleName();
+
+  private static final int DLG_NEW_PM_NAME = 2;
 
   /**
    * The current activated item position. Only used on tablets.
@@ -214,7 +217,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
             DrawableProcessModel pm = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
             Uri uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
             long id = ContentUris.parseId(uri);
-            doOnItemSelected(AbsListView.INVALID_POSITION, id);
+            doOnItemSelected(AdapterView.INVALID_POSITION, id);
           } finally {
             in.close();
           }
@@ -226,16 +229,16 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   private void createNewPM() {
-    GetNameDialogFragment.show(getFragmentManager(), "Model name", "Provide the new name", this);
+    GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_PM_NAME, "Model name", "Provide the new name", this);
   }
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, String pString) {
+  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pString) {
     createNewPM(pString);
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog) {
+  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
     // ignore
   }
 
@@ -255,7 +258,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   @Override
   public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
-    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, ProcessModels.COLUMN_SYNCSTATE+" IS NULL OR ( " + ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +ProcessModels.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING+ " )", null, null);
+    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, XmlBaseColumns.COLUMN_SYNCSTATE+" IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING+ " )", null, null);
   }
 
   @Override

@@ -1,11 +1,14 @@
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 /**
  * An activity representing a single ProcessModel detail screen. This activity
@@ -16,7 +19,10 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link ProcessModelDetailFragment}.
  */
-public class ProcessModelDetailActivity extends FragmentActivity implements ProcessModelDetailFragment.Callbacks {
+public class ProcessModelDetailActivity extends FragmentActivity implements ProcessModelDetailFragment.Callbacks, GetNameDialogFragment.Callbacks {
+
+  private static final int DLG_MODEL_INSTANCE_NAME = 1;
+  private long mModelHandleToInstantiate;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +83,22 @@ public class ProcessModelDetailActivity extends FragmentActivity implements Proc
   }
 
   @Override
-  public void onInstantiateModel(long pModelHandle) {
-    ProcessModelProvider.instantiate(pModelHandle);
+  public void onInstantiateModel(long pModelHandle, String pSuggestedName) {
+    mModelHandleToInstantiate = pModelHandle;
+    GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, pSuggestedName);
+  }
+
+  @Override
+  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pName) {
+    try {
+      ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, pName);
+    } catch (RemoteException e) {
+      Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
+    }
+  }
+
+  @Override
+  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
+    mModelHandleToInstantiate=-1L;
   }
 }

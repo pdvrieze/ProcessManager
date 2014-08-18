@@ -5,6 +5,8 @@ import java.io.IOException;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
 import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
@@ -23,6 +25,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.NavUtils;
@@ -38,13 +41,16 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * The main activity that contains the navigation drawer.
  */
-public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks {
+public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks {
 
   private static final String TAG = MainActivity.class.getSimpleName();
+
+  private static final int DLG_MODEL_INSTANCE_NAME = 1;
 
   static final class DrawerAdapter extends BaseAdapter {
 
@@ -146,6 +152,8 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   private ListView mDrawerList;
 
   private CharSequence mTitle;
+
+  private long mModelHandleToInstantiate;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -268,8 +276,23 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   }
 
   @Override
-  public void onInstantiateModel(long pModelHandle) {
-    ProcessModelProvider.instantiate(pModelHandle);
+  public void onInstantiateModel(long pModelHandle, String pSuggestedName) {
+    mModelHandleToInstantiate = pModelHandle;
+    GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, pSuggestedName);
+  }
+
+  @Override
+  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pName) {
+    try {
+      ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, pName);
+    } catch (RemoteException e) {
+      Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
+    }
+  }
+
+  @Override
+  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
+    mModelHandleToInstantiate=-1L;
   }
 
   protected void showDrawerItem(int pPosition) {

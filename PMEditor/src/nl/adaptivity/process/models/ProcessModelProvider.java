@@ -16,6 +16,8 @@ import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.processModel.ProcessModel;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -29,7 +31,7 @@ public class ProcessModelProvider extends ContentProvider {
 
   public static final String AUTHORITY = "nl.adaptivity.process.models";
 
-  public static class ProcessModels implements BaseColumns {
+  public static class ProcessModels implements XmlBaseColumns {
 
     private ProcessModels(){}
 
@@ -37,9 +39,6 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_MODEL = "model";
     public static final String COLUMN_UUID = "uuid";
-
-
-    public static final String COLUMN_SYNCSTATE = "syncstate";
 
     private static final String SCHEME = "content://";
 
@@ -59,14 +58,42 @@ public class ProcessModelProvider extends ContentProvider {
 
   }
 
+  public static class ProcessInstances implements XmlBaseColumns {
+    private ProcessInstances(){}
+
+    public static final String COLUMN_HANDLE="handle";
+    public static final String COLUMN_PMHANDLE="pmhandle";
+    public static final String COLUMN_NAME="name";
+
+
+    private static final String SCHEME = "content://";
+
+    private static final String PATH_INSTANCES = "/processinstances";
+    private static final String PATH_INSTANCE_ID = PATH_INSTANCES+'/';
+    private static final String PATH_MODEL_STREAM = "/streams/";
+
+    public static final Uri CONTENT_URI = Uri.parse(SCHEME+AUTHORITY+PATH_INSTANCES);
+
+    public static final Uri CONTENT_ID_URI_BASE = Uri.parse(SCHEME+AUTHORITY+PATH_INSTANCE_ID);
+    public static final Uri CONTENT_ID_URI_PATTERN = Uri.parse(SCHEME+AUTHORITY+PATH_INSTANCE_ID+'#');
+
+    public static final String[] BASE_PROJECTION = new String[] { BaseColumns._ID, COLUMN_HANDLE, COLUMN_PMHANDLE, COLUMN_NAME };
+    public static final String SELECT_HANDLE = COLUMN_HANDLE+" = ?";
+  }
+
   private static enum QueryTarget{
     PROCESSMODELS(ProcessModels.CONTENT_URI),
     PROCESSMODEL(ProcessModels.CONTENT_ID_URI_PATTERN),
-    PROCESSMODELCONTENT(ProcessModels.CONTENT_ID_STREAM_PATTERN);
+    PROCESSMODELCONTENT(ProcessModels.CONTENT_ID_STREAM_PATTERN),
+    PROCESSINSTANCES(ProcessInstances.CONTENT_URI),
+    PROCESSINSTANCE(ProcessInstances.CONTENT_ID_URI_PATTERN),
+    ;
 
     private String path;
+    private Uri baseUri;
 
     private QueryTarget(Uri uri) {
+      baseUri = Uri.fromParts(uri.getScheme(), uri.getAuthority()+'/'+uri.getPath(), null);
       String frag = uri.getFragment();
       if (frag != null) {
         path = uri.getPath() + '#' + frag;
@@ -91,28 +118,41 @@ public class ProcessModelProvider extends ContentProvider {
 
     final QueryTarget mTarget;
     final long mId;
+    final String mTable;
+    boolean mNetNotify;
 
-    private UriHelper(QueryTarget u) {
-      this(u, -1);
+    private UriHelper(QueryTarget u, boolean netNotify) {
+      this(u, -1, netNotify);
     }
 
-    private UriHelper(QueryTarget u, long id) {
+    private UriHelper(QueryTarget u, long id, boolean netNotify) {
       mTarget = u;
       mId = id;
+      mNetNotify = netNotify;
+      mTable = u==QueryTarget.PROCESSINSTANCE|| u==QueryTarget.PROCESSINSTANCES ? ProcessModelsOpenHelper.TABLE_INSTANCES_NAME: ProcessModelsOpenHelper.TABLE_NAME;
     }
 
     static UriHelper parseUri(Uri query) {
+      boolean netNotify;
+      if ("nonetnotify".equals(query.getFragment())) {
+        query = Uri.fromParts(query.getScheme(), query.getEncodedSchemeSpecificPart(), null);
+        netNotify=false;
+      } else {
+        netNotify=true;
+      }
       int ord = _uriMatcher.match(query);
       if (ord<0) { throw new IllegalArgumentException("Unknown URI: "+query); }
       QueryTarget u = QueryTarget.values()[ord];
 
       switch (u) {
       case PROCESSMODEL:
-        return new UriHelper(u, ContentUris.parseId(query));
+        return new UriHelper(u, ContentUris.parseId(query), netNotify);
       case PROCESSMODELCONTENT:
-        return new UriHelper(u, ContentUris.parseId(query));
+        return new UriHelper(u, ContentUris.parseId(query), netNotify);
+      case PROCESSINSTANCE:
+        return new UriHelper(u, ContentUris.parseId(query), netNotify);
       default:
-        return new UriHelper(u);
+        return new UriHelper(u, netNotify);
       }
     }
   }
@@ -168,6 +208,10 @@ public class ProcessModelProvider extends ContentProvider {
       return "vnd.android.cursor.item/vnd.nl.adaptivity.process.processmodel";
     case PROCESSMODELS:
       return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.processmodel";
+    case PROCESSINSTANCE:
+      return "vnd.android.cursor.item/vnd.nl.adaptivity.process.processinstance";
+    case PROCESSINSTANCES:
+      return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.processinstance";
     case PROCESSMODELCONTENT:
       return "application/vnd.nl.adaptivity.process.processmodel";
     }
@@ -183,6 +227,10 @@ public class ProcessModelProvider extends ContentProvider {
         mimetype = "vnd.android.cursor.item/vnd.nl.adaptivity.process.processmodel";break;
       case PROCESSMODELS:
         mimetype = "vnd.android.cursor.dir/vnd.nl.adaptivity.process.processmodel";break;
+      case PROCESSINSTANCE:
+        mimetype = "vnd.android.cursor.item/vnd.nl.adaptivity.process.processinstance";break;
+      case PROCESSINSTANCES:
+        mimetype = "vnd.android.cursor.dir/vnd.nl.adaptivity.process.processinstance";break;
       case PROCESSMODELCONTENT:
         mimetype = "application/vnd.nl.adaptivity.process.processmodel";break;
       default:
@@ -207,50 +255,62 @@ public class ProcessModelProvider extends ContentProvider {
   @Override
   public Cursor query(Uri pUri, String[] pProjection, String pSelection, String[] pSelectionArgs, String pSortOrder) {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.PROCESSMODEL) {
+    if (helper.mId>=0) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = ProcessModels._ID+" = ?";
+        pSelection = BaseColumns._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels._ID+" = ? )";
+        pSelection = "( "+pSelection+" ) AND ( "+BaseColumns._ID+" = ? )";
       }
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
 
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    final Cursor result = db.query(ProcessModelsOpenHelper.TABLE_NAME, pProjection, pSelection, pSelectionArgs, null, null, pSortOrder);
+    final Cursor result = db.query(helper.mTable, pProjection, pSelection, pSelectionArgs, null, null, pSortOrder);
     result.setNotificationUri(getContext().getContentResolver(), pUri);
     return result;
   }
 
   @Override
   public Uri insert(Uri pUri, ContentValues pValues) {
+    if (! pValues.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
+      pValues.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
+    }
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.PROCESSMODEL && helper.mId>=0) {
-      pValues.put(ProcessModels._ID, Long.valueOf(helper.mId));
+    if (helper.mId>=0) {
+      pValues.put(BaseColumns._ID, Long.valueOf(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    long id = db.insert(ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_NAME, pValues);
-    final Uri result = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_PATTERN, id);
-    getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
-    getContext().getContentResolver().notifyChange(result, null);
-    return result;
+    long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, pValues);
+    return notify(helper, id);
+  }
+
+  private Uri notify(UriHelper pHelper, long pId) {
+    ContentResolver cr = getContext().getContentResolver();
+    Uri baseUri = pHelper.mTarget.baseUri;
+    cr.notifyChange(baseUri, null, false);
+    if (pId>=0) {
+      Uri result = ContentUris.withAppendedId(baseUri, pId);
+      cr.notifyChange(result, null, pHelper.mNetNotify);
+      return result;
+    }
+    return baseUri;
   }
 
   @Override
   public int delete(Uri pUri, String pSelection, String[] pSelectionArgs) {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.PROCESSMODEL) {
+    if (helper.mId>=0) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = ProcessModels._ID+" = ?";
+        pSelection = BaseColumns._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels._ID+" = ? )";
+        pSelection = "( "+pSelection+" ) AND ( "+BaseColumns._ID+" = ? )";
       }
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.delete(ProcessModelsOpenHelper.TABLE_NAME, pSelection, pSelectionArgs);
+    final int result = db.delete(helper.mTable, pSelection, pSelectionArgs);
     if (result>0) {
-      getContext().getContentResolver().notifyChange(ProcessModels.CONTENT_ID_URI_BASE, null);
+      notify(helper, helper.mId);
     }
     return result;
   }
@@ -258,18 +318,18 @@ public class ProcessModelProvider extends ContentProvider {
   @Override
   public int update(Uri pUri, ContentValues pValues, String pSelection, String[] pSelectionArgs) {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.PROCESSMODEL) {
+    if (helper.mId>=0) {
       if (pSelection==null || pSelection.length()==0) {
-        pSelection = ProcessModels._ID+" = ?";
+        pSelection = BaseColumns._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+ProcessModels._ID+" = ? )";
+        pSelection = "( "+pSelection+" ) AND ( "+BaseColumns._ID+" = ? )";
       }
       pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.update(ProcessModelsOpenHelper.TABLE_NAME, pValues, pSelection, pSelectionArgs);
+    final int result = db.update(helper.mTable, pValues, pSelection, pSelectionArgs);
     if (result>0) {
-      getContext().getContentResolver().notifyChange(pUri, null);
+      getContext().getContentResolver().notifyChange(pUri, null, helper.mNetNotify);
     }
     return result;
   }
@@ -339,7 +399,7 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   private static ProcessModel<?> getProcessModel(InputStream in) {
-    final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+    final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
     return PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
   }
 
@@ -366,8 +426,24 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static void instantiate(long pModelHandle) {
-    // TODO Auto-generated method stub
+  public static Uri instantiate(Context context, long pModelHandle, String pName) throws RemoteException {
+
+    final ContentResolver contentResolver = context.getContentResolver();
+    ContentProviderClient client = contentResolver.acquireContentProviderClient(ProcessInstances.CONTENT_ID_URI_BASE);
+    try {
+      ContentValues cv = new ContentValues(3);
+      cv.put(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pModelHandle));
+      cv.put(ProcessInstances.COLUMN_NAME, pName);
+      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
+      try {
+        return client.insert(ProcessInstances.CONTENT_ID_URI_BASE, cv);
+      } catch (RemoteException e) {
+        throw e;
+//        throw new IOException(e);
+      }
+    } finally {
+      client.release();
+    }
 
   }
 

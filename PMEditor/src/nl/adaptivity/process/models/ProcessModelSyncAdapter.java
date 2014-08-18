@@ -195,7 +195,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
     result.put(ProcessModels.COLUMN_HANDLE, handle);
     result.put(ProcessModels.COLUMN_NAME, name);
     result.put(ProcessModels.COLUMN_UUID, uuid.toString());
-    result.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
+    result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
     return new SimpleContentValuesProvider(result);
   }
 
@@ -238,9 +238,12 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
         in.close();
       }
       ContentValues cv = new ContentValues(2);
-      cv.put(ProcessModels.COLUMN_SYNCSTATE, SYNC_UPTODATE);
+      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE);
       cv.put(ProcessModels.COLUMN_MODEL, out.toString());
-      return pProvider.update(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), cv, null, null)>0;
+      return pProvider.update(ProcessModels.CONTENT_ID_URI_BASE.buildUpon()
+                          .appendPath(Long.toString(pId))
+                          .encodedFragment("nonetnotify")
+                          .build(), cv, null, null)>0;
     } else {
       response.getEntity().consumeContent();
     }
@@ -254,7 +257,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapter {
 
   @Override
   protected String getSyncStateColumn() {
-    return ProcessModels.COLUMN_SYNCSTATE;
+    return XmlBaseColumns.COLUMN_SYNCSTATE;
   }
 
   @Override

@@ -45,7 +45,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public interface Callbacks {
     void onItemSelected(long pProcessModelRowId);
 
-    void onInstantiateModel(long pModelHandle);
+    void onInstantiateModel(long pModelHandle, String pSuggestedName);
   }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -66,6 +66,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public static final String ARG_ITEM_ID = "item_id";
 
   private static final int LOADER_ITEM = 0;
+
+  private static final int DLG_NEW_MODEL_NAME_CLONE = 3;
 
   Callbacks mCallbacks;
 
@@ -214,23 +216,22 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   public void btnPmExecClicked() {
-    mCallbacks.onInstantiateModel(mModelHandle);
-    // Don't do anything yet
+    mCallbacks.onInstantiateModel(mModelHandle.longValue(), mTVName.getText()+" Instance");
   }
 
   public void btnPmCloneClicked() {
     CharSequence previousName = mTVName.getText();
     String suggestedNewName = ProcessModelUtil.suggestNewName(getActivity(), previousName);
 
-    GetNameDialogFragment.show(getFragmentManager(), "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
+    GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
 
       @Override
-      public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, String pString) {
+      public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pString) {
         cloneWithName(pString);
       }
 
       @Override
-      public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog) {
+      public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
         // ignore
       }
     }, suggestedNewName);

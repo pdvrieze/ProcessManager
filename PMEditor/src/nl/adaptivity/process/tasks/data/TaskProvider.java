@@ -143,18 +143,27 @@ public class TaskProvider extends ContentProvider {
     final QueryTarget mTarget;
     final long mId;
     final public String mTable;
+    private boolean mNetNotify;
 
-    private UriHelper(QueryTarget u) {
-      this(u, -1);
+    private UriHelper(QueryTarget u, boolean netNotify) {
+      this(u, -1, netNotify);
     }
 
-    private UriHelper(QueryTarget u, long id) {
+    private UriHelper(QueryTarget u, long id, boolean netNotify) {
       mTarget = u;
       mId = id;
+      mNetNotify = netNotify;
       mTable = u.table;
     }
 
     static UriHelper parseUri(Uri query) {
+      boolean netNotify;
+      if ("nonetnotify".equals(query.getFragment())) {
+        query = Uri.fromParts(query.getScheme(), query.getEncodedSchemeSpecificPart(), null);
+        netNotify=false;
+      } else {
+        netNotify=true;
+      }
       int ord = _uriMatcher.match(query);
       if (ord<0) { throw new IllegalArgumentException("Unknown URI: "+query); }
       QueryTarget u = QueryTarget.values()[ord];
@@ -163,9 +172,9 @@ public class TaskProvider extends ContentProvider {
       case TASK:
       case TASKOPTION:
       case TASKITEM:
-        return new UriHelper(u, ContentUris.parseId(query));
+        return new UriHelper(u, ContentUris.parseId(query), netNotify);
       default:
-        return new UriHelper(u);
+        return new UriHelper(u, netNotify);
       }
     }
   }
@@ -272,9 +281,9 @@ public class TaskProvider extends ContentProvider {
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     long id = db.insert(helper.mTable, null, pValues);
-    final Uri result = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_PATTERN, id);
-    getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
-    getContext().getContentResolver().notifyChange(result, null);
+    final Uri result = ContentUris.withAppendedId(pUri, id);
+    getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null, false);
+    getContext().getContentResolver().notifyChange(result, null, helper.mNetNotify);
     return result;
   }
 
@@ -311,10 +320,10 @@ public class TaskProvider extends ContentProvider {
             " WHERE " + pSelection + " )";
         db.delete(TasksOpenHelper.TABLE_NAME_OPTIONS, optionSelection, pSelectionArgs);
       }
-      getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
+      getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null, false);
       final int result = db.delete(helper.mTable, pSelection, pSelectionArgs);
       if (result>0) {
-        getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null);
+        getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null, helper.mNetNotify);
       }
       db.setTransactionSuccessful();
       return result;
@@ -337,7 +346,7 @@ public class TaskProvider extends ContentProvider {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     final int result = db.update(helper.mTable, pValues, pSelection, pSelectionArgs);
     if (result>0) {
-      getContext().getContentResolver().notifyChange(pUri, null);
+      getContext().getContentResolver().notifyChange(pUri, null, helper.mNetNotify);
     }
     return result;
   }

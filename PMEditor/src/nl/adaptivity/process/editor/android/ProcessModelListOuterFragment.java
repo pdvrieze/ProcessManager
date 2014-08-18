@@ -29,7 +29,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
     void requestSyncProcessModelList(boolean pImmediate);
 
-    void onInstantiateModel(long pModelHandle);
+    void onInstantiateModel(long pModelHandle, String pSuggestedName);
 
   }
 
@@ -127,7 +127,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  public void onInstantiateModel(long pModelHandle) {
-    mCallbacks.onInstantiateModel(pModelHandle);
+  public void onInstantiateModel(long pModelHandle, String pSuggestedName) {
+    mCallbacks.onInstantiateModel(pModelHandle, pSuggestedName);
   }
 }

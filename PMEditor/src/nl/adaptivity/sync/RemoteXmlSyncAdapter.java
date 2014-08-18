@@ -39,6 +39,9 @@ import android.util.Log;
 @SuppressWarnings("boxing")
 public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
+  public interface XmlBaseColumns extends BaseColumns {
+    public static final String COLUMN_SYNCSTATE = "syncstate";
+  }
 
   public interface ContentValuesProvider {
     public ContentValues getContentValues();
@@ -148,12 +151,12 @@ public abstract class RemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter {
 
   public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, Uri pListContentUri) {
     super(pContext, pAutoInitialize);
-    mListContentUri = pListContentUri;
+    mListContentUri = pListContentUri.buildUpon().encodedFragment("nonetnotify").build();
   }
 
   public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, boolean pAllowParallelSyncs, Uri pListContentUri) {
     super(pContext, pAutoInitialize, pAllowParallelSyncs);
-    mListContentUri = pListContentUri;
+    mListContentUri = pListContentUri.buildUpon().encodedFragment("nonetnotify").build();
   }
 
   @Override
