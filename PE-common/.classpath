@@ -6,7 +6,11 @@
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/java-common"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/java-common">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/DarwinJavaApi"/>
 	<classpathentry exported="true" kind="src" path="/DarwinCommon"/>

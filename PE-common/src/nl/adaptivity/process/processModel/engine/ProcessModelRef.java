@@ -7,10 +7,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import net.devrieze.util.HandleMap.Handle;
-
-import nl.adaptivity.process.processModel.ProcessModel;
-
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "processModel")
