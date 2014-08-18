@@ -13,7 +13,6 @@ import javax.xml.transform.stax.StAXResult;
 
 import net.devrieze.util.Named;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.SingletonNodeList;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 
@@ -25,42 +24,14 @@ import org.w3c.dom.NodeList;
 /** Class to represent data attached to process instances. */
 public class ProcessData implements Named, XmlSerializable {
 
-
-
-  private static class MyNodeList implements NodeList{
-    private final Node[] nodes;
-
-    public MyNodeList(List<Node> pList) {
-      nodes = new Node[pList.size()];
-      for(int i=nodes.length-1; i>=0; --i) {
-        nodes[i]=pList.get(i);
-      }
-    }
-
-    @Override
-    public Node item(int pIndex) {
-      try {
-        return nodes[pIndex];
-      } catch (ArrayIndexOutOfBoundsException e) {
-        return null;
-      }
-    }
-
-    @Override
-    public int getLength() {
-      return nodes.length;
-    }
-
-  }
-
   private final String mName;
-  private final Object mValue;
-  private final boolean mIsNodeList;
+  private final Node mValue;
+  private final boolean mIsNodeList = false;
 
-  private ProcessData(String pName, Object pValue, boolean pIsNodeList) {
+  private ProcessData(String pName, Node pValue, boolean pIsNodeList) {
+    assert pIsNodeList==false;
     mName = pName;
     mValue = pValue;
-    mIsNodeList = pIsNodeList;
   }
 
   public ProcessData(String pName, Node pValue) {
@@ -68,7 +39,28 @@ public class ProcessData implements Named, XmlSerializable {
   }
 
   public ProcessData(String pName, NodeList pValue) {
-    this(pName, pValue, true);
+    this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : toDocFragment(pValue), false);
+  }
+
+  private static Node toNode(NodeList pValue) {
+    if (pValue==null|| pValue.getLength()==0) { return null; }
+    assert pValue.getLength()==1;
+    return pValue.item(0);
+  }
+
+  private static DocumentFragment toDocFragment(NodeList pValue) {
+    if (pValue==null || pValue.getLength()==0) { return null; }
+    Document document = pValue.item(0).getOwnerDocument();
+    DocumentFragment fragment = document.createDocumentFragment();
+    for(int i=0; i<pValue.getLength(); ++i) {
+      final Node n = pValue.item(i);
+      if (n.getOwnerDocument()!=document) {
+        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
+      } else {
+        fragment.appendChild(n.cloneNode(true));
+      }
+    }
+    return fragment;
   }
 
   public ProcessData(String pName, List<Node> pValue) {
@@ -102,27 +94,21 @@ public class ProcessData implements Named, XmlSerializable {
   }
 
   public Node getNodeValue() {
-    if (mValue instanceof Node) {
-      return (Node) mValue;
+    if (mValue instanceof DocumentFragment && mValue.getFirstChild()!=null && mValue.getFirstChild().getNextSibling()==null) {
+      return mValue.getFirstChild();
     }
-    if (mValue instanceof NodeList) {
-      NodeList nl = (NodeList) mValue;
-      if (nl.getLength()==1) {
-        return nl.item(0);
-      }
-    }
-    return null;
+    return mValue;
   }
 
-  public NodeList getNodeListValue() {
-    // First check for node as for some reason the implementation in java
-    // also implements NodeList (but that would be the list of children)
-    if (mValue instanceof Node) {
-      return new SingletonNodeList((Node) mValue);
-    } else if (mValue instanceof NodeList) {
-      return (NodeList) mValue;
+  public DocumentFragment getDocumentFragment() {
+    if (mValue instanceof DocumentFragment) {
+      return (DocumentFragment) mValue;
+    } else if (mValue==null) {
+      return null;
     }
-    return null;
+    DocumentFragment fragment = mValue.getOwnerDocument().createDocumentFragment();
+    fragment.appendChild(mValue.cloneNode(true));
+    return fragment;
   }
 
   public Object getGenericValue() {
@@ -167,7 +153,7 @@ public class ProcessData implements Named, XmlSerializable {
     try {
       pOut.writeAttribute("name", mName);
       if (! mIsNodeList) {
-        XmlUtil.serialize(pOut, new DOMSource((Node) mValue));
+        XmlUtil.serialize(pOut, new DOMSource(mValue));
       } else if (mValue instanceof NodeList) {
         serializeNodeList(pOut);
       }

@@ -30,19 +30,16 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import net.devrieze.util.StringUtil;
-
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.AbstractBufferedEventReader;
 import nl.adaptivity.util.xml.NodeEventReader;
 import nl.adaptivity.util.xml.XmlUtil;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 
 
 public class PETransformer {
@@ -224,18 +221,17 @@ public class PETransformer {
 
     protected List<XMLEvent> toEvents(ProcessData data) throws XMLStreamException {
       List<XMLEvent> result = new ArrayList<>();
-      NodeList nl = data.getNodeListValue();
-      for(XMLEventReader dataReader = new NodeEventReader(nl);dataReader.hasNext();) {
+      DocumentFragment frag = data.getDocumentFragment();
+      for(XMLEventReader dataReader = new NodeEventReader(frag);dataReader.hasNext();) {
         result.add(dataReader.nextEvent());
       }
       return result;
     }
 
-    @SuppressWarnings("static-access")
     @Override
     public String resolveAttributeValue(String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
-      XMLEventReader dataReader = new NodeEventReader(data.getNodeListValue());
+      XMLEventReader dataReader = new NodeEventReader(data.getDocumentFragment());
       StringBuilder result = new StringBuilder();
       while (dataReader.hasNext()) {
         XMLEvent event = dataReader.nextEvent();
@@ -264,7 +260,7 @@ public class PETransformer {
     @Override
     public String resolveAttributeName(String pValueName) {
       ProcessData data = getData(pValueName);
-      return XmlUtil.toString(data.getNodeListValue());
+      return XmlUtil.toString(data.getDocumentFragment());
     }
 
   }

@@ -24,10 +24,10 @@ import javax.xml.xpath.XPathExpressionException;
 
 import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.engine.PETransformer;
-import nl.adaptivity.process.engine.PETransformer.PETransformerContext;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -152,23 +152,22 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   }
 
   public <T extends IProcessNodeInstance<T>> ProcessData apply(DBTransaction pTransaction, IProcessNodeInstance<T> pNode) throws SQLException {
-    final NodeList newValue;
+    final ProcessData processData;
     if (refNode!=null) {
       IProcessNodeInstance<T> predecessor = pNode.getPredecessor(pTransaction, refNode);
       ProcessData origpair = predecessor.getResult(pTransaction, refName);
       try {
         if (getXPath()==null) {
-          newValue = origpair.getNodeListValue();
+          processData = new ProcessData(name, origpair.getDocumentFragment());
         } else {
-          newValue = (NodeList) getXPath().evaluate(origpair.getGenericValue(), XPathConstants.NODESET);
+          processData = new ProcessData(name, (NodeList) getXPath().evaluate(origpair.getNodeValue(), XPathConstants.NODESET));
         }
       } catch (XPathExpressionException e) {
         throw new RuntimeException(e);
       }
     } else {
-      newValue = null;
+      processData = null;
     }
-    final ProcessData processData = new ProcessData(name, newValue);
     if (content!=null && content.size()>0) {
       List<Node> result = PETransformer.create(processData).transform(content);
       return new ProcessData(name, result);
