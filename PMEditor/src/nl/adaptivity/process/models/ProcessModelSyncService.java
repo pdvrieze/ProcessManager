@@ -8,7 +8,7 @@ import android.os.IBinder;
 public class ProcessModelSyncService extends Service {
 
   // Storage for an instance of the sync adapter
-  private static ProcessModelSyncAdapter sSyncAdapter = null;
+  private static ProcessSyncAdapter sSyncAdapter = null;
   // Object to use as a thread-safe lock
   private static final Object sSyncAdapterLock = new Object();
   /*
@@ -18,7 +18,7 @@ public class ProcessModelSyncService extends Service {
   public void onCreate() {
       synchronized (sSyncAdapterLock) {
           if (sSyncAdapter == null) {
-              sSyncAdapter = new ProcessModelSyncAdapter(getApplicationContext());
+              sSyncAdapter = new ProcessSyncAdapter(getApplicationContext());
           }
       }
   }

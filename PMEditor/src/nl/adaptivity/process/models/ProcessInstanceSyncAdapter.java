@@ -19,7 +19,10 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import static org.xmlpull.v1.XmlPullParser.*;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.MultipartEntity;
+import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
@@ -30,38 +33,41 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 @SuppressWarnings("boxing")
-public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
+public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
-  private static final String TAG_PROCESSMODELS = "processModels";
-  private static final String TAG_PROCESSMODEL = "processModel";
-  private static final String TAG = ProcessModelSyncAdapter.class.getSimpleName();
+  private static final String TAG_PROCESSMODELS = "processInstances";
+  private static final String TAG_PROCESSMODEL = "processInstance";
+  private static final String TAG = ProcessInstanceSyncAdapter.class.getSimpleName();
 
-  public ProcessModelSyncAdapter() {
-    super(ProcessModels.CONTENT_ID_URI_BASE);
+  public ProcessInstanceSyncAdapter() {
+    super(ProcessInstances.CONTENT_ID_URI_BASE);
   }
 
   @Override
   protected String getListUrl(String pBase) {
-    return pBase+"/processModels";
+    return pBase+"/processInstances";
   }
 
   @Override
   protected ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
-    String model;
+    long pmHandle;
     long handle;
     {
-      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL, ProcessModels.COLUMN_HANDLE }, null, null, null);
+      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_HANDLE, ProcessInstances.COLUMN_NAME }, null, null, null);
       try {
         if (pendingPosts.moveToFirst()) {
-          model = pendingPosts.getString(0);
+          pmHandle = pendingPosts.getLong(0);
           handle = pendingPosts.getLong(1);
         } else {
           return null;
@@ -72,7 +78,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       }
     }
 
-    return postToServer(pDelegator, pDelegator.getSyncSource()+"/processModels/"+handle, model, pSyncResult);
+    return postToServer(pDelegator, pDelegator.getSyncSource()+"/processInstances/"+handle, pmhandle, , pSyncResult);
   }
 
   @Override
@@ -92,10 +98,10 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       }
     }
 
-    return postToServer(pDelegator, pDelegator.getSyncSource()+"/processModels", model, pSyncResult);
+    return postToServer(pHttpClient, getSyncSource()+"/processModels", model, pSyncResult);
   }
 
-  private ContentValuesProvider postToServer(DelegatingResources pDelegator, final String url, String model, SyncResult pSyncResult) throws ClientProtocolException,
+  private ContentValuesProvider postToServer(AuthenticatedWebClient pHttpClient, final String url, String model, SyncResult pSyncResult) throws ClientProtocolException,
       IOException, XmlPullParserException {
     HttpPost post = new HttpPost(url);
     try {
@@ -105,10 +111,10 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-    HttpResponse response = pDelegator.getWebClient().execute(post);
+    HttpResponse response = pHttpClient.execute(post);
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
-      XmlPullParser parser = pDelegator.newPullParser();
+      XmlPullParser parser = newPullParser();
       parser.setInput(response.getEntity().getContent(), "UTF8");
 
       parser.nextTag(); // Skip document start etc.
@@ -140,9 +146,9 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       }
     }
 
-    String uri = pDelegator.getSyncSource()+"/processModels/"+handle;
+    String uri = getSyncSource()+"/processModels/"+handle;
     HttpDelete request = new HttpDelete(uri);
-    HttpResponse response = pDelegator.getWebClient().execute(request);
+    HttpResponse response = pHttpClient.execute(request);
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       CharArrayWriter out = new CharArrayWriter();
@@ -156,7 +162,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       Log.i(TAG, "Response on deleting item: \""+out.toString()+"\"");
 
       ContentValues cv = new ContentValues(1);
-      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+      cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
       return new SimpleContentValuesProvider(cv);
     } else {
       response.getEntity().consumeContent();
@@ -214,9 +220,9 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
         cursor.close();
       }
     }
-    String uri = getListUrl(pDelegator.getSyncSource())+"/"+handle;
+    String uri = getListUrl(getSyncSource())+"/"+handle;
     HttpGet request = new HttpGet(uri);
-    HttpResponse response = pDelegator.getWebClient().execute(request);
+    HttpResponse response = pHttpClient.execute(request);
     // TODO Auto-generated method stub
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
