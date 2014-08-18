@@ -12,6 +12,7 @@ public class XPathHolder {
 
   private static final XPathExpression SELF_PATH;
   private XPathExpression path;
+  private String pathString;
 
   static {
     try {
@@ -27,10 +28,13 @@ public class XPathHolder {
 
   @XmlAttribute
   public String getPath() {
-    return path.toString();
+    return pathString;
   }
 
   public void setPath(final String value) {
+    if (pathString!=null && pathString.equals(value)) { return; }
+    path = null;
+    pathString = value;
     if (value==null) {
       path = null;
     } else {
@@ -44,9 +48,19 @@ public class XPathHolder {
   }
 
   public XPathExpression getXPath() {
-    return path !=null ? path : SELF_PATH;
+    if (path==null) {
+      if (pathString==null) {
+        path = SELF_PATH;
+      } else {
+        XPathFactory f = XPathFactory.newInstance();
+        try {
+          path = f.newXPath().compile(pathString);
+        } catch (XPathExpressionException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+    return path;
   }
-
-  public void setXPath(XPathExpression xpath) { path = xpath; }
 
 }

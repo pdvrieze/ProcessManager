@@ -142,11 +142,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     result.refName = pExport.getRefName();
     result.refNode = pExport.getRefNode();
     result.name = pExport.getName();
-    if (pExport instanceof XmlDefineType) {
-      result.setXPath(((XmlDefineType) pExport).getXPath());
-    } else {
-      result.setPath(pExport.getPath());
-    }
+    result.setPath(pExport.getPath());
     return result;
   }
 
