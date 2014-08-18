@@ -29,6 +29,8 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
     void requestSyncProcessModelList(boolean pImmediate);
 
+    void onInstantiateModel(long pModelHandle);
+
   }
 
 
@@ -122,5 +124,10 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   @Override
   public CharSequence getTitle(Context pContext) {
     return pContext.getString(R.string.title_processmodel_list);
+  }
+
+  @Override
+  public void onInstantiateModel(long pModelHandle) {
+    mCallbacks.onInstantiateModel(pModelHandle);
   }
 }

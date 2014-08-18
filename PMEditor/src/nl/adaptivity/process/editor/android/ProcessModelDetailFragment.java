@@ -44,6 +44,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   public interface Callbacks {
     void onItemSelected(long pProcessModelRowId);
+
+    void onInstantiateModel(long pModelHandle);
   }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -212,6 +214,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   public void btnPmExecClicked() {
+    mCallbacks.onInstantiateModel(mModelHandle);
     // Don't do anything yet
   }
 

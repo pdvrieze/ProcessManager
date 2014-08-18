@@ -366,4 +366,9 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
+  public static void instantiate(long pModelHandle) {
+    // TODO Auto-generated method stub
+
+  }
+
 }

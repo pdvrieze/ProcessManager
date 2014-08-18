@@ -1,5 +1,6 @@
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.process.models.ProcessModelProvider;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -73,5 +74,10 @@ public class ProcessModelDetailActivity extends FragmentActivity implements Proc
       startActivity(intent);
     }
     finish();
+  }
+
+  @Override
+  public void onInstantiateModel(long pModelHandle) {
+    ProcessModelProvider.instantiate(pModelHandle);
   }
 }

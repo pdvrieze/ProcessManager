@@ -267,6 +267,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
     mDrawerLayout.closeDrawer(mDrawerList);
   }
 
+  @Override
+  public void onInstantiateModel(long pModelHandle) {
+    ProcessModelProvider.instantiate(pModelHandle);
+  }
+
   protected void showDrawerItem(int pPosition) {
     TitleFragment newFragment = mDrawerAdapter.getItem(pPosition);
     getSupportFragmentManager()
