@@ -94,7 +94,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return The list of process models.
    */
   public Iterable<ProcessModelImpl> getProcessModels(DBTransaction pTransaction) {
-    return aProcessModels.iterable(pTransaction);
+    return getProcessModels().iterable(pTransaction);
   }
 
   /**
