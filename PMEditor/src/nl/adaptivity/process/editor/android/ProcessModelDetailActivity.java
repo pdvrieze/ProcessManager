@@ -73,7 +73,7 @@ public class ProcessModelDetailActivity extends FragmentActivity implements Proc
   }
 
   @Override
-  public void onItemSelected(long pProcessModelRowId) {
+  public void onProcessModelSelected(long pProcessModelRowId) {
     if (pProcessModelRowId>=0) {
       Intent intent = new Intent(this, ProcessModelDetailActivity.class);
       intent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);

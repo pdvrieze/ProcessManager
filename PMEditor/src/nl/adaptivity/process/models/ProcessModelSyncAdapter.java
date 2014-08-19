@@ -109,11 +109,17 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       XmlPullParser parser = pDelegator.newPullParser();
-      parser.setInput(response.getEntity().getContent(), "UTF8");
+      final InputStream content = response.getEntity().getContent();
+      try {
+        parser.setInput(content, "UTF8");
 
-      parser.nextTag(); // Skip document start etc.
-      ContentValuesProvider values = parseItem(parser);
-      return values;
+        parser.nextTag(); // Skip document start etc.
+        ContentValuesProvider values = parseItem(parser);
+        return values;
+      } finally {
+        content.close();
+        response.getEntity().consumeContent();
+      }
 
     } else {
       response.getEntity().consumeContent();
@@ -147,17 +153,22 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
     if (status>=200 && status<400) {
       CharArrayWriter out = new CharArrayWriter();
       InputStream ins = response.getEntity().getContent();
-      Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
-      char[] buffer = new char[2048];
-      int cnt;
-      while ((cnt=in.read(buffer))>=0) {
-        out.write(buffer, 0, cnt);
-      }
-      Log.i(TAG, "Response on deleting item: \""+out.toString()+"\"");
+      try {
+        Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
+        char[] buffer = new char[2048];
+        int cnt;
+        while ((cnt=in.read(buffer))>=0) {
+          out.write(buffer, 0, cnt);
+        }
+        Log.i(TAG, "Response on deleting item: \""+out.toString()+"\"");
 
-      ContentValues cv = new ContentValues(1);
-      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
-      return new SimpleContentValuesProvider(cv);
+        ContentValues cv = new ContentValues(1);
+        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+        return new SimpleContentValuesProvider(cv);
+      } finally {
+        ins.close();
+        response.getEntity().consumeContent();
+      }
     } else {
       response.getEntity().consumeContent();
     }
@@ -230,6 +241,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
         }
       } finally {
         in.close();
+        response.getEntity().consumeContent();
       }
       ContentValues cv = new ContentValues(2);
       cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE);

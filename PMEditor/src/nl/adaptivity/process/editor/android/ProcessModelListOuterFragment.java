@@ -29,7 +29,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
     void requestSyncProcessModelList(boolean pImmediate);
 
-    void onInstantiateModel(long pModelHandle, String pSuggestedName);
+    void onInstantiateModel(long pId, String pSuggestedName);
 
   }
 
@@ -72,14 +72,14 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
    * that the item with the given ID was selected.
    */
   @Override
-  public void onItemSelected(long pProcessModelRowId) {
+  public void onProcessModelSelected(long pProcessModelId) {
     if (mTwoPane) {
-      if (pProcessModelRowId>=0) {
+      if (pProcessModelId>=0) {
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.
         Bundle arguments = new Bundle();
-        arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
+        arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelId);
         ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
         fragment.setArguments(arguments);
         getChildFragmentManager().beginTransaction()
@@ -95,11 +95,11 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
       }
 
     } else {
-      if (pProcessModelRowId>=0) {
+      if (pProcessModelId>=0) {
         // In single-pane mode, simply start the detail activity
         // for the selected item ID.
         Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
-        detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
+        detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelId);
         startActivity(detailIntent);
       }
     }
@@ -127,7 +127,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  public void onInstantiateModel(long pModelHandle, String pSuggestedName) {
-    mCallbacks.onInstantiateModel(pModelHandle, pSuggestedName);
+  public void onInstantiateModel(long pModelId, String pSuggestedName) {
+    mCallbacks.onInstantiateModel(pModelId, pSuggestedName);
   }
 }

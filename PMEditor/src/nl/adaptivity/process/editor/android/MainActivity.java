@@ -1,12 +1,13 @@
 package nl.adaptivity.process.editor.android;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.TreeSet;
 
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
-import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
 import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
@@ -46,7 +47,7 @@ import android.widget.Toast;
 /**
  * The main activity that contains the navigation drawer.
  */
-public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks {
+public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
 
   private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -153,7 +154,8 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
 
   private CharSequence mTitle;
 
-  private long mModelHandleToInstantiate;
+  private long mModelIdToInstantiate;
+  private Set<String> mPendingSyncs = new TreeSet<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -205,14 +207,23 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
       options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase);
       am.addAccount(AuthenticatedWebClient.ACCOUNT_TYPE, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, options, this, null, null);
     } else {
-      Thread t = new Thread(new Runnable() {
+      AsyncTask<String, Void, Account> task = new AsyncTask<String, Void, Account> () {
 
         @Override
-        public void run() {
-          AuthenticatedWebClient.ensureAccount(MainActivity.this, getAuthBase(MainActivity.this));
+        protected Account doInBackground(String... pParams) {
+          return AuthenticatedWebClient.ensureAccount(MainActivity.this, pParams[0]);
         }
-      });
-      t.start();
+
+        @Override
+        protected void onPostExecute(Account pResult) {
+          mAccount = pResult;
+          for(String authority: mPendingSyncs) {
+            requestSync(mAccount, authority, true);
+          }
+        }
+
+      };
+      task.execute(getAuthBase(MainActivity.this));
     }
   }
 
@@ -276,15 +287,27 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   }
 
   @Override
-  public void onInstantiateModel(long pModelHandle, String pSuggestedName) {
-    mModelHandleToInstantiate = pModelHandle;
+  public void onInstantiateModel(long pModelId, String pSuggestedName) {
+    mModelIdToInstantiate = pModelId;
     GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, pSuggestedName);
+  }
+
+  @Override
+  public void onProcessModelSelected(long pProcessModelId) {
+    for(int i=0; i<mDrawerAdapter.getCount();++i) {
+      if (mDrawerAdapter.getItem(i) instanceof ProcessModelListOuterFragment) {
+        showDrawerItem(i);
+        ProcessModelListOuterFragment fragment = (ProcessModelListOuterFragment) mDrawerAdapter.getItem(i);
+        fragment.onProcessModelSelected(pProcessModelId);
+        break;
+      }
+    }
   }
 
   @Override
   public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pName) {
     try {
-      ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, pName);
+      ProcessModelProvider.instantiate(this, mModelIdToInstantiate, pName);
     } catch (RemoteException e) {
       Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
     }
@@ -292,7 +315,7 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
 
   @Override
   public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
-    mModelHandleToInstantiate=-1L;
+    mModelIdToInstantiate=-1L;
   }
 
   protected void showDrawerItem(int pPosition) {
@@ -315,7 +338,11 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   }
 
   public void requestSync(final String authority, boolean pExpedited) {
-    requestSync(mAccount, authority, pExpedited);
+    if (mAccount!=null) {
+      requestSync(mAccount, authority, pExpedited);
+    } else if (pExpedited){
+      mPendingSyncs.add(authority);
+    }
   }
 
   public static void requestSyncProcessModelList(Account account, boolean pExpedited) {
@@ -344,6 +371,9 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   }
 
   private static void requestSync(Context pContext, final String pAuthority, boolean pExpedited) {
+    if (pContext instanceof MainActivity) {
+      ((MainActivity) pContext).requestSync(pAuthority, pExpedited);
+    }
     String authbase = getAuthBase(pContext);
     if (authbase!=null) {
       (new SyncTask(pContext, pAuthority, pExpedited)).execute(authbase);

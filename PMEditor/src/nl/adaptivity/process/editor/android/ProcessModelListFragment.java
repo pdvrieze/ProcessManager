@@ -201,6 +201,10 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         startActivity(settingsIntent);
         return true;
       }
+      case R.id.ac_sync: {
+        MainActivity.requestSyncProcessModelList(getActivity(), true);
+        return true;
+      }
     }
     return super.onOptionsItemSelected(pItem);
   }

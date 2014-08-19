@@ -3,6 +3,7 @@
     <item android:id="@+id/menu_add_pm" android:title="@string/menu_add_pm" android:titleCondensed="@string/menu_add_pm_cond" android:showAsAction="ifRoom|withText" android:icon="@drawable/ic_action_new"></item>
     <item android:id="@+id/menu_settings" android:title="@string/menu_settings" android:icon="@drawable/ic_action_settings"></item>
     <item android:id="@+id/ac_import" android:showAsAction="ifRoom" android:icon="@drawable/ic_action_import" android:title="@string/ac_import"></item>
+    <item android:id="@+id/ac_sync" android:title="Sync"></item>
 	
 
 </menu>

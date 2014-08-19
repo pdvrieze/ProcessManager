@@ -307,10 +307,10 @@ public abstract class RemoteXmlSyncAdapterDelegate {
     XmlPullParser parser = pDelegator.newPullParser();
     parser.setInput(pContent, "UTF8");
 
-    ContentValues values = new ContentValues(1);
+//    ContentValues values2 = new ContentValues(1);
     if (colSyncstate!=null && colSyncstate.length()>0) {
       ArrayList<ContentProviderOperation> operations = new ArrayList<>(2);
-      values.put(colSyncstate, Integer.valueOf(SYNC_PENDING));
+//      values2.put(colSyncstate, Integer.valueOf(SYNC_PENDING));
 
       operations.add(ContentProviderOperation.newUpdate(mListContentUri)
           .withSelection(colSyncstate + " = "+SYNC_UPTODATE, null)

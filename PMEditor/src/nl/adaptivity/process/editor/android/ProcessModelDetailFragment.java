@@ -43,9 +43,9 @@ import android.widget.TextView;
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
 
   public interface Callbacks {
-    void onItemSelected(long pProcessModelRowId);
+    void onProcessModelSelected(long pProcessModelId);
 
-    void onInstantiateModel(long pModelHandle, String pSuggestedName);
+    void onInstantiateModel(long pModelId, String pSuggestedName);
   }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -216,7 +216,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   public void btnPmExecClicked() {
-    mCallbacks.onInstantiateModel(mModelHandle.longValue(), mTVName.getText()+" Instance");
+    long id = getArguments().getLong(ARG_ITEM_ID);
+    mCallbacks.onInstantiateModel(id, mTVName.getText()+" Instance");
   }
 
   public void btnPmCloneClicked() {
@@ -252,7 +253,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       throw new RuntimeException(e);
     }
     if (mCallbacks!=null) {
-      mCallbacks.onItemSelected(ContentUris.parseId(uri));
+      mCallbacks.onProcessModelSelected(ContentUris.parseId(uri));
     }
   }
 
@@ -293,7 +294,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       MainActivity.requestSyncProcessModelList(getActivity(), true);
     }
     if (result && mCallbacks!=null) {
-      mCallbacks.onItemSelected(-1);
+      mCallbacks.onProcessModelSelected(-1);
     }
     return result;
   }

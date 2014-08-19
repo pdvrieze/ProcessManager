@@ -15,6 +15,7 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -26,9 +27,9 @@ import android.provider.BaseColumns;
 public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
 
   static final String TABLE_NAME = "processModels";
-  static final String TABLE_INSTANCES_NAME = "processModels";
+  static final String TABLE_INSTANCES_NAME = "processInstances";
   private static final String DB_NAME = "processmodels.db";
-  private static final int DB_VERSION = 3;
+  private static final int DB_VERSION = 4;
   private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       ProcessModels.COLUMN_HANDLE +" LONG," +
@@ -42,6 +43,9 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
       ProcessInstances.COLUMN_PMHANDLE + " LONG," +
       ProcessInstances.COLUMN_NAME + " TEXT," +
       ProcessInstances.COLUMN_SYNCSTATE+ " INT )";
+
+  private static final boolean CREATE_DEFAULT_MODEL = false;
+
   private Context mContext;
 
   public ProcessModelsOpenHelper(Context pContext) {
@@ -53,39 +57,45 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   public void onCreate(SQLiteDatabase pDb) {
     pDb.execSQL(SQL_CREATE_TABLE);
     pDb.execSQL(SQL_CREATE_TABLE_INSTANCES);
-    final String modelName = mContext.getString(R.string.example_1_name);
-    ContentValues cv = new ContentValues();
-    InputStream in = mContext.getResources().openRawResource(R.raw.processmodel);
-    final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
-    DrawableProcessModel model = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
-    model.setName(modelName);
-    CharArrayWriter out = new CharArrayWriter();
-    try {
+    if (CREATE_DEFAULT_MODEL) {
+      final String modelName = mContext.getString(R.string.example_1_name);
+      ContentValues cv = new ContentValues();
+      InputStream in = mContext.getResources().openRawResource(R.raw.processmodel);
+      final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
+      DrawableProcessModel model = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+      model.setName(modelName);
+      CharArrayWriter out = new CharArrayWriter();
       try {
-        PMParser.serializeProcessModel(out, model);
-      } catch (IOException | XmlPullParserException e) {
-        throw new RuntimeException(e);
+        try {
+          PMParser.serializeProcessModel(out, model);
+        } catch (IOException | XmlPullParserException e) {
+          throw new RuntimeException(e);
+        }
+      } finally {
+        out.flush();
+        out.close();
       }
-    } finally {
-      out.flush();
-      out.close();
+      cv.put(ProcessModels.COLUMN_MODEL, out.toString());
+      cv.put(ProcessModels.COLUMN_NAME, modelName);
+      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER);
+      UUID uuid = model.getUuid();
+      if (uuid==null) { uuid = UUID.randomUUID(); }
+      cv.put(ProcessModels.COLUMN_UUID, uuid.toString());
+      pDb.insert(TABLE_NAME, ProcessModels.COLUMN_MODEL, cv);
     }
-    cv.put(ProcessModels.COLUMN_MODEL, out.toString());
-    cv.put(ProcessModels.COLUMN_NAME, modelName);
-    cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER);
-    UUID uuid = model.getUuid();
-    if (uuid==null) { uuid = UUID.randomUUID(); }
-    cv.put(ProcessModels.COLUMN_UUID, uuid.toString());
-    pDb.insert(TABLE_NAME, ProcessModels.COLUMN_MODEL, cv);
   }
 
   @Override
   public void onUpgrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
     pDb.beginTransaction();
     try {
-      pDb.execSQL("DROP TABLE "+TABLE_NAME);
-      pDb.execSQL("DROP TABLE "+TABLE_INSTANCES_NAME);
-      onCreate(pDb);
+      if (pNewVersion==4 && pOldVersion==3) {
+        pDb.execSQL(SQL_CREATE_TABLE_INSTANCES);
+      } else {
+        pDb.execSQL("DROP TABLE "+TABLE_NAME);
+        pDb.execSQL("DROP TABLE "+TABLE_INSTANCES_NAME);
+        onCreate(pDb);
+      }
 
       pDb.setTransactionSuccessful();
     } finally {

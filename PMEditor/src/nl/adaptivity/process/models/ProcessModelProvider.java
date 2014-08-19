@@ -426,20 +426,33 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static Uri instantiate(Context context, long pModelHandle, String pName) throws RemoteException {
+  public static Uri instantiate(Context context, long pModelId, String pName) throws RemoteException {
 
     final ContentResolver contentResolver = context.getContentResolver();
     ContentProviderClient client = contentResolver.acquireContentProviderClient(ProcessInstances.CONTENT_ID_URI_BASE);
+    final Uri modelUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pModelId);
+    Cursor r = client.query(modelUri, new String[] { ProcessModels.COLUMN_HANDLE }, null, null, null);
+    if (!r.moveToFirst()) { throw new RuntimeException("Model with id "+pModelId+" not found"); }
+    long pmhandle = r.getLong(0);
     try {
-      ContentValues cv = new ContentValues(3);
-      cv.put(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pModelHandle));
-      cv.put(ProcessInstances.COLUMN_NAME, pName);
-      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
+      ArrayList<ContentProviderOperation> batch = new ArrayList<>(2);
+      batch.add(ContentProviderOperation
+          .newAssertQuery(modelUri)
+          .withValue(ProcessModels.COLUMN_HANDLE, pmhandle)
+          .withExpectedCount(1)
+          .build());
+
+      batch.add(ContentProviderOperation
+          .newInsert(ProcessInstances.CONTENT_ID_URI_BASE)
+          .withValue(ProcessInstances.COLUMN_NAME, pName)
+          .withValue(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pmhandle))
+          .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))
+          .build());
       try {
-        return client.insert(ProcessInstances.CONTENT_ID_URI_BASE, cv);
-      } catch (RemoteException e) {
-        throw e;
-//        throw new IOException(e);
+        ContentProviderResult[] result = client.applyBatch(batch);
+        return result[1].uri;
+      } catch (OperationApplicationException e) {
+        throw (RemoteException) new RemoteException().initCause(e);
       }
     } finally {
       client.release();

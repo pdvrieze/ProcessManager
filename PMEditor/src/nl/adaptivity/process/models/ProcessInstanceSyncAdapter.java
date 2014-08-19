@@ -5,23 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.UUID;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import static org.xmlpull.v1.XmlPullParser.*;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.android.util.MultipartEntity;
-import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
@@ -31,23 +25,19 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.SimpleContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
 import android.content.ContentProviderClient;
-import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 @SuppressWarnings("boxing")
 public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
-  private static final String TAG_PROCESSMODELS = "processInstances";
-  private static final String TAG_PROCESSMODEL = "processInstance";
+  private static final String TAG_PROCESSINSTANCES = "processInstances";
+  private static final String TAG_PROCESSINSTANCE = "processInstance";
   private static final String TAG = ProcessInstanceSyncAdapter.class.getSimpleName();
 
   public ProcessInstanceSyncAdapter() {
@@ -61,34 +51,37 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
   @Override
   protected ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
-    long pmHandle;
-    long handle;
-    {
-      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_HANDLE, ProcessInstances.COLUMN_NAME }, null, null, null);
-      try {
-        if (pendingPosts.moveToFirst()) {
-          pmHandle = pendingPosts.getLong(0);
-          handle = pendingPosts.getLong(1);
-        } else {
-          return null;
-        }
-
-      } finally {
-        pendingPosts.close();
-      }
-    }
-
-    return postToServer(pDelegator, pDelegator.getSyncSource()+"/processInstances/"+handle, pmhandle, , pSyncResult);
+    throw new UnsupportedOperationException("The server can not be changed yet");
+//    long pmHandle;
+//    long handle;
+//    {
+//      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_HANDLE, ProcessInstances.COLUMN_NAME }, null, null, null);
+//      try {
+//        if (pendingPosts.moveToFirst()) {
+//          pmHandle = pendingPosts.getLong(0);
+//          handle = pendingPosts.getLong(1);
+//        } else {
+//          return null;
+//        }
+//
+//      } finally {
+//        pendingPosts.close();
+//      }
+//    }
+//
+//    return postToServer(pDelegator, pDelegator.getSyncSource()+"/processInstances/"+handle, pmHandle, name, pSyncResult);
   }
 
   @Override
   protected ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
-    String model;
+    String name;
+    long pmHandle;
     {
-      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL }, null, null, null);
+      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_NAME }, null, null, null);
       try {
         if (pendingPosts.moveToFirst()) {
-          model = pendingPosts.getString(0);
+          pmHandle = pendingPosts.getLong(0);
+          name= pendingPosts.getString(1);
         } else {
           return null;
         }
@@ -98,31 +91,29 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       }
     }
 
-    return postToServer(pHttpClient, getSyncSource()+"/processModels", model, pSyncResult);
+    return postToServer2(pDelegator, pDelegator.getSyncSource()+"/processModels/"+Long.toString(pmHandle)+"?op=newInstance&name="+URLEncoder.encode(name, "UTF-8"), pSyncResult);
   }
 
-  private ContentValuesProvider postToServer(AuthenticatedWebClient pHttpClient, final String url, String model, SyncResult pSyncResult) throws ClientProtocolException,
+  private ContentValuesProvider postToServer2(DelegatingResources pDelegator, final String url, SyncResult pSyncResult) throws ClientProtocolException,
       IOException, XmlPullParserException {
     HttpPost post = new HttpPost(url);
-    try {
-      final MultipartEntity entity = new MultipartEntity();
-      entity.add("processUpload", new StringEntity(model, "UTF8"));
-      post.setEntity(entity);
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-    HttpResponse response = pHttpClient.execute(post);
+    HttpResponse response = pDelegator.getWebClient().execute(post);
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
-      XmlPullParser parser = newPullParser();
+      XmlPullParser parser = pDelegator.newPullParser();
       parser.setInput(response.getEntity().getContent(), "UTF8");
 
       parser.nextTag(); // Skip document start etc.
       ContentValuesProvider values = parseItem(parser);
+      ++pSyncResult.stats.numUpdates;
       return values;
 
     } else {
       response.getEntity().consumeContent();
+      // Don't throw an exception.
+      ++pSyncResult.stats.numSkippedEntries;
+//      ++pSyncResult.stats.numIoExceptions;
+//      return null;
 
       throw new IOException("The server could not be updated");
     }
@@ -133,7 +124,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
                                                      SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     long handle;
     {
-      Cursor itemCursor = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL, ProcessModels.COLUMN_HANDLE }, null, null, null);
+      Cursor itemCursor = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_HANDLE }, null, null, null);
       try {
         if (itemCursor.moveToFirst()) {
           handle = itemCursor.getLong(1);
@@ -146,9 +137,9 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       }
     }
 
-    String uri = getSyncSource()+"/processModels/"+handle;
+    String uri =pDelegator.getSyncSource()+"/processInstances/"+handle;
     HttpDelete request = new HttpDelete(uri);
-    HttpResponse response = pHttpClient.execute(request);
+    HttpResponse response = pDelegator.getWebClient().execute(request);
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       CharArrayWriter out = new CharArrayWriter();
@@ -162,7 +153,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
       Log.i(TAG, "Response on deleting item: \""+out.toString()+"\"");
 
       ContentValues cv = new ContentValues(1);
-      cv.put(ProcessModels.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
       return new SimpleContentValuesProvider(cv);
     } else {
       response.getEntity().consumeContent();
@@ -172,87 +163,40 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
   @Override
   protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
-    final ContentValues itemCv = pItem.getContentValues();
-    itemCv.clear();
-    itemCv.put(getSyncStateColumn(), Integer.valueOf(SYNC_UPDATE_SERVER));
+    // Server always wins
     return true;
   }
 
   @Override
   protected ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
-    pParser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
+    pParser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
     String name = pParser.getAttributeValue(null, "name");
     long handle;
+    long pmhandle;
     try {
       handle = Long.parseLong(pParser.getAttributeValue(null, "handle"));
+      pmhandle = Long.parseLong(pParser.getAttributeValue(null, "processModel"));
     } catch (NullPointerException|NumberFormatException e) {
       throw new XmlPullParserException(e.getMessage(), pParser, e);
     }
-    UUID uuid = toUUID(pParser.getAttributeValue(null, "uuid"));
     pParser.next();
-    pParser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
+    pParser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
     ContentValues result = new ContentValues(4);
-    result.put(ProcessModels.COLUMN_HANDLE, handle);
-    result.put(ProcessModels.COLUMN_NAME, name);
-    result.put(ProcessModels.COLUMN_UUID, uuid.toString());
-    result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
+    result.put(ProcessInstances.COLUMN_HANDLE, handle);
+    result.put(ProcessInstances.COLUMN_PMHANDLE, pmhandle);
+    result.put(ProcessInstances.COLUMN_NAME, name);
+    result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE); // No details at this stage
     return new SimpleContentValuesProvider(result);
-  }
-
-  private static UUID toUUID(final String val) {
-    return val==null ? null : UUID.fromString(val);
   }
 
   @Override
   protected boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException {
-    long handle;
-    if (pPair!=null && pPair.mCV.getContentValues().containsKey(ProcessModels.COLUMN_HANDLE)) {
-      handle = pPair.mCV.getContentValues().getAsLong(ProcessModels.COLUMN_HANDLE);
-    } else {
-      Cursor cursor = pProvider.query(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, pId), new String[] {ProcessModels.COLUMN_HANDLE}, null, null, null);
-      try {
-        if (cursor.moveToFirst()) {
-          handle = cursor.getLong(0);
-        } else {
-          throw new IllegalStateException("There is no handle for the given item");
-        }
-      } finally {
-        cursor.close();
-      }
-    }
-    String uri = getListUrl(getSyncSource())+"/"+handle;
-    HttpGet request = new HttpGet(uri);
-    HttpResponse response = pHttpClient.execute(request);
-    // TODO Auto-generated method stub
-    int status = response.getStatusLine().getStatusCode();
-    if (status>=200 && status<400) {
-      CharArrayWriter out = new CharArrayWriter();
-      Reader in = new InputStreamReader(response.getEntity().getContent(),Charset.forName("UTF-8"));
-      try {
-        char[] buffer = new char[2048];
-        int cnt;
-        while ((cnt=in.read(buffer))>=0) {
-          out.write(buffer, 0, cnt);
-        }
-      } finally {
-        in.close();
-      }
-      ContentValues cv = new ContentValues(2);
-      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE);
-      cv.put(ProcessModels.COLUMN_MODEL, out.toString());
-      return pProvider.update(ProcessModels.CONTENT_ID_URI_BASE.buildUpon()
-                          .appendPath(Long.toString(pId))
-                          .encodedFragment("nonetnotify")
-                          .build(), cv, null, null)>0;
-    } else {
-      response.getEntity().consumeContent();
-    }
-    return false;
+    return true; // We don't do details yet.
   }
 
   @Override
   protected String getKeyColumn() {
-    return ProcessModels.COLUMN_UUID;
+    return ProcessInstances.COLUMN_HANDLE;
   }
 
   @Override
@@ -267,7 +211,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
   @Override
   protected String getItemsTag() {
-    return TAG_PROCESSMODELS;
+    return TAG_PROCESSINSTANCES;
   }
 
 
