@@ -174,10 +174,12 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
             if (oldItem==null ||
                 oldItem.getValue()==null ||
                 (! oldItem.getValue().equals(item.getValue()))) {
-              statement.setLong(1, pHandle);
-              statement.setString(2, item.getName());
-              statement.setString(3, item.getValue());
-              statement.addBatch();
+              if (! ((oldItem==null || oldItem.getValue()==null) && item.getValue()!=null)) {
+                statement.setLong(1, pHandle);
+                statement.setString(2, item.getName());
+                statement.setString(3, item.getValue());
+                statement.addBatch();
+              }
             }
           }
         }
