@@ -10,7 +10,7 @@ CREATE TABLE `usertasks` (
 CREATE TABLE `nodedata` (
   `name` VARCHAR(30) NOT NULL,
   `taskhandle` BIGINT NOT NULL,
-  `data` TEXT NOT NULL,
+  `data` TEXT,
   PRIMARY KEY ( `name`, `taskhandle` ),
   FOREIGN KEY ( `taskhandle` ) REFERENCES `usertasks` ( `taskhandle` )
 ) ENGINE=InnoDB CHARSET=utf8;

@@ -45,7 +45,7 @@ CREATE TABLE `instancedata` (
 CREATE TABLE `nodedata` (
   `name` VARCHAR(30) NOT NULL,
   `pnihandle` BIGINT NOT NULL,
-  `data` TEXT NOT NULL,
+  `data` TEXT,
   PRIMARY KEY ( `name`, `pnihandle` ),
   FOREIGN KEY ( `pnihandle` ) REFERENCES `processnodeinstances` ( `pnihandle` )
 
