@@ -159,7 +159,7 @@ public class TaskProvider extends ContentProvider {
     static UriHelper parseUri(Uri query) {
       boolean netNotify;
       if ("nonetnotify".equals(query.getFragment())) {
-        query = Uri.fromParts(query.getScheme(), query.getEncodedSchemeSpecificPart(), null);
+        query = query.buildUpon().encodedFragment(null).build();
         netNotify=false;
       } else {
         netNotify=true;
