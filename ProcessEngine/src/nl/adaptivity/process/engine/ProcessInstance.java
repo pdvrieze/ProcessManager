@@ -530,7 +530,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     pOut.writeAttribute("state", pNodeInstance.getState().toString());
     if (pNodeInstance.getState()==TaskState.Failed) {
       final Throwable failureCause = pNodeInstance.getFailureCause();
-      pOut.writeAttribute("failureCause", failureCause.getClass().getName()+": "+failureCause.getMessage());
+      pOut.writeAttribute("failureCause", failureCause==null? "<unknown>" : failureCause.getClass().getName()+": "+failureCause.getMessage());
     }
 
   }
