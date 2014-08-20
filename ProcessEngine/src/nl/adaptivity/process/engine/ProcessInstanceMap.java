@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 import javax.xml.parsers.DocumentBuilder;
@@ -25,7 +26,6 @@ import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
@@ -40,6 +40,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
   public static final String COL_OWNER = "owner";
   public static final String COL_NAME = "name";
   public static final String COL_STATE = "state";
+  public static final String COL_UUID = "uuid";
   public static final String COL_HPROCESSMODEL = "pmhandle";
   public static final String COL_DATA = "data";
   public static final String COL_ISOUTPUT = "isoutput";
@@ -59,6 +60,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     private int aColNoName;
     private final ProcessEngine aProcessEngine;
     private int aColNoState;
+    private int aColNoUuid;
 
     public ProcessInstanceElementFactory(ProcessEngine pProcessEngine) {
       aProcessEngine = pProcessEngine;
@@ -79,6 +81,8 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
           aColNoName = i;
         } else if (COL_STATE.equals(colName)) {
           aColNoState = i;
+        } else if (COL_UUID.equals(colName)) {
+          aColNoUuid = i;
         } // ignore other columns
       }
     }
@@ -112,9 +116,15 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
       ProcessInstance.State state = toState(pRow.getString(aColNoState));
+      UUID uuid = toUUID(pRow.getString(aColNoUuid));
 
-      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, state, aProcessEngine);
+      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, uuid, state, aProcessEngine);
       return result;
+    }
+
+    private UUID toUUID(String pString) {
+      if (pString==null) { return null; }
+      return UUID.fromString(pString);
     }
 
     private static State toState(String pString) {
@@ -224,17 +234,17 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public CharSequence getCreateColumns() {
-      return COL_HANDLE+", "+COL_HPROCESSMODEL+", "+COL_NAME+", "+COL_OWNER+", "+COL_STATE;
+      return COL_HANDLE+", "+COL_HPROCESSMODEL+", "+COL_NAME+", "+COL_OWNER+", "+COL_STATE+", "+COL_UUID;
     }
 
     @Override
     public List<CharSequence> getStoreColumns() {
-      return Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER, COL_STATE);
+      return Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER, COL_STATE, COL_UUID);
     }
 
     @Override
     public List<CharSequence> getStoreParamHolders() {
-      return Arrays.<CharSequence>asList("?","?","?", "?");
+      return Arrays.<CharSequence>asList("?","?","?", "?", "?");
     }
 
     @Override
@@ -243,6 +253,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       pStatement.setString(pOffset+1, pElement.getName());
       pStatement.setString(pOffset+2, pElement.getOwner().getName());
       pStatement.setString(pOffset+3, pElement.getState()==null? null : pElement.getState().name());
+      pStatement.setString(pOffset+4, pElement.getUUID()==null? null : pElement.getUUID().toString());
       return 4;
     }
 

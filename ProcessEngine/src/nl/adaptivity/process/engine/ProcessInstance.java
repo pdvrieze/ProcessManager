@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,7 +30,6 @@ import net.devrieze.util.Handles;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -64,6 +64,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
     private String aName;
 
+    private String aUUID;
+
     public ProcessInstanceRef() {
       // empty constructor;
     }
@@ -75,6 +77,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       if ((aName == null) || (aName.trim().length() == 0)) {
         aName = pProcessInstance.aProcessModel.getName() + " instance " + aHandle;
       }
+      aUUID = pProcessInstance.getUUID()==null ? null : pProcessInstance.getUUID().toString();
     }
 
     public void setHandle(final long handle) {
@@ -105,6 +108,15 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       aName = pName;
     }
 
+    @XmlAttribute(name="uuid")
+    public String getUUID() {
+      return aUUID;
+    }
+
+    public void setUUID(String pUUID) {
+      aUUID = pUUID;
+    }
+
   }
 
   private static final long serialVersionUID = 1145452195455018306L;
@@ -133,10 +145,13 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private State aState;
 
-  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final State pState, final ProcessEngine pEngine) {
+  private final UUID aUUid;
+
+  ProcessInstance(final long pHandle, final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final UUID pUUid, final State pState, final ProcessEngine pEngine) {
     aHandle = pHandle;
     aProcessModel = pProcessModel;
     aOwner = pOwner;
+    aUUid = pUUid;
     aEngine = pEngine;
     aName =pName;
     aState = pState==null ? State.NEW : pState;
@@ -146,9 +161,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     aFinishedNodes = new ArrayList<>();
   }
 
-  public ProcessInstance(final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final State pState, final ProcessEngine pEngine) {
+  public ProcessInstance(final Principal pOwner, final ProcessModelImpl pProcessModel, final String pName, final UUID pUUid, final State pState, final ProcessEngine pEngine) {
     aProcessModel = pProcessModel;
     aName = pName;
+    aUUid = pUUid;
     aEngine = pEngine;
     aThreads = new LinkedList<>();
     aOwner = pOwner;
@@ -262,6 +278,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public Principal getOwner() {
     return aOwner;
+  }
+
+  public UUID getUUID() {
+    return aUUid;
   }
 
   public ProcessEngine getEngine() {

@@ -266,12 +266,12 @@ public class ProcessEngine /* implements IProcessEngine */{
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException When database operations fail.
    */
-  public HProcessInstance startProcess(DBTransaction pTransaction, final Principal pUser, final ProcessModelImpl pModel, final String pName, final Node pPayload) throws SQLException {
+  public HProcessInstance startProcess(DBTransaction pTransaction, final Principal pUser, final ProcessModelImpl pModel, final String pName, final UUID pUuid, final Node pPayload) throws SQLException {
     if (pUser == null) {
       throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
     aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
-    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, State.NEW, this);
+    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, pUuid, State.NEW, this);
 
     final HProcessInstance result = new HProcessInstance(getInstances().put(pTransaction, instance));
     instance.initialize(pTransaction);
@@ -289,12 +289,13 @@ public class ProcessEngine /* implements IProcessEngine */{
    *
    * @param pProcessModel The process model to start a new instance for.
    * @param pName The name of the new instance.
+   * @param pUuid The UUID for the instances. Helps with synchronization errors not exploding into mass instantiation.
    * @param pPayload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException
    */
-  public HProcessInstance startProcess(DBTransaction pTransaction, final Principal pUser, final Handle<? extends ProcessModelImpl> pProcessModel, final String pName, final Node pPayload) throws SQLException {
-    return startProcess(pTransaction, pUser, getProcessModels().get(pTransaction, pProcessModel), pName, pPayload);
+  public HProcessInstance startProcess(DBTransaction pTransaction, final Principal pUser, final Handle<? extends ProcessModelImpl> pProcessModel, final String pName, UUID pUuid, final Node pPayload) throws SQLException {
+    return startProcess(pTransaction, pUser, getProcessModels().get(pTransaction, pProcessModel), pName, pUuid, pPayload);
   }
 
   /**

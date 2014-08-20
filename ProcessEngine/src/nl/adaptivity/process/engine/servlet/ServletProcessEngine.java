@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -655,9 +656,14 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
    * @return
    */
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
-  public HProcessInstance startProcess(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(name = "name", type = ParamType.QUERY) final String pName, @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
+  public HProcessInstance startProcess(
+         @RestParam(name = "handle", type = ParamType.VAR) final long pHandle,
+         @RestParam(name = "name", type = ParamType.QUERY) final String pName,
+         @RestParam(name = "uuid", type = ParamType.QUERY) final String pUUID,
+         @RestParam(type = ParamType.PRINCIPAL) final Principal pOwner) {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      return transaction.commit(aProcessEngine.startProcess(transaction, pOwner, Handles.<ProcessModelImpl>handle(pHandle), pName, null));
+      UUID uuid = pUUID==null ? UUID.randomUUID() : UUID.fromString(pUUID);
+      return transaction.commit(aProcessEngine.startProcess(transaction, pOwner, Handles.<ProcessModelImpl>handle(pHandle), pName, uuid, null));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error starting process", e);
       throw new HttpResponseException(500, e);
