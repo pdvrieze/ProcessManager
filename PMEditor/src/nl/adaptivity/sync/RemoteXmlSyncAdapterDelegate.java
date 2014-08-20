@@ -30,6 +30,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 @SuppressWarnings("boxing")
 public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
@@ -100,8 +101,10 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
         pSyncResult.stats.numUpdates++;
       } catch (IOException e) {
         pSyncResult.stats.numIoExceptions++;
+        Log.w(TAG, "Failure post new instance to server", e);
       } catch (XmlPullParserException e) {
         pSyncResult.stats.numParseExceptions++;
+        Log.w(TAG, "Failure post new instance to server", e);
       }
     }
   }

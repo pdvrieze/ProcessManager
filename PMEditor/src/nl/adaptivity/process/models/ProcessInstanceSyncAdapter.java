@@ -96,6 +96,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
     }
     StringBuilder url = new StringBuilder();
     url.append(pDelegator.getSyncSource())
+       .append("/processModels/")
        .append(Long.toString(pmHandle))
        .append("?op=newInstance&name=")
        .append(URLEncoder.encode(name, "UTF-8"));

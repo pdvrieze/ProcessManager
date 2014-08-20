@@ -68,7 +68,7 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
 
   private void init(Uri pListContentUri) {
     pListContentUri.buildUpon().encodedFragment("nonetnotify").build();
-    mCoordinator = new RemoteXmlSyncAdapterDelegate(pListContentUri);
+    mCoordinator = new RemoteXmlSyncAdapterDelegate(pListContentUri, this);
     setDelegates(Arrays.asList(mCoordinator));
   }
 
