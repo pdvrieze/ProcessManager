@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.xml.XMLConstants;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -83,6 +85,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       XmlSerializer serializer = factory.newSerializer();
       StringWriter writer = new StringWriter(0x100);
       serializer.setOutput(writer);
+      serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, NS_TASKS);
       serializer.startTag(NS_TASKS, TAG_TASK);
       serializer.attribute(null, "state", task.getState());
       for(TaskItem item: task.getItems()) {
@@ -90,7 +93,10 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
           item.serialize(serializer, false);
         }
       }
+      serializer.endTag(NS_TASKS, TAG_TASK);
+      serializer.flush();
       request = new HttpPost(getListUrl(mBase)+'/'+task.getHandle());
+
       request.setEntity(new StringEntity(writer.toString(), "UTF-8"));
     } else {
       request = new HttpPost(getListUrl(mBase)+'/'+task.getHandle()+"?state="+task.getState());
