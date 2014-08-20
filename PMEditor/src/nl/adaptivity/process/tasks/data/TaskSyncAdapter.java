@@ -157,6 +157,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       long localItemId = localItems.getLong(idColIdx);
       String localType = localItems.getString(typeColIdx);
       String localValue = localItems.getString(valueColIdx);
+      String localLabel = localItems.getString(labelColIdx);
 
       if (remoteIterator.hasNext()) {
         GenericItem remoteItem = remoteIterator.next();
@@ -166,8 +167,11 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
           if (!StringUtil.isEqual(remoteItem.getDBType(),localType)) {
             cv.put(Items.COLUMN_TYPE, remoteItem.getDBType());
           }
-          if (remoteItem.getValue()!=null && (! remoteItem.getValue().equals(localValue))){
+          if (!StringUtil.isEqual(remoteItem.getValue(),localValue)){
             cv.put(Items.COLUMN_VALUE, remoteItem.getValue());
+          }
+          if (!StringUtil.isEqual(remoteItem.getLabel(),localLabel)){
+            cv.put(Items.COLUMN_LABEL, remoteItem.getLabel());
           }
           if (cv.size()>0) {
             updated=true;
@@ -204,6 +208,10 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
           .build());
       addOptionsToBatch(batch, rowitemid, remoteItem.getOptions());
     }
+    batch.add(ContentProviderOperation
+        .newUpdate(Tasks.CONTENT_ID_URI_BASE.buildUpon().appendEncodedPath(Long.toString(pTaskId)).encodedFragment("nonetnotify").build())
+        .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE)
+        .build());
     pProvider.applyBatch(batch);
     return updated;
   }
