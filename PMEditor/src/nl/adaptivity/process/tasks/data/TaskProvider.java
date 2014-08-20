@@ -220,34 +220,25 @@ public class TaskProvider extends ContentProvider {
   public String getType(Uri pUri) {
     UriHelper helper = UriHelper.parseUri(pUri);
     switch (helper.mTarget) {
-    case TASK:
-      return "vnd.android.cursor.item/vnd.nl.adaptivity.process.task";
-    case TASKS:
-      return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task";
-    case TASKITEMS:
-      return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task.item";
-    case TASKOPTIONS:
-      return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task.item.option";
+      case TASK:
+        return "vnd.android.cursor.item/vnd.nl.adaptivity.process.task";
+      case TASKS:
+        return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task";
+      case TASKITEM:
+        return "vnd.android.cursor.item/vnd.nl.adaptivity.process.task.item";
+      case TASKITEMS:
+        return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task.item";
+      case TASKOPTION:
+        return "vnd.android.cursor.item/vnd.nl.adaptivity.process.task.item.option";
+      case TASKOPTIONS:
+        return "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task.item.option";
     }
     return null;
   }
 
   @Override
   public String[] getStreamTypes(Uri pUri, String pMimeTypeFilter) {
-    UriHelper helper = UriHelper.parseUri(pUri);
-    String mimetype;
-    switch (helper.mTarget) {
-      case TASK:
-        mimetype = "vnd.android.cursor.item/vnd.nl.adaptivity.process.task";break;
-      case TASKS:
-        mimetype = "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task";break;
-      case TASKITEMS:
-        mimetype = "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task.item";break;
-      case TASKOPTIONS:
-        mimetype = "vnd.android.cursor.dir/vnd.nl.adaptivity.process.task.item.option";break;
-      default:
-        return null;
-    }
+    String mimetype = getType(pUri);
     if (mimetypeMatches(mimetype, pMimeTypeFilter)) {
       return new String[] { mimetype };
     } else {
