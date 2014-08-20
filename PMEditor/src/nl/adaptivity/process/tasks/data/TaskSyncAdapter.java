@@ -1,8 +1,5 @@
 package nl.adaptivity.process.tasks.data;
 
-import static nl.adaptivity.process.tasks.UserTask.NS_TASKS;
-import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -13,18 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.editor.android.SettingsActivity;
-import nl.adaptivity.process.tasks.TaskItem;
-import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.data.TaskProvider.Items;
-import nl.adaptivity.process.tasks.data.TaskProvider.Options;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
-import nl.adaptivity.process.tasks.items.GenericItem;
-import nl.adaptivity.sync.ISimpleSyncDelegate;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -33,6 +18,17 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
+import net.devrieze.util.StringUtil;
+
+import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.tasks.TaskItem;
+import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.data.TaskProvider.Items;
+import nl.adaptivity.process.tasks.data.TaskProvider.Options;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
+import nl.adaptivity.process.tasks.items.GenericItem;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
 import android.content.ContentUris;
@@ -46,6 +42,7 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
+import static nl.adaptivity.process.tasks.UserTask.*;
 
 @SuppressWarnings("boxing")
 public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
@@ -154,16 +151,17 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     ArrayList<GenericItem> itemcpy = new ArrayList<>(items);
 
     final Uri itemsUpdateUri = Items.CONTENT_ID_URI_BASE.buildUpon().encodedFragment("nonetnotify").build();
+    ListIterator<GenericItem> remoteIterator = itemcpy.listIterator();
     updateloop: while(localItems.moveToNext()) {
       String localName = localItems.getString(nameColIdx);
       long localItemId = localItems.getLong(idColIdx);
       String localType = localItems.getString(typeColIdx);
       String localValue = localItems.getString(valueColIdx);
 
-      for(Iterator<GenericItem> it = itemcpy.iterator();it.hasNext();) {
-        GenericItem remoteItem = it.next();
-        if (localName.equals(remoteItem.getName())) {
-          it.remove();
+      if (remoteIterator.hasNext()) {
+        GenericItem remoteItem = remoteIterator.next();
+        if (StringUtil.isEqual(localName,remoteItem.getName())) {
+          remoteIterator.remove();
           ContentValues cv = new ContentValues(2);
           if (!StringUtil.isEqual(remoteItem.getDBType(),localType)) {
             cv.put(Items.COLUMN_TYPE, remoteItem.getDBType());
@@ -180,10 +178,14 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
           }
           batch.addAll(updateOptionValues(remoteItem, pProvider, localItemId));
           continue updateloop;
+        } else { // not equal, we need to maintain order, so delete already.
+          // not found from server, delete
+          batch.addAll(deleteItem(itemsUpdateUri, localItemId));
+
+          remoteIterator.previous(); // Move back so that the next local item may match the remote one.
         }
+
       }
-      // not found from server, delete
-      batch.addAll(deleteItem(itemsUpdateUri, localItemId));
 
     } // finished all matches
 
@@ -230,24 +232,27 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   private static Collection<? extends ContentProviderOperation> updateOptionValues(GenericItem pRemoteItem, ContentProviderClient pProvider, long pLocalItemId) throws RemoteException {
     ArrayList<ContentProviderOperation> result = new ArrayList<>();
     ArrayList<String> options = new ArrayList<>(pRemoteItem.getOptions());
-    Cursor localItems = pProvider.query(Options.CONTENT_ID_URI_BASE, new String[]{ Options._ID, Options.COLUMN_VALUE }, Options.COLUMN_ITEMID+"="+Long.toString(pLocalItemId), null, BaseColumns._ID);
+    Cursor localItems = pProvider.query(Options.CONTENT_ID_URI_BASE, new String[]{ BaseColumns._ID, Options.COLUMN_VALUE }, Options.COLUMN_ITEMID+"="+Long.toString(pLocalItemId), null, BaseColumns._ID);
+    ListIterator<String> remoteIt = options.listIterator();
     outer: while (localItems.moveToNext()) {
       long localId = localItems.getLong(0);
       String localOption = localItems.getString(1);
-      for(Iterator<String> it = options.iterator(); it.hasNext();) {
-        String remoteOption = it.next();
-        if (remoteOption!=null && remoteOption.equals(localOption)) {
-          it.remove();
+      if(remoteIt.hasNext()) {
+        String remoteOption = remoteIt.next();
+        if (StringUtil.isEqual(remoteOption,localOption)) {
+          remoteIt.remove();
           continue outer;
+        } else {
+          result.add(ContentProviderOperation
+              .newDelete(Options.CONTENT_ID_URI_BASE
+                  .buildUpon()
+                  .appendEncodedPath(Long.toString(localId))
+                  .encodedFragment("nonetnotify")
+                  .build())
+              .build());
+          remoteIt.previous();
         }
       }
-      result.add(ContentProviderOperation
-          .newDelete(Options.CONTENT_ID_URI_BASE
-              .buildUpon()
-              .appendEncodedPath(Long.toString(localId))
-              .encodedFragment("nonetnotify")
-              .build())
-          .build());
     }
     for(String option: options) {
       if (option!=null) {
