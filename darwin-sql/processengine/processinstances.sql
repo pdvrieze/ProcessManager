@@ -10,7 +10,7 @@ CREATE TABLE `processinstances` (
   `name` varchar(50),
   `pmhandle` BIGINT NOT NULL,
   `state` varchar(15),
-  `uuid` varchar(24), 
+  `uuid` varchar(36), 
   INDEX ( `owner` ),
   PRIMARY KEY ( `pihandle` ),
   FOREIGN KEY ( `pmhandle` ) REFERENCES `processmodels` ( `pmhandle` )
