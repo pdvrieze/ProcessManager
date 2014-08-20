@@ -7,8 +7,13 @@ import java.util.List;
 
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
 import org.xmlpull.v1.XmlPullParserException;
+
+import net.devrieze.util.StringUtil;
 
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
@@ -22,7 +27,9 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.RemoteException;
 import android.provider.BaseColumns;
+import android.support.v4.app.FragmentActivity;
 
 @SuppressWarnings("static-access")
 public class TaskProvider extends ContentProvider {
@@ -310,6 +317,13 @@ public class TaskProvider extends ContentProvider {
             " FROM " + TasksOpenHelper.TABLE_NAME_ITEMS+
             " WHERE " + pSelection + " )";
         db.delete(TasksOpenHelper.TABLE_NAME_OPTIONS, optionSelection, pSelectionArgs);
+      } else if (helper.mId>=0) {
+        if (pSelection==null || pSelection.length()==0) {
+          pSelection = Tasks._ID+" = ?";
+        } else {
+          pSelection = "( "+pSelection+" ) AND ( "+Tasks._ID+" = ? )";
+        }
+        pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
       }
       getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null, false);
       final int result = db.delete(helper.mTable, pSelection, pSelectionArgs);
@@ -326,7 +340,7 @@ public class TaskProvider extends ContentProvider {
   @Override
   public int update(Uri pUri, ContentValues pValues, String pSelection, String[] pSelectionArgs) {
     UriHelper helper = UriHelper.parseUri(pUri);
-    if (helper.mTarget==QueryTarget.TASK) {
+    if (helper.mId>=0) {
       if (pSelection==null || pSelection.length()==0) {
         pSelection = Tasks._ID+" = ?";
       } else {
@@ -376,6 +390,10 @@ public class TaskProvider extends ContentProvider {
 
   public static UserTask getTask(Context pContext, Uri pUri) {
     final ContentResolver contentResolver = pContext.getContentResolver();
+    return getTask(contentResolver, pUri);
+  }
+
+  private static UserTask getTask(final ContentResolver contentResolver, Uri pUri) {
     Cursor cursor = contentResolver.query(pUri, null, null, null, null);
     try {
       if (cursor.moveToFirst()) {
@@ -432,6 +450,61 @@ public class TaskProvider extends ContentProvider {
 
   private static List<UserTask> getTasks(InputStream in) throws XmlPullParserException, IOException {
     return UserTask.parseTasks(in);
+  }
+
+  public static void updateValuesAndState(Context pContext, long pTaskId, UserTask pUpdatedTask) throws RemoteException, OperationApplicationException {
+    ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+    Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, pTaskId);
+
+    final ContentResolver contentResolver = pContext.getContentResolver();
+    UserTask oldTask = getTask(contentResolver, taskUri);
+    if (oldTask==null) {
+      throw new IllegalArgumentException("The task with id "+pTaskId+" to update could not be found");
+    }
+
+    updateTaskValues(operations, pTaskId, oldTask, pUpdatedTask);
+
+    ContentValues newValues = new ContentValues(3);
+    if(!StringUtil.isEqual(oldTask.getState(), pUpdatedTask.getState())) {
+      newValues.put(Tasks.COLUMN_STATE, pUpdatedTask.getState());
+    }
+    if(!StringUtil.isEqual(oldTask.getSummary(), pUpdatedTask.getSummary())) {
+      newValues.put(Tasks.COLUMN_SUMMARY, pUpdatedTask.getSummary());
+    }
+    if (operations.size()>0 || newValues.size()>0) {
+      newValues.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
+      operations.add(ContentProviderOperation
+          .newUpdate(taskUri)
+          .withValues(newValues)
+          .build());
+    }
+
+    if (operations.size()>0) {
+      contentResolver.applyBatch(AUTHORITY, operations);
+    }
+  }
+
+  private static void updateTaskValues(ArrayList<ContentProviderOperation> pOperations, long pTaskId, UserTask pOldTask, UserTask pUpdatedTask) {
+    for(TaskItem newItem: pUpdatedTask.getItems()) {
+      if (newItem.getName()!=null) { // no name, no value
+        TaskItem oldItem = null;
+        for(TaskItem candidate: pOldTask.getItems()) {
+          if (newItem.getName().equals(candidate.getName())) {
+            oldItem = candidate;
+            break;
+          }
+        }
+        if (oldItem!=null) {
+          if (!StringUtil.isEqual(oldItem.getValue(), newItem.getValue())) {
+            pOperations.add(ContentProviderOperation
+                .newUpdate(Items.CONTENT_ID_URI_BASE)
+                .withSelection(Items.COLUMN_TASKID+"=? AND "+Items.COLUMN_NAME+" = ?", new String[] {Long.toString(pTaskId), newItem.getName() })
+                .withValue(Items.COLUMN_VALUE, newItem.getValue())
+                .build());
+          }
+        }
+      }
+    }
   }
 
 }

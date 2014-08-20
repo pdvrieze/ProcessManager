@@ -1,6 +1,7 @@
 package nl.adaptivity.process.tasks.android;
 
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.editor.android.MainActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
@@ -161,28 +162,18 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
   @Override
   public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-//    pInflater.inflate(R.menu.pmlist_menu, pMenu);
+    pInflater.inflate(R.menu.tasklist_menu, pMenu);
     super.onCreateOptionsMenu(pMenu, pInflater);
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
-//    switch (pItem.getItemId()) {
-//      case R.id.menu_add_pm:
-//        createNewPM();
-//        return true;
-//      case R.id.ac_import:
-//        Intent importIntent = new Intent(Intent.ACTION_GET_CONTENT);
-//        importIntent.addCategory(Intent.CATEGORY_OPENABLE);
-//        importIntent.setType("*/*");
-//        startActivityForResult(Intent.createChooser(importIntent, "Import from"),REQUEST_IMPORT);
-//        return true;
-//      case R.id.menu_settings: {
-//        Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
-//        startActivity(settingsIntent);
-//        return true;
-//      }
-//    }
+    switch (pItem.getItemId()) {
+      case R.id.ac_sync: {
+        MainActivity.requestSyncTaskList(getActivity(), true);
+        return true;
+      }
+    }
     return super.onOptionsItemSelected(pItem);
   }
 

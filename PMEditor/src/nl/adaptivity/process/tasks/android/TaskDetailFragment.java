@@ -1,15 +1,19 @@
 package nl.adaptivity.process.tasks.android;
 
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.data.TaskLoader;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.content.ContentUris;
+import android.content.OperationApplicationException;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,10 +21,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * A fragment representing a single ProcessModel detail screen. This fragment is
@@ -47,9 +52,11 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   private LinearLayout mDetailView;
 
-  private ListView mTaskItemView;
-
   private TextView mTVState;
+
+  private LinearLayout mTaskItemContainer;
+
+  private int mTaskItemFirstIndex;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -80,16 +87,34 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mTVSummary = (TextView) mDetailView.findViewById(R.id.task_name);
     mTVState = (TextView) mDetailView.findViewById(R.id.task_state);
 
-    mTaskItemView = (ListView) mDetailView.findViewById(R.id.task_items);
+    mTaskItemContainer = (LinearLayout) mDetailView.findViewById(R.id.task_below_items).getParent();
+    for(int i=mTaskItemContainer.getChildCount()-1; i>=0; --i) {
+      if (mTaskItemContainer.getChildAt(i).getId()==R.id.task_below_items) {
+        mTaskItemFirstIndex = i;
+      }
+    }
 
     mDetailView.findViewById(R.id.btn_task_complete).setOnClickListener(this);
     return rootView;
   }
 
   @Override
+  public void onPause() {
+    super.onPause();
+    if (mUserTask!=null) {
+      try {
+        TaskProvider.updateValuesAndState(getActivity(), mTaskId, mUserTask);
+      } catch (RemoteException | OperationApplicationException e) {
+        Log.w(TaskDetailFragment.class.getSimpleName(), "Failure to update the task state", e);
+        Toast.makeText(getActivity(), "The task could not be stored", Toast.LENGTH_SHORT).show();
+      }
+    }
+  }
+
+  @Override
   public Loader<UserTask> onCreateLoader(int pId, Bundle pArgs) {
     mTaskId = pArgs.getLong(ARG_ITEM_ID);
-    Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE,mTaskId);
+    Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE, mTaskId);
     return new TaskLoader(getActivity(), uri);
   }
 
@@ -99,7 +124,15 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mDetailView.setVisibility(View.VISIBLE);
     mTVSummary.setText(pData.getSummary());
     mTVState.setText(pData.getState());
-    mTaskItemView.setAdapter(pData==null ? null : new TaskItemAdapter(pData));
+    int viewPos = mTaskItemFirstIndex;
+    LayoutInflater inflater = LayoutInflater.from(getActivity());
+    for(TaskItem item: pData.getItems()) {
+      View taskView = item.createView(inflater, mTaskItemContainer);
+
+      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0f);
+      mTaskItemContainer.addView(taskView, viewPos, params);
+      ++viewPos;
+    }
     mUserTask = pData;
   }
 

@@ -1,57 +1,64 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/task_detail_frame"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+	xmlns:tools="http://schemas.android.com/tools"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:id="@+id/task_detail_frame"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" >
 
-    <ProgressBar
-        android:id="@+id/task_detail_spinner"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:visibility="gone" />
+	<ProgressBar
+		android:id="@+id/task_detail_spinner"
+		style="?android:attr/progressBarStyleLarge"
+		android:layout_width="wrap_content"
+		android:layout_height="0dp"
+		android:layout_weight="1"
+		android:visibility="gone" />
 
-    <LinearLayout
-        android:id="@+id/task_detail"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical" 
-        android:padding="@dimen/default_margin">
+	<ScrollView
+		android:id="@+id/task_detail_scroller"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_gravity="fill"
+		android:fillViewport="true" >
 
-        <TextView
-            android:id="@+id/task_name"
-            style="?android:attr/textAppearanceLarge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/default_margin"
-            android:gravity="center"
-            android:textIsSelectable="true"
-            tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
+		<LinearLayout
+			android:id="@+id/task_detail"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:orientation="vertical"
+			android:padding="@dimen/default_margin" >
 
-        <TextView
-            android:id="@+id/task_state"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/default_margin"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+			<TextView
+				android:id="@+id/task_name"
+				style="?android:attr/textAppearanceLarge"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="@dimen/default_margin"
+				android:gravity="center"
+				android:textIsSelectable="true"
+				tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
 
-        <ListView
-        	android:id="@+id/task_items"
-        	android:layout_width="match_parent"
-        	android:layout_height="0dp"
-        	android:layout_weight="1"
-          android:layout_marginBottom="@dimen/default_margin"
-        	tools:listitem="@layout/taskitem_labeled" />
+			<TextView
+				android:id="@+id/task_state"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="@dimen/default_margin"
+				android:gravity="right"
+				android:textAppearance="?android:attr/textAppearanceSmall" />
 
-        <Button
-            android:id="@+id/btn_task_complete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:enabled="false"
-            android:text="@string/btn_task_complete" />
-    </LinearLayout>
+			<View
+				android:id="@+id/task_below_items"
+				android:layout_width="match_parent"
+				android:layout_height="0dp"
+				android:layout_marginBottom="@dimen/default_margin"
+				android:layout_weight="1" />
+
+			<Button
+				android:id="@+id/btn_task_complete"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:enabled="false"
+				android:text="@string/btn_task_complete" />
+		</LinearLayout>
+	</ScrollView>
 
 </FrameLayout>
