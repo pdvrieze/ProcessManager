@@ -22,7 +22,7 @@
 								<jbi:attribute name="remotehandle" value="handle" />
 								<jbi:attribute name="instancehandle" value="instancehandle" />
 								<jbi:attribute name="owner" value="owner" />
-								<item type="label" value="Please enter some info for task foo" />
+								<item name="lbl1" type="label" value="Please enter some info for task foo" />
 								<item name="user" type="text" label="Your name" />
 							</task>
 						</taskParam>
