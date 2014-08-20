@@ -38,6 +38,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
   private static final String TAG_PROCESSINSTANCES = "processInstances";
   private static final String TAG_PROCESSINSTANCE = "processInstance";
+  private static final String TAG_HPROCESSINSTANCE = "instanceHandle";
   private static final String TAG = ProcessInstanceSyncAdapter.class.getSimpleName();
 
   public ProcessInstanceSyncAdapter() {
@@ -101,12 +102,24 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       XmlPullParser parser = pDelegator.newPullParser();
-      parser.setInput(response.getEntity().getContent(), "UTF8");
+      try {
+        parser.setInput(response.getEntity().getContent(), "UTF8");
 
-      parser.nextTag(); // Skip document start etc.
-      ContentValuesProvider values = parseItem(parser);
-      ++pSyncResult.stats.numUpdates;
-      return values;
+        parser.nextTag(); // Skip document start etc.
+        parser.require(XmlPullParser.START_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
+        long handle = Long.parseLong(parser.nextText());
+        parser.nextTag();
+        parser.require(XmlPullParser.END_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
+
+        ContentValues cv = new ContentValues(2);
+        cv.put(ProcessInstances.COLUMN_HANDLE, handle);
+//        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
+        ContentValuesProvider values = new SimpleContentValuesProvider(cv);
+        ++pSyncResult.stats.numUpdates;
+        return values;
+      } finally {
+        response.getEntity().consumeContent();
+      }
 
     } else {
       response.getEntity().consumeContent();
