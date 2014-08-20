@@ -29,7 +29,7 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   static final String TABLE_NAME = "processModels";
   static final String TABLE_INSTANCES_NAME = "processInstances";
   private static final String DB_NAME = "processmodels.db";
-  private static final int DB_VERSION = 4;
+  private static final int DB_VERSION = 5;
   private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       ProcessModels.COLUMN_HANDLE +" LONG," +
@@ -42,6 +42,7 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
       ProcessInstances.COLUMN_HANDLE +" LONG," +
       ProcessInstances.COLUMN_PMHANDLE + " LONG," +
       ProcessInstances.COLUMN_NAME + " TEXT," +
+      ProcessInstances.COLUMN_UUID + " TEXT," +
       ProcessInstances.COLUMN_SYNCSTATE+ " INT )";
 
   private static final boolean CREATE_DEFAULT_MODEL = false;
@@ -89,8 +90,11 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   public void onUpgrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
     pDb.beginTransaction();
     try {
-      if (pNewVersion==4 && pOldVersion==3) {
+      if (pNewVersion==5 && pOldVersion==3) {
         pDb.execSQL(SQL_CREATE_TABLE_INSTANCES);
+      } else if (pNewVersion==5 && pOldVersion==4) {
+        pDb.execSQL("ALTER TABLE "+TABLE_INSTANCES_NAME+" ADD COLUMN "+ProcessInstances.COLUMN_UUID+" TEXT");
+        pDb.delete(TABLE_INSTANCES_NAME, XmlBaseColumns.COLUMN_SYNCSTATE+"="+RemoteXmlSyncAdapter.SYNC_UPTODATE,null);
       } else {
         pDb.execSQL("DROP TABLE "+TABLE_NAME);
         pDb.execSQL("DROP TABLE "+TABLE_INSTANCES_NAME);

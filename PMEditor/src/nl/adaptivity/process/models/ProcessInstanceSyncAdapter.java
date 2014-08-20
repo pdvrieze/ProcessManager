@@ -77,12 +77,14 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   protected ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     String name;
     long pmHandle;
+    String uuid;
     {
-      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_NAME }, null, null, null);
+      Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_NAME, ProcessInstances.COLUMN_UUID }, null, null, null);
       try {
         if (pendingPosts.moveToFirst()) {
           pmHandle = pendingPosts.getLong(0);
           name= pendingPosts.getString(1);
+          uuid = pendingPosts.getString(2);
         } else {
           return null;
         }
@@ -91,11 +93,17 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
         pendingPosts.close();
       }
     }
+    StringBuilder url = new StringBuilder();
+    url.append(pDelegator.getSyncSource())
+       .append(Long.toString(pmHandle))
+       .append("?op=newInstance&name=")
+       .append(URLEncoder.encode(name, "UTF-8"));
+    if (uuid!=null) { url.append("&uuid=").append(uuid); }
 
-    return postToServer2(pDelegator, pDelegator.getSyncSource()+"/processModels/"+Long.toString(pmHandle)+"?op=newInstance&name="+URLEncoder.encode(name, "UTF-8"), pSyncResult);
+    return postInstanceToServer(pDelegator, url.toString(), pSyncResult);
   }
 
-  private ContentValuesProvider postToServer2(DelegatingResources pDelegator, final String url, SyncResult pSyncResult) throws ClientProtocolException,
+  private static ContentValuesProvider postInstanceToServer(DelegatingResources pDelegator, final String url, SyncResult pSyncResult) throws ClientProtocolException,
       IOException, XmlPullParserException {
     HttpPost post = new HttpPost(url);
     HttpResponse response = pDelegator.getWebClient().execute(post);
@@ -113,7 +121,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
         ContentValues cv = new ContentValues(2);
         cv.put(ProcessInstances.COLUMN_HANDLE, handle);
-//        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
+        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
         ContentValuesProvider values = new SimpleContentValuesProvider(cv);
         ++pSyncResult.stats.numUpdates;
         return values;
@@ -186,9 +194,11 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
     String name = pParser.getAttributeValue(null, "name");
     long handle;
     long pmhandle;
+    String uuid;
     try {
       handle = Long.parseLong(pParser.getAttributeValue(null, "handle"));
       pmhandle = Long.parseLong(pParser.getAttributeValue(null, "processModel"));
+      uuid = pParser.getAttributeValue(null, "uuid");
     } catch (NullPointerException|NumberFormatException e) {
       throw new XmlPullParserException(e.getMessage(), pParser, e);
     }
@@ -198,6 +208,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
     result.put(ProcessInstances.COLUMN_HANDLE, handle);
     result.put(ProcessInstances.COLUMN_PMHANDLE, pmhandle);
     result.put(ProcessInstances.COLUMN_NAME, name);
+    result.put(ProcessInstances.COLUMN_UUID, uuid);
     result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE); // No details at this stage
     return new SimpleContentValuesProvider(result);
   }
@@ -209,7 +220,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
 
   @Override
   protected String getKeyColumn() {
-    return ProcessInstances.COLUMN_HANDLE;
+    return ProcessInstances.COLUMN_UUID;
   }
 
   @Override

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -66,6 +67,7 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String COLUMN_NAME="name";
 
 
+    public static final String COLUMN_UUID = "uuid";
     private static final String SCHEME = "content://";
 
     private static final String PATH_INSTANCES = "/processinstances";
@@ -446,6 +448,7 @@ public class ProcessModelProvider extends ContentProvider {
           .newInsert(ProcessInstances.CONTENT_ID_URI_BASE)
           .withValue(ProcessInstances.COLUMN_NAME, pName)
           .withValue(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pmhandle))
+          .withValue(ProcessInstances.COLUMN_UUID, UUID.randomUUID().toString())
           .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))
           .build());
       try {
