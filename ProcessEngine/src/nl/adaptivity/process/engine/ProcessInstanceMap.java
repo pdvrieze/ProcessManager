@@ -254,7 +254,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       pStatement.setString(pOffset+2, pElement.getOwner().getName());
       pStatement.setString(pOffset+3, pElement.getState()==null? null : pElement.getState().name());
       pStatement.setString(pOffset+4, pElement.getUUID()==null? null : pElement.getUUID().toString());
-      return 4;
+      return 5;
     }
 
   }
