@@ -16,7 +16,6 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 import net.devrieze.util.StringUtil;
-
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.tasks.TaskItem;
@@ -26,10 +25,14 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.tasks.items.GenericItem;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import android.content.ContentProviderClient;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.database.Cursor;
@@ -68,7 +71,9 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected ContentValuesProvider updateItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, int pSyncState, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
+                                                  int pSyncState, SyncResult pSyncresult) throws RemoteException, IOException,
+      XmlPullParserException {
     UserTask task = TaskProvider.getTask(getContext(), pItemuri);
     HttpPost request;
     final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
@@ -89,7 +94,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     } else {
       request = new HttpPost(getListUrl(mBase)+'/'+task.getHandle()+"?state="+task.getState());
     }
-    HttpResponse result = pHttpClient.execute(request);
+    HttpResponse result = pDelegator.getWebClient().execute(request);
     int resultCode = result.getStatusLine().getStatusCode();
     if (resultCode>=200 && resultCode<400) {
       XmlPullParser parser = factory.newPullParser();
@@ -106,24 +111,25 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected ContentValuesProvider createItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
+                                                  SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected ContentValuesProvider deleteItemOnServer(ContentProviderClient pProvider, AuthenticatedWebClient pHttpClient, Uri pItemuri,
-                                                     SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider deleteItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
+                                                  SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
+  public boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
     // TODO Do more than take the server state
     return true;
   }
 
   @Override
-  protected boolean doUpdateItemDetails(AuthenticatedWebClient pHttpClient, ContentProviderClient pProvider, long pTaskId, CVPair pPair) throws RemoteException, IOException {
+  public boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pTaskId, CVPair pPair) throws RemoteException, OperationApplicationException, IOException {
     // TODO support transactions
     boolean updated = false;
     if (pPair==null) {
@@ -231,7 +237,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected ContentValuesProvider parseItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
+  public ContentValuesProvider parseItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
 
     pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
     String summary = pIn.getAttributeValue(null, "summary");
@@ -258,32 +264,32 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  protected String getKeyColumn() {
+  public String getKeyColumn() {
     return Tasks.COLUMN_HANDLE;
   }
 
   @Override
-  protected String getSyncStateColumn() {
+  public String getSyncStateColumn() {
     return Tasks.COLUMN_SYNCSTATE;
   }
 
   @Override
-  protected String getItemNamespace() {
+  public String getItemNamespace() {
     return UserTask.NS_TASKS;
   }
 
   @Override
-  protected String getItemsTag() {
+  public String getItemsTag() {
     return UserTask.TAG_TASKS;
   }
 
   @Override
-  protected String getListUrl(String pBase) {
+  public String getListUrl(String pBase) {
     return pBase+"pendingTasks";
   }
 
   @Override
-  protected String getSyncSource() {
+  public String getSyncSource() {
     if (mBase==null) {
       SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
       String prefBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService");

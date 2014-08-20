@@ -1,23 +1,25 @@
 package nl.adaptivity.sync;
 
 
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.UUID;
+
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import static org.xmlpull.v1.XmlPullParser.*;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
 import android.content.ContentUris;
@@ -30,7 +32,7 @@ import android.os.RemoteException;
 import android.provider.BaseColumns;
 
 @SuppressWarnings("boxing")
-public abstract class RemoteXmlSyncAdapterDelegate {
+public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
 
   public static interface DelegatingResources {
     AuthenticatedWebClient getWebClient();
@@ -51,8 +53,20 @@ public abstract class RemoteXmlSyncAdapterDelegate {
 
   private final Uri mListContentUri;
   private List<CVPair> mUpdateList;
+  private ISimpleSyncDelegate mActualDelegate;
 
   public RemoteXmlSyncAdapterDelegate(Uri pListContentUri) {
+    this(pListContentUri, null);
+//    if (!(this instanceof ISimpleSyncDelegate)) { throw new IllegalArgumentException("You must implement ISimpleSyncDelegate"); }
+  }
+
+  public RemoteXmlSyncAdapterDelegate(Uri pListContentUri, ISimpleSyncDelegate pDelegate) {
+    if (pDelegate ==null) {
+      if (!(this instanceof ISimpleSyncDelegate)) { throw new IllegalArgumentException("You must implement ISimpleSyncDelegate"); }
+      mActualDelegate = (ISimpleSyncDelegate) this;
+    } else {
+      mActualDelegate = pDelegate;
+    }
     mListContentUri = pListContentUri.buildUpon().encodedFragment("nonetnotify").build();
   }
 
@@ -65,15 +79,16 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    * @throws OperationApplicationException Not thrown by the operation itself, but children may, when using batch content provider operations.
    * @category Phase
    */
-  protected void publishItemsToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = getSyncStateColumn();
+  @Override
+  public final void publishItemsToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
+    final String colSyncstate = mActualDelegate.getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID };
 
     Cursor itemsToCreate = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_PUBLISH_TO_SERVER, null, null);
     while(itemsToCreate.moveToNext()) {
       Uri itemuri = ContentUris.withAppendedId(mListContentUri, itemsToCreate.getLong(0));
       try {
-        ContentValuesProvider newValuesProvider = createItemOnServer(pDelegator, pProvider, itemuri, pSyncResult);
+        ContentValuesProvider newValuesProvider = mActualDelegate.createItemOnServer(pDelegator, pProvider, itemuri, pSyncResult);
         ContentValues newValues  = newValuesProvider==null ? null : newValuesProvider.getContentValues();
         if (newValues==null) {
           newValues = new ContentValues(1);
@@ -101,15 +116,16 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    * @throws OperationApplicationException Not thrown by the operation itself, but children may, when using batch content provider operations.
    * @category Phase
    */
-  protected void deleteOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = getSyncStateColumn();
+  @Override
+  public void deleteOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
+    final String colSyncstate = mActualDelegate.getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID };
 
     Cursor itemsToDelete = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DELETE_ON_SERVER, null, null);
     while(itemsToDelete.moveToNext()) {
       Uri itemuri = ContentUris.withAppendedId(mListContentUri, itemsToDelete.getLong(0));
       try {
-        ContentValuesProvider newValuesProvider = deleteItemOnServer(pDelegator, pProvider, itemuri, pSyncResult);
+        ContentValuesProvider newValuesProvider = mActualDelegate.deleteItemOnServer(pDelegator, pProvider, itemuri, pSyncResult);
         ContentValues newValues  = newValuesProvider==null ? null : newValuesProvider.getContentValues();
         if (newValues==null) {
           newValues = new ContentValues(1);
@@ -142,8 +158,10 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
+  @Override
+  public
   final void updateListFromServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, XmlPullParserException, IOException, OperationApplicationException {
-    HttpGet getList = new HttpGet(getListUrl(pDelegator.getSyncSource()));
+    HttpGet getList = new HttpGet(mActualDelegate.getListUrl(pDelegator.getSyncSource()));
     HttpResponse result;
     try {
       result = pDelegator.getWebClient().execute(getList);
@@ -179,8 +197,9 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
-  protected void deleteItemsMissingOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = getSyncStateColumn();
+  @Override
+  public final void deleteItemsMissingOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
+    final String colSyncstate = mActualDelegate.getSyncStateColumn();
     int cnt = pProvider.delete(mListContentUri, colSyncstate + " = "+SYNC_PENDING+ " OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_PENDING, null);
     pSyncResult.stats.numDeletes+=cnt;
   }
@@ -198,8 +217,9 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
-  protected void sendLocalChangesToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = getSyncStateColumn();
+  @Override
+  public final void sendLocalChangesToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
+    final String colSyncstate = mActualDelegate.getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
 
     Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_UPDATE_SERVER +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING, null, null);
@@ -207,7 +227,7 @@ public abstract class RemoteXmlSyncAdapterDelegate {
       int syncState = updateableItems.getInt(1);
       Uri itemuri = ContentUris.withAppendedId(mListContentUri, updateableItems.getLong(0));
       try {
-        ContentValuesProvider newValuesProvider = updateItemOnServer(pDelegator, pProvider, itemuri, syncState, pSyncResult);
+        ContentValuesProvider newValuesProvider = mActualDelegate.updateItemOnServer(pDelegator, pProvider, itemuri, syncState, pSyncResult);
         ContentValues newValues  = newValuesProvider.getContentValues();
         if (newValues==null) {
           newValues = new ContentValues(1);
@@ -245,13 +265,14 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    * @category Phase
    */
 
-  protected void updateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, IOException, OperationApplicationException {
+  @Override
+  public final void updateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, IOException, OperationApplicationException {
     if (mUpdateList==null) {
       mUpdateList = Collections.emptyList();
     } else {
       Collections.sort(mUpdateList);
     }
-    final String colSyncstate = getSyncStateColumn();
+    final String colSyncstate = mActualDelegate.getSyncStateColumn();
     final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
     Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DETAILSPENDING /* +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING*/, null, BaseColumns._ID);
     try {
@@ -264,12 +285,12 @@ public abstract class RemoteXmlSyncAdapterDelegate {
           if (candidate.mId==id) {
             pair = candidate;
             break;
-          } else if (candidate.mId<id) {
+          } else if (candidate.mId>id) {
             listIterator.previous(); // back up the position
             break;
           }
         }
-        if(doUpdateItemDetails(pDelegator, pProvider, id, pair)) {
+        if(mActualDelegate.doUpdateItemDetails(pDelegator, pProvider, id, pair)) {
           pSyncResult.stats.numUpdates++;
         }
       }
@@ -295,12 +316,12 @@ public abstract class RemoteXmlSyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
-  protected List<CVPair> updateItemListFromServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, RemoteException, IOException, OperationApplicationException {
-    final String itemNamespace = getItemNamespace();
-    final String itemsTag = getItemsTag();
+  public final List<CVPair> updateItemListFromServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, RemoteException, IOException, OperationApplicationException {
+    final String itemNamespace = mActualDelegate.getItemNamespace();
+    final String itemsTag = mActualDelegate.getItemsTag();
 
-    final String colSyncstate = getSyncStateColumn();
-    final String colKey = getKeyColumn();
+    final String colSyncstate = mActualDelegate.getSyncStateColumn();
+    final String colKey = mActualDelegate.getKeyColumn();
 
     final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
 
@@ -332,7 +353,7 @@ public abstract class RemoteXmlSyncAdapterDelegate {
     while ((type = parser.next()) != END_TAG) {
       switch (type) {
         case START_TAG:
-          ContentValuesProvider item = parseItem(parser);
+          ContentValuesProvider item = mActualDelegate.parseItem(parser);
           final ContentValues itemCv = item.getContentValues();
           Object key = itemCv.get(colKey);
           if (key!=null) {
@@ -352,7 +373,7 @@ public abstract class RemoteXmlSyncAdapterDelegate {
                 itemCv.remove(colSyncstate);
                 ContentValues itemCpy = new ContentValues(itemCv);
                 itemCpy.remove(colSyncstate);
-                if (resolvePotentialConflict(pProvider, uri, item)) {
+                if (mActualDelegate.resolvePotentialConflict(pProvider, uri, item)) {
                   if (item.equals(itemCpy)) {
                     // no server update needed
                     itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
@@ -395,145 +416,5 @@ public abstract class RemoteXmlSyncAdapterDelegate {
     }
     return result;
   }
-
-  /**
-   * Hook for that should be used by subclasses to update item details. If it
-   * has no details it can just return <code>true</code>.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient}
-   * @param pId The id within the local table of the item to update the details
-   *          of.
-   * @param pPair The details (if available) of the item, based upon the return
-   *          of {@link #parseItem(XmlPullParser)}.
-   *
-   * @return <code>true</code> on success.
-   * @throws RemoteException
-   * @throws OperationApplicationException
-   * @throws IOException
-   * @category Hooks
-   */
-  protected abstract boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, OperationApplicationException, IOException;
-
-  /**
-   * Hook for that should be used by subclasses to delete an item on the server.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient}
-   * @param pItemuri The local content uri of the item.
-   * @param pSyncResult The sync status.
-   *
-   * @return The new values to be stored in the database for the object.
-   * @throws RemoteException
-   * @throws IOException
-   * @category Hooks
-   */
-  protected abstract ContentValuesProvider deleteItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException;
-
-  /**
-   * Hook for that should be used by subclasses to create an item on the server.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient}
-   * @param pItemuri The local content uri of the item.
-   * @param pSyncState TODO
-   * @param pPair The details (if available) of the item, based upon the return
-   *          of {@link #parseItem(XmlPullParser)}.
-   * @param pSyncResult The sync status.
-   * @return The new values to be stored in the database for the object.
-   * @throws RemoteException
-   * @throws IOException
-   * @category Hooks
-   */
-  protected abstract ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
-
-  /**
-   * Hook for that should be used by subclasses to update an item on the server.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient}
-   * @param pItemuri The local content uri of the item.
-   * @param pSyncState The state of the item in the local database.
-   * @param pPair The details (if available) of the item, based upon the return
-   *          of {@link #parseItem(XmlPullParser)}.
-   * @param pSyncResult The sync status.
-   *
-   * @return The new values to be stored in the database for the object.
-   * @throws RemoteException
-   * @throws IOException
-   * @category Hooks
-   */
-  protected abstract ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncresult) throws RemoteException, IOException, XmlPullParserException;
-
-  /**
-   * Hook for that should be used by subclasses to resolve conflicts between the
-   * server and the local database. This method does not need to update the
-   * primary row in the database.
-   *
-   * @param pHttpClient The {@link AuthenticatedWebClient} to use.
-   * @param pProvider The {@link ContentProviderClient}
-   * @param pItemuri The local content uri of the item.
-   * @param pItem The details (if available) of the item. These are initially
-   *          the values from the server, but if they are changed that will
-   *          result in a server update to be triggered. In any case the local
-   *          database will be updated with these values.
-   * @param pSyncResult The sync status.
-   * @return If <code>true</code>, the conflict has been resolved. If
-   *         <code>false</code> this is not the case.
-   * @throws RemoteException
-   * @throws IOException
-   * @category Hooks
-   */
-  protected abstract boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException;
-
-  /**
-   * Hook to parse an item from XML. The function must consume the endTag
-   * corresponding to the startTag that is the current position of the parser.
-   *
-   * @param pParser The parser that has been used. The parser is positioned at
-   *          the first tag of the element.
-   * @return The new values to be stored in the database for the object.
-   * @throws XmlPullParserException
-   * @throws IOException
-   * @category Hooks
-   */
-  protected abstract ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException;
-
-  /**
-   * Returns the column that is the key for items that is shared by both. This
-   * allows better reconsiliation between items. A good use would be to store a
-   * {@link UUID}.
-   *
-   * @return The column name, or null if there is not shared item key.
-   * @category Configuration
-   */
-  protected abstract String getKeyColumn();
-
-  /**
-   * Returns the column that maintains the synchronization state.is the key for
-   * items in the database. Normally this is {@link BaseColumns#_ID}.
-   *
-   * @return The column name.
-   * @category Configuration
-   */
-  protected abstract String getSyncStateColumn();
-
-  /**
-   * Get the namespace for the parsing of the items.
-   * @return
-   * @category Configuration
-   */
-  protected abstract String getItemNamespace();
-
-  /**
-   * Get the outer tag that contains a list of items.
-   * @return The tag name (without namespace)
-   * @category Configuration
-   */
-  protected abstract String getItemsTag();
-
-  /**
-   * Get the server url from which to retrieve the item list.
-   * @param pBase The base url for the entire synchronization.
-   * @return The result.
-   * @category Configuration
-   */
-  protected abstract String getListUrl(String pBase);
 
 }

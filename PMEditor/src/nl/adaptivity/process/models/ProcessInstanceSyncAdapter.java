@@ -18,6 +18,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.ISimpleSyncDelegate;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
@@ -33,7 +34,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 @SuppressWarnings("boxing")
-public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
+public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate implements ISimpleSyncDelegate {
 
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
   private static final String TAG_PROCESSINSTANCES = "processInstances";
@@ -46,12 +47,12 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected String getListUrl(String pBase) {
+  public String getListUrl(String pBase) {
     return pBase+"/processInstances";
   }
 
   @Override
-  protected ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException("The server can not be changed yet");
 //    long pmHandle;
 //    long handle;
@@ -74,7 +75,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     String name;
     long pmHandle;
     String uuid;
@@ -141,7 +142,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected ContentValuesProvider deleteItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
+  public ContentValuesProvider deleteItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
                                                      SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     long handle;
     {
@@ -183,13 +184,13 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
+  public boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
     // Server always wins
     return true;
   }
 
   @Override
-  protected ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
+  public ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
     pParser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
     String name = pParser.getAttributeValue(null, "name");
     long handle;
@@ -214,27 +215,27 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException {
+  public boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException {
     return true; // We don't do details yet.
   }
 
   @Override
-  protected String getKeyColumn() {
+  public String getKeyColumn() {
     return ProcessInstances.COLUMN_UUID;
   }
 
   @Override
-  protected String getSyncStateColumn() {
+  public String getSyncStateColumn() {
     return XmlBaseColumns.COLUMN_SYNCSTATE;
   }
 
   @Override
-  protected String getItemNamespace() {
+  public String getItemNamespace() {
     return NS_PROCESSMODELS;
   }
 
   @Override
-  protected String getItemsTag() {
+  public String getItemsTag() {
     return TAG_PROCESSINSTANCES;
   }
 

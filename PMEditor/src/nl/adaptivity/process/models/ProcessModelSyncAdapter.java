@@ -21,6 +21,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.android.util.MultipartEntity;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.ISimpleSyncDelegate;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
@@ -37,7 +38,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 @SuppressWarnings("boxing")
-public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
+public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implements ISimpleSyncDelegate {
 
   private static final String NS_PROCESSMODELS = "http://adaptivity.nl/ProcessEngine/";
   private static final String TAG_PROCESSMODELS = "processModels";
@@ -49,12 +50,12 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected String getListUrl(String pBase) {
+  public String getListUrl(String pBase) {
     return pBase+"/processModels";
   }
 
   @Override
-  protected ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider updateItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, int pSyncState, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     String model;
     long handle;
     {
@@ -76,7 +77,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider createItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri, SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     String model;
     {
       Cursor pendingPosts = pProvider.query(pItemuri, new String[]{ ProcessModels.COLUMN_MODEL }, null, null, null);
@@ -129,7 +130,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected ContentValuesProvider deleteItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
+  public ContentValuesProvider deleteItemOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, Uri pItemuri,
                                                      SyncResult pSyncResult) throws RemoteException, IOException, XmlPullParserException {
     long handle;
     {
@@ -176,7 +177,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
+  public boolean resolvePotentialConflict(ContentProviderClient pProvider, Uri pUri, ContentValuesProvider pItem) throws RemoteException {
     final ContentValues itemCv = pItem.getContentValues();
     itemCv.clear();
     itemCv.put(getSyncStateColumn(), Integer.valueOf(SYNC_UPDATE_SERVER));
@@ -184,7 +185,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
+  public ContentValuesProvider parseItem(XmlPullParser pParser) throws XmlPullParserException, IOException {
     pParser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSMODEL);
     String name = pParser.getAttributeValue(null, "name");
     long handle;
@@ -209,7 +210,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException {
+  public boolean doUpdateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, long pId, CVPair pPair) throws RemoteException, IOException {
     long handle;
     if (pPair!=null && pPair.mCV.getContentValues().containsKey(ProcessModels.COLUMN_HANDLE)) {
       handle = pPair.mCV.getContentValues().getAsLong(ProcessModels.COLUMN_HANDLE);
@@ -257,22 +258,22 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate {
   }
 
   @Override
-  protected String getKeyColumn() {
+  public String getKeyColumn() {
     return ProcessModels.COLUMN_UUID;
   }
 
   @Override
-  protected String getSyncStateColumn() {
+  public String getSyncStateColumn() {
     return XmlBaseColumns.COLUMN_SYNCSTATE;
   }
 
   @Override
-  protected String getItemNamespace() {
+  public String getItemNamespace() {
     return NS_PROCESSMODELS;
   }
 
   @Override
-  protected String getItemsTag() {
+  public String getItemsTag() {
     return TAG_PROCESSMODELS;
   }
 
