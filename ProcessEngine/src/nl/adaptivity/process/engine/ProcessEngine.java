@@ -384,7 +384,7 @@ public class ProcessEngine /* implements IProcessEngine */{
           pi.cancelTask(pTransaction, aMessageService, task);
           break;
         default:
-          throw new IllegalArgumentException("Unsupported state");
+          throw new IllegalArgumentException("Unsupported state :"+pNewState);
       }
       return task.getState();
     }
