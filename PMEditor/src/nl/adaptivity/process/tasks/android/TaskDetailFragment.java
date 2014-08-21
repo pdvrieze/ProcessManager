@@ -5,6 +5,7 @@ import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.data.TaskLoader;
 import nl.adaptivity.process.tasks.data.TaskProvider;
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.OperationApplicationException;
 import android.net.Uri;
@@ -34,6 +35,10 @@ import android.widget.Toast;
  */
 public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, OnClickListener {
 
+  public interface TaskDetailCallbacks {
+    public void dismissTaskDetails();
+  }
+
   /**
    * The fragment argument representing the item ID that this fragment
    * represents.
@@ -41,6 +46,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   public static final String ARG_ITEM_ID = "item_id";
 
   private static final int LOADER_TASKITEM = 0;
+
+  private static final String TASK_COMPLETTE = "Complete";
 
   private TextView mTVSummary;
 
@@ -58,6 +65,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   private int mTaskItemFirstIndex;
 
+  private TaskDetailCallbacks mCallbacks;
+
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
@@ -72,6 +81,16 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
       getLoaderManager().initLoader(LOADER_TASKITEM, getArguments(), this);
     }
 //    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public void onAttach(Activity pActivity) {
+    super.onAttach(pActivity);
+    if (pActivity instanceof TaskDetailCallbacks) {
+      mCallbacks = (TaskDetailCallbacks) pActivity;
+    } else {
+      mCallbacks = null;
+    }
   }
 
   @Override
@@ -145,12 +164,17 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   @Override
   public void onClick(View pV) {
-//    switch (pV.getId()) {
-//      case R.id.btn_pm_edit:
-//        btnPmEditClicked(); return;
-//      case R.id.btn_pm_exec:
-//        btnPmExecClicked(); return;
-//    }
+    switch (pV.getId()) {
+      case R.id.btn_task_complete:
+        onCompleteTaskClicked();
+    }
+  }
+
+  private void onCompleteTaskClicked() {
+    mUserTask.setState(TASK_COMPLETTE);
+    if (mCallbacks!=null) {
+      mCallbacks.dismissTaskDetails();
+    }
   }
 
   @Override

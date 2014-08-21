@@ -1,6 +1,7 @@
 package nl.adaptivity.process.tasks.android;
 
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.tasks.android.TaskDetailFragment.TaskDetailCallbacks;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -17,7 +18,7 @@ import android.view.MenuItem;
  * a {@link TaskDetailFragment}.
  *
  */
-public class TaskDetailActivity extends FragmentActivity {
+public class TaskDetailActivity extends FragmentActivity implements TaskDetailCallbacks {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -65,5 +66,10 @@ public class TaskDetailActivity extends FragmentActivity {
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void dismissTaskDetails() {
+    finish();
   }
 }

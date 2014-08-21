@@ -10,6 +10,7 @@ import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.tasks.android.TaskDetailFragment.TaskDetailCallbacks;
 import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
 import nl.adaptivity.process.tasks.android.TaskListOuterFragment.TaskListCallbacks;
 import nl.adaptivity.process.tasks.data.TaskProvider;
@@ -47,7 +48,7 @@ import android.widget.Toast;
 /**
  * The main activity that contains the navigation drawer.
  */
-public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
+public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks, ProcessModelDetailFragment.Callbacks, TaskDetailCallbacks {
 
   private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -389,5 +390,13 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
   private static String getAuthBase(Context pContext) {
     final String source = getSyncSource(pContext);
     return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
+  }
+
+  @Override
+  public void dismissTaskDetails() {
+    TitleFragment af = getActiveFragment();
+    if (af instanceof TaskListOuterFragment) {
+      ((TaskListOuterFragment)af).onItemSelected(-1, -1);
+    }
   }
 }
