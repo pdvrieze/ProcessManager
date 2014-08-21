@@ -24,14 +24,6 @@ import android.util.Log;
 public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter implements RemoteXmlSyncAdapterDelegate.DelegatingResources {
 
   private enum Phases {
-    DELETE_ON_SERVER {
-
-      @Override
-      public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult) throws XmlPullParserException, IOException, RemoteException, OperationApplicationException {
-        pDelegate.deleteOnServer(pDelegator, pProvider, pSyncResult);
-      }
-
-    },
     UPDATE_LIST_FROM_SERVER {
 
       @Override
@@ -39,33 +31,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
         pDelegate.updateListFromServer(pDelegator, pProvider, pSyncResult);
       }},
 
-    PUBLISH_ITEMS_TO_SERVER{
-
-      @Override
-      public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult) throws XmlPullParserException, IOException, RemoteException, OperationApplicationException {
-        pDelegate.publishItemsToServer(pDelegator, pProvider, pSyncResult);
-      }
-
-    }, DELETE_ITEMS_MISSING_ON_SERVER {
-
-      @Override
-      public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult)
-          throws XmlPullParserException, IOException, RemoteException, OperationApplicationException {
-        pDelegate.deleteItemsMissingOnServer(pDelegator, pProvider, pSyncResult);
-
-      }
-
-    },
-
-    SEND_LOCAL_CHANGES_TO_SERVER {
-
-      @Override
-      public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult)
-          throws XmlPullParserException, IOException, RemoteException, OperationApplicationException {
-        pDelegate.sendLocalChangesToServer(pDelegator, pProvider, pSyncResult);
-      }},
-
-    UPDATE_ITEMS_FROM_SERVER {
+    UPDATE_ITEM_DETAILS_FROM_SERVER {
 
       @Override
       public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult)

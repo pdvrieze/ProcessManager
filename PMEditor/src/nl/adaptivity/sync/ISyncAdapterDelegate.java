@@ -17,16 +17,6 @@ public interface ISyncAdapterDelegate {
   public void updateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, IOException,
       OperationApplicationException;
 
-  public void sendLocalChangesToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException,
-      OperationApplicationException;
-
-  public void deleteItemsMissingOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException,
-      OperationApplicationException;
-
-  public void deleteOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException;
-
-  public void publishItemsToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException;
-
   public void updateListFromServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, XmlPullParserException,
       IOException, OperationApplicationException;
 

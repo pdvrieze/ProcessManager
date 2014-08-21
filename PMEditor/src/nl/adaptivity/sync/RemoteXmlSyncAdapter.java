@@ -77,4 +77,14 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
     init(pListContentUri);
   }
 
+  @Override
+  public String getListSelection() {
+    return null;
+  }
+
+  @Override
+  public String[] getListSelectionArgs() {
+    return null;
+  }
+
 }

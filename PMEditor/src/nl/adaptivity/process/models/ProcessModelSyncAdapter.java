@@ -230,7 +230,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
     String uri = getListUrl(pDelegator.getSyncSource())+"/"+handle;
     HttpGet request = new HttpGet(uri);
     HttpResponse response = pDelegator.getWebClient().execute(request);
-    // TODO Auto-generated method stub
+
     int status = response.getStatusLine().getStatusCode();
     if (status>=200 && status<400) {
       CharArrayWriter out = new CharArrayWriter();
@@ -276,6 +276,16 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
   @Override
   public String getItemsTag() {
     return TAG_PROCESSMODELS;
+  }
+
+  @Override
+  public String getListSelection() {
+    return null;
+  }
+
+  @Override
+  public String[] getListSelectionArgs() {
+    return null;
   }
 
 

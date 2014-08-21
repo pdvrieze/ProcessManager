@@ -241,5 +241,14 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
     return TAG_PROCESSINSTANCES;
   }
 
+  @Override
+  public String getListSelection() {
+    return null;
+  }
+
+  @Override
+  public String[] getListSelectionArgs() {
+    return null;
+  }
 
 }

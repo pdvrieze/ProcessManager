@@ -1,28 +1,30 @@
 package nl.adaptivity.sync;
 
 
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
-import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
-
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import static org.xmlpull.v1.XmlPullParser.*;
+
+import net.devrieze.util.StringUtil;
+
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 import android.content.ContentProviderClient;
 import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.OperationApplicationException;
@@ -32,6 +34,7 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import android.util.Log;
+import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
 
 @SuppressWarnings("boxing")
 public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
@@ -62,82 +65,6 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     }
     mListContentUri = pListContentUri.buildUpon().encodedFragment("nonetnotify").build();
   }
-
-  /**
-   * The code responsible for coordinating the publication of items to the server. Normally this does not need to be overridden.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient provider} used.
-   * @param pSyncResult The {@link SyncResult} used for sync statistics.
-   * @throws RemoteException If a direct operation failed.
-   * @throws OperationApplicationException Not thrown by the operation itself, but children may, when using batch content provider operations.
-   * @category Phase
-   */
-  @Override
-  public final void publishItemsToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    final String[] projectionId = new String[] { BaseColumns._ID };
-
-    Cursor itemsToCreate = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_PUBLISH_TO_SERVER, null, null);
-    while(itemsToCreate.moveToNext()) {
-      Uri itemuri = ContentUris.withAppendedId(mListContentUri, itemsToCreate.getLong(0));
-      try {
-        ContentValuesProvider newValuesProvider = mActualDelegate.createItemOnServer(pDelegator, pProvider, itemuri, pSyncResult);
-        ContentValues newValues  = newValuesProvider==null ? null : newValuesProvider.getContentValues();
-        if (newValues==null) {
-          newValues = new ContentValues(1);
-          newValues.put(colSyncstate, SYNC_UPTODATE);
-        } else if (!newValues.containsKey(colSyncstate)) {
-          newValues.put(colSyncstate, SYNC_UPTODATE);
-        }
-        pProvider.update(itemuri, newValues, null, null);
-        pSyncResult.stats.numUpdates++;
-      } catch (IOException e) {
-        pSyncResult.stats.numIoExceptions++;
-        Log.w(TAG, "Failure post new instance to server", e);
-      } catch (XmlPullParserException e) {
-        pSyncResult.stats.numParseExceptions++;
-        Log.w(TAG, "Failure post new instance to server", e);
-      }
-    }
-  }
-
-
-  /**
-   * The code responsible for coordinating the deletion of items on the server. Normally this does not need to be overridden.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient provider} used.
-   * @param pSyncResult The {@link SyncResult} used for sync statistics.
-   * @throws RemoteException If a direct operation failed.
-   * @throws OperationApplicationException Not thrown by the operation itself, but children may, when using batch content provider operations.
-   * @category Phase
-   */
-  @Override
-  public void deleteOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    final String[] projectionId = new String[] { BaseColumns._ID };
-
-    Cursor itemsToDelete = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_DELETE_ON_SERVER, null, null);
-    while(itemsToDelete.moveToNext()) {
-      Uri itemuri = ContentUris.withAppendedId(mListContentUri, itemsToDelete.getLong(0));
-      try {
-        ContentValuesProvider newValuesProvider = mActualDelegate.deleteItemOnServer(pDelegator, pProvider, itemuri, pSyncResult);
-        ContentValues newValues  = newValuesProvider==null ? null : newValuesProvider.getContentValues();
-        if (newValues==null) {
-          newValues = new ContentValues(1);
-          newValues.put(colSyncstate, SYNC_PENDING);
-        } else if (!newValues.containsKey(colSyncstate)) {
-          newValues.put(colSyncstate, SYNC_PENDING);
-        }
-        pProvider.update(itemuri, newValues, colSyncstate+" = "+Integer.toString(SYNC_DELETE_ON_SERVER), null);
-        pSyncResult.stats.numDeletes++;
-      } catch (IOException e) {
-        pSyncResult.stats.numIoExceptions++;
-      } catch (XmlPullParserException e) {
-        pSyncResult.stats.numParseExceptions++;
-      }
-    }
-  }
-
 
   /**
    * The code responsible for updating the list of items from the server. This
@@ -177,69 +104,6 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     } else {
       pSyncResult.stats.numAuthExceptions++;
     }
-  }
-
-  /**
-   * The code responsible for deleting local items that no longer exist on the
-   * server. Normally this does not need to be overridden. This code depends on
-   * the sync state in previous phases being set to non-pending for items that
-   * are still present.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient provider} used.
-   * @param pSyncResult The {@link SyncResult} used for sync statistics.
-   *
-   * @throws RemoteException If a direct operation failed.
-   * @throws OperationApplicationException Not thrown by the operation itself,
-   *           but children may, when using batch content provider operations.
-   * @category Phase
-   */
-  @Override
-  public final void deleteItemsMissingOnServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    int cnt = pProvider.delete(mListContentUri, colSyncstate + " = "+SYNC_PENDING+ " OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_PENDING, null);
-    pSyncResult.stats.numDeletes+=cnt;
-  }
-
-  /**
-   * The code responsible for sending local changes to the server. It will take
-   * the server response and use it to update the local database.Normally this
-   * does not need to be overridden.
-   * @param pDelegator TODO
-   * @param pProvider The {@link ContentProviderClient provider} used.
-   * @param pSyncResult The {@link SyncResult} used for sync statistics.
-   *
-   * @throws RemoteException If a direct operation failed.
-   * @throws OperationApplicationException Not thrown by the operation itself,
-   *           but children may, when using batch content provider operations.
-   * @category Phase
-   */
-  @Override
-  public final void sendLocalChangesToServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, OperationApplicationException {
-    final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
-
-    Cursor updateableItems = pProvider.query(mListContentUri, projectionId, colSyncstate+" = "+SYNC_UPDATE_SERVER +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING, null, null);
-    while(updateableItems.moveToNext()) {
-      int syncState = updateableItems.getInt(1);
-      Uri itemuri = ContentUris.withAppendedId(mListContentUri, updateableItems.getLong(0));
-      try {
-        ContentValuesProvider newValuesProvider = mActualDelegate.updateItemOnServer(pDelegator, pProvider, itemuri, syncState, pSyncResult);
-        ContentValues newValues  = newValuesProvider.getContentValues();
-        if (newValues==null) {
-          newValues = new ContentValues(1);
-          newValues.put(colSyncstate, syncState==SYNC_UPDATE_SERVER_DETAILSPENDING ? SYNC_DETAILSPENDING : SYNC_UPTODATE);
-        } else if (!newValues.containsKey(colSyncstate)) {
-          newValues.put(colSyncstate, syncState==SYNC_UPDATE_SERVER_DETAILSPENDING ? SYNC_DETAILSPENDING : SYNC_UPTODATE);
-        }
-        pProvider.update(itemuri, newValues, colSyncstate+" = "+SYNC_UPDATE_SERVER +" OR "+colSyncstate+" = "+SYNC_UPDATE_SERVER_DETAILSPENDING, null);
-        pSyncResult.stats.numUpdates++;
-      } catch (IOException e) {
-        pSyncResult.stats.numIoExceptions++;
-      } catch (XmlPullParserException e) {
-        pSyncResult.stats.numParseExceptions++;
-      }
-    }
-
   }
 
   /**
@@ -313,104 +177,202 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    * @category Phase
    */
   public final List<CVPair> updateItemListFromServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult, InputStream pContent) throws XmlPullParserException, RemoteException, IOException, OperationApplicationException {
+    final List<CVPair> result = new ArrayList<>();
+    final List<CVPair> pendingResults = new ArrayList<>();
+
     final String itemNamespace = mActualDelegate.getItemNamespace();
     final String itemsTag = mActualDelegate.getItemsTag();
 
     final String colSyncstate = mActualDelegate.getSyncStateColumn();
     final String colKey = mActualDelegate.getKeyColumn();
 
-    final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
+//    final String[] projectionId = new String[] { BaseColumns._ID, colSyncstate };
 
-    XmlPullParser parser = pDelegator.newPullParser();
-    parser.setInput(pContent, "UTF8");
+    List<ContentValuesProvider> remoteItems = parseItems(pDelegator, pContent);
 
-//    ContentValues values2 = new ContentValues(1);
-    if (colSyncstate!=null && colSyncstate.length()>0) {
-      ArrayList<ContentProviderOperation> operations = new ArrayList<>(2);
-//      values2.put(colSyncstate, Integer.valueOf(SYNC_PENDING));
+    ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+    Cursor localItems = pProvider.query(mListContentUri, null, mActualDelegate.getListSelection(), mActualDelegate.getListSelectionArgs(), null);
+    try {
+      int colIdxId = localItems.getColumnIndex(BaseColumns._ID);
+      int colIdxKey = localItems.getColumnIndex(colKey);
+      int colIdxSyncState = localItems.getColumnIndex(colSyncstate);
+      while (localItems.moveToNext()) {
+        final String localKey = localItems.getString(colIdxKey);
+        final long localId = localItems.getLong(colIdxId);
+        final int localSyncState = localItems.getInt(colIdxSyncState);
+        Uri itemUri = ContentUris.withAppendedId(mListContentUri, localId);
 
-      operations.add(ContentProviderOperation.newUpdate(mListContentUri)
-          .withSelection(colSyncstate + " = "+SYNC_UPTODATE, null)
-          .withValue(colSyncstate,  Integer.valueOf(SYNC_PENDING))
-          .build());
+        int remoteItemIdx = getItemWithKeyIdx(remoteItems, colKey, localKey);
 
-      operations.add(ContentProviderOperation.newUpdate(mListContentUri)
-          .withSelection(colSyncstate + " = "+SYNC_UPDATE_SERVER, null)
-          .withValue(colSyncstate,  Integer.valueOf(SYNC_UPDATE_SERVER_PENDING))
-          .build());
+        if (remoteItemIdx>=0) {
+          ContentValuesProvider remoteItem = remoteItems.get(remoteItemIdx);
+          if (localSyncState==SYNC_UPTODATE || localSyncState==SYNC_PUBLISH_TO_SERVER) { // the item magically appeared on the server
+            if (isChanged(mActualDelegate, localItems, remoteItem) || hasDetails(remoteItem)) {
+              operations.add(ContentProviderOperation
+                  .newUpdate(itemUri)
+                  .withValues(remoteItem.getContentValues())
+                  .build());
+              result.add(new CVPair(localId, remoteItem));
+              ++pSyncResult.stats.numUpdates;
+            }
+          } else if (localSyncState==SYNC_UPDATE_SERVER) {
+            ContentValues itemCv = remoteItem.getContentValues();
+            itemCv.remove(colSyncstate);
+            ContentValues itemCpy = new ContentValues(itemCv);
+            itemCpy.remove(colSyncstate);
+            ContentValuesProvider newValues = null;
+            try { // Don't jinx the entire sync when only the single update fails
+              newValues = mActualDelegate.updateItemOnServer(pDelegator, pProvider, itemUri, localSyncState, pSyncResult);
+            } catch (IOException | RemoteException | XmlPullParserException e) {
+              Log.w(TAG, "Error updating the server", e);
+              if (mActualDelegate.resolvePotentialConflict(pProvider, itemUri, remoteItem)) {
+                if (! remoteItem.getContentValues().containsKey(colSyncstate)) {
+                  if (remoteItem.getContentValues().equals(itemCpy)) {
+                    remoteItem.getContentValues().put(colSyncstate, SYNC_DETAILSPENDING);
+                  } else {
+                    remoteItem.getContentValues().put(colSyncstate, SYNC_UPDATE_SERVER);
+                  }
+                }
+              } else {
+                ++pSyncResult.stats.numConflictDetectedExceptions;
+              }
+              newValues = remoteItem;
+            }
+            if (newValues!=null) {
+              if (! newValues.getContentValues().containsKey(colSyncstate)) {
+                newValues.getContentValues().put(colSyncstate, SYNC_DETAILSPENDING);
+              }
+              operations.add(ContentProviderOperation
+                  .newUpdate(itemUri)
+                  .withValues(newValues.getContentValues())
+                  .build());
+              ++pSyncResult.stats.numUpdates;
+              result.add(new CVPair(localId, newValues));
+            }
 
-      pProvider.applyBatch(operations);
+          }
+          remoteItems.remove(remoteItemIdx);
+        } else { // no matching remote item
+          if (localSyncState==SYNC_PUBLISH_TO_SERVER) {
+            ContentValuesProvider newLocalValues = mActualDelegate.createItemOnServer(pDelegator, pProvider, itemUri, pSyncResult);
+            operations.add(ContentProviderOperation
+                .newUpdate(itemUri)
+                .withValues(newLocalValues.getContentValues())
+                .build());
+            ++pSyncResult.stats.numInserts;
+            result.add(new CVPair(localId, newLocalValues)); // These need to be resolved from the batch operation
+          } else if (localSyncState==SYNC_UPTODATE) {
+            operations.add(ContentProviderOperation.newDelete(itemUri).build());
+            ++pSyncResult.stats.numDeletes;
+          } else {
+            ++pSyncResult.stats.numSkippedEntries;
+          }
+        }
+        ++pSyncResult.stats.numEntries;
+      }
+    } finally {
+      localItems.close();
     }
 
-    List<CVPair> result = new ArrayList<>();
-    parser.next();
-    parser.require(START_TAG, itemNamespace, itemsTag); // ensure the outer element
+    for(ContentValuesProvider remoteItem: remoteItems) {
+      // These are new items.
+      final ContentValues itemCv = remoteItem.getContentValues();
+      if (!itemCv.containsKey(colSyncstate)) {
+        itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
+      }
+      operations.add(ContentProviderOperation
+          .newInsert(mListContentUri)
+          .withValues(itemCv)
+          .build());
+      if (itemCv.getAsInteger(colSyncstate)!=SYNC_UPTODATE) {
+        pendingResults.add(new CVPair(operations.size()-1, remoteItem));
+      }
+      ++pSyncResult.stats.numInserts;
+    }
+    ContentProviderResult[] batchResult = pProvider.applyBatch(operations);
+    for(CVPair pendingResult:pendingResults) {
+      ContentProviderResult cvpr = batchResult[(int)pendingResult.mId];
+      long newId = ContentUris.parseId(cvpr.uri);
+      result.add(new CVPair(newId, pendingResult.mCV));
+    }
+    return result;
+  }
+
+  private boolean hasDetails(ContentValuesProvider pRemoteItem) {
+    Integer syncstate = pRemoteItem.getContentValues().getAsInteger(mActualDelegate.getSyncStateColumn());
+    if (syncstate==null) {
+      return true; // we don't know, assume details
+    }
+    int s = syncstate.intValue();
+    return (s==SYNC_DETAILSPENDING|| s==SYNC_UPDATE_SERVER_DETAILSPENDING);
+  }
+
+  private boolean isChanged(ISimpleSyncDelegate pActualDelegate, Cursor pLocalItems, ContentValuesProvider pRemoteItem) {
+    for(Entry<String, Object> remotePair: pRemoteItem.getContentValues().valueSet()) {
+      String remoteKey = remotePair.getKey();
+      if (!pActualDelegate.getSyncStateColumn().equals(remoteKey)) {
+        int localColIdx = pLocalItems.getColumnIndex(remoteKey);
+        if (localColIdx>=0) {
+          Object remoteValue = remotePair.getValue();
+          if (remoteValue==null) {
+            if (! pLocalItems.isNull(localColIdx)) { return true; }
+          } else {
+            Object localValue = getLocalValue(pLocalItems, localColIdx, remoteValue.getClass());
+            if (!remoteValue.equals(localValue)) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private static Object getLocalValue(Cursor pLocalItems, int pLocalColIdx, Class<? extends Object> pClass) {
+    if (pClass==Integer.class) {
+      return pLocalItems.getInt(pLocalColIdx);
+    } else if (pClass==Long.class) {
+      return pLocalItems.getLong(pLocalColIdx);
+    } else if (pClass==String.class) {
+      return pLocalItems.getString(pLocalColIdx);
+    } else if (pClass==Double.class) {
+      return pLocalItems.getDouble(pLocalColIdx);
+    } else if (pClass==Float.class) {
+      return pLocalItems.getFloat(pLocalColIdx);
+    } else if (pClass==Short.class) {
+      return pLocalItems.getShort(pLocalColIdx);
+    }
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  private int getItemWithKeyIdx(List<ContentValuesProvider> pItems, String pKeyColumn, String pKey) {
+    final int l = pItems.size();
+    for(int i=0; i<l;++i) {
+      if (StringUtil.isEqual(pItems.get(i).getContentValues().getAsString(pKeyColumn), pKey)){
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  protected List<ContentValuesProvider> parseItems(DelegatingResources pDelegator, InputStream pContent) throws XmlPullParserException, IOException {
+    XmlPullParser parser = pDelegator.newPullParser();
+    parser.setInput(pContent, "UTF8");
+    List<ContentValuesProvider> items = new ArrayList<>();
     int type;
+    parser.nextTag();
+    parser.require(XmlPullParser.START_TAG, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
     while ((type = parser.next()) != END_TAG) {
       switch (type) {
         case START_TAG:
-          ContentValuesProvider item = mActualDelegate.parseItem(parser);
-          final ContentValues itemCv = item.getContentValues();
-          Object key = itemCv.get(colKey);
-          if (key!=null) {
-            if (!itemCv.containsKey(colSyncstate)) {
-              itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
-            }
-            Cursor localItem = pProvider.query(mListContentUri, projectionId, colKey+"= ?", new String[] {key.toString()}, null);
-            if (localItem.moveToFirst()) {
-              long id = localItem.getLong(0); // we know from the projection that _id is always the first column
-              int syncState = localItem.getInt(1); // sync state is the second column
-              localItem.close();
-
-              final ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-
-              Uri uri = ContentUris.withAppendedId(mListContentUri, id);
-              if (syncState==SYNC_UPDATE_SERVER_PENDING) {
-                itemCv.remove(colSyncstate);
-                ContentValues itemCpy = new ContentValues(itemCv);
-                itemCpy.remove(colSyncstate);
-                if (mActualDelegate.resolvePotentialConflict(pProvider, uri, item)) {
-                  if (item.equals(itemCpy)) {
-                    // no server update needed
-                    itemCv.put(colSyncstate, SYNC_DETAILSPENDING);
-                  } else {
-                    itemCv.put(colSyncstate, SYNC_UPDATE_SERVER_DETAILSPENDING);
-                  }
-                } else {
-                  pSyncResult.stats.numConflictDetectedExceptions++;
-                  continue; // Handle next tag, don't continue with this item
-                }
-              }
-
-              operations.add(ContentProviderOperation.newAssertQuery(uri)
-                  .withValue(colSyncstate, Integer.valueOf(syncState))
-                  .build());
-
-              operations.add(ContentProviderOperation
-                  .newUpdate(uri)
-                  .withValues(itemCv)
-                  .build());
-
-              pProvider.applyBatch(operations);
-              pSyncResult.stats.numUpdates++;
-              result.add(new CVPair(id, item));
-            } else {
-              localItem.close();
-              final long newId = ContentUris.parseId(pProvider.insert(mListContentUri, itemCv));
-              result.add(new CVPair(newId, item));
-              pSyncResult.stats.numInserts++;
-            }
-            pSyncResult.stats.numEntries++;
-          } else {
-            // skip items without key, we can't match them up between the client and server
-            pSyncResult.stats.numSkippedEntries++;
-          }
+          items.add(mActualDelegate.parseItem(parser));
           break;
         default:
           throw new XmlPullParserException("Unexpected tag type: " + type);
       }
     }
-    return result;
+    parser.require(XmlPullParser.END_TAG, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
+    return items;
   }
 
 }

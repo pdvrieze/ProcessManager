@@ -165,4 +165,16 @@ public interface ISimpleSyncDelegate {
    */
   String getListUrl(String pBase);
 
+  /**
+   * Get the SELECT conditions needed to provide the list of items to sync (can be null if the entire list should be synchronized).
+   * @return The conditions.
+   */
+  String getListSelection();
+
+  /**
+   * Get the arguments with the selection from {@link #getListSelection()}
+   * @return
+   */
+  String[] getListSelectionArgs();
+
 }

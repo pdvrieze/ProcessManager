@@ -11,6 +11,7 @@ import java.util.ListIterator;
 
 import javax.xml.XMLConstants;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -106,8 +107,10 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     if (resultCode>=200 && resultCode<400) {
       XmlPullParser parser = factory.newPullParser();
       final InputStream inputStream = result.getEntity().getContent();
-      parser.setInput(inputStream, result.getEntity().getContentEncoding().getValue());
+      final Header contentEncoding = result.getEntity().getContentEncoding();
+      parser.setInput(inputStream, contentEncoding==null ? null : contentEncoding.getValue());
       try {
+        parser.nextTag(); // Make sure to forward the task.
         return parseItem(parser);
       } finally {
         inputStream.close();
