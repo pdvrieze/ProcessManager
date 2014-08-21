@@ -3,6 +3,7 @@ package nl.adaptivity.sync;
 
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
+import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,15 +41,6 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     String getSyncSource();
     XmlPullParser newPullParser() throws XmlPullParserException;
   }
-
-  public static final int SYNC_PUBLISH_TO_SERVER = 6;
-  public static final int SYNC_DELETE_ON_SERVER = 7;
-  public static final int SYNC_UPDATE_SERVER = 1;
-  public static final int SYNC_UPTODATE = 0;
-  public static final int SYNC_PENDING = 2;
-  public static final int SYNC_DETAILSPENDING = 3;
-  public static final int SYNC_UPDATE_SERVER_PENDING = 4;
-  public static final int SYNC_UPDATE_SERVER_DETAILSPENDING = 5;
 
   private static final String TAG = RemoteXmlSyncAdapterDelegate.class.getSimpleName();
 
@@ -176,6 +168,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
       final int statusCode = result.getStatusLine().getStatusCode();
       if (statusCode>=200 && statusCode<400) {
         mUpdateList = updateItemListFromServer(pDelegator, pProvider, pSyncResult, result.getEntity().getContent());
+        result.getEntity().consumeContent();
       } else {
         result.getEntity().consumeContent();
         mUpdateList = null;

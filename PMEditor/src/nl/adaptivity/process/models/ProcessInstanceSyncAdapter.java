@@ -32,6 +32,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.util.Log;
+import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
 
 @SuppressWarnings("boxing")
 public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate implements ISimpleSyncDelegate {
