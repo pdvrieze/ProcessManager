@@ -79,7 +79,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
       } else {
         Fragment frag = getChildFragmentManager().findFragmentById(mDetailContainerId);
         if (frag!=null) {
-          getFragmentManager().beginTransaction()
+          getChildFragmentManager().beginTransaction()
               .remove(frag)
               .commit();
         }
