@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
@@ -227,6 +228,9 @@ public class PETransformer {
     @Override
     public String resolveAttributeValue(String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
+      if (data==null) {
+        throw new IllegalArgumentException("No data value with name "+pValueName+" found");
+      }
       XMLEventReader dataReader = new NodeEventReader(data.getDocumentFragment());
       StringBuilder result = new StringBuilder();
       while (dataReader.hasNext()) {
