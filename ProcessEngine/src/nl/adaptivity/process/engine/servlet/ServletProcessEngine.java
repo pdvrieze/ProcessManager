@@ -433,8 +433,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   }
 
-  private Thread aThread;
-
   private ProcessEngine aProcessEngine;
 
   private EndpointDescriptorImpl aLocalEndPoint;
@@ -450,10 +448,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   public void destroy() {
-    if (aThread != null) {
-      aThread.interrupt();
-    }
-    MessagingRegistry.getMessenger().shutdown();
+    MessagingRegistry.getMessenger().unregisterEndpoint(this);
   }
 
   @Override
