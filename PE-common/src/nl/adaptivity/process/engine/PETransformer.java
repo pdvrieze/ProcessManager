@@ -1,6 +1,7 @@
 package nl.adaptivity.process.engine;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -271,8 +272,13 @@ public class PETransformer {
     private int aDefaultIdx;
 
     public ProcessDataContext(ProcessData... pProcessData) {
-      aProcessData = pProcessData;
-      aDefaultIdx = pProcessData.length==1 ? 0 : -1;
+      if (pProcessData==null) {
+        aProcessData= new ProcessData[0];
+        aDefaultIdx=0;
+      } else {
+        aProcessData = pProcessData;
+        aDefaultIdx = pProcessData.length==1 ? 0 : -1;
+      }
     }
 
     public ProcessDataContext(int pDefaultIdx, ProcessData... pProcessData) {
@@ -291,6 +297,7 @@ public class PETransformer {
 
     @Override
     public List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException {
+      if (aProcessData.length==0 || aProcessData[aDefaultIdx]==null) { return Collections.emptyList(); }
       return toEvents(aProcessData[aDefaultIdx]);
     }
 
