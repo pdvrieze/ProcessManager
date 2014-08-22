@@ -4,17 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import nl.adaptivity.process.tasks.TaskItem;
-import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
+import java.util.NoSuchElementException;
 
 import org.xmlpull.v1.XmlPullParserException;
 
 import net.devrieze.util.StringUtil;
 
+import nl.adaptivity.process.tasks.TaskItem;
+import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -29,7 +28,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
-import android.support.v4.app.FragmentActivity;
 
 @SuppressWarnings("static-access")
 public class TaskProvider extends ContentProvider {
@@ -459,7 +457,7 @@ public class TaskProvider extends ContentProvider {
     final ContentResolver contentResolver = pContext.getContentResolver();
     UserTask oldTask = getTask(contentResolver, taskUri);
     if (oldTask==null) {
-      throw new IllegalArgumentException("The task with id "+pTaskId+" to update could not be found");
+      throw new NoSuchElementException("The task with id "+pTaskId+" to update could not be found");
     }
 
     updateTaskValues(operations, pTaskId, oldTask, pUpdatedTask);

@@ -145,12 +145,15 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   @Override
   public void onLoadFinished(Loader<UserTask> pLoader, UserTask pData) {
+    if (pData==null) { onLoaderReset(pLoader); return;}
     mSpinner.setVisibility(View.GONE);
     mDetailView.setVisibility(View.VISIBLE);
     mTVSummary.setText(pData.getSummary());
     mTVState.setText(pData.getState());
     int viewPos = mTaskItemFirstIndex;
-    mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
+    if (mTaskItemLastIndex>mTaskItemFirstIndex) {
+      mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
+    }
     LayoutInflater inflater = LayoutInflater.from(getActivity());
     for(TaskItem item: pData.getItems()) {
       View taskView = item.createView(inflater, mTaskItemContainer);
@@ -167,6 +170,10 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   public void onLoaderReset(Loader<UserTask> pLoader) {
     mTVSummary.setText(null);
     mTVState.setText(null);
+    if (mTaskItemLastIndex>mTaskItemFirstIndex) {
+      mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
+    }
+    mTaskItemLastIndex=-1;
     mUserTask = null;
 
   }

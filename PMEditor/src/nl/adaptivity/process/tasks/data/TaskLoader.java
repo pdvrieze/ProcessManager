@@ -1,24 +1,33 @@
 package nl.adaptivity.process.tasks.data;
 
 import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.BaseColumns;
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 
 
 public class TaskLoader extends AsyncTaskLoader<UserTask> {
 
   private Uri mUri=null;
   private long mHandle=-1L;
+  private Loader<UserTask>.ForceLoadContentObserver mObserver;
 
   public TaskLoader(Context pContext, long pHandle) {
     super(pContext);
+    mObserver = new ForceLoadContentObserver();
     mHandle = pHandle;
     onContentChanged();
   }
 
   public TaskLoader(Context pContext, Uri pUri) {
     super(pContext);
+    mObserver = new ForceLoadContentObserver();
     mUri = pUri;
     onContentChanged();
   }
@@ -34,11 +43,21 @@ public class TaskLoader extends AsyncTaskLoader<UserTask> {
 
   @Override
   public UserTask loadInBackground() {
+    UserTask task;
+    final ContentResolver contentResolver = getContext().getContentResolver();
     if (mHandle>=0) {
-      return TaskProvider.getTaskForHandle(getContext(),mHandle);
-    } else {
-      return TaskProvider.getTask(getContext(), mUri);
+      Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] { BaseColumns._ID }, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(mHandle)} , null);
+      try {
+        if (! idresult.moveToFirst()) { return null; }
+        mUri = ContentUris.withAppendedId(Tasks.CONTENT_URI, idresult.getLong(0));
+        mHandle = -1;
+      } finally {
+        idresult.close();
+      }
     }
+    task = TaskProvider.getTask(getContext(), mUri);
+    contentResolver.registerContentObserver(mUri, false, mObserver);
+    return task;
   }
 
 }

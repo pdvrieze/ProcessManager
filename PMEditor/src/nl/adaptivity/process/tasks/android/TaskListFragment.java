@@ -179,7 +179,7 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
   @Override
   public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
-    return new CursorLoader(getActivity(), TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY}, null, null, null);
+    return new CursorLoader(getActivity(), TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY}, Tasks.COLUMN_STATE+"!='Complete'", null, null);
   }
 
   @Override
