@@ -222,8 +222,8 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     // TODO handle imports
     final T message = pMessageService.createMessage(aMessage);
     try {
-      if (!pMessageService.sendMessage(message, pInstance)) {
-        pInstance.failTask(pTransaction, new MessagingException("Failure to send message"));
+      if (!pMessageService.sendMessage(pTransaction, message, pInstance)) {
+        pInstance.failTaskCreation(pTransaction, new MessagingException("Failure to send message"));
       }
     } catch (RuntimeException e) {
       pInstance.failTask(pTransaction, e);

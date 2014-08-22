@@ -307,7 +307,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
 
   @Override
-  public Collection<? extends IXmlDefineType> getDefines() {
+  public Collection<? extends XmlDefineType> getDefines() {
     return null;
 //    if (aExports==null) { aExports = new ArrayList<>(); }
 //    return aExports;

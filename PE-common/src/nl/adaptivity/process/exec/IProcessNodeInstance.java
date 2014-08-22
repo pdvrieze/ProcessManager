@@ -59,6 +59,10 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
      */
     Complete,
     /**
+     * Signifies that the task has failed to be created, a new attempt should be made.
+     */
+    FailRetry,
+    /**
      * Signifies that the task has failed for some reason.
      */
     Failed,
@@ -123,6 +127,11 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * Called to signify that this task has failed.
    */
   public void failTask(DBTransaction pTransaction, Throwable pCause) throws SQLException;
+
+  /**
+   * Called to signify that creating this task has failed, a retry would be expected.
+   */
+  public void failTaskCreation(DBTransaction pTransaction, Throwable pCause) throws SQLException;
 
   /**
    * Called to signify that this task has been cancelled.
