@@ -161,10 +161,10 @@ public abstract class TaskItem {
 
   public void serialize(XmlSerializer pSerializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
     pSerializer.startTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
-    pSerializer.attribute(null, "name", getName());
-    pSerializer.attribute(null, "label", getValue());
-    pSerializer.attribute(null, "type", getDBType());
-    pSerializer.attribute(null, "value", getValue());
+    if (getName()!=null) { pSerializer.attribute(null, "name", getName()); }
+    if (getValue()!=null) { pSerializer.attribute(null, "label", getValue()); }
+    if (getDBType()!=null) { pSerializer.attribute(null, "type", getDBType()); }
+    if (getValue()!=null) { pSerializer.attribute(null, "value", getValue()); }
     if (serializeOptions) {
       for(String option: getOptions()) {
         pSerializer.startTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
