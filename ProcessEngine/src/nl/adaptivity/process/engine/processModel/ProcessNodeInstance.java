@@ -34,6 +34,7 @@ import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
 
@@ -103,6 +104,15 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       }
     }
     return null;
+  }
+
+  public List<ProcessData> getDefines(DBTransaction pTransaction) throws SQLException {
+    ArrayList<ProcessData> result = new ArrayList<>();
+    for(XmlDefineType define: aNode.getDefines()) {
+      ProcessData data = define.apply(pTransaction, this);
+      result.add(data);
+    }
+    return result;
   }
 
   public Collection<Handle<? extends ProcessNodeInstance>> getDirectPredecessors() {
@@ -216,6 +226,12 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     setState(pTransaction, TaskState.Failed);
   }
 
+  @Override
+  public void failTaskCreation(DBTransaction pTransaction, final Throwable pCause) throws SQLException {
+    aFailureCause = pCause;
+    setState(pTransaction, TaskState.FailRetry);
+  }
+
   /** package internal method for use when retrieving from the database.
    * Note that this method does not store the results into the database.
    * @param pResults the new results.
@@ -225,8 +241,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     aResults.addAll(pResults);
   }
 
-  public void instantiateXmlPlaceholders(Source source, final Result result) throws XMLStreamException {
-    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this));
+  public void instantiateXmlPlaceholders(DBTransaction pTransaction, Source source, final Result result) throws XMLStreamException, SQLException {
+    List<ProcessData> defines = getDefines(pTransaction);
+    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, aState==TaskState.Complete));
     transformer.transform(source, result);
   }
 
@@ -235,7 +252,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return logger;
   }
 
-  public XmlProcessNodeInstance toXmlNode() {
+  public XmlProcessNodeInstance toXmlNode(DBTransaction pTransaction) throws SQLException {
     XmlProcessNodeInstance result = new XmlProcessNodeInstance();
     result.setState(aState);
     result.setHandle(aHandle);
@@ -256,7 +273,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       }
       final DOMResult transformResult = new DOMResult(document);
       try {
-        instantiateXmlPlaceholders(source, transformResult);
+        instantiateXmlPlaceholders(pTransaction, source, transformResult);
         result.setBody(new Body(document.getDocumentElement()));
       } catch (XMLStreamException e) {
         getLogger().log(Level.WARNING, "Error processing body", e);

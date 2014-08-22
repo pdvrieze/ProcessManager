@@ -581,6 +581,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     for(ProcessNodeInstance instance: aThreads) {
       try {
         switch (instance.getState()) {
+          case FailRetry:
           case Pending:
             provideTask(pTransaction, pMessageService, instance);
             break;

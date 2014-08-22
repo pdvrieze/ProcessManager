@@ -146,7 +146,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
         pElement.setDirectPredecessors(predecessors);
       }
       {
-        List<ProcessData> data = new ArrayList<>();
+        List<ProcessData> results = new ArrayList<>();
         try (PreparedStatement statement = pConnection.prepareStatement(QUERY_DATA)) {
           statement.setLong(1, pElement.getHandle());
           if(statement.execute()) {
@@ -164,14 +164,14 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
                     value.appendChild(n);
                   }
                 }
-                data.add(new ProcessData(resultset.getString(1), value));
+                results.add(new ProcessData(resultset.getString(1), value));
               }
             } catch (SAXException | IOException | ParserConfigurationException e) {
               throw new RuntimeException(e);
             }
           }
         }
-        pElement.setResult(data);
+        pElement.setResult(results);
       }
     }
 
