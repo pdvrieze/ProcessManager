@@ -226,7 +226,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
         pInstance.failTaskCreation(pTransaction, new MessagingException("Failure to send message"));
       }
     } catch (RuntimeException e) {
-      pInstance.failTask(pTransaction, e);
+      pInstance.failTaskCreation(pTransaction, e);
       throw e;
     }
 
