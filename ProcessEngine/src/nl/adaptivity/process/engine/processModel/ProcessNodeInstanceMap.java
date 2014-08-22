@@ -16,6 +16,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
@@ -158,7 +159,10 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
                 if (doc.getDocumentElement().getChildNodes().getLength()==1) {
                   value = doc.getDocumentElement().getFirstChild();
                 } else {
-                  value = doc.getDocumentElement();
+                  value = doc.createDocumentFragment();
+                  for(Node n = doc.getDocumentElement().getFirstChild(); n!=null; n=n.getNextSibling()) {
+                    value.appendChild(n);
+                  }
                 }
                 data.add(new ProcessData(resultset.getString(1), value));
               }
