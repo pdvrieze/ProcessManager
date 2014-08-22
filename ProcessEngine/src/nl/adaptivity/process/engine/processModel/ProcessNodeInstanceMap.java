@@ -1,6 +1,7 @@
 package nl.adaptivity.process.engine.processModel;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -16,8 +17,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import net.devrieze.util.CachingDBHandleMap;
@@ -154,7 +155,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
               while(resultset.next()) {
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 dbf.setNamespaceAware(true);
-                Document doc = dbf.newDocumentBuilder().parse("<value>"+resultset.getString(1)+"</value>");
+                Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader("<value>"+resultset.getString(1)+"</value>")));
                 Node value;
                 if (doc.getDocumentElement().getChildNodes().getLength()==1) {
                   value = doc.getDocumentElement().getFirstChild();
