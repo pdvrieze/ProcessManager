@@ -4,32 +4,26 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-import nl.adaptivity.messaging.EndpointDescriptor;
+
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessInstance;
@@ -40,12 +34,7 @@ import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
-import nl.adaptivity.process.util.Constants;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -309,129 +298,6 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   private static Logger getLogger() {
     Logger logger = Logger.getLogger(nl.adaptivity.process.engine.processModel.ProcessNodeInstance.class.getName());
     return logger;
-  }
-
-  private static void writeElement(ProcessNodeInstance pNodeInstance, final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
-    String valueName = null;
-    {
-      while (pAttributes.hasNext()) {
-        final Attribute attr = pAttributes.next();
-        final String attrName = attr.getName().getLocalPart();
-        if ("value".equals(attrName)) {
-          valueName = attr.getValue();
-        }
-      }
-    }
-    {
-      final XMLEvent ev = in.nextEvent();
-
-      while (!ev.isEndElement()) {
-        if (ev.isStartElement()) {
-          throw new MessagingFormatException("Violation of schema");
-        }
-        if (ev.isAttribute()) {
-          final Attribute attr = (Attribute) ev;
-          final String attrName = attr.getName().getLocalPart();
-          if ("value".equals(attrName)) {
-            valueName = attr.getValue();
-          }
-        }
-      }
-    }
-    if (valueName != null) {
-      final XMLEventFactory xef = XMLEventFactory.newInstance();
-
-      if ("handle".equals(valueName)) {
-        out.add(xef.createCharacters(Long.toString(pNodeInstance.getHandle())));
-      } else if ("endpoint".equals(valueName)) {
-        final QName qname1 = new QName(Constants.MY_JBI_NS, "endpointDescriptor", "");
-        final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", Constants.MY_JBI_NS));
-        out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
-
-        {
-          EndpointDescriptor localEndpoint = pNodeInstance.getProcessInstance().getEngine().getLocalEndpoint();
-          out.add(xef.createAttribute("serviceNS", localEndpoint.getServiceName().getNamespaceURI()));
-          out.add(xef.createAttribute("serviceLocalName", localEndpoint.getServiceName().getLocalPart()));
-          out.add(xef.createAttribute("endpointName", localEndpoint.getEndpointName()));
-          out.add(xef.createAttribute("endpointLocation", localEndpoint.getEndpointLocation().toString()));
-        }
-
-        out.add(xef.createEndElement(qname1, namespaces.iterator()));
-      }
-    } else {
-      throw new MessagingFormatException("Missing parameter name");
-    }
-
-  }
-
-  private static void writeAttribute(ProcessNodeInstance pNodeInstance, final XMLEventReader in, final Iterator<Attribute> pAttributes, final XMLEventWriter out) throws XMLStreamException {
-    String valueName = null;
-    String paramName = null;
-    {
-      while (pAttributes.hasNext()) {
-        final Attribute attr = pAttributes.next();
-        final String attrName = attr.getName().getLocalPart();
-        if ("value".equals(attrName)) {
-          valueName = attr.getValue();
-        } else if ("name".equals(attrName)) {
-          paramName = attr.getValue();
-        }
-      }
-    }
-    {
-      final XMLEvent ev = in.nextEvent();
-
-      while (!ev.isEndElement()) {
-        if (ev.isStartElement()) {
-          throw new MessagingFormatException("Violation of schema");
-        }
-        if (ev.isAttribute()) {
-          final Attribute attr = (Attribute) ev;
-          final String attrName = attr.getName().getLocalPart();
-          if ("value".equals(attrName)) {
-            valueName = attr.getValue();
-          } else if ("name".equals(attrName)) {
-            paramName = attr.getValue();
-          }
-        }
-      }
-    }
-    if (valueName != null) {
-
-
-      final XMLEventFactory xef = XMLEventFactory.newInstance();
-
-      if ("handle".equals(valueName)) {
-        Attribute attr;
-        if (paramName != null) {
-          attr = xef.createAttribute(paramName, Long.toString(pNodeInstance.getHandle()));
-        } else {
-          attr = xef.createAttribute("handle", Long.toString(pNodeInstance.getHandle()));
-        }
-        out.add(attr);
-      } else if ("owner".equals(valueName)) {
-        Attribute attr;
-        if (paramName != null) {
-          attr = xef.createAttribute(paramName, pNodeInstance.getProcessInstance().getOwner().getName());
-        } else {
-          attr = xef.createAttribute("owner", pNodeInstance.getProcessInstance().getOwner().getName());
-        }
-        out.add(attr);
-      } else if ("instancehandle".equals(valueName)) {
-        Attribute attr;
-        if (paramName != null) {
-          attr = xef.createAttribute(paramName, Long.toString(pNodeInstance.getProcessInstance().getHandle()));
-        } else {
-          attr = xef.createAttribute("instancehandle", Long.toString(pNodeInstance.getProcessInstance().getHandle()));
-        }
-        out.add(attr);
-      }
-
-
-    } else {
-      throw new MessagingFormatException("Missing parameter name");
-    }
-
   }
 
   public XmlProcessNodeInstance toXmlNode() {
