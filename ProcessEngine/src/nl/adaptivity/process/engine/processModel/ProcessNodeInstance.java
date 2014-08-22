@@ -202,10 +202,10 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   @Override
   public void finishTask(DBTransaction pTransaction, final Node pResultPayload) throws SQLException {
+    setState(pTransaction, TaskState.Complete);
     for(IXmlResultType resultType: getNode().getResults()) {
       aResults.add(resultType.apply(pResultPayload));
     }
-    setState(pTransaction, TaskState.Complete);
   }
 
   @Override
