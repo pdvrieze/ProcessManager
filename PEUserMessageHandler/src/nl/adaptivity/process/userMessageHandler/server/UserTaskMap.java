@@ -1,5 +1,6 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import java.io.FileNotFoundException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -27,8 +28,10 @@ import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 
+import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
 
@@ -82,8 +85,29 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
       XmlProcessNodeInstance instance;
       try {
-        Future<XmlProcessNodeInstance> future = ServletProcessEngineClient.getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL, null, XmlTask.class, Envelope.class);
-        instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS, TimeUnit.MILLISECONDS);
+        try{
+          Future<XmlProcessNodeInstance> future = ServletProcessEngineClient.getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL, null, XmlTask.class, Envelope.class);
+          instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS, TimeUnit.MILLISECONDS);
+          if (instance.getState()==TaskState.Complete) {
+            return null; // Delete from the database, this can't be redone.
+          }
+        } catch (ExecutionException|MessagingException e) {
+
+          Throwable f = e;
+          while (f.getCause()!=null && ((f.getCause() instanceof ExecutionException)||(f.getCause() instanceof MessagingException))) {
+            f = f.getCause();
+          }
+          if (f.getCause() instanceof FileNotFoundException) {
+            return null; // No such task exists
+          } else if (f.getCause() instanceof RuntimeException){
+            throw (RuntimeException) f;
+          } else if (f instanceof ExecutionException) {
+            throw (ExecutionException) f;
+          } else if (f instanceof MessagingException) {
+            throw (MessagingException) f;
+          }
+          throw e;
+        }
       } catch (JAXBException | InterruptedException | ExecutionException | TimeoutException e) {
         throw new RuntimeException(e);
       }
