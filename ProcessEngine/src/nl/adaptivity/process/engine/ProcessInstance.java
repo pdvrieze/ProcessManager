@@ -30,6 +30,7 @@ import net.devrieze.util.Handles;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
@@ -352,13 +353,19 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     // Make sure the finish is recorded.
     pTransaction.commit();
 
-    if (pNode.getNode() instanceof EndNode) {
-      aEndResults.add(pNode);
-      aThreads.remove(pNode);
-      finish(pTransaction);
-    } else {
-      startSuccessors(pTransaction, pMessageService, pNode);
+    try {
+      if (pNode.getNode() instanceof EndNode) {
+        aEndResults.add(pNode);
+        aThreads.remove(pNode);
+        finish(pTransaction);
+      } else {
+        startSuccessors(pTransaction, pMessageService, pNode);
+      }
+    } catch (RuntimeException|SQLException e) {
+      pTransaction.rollback();
+      Logger.getAnonymousLogger().log(Level.WARNING, "Failure to start follow on task", e);
     }
+
   }
 
   private void startSuccessors(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pPredecessor) throws SQLException {
