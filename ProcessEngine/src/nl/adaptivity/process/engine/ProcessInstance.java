@@ -349,6 +349,9 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public synchronized void finishTask(DBTransaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService, final ProcessNodeInstance pNode, final Node pResultPayload) throws SQLException {
+    if (pNode.getState()==TaskState.Complete) {
+      throw new IllegalStateException("Task was already complete");
+    }
     pNode.finishTask(pTransaction, pResultPayload);
     // Make sure the finish is recorded.
     pTransaction.commit();
