@@ -106,5 +106,6 @@ public class InternalEndpoint implements GenericEndpoint {
   @Override
   public void destroy() {
     aService.destroy();
+    MessagingRegistry.getMessenger().unregisterEndpoint(this);
   }
 }
