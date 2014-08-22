@@ -1,5 +1,7 @@
 package nl.adaptivity.process.tasks.android;
 
+import java.util.NoSuchElementException;
+
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
@@ -65,6 +67,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   private int mTaskItemFirstIndex;
 
+  private int mTaskItemLastIndex = -1;
+
   private TaskDetailCallbacks mCallbacks;
 
   /**
@@ -123,6 +127,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     if (mUserTask!=null) {
       try {
         TaskProvider.updateValuesAndState(getActivity(), mTaskId, mUserTask);
+      } catch (NoSuchElementException e) {
+        Log.w(TaskDetailFragment.class.getSimpleName(), "The task no longer exists", e);
       } catch (RemoteException | OperationApplicationException e) {
         Log.w(TaskDetailFragment.class.getSimpleName(), "Failure to update the task state", e);
         Toast.makeText(getActivity(), "The task could not be stored", Toast.LENGTH_SHORT).show();
@@ -144,6 +150,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mTVSummary.setText(pData.getSummary());
     mTVState.setText(pData.getState());
     int viewPos = mTaskItemFirstIndex;
+    mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
     LayoutInflater inflater = LayoutInflater.from(getActivity());
     for(TaskItem item: pData.getItems()) {
       View taskView = item.createView(inflater, mTaskItemContainer);
@@ -152,6 +159,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
       mTaskItemContainer.addView(taskView, viewPos, params);
       ++viewPos;
     }
+    mTaskItemLastIndex = mTaskItemFirstIndex+pData.getItems().size();
     mUserTask = pData;
   }
 
@@ -160,6 +168,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mTVSummary.setText(null);
     mTVState.setText(null);
     mUserTask = null;
+
   }
 
   @Override
