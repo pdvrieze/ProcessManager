@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import net.devrieze.util.IdFactory;
 import net.devrieze.util.db.DBTransaction;
+
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IXmlDefineType;
@@ -300,7 +302,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
   @Override
   public Collection<? extends IXmlResultType> getResults() {
-    return null;
+    return Collections.emptyList();
 //    if (aImports==null) { aImports = new ArrayList<>(); }
 //    return aImports;
   }
@@ -308,7 +310,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
 
   @Override
   public Collection<? extends XmlDefineType> getDefines() {
-    return null;
+    return Collections.emptyList();
 //    if (aExports==null) { aExports = new ArrayList<>(); }
 //    return aExports;
   }
