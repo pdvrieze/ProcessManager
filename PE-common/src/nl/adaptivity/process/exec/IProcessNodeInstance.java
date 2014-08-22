@@ -33,6 +33,9 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
      */
     Pending,
     /**
+     * Signifies that the task has failed to be created, a new attempt should be made.
+     */
+    FailRetry, /**
      * Indicates that the task has been communicated to a
      * handler.
      */
@@ -58,10 +61,6 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
      * task.
      */
     Complete,
-    /**
-     * Signifies that the task has failed to be created, a new attempt should be made.
-     */
-    FailRetry,
     /**
      * Signifies that the task has failed for some reason.
      */
