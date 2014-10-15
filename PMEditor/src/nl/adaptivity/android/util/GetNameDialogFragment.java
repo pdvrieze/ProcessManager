@@ -16,12 +16,6 @@ public class GetNameDialogFragment extends DialogFragment {
 
   private class MyClickListener implements OnClickListener {
 
-    private EditText mEditText;
-
-    public MyClickListener(EditText pEditText) {
-      mEditText = pEditText;
-    }
-
     @Override
     public void onClick(DialogInterface pDialog, int pWhich) {
       if (pWhich==DialogInterface.BUTTON_POSITIVE) {
@@ -44,6 +38,8 @@ public class GetNameDialogFragment extends DialogFragment {
 
   private static final String DEFAULT_MESSAGE = "Provide the new name";
 
+  private static final String KEY_EDIT = "text";
+
   public static interface Callbacks {
 
     void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pString);
@@ -55,6 +51,12 @@ public class GetNameDialogFragment extends DialogFragment {
   Callbacks mOwner;
 
   private int mId;
+
+  private EditText mEditText;
+
+  private void setId(int pId) {
+    mId = pId;
+  }
 
   public GetNameDialogFragment() { /* empty */}
 
@@ -72,7 +74,7 @@ public class GetNameDialogFragment extends DialogFragment {
 
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
-    String prevName;
+    CharSequence prevName;
     String title;
     String message;
     if (getArguments()==null) {
@@ -84,20 +86,28 @@ public class GetNameDialogFragment extends DialogFragment {
       title = getArguments().containsKey(ARG_TITLE) ? getArguments().getString(ARG_TITLE) : DEFAULT_TITLE;
       message = getArguments().containsKey(ARG_MESSAGE) ? getArguments().getString(ARG_MESSAGE) : DEFAULT_MESSAGE;
     }
+    if (savedInstanceState!=null && savedInstanceState.containsKey(KEY_EDIT)) {
+      prevName = savedInstanceState.getCharSequence(KEY_EDIT);
+    }
 
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-    final EditText editText = new EditText(getActivity());
-    editText.setInputType(InputType.TYPE_CLASS_TEXT);
-    editText.setText(prevName);
-    editText.selectAll();
-    MyClickListener listener = new MyClickListener(editText);
+    mEditText = new EditText(getActivity());
+    mEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+    mEditText.setText(prevName);
+    mEditText.selectAll();
+    MyClickListener listener = new MyClickListener();
     builder.setTitle(title)
         .setMessage(message)
         .setPositiveButton(android.R.string.ok, listener)
         .setNegativeButton(android.R.string.cancel, listener)
-        .setView(editText);
+        .setView(mEditText);
     return builder.create();
 
+  }
+
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    outState.putCharSequence(KEY_EDIT, mEditText.getText());
   }
 
   public static GetNameDialogFragment show(FragmentManager pFragmentManager, int pId, String pTitle, String pMessage, Callbacks pCallbacks) {
@@ -117,9 +127,5 @@ public class GetNameDialogFragment extends DialogFragment {
     }
     f.show(pFragmentManager, "getName");
     return f;
-  }
-
-  private void setId(int pId) {
-    mId = pId;
   }
 }
