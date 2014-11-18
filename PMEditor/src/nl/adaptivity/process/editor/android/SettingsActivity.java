@@ -117,6 +117,13 @@ public class SettingsActivity extends PreferenceActivity {
     return ALWAYS_SIMPLE_PREFS || Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB || !isXLargeTablet(context);
   }
 
+  @Override
+  protected boolean isValidFragment(String pFragmentName) {
+    return pFragmentName.equals(GeneralPreferenceFragment.class.getName()) ||
+        pFragmentName.equals(NotificationPreferenceFragment.class.getName()) ||
+        pFragmentName.equals(DataSyncPreferenceFragment.class.getName());
+  }
+
   /** {@inheritDoc} */
   @Override
   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
