@@ -66,11 +66,13 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     .setPositiveButton(android.R.string.ok, this)
     .setNegativeButton(android.R.string.cancel, this);
 
-    final AlertDialog dialog = builder.create();
-    FrameLayout container = (FrameLayout) dialog.findViewById(android.R.id.custom);
+    View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, null);
+    builder.setView(myDialogView);
 
-    View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, container, false);
-    container.addView(myDialogView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    final AlertDialog dialog = builder.create();
+//    FrameLayout container = (FrameLayout) dialog.findViewById(android.R.id.custom);
+//
+//    container.addView(myDialogView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
     mNpMin = (NumberPicker) myDialogView.findViewById(R.id.np_min);
     mNpMax = (NumberPicker) myDialogView.findViewById(R.id.np_max);
