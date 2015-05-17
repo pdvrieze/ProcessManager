@@ -138,6 +138,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     private IXmlMessage aMessage;
 
+    private DBTransaction aTransaction;
+
+    private InputStream aInputStream;
+
     public NewServletMessage(final IXmlMessage pMessage, final EndpointDescriptor pLocalEndPoint) {
       aMessage = pMessage;
       aLocalEndpoint = pLocalEndPoint;
@@ -197,22 +201,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     @Override
     public InputStream getInputStream() throws IOException {
-      Source messageBody;
-      try {
-        messageBody = getSource();
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final StreamResult result = new StreamResult(baos);
-
-        aNodeInstance.instantiateXmlPlaceholders(messageBody, result);
-        return new ByteArrayInputStream(baos.toByteArray());
-
-      } catch (final FactoryConfigurationError e) {
-        throw new MessagingException(e);
-      } catch (final XMLStreamException e) {
-        throw new MessagingException(e);
-      }
-
-
+      return aInputStream;
     }
 
 
@@ -416,8 +405,24 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
 
 
-    public void setHandle(final ProcessNodeInstance pNodeInstance) {
+    public void setHandle(DBTransaction pTransaction, final ProcessNodeInstance pNodeInstance) throws SQLException {
       aNodeInstance = pNodeInstance;
+
+      Source messageBody;
+      try {
+        messageBody = getSource();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final StreamResult result = new StreamResult(baos);
+
+        aNodeInstance.instantiateXmlPlaceholders(aTransaction, messageBody, result);
+        aInputStream = new ByteArrayInputStream(baos.toByteArray());
+
+      } catch (final FactoryConfigurationError e) {
+        throw new MessagingException(e);
+      } catch (final XMLStreamException e) {
+        throw new MessagingException(e);
+      }
+
     }
 
     @Override
@@ -427,8 +432,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
 
   }
-
-  private Thread aThread;
 
   private ProcessEngine aProcessEngine;
 
@@ -445,10 +448,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @Override
   public void destroy() {
-    if (aThread != null) {
-      aThread.interrupt();
-    }
-    MessagingRegistry.getMessenger().shutdown();
+    MessagingRegistry.getMessenger().unregisterEndpoint(this);
   }
 
   @Override
@@ -522,9 +522,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @Override
-  public boolean sendMessage(final NewServletMessage pMessage, final ProcessNodeInstance pInstance) {
+  public boolean sendMessage(DBTransaction pTransaction, final NewServletMessage pMessage, final ProcessNodeInstance pInstance) throws SQLException {
     assert pInstance.getHandle()>=0;
-    pMessage.setHandle(pInstance);
+    pMessage.setHandle(pTransaction, pInstance);
 
     MessagingRegistry.sendMessage(pMessage, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(pMessage.getHandle()), pMessage.getOwner()), DataSource.class, new Class<?>[0]);
     return true;
@@ -731,7 +731,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
       final ProcessNodeInstance result = aProcessEngine.getNodeInstance(transaction, pHandle, pUser);
       if (result==null) { throw new FileNotFoundException(); }
-      return transaction.commit(result).toXmlNode();
+      return transaction.commit(result.toXmlNode(transaction));
     }
   }
 
