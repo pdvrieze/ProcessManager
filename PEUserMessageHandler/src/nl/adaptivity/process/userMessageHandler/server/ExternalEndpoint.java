@@ -111,6 +111,7 @@ public class ExternalEndpoint implements GenericEndpoint {
   @Override
   public void destroy() {
     aService.destroy();
+    MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 
 }

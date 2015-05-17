@@ -58,6 +58,7 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   public XmlTask(UserTask<?> pTask) {
+    this.aHandle = pTask.getHandle();
     this.aRemoteHandle = pTask.getRemoteHandle();
     this.aInstanceHandle = pTask.getInstanceHandle();
     this.aState = pTask.getState();
