@@ -405,7 +405,8 @@ public class HttpMessage {
   @SuppressWarnings("unchecked")
   private static Map<String, List<String>> getHeaders(final HttpServletRequest pRequest) {
     final Map<String, List<String>> result = new HashMap<>();
-    for (final String name : Iterators.<String> toIterable(pRequest.getHeaderNames())) {
+    for (final Object oname : Iterators.<String> toIterable(pRequest.getHeaderNames())) {
+      String name = (String) oname;
       final List<String> values = Iterators.<String> toList(pRequest.getHeaders(name));
       result.put(name, values);
     }
