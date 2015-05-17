@@ -151,14 +151,18 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     if (refNode!=null) {
       IProcessNodeInstance<T> predecessor = pNode.getPredecessor(pTransaction, refNode);
       ProcessData origpair = predecessor.getResult(pTransaction, refName);
-      try {
-        if (getXPath()==null) {
-          processData = new ProcessData(name, origpair.getDocumentFragment());
-        } else {
-          processData = new ProcessData(name, (NodeList) getXPath().evaluate(origpair.getNodeValue(), XPathConstants.NODESET));
+      if (origpair==null) {
+        processData = null;
+      } else {
+        try {
+          if (getXPath()==null) {
+            processData = new ProcessData(name, origpair.getDocumentFragment());
+          } else {
+            processData = new ProcessData(name, (NodeList) getXPath().evaluate(origpair.getNodeValue(), XPathConstants.NODESET));
+          }
+        } catch (XPathExpressionException e) {
+          throw new RuntimeException(e);
         }
-      } catch (XPathExpressionException e) {
-        throw new RuntimeException(e);
       }
     } else {
       processData = null;

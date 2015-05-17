@@ -1,10 +1,12 @@
 package nl.adaptivity.process.engine;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
@@ -227,6 +229,9 @@ public class PETransformer {
     @Override
     public String resolveAttributeValue(String pValueName) throws XMLStreamException {
       ProcessData data = getData(pValueName);
+      if (data==null) {
+        throw new IllegalArgumentException("No data value with name "+pValueName+" found");
+      }
       XMLEventReader dataReader = new NodeEventReader(data.getDocumentFragment());
       StringBuilder result = new StringBuilder();
       while (dataReader.hasNext()) {
@@ -267,8 +272,13 @@ public class PETransformer {
     private int aDefaultIdx;
 
     public ProcessDataContext(ProcessData... pProcessData) {
-      aProcessData = pProcessData;
-      aDefaultIdx = pProcessData.length==1 ? 0 : -1;
+      if (pProcessData==null) {
+        aProcessData= new ProcessData[0];
+        aDefaultIdx=0;
+      } else {
+        aProcessData = pProcessData;
+        aDefaultIdx = pProcessData.length==1 ? 0 : -1;
+      }
     }
 
     public ProcessDataContext(int pDefaultIdx, ProcessData... pProcessData) {
@@ -287,6 +297,7 @@ public class PETransformer {
 
     @Override
     public List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException {
+      if (aProcessData.length==0 || aProcessData[aDefaultIdx]==null) { return Collections.emptyList(); }
       return toEvents(aProcessData[aDefaultIdx]);
     }
 
