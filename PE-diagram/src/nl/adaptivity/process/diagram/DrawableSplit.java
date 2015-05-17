@@ -96,6 +96,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   }
 
   @Override
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
+    DrawableUtil.defaultDrawLabel(this, pCanvas, pClipBounds, left, top);
+  }
+
+  @Override
   public void serialize(SerializerAdapter pOut) {
     serializeSplit(pOut);
   }

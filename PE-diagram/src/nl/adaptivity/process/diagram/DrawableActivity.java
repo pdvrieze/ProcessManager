@@ -47,6 +47,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public Rectangle getBounds() {
+
     return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
   }
 
@@ -98,19 +99,23 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
       pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen);
       pCanvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen);
 
-      PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
-      String label = getLabel();
-      if (label==null) { label = getName(); }
-      if (label==null && getOwner()!=null) {
-        label='<'+getId()+'>';
-        textPen.setTextItalics(true);
-      } else if (label!=null) {
-        textPen.setTextItalics(false);
-      }
-      if (label!=null) {
-        double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()/2;
-        pCanvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
-      }
+    }
+  }
+
+  @Override
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
+    PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
+    String label = getLabel();
+    if (label==null) { label = getName(); }
+    if (label==null && getOwner()!=null) {
+      label='<'+getId()+'>';
+      textPen.setTextItalics(true);
+    } else if (label!=null) {
+      textPen.setTextItalics(false);
+    }
+    if (label!=null) {
+      double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()/2;
+      pCanvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
     }
   }
 

@@ -93,6 +93,11 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     }
   }
 
+  @Override
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
+    DrawableUtil.defaultDrawLabel(this, pCanvas, pClipBounds, left, top);
+  }
+
   public static  DrawableEndNode from(EndNode<?> pElem) {
     DrawableEndNode result = new DrawableEndNode();
     copyProcessNodeAttrs(pElem, result);

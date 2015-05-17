@@ -104,7 +104,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   public static DrawableProcessModel get(ProcessModel<?> pSrc) {
     if (pSrc instanceof DrawableProcessModel) { return (DrawableProcessModel) pSrc; }
-    return new DrawableProcessModel(pSrc);
+    return pSrc==null ? null : new DrawableProcessModel(pSrc);
   }
 
   @Override
