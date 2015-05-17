@@ -9,12 +9,12 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/DarwinJavaApi"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/java-common">
+	<classpathentry combineaccessrules="false" kind="src" path="/java-common">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/PE-common">
+	<classpathentry combineaccessrules="false" kind="src" path="/PE-common">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="../"/>
 		</attributes>
