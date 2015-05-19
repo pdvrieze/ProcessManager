@@ -18,5 +18,5 @@ sourceSets {
 dependencies {
     compile project(':DarwinJavaApi')
     compile project(':java-common')
-    compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
+    compile 'org.apache.tomcat:servlet-api:6.0.44'
 }

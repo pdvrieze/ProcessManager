@@ -36,6 +36,6 @@
     <orderEntry type="jdk" jdkName="1.7" jdkType="JavaSDK" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
     <orderEntry type="module" module-name="java-common" exported="" />
-    <orderEntry type="library" exported="" name="servlet-api-2.5-6.1.5" level="project" />
+    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
   </component>
 </module>
