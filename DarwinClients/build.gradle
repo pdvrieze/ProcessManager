@@ -4,12 +4,78 @@ apply plugin: 'idea'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
+version = '1.0.0'
+
+def genDir = projectDir.absolutePath+'/gen'
+def genClasses = ['nl.adaptivity.process.userMessageHandler.server.InternalEndpoint' , 'nl.adaptivity.process.engine.servlet.ServletProcessEngine']
+
+configurations {
+    codegen
+}
 
 sourceSets {
     main {
         java {
             srcDir 'src'
+            srcDir genDir
+        }
+    }
+}
+
+task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:tomcatClasses', ':PEUserMessageHandler:apiClasses' ] , type:JavaExec) {
+    group = 'build'
+    description = 'Generate the client sources'
+
+    doFirst {
+        println()
+        main = 'nl.adaptivity.messaging.MessagingSoapClientGenerator'
+        def cp = configurations.codegen
+                .plus(project(':PEUserMessageHandler').sourceSets.api.runtimeClasspath)
+                .plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
+                .plus(project(':ProcessEngine').sourceSets.tomcat.output)
+
+//        def cp2 = project(':PEUserMessageHandler').sourceSets.api.runtimeClasspath
+//        def cp2 = sourceSets.codegen.compileClasspath
+//        cp2.each({println("cp2 $it")})
+
+//        def cp = configurations.codegen
+        classpath = cp
+        args '-cp'
+        args cp.join(':')
+
+//        cp.each({ println("classpath: $it");})
+
+        args '-package', 'nl.adaptivity.process.client', '-dstdir', genDir
+        genClasses.each {
+            def y=it
+            args y
         }
     }
 
+/*
+//    inputs.file rootProject.findProject('DarwinGenerators').getTasksByName('assemble')
+//    outputs.dir genDir
+    doLast {
+        println("Generating clients")
+        def t= rootProject.DarwinGenerators.run
+        t.args=["-package","nl.adaptivity.process.client",
+                 "-dstdir",genDir]
+        t.args.addAll(gen)
+        t.execute()
+
+        //    ant.generate()
+    }*/
+}
+
+compileJava.dependsOn generate
+
+dependencies {
+    codegen project(':DarwinGenerators')
+    codegen project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
+    codegen project(path: ':ProcessEngine', configuration: 'tomcatCompile')
+//    compile 'generate'
+    compile project(':JavaCommonApi')
+    compile project(':java-common')
+    compile project(':PE-common')
+    compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
 }
