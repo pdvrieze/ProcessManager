@@ -4,12 +4,33 @@ apply plugin: 'idea'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
+configurations {
+    apiCompile
+    main {
+        extendsFrom apiCompile
+    }
+}
 
 sourceSets {
-    main {
+    api {
         java {
-            srcDir 'src'
+            srcDir 'src/api'
         }
     }
+    main {
+        java {
+            srcDir 'src/main'
+        }
+        compileClasspath = compileClasspath + files(api.runtimeClasspath)
+    }
+}
 
+
+dependencies {
+    apiCompile 'org.apache.tomcat:servlet-api:6.0.44'
+    apiCompile project(':DarwinJavaApi')
+    apiCompile project(':PE-common')
+
+    compile 'com.google.gwt:gwt-user:2.6.1'
+    compile project(':DarwinClients')
 }

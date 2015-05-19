@@ -8,7 +8,7 @@
   <servlet>
     <servlet-name>internalEndpointServlet</servlet-name>
     <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
-    <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.InternalEndpoint</param-value></init-param>
+    <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.InternalEndpointImpl</param-value></init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
 

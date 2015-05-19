@@ -1,21 +1,5 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebParam.Mode;
-import javax.servlet.ServletConfig;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.namespace.QName;
-
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
@@ -25,10 +9,25 @@ import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.ws.soap.SoapSeeAlso;
 
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.jws.WebParam.Mode;
+import javax.servlet.ServletConfig;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.namespace.QName;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 @XmlSeeAlso(XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
-public class InternalEndpoint implements GenericEndpoint {
+public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements GenericEndpoint, InternalEndpoint {
 
   public class TaskUpdateCompletionListener implements CompletionListener {
 
@@ -54,26 +53,17 @@ public class InternalEndpoint implements GenericEndpoint {
 
   }
 
-  private static final String ENDPOINT = "internal";
-
-  public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
-
   private final UserMessageService aService;
 
   private URI aURI;
 
-  public InternalEndpoint() {
+  public InternalEndpointImpl() {
     aService = UserMessageService.getInstance();
   }
 
   @Override
   public QName getServiceName() {
     return SERVICENAME;
-  }
-
-  @Override
-  public String getEndpointName() {
-    return ENDPOINT;
   }
 
 
