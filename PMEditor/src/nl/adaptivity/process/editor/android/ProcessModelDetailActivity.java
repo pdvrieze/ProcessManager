@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -19,7 +20,7 @@ import android.widget.Toast;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link ProcessModelDetailFragment}.
  */
-public class ProcessModelDetailActivity extends FragmentActivity implements ProcessModelDetailFragment.Callbacks, GetNameDialogFragment.Callbacks {
+public class ProcessModelDetailActivity extends AppCompatActivity implements ProcessModelDetailFragment.Callbacks, GetNameDialogFragment.Callbacks {
 
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
   private long mModelHandleToInstantiate;

@@ -349,7 +349,7 @@ public class PMProcessesFragment extends Fragment {
   @Override
   public boolean onOptionsItemSelected(MenuItem pItem) {
     ClientProcessModel<?> pm = null;
-    if ((pItem.getItemId()==R.id.ac_export||pItem.getItemId()==R.id.ac_export_svg)&&
+    if ((pItem.getItemId()==R.id.ac_export||pItem.getItemId()==R.id.ac_export_svg||pItem.getItemId()==R.id.ac_share_pm||pItem.getItemId()==R.id.ac_share_pm_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
       Toast.makeText(getActivity(), "No process model available", Toast.LENGTH_LONG).show();
       return true;
@@ -360,6 +360,12 @@ public class PMProcessesFragment extends Fragment {
         return true;
       case R.id.ac_export_svg:
         doExportSVG(pm);
+        return true;
+      case R.id.ac_share_pm:
+        doShareFile(pm);;
+        return true;
+      case R.id.ac_share_pm_svg:
+        doShareSVG(pm);
         return true;
       default:
         return super.onOptionsItemSelected(pItem);

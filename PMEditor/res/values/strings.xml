@@ -4,7 +4,9 @@
     <string name="app_name">PMEditor</string>
     <string name="missing_diagram">No diagram loaded</string>
     <string name="ac_export">Export</string>
+    <string name="ac_share_pm">Share</string>
     <string name="ac_export_svg">Export SVG</string>
+    <string name="ac_share_pm_svg">Share SVG</string>
     <string name="ac_play">Play</string>
     <string name="ac_next">Next</string>
     <string name="lbl_label">Provide the node label</string>

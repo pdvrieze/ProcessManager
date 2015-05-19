@@ -1,5 +1,10 @@
 package nl.adaptivity.process.editor.android;
 
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM1;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM2;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM3;
+import static nl.adaptivity.diagram.Drawable.STATE_CUSTOM4;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,8 +18,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-import org.xmlpull.v1.XmlPullParserException;
-
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -27,6 +30,9 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.editor.android.NodeEditDialogFragment.NodeEditListener;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+
+import org.xmlpull.v1.XmlPullParserException;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
@@ -44,7 +50,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.*;
 import android.view.View.DragShadowBuilder;
@@ -53,9 +59,8 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import static nl.adaptivity.diagram.Drawable.*;
 
-public class PMEditor extends FragmentActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
+public class PMEditor extends ActionBarActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";
@@ -677,6 +682,7 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_processmodel_editor);
+
     diagramView1 = (DiagramView) findViewById(R.id.diagramView1);
     diagramView1.setOffsetX(0d);
     diagramView1.setOffsetY(0d);
@@ -755,7 +761,7 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
 
       @Override
       public void run() {
-        getActionBar().setTitle("PMEditor - " +pString);
+        getSupportActionBar().setTitle("PMEditor - " +pString);
       }
 
     });
@@ -865,7 +871,7 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
   }
 
   @Override
-  public boolean onMenuItemSelected(int pFeatureId, MenuItem pItem) {
+  public boolean onOptionsItemSelected(MenuItem pItem) {
     switch (pItem.getItemId()) {
       case R.id.ac_cancel:
         aCancelled = true;
@@ -897,7 +903,7 @@ public class PMEditor extends FragmentActivity implements OnNodeClickListener, N
         updateActivityResult();
       //$FALL-THROUGH$ we just add behaviour but then go to the parent.
     default:
-        return super.onMenuItemSelected(pFeatureId, pItem);
+        return super.onOptionsItemSelected(pItem);
     }
     return true;
   }

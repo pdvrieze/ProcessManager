@@ -32,7 +32,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -48,7 +49,7 @@ import android.widget.Toast;
 /**
  * The main activity that contains the navigation drawer.
  */
-public class MainActivity extends ActionBarActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks, ProcessModelDetailFragment.Callbacks, TaskDetailCallbacks {
+public class MainActivity extends AppCompatActivity implements OnItemClickListener, TaskListCallbacks, ProcessModelListCallbacks, GetNameDialogFragment.Callbacks, ProcessModelDetailFragment.Callbacks, TaskDetailCallbacks {
 
   private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -181,7 +182,8 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
         CharSequence title = getActiveFragment().getTitle(MainActivity.this);
-        getActionBar().setTitle(title);
+        ActionBar ab = getSupportActionBar();
+        if(ab!=null) { ab.setTitle(title); }
         invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
       }
 
@@ -189,7 +191,8 @@ public class MainActivity extends ActionBarActivity implements OnItemClickListen
       @Override
       public void onDrawerOpened(View drawerView) {
         super.onDrawerOpened(drawerView);
-        getActionBar().setTitle(mTitle);
+        ActionBar ab = getSupportActionBar();
+        if(ab!=null) { ab.setTitle(mTitle); }
         invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
       }
     };

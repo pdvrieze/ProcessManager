@@ -96,8 +96,8 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
         pDb.execSQL("ALTER TABLE "+TABLE_INSTANCES_NAME+" ADD COLUMN "+ProcessInstances.COLUMN_UUID+" TEXT");
         pDb.delete(TABLE_INSTANCES_NAME, XmlBaseColumns.COLUMN_SYNCSTATE+"="+RemoteXmlSyncAdapter.SYNC_UPTODATE,null);
       } else {
-        pDb.execSQL("DROP TABLE "+TABLE_NAME);
-        pDb.execSQL("DROP TABLE "+TABLE_INSTANCES_NAME);
+        pDb.execSQL("DROP TABLE IF EXISTS "+TABLE_NAME);
+        pDb.execSQL("DROP TABLE IF EXISTS "+TABLE_INSTANCES_NAME);
         onCreate(pDb);
       }
 
