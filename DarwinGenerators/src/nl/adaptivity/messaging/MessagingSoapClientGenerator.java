@@ -84,10 +84,19 @@ public class MessagingSoapClientGenerator {
 
   };
 
+  private static int errorCount=0;
+
   /**
    * @param args
    */
   public static void main(final String[] args) {
+    /*
+    System.err.println("Parameters:");
+    for(String a:args) {
+      System.err.print("  ");
+      System.err.println(a);
+    }
+    */
     String pkg = null;
     String outClass = null;
     final List<String> inClasses = new ArrayList<>();
@@ -147,16 +156,29 @@ public class MessagingSoapClientGenerator {
         }
       }
     }
-    if ((inClasses.size() == 0) || ((inClasses.size() == 1) && (outClass == null)) || (pkg == null)) {
+    try {
+      generateClientJava(pkg, outClass, inClasses, cp, dstdir);
+    } catch (Exception e) {
+      ++errorCount;
+    } finally {
+      System.exit(errorCount);
+    }
+
+  }
+
+  private static void generateClientJava(String destPkg, String outClass, List<String> inClasses, String cp, String dstdir) {
+    if ((inClasses.size() == 0) || (destPkg == null)) {
       System.err.println("Not all three of inclass, outclass and package have been provided");
       showHelp();
       return;
+    } else if (inClasses.size()==1 && outClass==null) {
+      outClass = getDefaultOutClassName(inClasses.get(0));
     }
     @SuppressWarnings("resource")
     final FileSystem fs = FileSystems.getDefault();
     try {
 
-      final String pkgdir = pkg.replaceAll("\\.", fs.getSeparator());
+      final String pkgdir = destPkg.replaceAll("\\.", fs.getSeparator());
       final String classfilename = outClass + ".java";
       final Path outfile = fs.getPath(dstdir, pkgdir, classfilename);
 
@@ -171,12 +193,12 @@ public class MessagingSoapClientGenerator {
       try (URLClassLoader urlclassloader = URLClassLoader.newInstance(getUrls(cp))) {
 
         if (inClasses.size() == 1) {
-          writeOutFile(inClasses.get(0), pkg, outClass, fs, outfile, urlclassloader);
+          writeOutFile(inClasses.get(0), destPkg, outClass, fs, outfile, urlclassloader);
         } else {
           for (final String inClass : inClasses) {
-            final String newOutClass = inClass.substring(inClass.lastIndexOf('.') + 1) + "Client";
+            final String newOutClass = getDefaultOutClassName(inClass);
             final Path newOutFile = outfile.getParent().resolve(newOutClass + ".java");
-            writeOutFile(inClass, pkg, newOutClass, fs, newOutFile, urlclassloader);
+            writeOutFile(inClass, destPkg, newOutClass, fs, newOutFile, urlclassloader);
           }
         }
       }
@@ -184,7 +206,10 @@ public class MessagingSoapClientGenerator {
       e.printStackTrace();
       System.exit(3);
     }
+  }
 
+  private static String getDefaultOutClassName(String inClass) {
+    return inClass.substring(inClass.lastIndexOf('.') + 1) + "Client";
   }
 
   private static void writeOutFile(final String inClass, final String pkg, final String outClass, final FileSystem fs, final Path outfile, final URLClassLoader classloader) {
@@ -193,6 +218,7 @@ public class MessagingSoapClientGenerator {
       endpointClass = classloader.loadClass(inClass);
     } catch (final ClassNotFoundException e) {
       e.printStackTrace();
+      ++errorCount;
       return;
     }
     final String pkgname = pkg.replaceAll(fs.getSeparator(), ".");
@@ -200,6 +226,7 @@ public class MessagingSoapClientGenerator {
       generateJava(outfile, endpointClass, pkgname, outClass);
     } catch (final IOException e) {
       e.printStackTrace();
+      ++errorCount;
       return;
     }
   }
@@ -212,13 +239,15 @@ public class MessagingSoapClientGenerator {
     try {
       for (final String element : pClassPath.split(":")) {
         if (element.length()>0) {
+          URL url;
           try {
             final URI uri = URI.create(element);
-            result.add(uri.toURL());
+            url = uri.toURL();
           } catch (final IllegalArgumentException e) {
             final Path file = fs.getPath(element);
-            result.add(file.normalize().toUri().toURL());
+            url=file.normalize().toUri().toURL();
           }
+          result.add(url);
         }
       }
     } catch (final MalformedURLException e) {
@@ -306,7 +335,12 @@ public class MessagingSoapClientGenerator {
     // Write service location constants / variables.
     boolean finalService = false;
     try {
-      final Endpoint instance = (Endpoint) pEndpointClass.newInstance();
+      final EndpointDescriptor instance;
+      if(pEndpointClass.isAnnotationPresent(Descriptor.class)) {
+        instance = pEndpointClass.getAnnotation(Descriptor.class).value().newInstance();
+      } else {
+        instance = (EndpointDescriptor) pEndpointClass.newInstance();
+      }
 
       pOut.write("  private static final QName SERVICE = " + qnamestring(instance.getServiceName()) + ";\n");
       pOut.write(appendString(new StringBuilder("  private static final String ENDPOINT = "), instance.getEndpointName()).append(";\n").toString());
