@@ -78,7 +78,7 @@
     <proguard>
       -injars       "build"
       -outjars      ../PMEditor/libs/PE-diagram-1.0.0.jar
-      -libraryjars /opt/android-sdk-update-manager/platforms/android-19/android.jar
+      -libraryjars /opt/android-sdk-update-manager/platforms/android-22/android.jar
       -ignorewarnings
       -dontobfuscate
       -dontoptimize
