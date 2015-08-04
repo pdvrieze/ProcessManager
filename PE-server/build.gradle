@@ -4,14 +4,15 @@ dependencies {
     tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
             "org.apache.tomcat:coyote:${tomcatVersion}",
             "org.apache.tomcat:jasper:${tomcatVersion}"
-    tomcat 'mysql:mysql-conector-java:5.1.36'
+    tomcat 'mysql:mysql-connector-java:5.1.36'
     tomcat project(':DarwinJavaApi')
     tomcat project(':JavaCommonApi')
-    tomcat project(':darwinrealm')
+    tomcat project(':DarwinRealm')
 }
 
 tomcat {
     contextPath='/'
+    daemon=false
 
     users {
         user {
@@ -24,3 +25,6 @@ tomcat {
 
 [tomcatRun, tomcatRunWar]*.webDefaultXml = file ('config/web.xml')
 [tomcatRun, tomcatRunWar]*.configFile = file ('config/context.xml')
+tomcatRun.dependsOn(project(':ProcessEngine').task('tomcatCompile'))
+tomcatRun.dependsOn(project(':PEUserMessageHandler'))
+tomcatRun.dependsOn(project(':DarwinServices'))
