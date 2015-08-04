@@ -72,7 +72,7 @@ compileJava.dependsOn generate
 dependencies {
     codegen project(':DarwinGenerators')
     codegen project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
-    codegen project(path: ':ProcessEngine', configuration: 'mytomcatCompile')
+    codegen project(path: ':ProcessEngine', configuration: 'tomcatCompile')
 //    compile 'generate'
     compile project(':JavaCommonApi')
     compile project(':java-common')
