@@ -18,5 +18,5 @@ sourceSets {
 dependencies {
     compile project(':DarwinJavaApi')
     compile project(':java-common')
-    compile 'org.apache.tomcat:servlet-api:6.0.44'
+    compile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
