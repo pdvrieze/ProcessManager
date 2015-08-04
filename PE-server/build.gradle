@@ -1,0 +1,26 @@
+apply plugin: 'com.bmuschko.tomcat'
+
+dependencies {
+    tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
+            "org.apache.tomcat:coyote:${tomcatVersion}",
+            "org.apache.tomcat:jasper:${tomcatVersion}"
+    tomcat 'mysql:mysql-conector-java:5.1.36'
+    tomcat project(':DarwinJavaApi')
+    tomcat project(':JavaCommonApi')
+    tomcat project(':darwinrealm')
+}
+
+tomcat {
+    contextPath='/'
+
+    users {
+        user {
+            username = 'pdvrieze'
+            password = 'secret'
+            roles = ['admin']
+        }
+    }
+}
+
+[tomcatRun, tomcatRunWar]*.webDefaultXml = file ('config/web.xml')
+[tomcatRun, tomcatRunWar]*.configFile = file ('config/context.xml')
