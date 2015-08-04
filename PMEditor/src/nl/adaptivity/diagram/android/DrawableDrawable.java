@@ -23,6 +23,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
     aScale = dm.density*160/96;
   }
 
+  @SuppressWarnings("CloneDoesntCallSuperClone")
   @Override
   public DrawableDrawable clone() {
     if (getClass()==DrawableDrawable.class) {

@@ -1,5 +1,6 @@
 package nl.adaptivity.process.editor.android;
 
+import android.annotation.SuppressLint;
 import nl.adaptivity.process.diagram.DrawableJoinSplit;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import android.app.Activity;
@@ -66,6 +67,7 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     .setPositiveButton(android.R.string.ok, this)
     .setNegativeButton(android.R.string.cancel, this);
 
+    @SuppressLint("InflateParams")
     View myDialogView = LayoutInflater.from(builder.getContext()).inflate(R.layout.dlg_node_edit, null);
     builder.setView(myDialogView);
 

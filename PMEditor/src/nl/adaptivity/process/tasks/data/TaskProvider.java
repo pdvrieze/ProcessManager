@@ -110,7 +110,7 @@ public class TaskProvider extends ContentProvider {
 
   }
 
-  private static enum QueryTarget{
+  private enum QueryTarget{
     TASKS(Tasks.CONTENT_URI, TasksOpenHelper.TABLE_NAME_TASKS),
     TASK(Tasks.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_TASKS),
     TASKITEMS(TaskProvider.Items.CONTENT_ID_URI_BASE, TasksOpenHelper.TABLE_NAME_ITEMS),
@@ -121,7 +121,7 @@ public class TaskProvider extends ContentProvider {
     private final String path;
     private final String table;
 
-    private QueryTarget(Uri uri, String table) {
+    QueryTarget(Uri uri, String table) {
       String frag = uri.getFragment();
       if (frag != null) {
         path = uri.getPath() + '#' + frag;

@@ -89,7 +89,7 @@ public abstract class TaskItem {
     T create(String pName, String pLabel, String pType, String pValue, List<String> pOptions);
   }
 
-  private static enum Factories implements Factory<TaskItem>{
+  private enum Factories implements Factory<TaskItem>{
     DEFAULT_FACTORY {
       @Override
       public TaskItem create(String pName, String pLabel, String pType, String pValue, List<String> pOptions) {

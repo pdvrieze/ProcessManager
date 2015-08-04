@@ -432,30 +432,34 @@ public class ProcessModelProvider extends ContentProvider {
 
     final ContentResolver contentResolver = context.getContentResolver();
     ContentProviderClient client = contentResolver.acquireContentProviderClient(ProcessInstances.CONTENT_ID_URI_BASE);
-    final Uri modelUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pModelId);
-    Cursor r = client.query(modelUri, new String[] { ProcessModels.COLUMN_HANDLE }, null, null, null);
-    if (!r.moveToFirst()) { throw new RuntimeException("Model with id "+pModelId+" not found"); }
-    long pmhandle = r.getLong(0);
     try {
-      ArrayList<ContentProviderOperation> batch = new ArrayList<>(2);
-      batch.add(ContentProviderOperation
-          .newAssertQuery(modelUri)
-          .withValue(ProcessModels.COLUMN_HANDLE, pmhandle)
-          .withExpectedCount(1)
-          .build());
-
-      batch.add(ContentProviderOperation
-          .newInsert(ProcessInstances.CONTENT_ID_URI_BASE)
-          .withValue(ProcessInstances.COLUMN_NAME, pName)
-          .withValue(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pmhandle))
-          .withValue(ProcessInstances.COLUMN_UUID, UUID.randomUUID().toString())
-          .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))
-          .build());
+      final Uri modelUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pModelId);
+      Cursor r = client.query(modelUri, new String[]{ProcessModels.COLUMN_HANDLE}, null, null, null);
       try {
-        ContentProviderResult[] result = client.applyBatch(batch);
-        return result[1].uri;
-      } catch (OperationApplicationException e) {
-        throw (RemoteException) new RemoteException().initCause(e);
+        if (!r.moveToFirst()) { throw new RuntimeException("Model with id "+pModelId+" not found"); }
+        long pmhandle = r.getLong(0);
+        ArrayList<ContentProviderOperation> batch = new ArrayList<>(2);
+        batch.add(ContentProviderOperation
+                .newAssertQuery(modelUri)
+                .withValue(ProcessModels.COLUMN_HANDLE, pmhandle)
+                .withExpectedCount(1)
+                .build());
+
+        batch.add(ContentProviderOperation
+                .newInsert(ProcessInstances.CONTENT_ID_URI_BASE)
+                .withValue(ProcessInstances.COLUMN_NAME, pName)
+                .withValue(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pmhandle))
+                .withValue(ProcessInstances.COLUMN_UUID, UUID.randomUUID().toString())
+                .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))
+                .build());
+        try {
+          ContentProviderResult[] result = client.applyBatch(batch);
+          return result[1].uri;
+        } catch (OperationApplicationException e) {
+          throw (RemoteException) new RemoteException().initCause(e);
+        }
+      } finally {
+        r.close();
       }
     } finally {
       client.release();

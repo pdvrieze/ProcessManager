@@ -148,58 +148,61 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     }
     List<GenericItem> items = ((TaskCVProvider) pPair.mCV).mItems;
 
-//    Cursor localItems = pProvider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID, new String[] { Long.toString(pTaskId) }, BaseColumns._ID);
-    Cursor localItems = pProvider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID+"="+Long.toString(pTaskId), null, BaseColumns._ID);
-    int nameColIdx = localItems.getColumnIndex(Items.COLUMN_NAME);
-    int idColIdx = localItems.getColumnIndex(BaseColumns._ID);
-    int labelColIdx = localItems.getColumnIndex(Items.COLUMN_LABEL);
-    int typeColIdx = localItems.getColumnIndex(Items.COLUMN_TYPE);
-    int valueColIdx = localItems.getColumnIndex(Items.COLUMN_VALUE);
-
     ArrayList<GenericItem> itemcpy = new ArrayList<>(items);
 
+//    Cursor localItems = pProvider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID, new String[] { Long.toString(pTaskId) }, BaseColumns._ID);
     final Uri itemsUpdateUri = Items.CONTENT_ID_URI_BASE.buildUpon().encodedFragment("nonetnotify").build();
-    ListIterator<GenericItem> remoteIterator = itemcpy.listIterator();
-    updateloop: while(localItems.moveToNext()) {
-      String localName = localItems.getString(nameColIdx);
-      long localItemId = localItems.getLong(idColIdx);
-      String localType = localItems.getString(typeColIdx);
-      String localValue = localItems.getString(valueColIdx);
-      String localLabel = localItems.getString(labelColIdx);
+    Cursor localItems = pProvider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID+"="+Long.toString(pTaskId), null, BaseColumns._ID);
+    try {
+      int nameColIdx = localItems.getColumnIndex(Items.COLUMN_NAME);
+      int idColIdx = localItems.getColumnIndex(BaseColumns._ID);
+      int labelColIdx = localItems.getColumnIndex(Items.COLUMN_LABEL);
+      int typeColIdx = localItems.getColumnIndex(Items.COLUMN_TYPE);
+      int valueColIdx = localItems.getColumnIndex(Items.COLUMN_VALUE);
 
-      if (remoteIterator.hasNext()) {
-        GenericItem remoteItem = remoteIterator.next();
-        if (StringUtil.isEqual(localName,remoteItem.getName())) {
-          remoteIterator.remove();
-          ContentValues cv = new ContentValues(2);
-          if (!StringUtil.isEqual(remoteItem.getDBType(),localType)) {
-            cv.put(Items.COLUMN_TYPE, remoteItem.getDBType());
-          }
-          if (!StringUtil.isEqual(remoteItem.getValue(),localValue)){
-            cv.put(Items.COLUMN_VALUE, remoteItem.getValue());
-          }
-          if (!StringUtil.isEqual(remoteItem.getLabel(),localLabel)){
-            cv.put(Items.COLUMN_LABEL, remoteItem.getLabel());
-          }
-          if (cv.size()>0) {
-            updated=true;
-            batch.add(ContentProviderOperation
-                .newUpdate(ContentUris.withAppendedId(itemsUpdateUri,localItemId))
-                .withValues(cv)
-                .build());
-          }
-          batch.addAll(updateOptionValues(remoteItem, pProvider, localItemId));
-          continue updateloop;
-        } else { // not equal, we need to maintain order, so delete already.
-          // not found from server, delete
-          batch.addAll(deleteItem(itemsUpdateUri, localItemId));
+      ListIterator<GenericItem> remoteIterator = itemcpy.listIterator();
+      updateloop: while(localItems.moveToNext()) {
+        String localName = localItems.getString(nameColIdx);
+        long localItemId = localItems.getLong(idColIdx);
+        String localType = localItems.getString(typeColIdx);
+        String localValue = localItems.getString(valueColIdx);
+        String localLabel = localItems.getString(labelColIdx);
 
-          remoteIterator.previous(); // Move back so that the next local item may match the remote one.
+        if (remoteIterator.hasNext()) {
+          GenericItem remoteItem = remoteIterator.next();
+          if (StringUtil.isEqual(localName, remoteItem.getName())) {
+            remoteIterator.remove();
+            ContentValues cv = new ContentValues(2);
+            if (!StringUtil.isEqual(remoteItem.getDBType(), localType)) {
+              cv.put(Items.COLUMN_TYPE, remoteItem.getDBType());
+            }
+            if (!StringUtil.isEqual(remoteItem.getValue(), localValue)) {
+              cv.put(Items.COLUMN_VALUE, remoteItem.getValue());
+            }
+            if (!StringUtil.isEqual(remoteItem.getLabel(), localLabel)) {
+              cv.put(Items.COLUMN_LABEL, remoteItem.getLabel());
+            }
+            if (cv.size() > 0) {
+              updated = true;
+              batch.add(ContentProviderOperation
+                      .newUpdate(ContentUris.withAppendedId(itemsUpdateUri, localItemId))
+                      .withValues(cv)
+                      .build());
+            }
+            batch.addAll(updateOptionValues(remoteItem, pProvider, localItemId));
+            continue updateloop;
+          } else { // not equal, we need to maintain order, so delete already.
+            // not found from server, delete
+            batch.addAll(deleteItem(itemsUpdateUri, localItemId));
+
+            remoteIterator.previous(); // Move back so that the next local item may match the remote one.
+          }
+
         }
-
       }
-
-    } // finished all matches
+    } finally {// finished all matches
+      localItems.close();
+    }
 
     // These remote items need to be added locally
     for(GenericItem remoteItem:itemcpy) {

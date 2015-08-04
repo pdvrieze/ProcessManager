@@ -22,10 +22,14 @@ public final class ProcessModelUtil {
       @Override
       public boolean isAvailable(String pString) {
         Cursor result = resolver.query(ProcessModels.CONTENT_ID_URI_BASE, new String[] { BaseColumns._ID }, "name = ?", new String[] { pString} , null);
-        if (result.moveToFirst()) {
-          return false;
-        } else {
-          return true;
+        try {
+          if (result.moveToFirst()) {
+            return false;
+          } else {
+            return true;
+          }
+        } finally {
+          result.close();
         }
       }
     });

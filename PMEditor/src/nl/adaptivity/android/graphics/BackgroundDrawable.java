@@ -2,11 +2,14 @@ package nl.adaptivity.android.graphics;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.content.res.Resources.Theme;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.Region;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.res.ResourcesCompat;
+
 
 /**
  * Drawable that takes two initial drawables. One background, and one content.
@@ -21,8 +24,9 @@ public class BackgroundDrawable extends Drawable {
 
   public BackgroundDrawable(Context context, int backgroundRes, int foregroundRes) {
     Resources resources = context.getResources();
-    aBackground = resources.getDrawable(backgroundRes);
-    aForeground = resources.getDrawable(foregroundRes);
+    Theme theme = context.getTheme();
+    aBackground = ResourcesCompat.getDrawable(resources, backgroundRes, theme);
+    aForeground = ResourcesCompat.getDrawable(resources, foregroundRes, theme);
   }
 
   public BackgroundDrawable(Drawable background, Drawable foreground) {

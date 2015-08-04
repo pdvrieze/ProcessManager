@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import android.support.v7.app.AppCompatActivity;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.android.AndroidPen;
 import nl.adaptivity.diagram.android.AndroidStrategy;
@@ -60,7 +61,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-public class PMEditor extends ActionBarActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
+public class PMEditor extends AppCompatActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";

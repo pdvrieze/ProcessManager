@@ -45,7 +45,6 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
   private static final String TAG = DelegatingRemoteXmlSyncAdapter.class.getSimpleName();
 
   private XmlPullParserFactory mXpf;
-  private String mBase;
   private AuthenticatedWebClient mHttpClient;
   private List<? extends ISyncAdapterDelegate> mDelegates;
 
@@ -65,8 +64,9 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
 
   @Override
   public final void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
-    mBase = getSyncSource();
-    if (! mBase.endsWith("/")) {mBase = mBase+'/'; }
+    String mBase = getSyncSource();
+    if (! mBase.endsWith("/")) {
+      mBase = mBase +'/'; }
 
     {
       String authbase = AuthenticatedWebClient.getAuthBase(mBase);
