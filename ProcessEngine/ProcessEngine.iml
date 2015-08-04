@@ -20,6 +20,24 @@
         <option name="GRADLE_PROJECT_PATH" value=":ProcessEngine" />
       </configuration>
     </facet>
+    <facet type="web" name="Web Gradle : ProcessEngine.war">
+      <configuration>
+        <webroots>
+          <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
+        </webroots>
+        <sourceRoots>
+          <root url="file://$MODULE_DIR$/src/tomcat/java" />
+          <root url="file://$MODULE_DIR$/src/web/resources" />
+          <root url="file://$MODULE_DIR$/src/tomcat/resources" />
+          <root url="file://$MODULE_DIR$/src/main/java" />
+          <root url="file://$MODULE_DIR$/src/tomcat" />
+          <root url="file://$MODULE_DIR$/src/web/java" />
+          <root url="file://$MODULE_DIR$/src/web" />
+          <root url="file://$MODULE_DIR$/src/main/resources" />
+          <root url="file://$MODULE_DIR$/src/main" />
+        </sourceRoots>
+      </configuration>
+    </facet>
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
@@ -43,6 +61,11 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="jdk" jdkName="1.7" jdkType="JavaSDK" />
     <orderEntry type="module" module-name="java-common" exported="" />
+    <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="PE-common" exported="" />
+    <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
+    <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
+    <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
   </component>
 </module>
