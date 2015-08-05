@@ -7,7 +7,7 @@ import net.devrieze.annotations.Nullable;
 
 public interface StringCache {
 
-  public static enum UniqueCaches implements StringCache {
+  public enum UniqueCaches implements StringCache {
     NOP;
 
     @Override

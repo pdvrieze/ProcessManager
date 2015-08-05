@@ -27,7 +27,7 @@ public final class Annotations {
   }
 
   @NotNull
-  public static final <T> T notNull(T pObject) {
+  public static <T> T notNull(T pObject) {
     assert pObject!=null;
     return pObject;
   }
