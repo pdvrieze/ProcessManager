@@ -1,27 +1,22 @@
 package nl.adaptivity.process.userMessageHandler.client.processModel;
 
-import java.util.*;
-
-import nl.adaptivity.gwt.ext.client.XMLUtil;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.xml.client.Attr;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
+import nl.adaptivity.gwt.ext.client.XMLUtil;
+
+import java.util.*;
 
 
 public class JoinNode extends ProcessNode {
 
   private final Collection<String> aPredecessorNames;
-
-  private Set<ProcessNode> aPredecessors;
-
-  private Set<ProcessNode> aSuccessors;
-
   private final String aMin;
-
   private final String aMax;
+  private Set<ProcessNode> aPredecessors;
+  private Set<ProcessNode> aSuccessors;
 
   public JoinNode(final String pId, final Collection<String> pPredecessorNames, final String pMin, final String pMax) {
     super(pId);
@@ -109,6 +104,14 @@ public class JoinNode extends ProcessNode {
   @Override
   public Collection<ProcessNode> getPredecessors() {
     return aPredecessors;
+  }
+
+  public String getMin() {
+    return aMin;
+  }
+
+  public String getMax() {
+    return aMax;
   }
 
 }
