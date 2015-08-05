@@ -1,4 +1,5 @@
 apply plugin: 'idea'
+apply plugin: 'java'
 apply plugin: 'war'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
@@ -24,6 +25,17 @@ sourceSets {
         compileClasspath = compileClasspath + files(api.runtimeClasspath)
     }
 }
+
+task tomcatRun(dependsOn: ["classes"]) {
+    group='web application'
+    description = "Do everything needed to be able to run as embedded tomcat"
+}
+
+jar {
+    from sourceSets.api.output
+    from sourceSets.main.output
+}
+
 /*
 tomcat {
     contextPath='/PEUserMessageHandler'
