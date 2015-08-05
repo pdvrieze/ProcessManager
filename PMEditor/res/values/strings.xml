@@ -37,5 +37,8 @@
     <string name="title_main">Process Manager</string>
     <string name="title_tasklist">Tasks</string>
     <string name="btn_task_complete">Complete task</string>
+    <string name="lbl_ac_task_detail">Task Details</string>
+    <string name="menu_ac_reset">Reset</string>
+    <string name="menu_ac_sync">Sync</string>
 
 </resources>

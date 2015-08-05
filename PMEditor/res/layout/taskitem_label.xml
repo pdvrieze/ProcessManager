@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/half_margin"
     android:layout_marginTop="@dimen/half_margin"
-    android:gravity="left|center_vertical"
+    android:gravity="start|center_vertical"
     android:minHeight="?android:attr/listPreferredItemHeight" >
 
 </TextView>

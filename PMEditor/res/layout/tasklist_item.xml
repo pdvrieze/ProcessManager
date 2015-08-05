@@ -24,7 +24,7 @@
         android:layout_marginLeft="@dimen/default_margin"
         android:layout_marginRight="@dimen/default_margin"
         android:layout_marginTop="@dimen/half_margin"
-        android:gravity="top|left"
+        android:gravity="top|start"
         android:visibility="gone" />
 
 </LinearLayout>

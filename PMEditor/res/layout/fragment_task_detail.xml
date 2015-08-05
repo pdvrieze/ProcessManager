@@ -10,7 +10,6 @@
 		style="?android:attr/progressBarStyleLarge"
 		android:layout_width="wrap_content"
 		android:layout_height="0dp"
-		android:layout_weight="1"
 		android:visibility="gone" />
 
 	<ScrollView
@@ -23,7 +22,7 @@
 		<LinearLayout
 			android:id="@+id/task_detail"
 			android:layout_width="match_parent"
-			android:layout_height="match_parent"
+			android:layout_height="wrap_content"
 			android:orientation="vertical"
 			android:padding="@dimen/default_margin" >
 
@@ -42,7 +41,7 @@
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_marginBottom="@dimen/default_margin"
-				android:gravity="right"
+				android:gravity="end"
 				android:textAppearance="?android:attr/textAppearanceSmall" />
 
 			<View
