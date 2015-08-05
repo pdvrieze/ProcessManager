@@ -1,0 +1,44 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="Gradle : ProcessManager:PEUserMessageHandler : PEUserMessageHandler.war">
+    <output-path>$PROJECT_DIR$/out/artifacts/PEUserMessageHandler</output-path>
+    <properties id="gradle-properties">
+      <options external-project-path="$PROJECT_DIR$/PEUserMessageHandler" />
+    </properties>
+    <root id="archive" name="PEUserMessageHandler.war">
+      <element id="javaee-facet-resources" facet="PEUserMessageHandler/web/Web Gradle : PEUserMessageHandler.war" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="PEUserMessageHandler" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="archive" name="ProcessManager-DarwinClients-1.0.0.jar">
+            <element id="module-output" name="DarwinClients" />
+          </element>
+          <element id="archive" name="ProcessManager-JavaCommonApi-unspecified.jar">
+            <element id="module-output" name="JavaCommonApi" />
+          </element>
+          <element id="archive" name="ProcessManager-java-common-unspecified.jar">
+            <element id="module-output" name="java-common" />
+          </element>
+          <element id="library" level="project" name="asm-tree-3.3.1" />
+          <element id="library" level="project" name="asm-3.3.1" />
+          <element id="archive" name="ProcessManager-PE-common-unspecified.jar">
+            <element id="module-output" name="PE-common" />
+          </element>
+          <element id="archive" name="ProcessManager-DarwinJavaApi-unspecified.jar">
+            <element id="module-output" name="DarwinJavaApi" />
+          </element>
+          <element id="library" level="project" name="servlet-api-6.0.44" />
+          <element id="library" level="project" name="servlet-api-2.5-6.1.5" />
+          <element id="library" level="project" name="gwt-user-2.6.1" />
+          <element id="library" level="project" name="validation-api-1.0.0.GA" />
+          <element id="library" level="project" name="validation-api-1.0.0.GA-sources" />
+          <element id="library" level="project" name="json-20090211" />
+        </element>
+      </element>
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/out/artifacts/PEUserMessageHandler/exploded/PEUserMessageHandler.war/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>
