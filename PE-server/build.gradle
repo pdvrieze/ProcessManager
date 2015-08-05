@@ -1,13 +1,25 @@
+apply plugin: 'java'
 apply plugin: 'com.bmuschko.tomcat'
+
+defaultTasks 'tomcatRun'
 
 dependencies {
     tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
             "org.apache.tomcat:coyote:${tomcatVersion}",
-            "org.apache.tomcat:jasper:${tomcatVersion}"
+            "org.apache.tomcat:jasper:${tomcatVersion}",
+            "org.apache.tomcat:dbcp:${tomcatVersion}"
     tomcat 'mysql:mysql-connector-java:5.1.36'
     tomcat project(':DarwinJavaApi')
     tomcat project(':JavaCommonApi')
     tomcat project(':DarwinRealm')
+/*    tomcat project(path: ':ProcessEngine', configuration: 'tomcatExtCompile')
+    tomcat project(path: ':ProcessEngine', configuration: 'compile')
+    tomcat project(path: ':ProcessEngine', configuration: 'webCompile')*/
+    tomcat project(':PEUserMessageHandler')
+    tomcat project(':DarwinServices')
+    tomcat project(path: ':ProcessEngine')
+/*    tomcatRunWar ':ProcessEngine:tomcatExtClasses'*/
+/*    tomcatRun project(':ProcessEngine').tasks['war']*/
 }
 
 tomcat {
@@ -22,9 +34,22 @@ tomcat {
         }
     }
 }
+tomcatRun() {
+    doFirst {
+//        webAppClasspath=webAppClasspath.plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
+        println("Running Tomcat")
+        configurations.tomcat.allDependencies.each({ println("Dependency: $it")})
+//        sourceSets.main.compileClasspath.each({ println("CompileClasspath: $it") })
+        println()
+        tomcatClasspath.each({ println("TomcatClasspath: $it")})
+        println()
+
+	systemProperties 'nl.adaptivity.messaging.localurl': 'http://localhost:8080'
+	systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
+    }
+
+}
+
 
 [tomcatRun, tomcatRunWar]*.webDefaultXml = file ('config/web.xml')
 [tomcatRun, tomcatRunWar]*.configFile = file ('config/context.xml')
-tomcatRun.dependsOn(project(':ProcessEngine').task('tomcatCompile'))
-tomcatRun.dependsOn(project(':PEUserMessageHandler'))
-tomcatRun.dependsOn(project(':DarwinServices'))

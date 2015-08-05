@@ -27,13 +27,27 @@
     <!-- Uncomment this to enable Comet connection tacking (provides events
          on session expiration as well as webapp lifecycle) -->
     <!--
+
+
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
+
+    <!-- The authenticator module -->
+
     <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator" />
     
     <Resource name="jdbc/webauth" auth="Container" type="javax.sql.DataSource"
             maxActive="100" maxIdle="30" maxWait="10000" username="webauth"
             password="5glul9f3i4" driverClassName="com.mysql.jdbc.Driver"
             url="jdbc:mysql://localhost/webauth"/>
+
+    <!-- The process engine database -->
+
+    <Resource name="jdbc/processengine" auth="Container"
+              type="javax.sql.DataSource" maxActive="100" maxIdle="30" maxWait="10000"
+              factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory" username="processengine"
+              password="2lCmFVW0J4" driverClassName="com.mysql.jdbc.Driver"
+              url="jdbc:mysql://localhost/processengine"
+              removeAbandoned="true" />
 
 </Context>
