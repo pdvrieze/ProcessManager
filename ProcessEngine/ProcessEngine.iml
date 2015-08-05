@@ -20,13 +20,34 @@
         <option name="GRADLE_PROJECT_PATH" value=":ProcessEngine" />
       </configuration>
     </facet>
+    <facet type="web" name="Web Gradle : ProcessEngine.war">
+      <configuration>
+        <webroots>
+          <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
+          <root url="file://$MODULE_DIR$/build/classes/main/nl" relative="/nl" />
+          <root url="file://$MODULE_DIR$/build/classes/web/nl" relative="/nl" />
+          <root url="file://$MODULE_DIR$/build/classes/tomcatExt/nl" relative="/nl" />
+        </webroots>
+        <sourceRoots>
+          <root url="file://$MODULE_DIR$/src/tomcatExt/java" />
+          <root url="file://$MODULE_DIR$/src/web/resources" />
+          <root url="file://$MODULE_DIR$/src/main/java" />
+          <root url="file://$MODULE_DIR$/src/tomcat" />
+          <root url="file://$MODULE_DIR$/src/tomcatExt/resources" />
+          <root url="file://$MODULE_DIR$/src/web/java" />
+          <root url="file://$MODULE_DIR$/src/web" />
+          <root url="file://$MODULE_DIR$/src/main/resources" />
+          <root url="file://$MODULE_DIR$/src/main" />
+        </sourceRoots>
+      </configuration>
+    </facet>
   </component>
   <component name="NewModuleRootManager" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/tomcat/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/tomcatExt/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/web/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main" isTestSource="false" />
@@ -34,8 +55,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/web" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/src/tomcat/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/web/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/tomcatExt/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
@@ -49,5 +70,9 @@
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
     <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="annotations-api-6.0.44" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="catalina-6.0.44" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="coyote-6.0.44" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="juli-6.0.44" level="project" />
   </component>
 </module>
