@@ -45,7 +45,7 @@ public interface DarwinPrincipal extends Principal {
    *
    * @return The set of roles.
    */
-  public Set<? extends CharSequence> getRolesSet();
+  Set<? extends CharSequence> getRolesSet();
 
   /**
    * Create a copy principal that uses the given stringcache to reuse strings.
