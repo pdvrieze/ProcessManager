@@ -5,6 +5,11 @@ sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
 
+version = '1.0.0'
+description = 'A library with process engine support classes'
+group = ['util', 'process' ]
+
+
 sourceSets {
     main {
         java {
