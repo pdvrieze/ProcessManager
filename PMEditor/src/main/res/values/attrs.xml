@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="DiagramView">
+        <attr name="gridSize" format="integer" min="0">
+            <enum name="no_grid" value="0" />
+        </attr>
+        <attr name="editable" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="AutoCompletePreference" parent="EditTextPreference">
+        <attr name="candidates" format="reference"/>
+    </declare-styleable>
+
+</resources>

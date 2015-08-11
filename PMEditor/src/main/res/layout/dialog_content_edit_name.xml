@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:id="@+id/edit_container"
+             android:layout_marginTop="48dp"
+             android:layout_marginBottom="48dp"
+             android:padding="20dp"
+        >
+
+    <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/edit"
+            android:layout_marginBottom="48dp"
+            android:paddingStart="4dp"
+            android:paddingLeft="4dp"
+            android:paddingEnd="4dp"
+            android:paddingRight="4dp"
+            tools:text="Some Name..."
+            android:inputType="text"
+            android:imeOptions="actionGo"
+            >
+
+    </EditText>
+</FrameLayout>

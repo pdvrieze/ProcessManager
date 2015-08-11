@@ -10,7 +10,7 @@ SCORES:=black white none
 #	   ic_launcher.png ic_menu_scores.png ic_action_scores.png popupframe.9.png popuparrowdown.png popuparrowup.png
 ICONS=ic_cont_arrow.png ic_cont_edit.png ic_cont_delete.png ic_action_export.png ic_action_import.png
 DRAWABLES:= ic_launcher.png $(ICONS) btn_default.9.png btn_pressed.9.png btn_active.9.png
-TARGETS:= $(foreach qual,$(QUALS),$(foreach drawable,$(DRAWABLES),res/drawable-$(qual)/$(drawable))) $(NODPITARGETS) 
+TARGETS:= $(foreach qual,$(QUALS),$(foreach drawable,$(DRAWABLES),src/main/resources/res/drawable-$(qual)/$(drawable))) $(NODPITARGETS) 
 
 res: $(TARGETS)
 
@@ -18,11 +18,11 @@ res: $(TARGETS)
 
 dp2px=$(shell scripts/dp2px.sh $(1) $(2))
 
-ressrc/iconsource.png: ressrc/iconsource.svg
+src/main/ressrc/iconsource.png: src/main/ressrc/iconsource.svg
 	@eval inkscape -h 512 -e $@ -j -i icon $<
 	@optipng $@
 
-$(foreach qual,$(QUALS),res/drawable-$(qual)/ic_launcher.png): ressrc/iconsource.svg
+$(foreach qual,$(QUALS),src/main/resources/res/drawable-$(qual)/ic_launcher.png): src/main/ressrc/iconsource.svg
 	@eval scripts/iconize.sh 48 48 $< $@
 #	@QUAL=$(subst res/drawable-,,$(subst /ic_launcher.png,,$@)); \
 #	PX=$$(scripts/dp2px.sh $$QUAL 48); \
@@ -31,7 +31,7 @@ $(foreach qual,$(QUALS),res/drawable-$(qual)/ic_launcher.png): ressrc/iconsource
 #	@optipng $@
 
 
-ic_launcher-web.png: ressrc/iconsource.svg
+ic_launcher-web.png: src/main/ressrc/iconsource.svg
 	@TMP="$$(mktemp --suffix=".png" ic_launcher.XXXXX)" ;\
 	eval inkscape -w 448 -e $$TMP -j -i icon $< ;\
 #	convert $${TMP} -virtual-pixel transparent -distort Perspective '0,448 0,448 448,448 448,448 0,0 64,0 448,0 384,0' \
@@ -53,32 +53,32 @@ ic_launcher-web.png: ressrc/iconsource.svg
 $(foreach qual,$(QUALS),$(foreach icon,ic_action_export.png ic_action_import.png,res/drawable-$(qual)/$(icon))): ressrc/ic_action_save.svg
 	@eval scripts/iconize.sh 32 32 $< $@ $(subst .png,,$(@F))
 
-$(foreach qual,$(QUALS),res/drawable-$(qual)/ic_cont_%.png): ressrc/ic_cont_%.svg
+$(foreach qual,$(QUALS),res/drawable-$(qual)/ic_cont_%.png): src/main/ressrc/ic_cont_%.svg
 	@eval scripts/iconize.sh 32 32 $< $@
 
-feature.png: ressrc/iconsource.svg
+feature.png: src/main/ressrc/iconsource.svg
 	@eval inkscape -w 1024 -h 500 -e $@ -j -i feature icon $<
 	@optipng $@
 
-$(foreach qual,$(QUALS),res/drawable-$(qual)/btn_default.9.png): ressrc/btn_src.svg Makefile
+$(foreach qual,$(QUALS),src/main/resources/res/drawable-$(qual)/btn_default.9.png): src/main/ressrc/btn_src.svg Makefile
 	@scripts/9patch.php 38 38 $< default $@ 10 18 10 18 9 20 9 20
 	@optipng $@
 
-$(foreach qual,$(QUALS),res/drawable-$(qual)/btn_active.9.png): ressrc/btn_src.svg Makefile
+$(foreach qual,$(QUALS),src/main/resources/res/drawable-$(qual)/btn_active.9.png): src/main/ressrc/btn_src.svg Makefile
 	@scripts/9patch.php 38 38 $< active $@ 13 18 13 18 12 22 12 20
 	@optipng $@
 
-$(foreach qual,$(QUALS),res/drawable-$(qual)/btn_pressed.9.png): ressrc/btn_src.svg Makefile
+$(foreach qual,$(QUALS),src/main/resources/rres/drawable-$(qual)/btn_pressed.9.png): src/main/ressrc/btn_src.svg Makefile
 	@scripts/9patch.php 38 38 $< pressed $@ 13 18 13 18 12 22 12 20
 	@optipng $@
 
-#$(foreach qual,$(QUALS),res/drawable-$(qual)/popuparrowdown.png): ressrc/popup_bg.svg
+#$(foreach qual,$(QUALS),src/main/resources/rres/drawable-$(qual)/popuparrowdown.png): src/main/ressrc/popup_bg.svg
 #	@eval scripts/iconize.sh 17 12 $<  $@ arrowdown
 #
 #$(foreach qual,$(QUALS),res/drawable-$(qual)/popuparrowup.png): ressrc/popup_bg.svg
 #	@eval scripts/iconize.sh 17 12 $<  $@ arrowup
 
-promo.png: ressrc/iconsource.svg
+promo.png: src/main/ressrc/iconsource.svg
 	@eval inkscape -w 180 -h 120 -e $@ -j -i promo icon $<
 	@optipng $@
 
