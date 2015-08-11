@@ -2,6 +2,10 @@ apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'war'
 
+version = '1.0.0'
+description = 'The service that handles tasks for users (and functions as web interface entry point'
+group = ['service', 'server' ]
+
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
@@ -11,6 +15,8 @@ configurations {
         extendsFrom apiCompile
     }
 }
+
+def genImageDir="$buildDir/generated-images"
 
 sourceSets {
     api {
@@ -22,11 +28,61 @@ sourceSets {
         java {
             srcDir 'src/main'
         }
+        resources {
+            srcDir 'res/main'
+        }
         compileClasspath = compileClasspath + files(api.runtimeClasspath)
+    }
+    imageSource {
+        output.dir(genImageDir, builtBy: 'generateImages')
+        files('images/blackSplitPanel.svg',
+                     'images/arrow.svg')
     }
 }
 
-task tomcatRun(dependsOn: ["classes"]) {
+class PngGenerator extends Exec {
+    @InputFile
+    File inputFile
+
+    @OutputFile
+    File outputFile
+
+    @Override
+    protected void exec() {
+        if (! outputFile.parentFile.exists()) {
+            outputFile.parentFile.mkdirs()
+        }
+        setExecutable('inkscape')
+        setArgs(['-e', outputFile, inputFile])
+        super.exec()
+    }
+}
+
+
+task generateImages(dependsOn: 'generateSplitPanel') {
+	group="codegen"
+}
+
+task generateSplitPanel(type: PngGenerator) {
+	inputFile=file('images/blackSplitPanel.svg')
+	outputFile=file('res/main/nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png')
+	description="Generate ${outputFile} from ${inputFile}.svg"
+	group="codegen"
+}
+
+[ 'arrow', 'diagramBackground', 'endNode', 'startNode' ].each { String file ->
+    task "generate${Character.toUpperCase(file.charAt(0))}${file.substring(1)}" (type:PngGenerator) {
+	description="Generate ${file}.png from ${file}.svg"
+	group="codegen"
+        inputFile=new File("images/${file}.svg")
+        outputFile=new File("images/${file}.png")
+    }
+
+}
+
+processResources.dependsOn([generateSplitPanel/*, 'generateArrow'*/])
+
+task tomcatRun(dependsOn: ["war"]) {
     group='web application'
     description = "Do everything needed to be able to run as embedded tomcat"
 }
