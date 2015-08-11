@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id=":ProcessEngine" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="ProcessManager" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
+<module external.linked.project.id=":ProcessEngine" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="[server, service]" external.system.module.version="1.0.0" type="JAVA_MODULE" version="4">
   <component name="EclipseModuleManager">
     <conelement value="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v6.0" />
     <conelement value="org.eclipse.jst.j2ee.internal.web.container" />
@@ -20,7 +20,7 @@
         <option name="GRADLE_PROJECT_PATH" value=":ProcessEngine" />
       </configuration>
     </facet>
-    <facet type="web" name="Web Gradle : ProcessEngine.war">
+    <facet type="web" name="Web Gradle : ProcessEngine-1.0.0.war">
       <configuration>
         <webroots>
           <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
@@ -67,9 +67,9 @@
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="PE-common" exported="" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
-    <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
-    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
+    <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="annotations-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="catalina-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="coyote-6.0.44" level="project" />
