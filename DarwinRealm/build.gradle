@@ -4,6 +4,10 @@ apply plugin: 'idea'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
+version = '1.1.0'
+description = 'A tomcat realm to work with the darwin authentication system'
+group = 'serverclasspath'
+
 sourceSets {
     main {
         java {
