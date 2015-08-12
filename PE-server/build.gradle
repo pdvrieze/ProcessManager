@@ -3,6 +3,11 @@ apply plugin: 'com.bmuschko.tomcat'
 
 defaultTasks 'tomcatRun'
 
+version = '1.0.0'
+description = 'A project for running an embedded tomcat server that works.'
+group = ['util' ]
+
+
 dependencies {
     tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
             "org.apache.tomcat:coyote:${tomcatVersion}",
@@ -44,8 +49,8 @@ tomcatRun() {
         tomcatClasspath.each({ println("TomcatClasspath: $it")})
         println()
 
-	systemProperties 'nl.adaptivity.messaging.localurl': 'http://localhost:8080'
-	systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
+        System.setProperty('nl.adaptivity.messaging.localurl', 'http://localhost:8080')
+//	    systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
     }
 
 }
