@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.*;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -89,6 +90,7 @@ public class SettingsActivity extends PreferenceActivity {
     bindPreferenceSummaryToValue(findPreference(PREF_NOTIFICATIONS_NEW_TASK_RINGTONE));
     bindPreferenceSummaryToValue(findPreference(PREF_SYNC_FREQUENCY));
     AutoCompletePreference pref_sync_source = (AutoCompletePreference) findPreference(PREF_SYNC_SOURCE);
+    pref_sync_source.getEditText().setInputType(InputType.TYPE_CLASS_TEXT|InputType.TYPE_TEXT_VARIATION_URI);
 
     bindPreferenceSummaryToValue(pref_sync_source);
   }
