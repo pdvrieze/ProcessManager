@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<!--
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:layout_width="match_parent"
@@ -8,28 +9,32 @@
             android:layout_marginBottom="48dp"
             android:overScrollMode="ifContentScrolls"
         >
+-->
 
-    <LinearLayout
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:id="@+id/edit_container"
+              android:padding="20dp"
+              android:orientation="vertical"
+        >
+
+    <AutoCompleteTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/edit_container"
-            android:padding="20dp"
-            android:orientation="vertical"
+            android:id="@+id/edit"
+            style="?android:attr/textAppearanceSmall"
+            android:layout_marginBottom="48dp"
+            android:paddingStart="4dp"
+            android:paddingLeft="4dp"
+            android:paddingEnd="4dp"
+            android:paddingRight="4dp"
+            android:textColor="?android:attr/textColorSecondary"
+            tools:text="Some text"
             >
 
-        <AutoCompleteTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/edit"
-                style="?android:attr/textAppearanceSmall"
-                android:layout_marginBottom="48dp"
-                android:paddingStart="4dp"
-                android:paddingLeft="4dp"
-                android:paddingEnd="4dp"
-                android:paddingRight="4dp"
-                android:textColor="?android:attr/textColorSecondary"
-                tools:text="Some text">
-
-        </AutoCompleteTextView>
-    </LinearLayout>
-</ScrollView>
+    </AutoCompleteTextView>
+</LinearLayout>
+        <!--
+        </ScrollView>-->

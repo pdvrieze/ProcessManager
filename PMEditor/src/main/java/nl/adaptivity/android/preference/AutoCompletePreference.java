@@ -135,6 +135,8 @@ public class AutoCompletePreference extends DialogPreference {
     if (oldParent != view) {
       if (oldParent != null) {
         ((ViewGroup) oldParent).removeView(editText);
+      } else {
+        ((ViewGroup) view).removeView(view.findViewById(R.id.edit));
       }
       onAddEditTextToDialogView(view, editText);
     }
