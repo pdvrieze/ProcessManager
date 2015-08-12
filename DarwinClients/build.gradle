@@ -5,6 +5,8 @@ sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
 version = '1.0.0'
+description = 'A project for the automatically generated service clients for various services'
+group = 'server'
 
 def genDir = projectDir.absolutePath+'/gen'
 def genClasses = ['nl.adaptivity.process.userMessageHandler.server.InternalEndpoint' , 'nl.adaptivity.process.engine.servlet.ServletProcessEngine']
