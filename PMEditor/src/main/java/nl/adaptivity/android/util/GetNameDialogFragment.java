@@ -10,10 +10,12 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.text.InputType;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+import nl.adaptivity.process.editor.android.R;
 
 
 public class GetNameDialogFragment extends DialogFragment {
@@ -105,7 +107,8 @@ public class GetNameDialogFragment extends DialogFragment {
     }
 
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-    mEditText = new EditText(getActivity());
+    View parent = getLayoutInflater(savedInstanceState).inflate(R.layout.dialog_content_edit_name, null);
+    mEditText = (EditText) parent.findViewById(R.id.edit);
     mEditText.setInputType(InputType.TYPE_CLASS_TEXT);
     mEditText.setText(prevName);
     mEditText.selectAll();
@@ -116,7 +119,7 @@ public class GetNameDialogFragment extends DialogFragment {
         .setMessage(message)
         .setPositiveButton(android.R.string.ok, listener)
         .setNegativeButton(android.R.string.cancel, listener)
-        .setView(mEditText);
+        .setView(parent);
     return builder.create();
 
   }
