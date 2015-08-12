@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 /**
  * <p>
  * This singleton class acts as the registry where a {@link IMessenger
- * messenger} can be registered for hanlding messages. The usage of this central
+ * messenger} can be registered for handling messages. The usage of this central
  * registry allows for only the API project to be loaded globally into the
  * servlet container while the messenger is loaded by a specific context.
  * <p>
