@@ -65,7 +65,13 @@ task generateImages(dependsOn: 'generateSplitPanel') {
 
 task generateSplitPanel(type: PngGenerator) {
 	inputFile=file('images/blackSplitPanel.svg')
-	outputFile=file('res/main/nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png')
+
+    File resourceDir=null;
+    sourceSets.main.getResources().srcDirs.each {File dir ->
+        logger.warn("Resource folder: ${dir}")
+        resourceDir=dir
+    }
+	outputFile=new File(resourceDir,'nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png')
 	description="Generate ${outputFile} from ${inputFile}.svg"
 	group="codegen"
 }
