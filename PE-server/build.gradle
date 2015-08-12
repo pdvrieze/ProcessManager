@@ -42,12 +42,12 @@ tomcat {
 tomcatRun() {
     doFirst {
 //        webAppClasspath=webAppClasspath.plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
-        println("Running Tomcat")
-        configurations.tomcat.allDependencies.each({ println("Dependency: $it")})
+        logger.lifecycle('Running Tomcat')
+        configurations.tomcat.allDependencies.each({ logger.debug("Dependency: $it")})
 //        sourceSets.main.compileClasspath.each({ println("CompileClasspath: $it") })
-        println()
-        tomcatClasspath.each({ println("TomcatClasspath: $it")})
-        println()
+        logger.debug('');
+        tomcatClasspath.each({ logger.debug("TomcatClasspath: $it")})
+        logger.debug('')
 
         System.setProperty('nl.adaptivity.messaging.localurl', 'http://localhost:8080')
 //	    systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
