@@ -8,6 +8,7 @@ import java.io.Reader;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 
+import nl.adaptivity.android.util.LogUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
@@ -133,13 +134,17 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
       }
 
     } else {
-      response.getEntity().consumeContent();
+      if (Log.isLoggable(TAG, Log.DEBUG)) {
+        LogUtil.logResponse(TAG, Log.DEBUG, url, response.getStatusLine().toString(), response.getEntity().getContent());
+      } else {
+        response.getEntity().consumeContent();
+      }
       // Don't throw an exception.
       ++pSyncResult.stats.numSkippedEntries;
 //      ++pSyncResult.stats.numIoExceptions;
 //      return null;
 
-      throw new IOException("The server could not be updated");
+      throw new IOException("The server could not be updated: "+response.getStatusLine());
     }
   }
 

@@ -1,14 +1,10 @@
 package nl.adaptivity.process.models;
 
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
+import nl.adaptivity.android.util.LogUtil;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpDelete;
@@ -124,9 +120,13 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
       }
 
     } else {
-      response.getEntity().consumeContent();
+      if (Log.isLoggable(TAG, Log.DEBUG)) {
+        LogUtil.logResponse(TAG, Log.DEBUG, url, response.getStatusLine().toString(), response.getEntity().getContent());
+      } else {
+        response.getEntity().consumeContent();
+      }
 
-      throw new IOException("The server could not be updated");
+      throw new IOException("The server could not be updated: "+ response.getStatusLine().getStatusCode()+" "+response.getStatusLine().getReasonPhrase());
     }
   }
 
