@@ -10,39 +10,80 @@
         <option name="name" value="app: nl.adaptivity.process.editor.android" />
         <option name="packageNamePattern" value="nl.adaptivity.process.editor.android" />
       </filter>
+      <filter>
+        <option name="name" value="app: nl.adaptivity.process.editor.android.debug" />
+        <option name="packageNamePattern" value="nl.adaptivity.process.editor.android.debug" />
+      </filter>
     </filters>
   </component>
   <component name="AndroidLayouts">
     <shared>
-      <config />
+      <config>
+        <target>android-22</target>
+      </config>
     </shared>
+    <layouts>
+      <layout url="file://$PROJECT_DIR$/PMEditor/src/main/res/layout/auto_complete_preference.xml">
+        <config>
+          <theme>@style/AppTheme</theme>
+        </config>
+      </layout>
+    </layouts>
   </component>
   <component name="AndroidLogFilters">
-    <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="app: nl.adaptivity.process.editor.android" />
+    <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="app: nl.adaptivity.process.editor.android.debug" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" readonly="true" id="1c1c99b8-5a33-407f-a9db-4b5119404b38" name="Default" comment="Add the directory to the repo">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/menu/diagram_menu.xml" afterPath="$PROJECT_DIR$/PMEditor/res/menu/diagram_menu.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/layout/fragment_task_detail.xml" afterPath="$PROJECT_DIR$/PMEditor/res/layout/fragment_task_detail.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/layout/modellist_item.xml" afterPath="$PROJECT_DIR$/PMEditor/res/layout/modellist_item.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/menu/pm_detail_menu.xml" afterPath="$PROJECT_DIR$/PMEditor/res/menu/pm_detail_menu.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/menu/pmlist_menu.xml" afterPath="$PROJECT_DIR$/PMEditor/res/menu/pmlist_menu.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/values/strings.xml" afterPath="$PROJECT_DIR$/PMEditor/res/values/strings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/layout/taskitem_detail_text.xml" afterPath="$PROJECT_DIR$/PMEditor/res/layout/taskitem_detail_text.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/layout/taskitem_label.xml" afterPath="$PROJECT_DIR$/PMEditor/res/layout/taskitem_label.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/layout/taskitem_labeled.xml" afterPath="$PROJECT_DIR$/PMEditor/res/layout/taskitem_labeled.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/layout/tasklist_item.xml" afterPath="$PROJECT_DIR$/PMEditor/res/layout/tasklist_item.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PMEditor/res/menu/tasklist_menu.xml" afterPath="$PROJECT_DIR$/PMEditor/res/menu/tasklist_menu.xml" />
-    </list>
-    <list id="a64b399b-a031-49ef-845d-341fced208c3" name="workspace" comment="workspace">
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/DarwinClients/DarwinClients.iml" afterPath="$USER_HOME$/workspace/DarwinClients/DarwinClients.iml" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/PMEditor/src/nl/adaptivity/process/editor/android/MainActivity.java" afterPath="$USER_HOME$/workspace/PMEditor/src/nl/adaptivity/process/editor/android/MainActivity.java" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/PE-diagram/PE-diagram.iml" afterPath="$USER_HOME$/workspace/PE-diagram/PE-diagram.iml" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/PMEditor/PMEditor.iml" afterPath="$USER_HOME$/workspace/PMEditor/PMEditor.iml" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/DarwinCommon/build.gradle" afterPath="$USER_HOME$/workspace/DarwinCommon/build.gradle" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/DarwinJavaApi/build.gradle" afterPath="$USER_HOME$/workspace/DarwinJavaApi/build.gradle" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/PE-diagram/build.gradle" afterPath="$USER_HOME$/workspace/PE-diagram/build.gradle" />
-      <change type="MODIFICATION" beforePath="$USER_HOME$/workspace/PMEditor/build.gradle" afterPath="$USER_HOME$/workspace/PMEditor/build.gradle" />
+    <list default="true" readonly="true" id="1c1c99b8-5a33-407f-a9db-4b5119404b38" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-dataservices/web/WEB-INF" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/copyright" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/java-common/gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/inspectionProfiles" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-dataservices/web" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/.name" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinCommon/DarwinCommon.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-server/PE-server.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PEUserMessageHandler/PEUserMessageHandler.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/inspectionProfiles/Project_Default.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PMEditor/src/main/res/layout/actionbar.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinGenerators/build.gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinServices/build.gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-dataservices/build.gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-server/build.gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/darwinlib/build.gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/compiler.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-server/config/context.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/java-common/gradlew" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-server/src/main/webapp/index.html" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/java-common/java-common.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/copyright/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/inspectionProfiles/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PMEditor/src/main/res/values/themes.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-dataservices/web/WEB-INF/web.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PE-server/config/web.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DarwinRealm/.idea/workspace.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_DarwinServices___DarwinServices_war.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_DarwinServices___DarwinServices_war__exploded_.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_PEUserMessageHandler___PEUserMessageHandler_war.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_PEUserMessageHandler___PEUserMessageHandler_war__exploded_.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_PE_server___PE_server_war.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_PE_server___PE_server_war__exploded_.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_ProcessEngine___ProcessEngine_war.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/artifacts/Gradle___ProcessManager_ProcessEngine___ProcessEngine_war__exploded_.xml" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PE-common" afterPath="$PROJECT_DIR$/PE-common" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PEUserMessageHandler" afterPath="$PROJECT_DIR$/PEUserMessageHandler" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ProcessEngine" afterPath="$PROJECT_DIR$/ProcessEngine" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/java-common" afterPath="$PROJECT_DIR$/java-common" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ProcessEngine/ProcessEngine.iml" afterPath="$PROJECT_DIR$/ProcessEngine/ProcessEngine.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ProcessEngine/build.gradle" afterPath="$PROJECT_DIR$/ProcessEngine/build.gradle" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="ProcessManager.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -69,8 +110,8 @@
     <ignored path="$PROJECT_DIR$/DarwinClients/.gradle/" />
     <ignored path="$PROJECT_DIR$/DarwinClients/build/" />
     <ignored path="$PROJECT_DIR$/PE-dataservices/build/" />
+    <ignored mask="build" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
-    <file path="$USER_HOME$/workspace/PMEditor/src/nl/adaptivity/process/editor/android/MainActivity.java" ignored="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,13 +164,19 @@
                 <option name="myItemId" value="ProcessManager" />
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
               </PATH_ELEMENT>
+            </PATH>
+            <PATH>
               <PATH_ELEMENT>
-                <option name="myItemId" value=":ProcessEngine" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
+                <option name="myItemId" value="" />
+                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ExternalProjectsStructure$RootNode" />
               </PATH_ELEMENT>
               <PATH_ELEMENT>
-                <option name="myItemId" value="Run Configurations" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.RunConfigurationsNode" />
+                <option name="myItemId" value="ProcessManager" />
+                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
+              </PATH_ELEMENT>
+              <PATH_ELEMENT>
+                <option name="myItemId" value=":PEUserMessageHandler" />
+                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
               </PATH_ELEMENT>
             </PATH>
             <PATH>
@@ -142,7 +189,7 @@
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
               </PATH_ELEMENT>
               <PATH_ELEMENT>
-                <option name="myItemId" value=":ProcessEngine" />
+                <option name="myItemId" value=":PEUserMessageHandler" />
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
               </PATH_ELEMENT>
               <PATH_ELEMENT>
@@ -160,7 +207,7 @@
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
               </PATH_ELEMENT>
               <PATH_ELEMENT>
-                <option name="myItemId" value=":ProcessEngine" />
+                <option name="myItemId" value=":PEUserMessageHandler" />
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
               </PATH_ELEMENT>
               <PATH_ELEMENT>
@@ -168,72 +215,8 @@
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode" />
               </PATH_ELEMENT>
               <PATH_ELEMENT>
-                <option name="myItemId" value="build" />
+                <option name="myItemId" value="other" />
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode$1" />
-              </PATH_ELEMENT>
-            </PATH>
-            <PATH>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ExternalProjectsStructure$RootNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="ProcessManager" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
-              </PATH_ELEMENT>
-            </PATH>
-            <PATH>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ExternalProjectsStructure$RootNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="ProcessManager" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value=":PE-server" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
-              </PATH_ELEMENT>
-            </PATH>
-            <PATH>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ExternalProjectsStructure$RootNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="ProcessManager" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value=":PE-server" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="Tasks" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="web application" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode$1" />
-              </PATH_ELEMENT>
-            </PATH>
-            <PATH>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ExternalProjectsStructure$RootNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="ProcessManager" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value=":PE-server" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="Tasks" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode" />
               </PATH_ELEMENT>
             </PATH>
             <PATH>
@@ -292,28 +275,6 @@
               <PATH_ELEMENT>
                 <option name="myItemId" value="Tasks" />
                 <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode" />
-              </PATH_ELEMENT>
-            </PATH>
-            <PATH>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ExternalProjectsStructure$RootNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="ProcessManager" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ProjectNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="ProcessManager" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.ModuleNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="Tasks" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode" />
-              </PATH_ELEMENT>
-              <PATH_ELEMENT>
-                <option name="myItemId" value="application" />
-                <option name="myItemType" value="com.intellij.openapi.externalSystem.view.TasksNode$1" />
               </PATH_ELEMENT>
             </PATH>
           </tree_state>
@@ -326,110 +287,116 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
+      <file leaf-file-name="SettingsActivity.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/editor/android/SettingsActivity.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="92" column="74" selection-start-line="92" selection-start-column="74" selection-end-line="92" selection-end-column="74" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProcessSyncAdapter.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessSyncAdapter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="19" column="110" selection-start-line="19" selection-start-column="96" selection-end-line="19" selection-end-column="110" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProcessInstanceSyncAdapter.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessInstanceSyncAdapter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="139" column="46" selection-start-line="139" selection-start-column="46" selection-end-line="139" selection-end-column="46" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProcessModelSyncAdapter.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessModelSyncAdapter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="127" column="0" selection-start-line="122" selection-start-column="0" selection-end-line="127" selection-end-column="0" />
+              <folding>
+                <element signature="e#2016#2017#0" expanded="true" />
+                <element signature="e#2055#2056#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="LogUtil.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/util/LogUtil.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="28" column="14" selection-start-line="28" selection-start-column="14" selection-end-line="28" selection-end-column="14" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ProcessModelMap.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ProcessEngine/src/main/nl/adaptivity/process/engine/ProcessModelMap.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="158" column="19" selection-start-line="158" selection-start-column="19" selection-end-line="158" selection-end-column="19" />
+              <folding>
+                <element signature="e#1501#1502#0" expanded="true" />
+                <element signature="e#1542#1543#0" expanded="true" />
+                <element signature="e#1598#1599#0" expanded="true" />
+                <element signature="e#1624#1625#0" expanded="true" />
+                <element signature="e#3887#3888#0" expanded="true" />
+                <element signature="e#3952#3953#0" expanded="true" />
+                <element signature="e#4022#4023#0" expanded="true" />
+                <element signature="e#4079#4080#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ServletProcessEngine.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ProcessEngine/src/tomcat/nl/adaptivity/process/engine/servlet/ServletProcessEngine.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="93" column="40" selection-start-line="93" selection-start-column="27" selection-end-line="93" selection-end-column="40" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ProcessEngine/build.gradle">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="56" column="15" selection-start-line="56" selection-start-column="15" selection-end-line="56" selection-end-column="15" />
+              <caret line="22" column="22" selection-start-line="22" selection-start-column="22" selection-end-line="22" selection-end-column="22" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/build.gradle">
+      <file leaf-file-name="themes.xml" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/values/themes.xml">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="settings.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/settings.gradle">
+      <file leaf-file-name="web.xml" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/PE-dataservices/web/WEB-INF/web.xml">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="16" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/PE-server/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="19" column="42" selection-start-line="19" selection-start-column="42" selection-end-line="19" selection-end-column="42" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Annotations.java" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/JavaCommonApi/src/net/devrieze/util/Annotations.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.21818182">
-              <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DarwinGenerators/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="6" column="19" selection-start-line="6" selection-start-column="19" selection-end-line="6" selection-end-column="19" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DarwinClients/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="24" column="89" selection-start-line="24" selection-start-column="56" selection-end-line="24" selection-end-column="89" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DarwinServices/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="build.gradle" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/build.gradle">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="35" column="20" selection-start-line="35" selection-start-column="20" selection-end-line="35" selection-end-column="20" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="InternalEndpoint.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/src/api/nl/adaptivity/process/userMessageHandler/server/InternalEndpoint.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="29" column="17" selection-start-line="29" selection-start-column="17" selection-end-line="29" selection-end-column="17" />
-              <folding>
-                <element signature="imports" expanded="false" />
-                <element signature="e#1408#1409#0" expanded="false" />
-                <element signature="e#1440#1441#0" expanded="false" />
-                <element signature="e#1661#1662#0" expanded="false" />
-                <element signature="e#1690#1691#0" expanded="false" />
-                <element signature="e#1744#1745#0" expanded="false" />
-                <element signature="e#1769#1770#0" expanded="false" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -439,14 +406,15 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="AnnotationType" />
         <option value="Html5" />
+        <option value="layoutResourceFile" />
+        <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/PEUserMessageHandler" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/ProcessEngine" />
   </component>
   <component name="GradleLocalSettings">
     <option name="availableProjects">
@@ -708,9 +676,53 @@
                 <option name="name" value="compileApiJava" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
+                <option name="description" value="Compiles Java source 'imageSource:java'." />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="compileImageSourceJava" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate arrow.png from arrow.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="generateArrow" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate diagramBackground.png from diagramBackground.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="generateDiagramBackground" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate endNode.png from endNode.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="generateEndNode" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="generateImages" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate /home/pdvrieze/IdeaProjects/ProcessManager/PEUserMessageHandler/res/main/nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png from /home/pdvrieze/IdeaProjects/ProcessManager/PEUserMessageHandler/images/blackSplitPanel.svg.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="generateSplitPanel" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate startNode.png from startNode.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="generateStartNode" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Assembles classes 'imageSource'." />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="imageSourceClasses" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
                 <option name="description" value="Processes JVM resources 'api:resources'." />
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
                 <option name="name" value="processApiResources" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Processes JVM resources 'imageSource:resources'." />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="processImageSourceResources" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
                 <option name="description" value="Displays the Android dependencies of the project." />
@@ -1045,6 +1057,11 @@
                 <option name="name" value="preReleaseUnitTestBuild" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
+                <option name="description" value="Prepare android:darwinlib:1.0.0" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
+                <option name="name" value="prepareAndroidDarwinlib100Library" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
                 <option name="description" value="Prepare com.android.support:appcompat-v7:22.2.1" />
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
                 <option name="name" value="prepareComAndroidSupportAppcompatV72221Library" />
@@ -1065,11 +1082,6 @@
               <ExternalTaskPojo>
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
                 <option name="name" value="prepareDebugUnitTestDependencies" />
-              </ExternalTaskPojo>
-              <ExternalTaskPojo>
-                <option name="description" value="Prepare ProcessManager:darwinlib:unspecified" />
-                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
-                <option name="name" value="prepareProcessManagerDarwinlibUnspecifiedLibrary" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$" />
@@ -2694,6 +2706,11 @@
                 <option name="name" value="compileApiJava" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
+                <option name="description" value="Compiles Java source 'imageSource:java'." />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="compileImageSourceJava" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
                 <option name="description" value="Compiles Java source 'main:java'." />
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
                 <option name="name" value="compileJava" />
@@ -2719,9 +2736,43 @@
                 <option name="name" value="dependencyInsight" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
+                <option name="description" value="Generate arrow.png from arrow.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="generateArrow" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate diagramBackground.png from diagramBackground.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="generateDiagramBackground" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate endNode.png from endNode.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="generateEndNode" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="generateImages" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate /home/pdvrieze/IdeaProjects/ProcessManager/PEUserMessageHandler/res/main/nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png from /home/pdvrieze/IdeaProjects/ProcessManager/PEUserMessageHandler/images/blackSplitPanel.svg.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="generateSplitPanel" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Generate startNode.png from startNode.svg" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="generateStartNode" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
                 <option name="description" value="Displays a help message." />
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
                 <option name="name" value="help" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Assembles classes 'imageSource'." />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="imageSourceClasses" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
                 <option name="description" value="Assembles a jar archive containing the main classes." />
@@ -2742,6 +2793,11 @@
                 <option name="description" value="Processes JVM resources 'api:resources'." />
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
                 <option name="name" value="processApiResources" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
+                <option name="description" value="Processes JVM resources 'imageSource:resources'." />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+                <option name="name" value="processImageSourceResources" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
                 <option name="description" value="Processes JVM resources 'main:resources'." />
@@ -3182,6 +3238,11 @@
                 <option name="name" value="preReleaseUnitTestBuild" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
+                <option name="description" value="Prepare android:darwinlib:1.0.0" />
+                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PMEditor" />
+                <option name="name" value="prepareAndroidDarwinlib100Library" />
+              </ExternalTaskPojo>
+              <ExternalTaskPojo>
                 <option name="description" value="Prepare com.android.support:appcompat-v7:22.2.1" />
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PMEditor" />
                 <option name="name" value="prepareComAndroidSupportAppcompatV72221Library" />
@@ -3202,11 +3263,6 @@
               <ExternalTaskPojo>
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PMEditor" />
                 <option name="name" value="prepareDebugUnitTestDependencies" />
-              </ExternalTaskPojo>
-              <ExternalTaskPojo>
-                <option name="description" value="Prepare ProcessManager:darwinlib:unspecified" />
-                <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PMEditor" />
-                <option name="name" value="prepareProcessManagerDarwinlibUnspecifiedLibrary" />
               </ExternalTaskPojo>
               <ExternalTaskPojo>
                 <option name="linkedExternalProjectPath" value="$PROJECT_DIR$/PMEditor" />
@@ -4143,7 +4199,7 @@
     </option>
     <option name="modificationStamps">
       <map>
-        <entry key="$PROJECT_DIR$" value="25862481231935" />
+        <entry key="$PROJECT_DIR$" value="25899600548524" />
       </map>
     </option>
     <option name="projectBuildClasspath">
@@ -5624,9 +5680,9 @@
                             <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.android.tools.external.lombok/lombok-ast/0.2.3/528b6f8bde3157f17530aa366631f2aad2a6cf9/lombok-ast-0.2.3.jar" />
                             <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.4/5310da9f90e843883309e9e0bf5950faa79882a0/commons-codec-1.4-sources.jar" />
                             <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.4/4216af16d38465bbab0f3dff8efa14204f7a399a/commons-codec-1.4.jar" />
-                            <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/asm/asm-tree/3.3.1/c9723d887e26c3049944e46312bb39e7ab1a2ed2/asm-tree-3.3.1.jar" />
-                            <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.tomcat/servlet-api/6.0.44/e329722e738ea0380cdcad5c818d0aaaf0fb5f80/servlet-api-6.0.44.jar" />
                             <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/asm/asm/3.3.1/1d5f20b4ea675e6fab6ab79f1cd60ec268ddc015/asm-3.3.1.jar" />
+                            <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.tomcat/servlet-api/6.0.44/e329722e738ea0380cdcad5c818d0aaaf0fb5f80/servlet-api-6.0.44.jar" />
+                            <option value="$USER_HOME$/.gradle/caches/modules-2/files-2.1/asm/asm-tree/3.3.1/c9723d887e26c3049944e46312bb39e7ab1a2ed2/asm-tree-3.3.1.jar" />
                           </list>
                         </option>
                         <option name="path" value="$PROJECT_DIR$/ProcessEngine" />
@@ -6042,57 +6098,57 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/ProcessEngine/src/tomcat/nl/adaptivity/process/userMessageHandler/server/PEContextListener.java" />
-        <option value="$PROJECT_DIR$/ProcessEngine/src/tomcat/nl/adaptivity/process/userMessageHandler/server/ServletProcessEngine.java" />
-        <option value="$PROJECT_DIR$/ProcessEngine/src/web/nl/adaptivity/process/userMessageHandler/servlet/PEContextListener.java" />
-        <option value="$PROJECT_DIR$/DarwinGenerators/src/nl/adaptivity/messaging/MessagingSoapClientGenerator.java" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/editor/android/PMParser.java" />
-        <option value="$PROJECT_DIR$/PMEditor/res/menu/pm_detail_menu.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/res/menu/diagram_menu.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/res/menu/tasklist_menu.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/editor/android/NodeEditDialogFragment.java" />
-        <option value="$PROJECT_DIR$/PMEditor/res/menu/pmlist_menu.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/bin/AndroidManifest.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/models/ProcessModelProvider.java" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/android/ProcessModelUtil.java" />
-        <option value="$PROJECT_DIR$/PMEditor/res/layout/taskitem_label.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/res/layout/taskitem_labeled.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/res/layout/modellist_item.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/res/layout/tasklist_item.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/res/layout/fragment_task_detail.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/AndroidManifest.xml" />
-        <option value="$PROJECT_DIR$/darwinlib/AndroidManifest.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/sync/DelegatingRemoteXmlSyncAdapter.java" />
-        <option value="$PROJECT_DIR$/PEUserMessageHandler/src/main/nl/adaptivity/process/userMessageHandler/client/processModel/JoinNode.java" />
-        <option value="$PROJECT_DIR$/PMEditor/res/layout/taskitem_detail_text.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/tasks/items/TextItem.java" />
-        <option value="$PROJECT_DIR$/JavaCommonApi/src/net/devrieze/util/Annotations.java" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/diagram/android/DrawableDrawable.java" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/android/graphics/BackgroundDrawable.java" />
-        <option value="$PROJECT_DIR$/DarwinCommon/src/net/devrieze/util/db/DBConnection.java" />
-        <option value="$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java" />
-        <option value="$PROJECT_DIR$/PMEditor/res/values/themes.xml" />
-        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/editor/android/PMEditor.java" />
         <option value="$PROJECT_DIR$/java-common/src/net/devrieze/parser/languages/BinaryOperatorTokens.java" />
         <option value="$PROJECT_DIR$/java-common/src/meta/lang/compiletime.java" />
         <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/tasks/data/TaskSyncAdapter.java" />
-        <option value="$PROJECT_DIR$/darwinlib/build.gradle" />
-        <option value="$PROJECT_DIR$/PMEditor/build.gradle" />
-        <option value="$PROJECT_DIR$/PE-common/build.gradle" />
         <option value="$PROJECT_DIR$/darwinrealm/build.gradle" />
-        <option value="$PROJECT_DIR$/PE-dataservices/build.gradle" />
         <option value="$PROJECT_DIR$/ProcessEngine/WebContent/WEB-INF/web.xml" />
         <option value="$PROJECT_DIR$/PE-server/src/main/webapp/index.html" />
-        <option value="$PROJECT_DIR$/DarwinServices/build.gradle" />
-        <option value="$PROJECT_DIR$/DarwinGenerators/build.gradle" />
         <option value="$PROJECT_DIR$/PE-server/config/context.xml" />
         <option value="$PROJECT_DIR$/PE-server/config/web.xml" />
         <option value="$PROJECT_DIR$/build.gradle" />
-        <option value="$PROJECT_DIR$/DarwinClients/build.gradle" />
         <option value="$PROJECT_DIR$/settings.gradle" />
-        <option value="$PROJECT_DIR$/PE-server/build.gradle" />
-        <option value="$PROJECT_DIR$/ProcessEngine/build.gradle" />
+        <option value="$USER_HOME$/workspace/PE-diagram/PE-diagram.iml" />
+        <option value="$USER_HOME$/workspace/PMEditor/src/nl/adaptivity/process/editor/android/MainActivity.java" />
+        <option value="$PROJECT_DIR$/DarwinClients/build.gradle" />
+        <option value="$PROJECT_DIR$/DarwinGenerators/build.gradle" />
+        <option value="$PROJECT_DIR$/DarwinJavaApi/src/nl/adaptivity/messaging/MessagingRegistry.java" />
+        <option value="$PROJECT_DIR$/darwinlib/build.gradle" />
+        <option value="$PROJECT_DIR$/DarwinRealm/build.gradle" />
+        <option value="$PROJECT_DIR$/DarwinJavaApi/build.gradle" />
+        <option value="$PROJECT_DIR$/DarwinCommon/build.gradle" />
+        <option value="$PROJECT_DIR$/DarwinServices/build.gradle" />
+        <option value="$PROJECT_DIR$/java-common/build.gradle" />
+        <option value="$PROJECT_DIR$/JavaCommonApi/build.gradle" />
+        <option value="$PROJECT_DIR$/PE-common/build.gradle" />
+        <option value="$PROJECT_DIR$/PE-dataservices/build.gradle" />
+        <option value="$PROJECT_DIR$/PE-diagram/build.gradle" />
         <option value="$PROJECT_DIR$/PEUserMessageHandler/build.gradle" />
+        <option value="$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/editor/android/SettingsActivity.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/resources/res/values/default_values.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/debug/resources/res/values/default_values.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/resources/res/values/strings.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/resources/res/xml/pref_data_sync.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/res/values/default_values.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/res/values/arrays.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/debug/res/values/arrays.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/build.gradle" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/res/values/attrs.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/res/xml/pref_data_sync.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/util/GetNameDialogFragment.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/res/layout/dialog_content_edit_name.xml" />
+        <option value="$PROJECT_DIR$/PE-server/build.gradle" />
+        <option value="$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/debug/res/values/strings.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/res/layout/auto_complete_preference.xml" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/preference/AutoCompletePreference.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/editor/android/SettingsActivity.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/util/LogUtil.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessModelSyncAdapter.java" />
+        <option value="$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessInstanceSyncAdapter.java" />
+        <option value="$PROJECT_DIR$/ProcessEngine/src/main/nl/adaptivity/process/engine/ProcessModelMap.java" />
+        <option value="$PROJECT_DIR$/PE-common/src/nl/adaptivity/util/activation/Sources.java" />
+        <option value="$PROJECT_DIR$/ProcessEngine/build.gradle" />
       </list>
     </option>
   </component>
@@ -6114,7 +6170,7 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="width" value="1280" />
+    <option name="width" value="1272" />
     <option name="height" value="998" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
@@ -6501,6 +6557,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -6520,148 +6577,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessEngine" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessEngine" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="web" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="servlet" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessEngine" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="tomcat" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="servlet" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessEngine" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PEUserMessageHandler" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PEUserMessageHandler" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="PEUserMessageHandler" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="api" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="server" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -6733,135 +6648,12 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinServices" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinServices" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WebContent" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WEB-INF" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinServices" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WebContent" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinServices" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="services" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinServices" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinRealm" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinGenerators" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ProcessManager" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="DarwinClients" />
+              <option name="myItemId" value="PE-common" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope">
         <subPane subId="Default">
           <PATH>
@@ -6872,19 +6664,19 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/ProcessEngine" />
     <property name="project.structure.last.edited" value="Modules" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.23783033" />
     <property name="Downloaded.Files.Path.Enabled" value="false" />
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.language" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
     <property name="FullScreen" value="false" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="recentsLimit" value="5" />
@@ -6892,23 +6684,26 @@
     <property name="OverrideImplement.overriding.sorted" value="false" />
     <property name="extract.method.default.visibility" value="private" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/ProcessEngine/src/tomcat" />
-    <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_SERIALS" value="" />
-    <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_AVD" value="students" />
+    <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_SERIALS" value="emulator-5554" />
+    <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_AVD" value="gingerbread" />
     <property name="restartRequiresConfirmation" value="true" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
+    <property name="UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager2.WIDTH" value="102" />
   </component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
+      <recent name="nl.adaptivity.android.util" />
       <recent name="nl.adaptivity.process.diagram" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/PMEditor/src/debug/res/values" />
+      <recent name="$PROJECT_DIR$/PMEditor/src/debug/resources/res/values" />
       <recent name="$PROJECT_DIR$/DarwinServices" />
       <recent name="$PROJECT_DIR$/darwinrealm" />
       <recent name="$PROJECT_DIR$/PE-server/config" />
-      <recent name="$USER_HOME$/workspace/ProcessEngine" />
-      <recent name="$USER_HOME$/workspace/PEUserMessageHandler" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/PMEditor/src/main" />
       <recent name="$PROJECT_DIR$/PEUserMessageHandler/src/main" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
@@ -6919,7 +6714,117 @@
       <recent name="nl.adaptivity.process.userMessageHandler.server" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.ProcessManager:PE-server [tomcatRun]">
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+        <PATH vcs="svn" revision="1681">$USER_HOME$/workspace/DarwinJavaApi/build.gradle</PATH>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
+  </component>
+  <component name="RunManager" selected="Android Application.PMEditor">
     <configuration default="false" name="ProcessManager [run]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -6932,42 +6837,6 @@
         <option name="taskNames">
           <list>
             <option value="run" />
-          </list>
-        </option>
-        <option name="vmOptions" />
-      </ExternalSystemSettings>
-      <method />
-    </configuration>
-    <configuration default="false" name="ProcessManager [tomcatRun]" type="GradleRunConfiguration" factoryName="Gradle" singleton="true" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" value="" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="tomcatRun" />
-          </list>
-        </option>
-        <option name="vmOptions" value="" />
-      </ExternalSystemSettings>
-      <method />
-    </configuration>
-    <configuration default="false" name="ProcessManager:ProcessEngine [classes]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
-      <ExternalSystemSettings>
-        <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$/ProcessEngine" />
-        <option name="externalSystemIdString" value="GRADLE" />
-        <option name="scriptParameters" />
-        <option name="taskDescriptions">
-          <list />
-        </option>
-        <option name="taskNames">
-          <list>
-            <option value="classes" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -7004,6 +6873,42 @@
         <option name="taskNames">
           <list>
             <option value="war" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <method />
+    </configuration>
+    <configuration default="false" name="ProcessManager:PEUserMessageHandler [processApiResources]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/PEUserMessageHandler" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="processApiResources" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <method />
+    </configuration>
+    <configuration default="false" name="ProcessManager [tomcatRun]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="tomcatRun" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -7338,23 +7243,23 @@
       <item index="0" class="java.lang.String" itemvalue="Android Application.PMEditor" />
       <item index="1" class="java.lang.String" itemvalue="Android Application.darwinlib" />
       <item index="2" class="java.lang.String" itemvalue="Gradle.ProcessManager [run]" />
-      <item index="3" class="java.lang.String" itemvalue="Gradle.ProcessManager [tomcatRun]" />
-      <item index="4" class="java.lang.String" itemvalue="Gradle.ProcessManager:ProcessEngine [classes]" />
-      <item index="5" class="java.lang.String" itemvalue="Gradle.ProcessManager:PE-server [tomcatRun]" />
-      <item index="6" class="java.lang.String" itemvalue="Gradle.ProcessManager:ProcessEngine [war]" />
+      <item index="3" class="java.lang.String" itemvalue="Gradle.ProcessManager:PE-server [tomcatRun]" />
+      <item index="4" class="java.lang.String" itemvalue="Gradle.ProcessManager:ProcessEngine [war]" />
+      <item index="5" class="java.lang.String" itemvalue="Gradle.ProcessManager:PEUserMessageHandler [processApiResources]" />
+      <item index="6" class="java.lang.String" itemvalue="Gradle.ProcessManager [tomcatRun]" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Gradle.ProcessManager:ProcessEngine [war]" />
-        <item index="1" class="java.lang.String" itemvalue="Gradle.ProcessManager [run]" />
-        <item index="2" class="java.lang.String" itemvalue="Gradle.ProcessManager:PE-server [tomcatRun]" />
-        <item index="3" class="java.lang.String" itemvalue="Gradle.ProcessManager:ProcessEngine [classes]" />
-        <item index="4" class="java.lang.String" itemvalue="Gradle.ProcessManager [tomcatRun]" />
+        <item index="0" class="java.lang.String" itemvalue="Gradle.ProcessManager [tomcatRun]" />
+        <item index="1" class="java.lang.String" itemvalue="Gradle.ProcessManager:PE-server [tomcatRun]" />
+        <item index="2" class="java.lang.String" itemvalue="Gradle.ProcessManager:PEUserMessageHandler [processApiResources]" />
+        <item index="3" class="java.lang.String" itemvalue="Gradle.ProcessManager:ProcessEngine [war]" />
+        <item index="4" class="java.lang.String" itemvalue="Gradle.ProcessManager [run]" />
       </list>
     </recent_temporary>
   </component>
   <component name="SbtLocalSettings">
-    <option name="lastUpdateTimestamp" value="1438780776991" />
+    <option name="lastUpdateTimestamp" value="1439388638751" />
     <option name="externalProjectsViewState">
       <projects_view />
     </option>
@@ -7407,8 +7312,52 @@
           <option name="myCopyRoot" value="$PROJECT_DIR$/PE-diagram" />
         </SvnCopyRootSimple>
         <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$/PE-server" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/PE-server" />
+          <option name="myVcsRoot" value="$PROJECT_DIR$/PMEditor" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/PMEditor" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/darwinlib" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/darwinlib" />
+        </SvnCopyRootSimple>
+      </list>
+    </option>
+    <option name="myMoreRealMappingRoots">
+      <list>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/DarwinClients" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinClients" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/DarwinCommon" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinCommon" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/DarwinGenerators" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinGenerators" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/DarwinJavaApi" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinJavaApi" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/DarwinRealm" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinRealm" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/DarwinServices" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinServices" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/JavaCommonApi" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/JavaCommonApi" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/PE-dataservices" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/PE-dataservices" />
+        </SvnCopyRootSimple>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="$PROJECT_DIR$/PE-diagram" />
+          <option name="myCopyRoot" value="$PROJECT_DIR$/PE-diagram" />
         </SvnCopyRootSimple>
         <SvnCopyRootSimple>
           <option name="myVcsRoot" value="$PROJECT_DIR$/PMEditor" />
@@ -7418,105 +7367,12 @@
           <option name="myVcsRoot" value="$PROJECT_DIR$/darwinlib" />
           <option name="myCopyRoot" value="$PROJECT_DIR$/darwinlib" />
         </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/DarwinClients" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/DarwinClients" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/DarwinCommon" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/DarwinCommon" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/DarwinJavaApi" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/DarwinJavaApi" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/PE-diagram" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/PE-diagram" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/PMEditor" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/PMEditor" />
-        </SvnCopyRootSimple>
-      </list>
-    </option>
-    <option name="myMoreRealMappingRoots">
-      <list>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinClients" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinCommon" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinGenerators" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinJavaApi" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinRealm" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/DarwinServices" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/JavaCommonApi" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/PE-dataservices" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/PE-diagram" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/PE-server" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/PMEditor" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$PROJECT_DIR$" />
-          <option name="myCopyRoot" value="$PROJECT_DIR$/darwinlib" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/DarwinClients" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/DarwinClients" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/DarwinCommon" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/DarwinCommon" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/DarwinJavaApi" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/DarwinJavaApi" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/PE-diagram" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/PE-diagram" />
-        </SvnCopyRootSimple>
-        <SvnCopyRootSimple>
-          <option name="myVcsRoot" value="$USER_HOME$/workspace/PMEditor" />
-          <option name="myCopyRoot" value="$USER_HOME$/workspace/PMEditor" />
-        </SvnCopyRootSimple>
       </list>
     </option>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="1c1c99b8-5a33-407f-a9db-4b5119404b38" name="Default" comment="" />
-      <changelist id="a64b399b-a031-49ef-845d-341fced208c3" name="workspace" comment="" />
       <created>1431857996003</created>
       <option name="number" value="Default" />
       <updated>1431857996003</updated>
@@ -7533,7 +7389,10 @@
       <workItem from="1438679500739" duration="13262000" />
       <workItem from="1438697731034" duration="1926000" />
       <workItem from="1438699921710" duration="10474000" />
-      <workItem from="1438780689906" duration="1241000" />
+      <workItem from="1438780689906" duration="10544000" />
+      <workItem from="1439198051298" duration="11124000" />
+      <workItem from="1439306820679" duration="2441000" />
+      <workItem from="1439369023713" duration="9358000" />
     </task>
     <task id="LOCAL-00001" summary="Import into IntelliJ">
       <created>1431866589036</created>
@@ -7607,45 +7466,141 @@
       <option name="project" value="LOCAL" />
       <updated>1438781856107</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Tidy up things for android lint">
+      <created>1438782534494</created>
+      <option name="number" value="00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1438782534494</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Use autocomplete.">
+      <created>1438782734820</created>
+      <option name="number" value="00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1438782734820</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Work on making the gradle ran server run with the emulator">
+      <created>1439308572601</created>
+      <option name="number" value="00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1439308572601</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Work on making the gradle ran server run with the emulator">
+      <created>1439308697544</created>
+      <option name="number" value="00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1439308697544</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Work on making the gradle ran server run with the emulator">
+      <created>1439370728684</created>
+      <option name="number" value="00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1439370728684</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Work on making the gradle ran server run with the emulator">
+      <created>1439370740839</created>
+      <option name="number" value="00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1439370740839</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Work on making the gradle ran server run with the emulator">
+      <created>1439370749290</created>
+      <option name="number" value="00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1439370749290</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Work on making the gradle ran server run with the emulator">
+      <created>1439370784024</created>
+      <option name="number" value="00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1439370784024</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Use autocomplete.">
+      <created>1439371057899</created>
+      <option name="number" value="00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1439371057899</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Fix double EditText in the autocomplete preference">
+      <created>1439386021728</created>
+      <option name="number" value="00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1439386021728</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Fix the default URL">
+      <created>1439386212014</created>
+      <option name="number" value="00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1439386212014</updated>
+    </task>
+    <task id="LOCAL-00024" summary="Set the inputtype for the sync source to be uri">
+      <created>1439386250665</created>
+      <option name="number" value="00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1439386250665</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Set the URI for the token cookie to be relative to the root of the target uri, not the authentication uri (which can live on a separate server).">
+      <created>1439386360783</created>
+      <option name="number" value="00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1439386360783</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Log update errors better.">
+      <created>1439387297718</created>
+      <option name="number" value="00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1439387297718</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Add a method to convert a source to a string">
+      <created>1439387986060</created>
+      <option name="number" value="00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1439387986060</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Rollback inadvertent wrong version">
+      <created>1439389153474</created>
+      <option name="number" value="00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1439389153474</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="104358000" />
+    <option name="totallyTimeSpent" value="136584000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1280" height="998" extended-state="4" />
-    <editor active="true" />
+    <frame x="0" y="0" width="1272" height="998" extended-state="4" />
+    <editor active="false" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26622662" sideWeight="0.4201278" order="14" side_tool="false" content_ui="tabs" />
-      <window_info id="SBT" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26611957" sideWeight="0.4201278" order="14" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2714055" sideWeight="0.5054432" order="4" side_tool="true" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Java Enterprise" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26622662" sideWeight="0.5798722" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32930514" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3235639" sideWeight="0.46072507" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998326" sideWeight="0.49697885" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32663316" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3235639" sideWeight="0.46072507" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24384525" sideWeight="0.44089457" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32942554" sideWeight="0.49697885" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32590857" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.12884927" sideWeight="0.49455675" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16721044" sideWeight="0.49455675" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Memory Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="13" side_tool="true" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22285251" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22256097" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22185971" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18026102" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39976552" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39933994" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="SBT" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2914573" sideWeight="0.49697885" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24422443" sideWeight="0.44089457" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3283082" sideWeight="0.49676898" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -7675,19 +7630,86 @@
     <MESSAGE value="Hopefully working build scripts" />
     <MESSAGE value="Small cleanup" />
     <MESSAGE value="Cleanup" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cleanup" />
+    <MESSAGE value="Tidy up things for android lint" />
+    <MESSAGE value="Work on making the gradle ran server run with the emulator" />
+    <MESSAGE value="Use autocomplete." />
+    <MESSAGE value="Fix double EditText in the autocomplete preference" />
+    <MESSAGE value="Fix the default URL" />
+    <MESSAGE value="Set the inputtype for the sync source to be uri" />
+    <MESSAGE value="Set the URI for the token cookie to be relative to the root of the target uri, not the authentication uri (which can live on a separate server)." />
+    <MESSAGE value="Log update errors better." />
+    <MESSAGE value="Add a method to convert a source to a string" />
+    <MESSAGE value="Rollback inadvertent wrong version" />
+    <option name="LAST_COMMIT_MESSAGE" value="Rollback inadvertent wrong version" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/PE-server/build.gradle</url>
-          <line>37</line>
+          <line>42</line>
           <properties />
           <option name="timeStamp" value="3" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>144</line>
+          <properties />
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>156</line>
+          <properties />
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>153</line>
+          <properties />
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>205</line>
+          <properties />
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>208</line>
+          <properties />
+          <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>211</line>
+          <properties />
+          <option name="timeStamp" value="11" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>168</line>
+          <properties />
+          <option name="timeStamp" value="12" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java</url>
+          <line>180</line>
+          <properties />
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/preference/AutoCompletePreference.java</url>
+          <line>128</line>
+          <properties />
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="4" />
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <option name="time" value="15" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -7696,245 +7718,70 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/darwinlib/AndroidManifest.xml">
+    <entry file="file://$PROJECT_DIR$/JavaCommonApi/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.15151516">
-          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+        <state vertical-scroll-proportion="-4.6153846">
+          <caret line="8" column="54" selection-start-line="8" selection-start-column="54" selection-end-line="8" selection-end-column="54" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/android/util/MasterDetailOuterFragment.java">
+    <entry file="file://$PROJECT_DIR$/DarwinServices/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="14" column="22" selection-start-line="14" selection-start-column="22" selection-end-line="14" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.1875">
+          <caret line="10" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/tasks/android/TaskListOuterFragment.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="26" column="52" selection-start-line="26" selection-start-column="52" selection-end-line="26" selection-end-column="52" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/res/layout/taskitem_detail_text.xml">
-      <provider editor-type-id="android-designer">
-        <state />
-      </provider>
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.53571427">
-          <caret line="1" column="21" selection-start-line="1" selection-start-column="21" selection-end-line="1" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/tasks/items/TextItem.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="41" column="0" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/diagram/android/DrawableDrawable.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="27" column="26" selection-start-line="27" selection-start-column="26" selection-end-line="27" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/android/graphics/BackgroundDrawable.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="34" selection-start-line="28" selection-start-column="34" selection-end-line="28" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/src/main/nl/adaptivity/darwin/gwt/client/Darwin.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="106" column="39" selection-start-line="106" selection-start-column="39" selection-end-line="106" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java-common/src/net/devrieze/util/db/DBHandleMap.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="186" column="11" selection-start-line="186" selection-start-column="11" selection-end-line="186" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinCommon/src/net/devrieze/util/db/DBHelper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="96" column="14" selection-start-line="96" selection-start-column="14" selection-end-line="96" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/models/ProcessModelSyncAdapter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="109" column="44" selection-start-line="109" selection-start-column="44" selection-end-line="109" selection-end-column="44" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/sync/RemoteXmlSyncAdapterDelegate.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="42" column="23" selection-start-line="42" selection-start-column="23" selection-end-line="42" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="26" column="3" selection-start-line="26" selection-start-column="3" selection-end-line="26" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/android/util/MultipartEntity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="37" selection-start-line="28" selection-start-column="37" selection-end-line="28" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/res/values/themes.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/src/main/nl/adaptivity/darwin/gwt/client/PresentationPanel.ui.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="6" column="18" selection-start-line="6" selection-start-column="18" selection-end-line="6" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/tasks/data/TaskSyncAdapter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="161" column="0" selection-start-line="161" selection-start-column="0" selection-end-line="161" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java-common/src/meta/lang/compiletime.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.64469916">
-          <caret line="15" column="2" selection-start-line="15" selection-start-column="2" selection-end-line="15" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java-common/src/net/devrieze/parser/languages/BinaryOperatorTokens.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="2" selection-start-line="28" selection-start-column="2" selection-end-line="28" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/src/nl/adaptivity/process/editor/android/PMEditor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="63" column="47" selection-start-line="63" selection-start-column="47" selection-end-line="63" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PMEditor/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-15.0">
-          <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java-common/build.properties">
+    <entry file="file://$PROJECT_DIR$/java-common/build.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/darwinlib/build.gradle">
+    <entry file="file://$PROJECT_DIR$/ProcessEngine/build.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.39087948">
-          <caret line="16" column="5" selection-start-line="16" selection-start-column="5" selection-end-line="16" selection-end-column="5" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-diagram/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="109" selection-start-line="7" selection-start-column="109" selection-end-line="7" selection-end-column="109" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-diagram/build.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-common/PE-common.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/PE-common/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-11.538462">
-          <caret line="20" column="43" selection-start-line="20" selection-start-column="43" selection-end-line="20" selection-end-column="59" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinCommon/src/net/devrieze/util/db/DBConnection.java">
-      <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="562" column="0" selection-start-line="562" selection-start-column="0" selection-end-line="562" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PE-dataservices/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3664495">
-          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/java-common/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.384615">
-          <caret line="18" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PE-common/src/nl/adaptivity/rest/annotations/RestMethod.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="10" column="18" selection-start-line="10" selection-start-column="18" selection-end-line="10" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinServices/WebContent/WEB-INF/web.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5">
-          <caret line="22" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+          <caret line="10" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinServices/src/uk/ac/bournemouth/darwin/services/ServicesEndpoint.java">
+    <entry file="file://$PROJECT_DIR$/DarwinRealm/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.18181819">
-          <caret line="18" column="11" selection-start-line="18" selection-start-column="11" selection-end-line="18" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/war/WEB-INF/web.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.79545456">
-          <caret line="35" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="35" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ProcessEngine/WebContent/WEB-INF/web.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.29545453">
-          <caret line="13" column="17" selection-start-line="13" selection-start-column="17" selection-end-line="13" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PE-server/src/main/webapp/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.16509435">
-          <caret line="7" column="117" selection-start-line="7" selection-start-column="117" selection-end-line="7" selection-end-column="117" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ProcessEngine/WebContent/META-INF/context.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="9" selection-end-column="33" />
+        <state vertical-scroll-proportion="0.16343826">
+          <caret line="9" column="0" selection-start-line="9" selection-start-column="0" selection-end-line="9" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -7942,67 +7789,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinRealm/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PE-server/config/context.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.79931974">
-          <caret line="47" column="50" selection-start-line="47" selection-start-column="50" selection-end-line="47" selection-end-column="50" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ProcessEngine/src/web/nl/adaptivity/process/engine/servlet/PEContextListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="27" selection-start-line="0" selection-start-column="27" selection-end-line="0" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PE-server/config/web.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="802" column="61" selection-start-line="802" selection-start-column="61" selection-end-line="802" selection-end-column="61" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinGenerators/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="6" column="19" selection-start-line="6" selection-start-column="19" selection-end-line="6" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.tomcat/servlet-api/6.0.44/e329722e738ea0380cdcad5c818d0aaaf0fb5f80/servlet-api-6.0.44.jar!/javax/servlet/http/HttpServlet.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.14195584">
-          <caret line="22" column="22" selection-start-line="22" selection-start-column="22" selection-end-line="22" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PE-common/src/nl/adaptivity/process/messaging/EndpointServlet.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.0">
-          <caret line="27" column="40" selection-start-line="27" selection-start-column="40" selection-end-line="27" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinServices/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -8015,42 +7801,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/settings.gradle">
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/AndroidManifest.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="16" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DarwinClients/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="89" selection-start-line="24" selection-start-column="56" selection-end-line="24" selection-end-column="89" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/src/api/nl/adaptivity/process/userMessageHandler/server/InternalEndpoint.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="17" selection-start-line="29" selection-start-column="17" selection-end-line="29" selection-end-column="17" />
-          <folding>
-            <element signature="imports" expanded="false" />
-            <element signature="e#1408#1409#0" expanded="false" />
-            <element signature="e#1440#1441#0" expanded="false" />
-            <element signature="e#1661#1662#0" expanded="false" />
-            <element signature="e#1690#1691#0" expanded="false" />
-            <element signature="e#1744#1745#0" expanded="false" />
-            <element signature="e#1769#1770#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ProcessEngine/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="56" column="15" selection-start-line="56" selection-start-column="15" selection-end-line="56" selection-end-column="15" />
+        <state vertical-scroll-proportion="0.14527845">
+          <caret line="8" column="53" selection-start-line="8" selection-start-column="43" selection-end-line="8" selection-end-column="53" />
           <folding />
         </state>
       </provider>
@@ -8058,7 +7812,333 @@
     <entry file="file://$PROJECT_DIR$/PEUserMessageHandler/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="35" column="20" selection-start-line="35" selection-start-column="20" selection-end-line="35" selection-end-column="20" />
+          <caret line="69" column="19" selection-start-line="69" selection-start-column="19" selection-end-line="69" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/android/ProcessModelUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="11" column="19" selection-start-line="11" selection-start-column="19" selection-end-line="11" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/values/strings.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-24.23077">
+          <caret line="42" column="87" selection-start-line="42" selection-start-column="41" selection-end-line="42" selection-end-column="87" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/raw/processmodel.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///opt/android-sdk-update-manager/sources/android-22/android/preference/EditTextPreference.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.58232445">
+          <caret line="122" column="5" selection-start-line="0" selection-start-column="0" selection-end-line="238" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/values/arrays.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="50" selection-start-line="9" selection-start-column="50" selection-end-line="9" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="33" column="25" selection-start-line="33" selection-start-column="25" selection-end-line="33" selection-end-column="25" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/values/attrs.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.19975787">
+          <caret line="11" column="52" selection-start-line="11" selection-start-column="52" selection-end-line="11" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/xml/pref_data_sync.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/editor/android/MainActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="311" column="14" selection-start-line="311" selection-start-column="14" selection-end-line="311" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///opt/android-sdk-update-manager/sources/android-22/android/app/AlertDialog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.3248175">
+          <caret line="62" column="13" selection-start-line="62" selection-start-column="13" selection-end-line="62" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/util/GetNameDialogFragment.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="37" column="30" selection-start-line="37" selection-start-column="30" selection-end-line="37" selection-end-column="30" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#2094#2095#0" expanded="false" />
+            <element signature="e#2113#2114#0" expanded="false" />
+            <element signature="e#2404#2405#0" expanded="false" />
+            <element signature="e#2432#2433#0" expanded="false" />
+            <element signature="e#3782#3783#0" expanded="false" />
+            <element signature="e#3847#3848#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/layout/dialog_content_edit_name.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="19" column="32" selection-start-line="19" selection-start-column="32" selection-end-line="19" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="android-designer">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/sync/DelegatingRemoteXmlSyncAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="75" column="0" selection-start-line="75" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
+          <folding>
+            <element signature="imports" expanded="false" />
+            <element signature="e#2651#2652#0" expanded="false" />
+            <element signature="e#2684#2685#0" expanded="false" />
+            <element signature="e#4398#4399#0" expanded="false" />
+            <element signature="e#4426#4427#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///opt/android-sdk-update-manager/sources/android-22/android/content/AbstractThreadedSyncAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="266" column="0" selection-start-line="266" selection-start-column="0" selection-end-line="266" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#14783#0" expanded="false" />
+            <element signature="imports" expanded="false" />
+            <element signature="e#4887#4908#0" expanded="false" />
+            <element signature="e#6811#6812#0" expanded="false" />
+            <element signature="e#6842#6843#0" expanded="false" />
+            <element signature="e#12643#12644#0" expanded="false" />
+            <element signature="e#12712#12713#0" expanded="false" />
+            <element signature="e#12855#12856#0" expanded="false" />
+            <element signature="e#12906#12907#0" expanded="false" />
+            <element signature="e#14745#14746#0" expanded="false" />
+            <element signature="e#14779#14780#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///opt/android-sdk-update-manager/platforms/android-22/android.jar!/org/apache/http/client/methods/HttpRequestBase.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="30" column="13" selection-start-line="30" selection-start-column="13" selection-end-line="30" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///opt/android-sdk-update-manager/sources/android-22/android/net/Uri.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1432" column="0" selection-start-line="1432" selection-start-column="0" selection-end-line="1432" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#75179#0" expanded="false" />
+            <element signature="imports" expanded="false" />
+            <element signature="e#5864#5865#0" expanded="false" />
+            <element signature="e#5904#5905#0" expanded="false" />
+            <element signature="e#6365#6366#0" expanded="false" />
+            <element signature="e#6401#6402#0" expanded="false" />
+            <element signature="e#12046#12047#0" expanded="false" />
+            <element signature="e#12090#12091#0" expanded="false" />
+            <element signature="e#12228#12229#0" expanded="false" />
+            <element signature="e#12289#12290#0" expanded="false" />
+            <element signature="e#15029#15030#0" expanded="false" />
+            <element signature="e#15076#15077#0" expanded="false" />
+            <element signature="e#16392#16393#0" expanded="false" />
+            <element signature="e#16457#16458#0" expanded="false" />
+            <element signature="e#16498#16499#0" expanded="false" />
+            <element signature="e#16530#16531#0" expanded="false" />
+            <element signature="e#18554#18555#0" expanded="false" />
+            <element signature="e#18639#18640#0" expanded="false" />
+            <element signature="e#18695#18696#0" expanded="false" />
+            <element signature="e#18747#18748#0" expanded="false" />
+            <element signature="e#18796#18797#0" expanded="false" />
+            <element signature="e#18848#18849#0" expanded="false" />
+            <element signature="e#19593#19594#0" expanded="false" />
+            <element signature="e#19655#19656#0" expanded="false" />
+            <element signature="e#19695#19696#0" expanded="false" />
+            <element signature="e#19757#19758#0" expanded="false" />
+            <element signature="e#19999#20000#0" expanded="false" />
+            <element signature="e#20056#20057#0" expanded="false" />
+            <element signature="e#20098#20099#0" expanded="false" />
+            <element signature="e#20155#20156#0" expanded="false" />
+            <element signature="e#20204#20205#0" expanded="false" />
+            <element signature="e#20266#20267#0" expanded="false" />
+            <element signature="e#21285#21286#0" expanded="false" />
+            <element signature="e#21343#21344#0" expanded="false" />
+            <element signature="e#21989#21990#0" expanded="false" />
+            <element signature="e#22047#22048#0" expanded="false" />
+            <element signature="e#22292#22293#0" expanded="false" />
+            <element signature="e#22353#22354#0" expanded="false" />
+            <element signature="e#22566#22567#0" expanded="false" />
+            <element signature="e#22627#22628#0" expanded="false" />
+            <element signature="e#22663#22664#0" expanded="false" />
+            <element signature="e#22703#22704#0" expanded="false" />
+            <element signature="e#28038#28039#0" expanded="false" />
+            <element signature="e#28070#28071#0" expanded="false" />
+            <element signature="e#28335#28336#0" expanded="false" />
+            <element signature="e#28371#28372#0" expanded="false" />
+            <element signature="e#28410#28411#0" expanded="false" />
+            <element signature="e#28455#28456#0" expanded="false" />
+            <element signature="e#28492#28493#0" expanded="false" />
+            <element signature="e#28534#28535#0" expanded="false" />
+            <element signature="e#28590#28591#0" expanded="false" />
+            <element signature="e#28637#28638#0" expanded="false" />
+            <element signature="e#28686#28687#0" expanded="false" />
+            <element signature="e#28733#28734#0" expanded="false" />
+            <element signature="e#28773#28774#0" expanded="false" />
+            <element signature="e#28808#28809#0" expanded="false" />
+            <element signature="e#28855#28856#0" expanded="false" />
+            <element signature="e#28890#28891#0" expanded="false" />
+            <element signature="e#28925#28926#0" expanded="false" />
+            <element signature="e#28960#28961#0" expanded="false" />
+            <element signature="e#29002#29003#0" expanded="false" />
+            <element signature="e#29037#29038#0" expanded="false" />
+            <element signature="e#29073#29074#0" expanded="false" />
+            <element signature="e#29108#29109#0" expanded="false" />
+            <element signature="e#29151#29152#0" expanded="false" />
+            <element signature="e#29186#29187#0" expanded="false" />
+            <element signature="e#29225#29226#0" expanded="false" />
+            <element signature="e#29277#29278#0" expanded="false" />
+            <element signature="e#29323#29324#0" expanded="false" />
+            <element signature="e#29375#29376#0" expanded="false" />
+            <element signature="e#29424#29425#0" expanded="false" />
+            <element signature="e#29478#29479#0" expanded="false" />
+            <element signature="e#29524#29525#0" expanded="false" />
+            <element signature="e#29559#29560#0" expanded="false" />
+            <element signature="e#29598#29599#0" expanded="false" />
+            <element signature="e#29633#29634#0" expanded="false" />
+            <element signature="e#29679#29680#0" expanded="false" />
+            <element signature="e#29714#29715#0" expanded="false" />
+            <element signature="e#29749#29750#0" expanded="false" />
+            <element signature="e#29784#29785#0" expanded="false" />
+            <element signature="e#29816#29817#0" expanded="false" />
+            <element signature="e#29849#29850#0" expanded="false" />
+            <element signature="e#31301#31302#0" expanded="false" />
+            <element signature="e#31341#31342#0" expanded="false" />
+            <element signature="e#33035#33036#0" expanded="false" />
+            <element signature="e#33096#33097#0" expanded="false" />
+            <element signature="e#33442#33443#0" expanded="false" />
+            <element signature="e#33503#33504#0" expanded="false" />
+            <element signature="e#36571#36572#0" expanded="false" />
+            <element signature="e#36603#36604#0" expanded="false" />
+            <element signature="e#36943#36944#0" expanded="false" />
+            <element signature="e#36978#36979#0" expanded="false" />
+            <element signature="e#37017#37018#0" expanded="false" />
+            <element signature="e#37062#37063#0" expanded="false" />
+            <element signature="e#37099#37100#0" expanded="false" />
+            <element signature="e#37136#37137#0" expanded="false" />
+            <element signature="e#37371#37372#0" expanded="false" />
+            <element signature="e#37423#37424#0" expanded="false" />
+            <element signature="e#37472#37473#0" expanded="false" />
+            <element signature="e#37524#37525#0" expanded="false" />
+            <element signature="e#38447#38448#0" expanded="false" />
+            <element signature="e#38505#38506#0" expanded="false" />
+            <element signature="e#38552#38553#0" expanded="false" />
+            <element signature="e#38610#38611#0" expanded="false" />
+            <element signature="e#38652#38653#0" expanded="false" />
+            <element signature="e#38705#38706#0" expanded="false" />
+            <element signature="e#38740#38741#0" expanded="false" />
+            <element signature="e#38793#38794#0" expanded="false" />
+            <element signature="e#38829#38830#0" expanded="false" />
+            <element signature="e#38883#38884#0" expanded="false" />
+            <element signature="e#38926#38927#0" expanded="false" />
+            <element signature="e#38980#38981#0" expanded="false" />
+            <element signature="e#39019#39020#0" expanded="false" />
+            <element signature="e#39076#39077#0" expanded="false" />
+            <element signature="e#39122#39123#0" expanded="false" />
+            <element signature="e#39179#39180#0" expanded="false" />
+            <element signature="e#39228#39229#0" expanded="false" />
+            <element signature="e#39286#39287#0" expanded="false" />
+            <element signature="e#41873#41874#0" expanded="false" />
+            <element signature="e#41944#41945#0" expanded="false" />
+            <element signature="e#42159#42160#0" expanded="false" />
+            <element signature="e#42230#42231#0" expanded="false" />
+            <element signature="e#42554#42555#0" expanded="false" />
+            <element signature="e#42623#42624#0" expanded="false" />
+            <element signature="e#42758#42759#0" expanded="false" />
+            <element signature="e#42827#42828#0" expanded="false" />
+            <element signature="e#43380#43381#0" expanded="false" />
+            <element signature="e#43443#43444#0" expanded="false" />
+            <element signature="e#43762#43763#0" expanded="false" />
+            <element signature="e#43825#43826#0" expanded="false" />
+            <element signature="e#43970#43971#0" expanded="false" />
+            <element signature="e#44054#44055#0" expanded="false" />
+            <element signature="e#44571#44572#0" expanded="false" />
+            <element signature="e#44632#44633#0" expanded="false" />
+            <element signature="e#44755#44756#0" expanded="false" />
+            <element signature="e#44816#44817#0" expanded="false" />
+            <element signature="e#45050#45051#0" expanded="false" />
+            <element signature="e#45117#45118#0" expanded="false" />
+            <element signature="e#45249#45250#0" expanded="false" />
+            <element signature="e#45316#45317#0" expanded="false" />
+            <element signature="e#47860#47861#0" expanded="false" />
+            <element signature="e#47909#47910#0" expanded="false" />
+            <element signature="e#48546#48554#0" expanded="false" />
+            <element signature="e#50082#50090#0" expanded="false" />
+            <element signature="e#55755#55756#0" expanded="false" />
+            <element signature="e#55799#55800#0" expanded="false" />
+            <element signature="e#56664#56665#0" expanded="false" />
+            <element signature="e#56702#56703#0" expanded="false" />
+            <element signature="e#63414#63415#0" expanded="false" />
+            <element signature="e#63450#63451#0" expanded="false" />
+            <element signature="e#64449#64450#0" expanded="false" />
+            <element signature="e#64506#64507#0" expanded="false" />
+            <element signature="e#64681#64682#0" expanded="false" />
+            <element signature="e#64737#64738#0" expanded="false" />
+            <element signature="e#65789#65790#0" expanded="false" />
+            <element signature="e#65840#65841#0" expanded="false" />
+            <element signature="e#65895#65896#0" expanded="false" />
+            <element signature="e#65938#65939#0" expanded="false" />
+            <element signature="e#66440#66441#0" expanded="false" />
+            <element signature="e#66487#66488#0" expanded="false" />
+            <element signature="e#70277#70278#0" expanded="false" />
+            <element signature="e#70333#70334#0" expanded="false" />
+            <element signature="e#70512#70513#0" expanded="false" />
+            <element signature="e#70568#70569#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/sync/ISimpleSyncDelegate.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9072165">
+          <caret line="165" column="9" selection-start-line="165" selection-start-column="9" selection-end-line="165" selection-end-column="9" />
           <folding />
         </state>
       </provider>
@@ -8066,15 +8146,192 @@
     <entry file="file://$PROJECT_DIR$/PE-server/build.gradle">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="19" column="42" selection-start-line="19" selection-start-column="42" selection-end-line="19" selection-end-column="42" />
+          <caret line="51" column="87" selection-start-line="51" selection-start-column="87" selection-end-line="51" selection-end-column="87" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/JavaCommonApi/src/net/devrieze/util/Annotations.java">
+    <entry file="file://$PROJECT_DIR$/PE-server/config/web.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.21818182">
-          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="806" column="65" selection-start-line="806" selection-start-column="65" selection-end-line="806" selection-end-column="65" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/sync/RemoteXmlSyncAdapterDelegate.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="80" column="20" selection-start-line="80" selection-start-column="20" selection-end-line="80" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/debug/res/values/strings.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-1.7307693">
+          <caret line="3" column="41" selection-start-line="3" selection-start-column="41" selection-end-line="3" selection-end-column="75" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/debug/res/values/arrays.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="60" selection-start-line="10" selection-start-column="60" selection-end-line="10" selection-end-column="60" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/layout/auto_complete_preference.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.75">
+          <caret line="28" column="11" selection-start-line="28" selection-start-column="11" selection-end-line="28" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="android-designer">
+        <state />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/darwinlib/src/nl/adaptivity/android/darwin/AuthenticatedWebClient.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.428571">
+          <caret line="156" column="0" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
+          <folding>
+            <element signature="e#4702#5295#0" expanded="true" />
+            <element signature="e#5294#5295#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/preference/AutoCompletePreference.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="138" column="68" selection-start-line="138" selection-start-column="68" selection-end-line="138" selection-end-column="68" />
+          <folding>
+            <element signature="e#3321#3322#0" expanded="true" />
+            <element signature="e#3350#3351#0" expanded="true" />
+            <element signature="e#3889#3890#0" expanded="true" />
+            <element signature="e#3911#3912#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/editor/android/SettingsActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="92" column="74" selection-start-line="92" selection-start-column="74" selection-end-line="92" selection-end-column="74" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/android/util/LogUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="28" column="14" selection-start-line="28" selection-start-column="14" selection-end-line="28" selection-end-column="14" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessModelSyncAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="127" column="0" selection-start-line="122" selection-start-column="0" selection-end-line="127" selection-end-column="0" />
+          <folding>
+            <element signature="e#2016#2017#0" expanded="true" />
+            <element signature="e#2055#2056#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessSyncAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="19" column="110" selection-start-line="19" selection-start-column="96" selection-end-line="19" selection-end-column="110" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/java/nl/adaptivity/process/models/ProcessInstanceSyncAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="139" column="46" selection-start-line="139" selection-start-column="46" selection-end-line="139" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-common/src/nl/adaptivity/util/activation/Sources.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.80582523">
+          <caret line="100" column="2" selection-start-line="100" selection-start-column="2" selection-end-line="100" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-common/src/nl/adaptivity/util/activation/Sources.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9029126">
+          <caret line="114" column="24" selection-start-line="114" selection-start-column="24" selection-end-line="114" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ProcessEngine/src/main/nl/adaptivity/process/engine/ProcessModelMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="158" column="19" selection-start-line="158" selection-start-column="19" selection-end-line="158" selection-end-column="19" />
+          <folding>
+            <element signature="e#1501#1502#0" expanded="true" />
+            <element signature="e#1542#1543#0" expanded="true" />
+            <element signature="e#1598#1599#0" expanded="true" />
+            <element signature="e#1624#1625#0" expanded="true" />
+            <element signature="e#3887#3888#0" expanded="true" />
+            <element signature="e#3952#3953#0" expanded="true" />
+            <element signature="e#4022#4023#0" expanded="true" />
+            <element signature="e#4079#4080#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ProcessEngine/src/tomcat/nl/adaptivity/process/engine/servlet/ServletProcessEngine.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="93" column="40" selection-start-line="93" selection-start-column="27" selection-end-line="93" selection-end-column="40" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-dataservices/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.19090909">
+          <caret line="7" column="47" selection-start-line="7" selection-start-column="47" selection-end-line="7" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ProcessEngine/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="22" selection-start-line="22" selection-start-column="22" selection-end-line="22" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PMEditor/src/main/res/values/themes.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PE-dataservices/web/WEB-INF/web.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -8134,12 +8391,11 @@
       </state>
       <state key="ModuleStructureConfigurable.UI">
         <settings>
-          <last-edited>darwinlib</last-edited>
+          <last-edited>ProcessEngine</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
                 <option value="0.23783033" />
-                <option value="0.6" />
               </list>
             </option>
           </splitter-proportions>
