@@ -1,14 +1,8 @@
 package nl.adaptivity.util.activation;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.CharArrayReader;
-import java.io.CharArrayWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
+import net.devrieze.util.Streams;
+
+import java.io.*;
 
 import javax.xml.bind.util.JAXBSource;
 import javax.xml.transform.OutputKeys;
@@ -98,4 +92,26 @@ public final class Sources {
     return new CharArrayReader(caw.toCharArray());
   }
 
+  public static String toString(final Source pSource) {
+    Reader in = null;
+    try {
+      if (pSource instanceof StreamSource) {
+        Reader result = ((StreamSource) pSource).getReader();
+        if (result!=null) { return Streams.toString(result); }
+      }
+      if (pSource instanceof SAXSource && (! (pSource instanceof JAXBSource))) {
+        final InputStream byteStream = ((SAXSource) pSource).getInputSource().getByteStream();
+        if (byteStream!=null) { return Streams.toString(new InputStreamReader(byteStream)); }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    final StringWriter sw = new StringWriter();
+    try {
+      Sources.writeToWriter(pSource, sw);
+    } catch (final TransformerException e) {
+      throw new RuntimeException(e);
+    }
+    return sw.toString();
+  }
 }
