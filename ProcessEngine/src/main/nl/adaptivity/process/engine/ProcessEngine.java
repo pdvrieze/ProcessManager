@@ -2,6 +2,7 @@ package nl.adaptivity.process.engine;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -268,7 +268,7 @@ public class ProcessEngine /* implements IProcessEngine */{
    */
   public HProcessInstance startProcess(DBTransaction pTransaction, final Principal pUser, final ProcessModelImpl pModel, final String pName, final UUID pUuid, final Node pPayload) throws SQLException {
     if (pUser == null) {
-      throw new HttpResponseException(HttpServletResponse.SC_FORBIDDEN, "Annonymous users are not allowed to start processes");
+      throw new HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
     aSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
     final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, pUuid, State.NEW, this);

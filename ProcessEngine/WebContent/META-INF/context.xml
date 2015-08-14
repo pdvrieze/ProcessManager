@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
-	<Loader delegate="true" />
+    <Loader delegate="true"/>
 
-	<Resource name="jdbc/processengine" auth="Container"
-		type="javax.sql.DataSource" maxActive="100" maxIdle="30" maxWait="10000"
-		factory="org.apache.commons.dbcp.BasicDataSourceFactory" username="processengine"
-		password="2lCmFVW0J4" driverClassName="com.mysql.jdbc.Driver"
-		url="jdbc:mysql://localhost/processengine"
-		removeAbandoned="true" />
+    <Resource name="jdbc/processengine"
+              auth="Container"
+              driverClassName="com.mysql.jdbc.Driver"
+              factory="org.apache.naming.factory.BeanFactory"
+              password="2lCmFVW0J4"
+              type="com.zaxxer.hikari.HikariDataSource"
+              jdbcUrl="jdbc:mysql://localhost/processengine"
+              username="processengine"/>
+
+    <!--<Resource name="jdbc/processengine" auth="Container"-->
+    <!--type="javax.sql.DataSource" maxActive="100" maxIdle="30" maxWait="10000"-->
+    <!--factory="org.apache.commons.dbcp.BasicDataSourceFactory" username="processengine"-->
+    <!--password="2lCmFVW0J4" driverClassName="com.mysql.jdbc.Driver"-->
+    <!--url="jdbc:mysql://localhost/processengine"-->
+    <!--removeAbandoned="true" />-->
 </Context>

@@ -1,32 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id=":ProcessEngine" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="[server, service]" external.system.module.version="1.0.0" type="JAVA_MODULE" version="4">
-  <component name="EclipseModuleManager">
-    <conelement value="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v6.0" />
-    <conelement value="org.eclipse.jst.j2ee.internal.web.container" />
-    <conelement value="org.eclipse.jst.j2ee.internal.module.container" />
-    <src_description expected_position="0">
-      <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
-      <src_folder value="file://$MODULE_DIR$/gensrc" expected_position="1" />
-    </src_description>
-  </component>
   <component name="FacetManager">
-    <facet type="java-gradle" name="Java-Gradle">
-      <configuration>
-        <option name="BUILD_FOLDER_PATH" />
-      </configuration>
-    </facet>
     <facet type="android-gradle" name="Android-Gradle">
       <configuration>
         <option name="GRADLE_PROJECT_PATH" value=":ProcessEngine" />
+      </configuration>
+    </facet>
+    <facet type="java-gradle" name="Java-Gradle">
+      <configuration>
+        <option name="BUILD_FOLDER_PATH" value="$MODULE_DIR$/build" />
       </configuration>
     </facet>
     <facet type="web" name="Web Gradle : ProcessEngine-1.0.0.war">
       <configuration>
         <webroots>
           <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
-          <root url="file://$MODULE_DIR$/build/classes/main/nl" relative="/nl" />
-          <root url="file://$MODULE_DIR$/build/classes/web/nl" relative="/nl" />
-          <root url="file://$MODULE_DIR$/build/classes/tomcatExt/nl" relative="/nl" />
         </webroots>
         <sourceRoots>
           <root url="file://$MODULE_DIR$/src/tomcatExt/java" />
@@ -42,7 +30,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
@@ -61,18 +49,13 @@
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
     </content>
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="jdk" jdkName="1.7" jdkType="JavaSDK" />
     <orderEntry type="module" module-name="java-common" exported="" />
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="PE-common" exported="" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
-    <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
-    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="annotations-api-6.0.44" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="catalina-6.0.44" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="coyote-6.0.44" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="juli-6.0.44" level="project" />
+    <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
   </component>
 </module>
