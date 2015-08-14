@@ -40,12 +40,12 @@ sourceSets {
     }
     main {
         java {
-            srcDir 'src/main/java'
+            srcDir 'src/api/java'
+            srcDirs sourceSets.api.allSource
         }
         resources {
             srcDir genResourceDir
         }
-        compileClasspath += files(api.runtimeClasspath)
     }
     imageSource {
         output.dir(genImageDir, builtBy: 'generateImages')
@@ -95,12 +95,20 @@ task tomcatRun(dependsOn: ["war"]) {
     group = 'web application'
     description = "Do everything needed to be able to run as embedded tomcat"
 }
-/*
+
 jar {
-    from sourceSets.api.output
     from sourceSets.main.output
 }
-*/
+
+task apiJar(type: Jar) {
+    from sourceSets.api.output
+    appendix 'api'
+}
+
+artifacts {
+    apiCompile apiJar
+}
+
 war {
     dependsOn generateSplitPanel
     dependsOn project.tasks['generateArrow']
