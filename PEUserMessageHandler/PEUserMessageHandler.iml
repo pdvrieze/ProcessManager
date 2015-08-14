@@ -36,6 +36,7 @@
       <configuration>
         <webroots>
           <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
+          <root url="file://$MODULE_DIR$/build/generated-images/images" relative="/images" />
           <root url="file://$MODULE_DIR$/build/gwt/out/peusermessagehandler" relative="/peusermessagehandler" />
           <root url="file://$MODULE_DIR$/build/gwt/out/WEB-INF" relative="/WEB-INF" />
           <root url="file://$MODULE_DIR$/build/gwt/out/darwinjs" relative="/darwinjs" />
