@@ -55,7 +55,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   private static final String AUTHTYPE = "DARWIN";
 
-  public static final String DBRESOURCE = "java:/comp/env/jdbc/webauth";
+  public static final String DBRESOURCE = "java:comp/env/jdbc/webauth";
 
   private static final String LOGGERNAME = "DarwinRealm";
 

@@ -8,11 +8,11 @@
     </facet>
     <facet type="java-gradle" name="Java-Gradle">
       <configuration>
-        <option name="BUILD_FOLDER_PATH" />
+        <option name="BUILD_FOLDER_PATH" value="$MODULE_DIR$/build" />
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
@@ -37,6 +37,7 @@
     <orderEntry type="library" exported="" name="juli-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="annotations-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="servlet-api-2.5-6.1.5" level="project" />
-    <orderEntry type="library" exported="" scope="RUNTIME" name="dbcp-6.0.44" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="HikariCP-2.4.0" level="project" />
+    <orderEntry type="library" exported="" scope="RUNTIME" name="slf4j-api-1.7.12" level="project" />
   </component>
 </module>
