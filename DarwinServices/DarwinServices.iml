@@ -8,7 +8,7 @@
     </facet>
     <facet type="java-gradle" name="Java-Gradle">
       <configuration>
-        <option name="BUILD_FOLDER_PATH" />
+        <option name="BUILD_FOLDER_PATH" value="$MODULE_DIR$/build" />
       </configuration>
     </facet>
     <facet type="web" name="Web Gradle : DarwinServices-1.0.0.war">
@@ -24,7 +24,7 @@
       </configuration>
     </facet>
   </component>
-  <component name="NewModuleRootManager" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
@@ -43,7 +43,6 @@
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="java-common" exported="" />
-    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
   </component>
