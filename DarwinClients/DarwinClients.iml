@@ -28,7 +28,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-2.5-6.1.5" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="java-common" exported="" />
     <orderEntry type="module" module-name="PE-common" exported="" />
