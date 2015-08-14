@@ -23,7 +23,7 @@ sourceSets {
 
 dependencies {
     compile "org.apache.tomcat:catalina:${tomcatVersion}"
-    runtime "org.apache.tomcat:dbcp:${tomcatVersion}"
+    runtime dbcpSpec
 
     compile project(':DarwinCommon')
 
