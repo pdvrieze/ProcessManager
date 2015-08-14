@@ -21,15 +21,15 @@ def genImageDir="$buildDir/generated-images"
 sourceSets {
     api {
         java {
-            srcDir 'src/api'
+            srcDir 'src/api/java'
         }
     }
     main {
         java {
-            srcDir 'src/main'
+            srcDir 'src/main/java'
         }
         resources {
-            srcDir 'res/main'
+            srcDir 'res/main/resources'
         }
         compileClasspath = compileClasspath + files(api.runtimeClasspath)
     }
