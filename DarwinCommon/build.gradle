@@ -9,11 +9,17 @@ description = 'Common utility classes common to the process engine'
 group = ['server', 'support']
 
 
+configurations {
+    providedCompile
+}
+
+
 sourceSets {
     main {
         java {
             srcDir 'src'
         }
+        compileClasspath+=configurations.providedCompile
     }
 
 }
@@ -21,5 +27,5 @@ sourceSets {
 
 dependencies {
     compile project(':DarwinJavaApi')
-    compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
+    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
