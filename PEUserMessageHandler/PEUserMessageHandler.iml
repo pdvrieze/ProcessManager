@@ -22,8 +22,8 @@
           <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
         </webroots>
         <sourceRoots>
+          <root url="file://$MODULE_DIR$/build/genResources" />
           <root url="file://$MODULE_DIR$/src/imageSource/resources" />
-          <root url="file://$MODULE_DIR$/res/main/resources" />
           <root url="file://$MODULE_DIR$/src/main/java" />
           <root url="file://$MODULE_DIR$/src/imageSource/java" />
           <root url="file://$MODULE_DIR$/src/main/resources" />
@@ -42,8 +42,8 @@
           <root url="file://$MODULE_DIR$/build/gwt/out/darwinjs" relative="/darwinjs" />
         </webroots>
         <sourceRoots>
+          <root url="file://$MODULE_DIR$/build/genResources" />
           <root url="file://$MODULE_DIR$/src/imageSource/resources" />
-          <root url="file://$MODULE_DIR$/res/main/resources" />
           <root url="file://$MODULE_DIR$/src/main/java" />
           <root url="file://$MODULE_DIR$/src/imageSource/java" />
           <root url="file://$MODULE_DIR$/src/main/resources" />
@@ -62,9 +62,9 @@
       <sourceFolder url="file://$MODULE_DIR$/src/imageSource/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/res/main/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/imageSource/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/genResources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/api/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />

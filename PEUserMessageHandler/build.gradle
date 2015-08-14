@@ -29,6 +29,7 @@ configurations {
 }
 
 def genImageDir="$buildDir/generated-images"
+def genResourceDir="$buildDir/genResources"
 
 sourceSets {
     api {
@@ -42,7 +43,7 @@ sourceSets {
             srcDir 'src/main/java'
         }
         resources {
-            srcDir 'res/main/resources'
+            srcDir genResourceDir
         }
         compileClasspath += files(api.runtimeClasspath)
     }
@@ -71,20 +72,9 @@ class PngGenerator extends Exec {
     }
 }
 
-
-task generateImages(dependsOn: 'generateSplitPanel') {
-	group="codegen"
-}
-
 task generateSplitPanel(type: PngGenerator) {
 	inputFile=file('images/blackSplitPanel.svg')
-
-    File resourceDir=null;
-    sourceSets.main.getResources().srcDirs.each {File dir ->
-        logger.warn("Resource folder: ${dir}")
-        resourceDir=dir
-    }
-	outputFile=new File(resourceDir,'nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png')
+	outputFile=new File(genResourceDir,'nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png')
 	description="Generate ${outputFile} from ${inputFile}.svg"
 	group="codegen"
 }
@@ -99,7 +89,7 @@ task generateSplitPanel(type: PngGenerator) {
 
 }
 
-//processResources.dependsOn([generateSplitPanel, generateArrow, generateDiagramBackground, generateEndNode, generateStartNode])
+processResources.dependsOn(generateSplitPanel)
 
 task tomcatRun(dependsOn: ["war"]) {
     group='web application'
