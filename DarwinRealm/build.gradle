@@ -8,6 +8,12 @@ version = '1.1.0'
 description = 'A tomcat realm to work with the darwin authentication system'
 group = 'serverclasspath'
 
+
+configurations {
+    providedCompile
+}
+
+
 sourceSets {
     main {
         java {
@@ -16,13 +22,14 @@ sourceSets {
         resources {
             srcDir 'properties'
         }
+        compileClasspath+=configurations.providedCompile
     }
 
 }
 
 
 dependencies {
-    compile "org.apache.tomcat:catalina:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:catalina:${tomcatVersion}"
     runtime dbcpSpec
 
     compile project(':DarwinCommon')
