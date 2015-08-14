@@ -7,14 +7,15 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 version = '1.0.0'
 description = 'A container for general support services for the darwin system, including messaging'
-group = [ 'server', 'service' ]
+//group = [ 'server', 'service' ]
 
+configurations {
+    providedCompile
+}
 
 sourceSets {
     main {
-        java {
-            srcDir 'src'
-        }
+        compileClasspath+=configurations.providedCompile
     }
 
 }
@@ -28,9 +29,10 @@ task tomcatRun(dependsOn: ["classes"]) {
 
 dependencies {
     compile project(':PE-common')
+    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
 /*
 tomcat {
-    contextPath='/services'
+    contextPath='/'
 }
 */
