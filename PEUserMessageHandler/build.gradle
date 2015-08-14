@@ -1,6 +1,17 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.6'
+    }
+}
+
+
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'war'
+apply plugin: 'gwt'
 
 version = '1.0.0'
 description = 'The service that handles tasks for users (and functions as web interface entry point'
@@ -11,6 +22,7 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 configurations {
     apiCompile
+    apiProvided
     main {
         extendsFrom apiCompile
     }
@@ -23,6 +35,7 @@ sourceSets {
         java {
             srcDir 'src/api/java'
         }
+        compileClasspath += configurations.apiProvided
     }
     main {
         java {
@@ -31,7 +44,7 @@ sourceSets {
         resources {
             srcDir 'res/main/resources'
         }
-        compileClasspath = compileClasspath + files(api.runtimeClasspath)
+        compileClasspath += files(api.runtimeClasspath)
     }
     imageSource {
         output.dir(genImageDir, builtBy: 'generateImages')
@@ -86,16 +99,36 @@ task generateSplitPanel(type: PngGenerator) {
 
 }
 
-processResources.dependsOn([generateSplitPanel/*, 'generateArrow'*/])
+//processResources.dependsOn([generateSplitPanel, generateArrow, generateDiagramBackground, generateEndNode, generateStartNode])
 
 task tomcatRun(dependsOn: ["war"]) {
     group='web application'
     description = "Do everything needed to be able to run as embedded tomcat"
 }
-
+/*
 jar {
     from sourceSets.api.output
     from sourceSets.main.output
+}
+*/
+war {
+    dependsOn generateSplitPanel
+    dependsOn project.tasks['generateArrow']
+    dependsOn project.tasks['generateDiagramBackground']
+    dependsOn project.tasks['generateEndNode']
+    dependsOn project.tasks['generateStartNode']
+    classpath sourceSets.api.output
+    from fileTree(genImageDir)
+//    dependsOn(project.task('apiCompile'))
+//    from tasks.apiCompile {
+//        into 'WEB-INF/classes'
+//    }
+}
+
+gwt {
+    gwtVersion='2.6.1'
+    modules 'nl.adaptivity.darwin.gwt.Darwin'
+    modules 'nl.adaptivity.process.userMessageHandler.PEUserMessageHandler'
 }
 
 /*
@@ -104,10 +137,11 @@ tomcat {
 }
 */
 dependencies {
-    apiCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+    apiProvided "org.apache.tomcat:servlet-api:${tomcatVersion}"
+//    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
     apiCompile project(':DarwinJavaApi')
     apiCompile project(':PE-common')
 
-    compile 'com.google.gwt:gwt-user:2.6.1'
+//    compile 'com.google.gwt:gwt-user:2.6.1'
     compile project(':DarwinClients')
 }
