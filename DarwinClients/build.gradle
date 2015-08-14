@@ -13,6 +13,8 @@ def genClasses = ['nl.adaptivity.process.userMessageHandler.server.InternalEndpo
 
 configurations {
     codegen
+
+    providedCompile
 }
 
 sourceSets {
@@ -21,6 +23,7 @@ sourceSets {
             srcDir 'src'
             srcDir genDir
         }
+        compileClasspath+=configurations.providedCompile
     }
 }
 
@@ -79,5 +82,5 @@ dependencies {
     compile project(':JavaCommonApi')
     compile project(':java-common')
     compile project(':PE-common')
-    compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
+    providedCompile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
 }

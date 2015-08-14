@@ -1,26 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id=":DarwinClients" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" external.system.module.group="server" external.system.module.version="1.0.0" type="JAVA_MODULE" version="4">
-  <component name="EclipseModuleManager">
-    <conelement value="org.eclipse.jst.j2ee.internal.module.container" />
-    <conelement value="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v6.0" />
-    <src_description expected_position="0">
-      <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
-      <src_folder value="file://$MODULE_DIR$/gen" expected_position="1" />
-    </src_description>
-  </component>
   <component name="FacetManager">
-    <facet type="java-gradle" name="Java-Gradle">
-      <configuration>
-        <option name="BUILD_FOLDER_PATH" />
-      </configuration>
-    </facet>
     <facet type="android-gradle" name="Android-Gradle">
       <configuration>
         <option name="GRADLE_PROJECT_PATH" value=":DarwinClients" />
       </configuration>
     </facet>
+    <facet type="java-gradle" name="Java-Gradle">
+      <configuration>
+        <option name="BUILD_FOLDER_PATH" value="$MODULE_DIR$/build" />
+      </configuration>
+    </facet>
   </component>
-  <component name="NewModuleRootManager" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7" inherit-compiler-output="false">
     <output url="file://$MODULE_DIR$/build/classes/main" />
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
@@ -34,15 +26,14 @@
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
     </content>
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="jdk" jdkName="1.7" jdkType="JavaSDK" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-2.5-6.1.5" level="project" />
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="java-common" exported="" />
     <orderEntry type="module" module-name="PE-common" exported="" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
-    <orderEntry type="library" exported="" name="servlet-api-2.5-6.1.5" level="project" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
-    <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
   </component>
 </module>
