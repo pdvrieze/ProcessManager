@@ -8,11 +8,24 @@ description = 'A project for running an embedded tomcat server that works.'
 group = ['util' ]
 
 
+configurations {
+    extraBootCp {
+        description "This configuration allows for assembling all the jars for the boot classpath of catalina"
+    }
+}
+
 dependencies {
     tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
             "org.apache.tomcat:coyote:${tomcatVersion}",
-            "org.apache.tomcat:jasper:${tomcatVersion}",
-            "org.apache.tomcat:dbcp:${tomcatVersion}"
+            "org.apache.tomcat:jasper:${tomcatVersion}"
+//    tomcat dbcpSpec
+
+    extraBootCp 'mysql:mysql-connector-java:5.1.36'
+    extraBootCp project(':DarwinJavaApi')
+    extraBootCp project(':JavaCommonApi')
+    extraBootCp project(':DarwinRealm')
+//    extraBootCp dbcpSpec
+
     tomcat 'mysql:mysql-connector-java:5.1.36'
     tomcat project(':DarwinJavaApi')
     tomcat project(':JavaCommonApi')
@@ -20,7 +33,8 @@ dependencies {
 /*    tomcat project(path: ':ProcessEngine', configuration: 'tomcatExtCompile')
     tomcat project(path: ':ProcessEngine', configuration: 'compile')
     tomcat project(path: ':ProcessEngine', configuration: 'webCompile')*/
-    tomcat project(':PEUserMessageHandler')
+//    tomcat project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
+    tomcat project(path: ':PEUserMessageHandler', configuration: 'runtime')
     tomcat project(':DarwinServices')
     tomcat project(path: ':ProcessEngine')
 /*    tomcatRunWar ':ProcessEngine:tomcatExtClasses'*/
@@ -39,15 +53,21 @@ tomcat {
         }
     }
 }
+
+task assembleExtraBootCp(type: Copy) {
+    from configurations.extraBootCp
+    into "${buildDir}/bootClasspath"
+}
+
 tomcatRun() {
     doFirst {
 //        webAppClasspath=webAppClasspath.plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
         logger.lifecycle('Running Tomcat')
         configurations.tomcat.allDependencies.each({ logger.debug("Dependency: $it")})
 //        sourceSets.main.compileClasspath.each({ println("CompileClasspath: $it") })
-        logger.debug('');
-        tomcatClasspath.each({ logger.debug("TomcatClasspath: $it")})
-        logger.debug('')
+        logger.info('');
+        tomcatClasspath.each({ logger.info("TomcatClasspath: $it")})
+        logger.info('')
 
         System.setProperty('nl.adaptivity.messaging.localurl', 'http://localhost:8080')
 //	    systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
@@ -58,3 +78,8 @@ tomcatRun() {
 
 [tomcatRun, tomcatRunWar]*.webDefaultXml = file ('config/web.xml')
 [tomcatRun, tomcatRunWar]*.configFile = file ('config/context.xml')
+
+
+//artifacts {
+//    extraBootCp tasks.assembleExtraBootCp
+//}

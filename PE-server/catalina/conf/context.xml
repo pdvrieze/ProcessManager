@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <!--
   Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
@@ -14,12 +14,13 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
---><!-- The contents of this file will be loaded for each web application -->
+-->
+<!-- The contents of this file will be loaded for each web application -->
 <Context>
 
     <!-- Default set of monitored resources -->
     <WatchedResource>WEB-INF/web.xml</WatchedResource>
-
+	
     <!-- Uncomment this to disable session persistence across Tomcat restarts -->
     <!--
     <Manager pathname="" />
@@ -28,15 +29,11 @@
     <!-- Uncomment this to enable Comet connection tacking (provides events
          on session expiration as well as webapp lifecycle) -->
     <!--
-
-
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
-
-    <!-- The authenticator module -->
-
+    
     <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"/>
-    <!-- description="The authentication database"-->
+    <!-- description="The authentication database" -->
     <Resource name="jdbc/webauth"
               auth="Container"
               driverClassName="com.mysql.jdbc.Driver"
@@ -45,27 +42,5 @@
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/webauth"
               username="webauth"/>
-
-    <!-- The process engine database -->
-
-    <Resource name="jdbc/processengine"
-              auth="Container"
-              driverClassName="com.mysql.jdbc.Driver"
-	      factory="org.apache.naming.factory.BeanFactory"
-              password="2lCmFVW0J4"
-              type="com.zaxxer.hikari.HikariDataSource"
-              jdbcUrl="jdbc:mysql://localhost/processengine"
-              username="processengine"/>
-
-    <!-- The user task database from PEUserMessageHandler -->
-    <Resource name="jdbc/usertasks"
-              auth="Container"
-              driverClassName="com.mysql.jdbc.Driver"
-	      factory="org.apache.naming.factory.BeanFactory"
-              password="2lCmFVW0J4"
-              type="com.zaxxer.hikari.HikariDataSource"
-              jdbcUrl="jdbc:mysql://localhost/usertasks"
-              username="processengine"/>
-
 
 </Context>
