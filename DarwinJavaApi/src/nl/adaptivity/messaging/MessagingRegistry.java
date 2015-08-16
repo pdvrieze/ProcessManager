@@ -2,6 +2,7 @@ package nl.adaptivity.messaging;
 
 import java.net.URI;
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -304,7 +305,7 @@ public final class MessagingRegistry {
     public List<EndpointDescriptor> getRegisteredEndpoints() {
       synchronized (this) {
         if (aRealMessenger == null) {
-          return null;
+          return Collections.emptyList();
         }
       }
       return aRealMessenger.getRegisteredEndpoints();
