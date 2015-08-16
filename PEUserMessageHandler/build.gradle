@@ -164,7 +164,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile project(path: ':PE-common', configuration:'providedCompile')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
-//    testRuntime 'org.codehaus.woodstox:woodstox-core-asl:4.4.1'
 
 }
 
