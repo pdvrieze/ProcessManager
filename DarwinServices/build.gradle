@@ -10,12 +10,12 @@ description = 'A container for general support services for the darwin system, i
 //group = [ 'server', 'service' ]
 
 configurations {
-    providedCompile
+    myProvidedCompile
 }
 
 sourceSets {
     main {
-        compileClasspath+=configurations.providedCompile
+        compileClasspath+=configurations.myProvidedCompile
     }
 
 }
@@ -29,10 +29,13 @@ task tomcatRun(dependsOn: ["classes"]) {
 
 dependencies {
     compile project(':PE-common')
+    myProvidedCompile project(path: ':PE-common', configuration:'providedCompile')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
-/*
-tomcat {
-    contextPath='/'
+
+idea {
+    module {
+        scopes.PROVIDED.plus += [configurations.providedCompile]
+        scopes.COMPILE.minus += [configurations.providedCompile]
+    }
 }
-*/

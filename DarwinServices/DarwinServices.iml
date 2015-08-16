@@ -42,9 +42,8 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="module" module-name="PE-common" exported="" />
-    <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
-    <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="module" module-name="java-common" exported="" />
+    <orderEntry type="module" module-name="JavaCommonApi" exported="" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
   </component>
