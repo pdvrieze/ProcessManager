@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 version = '1.0.0'
 description = 'Android interface with process model editor and task interface'
-group = ['android' ]
+//group = ['android' ]
 
 
 dependencies {
