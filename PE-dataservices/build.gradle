@@ -6,7 +6,7 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 version = '0.4'
 description = 'Service for data storage/access'
-group = [ 'server', 'service' ]
+//group = [ 'server', 'service' ]
 
 
 sourceSets {
