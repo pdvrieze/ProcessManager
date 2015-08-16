@@ -6,7 +6,7 @@ sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 version='1.0.0'
 description = 'A generator for client code for services'
-group = 'util'
+//group = 'util'
 
 
 def mainClassName = 'nl.adaptivity.messaging.MessagingSoapClientGenerator'
@@ -33,5 +33,6 @@ jar {
 dependencies {
     compile project(':JavaCommonApi')
     compile project(':PE-common')
+    compile project(path: ':PE-common', configuration:'providedCompile')
     compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
 }
