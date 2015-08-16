@@ -6,7 +6,7 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 version = '1.1.0'
 description = 'Common utility classes common to the process engine'
-group = ['server', 'support']
+//group = ['server', 'support']
 
 
 configurations {
@@ -26,6 +26,14 @@ sourceSets {
 
 
 dependencies {
-    compile project(':DarwinJavaApi')
+    providedCompile project(':DarwinJavaApi')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+}
+
+
+idea {
+    module {
+        scopes.COMPILE.minus += [configurations.providedCompile]
+        scopes.PROVIDED.plus += [configurations.providedCompile]
+    }
 }
