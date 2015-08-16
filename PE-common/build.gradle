@@ -10,7 +10,7 @@ configurations {
 
 version = '1.0.0'
 description = 'A library with process engine support classes'
-group = ['util', 'process' ]
+//group = ['util', 'process' ]
 
 
 sourceSets {
@@ -23,9 +23,15 @@ sourceSets {
     test.compileClasspath += configurations.providedCompile
 }
 
+idea {
+    module {
+        scopes.COMPILE.minus += [configurations.providedCompile]
+        scopes.PROVIDED.plus += [configurations.providedCompile]
+    }
+}
 
 dependencies {
-    compile project(':DarwinJavaApi')
+    providedCompile project(':DarwinJavaApi')
     compile project(':java-common')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
