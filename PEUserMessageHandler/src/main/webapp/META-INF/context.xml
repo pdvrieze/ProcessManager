@@ -9,6 +9,7 @@
               password="2lCmFVW0J4"
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/usertasks"
+              autoCommit="false"
               username="processengine"/>
 
     <!--<Resource name="jdbc/usertasks" auth="Container"-->
