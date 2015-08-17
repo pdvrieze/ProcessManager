@@ -12,6 +12,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.activation.DataSource;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -49,8 +52,9 @@ import org.xml.sax.SAXException;
  */
 public class ProcessEngine /* implements IProcessEngine */{
 
-  public static final String DBRESOURCENAME="java:/comp/env/jdbc/processengine";
-
+  public static final String CONTEXT_PATH = "java:/comp/env";
+  public static final String DB_RESOURCE = "jdbc/processengine";
+  public static final String DBRESOURCENAME= CONTEXT_PATH +'/'+ DB_RESOURCE;
 
   public enum Permissions implements SecurityProvider.Permission {
     ADD_MODEL,
@@ -65,6 +69,7 @@ public class ProcessEngine /* implements IProcessEngine */{
   }
 
   private final StringCache aStringCache = new StringCacheImpl();
+  private final Context mContext;
 
   private javax.sql.DataSource aDBResource = null;
 
@@ -86,6 +91,13 @@ public class ProcessEngine /* implements IProcessEngine */{
    */
   public ProcessEngine(final IMessageService<?, ProcessNodeInstance> pMessageService) {
     aMessageService = pMessageService;
+    try {
+      InitialContext ic = new InitialContext();
+      mContext = (Context) ic.lookup("java:/comp/env");
+    } catch (NamingException e) {
+      throw new RuntimeException(e);
+    }
+
   }
 
   /**
@@ -402,11 +414,11 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   /**
    * This method is primarilly a convenience method for
-   * {@link #finishTask(Handle, Node)}.
+   * {@link #finishTask(DBTransaction, Handle, Node, Principal)}.
    *
    * @param pHandle The handle to finish.
    * @param pResult The source that is parsed into DOM nodes and then passed on
-   *          to {@link #finishTask(Handle, Node)}
+   *          to {@link #finishTask(DBTransaction, Handle, Node, Principal)}
    */
   public void finishedTask(DBTransaction pTransaction, final Handle<ProcessNodeInstance> pHandle, final DataSource pResult, final Principal pUser) {
     InputSource result;
@@ -488,7 +500,11 @@ public class ProcessEngine /* implements IProcessEngine */{
 
   private javax.sql.DataSource getDBResource() {
     if (aDBResource==null) {
-      aDBResource = DbSet.resourceNameToDataSource(DBRESOURCENAME);
+      if (mContext!=null) {
+        aDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+      } else {
+        aDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+      }
     }
     return aDBResource;
   }
