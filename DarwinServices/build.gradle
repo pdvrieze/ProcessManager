@@ -36,6 +36,25 @@ dependencies {
 idea {
     module {
         scopes.PROVIDED.plus += [configurations.providedCompile]
-        scopes.COMPILE.minus += [configurations.providedCompile]
+        scopes.TEST.plus += [configurations.providedCompile]
     }
 }
+
+/*
+afterEvaluate {
+    project.tasks['war'].classpath.each {
+        logger.lifecycle("War classpath: ${it}")
+    }
+/*
+    project.tasks['war'].dependsOn.each { Object dep ->
+        logger.lifecycle("War depends on: ${dep.class.name} = $dep")
+//        dep.properties.each { prop ->
+//            logger.lifecycle("  ${prop.key}: ${prop.value}")
+//        }
+    }
+    logger.lifecycle('')
+    sourceSets.main.compileClasspath.each { logger.lifecycle("Main compileClasspath+=${it}")}
+    logger.lifecycle('')
+    sourceSets.main.runtimeClasspath.each { logger.lifecycle("Main runtimeClasspath+=${it}")}
+}
+*/
