@@ -241,7 +241,7 @@ public class DarwinMessenger implements IMessenger {
         if (!cancelled) {
           final T result = sendMessage();
           synchronized (this) {
-            if (aResult==null) {
+            if (result==null) {
               // Use separate value to allow for suppressing of warning.
               @SuppressWarnings("unchecked")
               final T v = (T) NULL;
