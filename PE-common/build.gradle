@@ -25,13 +25,14 @@ sourceSets {
 
 idea {
     module {
-        scopes.COMPILE.minus += [configurations.providedCompile]
+//        scopes.COMPILE.minus += [configurations.providedCompile]
         scopes.PROVIDED.plus += [configurations.providedCompile]
+        scopes.TEST.plus += [configurations.providedCompile]
     }
 }
 
 dependencies {
-    providedCompile project(':DarwinJavaApi')
     compile project(':java-common')
+    providedCompile project(':DarwinJavaApi')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
