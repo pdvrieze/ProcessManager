@@ -28,11 +28,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="juli-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="catalina-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="coyote-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="annotations-api-6.0.44" level="project" />
-    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="module" module-name="DarwinCommon" exported="" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
