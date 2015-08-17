@@ -179,9 +179,10 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       }
       return result;
     } catch (RuntimeException e) {
-      if (aState!=TaskState.FailRetry) {
+      // TODO later move failretry to fail
+//      if (aState!=TaskState.FailRetry) {
         failTaskCreation(pTransaction, e);
-      }
+//      }
       throw e;
     }
   }
