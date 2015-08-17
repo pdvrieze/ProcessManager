@@ -143,6 +143,8 @@ gwt {
     gwtVersion = '2.6.1'
     modules 'nl.adaptivity.darwin.gwt.Darwin'
     modules 'nl.adaptivity.process.userMessageHandler.PEUserMessageHandler'
+    devModules 'nl.adaptivity.darwin.gwt.DarwinDraft'
+    devModules 'nl.adaptivity.process.userMessageHandler.UMHDraft'
 }
 
 /*
