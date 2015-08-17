@@ -1,8 +1,6 @@
 package nl.adaptivity.ws.rest;
 
-import java.io.CharArrayReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -260,20 +258,26 @@ public abstract class RestMethodWrapper {
         type = annotation.type();
         xpath = annotation.xpath();
       }
-      if (type==ParamType.ATTACHMENT && pHttpMessage.getAttachments().isEmpty()) {
-        // No attachments, are we the only one, then take the body
-        int attachmentCount = 0;
-        for(int j=0; j<parameterAnnotations.length; ++j) {
-          if (Annotations.getAnnotation(parameterAnnotations[j], RestParam.class).type()==ParamType.ATTACHMENT) {
-            ++attachmentCount;
-          }
-        }
-        if (attachmentCount==1) {
-          type=ParamType.BODY;
-        }
+
+      switch (type) {
+        case ATTACHMENT:
+          if (pHttpMessage.getAttachments().isEmpty()) {
+            // No attachments, are we the only one, then take the body
+            int attachmentCount = 0;
+            for(int j=0; j<parameterAnnotations.length; ++j) {
+              if (Annotations.getAnnotation(parameterAnnotations[j], RestParam.class).type()==ParamType.ATTACHMENT) {
+                ++attachmentCount;
+              }
+            }
+            if (attachmentCount==1) {
+              aParams[i] = coerceBody(parameterTypes[i], name, pHttpMessage.getBody());
+              break;
+            }
+          } // explicit fallthrough if the special case does not apply. getBody mangles the outer value though.
+        default:
+          aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage);
       }
 
-      aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage);
 
     }
   }
@@ -358,23 +362,60 @@ public abstract class RestMethodWrapper {
 
   private static Object getAttachment(final Class<?> pClass, final String pName, final HttpMessage pMessage) {
     final DataSource source = pMessage.getAttachment(pName);
-    if (source != null) {
+    return coerceSource(pClass, source);
+  }
+
+  private static Object coerceBody(final Class<?> pTargetType, final String name, final Body pBody) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try {
+      Sources.writeToStream(new DOMSource(pBody.getElements().get(0)), baos);
+    } catch (TransformerException e) {
+      throw new RuntimeException(e);
+    }
+    final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+    baos.reset(); baos=null;
+    DataSource dataSource = new DataSource() {
+      @Override
+      public InputStream getInputStream() throws IOException {
+        return bais;
+      }
+
+      @Override
+      public OutputStream getOutputStream() throws IOException {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public String getContentType() {
+        return "application/xml";
+      }
+
+      @Override
+      public String getName() {
+        return name;
+      }
+    };
+    return coerceSource(pTargetType, dataSource);
+  }
+
+  private static Object coerceSource(final Class<?> pClass, final DataSource pSource) {
+    if (pSource != null) {
       if (DataHandler.class.isAssignableFrom(pClass)) {
-        return new DataHandler(source);
+        return new DataHandler(pSource);
       }
       if (DataSource.class.isAssignableFrom(pClass)) {
-        return source;
+        return pSource;
       }
       if (InputStream.class.isAssignableFrom(pClass)) {
         try {
-          return source.getInputStream();
+          return pSource.getInputStream();
         } catch (final IOException e) {
           throw new MessagingException(e);
         }
       }
       try {
         // This will try to do magic to handle the data
-        return new DataHandler(source).getContent();
+        return new DataHandler(pSource).getContent();
       } catch (final IOException e) {
         throw new MessagingException(e);
       }
