@@ -260,6 +260,18 @@ public abstract class RestMethodWrapper {
         type = annotation.type();
         xpath = annotation.xpath();
       }
+      if (type==ParamType.ATTACHMENT && pHttpMessage.getAttachments().isEmpty()) {
+        // No attachments, are we the only one, then take the body
+        int attachmentCount = 0;
+        for(int j=0; j<parameterAnnotations.length; ++j) {
+          if (Annotations.getAnnotation(parameterAnnotations[j], RestParam.class).type()==ParamType.ATTACHMENT) {
+            ++attachmentCount;
+          }
+        }
+        if (attachmentCount==1) {
+          type=ParamType.BODY;
+        }
+      }
 
       aParams[i] = getParam(parameterTypes[i], name, type, xpath, pHttpMessage);
 
