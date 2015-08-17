@@ -93,6 +93,10 @@ public final class Sources {
   }
 
   public static String toString(final Source pSource) {
+    return toString(pSource, false);
+  }
+
+  public static String toString(final Source pSource, boolean pIndent) {
     Reader in = null;
     try {
       if (pSource instanceof StreamSource) {
@@ -108,7 +112,7 @@ public final class Sources {
     }
     final StringWriter sw = new StringWriter();
     try {
-      Sources.writeToWriter(pSource, sw);
+      Sources.writeToWriter(pSource, sw, pIndent);
     } catch (final TransformerException e) {
       throw new RuntimeException(e);
     }
