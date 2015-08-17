@@ -6,18 +6,24 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.Future;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 
+import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
 
 public class UserMessageService implements CompletionListener {
 
-  public static final String DBRESOURCENAME="java:/comp/env/jdbc/usertasks";
+  public static final String CONTEXT_PATH = "java:/comp/env";
+  public static final String DB_RESOURCE = "jdbc/usertasks";
+  public static final String DBRESOURCENAME= CONTEXT_PATH +'/'+ DB_RESOURCE;
 
 
   private static class InstantiationHelper {
@@ -28,11 +34,20 @@ public class UserMessageService implements CompletionListener {
 
   private UserTaskMap aTasks;
   private DataSource mDataSource;
+  private Context mContext;
 
   public UserMessageService() {
     //    DummyTask task = new DummyTask("blabla");
     //    task.setHandle(1);
     //    tasks.add(task);
+    if (mContext==null) {
+      try {
+        InitialContext ic = new InitialContext();
+        mContext = (Context) ic.lookup("java:/comp/env");
+      } catch (NamingException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   private UserTaskMap getTasks() {
@@ -44,7 +59,15 @@ public class UserMessageService implements CompletionListener {
 
   private DataSource getDataSource() {
     if (mDataSource==null) {
-      mDataSource = DbSet.resourceNameToDataSource(DBRESOURCENAME);
+      if (mContext==null) {
+        try {
+          InitialContext ic = new InitialContext();
+          mContext = (Context) ic.lookup("java:/comp/env");
+        } catch (NamingException e) {
+          throw new RuntimeException(e);
+        }
+      }
+      mDataSource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
     }
     return mDataSource;
   }
@@ -67,6 +90,7 @@ public class UserMessageService implements CompletionListener {
   }
 
   public TaskState finishTask(final long pHandle, final Principal pUser) {
+    if (pUser==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     final UserTask<?> task = getTask(pHandle);
     task.setState(TaskState.Complete, pUser);
     if ((task.getState() == TaskState.Complete) || (task.getState() == TaskState.Failed)) {
@@ -80,11 +104,13 @@ public class UserMessageService implements CompletionListener {
   }
 
   public TaskState takeTask(final long pHandle, final Principal pUser) {
+    if (pUser==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     getTask(pHandle).setState(TaskState.Taken, pUser);
     return TaskState.Taken;
   }
 
   public XmlTask updateTask(DBTransaction transaction, long pHandle, XmlTask pPartialNewTask, Principal pUser) throws SQLException {
+    if (pUser==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     // This needs to be a copy otherwise the cache will interfere with the changes
     XmlTask currentTask;
     {
@@ -109,6 +135,7 @@ public class UserMessageService implements CompletionListener {
   }
 
   public TaskState startTask(final long pHandle, final Principal pUser) {
+    if (pUser==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     getTask(pHandle).setState(TaskState.Started, pUser);
     return TaskState.Taken;
   }
