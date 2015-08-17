@@ -77,11 +77,11 @@ public class ExternalEndpoint implements GenericEndpoint {
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}")
   public XmlTask updateTask(
       @RestParam(name="handle", type=ParamType.VAR) final String pHandle,
-      @RestParam(type=ParamType.BODY) final XmlTask pNewTask,
+      @RestParam(type=ParamType.BODY) final XmlTask pPartialNewTask,
       @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws SQLException, FileNotFoundException
   {
     try (DBTransaction transaction = aService.newTransaction()) {
-      final XmlTask result = aService.updateTask(transaction, Long.parseLong(pHandle), pNewTask, pUser);
+      final XmlTask result = aService.updateTask(transaction, Long.parseLong(pHandle), pPartialNewTask, pUser);
       if (result==null) { throw new FileNotFoundException(); }
       transaction.commit();
       return result;
