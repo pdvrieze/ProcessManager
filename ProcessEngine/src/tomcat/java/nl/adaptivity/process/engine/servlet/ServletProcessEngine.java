@@ -799,7 +799,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           try {
             final Document domResult = XmlUtil.tryParseXml(result.getInputStream());
             Element rootNode = domResult.getDocumentElement();
-            // If we are seeing a Soap Envelope, get see if the body has a single value and set that as rootNode for further testing.
+            // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
             if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
               final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
               if (header != null) {
