@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
@@ -146,7 +147,8 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     return result;
   }
 
-  public <T extends IProcessNodeInstance<T>> ProcessData apply(DBTransaction pTransaction, IProcessNodeInstance<T> pNode) throws SQLException {
+  @Override
+  public <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction pTransaction, IProcessNodeInstance<T> pNode) throws SQLException {
     final ProcessData processData;
     if (refNode!=null) {
       IProcessNodeInstance<T> predecessor = pNode.getPredecessor(pTransaction, refNode);

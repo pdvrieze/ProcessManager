@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -60,7 +61,7 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(DBTransaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 

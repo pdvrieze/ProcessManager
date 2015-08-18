@@ -51,11 +51,13 @@ public class PETransformer {
     private PETransformerContext aContext;
     private XMLEventReader aInput;
     private XMLEventFactory aXef;
+    private boolean mRemoveWhitespace;
 
-    public MyFilter(PETransformerContext pContext, XMLEventReader pInput) {
+    public MyFilter(PETransformerContext pContext, XMLEventReader pInput, boolean pRemoveWhitespace) {
       aContext = pContext;
       aInput = pInput;
       aXef = XMLEventFactory.newInstance();
+      mRemoveWhitespace = pRemoveWhitespace;
     }
 
     @Override
@@ -80,7 +82,7 @@ public class PETransformer {
             return event;
           }
         } else if (event.isCharacters()) {
-          if (! isIgnorableWhiteSpace(event.asCharacters())) {
+          if (! (mRemoveWhitespace && isIgnorableWhiteSpace(event.asCharacters()))) {
             add(event);
             return event;
           }
@@ -304,17 +306,27 @@ public class PETransformer {
   }
 
   private final PETransformerContext aContext;
+  private final boolean mRemoveWhitespace;
 
-  private PETransformer(PETransformerContext pContext) {
+  private PETransformer(PETransformerContext pContext, boolean pRemoveWhitespace) {
     aContext = pContext;
+    mRemoveWhitespace = pRemoveWhitespace;
+  }
+
+  public static PETransformer create(boolean pRemoveWhitespace, ProcessData... pProcessData) {
+    return new PETransformer(new ProcessDataContext(pProcessData), pRemoveWhitespace);
   }
 
   public static PETransformer create(ProcessData... pProcessData) {
-    return new PETransformer(new ProcessDataContext(pProcessData));
+    return create(true, pProcessData);
   }
 
   public static PETransformer create(PETransformerContext pContext) {
-    return new PETransformer(pContext);
+    return create(pContext, true);
+  }
+
+  public static PETransformer create(PETransformerContext pContext, boolean pRemoveWhitespace) {
+    return new PETransformer(pContext, pRemoveWhitespace);
   }
 
   public List<Node> transform(List<? extends Object> pContent) {
@@ -384,7 +396,7 @@ public class PETransformer {
   }
 
   private XMLEventReader createFilter(XMLEventReader pInput) {
-    return new MyFilter(aContext, pInput);
+    return new MyFilter(aContext, pInput, mRemoveWhitespace);
   }
 
 }

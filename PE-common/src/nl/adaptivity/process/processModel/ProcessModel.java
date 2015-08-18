@@ -16,6 +16,8 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
    */
   public UUID getUuid();
 
+  void setUuid(UUID pUUID);
+
   /**
    * Get the amount of end nodes in the model
    *
@@ -50,5 +52,4 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
   public Collection<? extends IXmlResultType> getImports();
 
   public Collection<? extends IXmlDefineType> getExports();
-
 }

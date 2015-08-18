@@ -4,7 +4,13 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -13,9 +19,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import nl.adaptivity.util.xml.XmlUtil;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class BaseMessage implements IXmlMessage{
 
   private QName service;
@@ -183,4 +191,48 @@ public abstract class BaseMessage implements IXmlMessage{
     return Arrays.<Object>asList(getMessageBody());
   }
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    BaseMessage that = (BaseMessage) o;
+
+    if (service != null ? !service.equals(that.service) : that.service != null) return false;
+    if (endpoint != null ? !endpoint.equals(that.endpoint) : that.endpoint != null) return false;
+    if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
+    if (url != null ? !url.equals(that.url) : that.url != null) return false;
+    if (method != null ? !method.equals(that.method) : that.method != null) return false;
+    if (type != null ? !type.equals(that.type) : that.type != null) return false;
+
+    if (aBody==null) return that.aBody==null;
+    if (that.aBody==null) return false;
+    try {
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); dbf.setNamespaceAware(true);
+      DocumentBuilder db = null;
+      db = dbf.newDocumentBuilder();
+      Document copy = db.newDocument();
+      copy.appendChild(copy.importNode(aBody, true));
+      Document otherCopy = db.newDocument();
+      otherCopy.appendChild(otherCopy.importNode(that.aBody, true));
+      copy.normalizeDocument();
+      otherCopy.normalizeDocument();
+      return copy.equals(otherCopy);
+    } catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = service != null ? service.hashCode() : 0;
+    result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
+    result = 31 * result + (operation != null ? operation.hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    result = 31 * result + (method != null ? method.hashCode() : 0);
+    result = 31 * result + (type != null ? type.hashCode() : 0);
+    result = 31 * result + (aBody != null ? aBody.hashCode() : 0);
+    return result;
+  }
 }

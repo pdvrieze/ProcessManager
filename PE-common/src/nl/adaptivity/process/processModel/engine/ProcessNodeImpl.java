@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import net.devrieze.util.IdFactory;
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 
 import nl.adaptivity.process.IMessageService;
@@ -176,7 +177,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   /**
    * Should this node be able to be provided?
    *
-   * @param The instance against which the condition should be evaluated.
+   * @param pInstance The instance against which the condition should be evaluated.
    * @return <code>true</code> if the node can be started, <code>false</code> if
    *         not.
    */
@@ -246,7 +247,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
    * @param pInstance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(DBTransaction pTransaction, IMessageService<T, U> pMessageService, U pInstance) throws SQLException;
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, IMessageService<T, U> pMessageService, U pInstance) throws SQLException;
 
   /**
    * Take action to accept the task (but not start it yet)

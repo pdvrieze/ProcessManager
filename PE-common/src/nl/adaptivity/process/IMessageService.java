@@ -2,6 +2,7 @@ package nl.adaptivity.process;
 
 import java.sql.SQLException;
 
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
@@ -37,7 +38,7 @@ public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
    * @return <code>true</code> or lack of failure, <code>false</code> on failure.
    * @throws SQLException
    */
-  boolean sendMessage(DBTransaction pTransaction, T pMessage, U pInstance) throws SQLException;
+  boolean sendMessage(Transaction pTransaction, T pMessage, U pInstance) throws SQLException;
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

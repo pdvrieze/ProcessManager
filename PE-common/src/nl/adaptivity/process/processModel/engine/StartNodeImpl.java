@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -52,7 +53,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(DBTransaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
     return true;
   }
 

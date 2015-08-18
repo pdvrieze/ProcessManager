@@ -1,9 +1,17 @@
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.Transaction;
+import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
+
+import java.sql.SQLException;
 import java.util.List;
 
 
 public interface IXmlDefineType {
+
+  <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction pTransaction, IProcessNodeInstance<T> pNode) throws
+          SQLException;
 
   /**
    * May contain literal elements as content. In that case only the paramName

@@ -8,26 +8,19 @@
 
 package nl.adaptivity.process.processModel;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 
 /**
@@ -57,6 +50,7 @@ import org.w3c.dom.Node;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Message")
+@XmlRootElement(name= XmlMessage.ELEMENTNAME)
 public class XmlMessage extends BaseMessage implements IXmlMessage {
 
   public static final String ELEMENTNAME = "message";

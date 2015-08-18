@@ -14,6 +14,7 @@ import javax.xml.bind.annotation.XmlIDREF;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
@@ -218,7 +219,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @todo handle imports.
    */
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(DBTransaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) throws SQLException {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) throws SQLException {
     // TODO handle imports
     final T message = pMessageService.createMessage(aMessage);
     try {
