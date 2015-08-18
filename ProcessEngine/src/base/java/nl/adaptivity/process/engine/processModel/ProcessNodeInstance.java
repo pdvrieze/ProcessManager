@@ -15,6 +15,8 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 
+import net.devrieze.util.Transaction;
+import nl.adaptivity.process.processModel.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -30,11 +32,6 @@ import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance.Body;
-import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
 
@@ -97,7 +94,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public ProcessData getResult(DBTransaction pTransaction, String pName) throws SQLException {
+  public ProcessData getResult(Transaction pTransaction, String pName) throws SQLException {
     for(ProcessData result:getResults()) {
       if (pName.equals(result.getName())) {
         return result;
@@ -106,9 +103,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return null;
   }
 
-  public List<ProcessData> getDefines(DBTransaction pTransaction) throws SQLException {
+  public List<ProcessData> getDefines(Transaction pTransaction) throws SQLException {
     ArrayList<ProcessData> result = new ArrayList<>();
-    for(XmlDefineType define: aNode.getDefines()) {
+    for(IXmlDefineType define: (Collection<? extends IXmlDefineType>) aNode.getDefines()) {
       ProcessData data = define.apply(pTransaction, this);
       result.add(data);
     }
@@ -128,10 +125,10 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public ProcessNodeInstance getPredecessor(DBTransaction pTransaction, String pNodeName) throws SQLException {
+  public ProcessNodeInstance getPredecessor(Transaction pTransaction, String pNodeName) throws SQLException {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     for(Handle<? extends ProcessNodeInstance> hpred: aPredecessors) {
-      ProcessNodeInstance instance = getProcessInstance().getEngine().getNodeInstance(pTransaction, hpred.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
+      ProcessNodeInstance instance = getProcessInstance().getEngine().getNodeInstance(pTransaction, hpred, SecurityProvider.SYSTEMPRINCIPAL);
       if (pNodeName.equals(instance.getNode().getId())) {
         return instance;
       } else {
@@ -152,7 +149,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public void setState(DBTransaction pTransaction, final TaskState pNewState) throws SQLException {
+  public void setState(Transaction pTransaction, final TaskState pNewState) throws SQLException {
     if ((aState != null) && (aState.compareTo(pNewState) > 0)) {
       throw new IllegalArgumentException("State can only be increased (was:" + aState + " new:" + pNewState);
     }
@@ -171,7 +168,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public <U> boolean provideTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
+  public <U> boolean provideTask(Transaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     try {
       final boolean result = aNode.provideTask(pTransaction, pMessageService, this);
       if (result) { // the task must be automatically taken. Mostly this is false and we don't set the state.
@@ -188,29 +185,29 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public <U> boolean takeTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
+  public <U> boolean takeTask(Transaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     final boolean result = aNode.takeTask(pMessageService, this);
     setState(pTransaction, TaskState.Taken);
     return result;
   }
 
   @Override
-  public <U> boolean startTask(DBTransaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
+  public <U> boolean startTask(Transaction pTransaction, final IMessageService<U, ProcessNodeInstance> pMessageService) throws SQLException {
     final boolean startTask = aNode.startTask(pMessageService, this);
     setState(pTransaction, TaskState.Started);
     return startTask;
   }
 
   @Override
-  public void finishTask(DBTransaction pTransaction, final Node pResultPayload) throws SQLException {
+  public void finishTask(Transaction pTransaction, final Node pResultPayload) throws SQLException {
     setState(pTransaction, TaskState.Complete);
-    for(IXmlResultType resultType: getNode().getResults()) {
+    for(IXmlResultType resultType: (Collection<? extends IXmlResultType>) getNode().getResults()) {
       aResults.add(resultType.apply(pResultPayload));
     }
   }
 
   @Override
-  public void cancelTask(DBTransaction pTransaction) throws SQLException {
+  public void cancelTask(Transaction pTransaction) throws SQLException {
     setState(pTransaction, TaskState.Cancelled);
   }
 
@@ -224,13 +221,13 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public void failTask(DBTransaction pTransaction, final Throwable pCause) throws SQLException {
+  public void failTask(Transaction pTransaction, final Throwable pCause) throws SQLException {
     aFailureCause = pCause;
     setState(pTransaction, TaskState.Failed);
   }
 
   @Override
-  public void failTaskCreation(DBTransaction pTransaction, final Throwable pCause) throws SQLException {
+  public void failTaskCreation(Transaction pTransaction, final Throwable pCause) throws SQLException {
     aFailureCause = pCause;
     setState(pTransaction, TaskState.FailRetry);
   }
@@ -244,9 +241,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     aResults.addAll(pResults);
   }
 
-  public void instantiateXmlPlaceholders(DBTransaction pTransaction, Source source, final Result result) throws XMLStreamException, SQLException {
+  public void instantiateXmlPlaceholders(Transaction pTransaction, Source source, final Result result) throws XMLStreamException, SQLException {
+    instantiateXmlPlaceholders(pTransaction, source, result, true);
+  }
+
+  public void instantiateXmlPlaceholders(final Transaction pTransaction, final Source source, final Result result, final boolean pRemoveWhitespace) throws
+          SQLException, XMLStreamException {
     List<ProcessData> defines = getDefines(pTransaction);
-    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, aState==TaskState.Complete));
+    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, aState== TaskState.Complete), pRemoveWhitespace);
     transformer.transform(source, result);
   }
 
@@ -255,7 +257,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return logger;
   }
 
-  public XmlProcessNodeInstance toXmlNode(DBTransaction pTransaction) throws SQLException {
+  public XmlProcessNodeInstance toXmlNode(Transaction pTransaction) throws SQLException {
     XmlProcessNodeInstance result = new XmlProcessNodeInstance();
     result.setState(aState);
     result.setHandle(aHandle);

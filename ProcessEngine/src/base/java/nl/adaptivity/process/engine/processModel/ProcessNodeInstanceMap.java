@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import net.devrieze.util.TransactionFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -294,8 +295,8 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
   }
 
-  public ProcessNodeInstanceMap(DataSource pDBResource, ProcessEngine pProcessEngine, StringCache pStringCache) {
-    super(pDBResource, new ProcessNodeInstanceFactory(pProcessEngine, pStringCache));
+  public ProcessNodeInstanceMap(TransactionFactory pTransactionFactory, ProcessEngine pProcessEngine, StringCache pStringCache) {
+    super(pTransactionFactory, new ProcessNodeInstanceFactory(pProcessEngine, pStringCache));
   }
 
 }

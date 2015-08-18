@@ -17,6 +17,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import net.devrieze.util.TransactionFactory;
+import nl.adaptivity.process.processModel.ProcessModel;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -111,7 +113,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     @Override
     public ProcessInstance create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
       Principal owner = new SimplePrincipal(pRow.getString(aColNoOwner));
-      Handle<ProcessModelImpl> hProcessModel = Handles.handle(pRow.getLong(aColNoHProcessModel));
+      Handle<ProcessModel> hProcessModel = Handles.handle(pRow.getLong(aColNoHProcessModel));
       ProcessModelImpl processModel = aProcessEngine.getProcessModel(pConnection, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
       String instancename = pRow.getString(aColNoName);
       long piHandle = pRow.getLong(aColNoHandle);
@@ -182,6 +184,10 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     @Override
     public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
       try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_INSTANCEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      }
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE+"` where `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?;")) {
         statement.setLong(1, pHandle);
         statement.executeUpdate();
       }
@@ -259,8 +265,8 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   }
 
-  public ProcessInstanceMap(DataSource pResource, ProcessEngine pProcessEngine) {
-    super(pResource, new ProcessInstanceElementFactory(pProcessEngine));
+  public ProcessInstanceMap(TransactionFactory<?> pTransactionFactory, ProcessEngine pProcessEngine) {
+    super(pTransactionFactory, new ProcessInstanceElementFactory(pProcessEngine));
   }
 
 }

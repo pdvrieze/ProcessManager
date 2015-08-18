@@ -53,6 +53,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
+import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SecurityProvider;
@@ -66,10 +67,7 @@ import nl.adaptivity.messaging.ISendableMessage;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.HProcessInstance;
-import nl.adaptivity.process.engine.MessagingFormatException;
-import nl.adaptivity.process.engine.ProcessEngine;
-import nl.adaptivity.process.engine.ProcessInstance;
+import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -405,7 +403,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
 
 
-    public void setHandle(DBTransaction pTransaction, final ProcessNodeInstance pNodeInstance) throws SQLException {
+    public void setHandle(Transaction pTransaction, final ProcessNodeInstance pNodeInstance) throws SQLException {
       aNodeInstance = pNodeInstance;
 
       Source messageBody;
@@ -433,7 +431,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   }
 
-  private ProcessEngine aProcessEngine;
+  private ProcessEngine<DBTransaction> aProcessEngine;
 
   private EndpointDescriptorImpl aLocalEndPoint;
 
@@ -459,7 +457,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @Override
   public void init(final ServletConfig pConfig) throws ServletException {
     super.init(pConfig);
-    aProcessEngine = new ProcessEngine(this);
+    aProcessEngine = ProcessEngine.newInstance(this);
     String hostname = pConfig.getInitParameter("hostname");
     String port = pConfig.getInitParameter("port");
     {
@@ -522,7 +520,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @Override
-  public boolean sendMessage(DBTransaction pTransaction, final NewServletMessage pMessage, final ProcessNodeInstance pInstance) throws SQLException {
+  public boolean sendMessage(Transaction pTransaction, final NewServletMessage pMessage, final ProcessNodeInstance pInstance) throws SQLException {
     assert pInstance.getHandle()>=0;
     pMessage.setHandle(pTransaction, pInstance);
 
@@ -554,7 +552,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public ProcessModelRefs<?> getProcesModelRefs() {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      final Iterable<ProcessModelImpl> processModels = aProcessEngine.getProcessModels(transaction);
+      final Iterable<? extends ProcessModelImpl> processModels = aProcessEngine.getProcessModels(transaction);
       final ProcessModelRefs<?> list = new ProcessModelRefs<>();
       for (final ProcessModel<?> pm : processModels) {
         list.add(pm.getRef());
@@ -706,7 +704,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
   public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      return transaction.commit(aProcessEngine.cancelInstance(transaction, pHandle, pUser));
+      return transaction.commit(aProcessEngine.cancelInstance(transaction, new HProcessInstance(pHandle), pUser));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error cancelling process intance", e);
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -728,8 +726,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal pUser) throws FileNotFoundException, SQLException
   {
+    Handle<? extends ProcessNodeInstance> handle = new HProcessNodeInstance(pHandle);
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      final ProcessNodeInstance result = aProcessEngine.getNodeInstance(transaction, pHandle, pUser);
+      final ProcessNodeInstance result = aProcessEngine.getNodeInstance(transaction, handle, pUser);
       if (result==null) { throw new FileNotFoundException(); }
       return transaction.commit(result.toXmlNode(transaction));
     }
@@ -792,7 +791,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         try {
           final DataSource result = pFuture.get();
           try (DBTransaction transaction = aProcessEngine.startTransaction()) {
-            ProcessNodeInstance inst = aProcessEngine.getNodeInstance(transaction, pHandle.getHandle(), SecurityProvider.SYSTEMPRINCIPAL);
+            ProcessNodeInstance inst = aProcessEngine.getNodeInstance(transaction, pHandle, SecurityProvider.SYSTEMPRINCIPAL);
             inst.setState(transaction, TaskState.Sent);
             transaction.commit();
           }

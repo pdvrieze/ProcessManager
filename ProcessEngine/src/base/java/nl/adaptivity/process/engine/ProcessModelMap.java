@@ -18,6 +18,7 @@ import javax.xml.bind.util.JAXBSource;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
+import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SimplePrincipal;
@@ -183,8 +184,8 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
   }
 
-  public ProcessModelMap(DataSource pDBResource, StringCache pStringCache) {
-    super(pDBResource, new ProcessModelFactory(pStringCache));
+  public ProcessModelMap(TransactionFactory<?> pTransactionFactory, StringCache pStringCache) {
+    super(pTransactionFactory, new ProcessModelFactory(pStringCache));
   }
 
 }
