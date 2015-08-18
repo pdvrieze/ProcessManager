@@ -17,6 +17,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.devrieze.util.TransactionFactory;
+import nl.adaptivity.process.engine.HProcessInstance;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -107,7 +108,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public ProcessNodeInstance create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
-      long hProcessInstance = pRow.getLong(aColNoHProcessInstance);
+      HProcessInstance hProcessInstance = new HProcessInstance(pRow.getLong(aColNoHProcessInstance));
       ProcessInstance processInstance = aProcessEngine.getProcessInstance(pConnection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
 
       String nodeId = aStringCache.lookup(pRow.getString(aColNoNodeId));

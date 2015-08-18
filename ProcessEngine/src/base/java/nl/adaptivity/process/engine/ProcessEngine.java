@@ -327,7 +327,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return result;
   }
 
-  public ProcessInstance getProcessInstance(T pTransaction, long pHandle, Principal pUser) throws SQLException {
+  public ProcessInstance getProcessInstance(T pTransaction, Handle<? extends ProcessInstance> pHandle, Principal pUser) throws SQLException {
     ProcessInstance instance = getInstances().get(pTransaction, pHandle);
     mSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, pUser, instance);
     return instance;
