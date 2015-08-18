@@ -7,15 +7,15 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.XmlUtil;
-import org.custommonkey.xmlunit.DetailedDiff;
-import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,12 +41,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 
 
@@ -255,21 +252,19 @@ public class TestProcessEngine {
     }
 
     XMLUnit.setIgnoreWhitespace(true);
-    CharArrayReader received = new CharArrayReader(receivedChars);
-    try {
-      assertXMLEqual(new InputStreamReader(expected), received);
-    } catch (AssertionError e) {
-      expected.reset();
-      received= new CharArrayReader(receivedChars);
-      Diff diff = XMLUnit.compareXML(new InputStreamReader(expected), received);
-      DetailedDiff detailedDiff = new DetailedDiff(diff);
-      for(Object difference: detailedDiff.getAllDifferences()) {
-        System.err.println("DIFF: "+difference.toString());
-      }
-      Logger.getAnonymousLogger().log(Level.WARNING, new String(receivedChars));
-      throw e;
-    }
+    assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
 
+    ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
+    assertEquals(State.STARTED, processInstance.getState());
+    assertEquals(1, processInstance.getActive().size());
+    assertEquals(1, processInstance.getFinished().size());
+    ProcessNodeInstance finished = processInstance.getFinished().iterator().next();
+    assertTrue(finished.getNode() instanceof StartNodeImpl);
+    assertEquals("start", finished.getNode().getId());
+    assertEquals(0, processInstance.getResults().size());
+
+    ProcessNodeInstance taskNode = processInstance.getActive().iterator().next();
+    assertEquals(TaskState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
 
   }
 
