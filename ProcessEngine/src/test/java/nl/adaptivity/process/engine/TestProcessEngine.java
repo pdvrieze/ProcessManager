@@ -16,6 +16,7 @@ import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XmlSerializable;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
@@ -256,16 +257,24 @@ public class TestProcessEngine {
 
     ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
     assertEquals(State.STARTED, processInstance.getState());
+
     assertEquals(1, processInstance.getActive().size());
     assertEquals(1, processInstance.getFinished().size());
     ProcessNodeInstance finished = processInstance.getFinished().iterator().next();
     assertTrue(finished.getNode() instanceof StartNodeImpl);
     assertEquals("start", finished.getNode().getId());
+
     assertEquals(0, processInstance.getResults().size());
 
     ProcessNodeInstance taskNode = processInstance.getActive().iterator().next();
     assertEquals(TaskState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
 
+    mProcessEngine.finishTask(transaction, taskNode, null, mPrincipal);
+    assertEquals(0, processInstance.getActive().size());
+    assertEquals(2, processInstance.getFinished().size());
+    assertEquals(1, processInstance.getResults().size());
+
+    assertEquals(State.FINISHED, processInstance.getState());
   }
 
   private static DocumentBuilder getDocumentBuilder() {
