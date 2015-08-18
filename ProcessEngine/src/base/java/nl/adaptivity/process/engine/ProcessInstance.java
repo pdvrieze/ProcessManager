@@ -451,6 +451,18 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
+  public Collection<? extends ProcessNodeInstance> getActive() {
+    return aThreads;
+  }
+
+  public Collection<? extends ProcessNodeInstance> getFinished() {
+    return aFinishedNodes;
+  }
+
+  public Collection<? extends ProcessNodeInstance> getResults() {
+    return aEndResults;
+  }
+
   @Override
   public void serialize(XMLStreamWriter pOut) throws XMLStreamException {
     //
