@@ -18,6 +18,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.transform.dom.DOMSource;
 
+import net.devrieze.util.TransactionFactory;
 import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Element;
@@ -258,7 +259,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
   }
 
-  public UserTaskMap(DataSource pConnectionProvider) {
+  public UserTaskMap(TransactionFactory<? extends DBTransaction> pConnectionProvider) {
     super(pConnectionProvider, new UserTaskFactory());
   }
 

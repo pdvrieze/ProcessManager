@@ -1,6 +1,7 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import java.security.Principal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 
@@ -20,6 +22,52 @@ import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 
 
 public class UserMessageService implements CompletionListener {
+
+  private static class MyDBTransactionFactory implements TransactionFactory<DBTransaction> {
+    private final Context mContext;
+
+    private javax.sql.DataSource mDBResource = null;
+
+    MyDBTransactionFactory() {
+      InitialContext ic = null;
+      try {
+        ic = new InitialContext();
+        mContext = (Context) ic.lookup("java:/comp/env");
+      } catch (NamingException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    private javax.sql.DataSource getDBResource() {
+      if (mDBResource ==null) {
+        if (mContext!=null) {
+          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+        } else {
+          mDBResource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
+        }
+      }
+      return mDBResource;
+    }
+
+    @Override
+    public DBTransaction startTransaction() {
+      try {
+        return new DBTransaction(getDBResource());
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+      return mDBResource.getConnection();
+    }
+
+    @Override
+    public boolean isValidTransaction(final DBTransaction pTransaction) {
+      return pTransaction.providerEquals(mDBResource);
+    }
+  }
 
   public static final String CONTEXT_PATH = "java:/comp/env";
   public static final String DB_RESOURCE = "jdbc/usertasks";
@@ -33,43 +81,16 @@ public class UserMessageService implements CompletionListener {
   }
 
   private UserTaskMap aTasks;
-  private DataSource mDataSource;
-  private Context mContext;
+  private TransactionFactory<DBTransaction> mTransactionFactory = new MyDBTransactionFactory();
 
   public UserMessageService() {
-    //    DummyTask task = new DummyTask("blabla");
-    //    task.setHandle(1);
-    //    tasks.add(task);
-    if (mContext==null) {
-      try {
-        InitialContext ic = new InitialContext();
-        mContext = (Context) ic.lookup("java:/comp/env");
-      } catch (NamingException e) {
-        throw new RuntimeException(e);
-      }
-    }
   }
 
   private UserTaskMap getTasks() {
     if (aTasks==null) {
-      aTasks = new UserTaskMap(getDataSource());
+      aTasks = new UserTaskMap(mTransactionFactory);
     }
     return aTasks;
-  }
-
-  private DataSource getDataSource() {
-    if (mDataSource==null) {
-      if (mContext==null) {
-        try {
-          InitialContext ic = new InitialContext();
-          mContext = (Context) ic.lookup("java:/comp/env");
-        } catch (NamingException e) {
-          throw new RuntimeException(e);
-        }
-      }
-      mDataSource = DbSet.resourceNameToDataSource(mContext, DB_RESOURCE);
-    }
-    return mDataSource;
   }
 
   public boolean postTask(final XmlTask pTask) {
@@ -155,7 +176,7 @@ public class UserMessageService implements CompletionListener {
   }
 
   public DBTransaction newTransaction() throws SQLException {
-    return new DBTransaction(getDataSource());
+    return mTransactionFactory.startTransaction();
   }
 
 }
