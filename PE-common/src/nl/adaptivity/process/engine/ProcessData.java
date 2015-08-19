@@ -106,8 +106,14 @@ public class ProcessData implements Named, XmlSerializable {
     } else if (mValue==null) {
       return null;
     }
-    DocumentFragment fragment = mValue.getOwnerDocument().createDocumentFragment();
-    fragment.appendChild(mValue.cloneNode(true));
+    DocumentFragment fragment;
+    if (mValue instanceof Document) {
+      fragment = ((Document) mValue).createDocumentFragment();
+      fragment.appendChild(((Document) mValue).getDocumentElement().cloneNode(true));
+    } else {
+      fragment = mValue.getOwnerDocument().createDocumentFragment();
+      fragment.appendChild(mValue.cloneNode(true));
+    }
     return fragment;
   }
 
