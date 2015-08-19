@@ -7,6 +7,8 @@ import javax.xml.namespace.QName;
 
 public final class Constants {
 
+  // TODO streamline this
+
   public static final String PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/";
 
   public static final QName PESERVICE = new QName(PROCESS_ENGINE_NS, "ProcessEngine");
@@ -25,7 +27,9 @@ public final class Constants {
 
   public static final String DARWIN_NS = "http://darwin.bournemouth.ac.uk/services";
 
-  public static final URI MODIFY_NS = URI.create("http://adaptivity.nl/ProcessEngine/activity");
+  public static final String MODIFY_NS_STR = "http://adaptivity.nl/ProcessEngine/activity";
+
+  public static final URI MODIFY_NS_URI = URI.create(MODIFY_NS_STR);
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
 
