@@ -1,17 +1,21 @@
 package nl.adaptivity.util.xml;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -21,11 +25,14 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import nl.adaptivity.util.activation.Sources;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import net.devrieze.util.StringUtil;
@@ -33,15 +40,37 @@ import net.devrieze.util.StringUtil;
 
 public class XmlUtil {
 
+  private static class NamespaceInfo {
+    String prefix;
+    String url;
+
+    public NamespaceInfo(String prefix, String url) {
+      this.prefix = prefix;
+      this.url = url;
+    }
+  }
+
   private XmlUtil() {}
 
   public static Document tryParseXml(final InputStream pInputStream) throws IOException {
+    return tryParseXml(new InputSource(pInputStream));
+  }
+
+  public static Document tryParseXml(final Reader pReader) throws IOException {
+    return tryParseXml(new InputSource(pReader));
+  }
+
+  public static Document tryParseXml(final String pString) throws IOException {
+    return tryParseXml(new StringReader(pString));
+  }
+
+  public static Document tryParseXml(final InputSource s) throws IOException {
     try {
       final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
       final DocumentBuilder db = dbf.newDocumentBuilder();
 
-      final Document d = db.parse(pInputStream);
+      final Document d = db.parse(s);
       return d;
     } catch (final SAXException e) {
       return null;
@@ -199,5 +228,76 @@ public class XmlUtil {
       }
     }
     return true;
+  }
+
+  public static void optimizeNamespaces(final Node pNode) {
+    if (pNode instanceof DocumentFragment) {
+      DocumentFragment df = (DocumentFragment) pNode;
+      for(Node child = df.getFirstChild(); child!=null; child=child.getNextSibling()) {
+        optimizeNamespaces(child);
+      }
+    } else if (pNode instanceof Element) {
+      Element e = (Element) pNode;
+      List<NamespaceInfo> namespaces = findUsedNamespaces(e);
+      stripUnusedNamespaces(e, namespaces);
+    }
+  }
+
+  private static void stripUnusedNamespaces(final Element pE, final List<NamespaceInfo> pNamespaces) {
+    NamedNodeMap attributes = pE.getAttributes();
+    for(int i= attributes.getLength()-1; i>=0; --i) {
+      Attr attr = (Attr) attributes.item(i);
+      if (XMLConstants.XMLNS_ATTRIBUTE.equals(attr.getName())) {
+        if (! containsNamespace(pNamespaces, attr.getValue(), null)) {
+          attributes.removeNamedItem(attr.getName());
+        }
+      } else if ()
+    }
+
+  }
+
+  private static List<NamespaceInfo> findUsedNamespaces(final Element pE) {
+    ArrayList<NamespaceInfo> found = new ArrayList<>();
+    findUsedNamespaces(pE, found);
+
+    return found;
+  }
+
+  private static void findUsedNamespaces(final Element pE, final List<NamespaceInfo> pFound) {
+    if (! (pE.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(pE.getNamespaceURI()))) {
+      if (!containsNamespace(pFound, pE.getNamespaceURI(), pE.getPrefix())) {
+        pFound.add(new NamespaceInfo(pE.getPrefix(), pE.getNamespaceURI()));
+      }
+    }
+    NamedNodeMap attributes = pE.getAttributes();
+    for(int i = 0; i<attributes.getLength(); ++i) {
+      Attr attr = (Attr) attributes.item(i);
+      if (XMLConstants.XMLNS_ATTRIBUTE.equals(attr.getPrefix())) {
+        if(!containsNamespace(pFound, attr.getValue(), attr.getLocalName())) {
+          pFound.add(new NamespaceInfo(attr.getPrefix(), attr.getNamespaceURI()));
+        }
+      } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(attr.getPrefix())&& XMLConstants.XMLNS_ATTRIBUTE.equals(attr.getLocalName())) {
+        if(!containsNamespace(pFound, attr.getValue(), null)) {
+          pFound.add(new NamespaceInfo(attr.getPrefix(), attr.getNamespaceURI()));
+        }
+      }
+    }
+    for(Node child = pE.getFirstChild(); child!=null; child=child.getNextSibling()) {
+      if (child instanceof Element) {
+        findUsedNamespaces((Element) child, pFound);
+      }
+    }
+  }
+
+  private static boolean containsNamespace(final List<NamespaceInfo> pFound, final String pNamespaceURI, String prefix) {
+    for(NamespaceInfo info: pFound) {
+      if (Objects.equals(info.url, pNamespaceURI)) {
+        if (prefix!=null && (info.prefix==null||XMLConstants.DEFAULT_NS_PREFIX.equals(info.prefix))) {
+          info.prefix=prefix;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 }
