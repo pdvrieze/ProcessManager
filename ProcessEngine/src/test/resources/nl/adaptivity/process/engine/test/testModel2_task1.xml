@@ -1,0 +1,17 @@
+<message  xmlns="http://adaptivity.nl/ProcessEngine/" type="application/soap+xml" endpoint="internal" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" url="/PEUserMessageHandler/internal">
+    <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+        <Body>
+            <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                <repliesParam>
+                    <endpointDescriptor xmlns="http://adaptivity.nl/jbi" endpointLocation="http://localhost/" endpointName="processEngine" serviceLocalName="processEngine" serviceNS=""/>
+                </repliesParam>
+                <taskParam>
+                    <task summary="Task Foo" owner="pdvrieze" remotehandle="1" instancehandle="0">
+                        <item name="lbl1" type="label" value="Please enter some info for task foo"/>
+                        <item label="Your name" name="user" type="text"/>
+                    </task>
+                </taskParam>
+            </umh:postTask>
+        </Body>
+    </Envelope:Envelope>
+</message>

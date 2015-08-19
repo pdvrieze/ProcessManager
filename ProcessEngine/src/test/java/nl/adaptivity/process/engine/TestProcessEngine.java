@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
 import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.Transaction;
@@ -17,10 +18,14 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
+import org.custommonkey.xmlunit.DetailedDiff;
+import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXB;
@@ -33,6 +38,7 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
@@ -57,6 +63,7 @@ public class TestProcessEngine {
 
 
     List<IXmlMessage> mMessages=new ArrayList<>();
+    private List<Handle<? extends ProcessNodeInstance>> mMessageNodes = new ArrayList<>();
 
     @Override
     public IXmlMessage createMessage(final IXmlMessage pMessage) {
@@ -82,6 +89,7 @@ public class TestProcessEngine {
         Sources.writeToResult(new StreamSource(new ByteArrayInputStream(out.toByteArray())), formattedResult, true);
         pMessage.setMessageBody(resultDocument.getDocumentElement());
         mMessages.add(pMessage);
+        mMessageNodes.add(new HProcessNodeInstance(pInstance.getHandle()));
         return true;
       } catch (XMLStreamException|TransformerException e) {
         throw new RuntimeException(e);
@@ -226,55 +234,28 @@ public class TestProcessEngine {
     }
   }
 
+  private Document getDocument(String name) {
+    try (InputStream in = getClass().getResourceAsStream("/nl/adaptivity/process/engine/test/"+name)) {
+      return getDocumentBuilder().parse(in);
+    } catch (Exception e) {
+      if (e instanceof  RuntimeException) { throw (RuntimeException) e; }
+      throw new RuntimeException(e);
+    }
+  }
+
   @Before
   public void beforeTest() {
     mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemTransactionedHandleMap<ProcessModelImpl>(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
   }
 
-  @Test
-  public void testExecuteSingleActivity() throws SQLException, IOException, SAXException, ParserConfigurationException {
-    XmlProcessModel xmlmodel = JAXB.unmarshal(getXml("testModel1.xml"), XmlProcessModel.class);
-    ProcessModelImpl model = new ProcessModelImpl(xmlmodel);
-    StubTransaction transaction = mStubTransactionFactory.startTransaction();
-    IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
-
-    HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
-
-    assertEquals(1, mStubMessageService.mMessages.size());
-
-    InputStream expected = getXml("testModel1_task1.xml");
-
-    IXmlMessage receivedMessage = mStubMessageService.mMessages.get(0);
+  private char[] jaxbToCharArray(final Object pObject) {
     char[] receivedChars;
     {
       CharArrayWriter caw = new CharArrayWriter();
-      JAXB.marshal(receivedMessage, caw);
+      JAXB.marshal(pObject, caw);
       receivedChars = caw.toCharArray();
     }
-
-    XMLUnit.setIgnoreWhitespace(true);
-    assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
-
-    ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
-    assertEquals(State.STARTED, processInstance.getState());
-
-    assertEquals(1, processInstance.getActive().size());
-    assertEquals(1, processInstance.getFinished().size());
-    ProcessNodeInstance finished = processInstance.getFinished().iterator().next();
-    assertTrue(finished.getNode() instanceof StartNodeImpl);
-    assertEquals("start", finished.getNode().getId());
-
-    assertEquals(0, processInstance.getResults().size());
-
-    ProcessNodeInstance taskNode = processInstance.getActive().iterator().next();
-    assertEquals(TaskState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
-
-    mProcessEngine.finishTask(transaction, taskNode, null, mPrincipal);
-    assertEquals(0, processInstance.getActive().size());
-    assertEquals(2, processInstance.getFinished().size());
-    assertEquals(1, processInstance.getResults().size());
-
-    assertEquals(State.FINISHED, processInstance.getState());
+    return receivedChars;
   }
 
   private static DocumentBuilder getDocumentBuilder() {
@@ -290,6 +271,102 @@ public class TestProcessEngine {
       }
     }
     return _documentBuilder;
+  }
+
+  @Test
+  public void testExecuteSingleActivity() throws SQLException, IOException, SAXException, ParserConfigurationException {
+    XmlProcessModel xmlmodel = JAXB.unmarshal(getXml("testModel1.xml"), XmlProcessModel.class);
+    ProcessModelImpl model = new ProcessModelImpl(xmlmodel);
+    StubTransaction transaction = mStubTransactionFactory.startTransaction();
+    IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
+
+    HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
+
+    assertEquals(1, mStubMessageService.mMessages.size());
+    assertEquals(1L, mStubMessageService.mMessageNodes.get(0).getHandle());
+
+    InputStream expected = getXml("testModel1_task1.xml");
+
+    char[] receivedChars = jaxbToCharArray(mStubMessageService.mMessages.get(0));
+
+    XMLUnit.setIgnoreWhitespace(true);
+    assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
+
+    ProcessInstance processInstance = mProcessEngine.getProcessInstance(transaction,instanceHandle ,mPrincipal);
+    assertEquals(State.STARTED, processInstance.getState());
+
+    assertEquals(1, processInstance.getActive().size());
+    assertEquals(1, processInstance.getFinished().size());
+    ProcessNodeInstance finished = processInstance.getFinished().iterator().next();
+    assertTrue(finished.getNode() instanceof StartNodeImpl);
+    assertEquals("start", finished.getNode().getId());
+
+    assertEquals(0, processInstance.getResults().size());
+
+    ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
+    assertEquals(TaskState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
+
+    assertEquals(TaskState.Complete, mProcessEngine.finishTask(transaction, taskNode, null, mPrincipal));
+    assertEquals(0, processInstance.getActive().size());
+    assertEquals(2, processInstance.getFinished().size());
+    assertEquals(1, processInstance.getResults().size());
+
+    assertEquals(State.FINISHED, processInstance.getState());
+  }
+
+  @Test
+  public void testGetDataFromTask() throws SQLException, IOException, SAXException, TransformerException {
+    XmlProcessModel xmlmodel = JAXB.unmarshal(getXml("testModel2.xml"), XmlProcessModel.class);
+    ProcessModelImpl model = new ProcessModelImpl(xmlmodel);
+    StubTransaction transaction = mStubTransactionFactory.startTransaction();
+    IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
+
+    HProcessInstance instanceHandle = mProcessEngine.startProcess(transaction, mPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null);
+
+    assertEquals(1, mStubMessageService.mMessages.size());
+
+    XMLUnit.setIgnoreWhitespace(true);
+    assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(jaxbToCharArray(mStubMessageService.mMessages.get(0))));
+    ProcessNodeInstance ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);// This should be 0 as it's the first activity
+
+
+    mStubMessageService.mMessages.clear(); // (Process the message)
+    assertEquals(0, ac1.getResults().size());
+    assertEquals(TaskState.Complete,mProcessEngine.finishTask(transaction, ac1, getDocument("testModel2_response1.xml"), mPrincipal));
+    assertEquals(2, ac1.getResults().size());
+    ProcessData result1 = ac1.getResults().get(0);
+    ProcessData result2 = ac1.getResults().get(1);
+    assertEquals("name", result1.getName());
+    assertEquals("Paul", XmlUtil.toString(result1.getNodeValue()));
+    assertEquals("user", result2.getName());
+    assertXMLSimilar(XmlUtil.tryParseXml("<user><fullname>Paul</fullname></user>"), toDocument(result2.getNodeValue()));
+    assertEquals("<user><fullname>Paul</fullname></user>", XmlUtil.toString(result2.getNodeValue()));
+
+    assertEquals(1, mStubMessageService.mMessages.size());
+    assertEquals(1L, mStubMessageService.mMessageNodes.get(0)); //We should have a new message with the new task (with the data)
+    ProcessNodeInstance ac2=mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
+
+    assertEquals(1, ac2.getDefines(transaction).size());
+
+
+    ProcessData define = ac2.getDefines(transaction).get(0);
+    assertEquals("mylabel", define.getName());
+    assertEquals("Paul", XmlUtil.toString(define.getNodeValue()));
+
+  }
+
+  private static void assertXMLSimilar(final Document pExpected, final Document pActual) {
+    Diff diff = XMLUnit.compareXML(pExpected, pActual);
+    DetailedDiff detailedDiff = new DetailedDiff(diff);
+    if(! detailedDiff.similar()) {
+      fail(detailedDiff.toString());
+    }
+  }
+
+  private static Document toDocument(final Node pNode) throws TransformerException {
+    Document result = getDocumentBuilder().newDocument();
+    Sources.writeToResult(new DOMSource(pNode), new DOMResult(result));
+    return result;
   }
 
 

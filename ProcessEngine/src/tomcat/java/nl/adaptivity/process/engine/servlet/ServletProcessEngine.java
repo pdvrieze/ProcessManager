@@ -214,7 +214,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         if (event.isStartElement()) {
           final StartElement se = event.asStartElement();
           final QName eName = se.getName();
-          if (Constants.MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
+          if (Constants.MODIFY_NS_STR.equals(eName.getNamespaceURI())) {
             @SuppressWarnings("unchecked")
             final Iterator<Attribute> attributes = se.getAttributes();
             if (eName.getLocalPart().equals("attribute")) {
@@ -246,7 +246,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           if (event instanceof Namespace) {
 
             final Namespace ns = (Namespace) event;
-            if (!ns.getNamespaceURI().equals(Constants.MODIFY_NS)) {
+            if (!ns.getNamespaceURI().equals(Constants.MODIFY_NS_STR)) {
               xew.add(event);
             }
           } else {

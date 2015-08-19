@@ -203,7 +203,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     setState(pTransaction, TaskState.Complete);
     for(IXmlResultType resultType: (Collection<? extends IXmlResultType>) getNode().getResults()) {
       aResults.add(resultType.apply(pResultPayload));
-    }
+    } //TODO ensure this is stored
   }
 
   @Override
