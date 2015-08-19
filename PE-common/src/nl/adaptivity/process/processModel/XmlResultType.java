@@ -103,7 +103,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
   public ProcessData apply(Node pPayload) {
     // TODO add support for variable and function resolvers.
     try {
-      Node resultNode = (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
+      // shortcircuit missing path
+      Node resultNode = (getPath()==null || ".".equals(getPath())) ? pPayload : (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
       ProcessData processData = new ProcessData(name, resultNode);
       if (content!=null && content.size()>0) {
         List<Node> result = PETransformer.create(processData).transform(content);

@@ -48,6 +48,7 @@ public class XPathHolder {
   }
 
   public XPathExpression getXPath() {
+    // TODO support a functionresolver
     if (path==null) {
       if (pathString==null) {
         path = SELF_PATH;
