@@ -19,6 +19,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -28,6 +30,8 @@ import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 
+import nl.adaptivity.process.processModel.XmlDefineType.Adapter;
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -57,25 +61,69 @@ import org.w3c.dom.NodeList;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "DefineType", propOrder = { "content" })
 @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
+@XmlJavaTypeAdapter(Adapter.class)
 public class XmlDefineType extends XPathHolder implements IXmlDefineType {
+
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "DefineType", propOrder = { "content" })
+  static class AdaptedDefine {
+    @XmlMixed
+    @XmlAnyElement(lax = true)
+    protected List<Object> content = new ArrayList<>();
+
+    @XmlAttribute(name="refnode")
+    protected String refNode;
+
+    @XmlAttribute(name="refname")
+    protected String refName;
+
+    @XmlAttribute(name="name", required = true)
+    protected String name;
+
+  }
+
+  static class Adapter extends XmlAdapter<AdaptedDefine, XmlDefineType> {
+
+    @Override
+    public XmlDefineType unmarshal(final AdaptedDefine v) throws Exception {
+      for(Object o: v.content) {
+        if (o instanceof Node) {
+          XmlUtil.optimizeNamespaces(o);
+        }
+      }
+      return new XmlDefineType(v.content, v.refNode, v.refName, v.name);
+    }
+
+    @Override
+    public AdaptedDefine marshal(final XmlDefineType v) throws Exception {
+      AdaptedDefine result = new AdaptedDefine();
+      result.content = v.content;
+      result.name = v.name;
+      result.refName = v.refName;
+      result.refNode = v.getRefNode();
+      return result;
+    }
+  }
 
   public static final String ELEMENTNAME = "define";
 
-  @XmlMixed
-  @XmlAnyElement(lax = true)
-  protected List<Object> content;
+  private List<Object> content;
 
-  @XmlAttribute(name="refnode")
-  protected String refNode;
+  private String refNode;
 
-  @XmlAttribute(name="refname")
-  protected String refName;
+  private String refName;
 
-  @XmlAttribute(name="name", required = true)
-  protected String name;
+  private String name;
+
+  public XmlDefineType() {}
+
+  public XmlDefineType(final List<Object> pContent, final String pRefNode, final String pRefName, final String pName) {
+    content = pContent;
+    refNode = pRefNode;
+    refName = pRefName;
+    name = pName;
+  }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.XmlImportType#getContent()
