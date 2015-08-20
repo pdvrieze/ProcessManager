@@ -10,6 +10,8 @@ package nl.adaptivity.process.processModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -77,7 +79,17 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
       ArrayList<Object> newContent = new ArrayList<>(v.content.size());
       for(Object o: v.content) {
         if (o instanceof Node) {
-          newContent.add(XmlUtil.cannonicallize((Node) o));
+          try {
+            newContent.add(XmlUtil.cannonicallize((Node) o));
+          } catch (Exception e) {
+            Logger.getAnonymousLogger().log(Level.WARNING, "Failure to cannonicalize node", e);
+            newContent.add(o);
+          }
+        } else if(o instanceof CharSequence) {
+          CharSequence s = (CharSequence) o;
+          if (! XmlUtil.isXmlWhitespace(s)) {
+            newContent.add(o);
+          }
         } else {
           newContent.add(o);
         }
