@@ -150,7 +150,7 @@ public class XmlUtil {
   /**
    * Return the next sibling that is an element.
    *
-   * @param pParent The reference element.
+   * @param pSibling The reference element.
    * @return The next element sibling, or <code>null</code> if there is none.
    */
   public static Element getNextSiblingElement(final Element pSibling) {
@@ -228,76 +228,5 @@ public class XmlUtil {
       }
     }
     return true;
-  }
-
-  public static void optimizeNamespaces(final Node pNode) {
-    if (pNode instanceof DocumentFragment) {
-      DocumentFragment df = (DocumentFragment) pNode;
-      for(Node child = df.getFirstChild(); child!=null; child=child.getNextSibling()) {
-        optimizeNamespaces(child);
-      }
-    } else if (pNode instanceof Element) {
-      Element e = (Element) pNode;
-      List<NamespaceInfo> namespaces = findUsedNamespaces(e);
-      stripUnusedNamespaces(e, namespaces);
-    }
-  }
-
-  private static void stripUnusedNamespaces(final Element pE, final List<NamespaceInfo> pNamespaces) {
-    NamedNodeMap attributes = pE.getAttributes();
-    for(int i= attributes.getLength()-1; i>=0; --i) {
-      Attr attr = (Attr) attributes.item(i);
-      if (XMLConstants.XMLNS_ATTRIBUTE.equals(attr.getName())) {
-        if (! containsNamespace(pNamespaces, attr.getValue(), null)) {
-          attributes.removeNamedItem(attr.getName());
-        }
-      } else if ()
-    }
-
-  }
-
-  private static List<NamespaceInfo> findUsedNamespaces(final Element pE) {
-    ArrayList<NamespaceInfo> found = new ArrayList<>();
-    findUsedNamespaces(pE, found);
-
-    return found;
-  }
-
-  private static void findUsedNamespaces(final Element pE, final List<NamespaceInfo> pFound) {
-    if (! (pE.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(pE.getNamespaceURI()))) {
-      if (!containsNamespace(pFound, pE.getNamespaceURI(), pE.getPrefix())) {
-        pFound.add(new NamespaceInfo(pE.getPrefix(), pE.getNamespaceURI()));
-      }
-    }
-    NamedNodeMap attributes = pE.getAttributes();
-    for(int i = 0; i<attributes.getLength(); ++i) {
-      Attr attr = (Attr) attributes.item(i);
-      if (XMLConstants.XMLNS_ATTRIBUTE.equals(attr.getPrefix())) {
-        if(!containsNamespace(pFound, attr.getValue(), attr.getLocalName())) {
-          pFound.add(new NamespaceInfo(attr.getPrefix(), attr.getNamespaceURI()));
-        }
-      } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(attr.getPrefix())&& XMLConstants.XMLNS_ATTRIBUTE.equals(attr.getLocalName())) {
-        if(!containsNamespace(pFound, attr.getValue(), null)) {
-          pFound.add(new NamespaceInfo(attr.getPrefix(), attr.getNamespaceURI()));
-        }
-      }
-    }
-    for(Node child = pE.getFirstChild(); child!=null; child=child.getNextSibling()) {
-      if (child instanceof Element) {
-        findUsedNamespaces((Element) child, pFound);
-      }
-    }
-  }
-
-  private static boolean containsNamespace(final List<NamespaceInfo> pFound, final String pNamespaceURI, String prefix) {
-    for(NamespaceInfo info: pFound) {
-      if (Objects.equals(info.url, pNamespaceURI)) {
-        if (prefix!=null && (info.prefix==null||XMLConstants.DEFAULT_NS_PREFIX.equals(info.prefix))) {
-          info.prefix=prefix;
-        }
-        return true;
-      }
-    }
-    return false;
   }
 }
