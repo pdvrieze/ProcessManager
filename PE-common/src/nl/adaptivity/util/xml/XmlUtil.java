@@ -219,6 +219,7 @@ public class XmlUtil {
     XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader xsr = xif.createXMLStreamReader(in);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    xof.setProperty("javax.xml.stream.isRepairingNamespaces", true);
     XMLStreamWriter xsw = xof.createXMLStreamWriter(out);
     Map<String, NamespaceInfo> collectedNS = new HashMap<>();
 
@@ -250,11 +251,16 @@ public class XmlUtil {
           {
             if (first) {
               NamespaceInfo namespaceInfo = collectedNS.get(xsr.getNamespaceURI());
+              if (XMLConstants.DEFAULT_NS_PREFIX.equals(xsr.getPrefix())) {
+                namespaceInfo.prefix="";
+              }
               if (namespaceInfo != null) {
-                xsw.writeStartElement(namespaceInfo.prefix, namespaceInfo.url, xsr.getLocalName());
+                xsw.setPrefix(namespaceInfo.prefix, namespaceInfo.url);
+                xsw.writeStartElement(namespaceInfo.prefix, xsr.getLocalName(), namespaceInfo.url);
               }
               first = false;
               for (NamespaceInfo ns : collectedNS.values()) {
+                xsw.setPrefix(ns.prefix, ns.url);
                 xsw.writeNamespace(ns.prefix, ns.url);
               }
             } else {
