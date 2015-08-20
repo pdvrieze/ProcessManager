@@ -33,6 +33,7 @@ idea {
 
 dependencies {
     compile project(':java-common')
+    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
     providedCompile project(':DarwinJavaApi')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
