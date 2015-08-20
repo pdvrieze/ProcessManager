@@ -205,7 +205,7 @@ public class XmlUtil {
     return out.toString();
   }
 
-  public static boolean isXmlWhitespace(String pData) {
+  public static boolean isXmlWhitespace(CharSequence pData) {
     for(int i=pData.length()-1; i>=0; --i) {
       final char c = pData.charAt(i);
       if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
@@ -251,12 +251,14 @@ public class XmlUtil {
           {
             if (first) {
               NamespaceInfo namespaceInfo = collectedNS.get(xsr.getNamespaceURI());
-              if (XMLConstants.DEFAULT_NS_PREFIX.equals(xsr.getPrefix())) {
-                namespaceInfo.prefix="";
-              }
               if (namespaceInfo != null) {
+                if (XMLConstants.DEFAULT_NS_PREFIX.equals(xsr.getPrefix())) {
+                  namespaceInfo.prefix="";
+                }
                 xsw.setPrefix(namespaceInfo.prefix, namespaceInfo.url);
                 xsw.writeStartElement(namespaceInfo.prefix, xsr.getLocalName(), namespaceInfo.url);
+              } else { // no namespace info (probably no namespace at all)
+                xsw.writeStartElement(xsr.getPrefix(), xsr.getLocalName(), xsr.getNamespaceURI());
               }
               first = false;
               for (NamespaceInfo ns : collectedNS.values()) {
