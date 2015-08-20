@@ -70,6 +70,11 @@ public class TestProcessEngine {
       return pMessage;
     }
 
+    public void clear() {
+      mMessageNodes.clear();
+      mMessages.clear();
+    }
+
     @Override
     public EndpointDescriptor getLocalEndpoint() {
       return mLocalEndpoint;
@@ -330,7 +335,7 @@ public class TestProcessEngine {
     ProcessNodeInstance ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);// This should be 0 as it's the first activity
 
 
-    mStubMessageService.mMessages.clear(); // (Process the message)
+    mStubMessageService.clear(); // (Process the message)
     assertEquals(0, ac1.getResults().size());
     assertEquals(TaskState.Complete,mProcessEngine.finishTask(transaction, ac1, getDocument("testModel2_response1.xml"), mPrincipal));
     assertEquals(2, ac1.getResults().size());
@@ -340,18 +345,19 @@ public class TestProcessEngine {
     assertEquals("Paul", XmlUtil.toString(result1.getNodeValue()));
     assertEquals("user", result2.getName());
     assertXMLSimilar(XmlUtil.tryParseXml("<user><fullname>Paul</fullname></user>"), toDocument(result2.getNodeValue()));
-    assertEquals("<user><fullname>Paul</fullname></user>", XmlUtil.toString(result2.getNodeValue()));
+    assertEquals("<user><fullname>Paul</fullname></user>", XmlUtil.toString(result2.getNodeValue()).trim());
 
     assertEquals(1, mStubMessageService.mMessages.size());
-    assertEquals(1L, mStubMessageService.mMessageNodes.get(0)); //We should have a new message with the new task (with the data)
+    assertEquals(2L, mStubMessageService.mMessageNodes.get(0).getHandle()); //We should have a new message with the new task (with the data)
     ProcessNodeInstance ac2=mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
 
-    assertEquals(1, ac2.getDefines(transaction).size());
+    List<ProcessData> ac2Defines = ac2.getDefines(transaction);
+    assertEquals(1, ac2Defines.size());
 
 
-    ProcessData define = ac2.getDefines(transaction).get(0);
+    ProcessData define = ac2Defines.get(0);
     assertEquals("mylabel", define.getName());
-    assertEquals("Paul", XmlUtil.toString(define.getNodeValue()));
+    assertEquals("Hi Paul. Welcome!", XmlUtil.toString(define.getNodeValue()));
 
   }
 
