@@ -12,13 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.xpath.XPathConstants;
@@ -63,6 +57,7 @@ import org.w3c.dom.NodeList;
  */
 @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
 @XmlJavaTypeAdapter(Adapter.class)
+
 public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @XmlAccessorType(XmlAccessType.FIELD)
@@ -81,18 +76,24 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     @XmlAttribute(name="name", required = true)
     protected String name;
 
+    @XmlAttribute
+    protected String path;
+
   }
 
   static class Adapter extends XmlAdapter<AdaptedDefine, XmlDefineType> {
 
     @Override
     public XmlDefineType unmarshal(final AdaptedDefine v) throws Exception {
+      ArrayList<Object> newContent = new ArrayList<>(v.content.size());
       for(Object o: v.content) {
         if (o instanceof Node) {
-          XmlUtil.optimizeNamespaces(o);
+          newContent.add(XmlUtil.cannonicallize((Node) o));
+        } else {
+          newContent.add(o);
         }
       }
-      return new XmlDefineType(v.content, v.refNode, v.refName, v.name);
+      return new XmlDefineType(v.path, newContent, v.refNode, v.refName, v.name);
     }
 
     @Override
@@ -118,7 +119,8 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   public XmlDefineType() {}
 
-  public XmlDefineType(final List<Object> pContent, final String pRefNode, final String pRefName, final String pName) {
+  public XmlDefineType(final String path, final List<Object> pContent, final String pRefNode, final String pRefName, final String pName) {
+    setPath(path);
     content = pContent;
     refNode = pRefNode;
     refName = pRefName;

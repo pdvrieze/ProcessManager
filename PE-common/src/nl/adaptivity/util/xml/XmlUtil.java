@@ -1,36 +1,20 @@
 package nl.adaptivity.util.xml;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.stream.*;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import nl.adaptivity.util.activation.Sources;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -47,6 +31,7 @@ public class XmlUtil {
     public NamespaceInfo(String prefix, String url) {
       this.prefix = prefix;
       this.url = url;
+
     }
   }
 
@@ -229,4 +214,127 @@ public class XmlUtil {
     }
     return true;
   }
+
+  public static void cannonicallize(Source in, Result out) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    XMLStreamReader xsr = xif.createXMLStreamReader(in);
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    XMLStreamWriter xsw = xof.createXMLStreamWriter(out);
+    Map<String, NamespaceInfo> collectedNS = new HashMap<>();
+
+    while (xsr.hasNext()) {
+      int type=xsr.next();
+      switch (type) {
+        case XMLStreamConstants.START_ELEMENT:
+//          if (xsr.getNamespaceCount()>0) {
+//            for(int i=0; i<xsr.getNamespaceCount(); ++i) {
+//              addNamespace(collectedNS, xsr.getNamespacePrefix(i), xsr.getNamespaceURI(i));
+//            }
+//          }
+          addNamespace(collectedNS, xsr.getPrefix(), xsr.getNamespaceURI());
+          for(int i=xsr.getAttributeCount()-1; i>=0; --i) {
+            addNamespace(collectedNS, xsr.getAttributePrefix(i), xsr.getAttributeNamespace(i));
+          }
+        default:
+          // ignore
+      }
+    }
+
+    xsr = xif.createXMLStreamReader(in);
+
+    boolean first = true;
+    while (xsr.hasNext()) {
+      int type = xsr.next();
+      switch (type) {
+        case XMLStreamConstants.START_ELEMENT:
+          {
+            if (first) {
+              NamespaceInfo namespaceInfo = collectedNS.get(xsr.getNamespaceURI());
+              if (namespaceInfo != null) {
+                xsw.writeStartElement(namespaceInfo.prefix, namespaceInfo.url, xsr.getLocalName());
+              }
+              first = false;
+              for (NamespaceInfo ns : collectedNS.values()) {
+                xsw.writeNamespace(ns.prefix, ns.url);
+              }
+            } else {
+              xsw.writeStartElement(xsr.getNamespaceURI(), xsr.getLocalName());
+            }
+            final int ac = xsr.getAttributeCount();
+            for (int i = 0; i<ac; ++i) {
+              xsw.writeAttribute(xsr.getAttributeNamespace(i),xsr.getAttributeLocalName(i), xsr.getAttributeValue(i));
+            }
+            break;
+          }
+        case XMLStreamConstants.ATTRIBUTE:
+          xsw.writeAttribute(xsr.getNamespaceURI(),xsr.getLocalName(), xsr.getText());
+          break;
+        case XMLStreamConstants.NAMESPACE:
+          break;
+        case XMLStreamConstants.END_ELEMENT:
+          xsw.writeEndElement();
+          break;
+        case XMLStreamConstants.CHARACTERS:
+        case XMLStreamConstants.SPACE:
+          xsw.writeCharacters(xsr.getTextCharacters(), xsr.getTextStart(), xsr.getTextLength());
+          break;
+        case XMLStreamConstants.CDATA:
+          xsw.writeCData(xsr.getText());
+          break;
+        case XMLStreamConstants.COMMENT:
+          xsw.writeComment(xsr.getText());
+          break;
+        case XMLStreamConstants.START_DOCUMENT:
+          xsw.writeStartDocument(xsr.getCharacterEncodingScheme(), xsr.getVersion());
+          break;
+        case XMLStreamConstants.END_DOCUMENT:
+          xsw.writeEndDocument();
+          break;
+        case XMLStreamConstants.PROCESSING_INSTRUCTION:
+          xsw.writeProcessingInstruction(xsr.getPITarget(), xsr.getPIData());
+          break;
+        case XMLStreamConstants.ENTITY_REFERENCE:
+          xsw.writeEntityRef(xsr.getLocalName());
+          break;
+        case XMLStreamConstants.DTD:
+          xsw.writeDTD(xsr.getText());
+          break;
+      }
+    }
+    xsw.close();
+    xsr.close();
+  }
+
+  public static Node cannonicallize(final Node pContent) throws ParserConfigurationException,
+          XMLStreamException {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder db = dbf.newDocumentBuilder();
+
+    if (pContent instanceof DocumentFragment) {
+      DocumentFragment df = (DocumentFragment) pContent;
+      DocumentFragment result = db.newDocument().createDocumentFragment();
+      DOMResult dr = new DOMResult(result);
+      for(Node child=df.getFirstChild(); child!=null; child=child.getNextSibling()) {
+        cannonicallize(new DOMSource(child), dr);
+      }
+      return result;
+    } else {
+      Document result = db.newDocument();
+      cannonicallize(new DOMSource(pContent), new DOMResult(result));
+      return result.getDocumentElement();
+    }
+  }
+
+  private static void addNamespace(final Map<String, NamespaceInfo> pCollectedNS, final String pPrefix, final String pNamespaceURI) {
+    if (! (pNamespaceURI==null || XMLConstants.NULL_NS_URI.equals(pNamespaceURI))) {
+      NamespaceInfo nsInfo = pCollectedNS.get(pNamespaceURI);
+      if (nsInfo==null) {
+        pCollectedNS.put(pNamespaceURI, new NamespaceInfo(pPrefix, pNamespaceURI));
+      } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(nsInfo.prefix)) {
+        nsInfo.prefix=pPrefix;
+      }
+    }
+  }
+
 }

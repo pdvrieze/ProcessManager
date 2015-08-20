@@ -18,9 +18,13 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
+import nl.adaptivity.process.processModel.XmlResultType.Adapter;
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Node;
 
 import nl.adaptivity.process.engine.PETransformer;
@@ -45,18 +49,62 @@ import nl.adaptivity.process.engine.ProcessData;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "ResultType")
-@XmlRootElement(name=XmlResultType.ELEMENTNAME)
+//@XmlAccessorType(XmlAccessType.NONE)
+//@XmlType(name = "ResultType")
+@XmlJavaTypeAdapter(Adapter.class)
 public class XmlResultType extends XPathHolder implements IXmlResultType {
+
+  @XmlRootElement(name=XmlResultType.ELEMENTNAME)
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "ResultType", propOrder = { "content" })
+  static class AdaptedResult {
+    @XmlMixed
+    @XmlAnyElement(lax = true)
+    protected List<Object> content = new ArrayList<>();
+
+    @XmlAttribute(name="name", required = true)
+    protected String name;
+
+    @XmlAttribute
+    protected String path;
+
+  }
+
+  static class Adapter extends XmlAdapter<AdaptedResult, XmlResultType> {
+
+    @Override
+    public XmlResultType unmarshal(final AdaptedResult v) throws Exception {
+      ArrayList<Object> newContent = new ArrayList<>(v.content.size());
+      for(Object o: v.content) {
+        if (o instanceof Node) {
+          newContent.add(XmlUtil.cannonicallize((Node) o));
+        } else {
+          newContent.add(o);
+        }
+      }
+      return new XmlResultType(v.name, v.path, newContent);
+    }
+
+    @Override
+    public AdaptedResult marshal(final XmlResultType v) throws Exception {
+      AdaptedResult result = new AdaptedResult();
+      result.name = v.name;
+      result.content = v.content;
+      return result;
+    }
+  }
 
   public static final String ELEMENTNAME = "result";
 
-  @XmlMixed
-  @XmlAnyElement(lax = true)
   private List<Object> content;
 
   private String name;
+
+  public XmlResultType(String name, final String pPath, List<Object> content) {
+    this.name=name;
+    this.content=content;
+    setPath(pPath);
+  }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
@@ -73,7 +121,6 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
    * @see nl.adaptivity.process.processModel.IXmlResultType#getName()
    */
   @Override
-  @XmlAttribute(required = true)
   public String getName() {
     return name;
   }
@@ -88,9 +135,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
 
   public static XmlResultType get(IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
-    XmlResultType result = new XmlResultType();
-    result.name = pImport.getName();
-    result.setPath(pImport.getPath());
+    XmlResultType result = new XmlResultType(pImport.getName(), pImport.getPath(), null);
     return result;
   }
 
