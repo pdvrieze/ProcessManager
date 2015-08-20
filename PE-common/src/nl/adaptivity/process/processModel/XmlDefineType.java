@@ -11,6 +11,8 @@ package nl.adaptivity.process.processModel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
@@ -55,11 +57,10 @@ import org.w3c.dom.NodeList;
  * &lt;/complexType>
  * </pre>
  */
-@XmlRootElement(name=XmlDefineType.ELEMENTNAME)
 @XmlJavaTypeAdapter(Adapter.class)
-
 public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
+  @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "DefineType", propOrder = { "content" })
   static class AdaptedDefine {
@@ -88,7 +89,12 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       ArrayList<Object> newContent = new ArrayList<>(v.content.size());
       for(Object o: v.content) {
         if (o instanceof Node) {
-          newContent.add(XmlUtil.cannonicallize((Node) o));
+          try {
+            newContent.add(XmlUtil.cannonicallize((Node) o));
+          } catch (Exception e) {
+            Logger.getAnonymousLogger().log(Level.WARNING, "Failure to cannonicalize node", e);
+            newContent.add(o);
+          }
         } else {
           newContent.add(o);
         }
