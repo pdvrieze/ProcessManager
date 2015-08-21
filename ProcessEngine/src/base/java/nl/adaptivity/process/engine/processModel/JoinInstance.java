@@ -88,7 +88,11 @@ public class JoinInstance extends ProcessNodeInstance {
         if (aComplete >= join.getMax()) {
           return true;
         }
-        return getProcessInstance().getActivePredecessorsFor(join).size() == 0;
+        try {
+          return getProcessInstance().getActivePredecessorsFor(pTransaction, join).size() == 0;
+        } catch (SQLException e) {
+          throw new RuntimeException(e);
+        }
       }
       return false;
     }

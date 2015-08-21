@@ -116,11 +116,11 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private final ProcessModelImpl aProcessModel;
 
-  private final Collection<ProcessNodeInstance> aThreads;
+  private final Collection<Handle<? extends ProcessNodeInstance>> aThreads;
 
-  private final Collection<ProcessNodeInstance> aFinishedNodes;
+  private final Collection<Handle<? extends ProcessNodeInstance>> aFinishedNodes;
 
-  private final Collection<ProcessNodeInstance> aEndResults;
+  private final Collection<Handle<? extends ProcessNodeInstance>> aEndResults;
 
   private HashMap<JoinImpl, JoinInstance> aJoins;
 
@@ -228,7 +228,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       // TODO mark and store results
       aState=State.FINISHED;
       aEngine.updateStorage(pTransaction, this);
-
+      pTransaction.commit();
       aEngine.finishInstance(pTransaction, this);
     }
   }
@@ -309,7 +309,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       throw new IllegalStateException("No starting nodes in process");
     }
     aInputs = aProcessModel.toInputs(pPayload);
-    for (final ProcessNodeInstance node : aThreads) {
+    for (final Handle<? extends ProcessNodeInstance> hnode : aThreads) {
+      ProcessNodeInstance node = getEngine().getNodeInstance(pTransaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
       provideTask(pTransaction, pMessageService, node);
     }
     aState = State.STARTED;
@@ -418,9 +419,11 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     pNode.cancelTask(pTransaction);
   }
 
-  public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(final JoinImpl pJoin) {
+  public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(Transaction pTransaction, final JoinImpl pJoin) throws
+          SQLException {
     final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<>(Math.min(pJoin.getPredecessors().size(), aThreads.size()));
-    for (final ProcessNodeInstance node : aThreads) {
+    for (final Handle<? extends ProcessNodeInstance> hnode : aThreads) {
+      ProcessNodeInstance node = getEngine().getNodeInstance(pTransaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
       if (node.getNode().isPredecessorOf(pJoin)) {
         activePredecesors.add(node);
       }
@@ -430,7 +433,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public synchronized Collection<? extends Handle<? extends ProcessNodeInstance>> getDirectSuccessors(Transaction pTransaction, final ProcessNodeInstance pPredecessor) throws SQLException {
     final ArrayList<Handle<? extends ProcessNodeInstance>> result = new ArrayList<>(pPredecessor.getNode().getSuccessors().size());
-    for (final ProcessNodeInstance candidate : aThreads) {
+    for (final Handle<? extends ProcessNodeInstance> hcandidate : aThreads) {
+      ProcessNodeInstance candidate = getEngine().getNodeInstance(pTransaction, hcandidate, SecurityProvider.SYSTEMPRINCIPAL);
       addDirectSuccessor(pTransaction, result, candidate, pPredecessor);
     }
     return result;
@@ -451,15 +455,15 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  public Collection<? extends ProcessNodeInstance> getActive() {
+  public Collection<? extends Handle<? extends ProcessNodeInstance>> getActive() {
     return aThreads;
   }
 
-  public Collection<? extends ProcessNodeInstance> getFinished() {
+  public Collection<? extends Handle<? extends ProcessNodeInstance>> getFinished() {
     return aFinishedNodes;
   }
 
-  public Collection<? extends ProcessNodeInstance> getResults() {
+  public Collection<? extends Handle<? extends ProcessNodeInstance>> getResults() {
     return aEndResults;
   }
 
@@ -495,35 +499,41 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
         pOut.writeEndElement();
       }
 
-      if (aThreads.size()>0) {
-        try {
-          pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
-          for(ProcessNodeInstance active: aThreads) {
-            writeActiveNodeRef(pOut, active);
+      try(Transaction transaction = getEngine().startTransaction()) {
+
+        if (aThreads.size() > 0) {
+          try {
+            pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
+            for (Handle<? extends ProcessNodeInstance> active : aThreads) {
+              writeActiveNodeRef(transaction, pOut, active);
+            }
+          } finally {
+            pOut.writeEndElement();
           }
-        } finally {
-          pOut.writeEndElement();
         }
-      }
-      if (aFinishedNodes.size()>0) {
-        try {
-          pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
-          for(ProcessNodeInstance finished: aFinishedNodes) {
-            writeActiveNodeRef(pOut, finished);
+        if (aFinishedNodes.size() > 0) {
+          try {
+            pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
+            for (Handle<? extends ProcessNodeInstance> finished : aFinishedNodes) {
+              writeActiveNodeRef(transaction, pOut, finished);
+            }
+          } finally {
+            pOut.writeEndElement();
           }
-        } finally {
-          pOut.writeEndElement();
         }
-      }
-      if (aEndResults.size()>0) {
-        try {
-          pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "endresults");
-          for(ProcessNodeInstance result: aEndResults) {
-            writeResultNodeRef(pOut, result);
+        if (aEndResults.size() > 0) {
+          try {
+            pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "endresults");
+            for (Handle<? extends ProcessNodeInstance> result : aEndResults) {
+              writeResultNodeRef(transaction, pOut, result);
+            }
+          } finally {
+            pOut.writeEndElement();
           }
-        } finally {
-          pOut.writeEndElement();
         }
+        transaction.commit();
+      } catch (SQLException e) {
+        throw new XMLStreamException(e);
       }
     } finally {
       pOut.writeEndElement();
@@ -531,7 +541,9 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   }
 
-  private static void writeActiveNodeRef(XMLStreamWriter pOut, ProcessNodeInstance pNodeInstance) throws XMLStreamException {
+  private void writeActiveNodeRef(Transaction pTransaction, XMLStreamWriter pOut, Handle<? extends ProcessNodeInstance> pHandleNodeInstance) throws
+          XMLStreamException, SQLException {
+    ProcessNodeInstance pNodeInstance = getEngine().getNodeInstance(pTransaction, pHandleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
     pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
     try {
       writeNodeRefCommon(pOut, pNodeInstance);
@@ -540,7 +552,9 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private static void writeResultNodeRef(XMLStreamWriter pOut, ProcessNodeInstance pNodeInstance) throws XMLStreamException {
+  private void writeResultNodeRef(Transaction pTransaction, XMLStreamWriter pOut, Handle<? extends ProcessNodeInstance> pHandleNodeInstance) throws
+          XMLStreamException, SQLException {
+    ProcessNodeInstance pNodeInstance = getEngine().getNodeInstance(pTransaction, pHandleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
     pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
     try {
       writeNodeRefCommon(pOut, pNodeInstance);
@@ -585,8 +599,10 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
    * @param pMessageService The message service to use for messenging.
    */
   public void tickle(Transaction pTransaction, IMessageService<?, ProcessNodeInstance> pMessageService) {
-    for(ProcessNodeInstance instance: aThreads) {
+    for(Handle<? extends ProcessNodeInstance> handle: aThreads) {
       try {
+        getEngine().tickleNode(pTransaction, handle);
+        ProcessNodeInstance instance = getEngine().getNodeInstance(pTransaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
         switch (instance.getState()) {
           case FailRetry:
           case Pending:
@@ -601,6 +617,13 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
         }
       } catch (SQLException e) {
         Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when tickling process instance", e);
+      }
+    }
+    if (aThreads.isEmpty()) {
+      try {
+        finish(pTransaction);
+      } catch (SQLException e) {
+        Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when trying to finish a process instance as result of tickling", e);
       }
     }
   }
