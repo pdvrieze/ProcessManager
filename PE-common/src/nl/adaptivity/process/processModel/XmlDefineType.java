@@ -61,7 +61,7 @@ import org.w3c.dom.NodeList;
 public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
-  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlAccessorType(XmlAccessType.NONE)
   @XmlType(name = "DefineType", propOrder = { "content" })
   static class AdaptedDefine {
     @XmlMixed
@@ -77,8 +77,16 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     @XmlAttribute(name="name", required = true)
     protected String name;
 
-    @XmlAttribute
-    protected String path;
+    @XmlAttribute(name="xpath")
+    protected String mPath;
+
+    // Compatibility attribute for reading old models
+    public String getPath() { return null; }
+
+    @XmlAttribute(name="path")
+    public void setPath(String path) {
+      this.mPath=path;
+    }
 
   }
 
@@ -99,7 +107,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
           newContent.add(o);
         }
       }
-      return new XmlDefineType(v.path, newContent, v.refNode, v.refName, v.name);
+      return new XmlDefineType(v.mPath, newContent, v.refNode, v.refName, v.name);
     }
 
     @Override
@@ -109,6 +117,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       result.name = v.name;
       result.refName = v.refName;
       result.refNode = v.getRefNode();
+      result.mPath = v.getPath();
       return result;
     }
   }
