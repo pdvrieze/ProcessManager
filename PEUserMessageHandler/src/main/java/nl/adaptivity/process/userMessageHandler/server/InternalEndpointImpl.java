@@ -87,10 +87,15 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
 
   @WebMethod
   public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask.class) final UserTask<?> pTask) {
-    pTask.setEndpoint(pEndPoint);
-    final boolean result = aService.postTask(XmlTask.get(pTask));
-    pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
-    return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
+    try {
+      pTask.setEndpoint(pEndPoint);
+      final boolean result = aService.postTask(XmlTask.get(pTask));
+      pTask.setState(TaskState.Acknowledged, pTask.getOwner()); // Only now mark as acknowledged
+      return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
+    } catch (Exception e) {
+      Logger.getAnonymousLogger().log(Level.WARNING, "Error posting task", e);
+      throw e;
+    }
   }
 
   @Override

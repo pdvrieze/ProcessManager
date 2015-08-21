@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletConfig;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -71,6 +73,9 @@ public class ExternalEndpoint implements GenericEndpoint {
   public Collection<XmlTask> getPendingTasks() throws SQLException {
     try (DBTransaction transaction = aService.newTransaction()) {
       return transaction.commit(aService.getPendingTasks(transaction));
+    } catch (Exception e) {
+      Logger.getAnonymousLogger().log(Level.WARNING, "Error retrieving tasks", e);
+      throw e;
     }
   }
 
@@ -85,6 +90,9 @@ public class ExternalEndpoint implements GenericEndpoint {
       if (result==null) { throw new FileNotFoundException(); }
       transaction.commit();
       return result;
+    } catch (Exception e) {
+      Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e);
+      throw e;
     }
   }
 
