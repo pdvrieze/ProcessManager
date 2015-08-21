@@ -32,8 +32,10 @@
     <orderEntry type="module" module-name="java-common" exported="" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
     <orderEntry type="library" exported="" name="servlet-api-2.5-6.1.5" level="project" />
+    <orderEntry type="library" exported="" name="woodstox-core-5.0.1" level="project" />
     <orderEntry type="library" exported="" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="stax2-api-3.1.4" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
   </component>
 </module>
