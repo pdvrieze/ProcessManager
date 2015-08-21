@@ -587,6 +587,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
     if (xmlpm != null) {
       final ProcessModelImpl processModel = xmlpm.toProcessModel();
+      processModel.setHandle(pHandle);
       if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
         throw new AssertionError("Process model sizes don't match");
       }
@@ -792,7 +793,10 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           final DataSource result = pFuture.get();
           try (DBTransaction transaction = aProcessEngine.startTransaction()) {
             ProcessNodeInstance inst = aProcessEngine.getNodeInstance(transaction, pHandle, SecurityProvider.SYSTEMPRINCIPAL);
-            inst.setState(transaction, TaskState.Sent);
+            assert inst.getState()==TaskState.Pending;
+            if (inst.getState()==TaskState.Pending) {
+              inst.setState(transaction, TaskState.Sent);
+            }
             transaction.commit();
           }
           try {
