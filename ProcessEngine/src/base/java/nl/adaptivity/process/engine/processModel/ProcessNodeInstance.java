@@ -85,6 +85,22 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     aState = pState;
   }
 
+  public <T extends Transaction> void tickle(final Transaction pTransaction, final IMessageService<?, ProcessNodeInstance> pMessageService) {
+    try {
+      switch (getState()) {
+        case FailRetry:
+        case Pending:
+          aProcessInstance.provideTask(pTransaction, pMessageService, this);
+          break;
+        default:
+          // ignore
+      }
+    } catch (SQLException e) {
+      Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when tickling process instance", e);
+    }
+
+  }
+
   public ProcessNodeImpl getNode() {
     return aNode;
   }
@@ -200,10 +216,10 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   @Override
   public void finishTask(Transaction pTransaction, final Node pResultPayload) throws SQLException {
-    setState(pTransaction, TaskState.Complete);
     for(IXmlResultType resultType: (Collection<? extends IXmlResultType>) getNode().getResults()) {
       aResults.add(resultType.apply(pResultPayload));
     } //TODO ensure this is stored
+    setState(pTransaction, TaskState.Complete);// This triggers a database store. So do it after setting the results
   }
 
   @Override

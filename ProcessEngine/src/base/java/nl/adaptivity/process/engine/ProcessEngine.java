@@ -339,14 +339,29 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   public boolean tickleInstance(Handle<? extends ProcessInstance> pHandle) {
     try (T transaction=startTransaction()) {
-      getInstances().invalidateCache(pHandle);
-      ProcessInstance instance = getInstances().get(transaction, pHandle);
-      if (instance==null) { return false; }
-      instance.tickle(transaction, mMessageService);
-      return true;
+      return tickleInstance(transaction, pHandle);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public boolean tickleInstance(final T pTransaction, final Handle<? extends ProcessInstance> pHandle) throws
+          SQLException {
+    getInstances().invalidateCache(pHandle);
+    ProcessInstance instance = getInstances().get(pTransaction, pHandle);
+    if (instance==null) { return false; }
+    instance.tickle(pTransaction, mMessageService);
+    return true;
+  }
+
+
+  public void tickleNode(final T pTransaction, final Handle<? extends ProcessNodeInstance> pHandle) throws SQLException {
+    getNodeInstances().invalidateCache(pHandle);
+    ProcessNodeInstance nodeInstance = getNodeInstances().get(pTransaction, pHandle);
+    for(Handle<? extends ProcessNodeInstance> hpredecessor: nodeInstance.getDirectPredecessors()) {
+      tickleNode(pTransaction, hpredecessor);
+    }
+    nodeInstance.tickle(pTransaction, mMessageService);
   }
 
   /**
@@ -506,11 +521,12 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   /**
    * This method is primarilly a convenience method for
-   * {@link #finishTask(DBTransaction, Handle, Node, Principal)}.
+   * {@link #finishTask(Transaction, Handle, Node, Principal)}.
+   *
    *
    * @param pHandle The handle to finish.
    * @param pResult The source that is parsed into DOM nodes and then passed on
-   *          to {@link #finishTask(DBTransaction, Handle, Node, Principal)}
+   *          to {@link #finishTask(Transaction, Handle, Node, Principal)}
    */
   public void finishedTask(T pTransaction, final Handle<ProcessNodeInstance> pHandle, final DataSource pResult, final Principal pUser) {
     InputSource result;

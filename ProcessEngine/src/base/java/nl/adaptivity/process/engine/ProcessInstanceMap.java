@@ -7,12 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-import javax.sql.DataSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,6 +31,35 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
 
 public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
+/*
+  private static class NodeInstanceData implements Comparable<NodeInstanceData> {
+    long handle;
+    long[] predecessors;
+
+    public NodeInstanceData(final long pHandle, final long[] pPredecessors) {
+      handle = pHandle;
+      predecessors = pPredecessors;
+    }
+
+    public NodeInstanceData(final long pHandle, final long pPredecessor) {
+      handle = pHandle;
+      predecessors = new long[] {pPredecessor};
+    }
+
+    public NodeInstanceData(final long pNodeHandle, final List<Long> pPredecessors) {
+      handle = pNodeHandle;
+      predecessors = new long[pPredecessors.size()];
+      for(int i=predecessors.length-1; i>=0; --i) {
+        predecessors[i] = pPredecessors.get(i).longValue();
+      }
+    }
+
+    @Override
+    public int compareTo(final NodeInstanceData o) {
+      return 0;
+    }
+  }
+*/
 
   public static final String TABLE_INSTANCES = "processinstances";
   public static final String TABLE_INSTANCEDATA = "instancedata";
@@ -54,7 +79,10 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     private static final String QUERY_GET_NODEINSTHANDLES_FROM_PROCINSTANCE = "SELECT "+ProcessNodeInstanceMap.COL_HANDLE+
     " FROM "+ProcessNodeInstanceMap.TABLE+
     " WHERE "+ProcessNodeInstanceMap.COL_HPROCESSINSTANCE +" = ? ;";
-//    AND "+
+
+    public static final List<CharSequence> STORE_COLUMNS = Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER, COL_STATE, COL_UUID);
+    public static final List<CharSequence> STORE_PARAMS = Arrays.<CharSequence>asList("?", "?", "?", "?", "?");
+    //    AND "+
 //    ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );";
     private int aColNoHandle;
     private int aColNoOwner;
@@ -187,7 +215,18 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
         statement.setLong(1, pHandle);
         statement.executeUpdate();
       }
-      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE+"` where `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?;")) {
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_PREDECESSORS+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
+                                                                              "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      }
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE_NODEDATA+"` where `"+ ProcessNodeInstanceMap.COL_HANDLE+
+                                                                              "` in (SELECT `"+ProcessNodeInstanceMap.COL_HANDLE+"` FROM `"+ ProcessNodeInstanceMap.TABLE+"` WHERE `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?);")) {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      }
+
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+ProcessNodeInstanceMap.TABLE+"` where `"+ ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+"` = ?;")) {
         statement.setLong(1, pHandle);
         statement.executeUpdate();
       }
@@ -245,12 +284,12 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public List<CharSequence> getStoreColumns() {
-      return Arrays.<CharSequence>asList(COL_HPROCESSMODEL, COL_NAME, COL_OWNER, COL_STATE, COL_UUID);
+      return STORE_COLUMNS;
     }
 
     @Override
     public List<CharSequence> getStoreParamHolders() {
-      return Arrays.<CharSequence>asList("?","?","?", "?", "?");
+      return STORE_PARAMS;
     }
 
     @Override
