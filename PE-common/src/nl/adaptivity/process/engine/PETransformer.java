@@ -277,7 +277,7 @@ public class PETransformer {
         case XMLEvent.DTD:
         case XMLEvent.START_ELEMENT:
         case XMLEvent.END_ELEMENT:
-          throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: "+event);
+          throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: "+event.getEventType());
         case XMLEvent.CDATA:
         case XMLEvent.CHARACTERS:
           result.append(event.asCharacters().getData());
