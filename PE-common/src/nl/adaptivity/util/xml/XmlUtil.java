@@ -35,6 +35,9 @@ public class XmlUtil {
     }
   }
 
+  public static final int OMIT_XMLDECL = 1;
+  private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
+
   private XmlUtil() {}
 
   public static Document tryParseXml(final InputStream pInputStream) throws IOException {
@@ -164,12 +167,15 @@ public class XmlUtil {
   }
 
   public static String toString(Node pValue) {
+    return toString(pValue, DEFAULT_FLAGS);
+  }
+  public static String toString(Node pValue, int flags) {
     StringWriter out =new StringWriter();
     try {
       final Transformer t = TransformerFactory
         .newInstance()
         .newTransformer();
-      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      configure(t, flags);
       t.transform(new DOMSource(pValue), new StreamResult(out));
     } catch (TransformerException e) {
       throw new RuntimeException(e);
@@ -178,12 +184,16 @@ public class XmlUtil {
   }
 
   public static String toString(NodeList pNodeList) {
+    return toString(pNodeList, DEFAULT_FLAGS);
+  }
+
+  public static String toString(final NodeList pNodeList, final int pFlags) {
     StringWriter out =new StringWriter();
     try {
       final Transformer t = TransformerFactory
         .newInstance()
         .newTransformer();
-      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      configure(t, pFlags);
       for(int i=0; i<pNodeList.getLength(); ++i) {
         t.transform(new DOMSource(pNodeList.item(i)), new StreamResult(out));
       }
@@ -194,8 +204,14 @@ public class XmlUtil {
   }
 
   public static String toString(XmlSerializable pSerializable) {
+    int flags = DEFAULT_FLAGS;
+    return toString(pSerializable, flags);
+  }
+
+  private static String toString(final XmlSerializable pSerializable, final int pFlags) {
     StringWriter out =new StringWriter();
     XMLOutputFactory factory = XMLOutputFactory.newInstance();
+    configure(factory, pFlags);
     try {
       XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
       pSerializable.serialize(serializer);
@@ -203,6 +219,16 @@ public class XmlUtil {
       throw new RuntimeException(e);
     }
     return out.toString();
+  }
+
+  private static void configure(final Transformer pTransformer, final int pFlags) {
+    if ((pFlags & OMIT_XMLDECL)!=0) {
+      pTransformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+    }
+  }
+
+  private static void configure(final XMLOutputFactory pFactory, final int pDEFAULT_FLAGS) {
+    // Nothing to configure for now
   }
 
   public static boolean isXmlWhitespace(CharSequence pData) {
@@ -219,7 +245,7 @@ public class XmlUtil {
     XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader xsr = xif.createXMLStreamReader(in);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    xof.setProperty("javax.xml.stream.isRepairingNamespaces", true);
+    xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
     XMLStreamWriter xsw = xof.createXMLStreamWriter(out);
     Map<String, NamespaceInfo> collectedNS = new HashMap<>();
 
