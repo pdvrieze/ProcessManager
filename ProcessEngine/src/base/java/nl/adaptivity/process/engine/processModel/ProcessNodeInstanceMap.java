@@ -18,6 +18,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.devrieze.util.TransactionFactory;
 import nl.adaptivity.process.engine.HProcessInstance;
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -155,9 +156,11 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
           if(statement.execute()) {
             try (ResultSet resultset = statement.getResultSet()){
               while(resultset.next()) {
+                String name = resultset.getString(1);
+                String data = resultset.getString(2);
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 dbf.setNamespaceAware(true);
-                Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader("<value>"+resultset.getString(1)+"</value>")));
+                Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader("<value>"+ data +"</value>")));
                 Node value;
                 if (doc.getDocumentElement().getChildNodes().getLength()==1) {
                   value = doc.getDocumentElement().getFirstChild();
@@ -167,7 +170,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
                     value.appendChild(n);
                   }
                 }
-                results.add(new ProcessData(resultset.getString(1), value));
+                results.add(new ProcessData(name, value));
               }
             } catch (SAXException | IOException | ParserConfigurationException e) {
               throw new RuntimeException(e);
@@ -221,38 +224,12 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public void postStore(DBTransaction pConnection, long pHandle, ProcessNodeInstance pOldValue, ProcessNodeInstance pElement) throws SQLException {
-      if (pOldValue!=null) { // update
-        try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-          statement.setLong(1, pHandle);
-          statement.executeUpdate();
-        }
-      }
-      // TODO allow for updating/storing node data
-      try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
-        final Collection<net.devrieze.util.HandleMap.Handle<? extends ProcessNodeInstance>> directPredecessors = pElement.getDirectPredecessors();
-        for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
-          statement.setLong(1, pHandle);
-          if (predecessor==null) {
-            statement.setNull(2, Types.BIGINT);
-          } else {
-            statement.setLong(2, predecessor.getHandle());
-          }
-          statement.addBatch();
-        }
-        statement.executeBatch();
-      }
+      ProcessNodeInstanceMap.postStore(pConnection, pHandle, pOldValue, pElement);
     }
 
     @Override
     public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
-      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-        statement.setLong(1, pHandle);
-        statement.executeUpdate();
-      }
-      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
-        statement.setLong(1, pHandle);
-        statement.executeUpdate();
-      }
+      ProcessNodeInstanceMap.preRemove(pConnection, pHandle);
     }
 
     @Override
@@ -294,6 +271,54 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       }
     }
 
+  }
+
+  static void postStore(final DBTransaction pConnection, final long pHandle, final ProcessNodeInstance pOldValue, final ProcessNodeInstance pElement) throws
+          SQLException {
+    if (pOldValue!=null) { // update
+      try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
+        statement.setLong(1, pHandle);
+        statement.executeUpdate();
+      }
+    }
+    // TODO allow for updating/storing node data
+    try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLE_PREDECESSORS+"` (`"+COL_HANDLE+"`,`"+COL_PREDECESSOR+"`) VALUES ( ?, ? );")) {
+      final Collection<Handle<? extends ProcessNodeInstance>> directPredecessors = pElement.getDirectPredecessors();
+      for(Handle<? extends ProcessNodeInstance> predecessor:directPredecessors) {
+        statement.setLong(1, pHandle);
+        if (predecessor==null) {
+          statement.setNull(2, Types.BIGINT);
+        } else {
+          statement.setLong(2, predecessor.getHandle());
+        }
+        statement.addBatch();
+      }
+      statement.executeBatch();
+    }
+
+    try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `" + TABLE_NODEDATA + "` (`" + COL_HANDLE + "`, `" + COL_NAME + "`, `" + COL_DATA + "`) VALUES ( ?, ?, ?)" +
+                                                                              "ON DUPLICATE KEY UPDATE `" + COL_DATA + "` = VALUES(`"+COL_DATA+"`)")) {
+      for(ProcessData data: pElement.getResults()) {
+        statement.setLong(1, pHandle);
+        statement.setString(2, data.getName());
+        String value = XmlUtil.toString(data.getNodeValue(), XmlUtil.OMIT_XMLDECL);
+        statement.setString(3, value);
+
+        statement.addBatch();
+      }
+      statement.executeBatch();
+    }
+  }
+
+  static void preRemove(final DBTransaction pConnection, final long pHandle) throws SQLException {
+    try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;")) {
+      statement.setLong(1, pHandle);
+      statement.executeUpdate();
+    }
+    try (PreparedStatement statement = pConnection.prepareStatement("DELETE FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;")) {
+      statement.setLong(1, pHandle);
+      statement.executeUpdate();
+    }
   }
 
   public ProcessNodeInstanceMap(TransactionFactory pTransactionFactory, ProcessEngine pProcessEngine, StringCache pStringCache) {
