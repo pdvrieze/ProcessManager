@@ -102,6 +102,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
       AdaptedResult result = new AdaptedResult();
       result.name = v.name;
       result.content = v.content;
+      result.path = v.getPath();
       return result;
     }
   }
