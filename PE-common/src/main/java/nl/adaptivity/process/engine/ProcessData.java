@@ -1,7 +1,15 @@
 package nl.adaptivity.process.engine;
 
-import java.util.List;
+import net.devrieze.util.Named;
+import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
@@ -10,17 +18,12 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import net.devrieze.util.Named;
-import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
+@XmlJavaTypeAdapter(XmlSerializable.JAXBAdapter.class)
 /** Class to represent data attached to process instances. */
 public class ProcessData implements Named, XmlSerializable {
 
@@ -155,16 +158,25 @@ public class ProcessData implements Named, XmlSerializable {
 
   @Override
   public void serialize(XMLStreamWriter pOut) throws XMLStreamException {
-    pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "value");
+    if (pOut.getNamespaceContext().getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
+      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS_PREFIX, "value", Constants.PROCESS_ENGINE_NS);
+      pOut.writeNamespace(Constants.PROCESS_ENGINE_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
+    } else {
+      pOut.writeStartElement(Constants.PROCESS_ENGINE_NS, "value");
+    }
+    XMLStreamWriter out = XmlUtil.stripMetatags(pOut);
+
     try {
-      pOut.writeAttribute("name", mName);
-      if (! mIsNodeList) {
-        XmlUtil.serialize(pOut, new DOMSource(mValue));
+      out.writeAttribute("name", mName);
+      if (!mIsNodeList) {
+        XmlUtil.serialize(out, new DOMSource(mValue));
       } else if (mValue instanceof NodeList) {
-        serializeNodeList(pOut);
+        serializeNodeList(out);
       }
+    } catch (Exception e) {
+      Logger.getAnonymousLogger().log(Level.WARNING,"Error serializing children", e);
     } finally {
-      pOut.writeEndElement();
+      out.writeEndElement();
     }
   }
 
@@ -178,6 +190,22 @@ public class ProcessData implements Named, XmlSerializable {
 
       for(int i = 0; i<nodelist.getLength(); ++i) {
         transformer.transform(new DOMSource(nodelist.item(i)), new StAXResult(pOut));
+      }
+    } catch (TransformerException e) {
+      throw new XMLStreamException(e);
+    }
+  }
+
+  protected void serializeDocumentFragment2(XMLStreamWriter pOut) throws XMLStreamException {
+    DocumentFragment nodelist = (DocumentFragment) mValue;
+    try {
+      final Transformer transformer = TransformerFactory
+              .newInstance()
+              .newTransformer();
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+      for (Node n=nodelist.getFirstChild(); n!=null; n= nodelist.getNextSibling()) {
+        transformer.transform(new DOMSource(n), new StAXResult(pOut));
       }
     } catch (TransformerException e) {
       throw new XMLStreamException(e);

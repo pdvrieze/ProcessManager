@@ -18,6 +18,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import nl.adaptivity.process.engine.ProcessData;
 import org.w3c.dom.Node;
 
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -74,6 +75,7 @@ public class XmlProcessNodeInstance {
 
   @XmlAttribute(name = "nodeid")
   private String aNodeId;
+  private List<ProcessData> mResults;
 
   public XmlProcessNodeInstance() {}
 
@@ -218,6 +220,15 @@ public class XmlProcessNodeInstance {
 
   public String getNodeId() {
     return aNodeId;
+  }
+
+  public void setResults(final List<ProcessData> pResults) {
+    mResults = pResults;
+  }
+
+  @XmlElement(name = "result")
+  public List<ProcessData> getResults() {
+    return mResults;
   }
 
 }

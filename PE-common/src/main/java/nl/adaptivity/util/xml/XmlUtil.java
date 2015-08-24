@@ -35,6 +35,48 @@ public class XmlUtil {
     }
   }
 
+  private static class MetaStripper extends StreamWriterDelegate {
+
+    public MetaStripper(final XMLStreamWriter pWrapped) {
+      super(pWrapped);
+    }
+
+    @Override
+    public void writeProcessingInstruction(final String target) throws XMLStreamException {
+      /* Ignore */
+    }
+
+    @Override
+    public void writeProcessingInstruction(final String target, final String data) throws XMLStreamException {
+      /* Ignore */
+    }
+
+    @Override
+    public void writeDTD(final String dtd) throws XMLStreamException {
+      /* Ignore */
+    }
+
+    @Override
+    public void writeStartDocument() throws XMLStreamException {
+      /* Ignore */
+    }
+
+    @Override
+    public void writeStartDocument(final String version) throws XMLStreamException {
+      /* Ignore */
+    }
+
+    @Override
+    public void writeStartDocument(final String encoding, final String version) throws XMLStreamException {
+      /* Ignore */
+    }
+
+    @Override
+    public void writeEndDocument() throws XMLStreamException {
+      /* Ignore */
+    }
+  }
+
   public static final int OMIT_XMLDECL = 1;
   private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
 
@@ -157,10 +199,12 @@ public class XmlUtil {
   public static void serialize(XMLStreamWriter pOut, final Source source) throws TransformerFactoryConfigurationError,
       XMLStreamException {
     try {
-      TransformerFactory
-          .newInstance()
-          .newTransformer()
-          .transform(source, new StAXResult(pOut));
+      Transformer transformer = TransformerFactory
+              .newInstance()
+              .newTransformer();
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      transformer.transform(source, new StAXResult(pOut));
+
     } catch (TransformerException e) {
       throw new XMLStreamException(e);
     }
@@ -206,6 +250,10 @@ public class XmlUtil {
   public static String toString(XmlSerializable pSerializable) {
     int flags = DEFAULT_FLAGS;
     return toString(pSerializable, flags);
+  }
+
+  public static XMLStreamWriter stripMetatags(final XMLStreamWriter pOut) {
+    return new MetaStripper(pOut);
   }
 
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {

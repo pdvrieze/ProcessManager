@@ -10,6 +10,7 @@ public final class Constants {
   // TODO streamline this
 
   public static final String PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/";
+  public static final java.lang.String PROCESS_ENGINE_NS_PREFIX = "pe";
 
   public static final QName PESERVICE = new QName(PROCESS_ENGINE_NS, "ProcessEngine");
 
