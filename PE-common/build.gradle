@@ -15,9 +15,6 @@ description = 'A library with process engine support classes'
 
 sourceSets {
     main {
-        java {
-            srcDir 'src'
-        }
         compileClasspath += configurations.providedCompile
     }
     test.compileClasspath += configurations.providedCompile
