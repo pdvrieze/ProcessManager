@@ -274,9 +274,9 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   public XmlProcessNodeInstance toXmlNode(Transaction pTransaction) throws SQLException {
-    XmlProcessNodeInstance result = new XmlProcessNodeInstance();
-    result.setState(aState);
-    result.setHandle(aHandle);
+    XmlProcessNodeInstance xmlNodeInst = new XmlProcessNodeInstance();
+    xmlNodeInst.setState(aState);
+    xmlNodeInst.setHandle(aHandle);
 
     if (aNode instanceof Activity<?>) {
       Activity<?> act = (Activity<?>) aNode;
@@ -295,24 +295,27 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       final DOMResult transformResult = new DOMResult(document);
       try {
         instantiateXmlPlaceholders(pTransaction, source, transformResult);
-        result.setBody(new Body(document.getDocumentElement()));
+        xmlNodeInst.setBody(new Body(document.getDocumentElement()));
       } catch (XMLStreamException e) {
         getLogger().log(Level.WARNING, "Error processing body", e);
         throw new RuntimeException(e);
       }
     }
 
-    result.setProcessinstance(aProcessInstance.getHandle());
+    xmlNodeInst.setProcessinstance(aProcessInstance.getHandle());
 
-    result.setNodeId(aNode.getId());
+    xmlNodeInst.setNodeId(aNode.getId());
 
     if (aPredecessors!=null && aPredecessors.size()>0) {
-      List<Long> predecessors = result.getPredecessors();
+      List<Long> predecessors = xmlNodeInst.getPredecessors();
       for(Handle<? extends ProcessNodeInstance> h: aPredecessors) {
         predecessors.add(Long.valueOf(h.getHandle()));
       }
     }
-    return result;
+
+    xmlNodeInst.setResults(getResults());
+
+    return xmlNodeInst;
   }
 
 }
