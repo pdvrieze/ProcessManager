@@ -136,8 +136,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     private IXmlMessage aMessage;
 
-    private DBTransaction aTransaction;
-
     private InputStream aInputStream;
 
     public NewServletMessage(final IXmlMessage pMessage, final EndpointDescriptor pLocalEndPoint) {
@@ -412,7 +410,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final StreamResult result = new StreamResult(baos);
 
-        aNodeInstance.instantiateXmlPlaceholders(aTransaction, messageBody, result);
+        aNodeInstance.instantiateXmlPlaceholders(pTransaction, messageBody, result);
         aInputStream = new ByteArrayInputStream(baos.toByteArray());
 
       } catch (final FactoryConfigurationError e) {
