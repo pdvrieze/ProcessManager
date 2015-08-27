@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<processModel xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:soapenc="http://www.w3.org/2003/05/soap-encoding" owner="pdvrieze" name="testModel2" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
+<processModel xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:soapenc="http://www.w3.org/2003/05/soap-encoding" xmlns:umh="http://adaptivity.nl/userMessageHandler" owner="pdvrieze" name="testModel2" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
   <start id="start" x="NaN" y="NaN"/>
   <activity name="ac1" predecessor="start" id="ac1" x="NaN" y="NaN">
-    <result name="name" path="/result/value[@name='user']/text()"/>
+    <result name="name" path="/umh:result/umh:value[@name='user']/text()"/>
     <result name="user">
       <user xmlns=""
             xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity">
         <fullname>
-          <jbi:value xpath="/result/value[@name='user']/text()"/>
+          <jbi:value xpath="/umh:result/umh:value[@name='user']/text()"/>
         </fullname>
       </user>
     </result>
     <message type="application/soap+xml" endpoint="internal" operation="postTask" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" url="/PEUserMessageHandler/internal">
-      <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:umh="http://adaptivity.nl/userMessageHandler" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+      <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope" xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
         <Body>
           <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
             <repliesParam>
