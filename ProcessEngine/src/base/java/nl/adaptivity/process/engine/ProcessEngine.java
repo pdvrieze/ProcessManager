@@ -362,6 +362,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
       tickleNode(pTransaction, hpredecessor);
     }
     nodeInstance.tickle(pTransaction, mMessageService);
+    getNodeInstances().invalidateCache(pHandle);
   }
 
   /**
