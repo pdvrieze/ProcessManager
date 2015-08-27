@@ -602,19 +602,6 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     for(Handle<? extends ProcessNodeInstance> handle: aThreads) {
       try {
         getEngine().tickleNode(pTransaction, handle);
-        ProcessNodeInstance instance = getEngine().getNodeInstance(pTransaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
-        switch (instance.getState()) {
-          case FailRetry:
-          case Pending:
-            provideTask(pTransaction, pMessageService, instance);
-            break;
-          case Complete: {
-            startSuccessors(pTransaction, pMessageService, instance);
-            break;
-          }
-          default:
-            // ignore
-        }
       } catch (SQLException e) {
         Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when tickling process instance", e);
       }
