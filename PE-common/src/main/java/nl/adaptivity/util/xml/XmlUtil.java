@@ -82,6 +82,18 @@ public class XmlUtil {
 
   private XmlUtil() {}
 
+  public static Element createElement(final Document pDocument, final QName pOuterName) {
+    Element root;
+    if (XMLConstants.NULL_NS_URI.equals(pOuterName.getNamespaceURI()) || null== pOuterName.getNamespaceURI()) {
+      root = pDocument.createElement(pOuterName.getLocalPart());
+    } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(pOuterName.getPrefix())) {
+      root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getLocalPart());
+    } else {
+      root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getPrefix()+':'+ pOuterName.getLocalPart());
+    }
+    return root;
+  }
+
   public static Document tryParseXml(final InputStream pInputStream) throws IOException {
     return tryParseXml(new InputSource(pInputStream));
   }
@@ -254,6 +266,16 @@ public class XmlUtil {
 
   public static XMLStreamWriter stripMetatags(final XMLStreamWriter pOut) {
     return new MetaStripper(pOut);
+  }
+
+  public static void setAttribute(final Element pElement, final QName pName, final String pValue) {
+    if (pName.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(pName.getNamespaceURI())) {
+      pElement.setAttribute(pName.getLocalPart(), pValue);
+    } else if (pName.getPrefix()==null || XMLConstants.DEFAULT_NS_PREFIX.equals(pName.getPrefix())) {
+      pElement.setAttributeNS(pName.getNamespaceURI(),pName.getLocalPart(), pValue);
+    } else {
+      pElement.setAttributeNS(pName.getNamespaceURI(),pName.getPrefix()+':'+pName.getLocalPart(), pValue);
+    }
   }
 
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {
