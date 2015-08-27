@@ -26,6 +26,11 @@ public class SimpleNamespaceContext implements NamespaceContext {
     }
   }
 
+  public SimpleNamespaceContext(final String[] pPrefixes, final String[] pNamespaces) {
+    aPrefixes = pPrefixes.clone();
+    aNamespaces = pNamespaces.clone();
+  }
+
   @Override
   public String getNamespaceURI(final String prefix) {
     if (prefix==null) { throw new IllegalArgumentException(); }
