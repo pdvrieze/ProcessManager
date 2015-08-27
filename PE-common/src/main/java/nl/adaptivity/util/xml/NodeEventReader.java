@@ -52,12 +52,14 @@ public class NodeEventReader extends AbstractBufferedEventReader {
       }
       if (node==null) { node = mCurrent.getNextSibling(); }
       if (node==null) {
-        if (mCurrent.getNodeType()==Node.ELEMENT_NODE || mCurrent.getNodeType()==Node.DOCUMENT_NODE || mCurrent.getNodeType()==Node.DOCUMENT_FRAGMENT_NODE) {
+        if (mCurrent.getNodeType()==Node.ELEMENT_NODE || mCurrent.getNodeType()==Node.DOCUMENT_NODE) {
           // node without content
           add(createEndEvent(mCurrent));
           if (mCurrent.getNodeType()==Node.ELEMENT_NODE) {
             mNamespaceContext.pop();
           }
+        } else if (mCurrent.getNodeType()==Node.DOCUMENT_FRAGMENT_NODE) {
+          // ignore
         }
         Node parent = mCurrent.getParentNode();
         while (parent!=mGuardParent && parent!=null && node==null) {
@@ -94,6 +96,8 @@ public class NodeEventReader extends AbstractBufferedEventReader {
         return mXef.createEndElement(getPrefix(pNode), pNode.getNamespaceURI(), pNode.getLocalName());
       case Node.DOCUMENT_NODE:
         return mXef.createEndDocument();
+      case Node.DOCUMENT_FRAGMENT_NODE:
+        return null; // Ignore this
     }
     throw new UnsupportedOperationException("Not yet implemented");
   }
