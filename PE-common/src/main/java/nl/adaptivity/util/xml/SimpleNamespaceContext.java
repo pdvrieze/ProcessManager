@@ -27,8 +27,13 @@ public class SimpleNamespaceContext implements NamespaceContext {
   }
 
   public SimpleNamespaceContext(final String[] pPrefixes, final String[] pNamespaces) {
+    assert pPrefixes.length==pNamespaces.length;
     aPrefixes = pPrefixes.clone();
     aNamespaces = pNamespaces.clone();
+  }
+
+  public int size() {
+    return aPrefixes.length;
   }
 
   @Override
@@ -90,5 +95,13 @@ public class SimpleNamespaceContext implements NamespaceContext {
         }
         return Collections.unmodifiableList(result).iterator();
     }
+  }
+
+  public String getPrefix(final int pIndex) {
+    return aPrefixes[pIndex];
+  }
+
+  public String getNamespaceURI(final int pIndex) {
+    return aNamespaces[pIndex];
   }
 }

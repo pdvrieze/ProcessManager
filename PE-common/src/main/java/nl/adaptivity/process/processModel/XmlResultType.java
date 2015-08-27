@@ -8,30 +8,29 @@
 
 package nl.adaptivity.process.processModel;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import nl.adaptivity.process.engine.PETransformer;
+import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.process.processModel.XmlResultType.Adapter;
+import nl.adaptivity.process.processModel.XmlResultType.Factory;
+import nl.adaptivity.util.xml.*;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import nl.adaptivity.process.processModel.XmlResultType.Adapter;
-import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Node;
-
-import nl.adaptivity.process.engine.PETransformer;
-import nl.adaptivity.process.engine.ProcessData;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -55,7 +54,8 @@ import nl.adaptivity.process.engine.ProcessData;
 //@XmlAccessorType(XmlAccessType.NONE)
 //@XmlType(name = "ResultType")
 @XmlJavaTypeAdapter(Adapter.class)
-public class XmlResultType extends XPathHolder implements IXmlResultType {
+@XmlDeserializer(Factory.class)
+public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSerializable {
 
   @XmlRootElement(name=XmlResultType.ELEMENTNAME)
   @XmlAccessorType(XmlAccessType.FIELD)
@@ -70,7 +70,11 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
 
   }
 
-  public static class Adapter extends XmlAdapter<AdaptedResult, XmlResultType> {
+  public static class Adapter extends JAXBUnmarshallingAdapter {
+    public Adapter() { super(XmlResultType.class); }
+  }
+
+  public static class OldAdapter extends XmlAdapter<AdaptedResult, XmlResultType> {
 
     @Override
     public XmlResultType unmarshal(final AdaptedResult v) throws Exception {
@@ -106,8 +110,61 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
     }
   }
 
+  public static class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
+      if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { in.nextTag(); }
+      XmlResultType result = new XmlResultType();
+      Map<String, String> namespaceMap = new TreeMap<>();
+      for(int i=in.getAttributeCount()-1; i>=0;--i) {
+        String prefix = in.getAttributePrefix(i);
+        if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+          switch(in.getAttributeLocalName(i)) {
+            case "name":
+              result.name = in.getAttributeValue(i);
+              break;
+            case "path":
+            case "xpath":
+              result.setPath(in.getAttributeValue(i));
+              break;
+            case XMLConstants.XMLNS_ATTRIBUTE:
+              break;
+            default:
+              Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
+          }
+        } else if (! XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
+          Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
+        }
+      }
+
+      String path = result.getPath();
+      if (path!=null) {
+
+        for(int i = in.getNamespaceCount()-1; i>=0; --i) {
+          namespaceMap.put(in.getNamespacePrefix(i), in.getNamespaceURI(i));
+        }
+
+        try {
+          addXpathUsedPrefixes(namespaceMap, path, in.getNamespaceContext());
+        } catch (XPathExpressionException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      DocumentFragment documentFragment = XmlUtil.childrenToDocumentFragment(in, result);
+      result.content = Collections.<Object>singletonList(documentFragment);
+      if (namespaceMap.size()>0) {
+        result.setNamespaceContext(new SimpleNamespaceContext(namespaceMap));
+      }
+      return result;
+    }
+
+  }
+
   public static final String ELEMENTNAME = "result";
 
+  // TODO make this a documentfragment
   private List<Object> content;
 
   private String name;
@@ -119,6 +176,11 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
     this.content=content;
     setPath(pPath);
     setNamespaceContext(namespaceContext);
+  }
+
+  @Override
+  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+
   }
 
   /* (non-Javadoc)

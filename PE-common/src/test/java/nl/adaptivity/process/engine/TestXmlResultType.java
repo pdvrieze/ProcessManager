@@ -4,8 +4,11 @@ import net.devrieze.util.StringDataSource;
 import nl.adaptivity.process.processModel.XPathHolder;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.XmlResultType.AdaptedResult;
+import nl.adaptivity.process.processModel.XmlResultType.Adapter;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlSerializable.SimpleAdapter;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -120,19 +123,21 @@ public class TestXmlResultType {
 
 
   @Test
-  public void testXMLResultHolder() throws JAXBException, XMLStreamException {
+  public void testXMLResultHolder() throws Exception {
     String testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
-    JAXBContext context = JAXBContext.newInstance(XmlResultType.AdaptedResult.class);
+    JAXBContext context = JAXBContext.newInstance(SimpleAdapter.class);
     XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader in = xif.createXMLStreamReader(new StringReader(testData));
 
     Unmarshaller unmarshaller = context.createUnmarshaller();
-    AdaptedResult testHolder = unmarshaller.unmarshal(in, AdaptedResult.class).getValue();
+    Adapter adapter = new Adapter();
+    unmarshaller.setAdapter(adapter);
+    XmlResultType testHolder = (XmlResultType) adapter.unmarshal(unmarshaller.unmarshal(in, SimpleAdapter.class).getValue());
 
     assertNotNull(testHolder.getNamespaceContext());
     assertEquals(Constants.USER_MESSAGE_HANDLER_NS, testHolder.getNamespaceContext().getNamespaceURI("umh"));
     assertEquals(Constants.PROCESS_ENGINE_NS, testHolder.getNamespaceContext().getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX));
-    assertEquals("foo", testHolder.name);
+    assertEquals("foo", testHolder.getName());
   }
 
 }

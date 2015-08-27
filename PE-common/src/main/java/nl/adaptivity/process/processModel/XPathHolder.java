@@ -17,6 +17,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +46,40 @@ public class XPathHolder {
 
   public XPathHolder() {
     super();
+  }
+
+  public static void addXpathUsedPrefixes(final Map<String, String> pNamespaceMap, final String pPath, final NamespaceContext pNamespaceContext) throws
+          XPathExpressionException {
+    XPathFactory xpf = XPathFactory.newInstance();
+    XPath xpath = xpf.newXPath();
+    xpath.setNamespaceContext(new NamespaceContext() {
+      @Override
+      public String getNamespaceURI(final String prefix) {
+        String namespaceURI = pNamespaceContext.getNamespaceURI(prefix);
+        if (namespaceURI!=null) {
+          pNamespaceMap.put(prefix, namespaceURI);
+        }
+        return namespaceURI;
+      }
+
+      @Override
+      public String getPrefix(final String namespaceURI) {
+        String prefix = pNamespaceContext.getNamespaceURI(namespaceURI);
+        if (prefix!=null) {
+          pNamespaceMap.put(prefix, namespaceURI);
+        }
+        return prefix;
+      }
+
+      @Override
+      public Iterator<String> getPrefixes(final String namespaceURI) {
+        for(Iterator<String> it = pNamespaceContext.getPrefixes(namespaceURI); it.hasNext();) {
+          pNamespaceMap.put(it.next(), namespaceURI);
+        }
+        return pNamespaceContext.getPrefixes(namespaceURI);
+      }
+    });
+    xpath.compile(pPath);
   }
 
   @XmlAttribute(name="xpath")

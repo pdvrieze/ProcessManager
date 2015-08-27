@@ -9,12 +9,14 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
+import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamResult;
 
+import nl.adaptivity.process.processModel.XmlResultType;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -275,6 +277,39 @@ public class XmlUtil {
       pElement.setAttributeNS(pName.getNamespaceURI(),pName.getLocalPart(), pValue);
     } else {
       pElement.setAttributeNS(pName.getNamespaceURI(),pName.getPrefix()+':'+pName.getLocalPart(), pValue);
+    }
+  }
+
+  public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in, final XmlResultType pResult) throws XMLStreamException {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    Document doc = null;
+    try {
+      doc = dbf.newDocumentBuilder().newDocument();
+    } catch (ParserConfigurationException e) {
+      throw new XMLStreamException(e);
+    }
+
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    XMLEventReader xer = xif.createXMLEventReader(in);
+
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    DocumentFragment documentFragment = doc.createDocumentFragment();
+    XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
+
+    writeElement(xer, out);
+    return documentFragment;
+  }
+
+  public static void writeElement(final XMLEventReader pXer, final XMLEventWriter pOut) throws XMLStreamException {
+    while (pXer.hasNext()) {
+      XMLEvent next = pXer.nextEvent();
+      pOut.add(next);
+      if (next.isStartElement()) {
+        writeElement(pXer, pOut);
+      } else if (next.isEndElement()) {
+        break;
+      }
     }
   }
 
