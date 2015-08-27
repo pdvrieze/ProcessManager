@@ -6,6 +6,9 @@ import nl.adaptivity.process.engine.ProcessData;
 
 import org.w3c.dom.Node;
 
+import javax.xml.namespace.NamespaceContext;
+
+
 public interface IXmlResultType {
 
   List<Object> getContent();
@@ -40,4 +43,9 @@ public interface IXmlResultType {
 
   ProcessData apply(Node pPayload);
 
+  /**
+   * Get the namespace context for evaluating the xpath expression.
+   * @return the context
+   */
+  NamespaceContext getNamespaceContext();
 }

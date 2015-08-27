@@ -1,18 +1,38 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
+
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+// TODO make this actually work by not using JAXB to parse (but statically generated xml parsing instead)
 @XmlAccessorType(XmlAccessType.NONE)
 public class XPathHolder {
 
   private static final XPathExpression SELF_PATH;
   private XPathExpression path;
   private String pathString;
+  private NamespaceContext aNamespaceContext;
+  private volatile static MethodHandle _getContext;
+  private volatile static boolean _failedReflection = false;
+  private static MethodHandle _getAllDeclaredPrefixes;
+  private static MethodHandle _getNamespaceURI;
 
   static {
     try {
@@ -26,7 +46,7 @@ public class XPathHolder {
     super();
   }
 
-  @XmlAttribute
+  @XmlAttribute(name="xpath")
   public String getPath() {
     return pathString;
   }
@@ -47,6 +67,22 @@ public class XPathHolder {
     }
   }
 
+  public NamespaceContext getNamespaceContext() {
+    return aNamespaceContext;
+  }
+
+  public void setNamespaceContext(NamespaceContext pNamespaceContext) {
+    aNamespaceContext = pNamespaceContext;
+  }
+
+  // Compatibility attribute for reading old models
+  @XmlAttribute(name="path")
+  String getPathAttr() { return null; }
+
+  void setPathAttr(String path) {
+    setPath(path);
+  }
+
   public XPathExpression getXPath() {
     // TODO support a functionresolver
     if (path==null) {
@@ -55,7 +91,11 @@ public class XPathHolder {
       } else {
         XPathFactory f = XPathFactory.newInstance();
         try {
-          path = f.newXPath().compile(pathString);
+          XPath xPath = f.newXPath();
+          if (aNamespaceContext!=null) {
+            xPath.setNamespaceContext(aNamespaceContext);
+          }
+          return xPath.compile(pathString);
         } catch (XPathExpressionException e) {
           throw new RuntimeException(e);
         }
@@ -64,4 +104,38 @@ public class XPathHolder {
     return path;
   }
 
+  void beforeUnmarshal(Unmarshaller unmarshaller, Object parent) {
+    if (_failedReflection) { return; }
+    Object context;
+    try {
+      if (_getContext==null) {
+        synchronized (getClass()) {
+          Lookup lookup = MethodHandles.lookup();
+          _getContext = lookup.unreflect(unmarshaller.getClass().getMethod("getContext"));
+          context = _getContext.invoke(unmarshaller);
+          _getAllDeclaredPrefixes = lookup.unreflect(context.getClass().getMethod("getAllDeclaredPrefixes"));
+          _getNamespaceURI = lookup.unreflect(context.getClass().getMethod("getNamespaceURI", String.class));
+
+        }
+      } else {
+        context = _getContext.invoke(unmarshaller);
+      }
+
+      if (context!=null) {
+        String[] prefixes = (String[]) _getAllDeclaredPrefixes.invoke(context);
+        if (prefixes != null && prefixes.length > 0) {
+          String[] namespaces = new String[prefixes.length];
+          for (int i = prefixes.length - 1; i >= 0; --i) {
+            namespaces[i] = (String) _getNamespaceURI.invoke(context, prefixes[i]);
+          }
+          aNamespaceContext = new SimpleNamespaceContext(prefixes, namespaces);
+        }
+      }
+
+    } catch (Throwable e) {
+      Logger.getAnonymousLogger().log(Level.FINE, "Could not retrieve namespace context from marshaller", e);
+      _failedReflection=true;
+    }
+
+  }
 }

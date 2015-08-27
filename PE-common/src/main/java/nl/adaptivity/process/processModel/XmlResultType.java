@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -59,20 +60,17 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
   @XmlRootElement(name=XmlResultType.ELEMENTNAME)
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "ResultType", propOrder = { "content" })
-  static class AdaptedResult {
+  public static class AdaptedResult extends XPathHolder {
     @XmlMixed
     @XmlAnyElement(lax = true)
-    protected List<Object> content = new ArrayList<>();
+    public List<Object> content = new ArrayList<>();
 
     @XmlAttribute(name="name", required = true)
-    protected String name;
-
-    @XmlAttribute
-    protected String path;
+    public String name;
 
   }
 
-  static class Adapter extends XmlAdapter<AdaptedResult, XmlResultType> {
+  public static class Adapter extends XmlAdapter<AdaptedResult, XmlResultType> {
 
     @Override
     public XmlResultType unmarshal(final AdaptedResult v) throws Exception {
@@ -94,7 +92,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
           newContent.add(o);
         }
       }
-      return new XmlResultType(v.name, v.path, newContent);
+      return new XmlResultType(v.name, v.getPath(), newContent, v.getNamespaceContext());
     }
 
     @Override
@@ -102,7 +100,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
       AdaptedResult result = new AdaptedResult();
       result.name = v.name;
       result.content = v.content;
-      result.path = v.getPath();
+      result.setPath(v.getPath());
+      result.setNamespaceContext(v.getNamespaceContext());
       return result;
     }
   }
@@ -113,10 +112,13 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
 
   private String name;
 
-  public XmlResultType(String name, final String pPath, List<Object> content) {
+  public XmlResultType() {}
+
+  public XmlResultType(String name, final String pPath, List<Object> content, NamespaceContext namespaceContext) {
     this.name=name;
     this.content=content;
     setPath(pPath);
+    setNamespaceContext(namespaceContext);
   }
 
   /* (non-Javadoc)
@@ -148,7 +150,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType {
 
   public static XmlResultType get(IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
-    XmlResultType result = new XmlResultType(pImport.getName(), pImport.getPath(), null);
+    XmlResultType result = new XmlResultType(pImport.getName(), pImport.getPath(), null, pImport.getNamespaceContext());
     return result;
   }
 

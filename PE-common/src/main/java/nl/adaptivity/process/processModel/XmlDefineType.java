@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -63,7 +64,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
   @XmlAccessorType(XmlAccessType.NONE)
   @XmlType(name = "DefineType", propOrder = { "content" })
-  static class AdaptedDefine {
+  static class AdaptedDefine  extends XPathHolder {
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content = new ArrayList<>();
@@ -76,17 +77,6 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
     @XmlAttribute(name="name", required = true)
     protected String name;
-
-    @XmlAttribute(name="xpath")
-    protected String mPath;
-
-    // Compatibility attribute for reading old models
-    public String getPath() { return null; }
-
-    @XmlAttribute(name="path")
-    public void setPath(String path) {
-      this.mPath=path;
-    }
 
   }
 
@@ -107,7 +97,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
           newContent.add(o);
         }
       }
-      return new XmlDefineType(v.mPath, newContent, v.refNode, v.refName, v.name);
+      return new XmlDefineType(v.getPath(), newContent, v.refNode, v.refName, v.name, v.getNamespaceContext());
     }
 
     @Override
@@ -117,7 +107,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       result.name = v.name;
       result.refName = v.refName;
       result.refNode = v.getRefNode();
-      result.mPath = v.getPath();
+      result.setPath(v.getPath());
       return result;
     }
   }
@@ -134,8 +124,9 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   public XmlDefineType() {}
 
-  public XmlDefineType(final String path, final List<Object> pContent, final String pRefNode, final String pRefName, final String pName) {
+  public XmlDefineType(final String path, final List<Object> pContent, final String pRefNode, final String pRefName, final String pName, final NamespaceContext pNamesapceContext) {
     setPath(path);
+    setNamespaceContext(pNamesapceContext);
     content = pContent;
     refNode = pRefNode;
     refName = pRefName;
