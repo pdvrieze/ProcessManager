@@ -149,10 +149,12 @@ public class XPathHolder {
       }
       for(Entry<String, String> entry: namespaceMap.entrySet()) {
         String prefix = entry.getKey();
+        String namespace = entry.getValue();
         if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-          out.writeDefaultNamespace(entry.getValue());
-        } else {
-          out.writeNamespace(prefix, entry.getValue());
+          out.writeDefaultNamespace(namespace);
+        } else if (! (XMLConstants.XML_NS_URI.equals(namespace)||
+                XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespace))){
+          out.writeNamespace(prefix, namespace);
         }
       }
     }

@@ -24,6 +24,8 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXResult;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.xpath.*;
 
 import java.util.*;
@@ -457,10 +459,21 @@ public class PETransformer {
   }
 
   public void transform(Source source, final Result result) throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newInstance();
-    final XMLOutputFactory xof = XMLOutputFactory.newInstance();
-    final XMLEventReader xer = createFilter(xif.createXMLStreamReader(Sources.toReader(source)));
-    final XMLEventWriter xew = xof.createXMLEventWriter(result);
+    final XMLEventReader xer;
+    if (source instanceof StAXSource) {
+      xer = createFilter(((StAXSource) source).getXMLStreamReader());
+    } else {
+      final XMLInputFactory xif = XMLInputFactory.newInstance();
+      xer = createFilter(xif.createXMLStreamReader(Sources.toReader(source)));
+    }
+
+    final XMLEventWriter xew;
+    if (result instanceof StAXResult) {
+      xew = ((StAXResult) result).getXMLEventWriter();
+    } else {
+      final XMLOutputFactory xof = XMLOutputFactory.newInstance();
+      xew = xof.createXMLEventWriter(result);
+    }
     xew.add(xer);
   }
 

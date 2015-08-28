@@ -1,7 +1,9 @@
 package nl.adaptivity.util.xml;
 
-import java.io.*;
-import java.util.*;
+import net.devrieze.util.StringUtil;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -9,6 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
+import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
@@ -16,12 +19,10 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamResult;
 
-import nl.adaptivity.process.processModel.XmlResultType;
-import org.w3c.dom.*;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import net.devrieze.util.StringUtil;
+import java.io.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class XmlUtil {
@@ -280,7 +281,7 @@ public class XmlUtil {
     }
   }
 
-  public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in, final XmlResultType pResult) throws XMLStreamException {
+  public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in) throws XMLStreamException {
     try {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
@@ -295,14 +296,16 @@ public class XmlUtil {
       XMLEventReader xer = xif.createXMLEventReader(in);
 
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
       DocumentFragment documentFragment = doc.createDocumentFragment();
       XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
+      XMLEventFactory xef = XMLEventFactory.newFactory();
 
       while (xer.hasNext() && (! xer.peek().isEndElement())) {
         XMLEvent event = xer.nextEvent();
         out.add(event);
         if (event.isStartElement()) {
-          writeElement(xer, out);
+          writeElement(xef, xer, out);
         }
       }
       return documentFragment;
@@ -312,13 +315,48 @@ public class XmlUtil {
     }
   }
 
-  public static void writeElement(final XMLEventReader pXer, final XMLEventWriter pOut) throws XMLStreamException {
-    while (pXer.hasNext()) {
-      XMLEvent event = pXer.nextEvent();
-      pOut.add(event);
-      if (event.isStartElement()) {
-        writeElement(pXer, pOut);
-      } else if (event.isEndElement()) {
+  public static char[] childrenToCharArray(final XMLStreamReader in) throws XMLStreamException {
+    try {
+      XMLInputFactory xif = XMLInputFactory.newFactory();
+      XMLEventReader xer = xif.createXMLEventReader(in);
+
+      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
+      CharArrayWriter caw = new CharArrayWriter();
+      XMLEventWriter out = xof.createXMLEventWriter(caw);
+      XMLEventFactory xef = XMLEventFactory.newFactory();
+
+      while (xer.hasNext() && (! xer.peek().isEndElement())) {
+        XMLEvent event = xer.nextEvent();
+        filterWriteEvent(xer, out, xef, event);
+      }
+      out.close();
+      return caw.toCharArray();
+    } catch (XMLStreamException | RuntimeException e) {
+      e.printStackTrace();
+      throw e;
+    }
+  }
+
+  private static void filterWriteEvent(final XMLEventReader pIn, final XMLEventWriter pOut, final XMLEventFactory pXef, final XMLEvent pEvent) throws
+          XMLStreamException {
+    if (pEvent.isStartElement()) {
+      pOut.add(filterStartElement(pXef, pEvent.asStartElement()));
+      writeElement(pXef, pIn, pOut);
+    } else {
+      pOut.add(pEvent);
+    }
+  }
+
+  private static StartElement filterStartElement(final XMLEventFactory pXef, final StartElement pEvent) {
+    return pXef.createStartElement(pEvent.getName(), pEvent.getAttributes(), Collections.emptyIterator());
+  }
+
+  private static void writeElement(final XMLEventFactory pXef, final XMLEventReader pIn, final XMLEventWriter pOut) throws XMLStreamException {
+    while (pIn.hasNext()) {
+      XMLEvent event = pIn.nextEvent();
+      filterWriteEvent(pIn, pOut, pXef, event);
+      if (event.isEndElement()) {
         break;
       }
     }

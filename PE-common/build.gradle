@@ -30,6 +30,7 @@ idea {
 
 dependencies {
     compile project(':java-common')
+    compile 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
     testCompile 'junit:junit:4.12'
     testCompile 'xmlunit:xmlunit:1.6'

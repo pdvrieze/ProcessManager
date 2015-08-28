@@ -68,7 +68,7 @@ public class TestXmlResultType {
   @Test
   public void testApplySimple() throws ParserConfigurationException, IOException, SAXException {
     Document testData = getDB().parse(new InputSource(new StringReader("<result><value name='user'>Paul</value></result>")));
-    XmlResultType xrt = new XmlResultType("user", "/result/value[@name='user']/text()", null, null);
+    XmlResultType xrt = new XmlResultType("user", "/result/value[@name='user']/text()", (char[]) null, null);
 
     ProcessData actual = xrt.apply(testData);
 
@@ -91,7 +91,7 @@ public class TestXmlResultType {
     assertEquals("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>",XmlUtil.toString(testData));
 
 
-    XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", null, null);
+    XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", (char[]) null, null);
 
     ProcessData expected = new ProcessData("user",getDB().newDocument().createTextNode("Paul"));
     ProcessData actual = xrt.apply(testData);

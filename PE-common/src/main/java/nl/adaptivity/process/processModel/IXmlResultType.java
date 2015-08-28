@@ -12,7 +12,7 @@ import javax.xml.namespace.NamespaceContext;
 
 public interface IXmlResultType {
 
-  DocumentFragment getContent();
+  char[] getContent();
 
   /**
    * Gets the value of the name property.

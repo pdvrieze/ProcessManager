@@ -2,7 +2,7 @@
 <processModel xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:soapenc="http://www.w3.org/2003/05/soap-encoding" xmlns:umh="http://adaptivity.nl/userMessageHandler" owner="pdvrieze" name="testModel2" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
   <start id="start" x="NaN" y="NaN"/>
   <activity name="ac1" predecessor="start" id="ac1" x="NaN" y="NaN">
-    <result name="name" path="/umh:result/umh:value[@name='user']/text()"/>
+    <result name="name" xpath="/umh:result/umh:value[@name='user']/text()"/>
     <result name="user">
       <user xmlns=""
             xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity">

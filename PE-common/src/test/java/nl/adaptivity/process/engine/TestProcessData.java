@@ -1,13 +1,15 @@
 package nl.adaptivity.process.engine;
 
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
-import org.custommonkey.xmlunit.XMLAssert;
+import org.custommonkey.xmlunit.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,18 +19,27 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.helpers.DefaultValidationEventHandler;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.dom.DOMResult;
 
 import java.io.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -45,6 +56,36 @@ public class TestProcessData {
     public boolean handleEvent(final ValidationEvent event) {
       Logger.getAnonymousLogger().log(Level.WARNING, "Error parsing jaxb", event);
       return false;
+    }
+  }
+
+  @XmlRootElement(name = "resultHolder")
+  @XmlAccessorType(XmlAccessType.PROPERTY)
+  private static class ResultTypeHolder {
+
+    @XmlElement(name="result", required=true)
+    private XmlResultType xmlResultType;
+
+    public ResultTypeHolder() {}
+
+    public ResultTypeHolder(final XmlResultType pXmlResultType) {
+      xmlResultType = pXmlResultType;
+    }
+  }
+
+  private class WhiteSpaceIgnoringListener implements DifferenceListener {
+
+    @Override
+    public int differenceFound(final Difference difference) {
+      if(DifferenceConstants.TEXT_VALUE_ID==difference.getId()) {
+        return 0;
+      }
+      return difference.getId();
+    }
+
+    @Override
+    public void skippedComparison(final Node control, final Node test) {
+
     }
   }
 
@@ -160,16 +201,75 @@ public class TestProcessData {
   }
 
   @Test
-  public void testRoundTripProcessModel1() throws IOException, SAXException {
+  public void testRoundTripProcessModel1_ac1_result1() throws IOException, SAXException, JAXBException {
     XmlProcessModel xpm;
     try (InputStream in = getDocument("testModel2.xml")) {
       xpm = JAXB.unmarshal(in, XmlProcessModel.class);
     }
-    CharArrayWriter caw = new CharArrayWriter();
-    JAXB.marshal(xpm, caw);
+    {
+      DOMResult result = new DOMResult(getDocumentBuilder().newDocument());
+      ProcessNodeImpl ac1 = xpm.getNodes().get(1);
+      assertEquals("ac1", ac1.getId());
+      List<? extends IXmlResultType> ac1Results = (List<? extends IXmlResultType>) ac1.getResults();
+      JAXB.marshal(new ResultTypeHolder((XmlResultType) ac1Results.get(0)), result);
+      String expected = "<result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
 
+      XMLUnit.setIgnoreWhitespace(true);
+      XMLUnit.setIgnoreAttributeOrder(true);
+      String actual = XmlUtil.toString(result.getNode().getFirstChild().getFirstChild());
+      Diff diff = new Diff(expected, actual);
+      try {
+        assertXMLEqual(new DetailedDiff(diff), true);
+      } catch (AssertionError e) {
+        try {
+          assertEquals(expected, actual);
+        } catch (AssertionError f) {
+          f.addSuppressed(e);
+          throw f;
+        }
+      }
+    }
+  }
 
-    XMLAssert.assertXMLEqual(new InputStreamReader(getDocument("testModel2.xml")), new CharArrayReader(caw.toCharArray()));
+  @Test
+  public void testRoundTripProcessModel1_ac1_result2() throws IOException, SAXException, JAXBException {
+    XmlProcessModel xpm;
+    try (InputStream in = getDocument("testModel2.xml")) {
+      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
+    }
+    {
+      DOMResult result = new DOMResult(getDocumentBuilder().newDocument());
+      ProcessNodeImpl ac1 = xpm.getNodes().get(1);
+      assertEquals("ac1", ac1.getId());
+      List<? extends IXmlResultType> ac1Results = (List<? extends IXmlResultType>) ac1.getResults();
+      JAXB.marshal(new ResultTypeHolder((XmlResultType) ac1Results.get(1)), result);
+      String expected = "<result name=\"user\"><user>" +
+              "<fullname>" +
+              "<jbi:value  xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+              "</fullname>" +
+              "</user>\n" +
+              "</result>";
+
+      XMLUnit.setIgnoreWhitespace(true);
+      XMLUnit.setIgnoreAttributeOrder(true);
+      Diff diff = new Diff(expected, XmlUtil.toString(result.getNode().getFirstChild().getFirstChild()));
+
+      assertXMLEqual(new DetailedDiff(diff), true);
+    }
+  }
+
+  @Test
+  public void testRoundTripProcessModel1() throws IOException, SAXException, JAXBException {
+    XmlProcessModel xpm;
+    try (InputStream in = getDocument("testModel2.xml")) {
+      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
+    }
+
+    {
+      CharArrayWriter caw = new CharArrayWriter();
+      JAXB.marshal(xpm, caw);
+      XMLAssert.assertXMLEqual(new InputStreamReader(getDocument("testModel2.xml")), new CharArrayReader(caw.toCharArray()));
+    }
   }
 
 }
