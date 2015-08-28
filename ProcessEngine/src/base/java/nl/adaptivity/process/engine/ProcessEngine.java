@@ -168,6 +168,18 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     mNodeInstanceMap = pProcessNodeInstances;
   }
 
+  public void invalidateModelCache(final Handle<? extends ProcessModelImpl> pHandle) {
+    mProcessModels.invalidateCache(pHandle);
+  }
+
+  public void invalidateInstanceCache(final Handle<? extends ProcessInstance> pHandle) {
+    mInstanceMap.invalidateCache(pHandle);
+  }
+
+  public void invalidateNodeCache(final Handle<? extends ProcessNodeInstance> pHandle) {
+    mNodeInstanceMap.invalidateCache(pHandle);
+  }
+
   static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, ProcessNodeInstance> pMessageService,
                                                                    TransactionFactory<T> pTransactionFactory,
                                                                    TransactionedHandleMap<ProcessModelImpl, T> pProcessModels,
@@ -437,7 +449,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   public void finishInstance(T pTransaction, final ProcessInstance pProcessInstance) throws SQLException {
     // TODO evict these nodes from the cache (not too bad to keep them though)
 //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
-//      getNodeInstances().invalidateCache(childNode);
+//      getNodeInstances().invalidateModelCache(childNode);
 //    }
     // TODO retain instance
     TransactionedHandleMap<ProcessInstance, T> instances = getInstances();

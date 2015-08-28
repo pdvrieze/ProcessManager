@@ -160,6 +160,11 @@ public class TestProcessEngine {
     }
 
     @Override
+    public T castOrGet(final StubTransaction pTransaction, final Handle<? extends T> pHandle) throws SQLException {
+      return get(pHandle);
+    }
+
+    @Override
     public T set(final StubTransaction pTransaction, final long pHandle, final T pValue) throws SQLException {
       return set(pHandle, pValue);
     }

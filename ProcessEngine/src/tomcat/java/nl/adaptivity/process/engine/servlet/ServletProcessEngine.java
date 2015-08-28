@@ -565,7 +565,9 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws FileNotFoundException {
     try (DBTransaction transaction = aProcessEngine.startTransaction()){
-      return transaction.commit(new XmlProcessModel(aProcessEngine.getProcessModel(transaction, Handles.<ProcessModelImpl>handle(pHandle), pUser)));
+      Handle<ProcessModelImpl> handle = Handles.<ProcessModelImpl>handle(pHandle);
+      aProcessEngine.invalidateModelCache(handle);
+      return transaction.commit(new XmlProcessModel(aProcessEngine.getProcessModel(transaction, handle, pUser)));
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     } catch (SQLException e) {
