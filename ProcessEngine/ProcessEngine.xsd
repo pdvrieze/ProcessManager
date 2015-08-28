@@ -144,7 +144,7 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="path" type="xsd:string" use="optional">
+        <xsd:attribute name="xpath" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>XPath query within the data to use as the actual value. This can be omitted in which
                     case
@@ -167,7 +167,7 @@
                 <xsd:documentation>Name to store the result as</xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-        <xsd:attribute name="path" type="xsd:string" use="optional">
+        <xsd:attribute name="xpath" type="xsd:string" use="optional">
             <xsd:annotation>
                 <xsd:documentation>XPath query within the data to use for result</xsd:documentation>
             </xsd:annotation>
