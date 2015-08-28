@@ -33,9 +33,9 @@
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" scope="PROVIDED" />
     <orderEntry type="module" module-name="java-common" exported="" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
+    <orderEntry type="library" exported="" name="stax2-api-3.1.4" level="project" />
     <orderEntry type="library" exported="" name="woodstox-core-5.0.1" level="project" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
-    <orderEntry type="library" exported="" name="stax2-api-3.1.4" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
     <orderEntry type="library" exported="" name="PE-diagram.PE-diagram-1.0.0" level="project" />
   </component>
