@@ -4,6 +4,7 @@ import java.util.List;
 
 import nl.adaptivity.process.engine.ProcessData;
 
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.NamespaceContext;
@@ -11,7 +12,7 @@ import javax.xml.namespace.NamespaceContext;
 
 public interface IXmlResultType {
 
-  List<Object> getContent();
+  DocumentFragment getContent();
 
   /**
    * Gets the value of the name property.

@@ -3,6 +3,7 @@ package nl.adaptivity.process.engine;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.AbstractBufferedEventReader;
+import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.util.xml.NodeEventReader;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Document;
@@ -12,6 +13,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,10 +24,8 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.*;
+
 import java.util.*;
 
 
@@ -38,13 +38,18 @@ public class PETransformer {
   public static class MyFilter extends AbstractBufferedEventReader {
 
     private PETransformerContext aContext;
-    private XMLEventReader aInput;
+    private final NamespaceContext aNamespaceContext;
+    private XMLStreamReader aStreamInput;
+    private XMLEventReader aEventInput;
     private XMLEventFactory aXef;
     private boolean mRemoveWhitespace;
 
-    public MyFilter(PETransformerContext pContext, XMLEventReader pInput, boolean pRemoveWhitespace) {
+    public MyFilter(PETransformerContext pContext, NamespaceContext pNamespaceContext, XMLStreamReader pInput, boolean pRemoveWhitespace) throws
+            XMLStreamException {
       aContext = pContext;
-      aInput = pInput;
+      aNamespaceContext = pNamespaceContext;
+      aStreamInput = pInput;
+      aEventInput = XMLInputFactory.newFactory().createXMLEventReader(aStreamInput);
       aXef = XMLEventFactory.newInstance();
       mRemoveWhitespace = pRemoveWhitespace;
     }
@@ -61,8 +66,8 @@ public class PETransformer {
       if (! isPeekBufferEmpty()) {
         return peekFirst();
       }
-      while(aInput.hasNext()) {
-        XMLEvent event = aInput.nextEvent();
+      while(aEventInput.hasNext()) {
+        XMLEvent event = aEventInput.nextEvent();
         if (event.isStartElement()) {
           return peekStartElement(event.asStartElement());
         } else if (event.isNamespace()){
@@ -94,7 +99,7 @@ public class PETransformer {
       if (Constants.MODIFY_NS_STR.toString().equals(pElement.getName().getNamespaceURI())) {
         String localname = pElement.getName().getLocalPart();
 
-        final Map<String, String> attributes = parseAttributes(aInput, pElement);
+        final Map<String, String> attributes = parseAttributes(aEventInput, pElement);
 
         switch (localname) {
           case "attribute":
@@ -142,7 +147,7 @@ public class PETransformer {
     }
 
     private void readEndTag(QName pName) throws XMLStreamException {
-      XMLEvent ev = aInput.nextTag();
+      XMLEvent ev = aEventInput.nextTag();
       if (! (ev.isEndElement() && ev.asEndElement().getName().equals(pName))) {
         throw new XMLStreamException("Unexpected tag found ("+ev+")when expecting an end tag for "+pName);
       }
@@ -172,7 +177,14 @@ public class PETransformer {
         return pXMLEvents;
       }
       // TODO add a function resolver
-      XPathExpression xpath = XPathFactory.newInstance().newXPath().compile(pXpath);
+      XPath rawPath = XPathFactory.newInstance().newXPath();
+      // Do this better
+      if (aNamespaceContext==null) {
+        rawPath.setNamespaceContext(aStreamInput.getNamespaceContext());
+      } else {
+        rawPath.setNamespaceContext(new CombiningNamespaceContext(aStreamInput.getNamespaceContext(), aNamespaceContext));
+      }
+      XPathExpression xpath = rawPath.compile(pXpath);
       ArrayList<XMLEvent> result = new ArrayList<>();
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); dbf.setNamespaceAware(true);
@@ -226,13 +238,15 @@ public class PETransformer {
 
     @Override
     public Object getProperty(String pName) throws IllegalArgumentException {
-      return aInput.getProperty(pName);
+      return aStreamInput.getProperty(pName);
     }
 
     @Override
     public void close() throws XMLStreamException {
-      aInput.close();
-      aInput = null;
+      aEventInput.close();
+      aStreamInput.close();
+      aEventInput = null;
+      aStreamInput = null;
       aContext = null;
       aXef = null;
       super.close();
@@ -277,7 +291,7 @@ public class PETransformer {
         case XMLEvent.DTD:
         case XMLEvent.START_ELEMENT:
         case XMLEvent.END_ELEMENT:
-          throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: "+event.getEventType());
+          throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: ("+event.getClass().getSimpleName()+") "+event.getEventType());
         case XMLEvent.CDATA:
         case XMLEvent.CHARACTERS:
           result.append(event.asCharacters().getData());
@@ -340,27 +354,48 @@ public class PETransformer {
   }
 
   private final PETransformerContext aContext;
+  private final NamespaceContext aNamespaceContext;
   private final boolean mRemoveWhitespace;
 
-  private PETransformer(PETransformerContext pContext, boolean pRemoveWhitespace) {
+  private PETransformer(PETransformerContext pContext, NamespaceContext pNamespaceContext, boolean pRemoveWhitespace) {
     aContext = pContext;
+    aNamespaceContext = pNamespaceContext;
     mRemoveWhitespace = pRemoveWhitespace;
   }
 
+  public static PETransformer create(NamespaceContext pNamespaceContext, boolean pRemoveWhitespace, ProcessData... pProcessData) {
+    return new PETransformer(new ProcessDataContext(pProcessData), pNamespaceContext, pRemoveWhitespace);
+  }
+
+  @Deprecated
   public static PETransformer create(boolean pRemoveWhitespace, ProcessData... pProcessData) {
-    return new PETransformer(new ProcessDataContext(pProcessData), pRemoveWhitespace);
+    return create(null, pRemoveWhitespace, pProcessData);
   }
 
+  public static PETransformer create(NamespaceContext pNamespaceContext, ProcessData... pProcessData) {
+    return create(pNamespaceContext, true, pProcessData);
+  }
+
+  @Deprecated
   public static PETransformer create(ProcessData... pProcessData) {
-    return create(true, pProcessData);
+    return create(null, true, pProcessData);
   }
 
+  @Deprecated
   public static PETransformer create(PETransformerContext pContext) {
     return create(pContext, true);
   }
 
+  public static PETransformer create(NamespaceContext pNamespaceContext, PETransformerContext pContext) {
+    return create(pContext, true);
+  }
+
   public static PETransformer create(PETransformerContext pContext, boolean pRemoveWhitespace) {
-    return new PETransformer(pContext, pRemoveWhitespace);
+    return create(null, pContext, pRemoveWhitespace);
+  }
+
+  public static PETransformer create(NamespaceContext pNamespaceContext, PETransformerContext pContext, boolean pRemoveWhitespace) {
+    return new PETransformer(pContext, pNamespaceContext, pRemoveWhitespace);
   }
 
   public List<Node> transform(List<? extends Object> pContent) {
@@ -424,13 +459,13 @@ public class PETransformer {
   public void transform(Source source, final Result result) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newInstance();
     final XMLOutputFactory xof = XMLOutputFactory.newInstance();
-    final XMLEventReader xer = createFilter(xif.createXMLEventReader(Sources.toReader(source)));
+    final XMLEventReader xer = createFilter(xif.createXMLStreamReader(Sources.toReader(source)));
     final XMLEventWriter xew = xof.createXMLEventWriter(result);
     xew.add(xer);
   }
 
-  private XMLEventReader createFilter(XMLEventReader pInput) {
-    return new MyFilter(aContext, pInput, mRemoveWhitespace);
+  private XMLEventReader createFilter(XMLStreamReader pInput) throws XMLStreamException {
+    return new MyFilter(aContext, aNamespaceContext, pInput, mRemoveWhitespace);
   }
 
   protected static List<XMLEvent> toEvents(ProcessData data) throws XMLStreamException {

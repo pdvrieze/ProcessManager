@@ -8,27 +8,28 @@
 
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.XmlResultType.Adapter;
 import nl.adaptivity.process.processModel.XmlResultType.Factory;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.annotation.*;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,57 +58,8 @@ import java.util.logging.Logger;
 @XmlDeserializer(Factory.class)
 public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSerializable {
 
-  @XmlRootElement(name=XmlResultType.ELEMENTNAME)
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "ResultType", propOrder = { "content" })
-  public static class AdaptedResult extends XPathHolder {
-    @XmlMixed
-    @XmlAnyElement(lax = true)
-    public List<Object> content = new ArrayList<>();
-
-    @XmlAttribute(name="name", required = true)
-    public String name;
-
-  }
-
   public static class Adapter extends JAXBUnmarshallingAdapter {
     public Adapter() { super(XmlResultType.class); }
-  }
-
-  public static class OldAdapter extends XmlAdapter<AdaptedResult, XmlResultType> {
-
-    @Override
-    public XmlResultType unmarshal(final AdaptedResult v) throws Exception {
-      ArrayList<Object> newContent = new ArrayList<>(v.content.size());
-      for(Object o: v.content) {
-        if (o instanceof Node) {
-          try {
-            newContent.add(XmlUtil.cannonicallize((Node) o));
-          } catch (Exception e) {
-            Logger.getAnonymousLogger().log(Level.WARNING, "Failure to cannonicalize node", e);
-            newContent.add(o);
-          }
-        } else if(o instanceof CharSequence) {
-          CharSequence s = (CharSequence) o;
-          if (! XmlUtil.isXmlWhitespace(s)) {
-            newContent.add(o);
-          }
-        } else {
-          newContent.add(o);
-        }
-      }
-      return new XmlResultType(v.name, v.getPath(), newContent, v.getNamespaceContext());
-    }
-
-    @Override
-    public AdaptedResult marshal(final XmlResultType v) throws Exception {
-      AdaptedResult result = new AdaptedResult();
-      result.name = v.name;
-      result.content = v.content;
-      result.setPath(v.getPath());
-      result.setNamespaceContext(v.getNamespaceContext());
-      return result;
-    }
   }
 
   public static class Factory implements XmlDeserializerFactory {
@@ -151,27 +103,102 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
           throw new RuntimeException(e);
         }
       }
+      while (in.getEventType()!=XMLStreamConstants.END_ELEMENT && in.hasNext()) {
+        switch (in.next()) {
+          case XMLStreamConstants.START_ELEMENT:
+            DocumentFragment documentFragment = XmlUtil.childrenToDocumentFragment(in, result);
+            result.content = documentFragment;
+            break;
+          default:
+        }
+      }
 
-      DocumentFragment documentFragment = XmlUtil.childrenToDocumentFragment(in, result);
-      result.content = Collections.<Object>singletonList(documentFragment);
+      if (result.content!=null) {
+        try {
+          addUsedPrefixes(in.getNamespaceContext(), namespaceMap, result.content);
+        } catch (XPathExpressionException e) {
+          throw new XMLStreamException(e);
+        }
+      }
+
+      if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
+        throw new RuntimeException("Missing end tag");
+      }
+
+
       if (namespaceMap.size()>0) {
         result.setNamespaceContext(new SimpleNamespaceContext(namespaceMap));
       }
       return result;
     }
 
+    private static void addUsedPrefixes(NamespaceContext pNamespaceContext, final Map<String, String> pCollectingMap, final Node pContent) throws
+            XPathExpressionException {
+      for(Node child=pContent.getFirstChild(); child!=null; child=child.getNextSibling()) {
+        if (child instanceof Element) {
+          Element elem = (Element) child;
+
+          String xpath = null;
+
+          Map<String,String> additionalPrefixes = new TreeMap<>();
+          NamedNodeMap attributes = elem.getAttributes();
+          for(int i=attributes.getLength()-1;i>=0; --i) {
+            Attr a = (Attr) attributes.item(i);
+            if (! (a.getNamespaceURI()==null ||
+                    XMLConstants.NULL_NS_URI.equals(a.getNamespaceURI())||
+                    a.getPrefix()==null ||
+                    XMLConstants.DEFAULT_NS_PREFIX.equals(a.getPrefix())||
+                    XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(a.getNamespaceURI())||
+                    XMLConstants.XML_NS_URI.equals(a.getNamespaceURI()))) {
+              pCollectingMap.put(a.getPrefix(), a.getNamespaceURI());
+            }
+            if (XMLConstants.XMLNS_ATTRIBUTE.equals(a.getPrefix())) {
+              additionalPrefixes.put(a.getLocalName(), a.getValue());
+            } else if (XMLConstants.XMLNS_ATTRIBUTE.equals(a.getName())) {
+              additionalPrefixes.put(XMLConstants.DEFAULT_NS_PREFIX, a.getValue());
+            } else if (Constants.MODIFY_NS_STR.equals(elem.getNamespaceURI())) {
+              if ("xpath".equals(a.getName())) {
+                xpath = a.getValue();
+              } else if (xpath!=null && "path".equals(a.getName())) {
+                xpath = a.getValue();
+              }
+            }
+          }
+
+          NamespaceContext newContext = additionalPrefixes.size()>0 ? new CombiningNamespaceContext(new SimpleNamespaceContext(additionalPrefixes), pNamespaceContext): pNamespaceContext;
+
+          if (! (elem.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(elem.getNamespaceURI()))) {
+            pCollectingMap.put(elem.getPrefix(), elem.getNamespaceURI());
+          }
+
+          if (xpath!=null) {
+            if (xpath.length()>1) {
+              try {
+                addXpathUsedPrefixes(pCollectingMap, xpath, newContext);
+              } catch (Exception e) {
+                Logger.getAnonymousLogger().log(Level.FINE, "Error with getting used namespaces from prefix", e);
+              }
+            }
+          }
+
+          addUsedPrefixes(newContext, pCollectingMap, elem);
+
+        }
+      }
+
+    }
+
   }
 
   public static final String ELEMENTNAME = "result";
 
-  // TODO make this a documentfragment
-  private List<Object> content;
+  private DocumentFragment content;
 
   private String name;
 
   public XmlResultType() {}
 
-  public XmlResultType(String name, final String pPath, List<Object> content, NamespaceContext namespaceContext) {
+  public XmlResultType(String name, final String pPath, DocumentFragment content, NamespaceContext namespaceContext) {
     this.name=name;
     this.content=content;
     setPath(pPath);
@@ -180,17 +207,32 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   @Override
   public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+    String prefix = out.getPrefix(Engine.NAMESPACE);
+    if (prefix==null && getNamespaceContext()!=null) {
+      prefix = getNamespaceContext().getPrefix(Engine.NAMESPACE);
+    }
+    if (prefix==null) {
+      prefix = Engine.NSPREFIX;
+    }
+    out.writeStartElement(prefix, ELEMENTNAME, nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE);
+    serializeAttributes(out);
+    if (content!=null && content.hasChildNodes()) {
+      XmlUtil.serialize(out, new DOMSource(content));
+    }
+  }
 
+  @Override
+  void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+    if (name!=null) {
+      out.writeAttribute("name", name);
+    }
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
-   */
+     * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
+     */
   @Override
-  public List<Object> getContent() {
-    if (content == null) {
-      content = new ArrayList<>();
-    }
+  public DocumentFragment getContent() {
     return this.content;
   }
 
@@ -228,8 +270,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
       // shortcircuit missing path
       Node resultNode = (getPath()==null || ".".equals(getPath())) ? pPayload : (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
       ProcessData processData = new ProcessData(name, resultNode);
-      if (content!=null && content.size()>0) {
-        List<Node> result = PETransformer.create(processData).transform(content);
+      if (content!=null && content.hasChildNodes()) {
+        DocumentFragment result = PETransformer.create(getNamespaceContext(), processData).transform(content);
         return new ProcessData(name, result);
       } else {
         return processData;

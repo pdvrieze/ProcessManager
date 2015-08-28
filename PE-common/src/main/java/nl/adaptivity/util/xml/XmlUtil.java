@@ -281,33 +281,44 @@ public class XmlUtil {
   }
 
   public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in, final XmlResultType pResult) throws XMLStreamException {
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    Document doc = null;
     try {
-      doc = dbf.newDocumentBuilder().newDocument();
-    } catch (ParserConfigurationException e) {
-      throw new XMLStreamException(e);
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+      Document doc = null;
+      try {
+        doc = dbf.newDocumentBuilder().newDocument();
+      } catch (ParserConfigurationException e) {
+        throw new XMLStreamException(e);
+      }
+
+      XMLInputFactory xif = XMLInputFactory.newFactory();
+      XMLEventReader xer = xif.createXMLEventReader(in);
+
+      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      DocumentFragment documentFragment = doc.createDocumentFragment();
+      XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
+
+      while (xer.hasNext() && (! xer.peek().isEndElement())) {
+        XMLEvent event = xer.nextEvent();
+        out.add(event);
+        if (event.isStartElement()) {
+          writeElement(xer, out);
+        }
+      }
+      return documentFragment;
+    } catch (XMLStreamException | RuntimeException e) {
+      e.printStackTrace();
+      throw e;
     }
-
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    XMLEventReader xer = xif.createXMLEventReader(in);
-
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    DocumentFragment documentFragment = doc.createDocumentFragment();
-    XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
-
-    writeElement(xer, out);
-    return documentFragment;
   }
 
   public static void writeElement(final XMLEventReader pXer, final XMLEventWriter pOut) throws XMLStreamException {
     while (pXer.hasNext()) {
-      XMLEvent next = pXer.nextEvent();
-      pOut.add(next);
-      if (next.isStartElement()) {
+      XMLEvent event = pXer.nextEvent();
+      pOut.add(event);
+      if (event.isStartElement()) {
         writeElement(pXer, pOut);
-      } else if (next.isEndElement()) {
+      } else if (event.isEndElement()) {
         break;
       }
     }

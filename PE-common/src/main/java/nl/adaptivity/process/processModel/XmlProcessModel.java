@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -73,14 +74,14 @@ public class XmlProcessModel {
   }
 
   public XmlProcessModel(final ProcessModel<? extends ProcessNodeImpl> m) {
-    nodes = CollectionUtil.copy(m.getModelNodes());
+    nodes = filter(CollectionUtil.<Object>copy(m.getModelNodes()), ProcessNodeImpl.class);
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
     roles = m.getRoles();
     uuid = m.getUuid();
   }
 
-  private List<? extends ProcessNodeImpl> nodes;
+  private List<ProcessNodeImpl> nodes;
 
   private UUID uuid;
 
@@ -110,7 +111,7 @@ public class XmlProcessModel {
    */
   public List<? extends ProcessNodeImpl> getNodes() {
     if (nodes == null) {
-      nodes = new ArrayList<>();
+      nodes = filter(new ArrayList<>(), ProcessNodeImpl.class);
     }
     return this.nodes;
   }
@@ -122,24 +123,23 @@ public class XmlProcessModel {
                    @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class),
                    @XmlElementRef(name = SplitImpl.ELEMENTNAME, type = SplitImpl.class)})
   public void setNodes(List<? extends ProcessNodeImpl> pNodes) {
-    final ArrayList<ProcessNodeImpl> tmp = new ArrayList<>();
-    nodes = tmp;
-    for(Object o: pNodes) {
-      if (o instanceof ProcessNodeImpl) {
-        tmp.add((ProcessNodeImpl)o);
-      }
-    }
+    nodes.clear();
+    nodes.addAll(pNodes);
   }
 
-  private static <T> List<T> filter(List<? extends T> source, Class<T> clazz) {
+  private static <T> List<T> filter(List<?> source, Class<T> clazz) {
     ListFilter<T> result = new ListFilter<>(clazz, true);
-    result.addAll(source);
+    result.addAllObjects(source);
     return result;
   }
 
   public ProcessModelImpl toProcessModel() {
     if (nodes instanceof ArrayList) {
-      nodes = filter(nodes, ProcessNodeImpl.class);
+      List<ProcessNodeImpl> filtered = filter(nodes, ProcessNodeImpl.class);
+      if (nodes.size()!=filtered.size()) {
+        nodes.clear();
+        nodes.addAll(filtered);
+      }
     }
     return new ProcessModelImpl(this);
   }

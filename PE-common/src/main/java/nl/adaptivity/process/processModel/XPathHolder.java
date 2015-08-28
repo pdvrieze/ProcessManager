@@ -2,11 +2,14 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -19,6 +22,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,16 +96,7 @@ public class XPathHolder {
     if (pathString!=null && pathString.equals(value)) { return; }
     path = null;
     pathString = value;
-    if (value==null) {
-      path = null;
-    } else {
-      XPathFactory f = XPathFactory.newInstance();
-      try {
-        path = f.newXPath().compile(value);
-      } catch (XPathExpressionException e) {
-        throw new RuntimeException(e);
-      }
-    }
+    assert value==null || getXPath()!=null;
   }
 
   public NamespaceContext getNamespaceContext() {
@@ -109,6 +105,7 @@ public class XPathHolder {
 
   public void setNamespaceContext(NamespaceContext pNamespaceContext) {
     aNamespaceContext = pNamespaceContext;
+    path = null; // invalidate the cached path expression
   }
 
   // Compatibility attribute for reading old models
@@ -131,13 +128,34 @@ public class XPathHolder {
           if (aNamespaceContext!=null) {
             xPath.setNamespaceContext(aNamespaceContext);
           }
-          return xPath.compile(pathString);
+          path = xPath.compile(pathString);
+          return path;
         } catch (XPathExpressionException e) {
           throw new RuntimeException(e);
         }
       }
     }
     return path;
+  }
+
+  void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+    if (pathString!=null) {
+      out.writeAttribute("xpath", pathString);
+      Map<String, String> namespaceMap = new TreeMap<>();
+      try {
+        addXpathUsedPrefixes(namespaceMap, pathString, aNamespaceContext);
+      } catch (XPathExpressionException e) {
+        throw new XMLStreamException(e);
+      }
+      for(Entry<String, String> entry: namespaceMap.entrySet()) {
+        String prefix = entry.getKey();
+        if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+          out.writeDefaultNamespace(entry.getValue());
+        } else {
+          out.writeNamespace(prefix, entry.getValue());
+        }
+      }
+    }
   }
 
   void beforeUnmarshal(Unmarshaller unmarshaller, Object parent) {

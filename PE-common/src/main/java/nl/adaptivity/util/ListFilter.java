@@ -1,7 +1,10 @@
 package nl.adaptivity.util;
 
+import net.devrieze.parser.eval.types.Array;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -28,12 +31,30 @@ public class ListFilter<T> extends AbstractList<T> {
   }
 
   @Override
-  public void add(int pIndex, T pElement) {
+  public void add(int pIndex, Object pElement) {
     if (mClass.isInstance(pElement)) {
-      mSource.add(pIndex, pElement);
+      mSource.add(pIndex, mClass.cast(pElement));
     } else if(! mLax) {
       mClass.cast(pElement);
     }
+  }
+
+  @Override
+  public boolean add(final Object elem) {
+    if (mClass.isInstance(elem)) {
+      return super.add(mClass.cast(elem));
+    } else {
+      return false;
+    }
+  }
+
+  public boolean addAllObjects(final Collection<?> c) {
+    boolean result = false;
+
+    if (mSource instanceof ArrayList) { ((ArrayList) mSource).ensureCapacity(mSource.size()+c.size()); }
+
+    for(Object elem: c) { result=add(elem) || result; }
+    return result;
   }
 
   @Override
