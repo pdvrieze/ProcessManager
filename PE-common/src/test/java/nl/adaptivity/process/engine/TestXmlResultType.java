@@ -1,19 +1,15 @@
 package nl.adaptivity.process.engine;
 
-import net.devrieze.util.StringDataSource;
 import nl.adaptivity.process.processModel.XPathHolder;
 import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.processModel.XmlResultType.AdaptedResult;
 import nl.adaptivity.process.processModel.XmlResultType.Adapter;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlSerializable.SimpleAdapter;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -27,7 +23,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -38,7 +33,6 @@ import java.io.StringReader;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.junit.Assert.*;
 
 

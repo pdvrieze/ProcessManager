@@ -33,6 +33,7 @@ dependencies {
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
     testCompile 'junit:junit:4.12'
     testCompile 'xmlunit:xmlunit:1.6'
+    testCompile project(':DarwinJavaApi')
     providedCompile project(':DarwinJavaApi')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
 }
