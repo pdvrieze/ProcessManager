@@ -219,6 +219,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   public void serialize(final XMLStreamWriter out) throws XMLStreamException {
     {
       String prefix = out.getPrefix(Engine.NAMESPACE);
+      boolean writeNS = prefix==null;
       if (prefix == null && getNamespaceContext() != null) {
         prefix = getNamespaceContext().getPrefix(Engine.NAMESPACE);
       }
@@ -226,6 +227,13 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
         prefix = Engine.NSPREFIX;
       }
       out.writeStartElement(prefix, ELEMENTNAME, nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE);
+      if (writeNS) {
+        if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+          out.writeDefaultNamespace(Engine.NAMESPACE);
+        } else {
+          out.writeNamespace(prefix, Engine.NAMESPACE);
+        }
+      }
     }
     serializeAttributes(out);
     if (content!=null && content.length>0) {

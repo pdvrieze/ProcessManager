@@ -1,7 +1,5 @@
 package nl.adaptivity.process.engine;
 
-import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.XmlResultType;
@@ -10,11 +8,12 @@ import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.custommonkey.xmlunit.*;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -23,26 +22,22 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.helpers.DefaultValidationEventHandler;
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.dom.DOMResult;
 
 import java.io.*;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 /**
@@ -269,6 +264,45 @@ public class TestProcessData {
       CharArrayWriter caw = new CharArrayWriter();
       JAXB.marshal(xpm, caw);
       XMLAssert.assertXMLEqual(new InputStreamReader(getDocument("testModel2.xml")), new CharArrayReader(caw.toCharArray()));
+    }
+  }
+
+  @Test
+  public void testSerializeResult1() throws IOException, SAXException, XMLStreamException {
+    XmlProcessModel xpm;
+    try (InputStream in = getDocument("testModel2.xml")) {
+      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
+    }
+
+    CharArrayWriter caw = new CharArrayWriter();
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    XMLStreamWriter xew = xof.createXMLStreamWriter(caw);
+    XmlResultType result = (XmlResultType) xpm.getNodes().get(1).getResults().iterator().next();
+    result.serialize(xew);
+    xew.close();
+    String control = "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>";
+    try {
+      XMLAssert.assertXMLEqual(control, caw.toString());
+    } catch (AssertionError e) {
+      assertEquals(control, caw.toString());
+    }
+  }
+
+  @Test
+  public void testJAXBMarshalResult1() throws IOException, SAXException {
+    XmlProcessModel xpm;
+    try (InputStream in = getDocument("testModel2.xml")) {
+      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
+    }
+
+    CharArrayWriter caw = new CharArrayWriter();
+    IXmlResultType result = xpm.getNodes().get(1).getResults().iterator().next();
+    JAXB.marshal(result, caw);
+    String control = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<xmlResultType xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xpath=\"/umh:result/umh:value[@name='user']/text()\" name=\"name\"/>";
+    try {
+      XMLAssert.assertXMLEqual(control, caw.toString());
+    } catch (AssertionError e) {
+      assertEquals(control, caw.toString());
     }
   }
 

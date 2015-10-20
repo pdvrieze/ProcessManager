@@ -61,7 +61,7 @@ public class XPathHolder {
       @Override
       public String getNamespaceURI(final String prefix) {
         String namespaceURI = pNamespaceContext.getNamespaceURI(prefix);
-        if (namespaceURI!=null) {
+        if (namespaceURI!=null && ! (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix))) {
           pNamespaceMap.put(prefix, namespaceURI);
         }
         return namespaceURI;
@@ -70,7 +70,7 @@ public class XPathHolder {
       @Override
       public String getPrefix(final String namespaceURI) {
         String prefix = pNamespaceContext.getNamespaceURI(namespaceURI);
-        if (prefix!=null) {
+        if (prefix!=null && ! (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI))) {
           pNamespaceMap.put(prefix, namespaceURI);
         }
         return prefix;
@@ -78,8 +78,10 @@ public class XPathHolder {
 
       @Override
       public Iterator<String> getPrefixes(final String namespaceURI) {
-        for(Iterator<String> it = pNamespaceContext.getPrefixes(namespaceURI); it.hasNext();) {
-          pNamespaceMap.put(it.next(), namespaceURI);
+        if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI)) {
+          for (Iterator<String> it = pNamespaceContext.getPrefixes(namespaceURI); it.hasNext(); ) {
+            pNamespaceMap.put(it.next(), namespaceURI);
+          }
         }
         return pNamespaceContext.getPrefixes(namespaceURI);
       }
