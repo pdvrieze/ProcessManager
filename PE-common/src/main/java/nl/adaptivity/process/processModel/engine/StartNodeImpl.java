@@ -1,25 +1,73 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.devrieze.util.Transaction;
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.XmlResultType;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
-import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlResultType;
+import java.util.ArrayList;
+import java.util.List;
 
 
+@XmlDeserializer(StartNodeImpl.Factory.class)
 @XmlRootElement(name = StartNodeImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl> {
+
+  public class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public StartNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return StartNodeImpl.deserialize(in);
+    }
+  }
+
+  public static StartNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
+    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && ELEMENTNAME.equals(in.getLocalName());
+
+    StartNodeImpl result = new StartNodeImpl();
+
+    for(int i=0; i<in.getAttributeCount(); ++i) {
+      switch (in.getAttributeLocalName(i)) {
+        default:
+          result.deserializeAttr(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+      }
+    }
+
+    int t;
+    while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
+      switch (t) {
+        case XMLStreamConstants.START_ELEMENT: {
+          if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+            switch (in.getLocalName()) {
+              case "import":
+                result.getResults().add(XmlResultType.deserialize(in)); break;
+            }
+          }
+        }
+
+        default:
+          XmlUtil.unhandledEvent(in);
+          break;
+      }
+    }
+    return result;
+  }
 
   public StartNodeImpl() {
   }

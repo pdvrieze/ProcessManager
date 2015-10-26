@@ -13,10 +13,8 @@ import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.XmlResultType.Adapter;
 import nl.adaptivity.process.processModel.XmlResultType.Factory;
-import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
 import org.codehaus.stax2.XMLOutputFactory2;
-import org.codehaus.stax2.io.Stax2Result;
 import org.w3c.dom.*;
 
 import javax.xml.XMLConstants;
@@ -72,69 +70,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
     @Override
     public XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
-      if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { in.nextTag(); }
-      XmlResultType result = new XmlResultType();
-      Map<String, String> namespaceMap = new TreeMap<>();
-      for(int i=in.getAttributeCount()-1; i>=0;--i) {
-        String prefix = in.getAttributePrefix(i);
-        if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-          switch(in.getAttributeLocalName(i)) {
-            case "name":
-              result.name = in.getAttributeValue(i);
-              break;
-            case "path":
-            case "xpath":
-              result.setPath(in.getAttributeValue(i));
-              break;
-            case XMLConstants.XMLNS_ATTRIBUTE:
-              break;
-            default:
-              Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
-          }
-        } else if (! XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
-          Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
-        }
-      }
-
-      String path = result.getPath();
-      if (path!=null) {
-
-        for(int i = in.getNamespaceCount()-1; i>=0; --i) {
-          namespaceMap.put(in.getNamespacePrefix(i), in.getNamespaceURI(i));
-        }
-
-        try {
-          addXpathUsedPrefixes(namespaceMap, path, in.getNamespaceContext());
-        } catch (XPathExpressionException e) {
-          throw new RuntimeException(e);
-        }
-      }
-      while (in.getEventType()!=XMLStreamConstants.END_ELEMENT && in.hasNext()) {
-        switch (in.next()) {
-          case XMLStreamConstants.START_ELEMENT:
-            result.content = XmlUtil.childrenToCharArray(in);
-            break;
-          default:
-        }
-      }
-
-      if (result.content!=null) {
-        try {
-          addUsedPrefixes(in.getNamespaceContext(), namespaceMap, result.content);
-        } catch (XPathExpressionException e) {
-          throw new XMLStreamException(e);
-        }
-      }
-
-      if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
-        throw new RuntimeException("Missing end tag");
-      }
-
-
-      if (namespaceMap.size()>0) {
-        result.setNamespaceContext(new SimpleNamespaceContext(namespaceMap));
-      }
-      return result;
+      return XmlResultType.deserialize(in);
     }
 
     private static void addUsedPrefixes(NamespaceContext pNamespaceContext, final Map<String, String> pCollectingMap, final char[] pContent) throws
@@ -150,8 +86,11 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
               String ns = xsr.getNamespaceURI();
               String prefix = xsr.getPrefix();
               String knownNS = pNamespaceContext.getNamespaceURI(prefix);
+              if (ns==null || XMLConstants.NULL_NS_URI.equals(ns)) {
+                ns = knownNS;
+              }
               if (! (ns==null || XMLConstants.NULL_NS_URI.equals(ns))) {
-                if(ns.equals(knownNS)) {
+                if (! pCollectingMap.containsKey(prefix)) {
                   pCollectingMap.put(prefix, ns);
                 }
               }
@@ -193,6 +132,68 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
     }
 
+  }
+
+  public static XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
+    if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { in.nextTag(); }
+    XmlResultType result = new XmlResultType();
+    Map<String, String> namespaceMap = new TreeMap<>();
+    for(int i=in.getAttributeCount()-1; i>=0;--i) {
+      String prefix = in.getAttributePrefix(i);
+      if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+        switch(in.getAttributeLocalName(i)) {
+          case "name":
+            result.name = in.getAttributeValue(i);
+            break;
+          case "path":
+          case "xpath":
+            result.setPath(in.getAttributeValue(i));
+            break;
+          case XMLConstants.XMLNS_ATTRIBUTE:
+            break;
+          default:
+            Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
+        }
+      } else if (! XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
+        Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
+      }
+    }
+
+    String path = result.getPath();
+    if (path!=null) {
+
+      try {
+        addXpathUsedPrefixes(namespaceMap, path, in.getNamespaceContext());
+      } catch (XPathExpressionException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    while (in.getEventType()!=XMLStreamConstants.END_ELEMENT && in.hasNext()) {
+      switch (in.next()) {
+        case XMLStreamConstants.START_ELEMENT:
+          result.content = XmlUtil.childrenToCharArray(in);
+          break;
+        default:
+      }
+    }
+
+    if (result.content!=null) {
+      try {
+        Factory.addUsedPrefixes(in.getNamespaceContext(), namespaceMap, result.content);
+      } catch (XPathExpressionException e) {
+        throw new XMLStreamException(e);
+      }
+    }
+
+    if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
+      throw new RuntimeException("Missing end tag");
+    }
+
+
+    if (namespaceMap.size()>0) {
+      result.setNamespaceContext(new SimpleNamespaceContext(namespaceMap));
+    }
+    return result;
   }
 
   public static final String ELEMENTNAME = "result";
@@ -283,9 +284,18 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     }
   }
 
+  @Override
+  protected void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext) {
+    try {
+      Factory.addUsedPrefixes(pNamespaceContext, pTarget, content);
+    } catch (XPathExpressionException | XMLStreamException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
-     */
+       * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
+       */
   @Override
   public char[] getContent() {
     return this.content;

@@ -1,31 +1,41 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 
+@XmlDeserializer(JoinImpl.Factory.class)
 @XmlRootElement(name = JoinImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
-public class JoinImpl extends
-JoinSplitImpl implements Join<ProcessNodeImpl> {
+public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
+
+  public class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public JoinImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return JoinImpl.deserialize(in);
+    }
+  }
+
+  public static JoinImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
 
   private static final long serialVersionUID = -8598245023280025173L;
 

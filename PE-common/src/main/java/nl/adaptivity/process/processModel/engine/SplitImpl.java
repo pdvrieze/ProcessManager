@@ -1,27 +1,38 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.util.Collections;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import java.util.Collections;
 
 
+@XmlDeserializer(SplitImpl.Factory.class)
 @XmlRootElement(name = SplitImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Split")
 public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
+
+  public class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public SplitImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return SplitImpl.deserialize(in);
+    }
+  }
+
+  public static SplitImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
 
   private static final long serialVersionUID = -8598245023280025173L;
 

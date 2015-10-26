@@ -1,11 +1,13 @@
 package nl.adaptivity.process.engine;
 
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.util.xml.XmlSerializable.SimpleAdapter;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.custommonkey.xmlunit.*;
 import org.junit.Before;
@@ -17,21 +19,24 @@ import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.xml.*;
+import javax.xml.XMLConstants;
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.dom.DOMResult;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,6 +81,26 @@ public class TestProcessData {
         return 0;
       }
       return difference.getId();
+    }
+
+    @Override
+    public void skippedComparison(final Node control, final Node test) {
+
+    }
+  }
+
+  private class NamespaceDeclIgnoringListener implements DifferenceListener {
+
+    @Override
+    public int differenceFound(final Difference difference) {
+      if (difference.getId()==DifferenceConstants.ATTR_NAME_NOT_FOUND_ID) {
+        if ((difference.getControlNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getControlNodeDetail().getNode().getNamespaceURI()))||
+                (difference.getTestNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getTestNodeDetail().getNode().getNamespaceURI()))){
+
+          return RETURN_IGNORE_DIFFERENCE_NODES_SIMILAR;
+        }
+      }
+      return RETURN_ACCEPT_DIFFERENCE;
     }
 
     @Override
@@ -254,7 +279,7 @@ public class TestProcessData {
   }
 
   @Test
-  public void testRoundTripProcessModel1() throws IOException, SAXException, JAXBException {
+  public void testJaxbRoundTripProcessModel1() throws IOException, SAXException, JAXBException {
     XmlProcessModel xpm;
     try (InputStream in = getDocument("testModel2.xml")) {
       xpm = JAXB.unmarshal(in, XmlProcessModel.class);
@@ -289,18 +314,49 @@ public class TestProcessData {
   }
 
   @Test
-  public void testJAXBMarshalResult1() throws IOException, SAXException {
+  public void testSerializeResult2() throws IOException, SAXException, XMLStreamException {
     XmlProcessModel xpm;
     try (InputStream in = getDocument("testModel2.xml")) {
       xpm = JAXB.unmarshal(in, XmlProcessModel.class);
     }
 
     CharArrayWriter caw = new CharArrayWriter();
-    IXmlResultType result = xpm.getNodes().get(1).getResults().iterator().next();
-    JAXB.marshal(result, caw);
-    String control = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<xmlResultType xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xpath=\"/umh:result/umh:value[@name='user']/text()\" name=\"name\"/>";
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    XMLStreamWriter xew = xof.createXMLStreamWriter(caw);
+    Iterator<? extends IXmlResultType> iterator = xpm.getNodes().get(1).getResults().iterator();
+    assertNotNull(iterator.next());
+    XmlResultType result = (XmlResultType) iterator.next();
+    result.serialize(xew);
+    xew.close();
+    String control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" " +
+            "xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><user><fullname><jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+            "        </fullname>\n" +
+            "      </user></result>";
     try {
       XMLAssert.assertXMLEqual(control, caw.toString());
+    } catch (AssertionError e) {
+      assertEquals(control, caw.toString());
+    }
+  }
+
+  @Test
+  public void testJAXBMarshalResult1() throws Exception {
+    XmlProcessModel xpm;
+    try (InputStream in = getDocument("testModel2.xml")) {
+      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
+    }
+
+    CharArrayWriter caw = new CharArrayWriter();
+    XmlResultType result = (XmlResultType) xpm.getNodes().get(1).getResults().iterator().next();
+    JAXBContext context = JAXBContext.newInstance(XmlResultType.class, SimpleAdapter.class);
+    Marshaller marshaller = context.createMarshaller();
+    XmlResultType.Adapter adapter = new XmlResultType.Adapter();
+    SimpleAdapter simpleAdaptedValue = adapter.marshal(result);
+    marshaller.marshal(new JAXBElement<SimpleAdapter>(new QName(Engine.NAMESPACE, "result", ""), SimpleAdapter.class, simpleAdaptedValue), caw);
+    String control = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xpath=\"/umh:result/umh:value[@name='user']/text()\" name=\"name\"/>";
+    try {
+      Diff diff = new Diff(control, caw.toString());
+      assertXMLEqual(null, diff, true);
     } catch (AssertionError e) {
       assertEquals(control, caw.toString());
     }

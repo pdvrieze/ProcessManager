@@ -1,40 +1,30 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.io.Serializable;
-import java.lang.reflect.Method;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
-import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-
+import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessModelXmlAdapter;
-import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlDefineType;
-import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.processModel.XmlProcessModel;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
-
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Node;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.security.Principal;
+import java.util.*;
 
 
 /**
@@ -44,6 +34,8 @@ import org.w3c.dom.Node;
  * @author Paul de Vrieze
  */
 @XmlJavaTypeAdapter(PMXmlAdapter.class)
+@XmlDeserializer(ProcessModelImpl.Factory.class)
+
 @SuppressWarnings("unused")
 public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
 
@@ -63,6 +55,59 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
 
   public enum Permissions implements SecurityProvider.Permission {
     INSTANTIATE;
+  }
+
+  class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public ProcessModelImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return ProcessModelImpl.this.deserialize(in);
+    }
+  }
+
+  public static ProcessModelImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    XmlProcessModel result = new XmlProcessModel();
+    assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
+    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && XmlProcessModel.ELEMENTNAME.equals(in.getLocalName());
+
+    for(int i=0; i<in.getAttributeCount(); ++i) {
+      switch (in.getAttributeLocalName(i)) {
+        case "name" : result.setName(in.getAttributeValue(i)); break;
+        case "owner": result.setOwner(in.getAttributeValue(i)); break;
+        case XmlProcessModel.ATTR_ROLES: result.setRolesString(in.getAttributeValue(i)); break;
+        case "uuid": result.setUuidString(in.getAttributeValue(i)); break;
+      }
+    }
+
+    int t;
+    ArrayList<ProcessNodeImpl> nodes = new ArrayList<ProcessNodeImpl>();
+    while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
+      switch (t) {
+        case XMLStreamConstants.START_ELEMENT: {
+          if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+            switch (in.getLocalName()) {
+              case EndNodeImpl.ELEMENTNAME:
+                nodes.add(EndNodeImpl.deserialize(in)); break;
+              case ActivityImpl.ELEMENTNAME:
+                nodes.add(ActivityImpl.deserialize(in)); break;
+              case StartNodeImpl.ELEMENTNAME:
+                nodes.add(StartNodeImpl.deserialize(in)); break;
+              case JoinImpl.ELEMENTNAME:
+                nodes.add(JoinImpl.deserialize(in)); break;
+              case SplitImpl.ELEMENTNAME:
+                nodes.add(SplitImpl.deserialize(in)); break;
+            }
+          }
+        }
+
+        default:
+          XmlUtil.unhandledEvent(in);
+          break;
+      }
+    }
+
+    result.setNodes(nodes);
+    return result.toProcessModel();
   }
 
   private static final long serialVersionUID = -4199223546188994559L;

@@ -1,32 +1,22 @@
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.Transaction;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
-import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.XmlDefineType;
-import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.processModel.XmlMessage;
 
 
 /**
@@ -39,10 +29,23 @@ import nl.adaptivity.process.processModel.XmlMessage;
  *
  * @author Paul de Vrieze
  */
+@XmlDeserializer(ActivityImpl.Factory.class)
 @XmlRootElement(name = ActivityImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = ActivityImpl.ELEMENTNAME + "Type", propOrder = { "defines", "results", XmlMessage.ELEMENTNAME, "condition" })
 public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl> {
+
+  public class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return ActivityImpl.deserialize(in);
+    }
+  }
+
+  public static ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
 
   private static final long serialVersionUID = 282944120294737322L;
 

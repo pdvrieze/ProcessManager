@@ -187,7 +187,7 @@ public class XmlProcessModel {
     return uuid==null ? null : uuid.toString();
   }
 
-  void setUuidString(String pUuid) {
+  public void setUuidString(String pUuid) {
     uuid = pUuid==null ? null : UUID.fromString(pUuid);
   }
 

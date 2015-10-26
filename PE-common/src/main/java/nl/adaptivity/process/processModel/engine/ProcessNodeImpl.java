@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -172,6 +173,18 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   @Override
   public void removeSuccessor(ProcessNodeImpl pNode) {
     aSuccessors.remove(pNode);
+  }
+
+  protected boolean deserializeAttr(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
+      switch (pAttributeLocalName) {
+        case "id": setId(pAttributeValue); return true;
+        case "label": setLabel(pAttributeValue); return true;
+        case "x": setX(Double.parseDouble(pAttributeValue)); return true;
+        case "y": setY(Double.parseDouble(pAttributeValue)); return true;
+      }
+    }
+    return false;
   }
 
   /**

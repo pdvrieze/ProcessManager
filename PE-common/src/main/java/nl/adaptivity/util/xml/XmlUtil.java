@@ -1,5 +1,6 @@
 package nl.adaptivity.util.xml;
 
+import com.sun.org.apache.xerces.internal.xs.XSException;
 import net.devrieze.util.StringUtil;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -225,6 +226,32 @@ public class XmlUtil {
     }
   }
 
+  public static <T> T deSerialize(InputStream pIn, Class<T> type) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    return deSerialize(xif.createXMLStreamReader(pIn), type);
+  }
+
+  public static <T> T deSerialize(Reader pIn, Class<T> type) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    return deSerialize(xif.createXMLStreamReader(pIn), type);
+  }
+
+  public static <T> T deSerialize(Source pIn, Class<T> type) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    return deSerialize(xif.createXMLStreamReader(pIn), type);
+  }
+
+  public static <T> T deSerialize(XMLStreamReader pIn, Class<T> type) throws XMLStreamException {
+    XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
+    if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
+    try {
+      XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
+      return factory.deserialize(pIn);
+    } catch (InstantiationException | IllegalAccessException pE) {
+      throw new RuntimeException(pE);
+    }
+  }
+
   public static String toString(Node pValue) {
     return toString(pValue, DEFAULT_FLAGS);
   }
@@ -335,6 +362,23 @@ public class XmlUtil {
     } catch (XMLStreamException | RuntimeException e) {
       e.printStackTrace();
       throw e;
+    }
+  }
+
+  public static void unhandledEvent(final XMLStreamReader in) throws XMLStreamException {
+    switch (in.getEventType()) {
+      case XMLStreamConstants.CDATA:
+      case XMLStreamConstants.CHARACTERS:
+        if (!in.isWhiteSpace()) {
+          throw new XMLStreamException("Content found where not expected");
+        }
+        break;
+      case XMLStreamConstants.COMMENT:
+        break; // ignore
+      case XMLStreamConstants.START_ELEMENT:
+        throw new XMLStreamException("Element found where not expected "+in.getName());
+      case XMLStreamConstants.END_DOCUMENT:
+        throw new XMLStreamException("End of document found where not expected");
     }
   }
 

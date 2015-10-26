@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.xml.GatheringNamespaceContext;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.Unmarshaller;
@@ -18,9 +19,6 @@ import javax.xml.xpath.XPathFactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -30,7 +28,7 @@ import java.util.logging.Logger;
 
 // TODO make this actually work by not using JAXB to parse (but statically generated xml parsing instead)
 @XmlAccessorType(XmlAccessType.NONE)
-public class XPathHolder {
+public abstract class XPathHolder {
 
   private static final XPathExpression SELF_PATH;
   private XPathExpression path;
@@ -57,35 +55,7 @@ public class XPathHolder {
           XPathExpressionException {
     XPathFactory xpf = XPathFactory.newInstance();
     XPath xpath = xpf.newXPath();
-    xpath.setNamespaceContext(new NamespaceContext() {
-      @Override
-      public String getNamespaceURI(final String prefix) {
-        String namespaceURI = pNamespaceContext.getNamespaceURI(prefix);
-        if (namespaceURI!=null && ! (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix))) {
-          pNamespaceMap.put(prefix, namespaceURI);
-        }
-        return namespaceURI;
-      }
-
-      @Override
-      public String getPrefix(final String namespaceURI) {
-        String prefix = pNamespaceContext.getNamespaceURI(namespaceURI);
-        if (prefix!=null && ! (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI))) {
-          pNamespaceMap.put(prefix, namespaceURI);
-        }
-        return prefix;
-      }
-
-      @Override
-      public Iterator<String> getPrefixes(final String namespaceURI) {
-        if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI)) {
-          for (Iterator<String> it = pNamespaceContext.getPrefixes(namespaceURI); it.hasNext(); ) {
-            pNamespaceMap.put(it.next(), namespaceURI);
-          }
-        }
-        return pNamespaceContext.getPrefixes(namespaceURI);
-      }
-    });
+    xpath.setNamespaceContext(new GatheringNamespaceContext(pNamespaceContext, pNamespaceMap));
     xpath.compile(pPath);
   }
 
@@ -141,26 +111,29 @@ public class XPathHolder {
   }
 
   void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+    Map<String, String> namespaceMap = new TreeMap<>();
     if (pathString!=null) {
       out.writeAttribute("xpath", pathString);
-      Map<String, String> namespaceMap = new TreeMap<>();
       try {
         addXpathUsedPrefixes(namespaceMap, pathString, aNamespaceContext);
       } catch (XPathExpressionException e) {
         throw new XMLStreamException(e);
       }
-      for(Entry<String, String> entry: namespaceMap.entrySet()) {
-        String prefix = entry.getKey();
-        String namespace = entry.getValue();
-        if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-          out.writeDefaultNamespace(namespace);
-        } else if (! (XMLConstants.XML_NS_URI.equals(namespace)||
-                XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespace))){
-          out.writeNamespace(prefix, namespace);
-        }
+    }
+    addOtherUsedPrefixes(namespaceMap, aNamespaceContext);
+    for(Entry<String, String> entry: namespaceMap.entrySet()) {
+      String prefix = entry.getKey();
+      String namespace = entry.getValue();
+      if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+        out.writeDefaultNamespace(namespace);
+      } else if (! (XMLConstants.XML_NS_URI.equals(namespace)||
+              XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespace))){
+        out.writeNamespace(prefix, namespace);
       }
     }
   }
+
+  protected abstract void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext);
 
   void beforeUnmarshal(Unmarshaller unmarshaller, Object parent) {
     if (_failedReflection) { return; }

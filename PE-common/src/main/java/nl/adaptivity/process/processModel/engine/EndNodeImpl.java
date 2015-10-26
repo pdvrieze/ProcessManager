@@ -1,34 +1,68 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlUtil;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import java.util.*;
 
 
+@XmlDeserializer(EndNodeImpl.Factory.class)
 @XmlRootElement(name = EndNodeImpl.ELEMENTNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "EndNode")
 public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl> {
+
+  public class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public EndNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return EndNodeImpl.deserialize(in);
+    }
+  }
+
+  public static EndNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
+    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && ELEMENTNAME.equals(in.getLocalName());
+
+    EndNodeImpl result = new EndNodeImpl();
+
+    for(int i=0; i<in.getAttributeCount(); ++i) {
+      switch (in.getAttributeLocalName(i)) {
+        default:
+          result.deserializeAttr(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+      }
+    }
+
+    int t;
+    while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
+      switch (t) {
+        case XMLStreamConstants.START_ELEMENT: {
+          if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+            switch (in.getLocalName()) {
+              case "export":
+                result.getDefines(); result.aExports.add(XmlDefineType.deserialize(in)); break;
+            }
+          }
+        }
+
+        default:
+          XmlUtil.unhandledEvent(in);
+          break;
+      }
+    }
+    return result;
+  }
 
   private List<XmlDefineType> aExports;
 
