@@ -11,6 +11,7 @@ package nl.adaptivity.process.processModel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,6 +79,10 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     @XmlAttribute(name="name", required = true)
     protected String name;
 
+    @Override
+    protected void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext) {
+      // Don't do anything yet
+    }
   }
 
   static class Adapter extends XmlAdapter<AdaptedDefine, XmlDefineType> {
@@ -123,6 +128,15 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   private String name;
 
   public XmlDefineType() {}
+
+  @Override
+  protected void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext) {
+
+  }
+
+  private static void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext, final char[] content) {
+
+  }
 
   public XmlDefineType(final String path, final List<Object> pContent, final String pRefNode, final String pRefName, final String pName, final NamespaceContext pNamesapceContext) {
     setPath(path);

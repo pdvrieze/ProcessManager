@@ -59,7 +59,7 @@ import java.util.logging.Logger;
 //@XmlAccessorType(XmlAccessType.NONE)
 //@XmlType(name = "ResultType")
 @XmlJavaTypeAdapter(Adapter.class)
-@XmlDeserializer(Factory.class)
+@XmlDeserializer(XmlResultType.Factory.class)
 public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSerializable {
 
   public static class Adapter extends JAXBUnmarshallingAdapter {

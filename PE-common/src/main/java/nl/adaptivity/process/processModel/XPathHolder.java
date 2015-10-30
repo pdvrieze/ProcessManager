@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 
 // TODO make this actually work by not using JAXB to parse (but statically generated xml parsing instead)
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class XPathHolder {
+public abstract class XPathHolder extends XMLContainer {
 
   private static final XPathExpression SELF_PATH;
   private XPathExpression path;
