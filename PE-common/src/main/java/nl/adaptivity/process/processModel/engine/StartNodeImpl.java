@@ -45,7 +45,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
     for(int i=0; i<in.getAttributeCount(); ++i) {
       switch (in.getAttributeLocalName(i)) {
         default:
-          result.deserializeAttr(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+          result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
       }
     }
 

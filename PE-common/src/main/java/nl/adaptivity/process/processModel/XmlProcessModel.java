@@ -10,12 +10,10 @@ package nl.adaptivity.process.processModel;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -24,8 +22,11 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 import net.devrieze.util.CollectionUtil;
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
@@ -59,11 +60,13 @@ import nl.adaptivity.util.ListFilter;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = XmlProcessModel.ELEMENTNAME + "Type", propOrder = { "nodes" })
-@XmlRootElement(name = XmlProcessModel.ELEMENTNAME)
+@XmlType(name = XmlProcessModel.ELEMENTLOCALNAME + "Type", propOrder = { "nodes" })
+@XmlRootElement(name = XmlProcessModel.ELEMENTLOCALNAME)
 public class XmlProcessModel {
 
-  public static final String ELEMENTNAME = "processModel";
+  public static final String ELEMENTLOCALNAME = "processModel";
+
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE,ELEMENTLOCALNAME,Engine.NSPREFIX);
 
   public static final String ATTR_ROLES = "roles";
 
@@ -118,7 +121,7 @@ public class XmlProcessModel {
 
   @XmlMixed
   @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
-                   @XmlElementRef(name = ActivityImpl.ELEMENTNAME, type = ActivityImpl.class),
+                   @XmlElementRef(name = ActivityImpl.ELEMENTLOCALNAME, type = ActivityImpl.class),
                    @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
                    @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class),
                    @XmlElementRef(name = SplitImpl.ELEMENTNAME, type = SplitImpl.class)})
@@ -173,13 +176,7 @@ public class XmlProcessModel {
     if ((roles == null) || (roles.size() == 0)) {
       return null;
     }
-    final StringBuilder result = new StringBuilder();
-    final Iterator<String> iterator = roles.iterator();
-    result.append(iterator.next());
-    while (iterator.hasNext()) {
-      result.append(',').append(iterator.next());
-    }
-    return result.toString();
+    return StringUtil.join(",", roles);
   }
 
   @XmlAttribute(name="uuid")

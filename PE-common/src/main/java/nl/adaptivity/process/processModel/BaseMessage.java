@@ -1,5 +1,7 @@
 package nl.adaptivity.process.processModel;
 
+import java.io.CharArrayReader;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,6 +13,8 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -19,12 +23,16 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class BaseMessage implements IXmlMessage{
+public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   private QName service;
   private String endpoint;
@@ -32,23 +40,23 @@ public abstract class BaseMessage implements IXmlMessage{
   private String url;
   private String method;
   private String type;
-  private Node aBody;
 
   public BaseMessage() {
     super();
   }
 
-  public BaseMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody) {
+  public BaseMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody) throws
+          XMLStreamException {
+    super(new DOMSource(pMessageBody));
     service = pService;
     endpoint = pEndpoint;
     operation = pOperation;
     url = pUrl;
     method = pMethod;
     type = pContentType;
-    aBody = pMessageBody;
   }
 
-  public BaseMessage(IXmlMessage pMessage) {
+  public BaseMessage(IXmlMessage pMessage) throws XMLStreamException {
     this(pMessage.getService(),
          pMessage.getEndpoint(),
          pMessage.getOperation(),
@@ -57,6 +65,19 @@ public abstract class BaseMessage implements IXmlMessage{
          pMessage.getContentType(),
          pMessage.getMessageBody());
   }
+
+  @Override
+  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
+    super.serializeAttributes(pOut);
+    XmlUtil.writeAttribute(pOut, "serviceName", getServiceName());
+    XmlUtil.writeAttribute(pOut, "serviceNS", getServiceNS());
+    XmlUtil.writeAttribute(pOut, "endpoint", getEndpoint());
+    XmlUtil.writeAttribute(pOut, "operation", getOperation());
+    XmlUtil.writeAttribute(pOut, "url", getUrl());
+    XmlUtil.writeAttribute(pOut, "method", getMethod());
+    XmlUtil.writeAttribute(pOut, "type", getContentType());
+  }
+
 
   @Override
   public String getServiceName() {
@@ -113,13 +134,21 @@ public abstract class BaseMessage implements IXmlMessage{
 
   @Override
   public Node getMessageBody() {
-    return aBody;
+    try {
+      return XmlUtil.tryParseXml(new CharArrayReader(getContent()));
+    } catch (IOException pE) {
+      throw new RuntimeException(pE);
+    }
   }
 
   @Override
   public void setMessageBody(final Object o) {
     if (o instanceof Node) {
-      aBody = (Node) o;
+      try {
+        setContent(new DOMSource((Node) o));
+      } catch (XMLStreamException pE) {
+        throw new RuntimeException(pE);
+      }
     }
   }
 
@@ -205,34 +234,23 @@ public abstract class BaseMessage implements IXmlMessage{
     if (method != null ? !method.equals(that.method) : that.method != null) return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
 
-    if (aBody==null) return that.aBody==null;
-    if (that.aBody==null) return false;
-    try {
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); dbf.setNamespaceAware(true);
-      DocumentBuilder db = null;
-      db = dbf.newDocumentBuilder();
-      Document copy = db.newDocument();
-      copy.appendChild(copy.importNode(aBody, true));
-      Document otherCopy = db.newDocument();
-      otherCopy.appendChild(otherCopy.importNode(that.aBody, true));
-      copy.normalizeDocument();
-      otherCopy.normalizeDocument();
-      return copy.equals(otherCopy);
-    } catch (ParserConfigurationException e) {
-      throw new RuntimeException(e);
-    }
+    char[] body = getContent();
+    char[] thatBody = that.getContent();
+    if (body==null) return thatBody==null;
+    if (thatBody==null) return false;
+    return body.equals(thatBody);
 
   }
 
   @Override
   public int hashCode() {
-    int result = service != null ? service.hashCode() : 0;
+    int result = super.hashCode();
+    result = 31 * result + (service != null ? service.hashCode() : 0);
     result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
     result = 31 * result + (operation != null ? operation.hashCode() : 0);
     result = 31 * result + (url != null ? url.hashCode() : 0);
     result = 31 * result + (method != null ? method.hashCode() : 0);
     result = 31 * result + (type != null ? type.hashCode() : 0);
-    result = 31 * result + (aBody != null ? aBody.hashCode() : 0);
     return result;
   }
 }

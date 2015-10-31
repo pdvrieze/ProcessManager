@@ -3,14 +3,18 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,9 +34,9 @@ import java.util.List;
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ActivityImpl.Factory.class)
-@XmlRootElement(name = ActivityImpl.ELEMENTNAME)
+@XmlRootElement(name = ActivityImpl.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = ActivityImpl.ELEMENTNAME + "Type", propOrder = { "defines", "results", XmlMessage.ELEMENTNAME, "condition" })
+@XmlType(name = ActivityImpl.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
 public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl> {
 
   public class Factory implements XmlDeserializerFactory {
@@ -43,14 +47,12 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     }
   }
 
-  public static ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-    throw new UnsupportedOperationException("Not yet implemented");
-  }
-
   private static final long serialVersionUID = 282944120294737322L;
 
   /** The name of the XML element. */
-  public static final String ELEMENTNAME = "activity";
+  public static final String ELEMENTLOCALNAME = "activity";
+
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   public static final String ELEM_CONDITION = "condition";
 
@@ -83,9 +85,46 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   public ActivityImpl() {}
 
+  public static ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    XmlUtil.skipPreamble(in);
+    assert XmlUtil.isElement(in, ELEMENTNAME);
+
+
+    throw new UnsupportedOperationException("Not yet implemented");
+  }
+
+  @Override
+  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    serializeAttributes(out);
+    serializeChildren(out);
+    out.writeEndElement();
+  }
+
+  @Override
+  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
+    super.serializeAttributes(pOut);
+    pOut.writeAttribute(ATTR_PREDECESSOR, getPredecessor().getId());
+    XmlUtil.writeAttribute(pOut, "name", getName());
+  }
+
+  private void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
+    for(XmlDefineType define:getDefines()) {
+      define.serialize(pOut);
+    }
+    for(XmlResultType result:getResults()) {
+      result.serialize(pOut);
+    }
+    XmlUtil.writeSimpleElement(pOut, new QName(Engine.NAMESPACE, ELEM_CONDITION, Engine.NSPREFIX), getCondition());
+    {
+      XmlMessage m = getMessage();
+      if (m!=null) { m.serialize(pOut); }
+    }
+  }
+
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#getName()
-   */
+     * @see nl.adaptivity.process.processModel.IActivity#getName()
+     */
   @Override
   @XmlAttribute
   public String getName() {
@@ -183,7 +222,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#getMessage()
    */
   @Override
-  @XmlElement(name = XmlMessage.ELEMENTNAME, required = true)
+  @XmlElement(name = XmlMessage.ELEMENTLOCALNAME, required = true)
   public XmlMessage getMessage() {
     return aMessage;
   }

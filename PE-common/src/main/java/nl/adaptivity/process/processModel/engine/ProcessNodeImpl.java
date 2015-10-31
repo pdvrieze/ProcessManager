@@ -18,6 +18,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import net.devrieze.util.IdFactory;
 import net.devrieze.util.Transaction;
@@ -34,12 +36,14 @@ import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
-public abstract class ProcessNodeImpl implements Serializable, ProcessNode<ProcessNodeImpl> {
+public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, ProcessNode<ProcessNodeImpl> {
 
   private static final long serialVersionUID = -7745019972129682199L;
 
@@ -73,6 +77,25 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     setPredecessors(pPredecessors);
   }
 
+  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
+    pOut.writeAttribute("id", getId());
+    XmlUtil.writeAttribute(pOut, "label", getLabel());
+    XmlUtil.writeAttribute(pOut, "x", getX());
+    XmlUtil.writeAttribute(pOut, "y", getY());
+  }
+
+  protected boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
+      switch (pAttributeLocalName) {
+        case "id": setId(pAttributeValue); return true;
+        case "label": setLabel(pAttributeValue); return true;
+        case "x": setX(Double.parseDouble(pAttributeValue)); return true;
+        case "y": setY(Double.parseDouble(pAttributeValue)); return true;
+      }
+    }
+    return false;
+  }
+
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
    */
@@ -95,6 +118,8 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     setPredecessors(tmp);
   }
 
+
+
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
    */
@@ -105,7 +130,6 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     }
     aPredecessors = ProcessNodeSet.processNodeSet(predecessors);
   }
-
 
 
   @Override
@@ -119,12 +143,13 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     }
   }
 
-
   @Override
   public void removePredecessor(ProcessNodeImpl pNode) {
     aPredecessors.remove(pNode);
     // TODO perhaps make this reciprocal
   }
+
+
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
@@ -141,14 +166,12 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   }
 
 
-
   @Override
   public void setSuccessors(Collection<? extends ProcessNodeImpl> pSuccessors) {
     for(ProcessNodeImpl n: pSuccessors) {
       addSuccessor(n);
     }
   }
-
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#getSuccessors()
@@ -157,6 +180,7 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
   public Set<? extends ProcessNodeImpl> getSuccessors() {
     return aSuccessors;
   }
+
 
   @Override
   public int getMaxSuccessorCount() {
@@ -169,22 +193,9 @@ public abstract class ProcessNodeImpl implements Serializable, ProcessNode<Proce
     return 1;
   }
 
-
   @Override
   public void removeSuccessor(ProcessNodeImpl pNode) {
     aSuccessors.remove(pNode);
-  }
-
-  protected boolean deserializeAttr(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
-      switch (pAttributeLocalName) {
-        case "id": setId(pAttributeValue); return true;
-        case "label": setLabel(pAttributeValue); return true;
-        case "x": setX(Double.parseDouble(pAttributeValue)); return true;
-        case "y": setY(Double.parseDouble(pAttributeValue)); return true;
-      }
-    }
-    return false;
   }
 
   /**

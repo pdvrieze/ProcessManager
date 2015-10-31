@@ -6,8 +6,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.util.xml.XmlDeserializer;
 
 
+@XmlDeserializer(ProcessModelImpl.Factory.class)
 public interface ProcessModel<T extends ProcessNode<? extends T>> {
 
   /**

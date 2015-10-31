@@ -4,6 +4,8 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 
+import javax.xml.namespace.NamespaceContext;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,25 +15,7 @@ public interface IXmlDefineType {
   <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction pTransaction, IProcessNodeInstance<T> pNode) throws
           SQLException;
 
-  /**
-   * May contain literal elements as content. In that case only the paramName
-   * attribute is used.Gets the value of the content property.
-   * <p>
-   * This accessor method returns a reference to the live list, not a snapshot.
-   * Therefore any modification you make to the returned list will be present
-   * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
-   * for the content property.
-   * <p>
-   * For example, to add a new item, do as follows:
-   *
-   * <pre>
-   * getContent().add(newItem);
-   * </pre>
-   * <p>
-   * Objects of the following type(s) are allowed in the list {@link Object }
-   * {@link String }
-   */
-  public List<Object> getContent();
+  public char[] getContent();
 
   /**
    * Gets the value of the node property.
@@ -88,5 +72,11 @@ public interface IXmlDefineType {
    * @param value allowed object is {@link String }
    */
   public void setPath(String value);
+
+  /**
+   * Get the namespace context that defines the "missing" namespaces in the content.
+   * @return
+   */
+  public NamespaceContext getOriginalNSContext();
 
 }

@@ -1,6 +1,5 @@
 package nl.adaptivity.util.xml;
 
-import com.sun.org.apache.xerces.internal.xs.XSException;
 import net.devrieze.util.StringUtil;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -251,10 +250,10 @@ public class XmlUtil {
       throw new RuntimeException(pE);
     }
   }
-
   public static String toString(Node pValue) {
     return toString(pValue, DEFAULT_FLAGS);
   }
+
   public static String toString(Node pValue, int flags) {
     StringWriter out =new StringWriter();
     try {
@@ -292,6 +291,41 @@ public class XmlUtil {
   public static String toString(XmlSerializable pSerializable) {
     int flags = DEFAULT_FLAGS;
     return toString(pSerializable, flags);
+  }
+
+  private static String toString(final XmlSerializable pSerializable, final int pFlags) {
+    StringWriter out =new StringWriter();
+    XMLOutputFactory factory = XMLOutputFactory.newInstance();
+    configure(factory, pFlags);
+    try {
+      XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
+      pSerializable.serialize(serializer);
+    } catch (XMLStreamException e) {
+      throw new RuntimeException(e);
+    }
+    return out.toString();
+  }
+
+  public static char[] toCharArray(final Source pContent) throws XMLStreamException {
+    return toCharArrayWriter(pContent).toCharArray();
+  }
+
+  public static String toString(final Source pSource) throws XMLStreamException {
+    return toCharArrayWriter(pSource).toString();
+  }
+
+  private static CharArrayWriter toCharArrayWriter(final Source pSource) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    XMLEventReader in = xif.createXMLEventReader(pSource);
+    CharArrayWriter caw = new CharArrayWriter();
+    XMLEventWriter xew = xof.createXMLEventWriter(caw);
+    try {
+      xew.add(in);
+    } finally {
+      xew.close();
+    }
+    return caw;
   }
 
   public static XMLStreamWriter stripMetatags(final XMLStreamWriter pOut) {
@@ -337,7 +371,6 @@ public class XmlUtil {
       }
       return documentFragment;
     } catch (XMLStreamException | RuntimeException e) {
-      e.printStackTrace();
       throw e;
     }
   }
@@ -382,6 +415,133 @@ public class XmlUtil {
     }
   }
 
+  /**
+   * Skil the preamble events in the stream reader
+   * @param pIn The stream reader to skip
+   */
+  public static void skipPreamble(final XMLStreamReader pIn) throws XMLStreamException {
+    int type = pIn.getEventType();
+    while (isPreamble(type) && pIn.hasNext()) {
+      type = pIn.next();
+    }
+  }
+
+  public static boolean isPreamble(int type) {
+    switch (type) {
+      case XMLStreamConstants.COMMENT:
+      case XMLStreamConstants.START_DOCUMENT:
+      case XMLStreamConstants.PROCESSING_INSTRUCTION:
+      case XMLStreamConstants.DTD:
+      case XMLStreamConstants.SPACE:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  public static void writeStartElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
+    String namespace = pQName.getNamespaceURI();
+    String prefix;
+    if (namespace==null) {
+      namespace = pOut.getNamespaceContext().getNamespaceURI(pQName.getPrefix());
+      prefix = pQName.getPrefix();
+    } else {
+      prefix = pOut.getPrefix(namespace);
+      if (prefix==null) { prefix = pQName.getPrefix(); }
+    }
+    pOut.writeStartElement(prefix, pQName.getLocalPart(), namespace);
+  }
+
+  public static void writeEmptyElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
+    String namespace = pQName.getNamespaceURI();
+    String prefix;
+    if (namespace==null) {
+      namespace = pOut.getNamespaceContext().getNamespaceURI(pQName.getPrefix());
+      prefix = pQName.getPrefix();
+    } else {
+      prefix = pOut.getPrefix(namespace);
+      if (prefix==null) { prefix = pQName.getPrefix(); }
+    }
+    pOut.writeEmptyElement(prefix, pQName.getLocalPart(), namespace);
+  }
+
+
+  public static void writeSimpleElement(final XMLStreamWriter pOut, final QName pQName, final String pValue) throws
+  XMLStreamException {
+    if (pValue!=null) {
+      if (pValue.isEmpty()) {
+        writeEmptyElement(pOut, pQName);
+      } else {
+        writeStartElement(pOut, pQName);
+        pOut.writeCharacters(pValue);
+        pOut.writeEndElement();
+      }
+    }
+  }
+
+  public static void writeAttribute(final XMLStreamWriter pOut, final String pName, final String pValue) throws
+  XMLStreamException {
+    if (pValue!=null) {
+      pOut.writeAttribute(pName, pValue);
+    }
+  }
+
+  public static void writeAttribute(final XMLStreamWriter pOut, final String pName, final double pValue) throws
+  XMLStreamException {
+    if (! Double.isNaN(pValue)) {
+      pOut.writeAttribute(pName, Double.toString(pValue));
+    }
+  }
+
+  public static void writeAttribute(final XMLStreamWriter pOut, final String pName, final QName pValue) throws
+          XMLStreamException {
+    if (pValue!=null) {
+      String prefix;
+      if (pValue.getNamespaceURI()!=null) {
+        if (pValue.getPrefix()!=null && pValue.getNamespaceURI().equals(pOut.getNamespaceContext().getNamespaceURI(pValue.getPrefix()))) {
+          prefix = pValue.getPrefix();
+        } else {
+          prefix = pOut.getNamespaceContext().getPrefix(pValue.getNamespaceURI());
+          if (prefix == null) {
+            prefix = pValue.getPrefix();
+            pOut.writeNamespace(prefix, pValue.getNamespaceURI());
+          }
+        }
+      } else {
+        prefix = pValue.getPrefix();
+        String ns = pOut.getNamespaceContext().getNamespaceURI(prefix);
+        if (ns==null) { throw new IllegalArgumentException("Cannot determine namespace of qname"); }
+      }
+      pOut.writeAttribute(pName, prefix+':'+pValue.getLocalPart());
+    }
+  }
+
+  private static boolean nullOrEmpty(String s) {
+    return s==null || s.isEmpty();
+  }
+
+  /**
+   * Check that the current state is a start element for the given name. The prefix is ignored.
+   * @param pIn The stream reader to check
+   * @param pElementname The name to check against
+   * @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(final XMLStreamReader pIn, final QName pElementname) {
+    if (pIn.getEventType()!=XMLStreamConstants.START_ELEMENT) { return false; }
+    String expNs =  pElementname.getNamespaceURI(); if ("".equals(expNs)) { expNs = null; }
+    if (! pIn.getLocalName().equals(pElementname.getLocalPart())) { return false; }
+
+    if (nullOrEmpty(pElementname.getNamespaceURI())) {
+      if (nullOrEmpty(pElementname.getPrefix())) {
+        return nullOrEmpty(pIn.getPrefix());
+      } else {
+        return pElementname.getPrefix().equals(pIn.getPrefix());
+      }
+    } else {
+      return pElementname.getNamespaceURI().equals(pIn.getNamespaceURI());
+    }
+  }
+
   private static void filterWriteEvent(final XMLEventReader pIn, final XMLEventWriter pOut, final XMLEventFactory pXef, final XMLEvent pEvent) throws
           XMLStreamException {
     if (pEvent.isStartElement()) {
@@ -404,19 +564,6 @@ public class XmlUtil {
         break;
       }
     }
-  }
-
-  private static String toString(final XmlSerializable pSerializable, final int pFlags) {
-    StringWriter out =new StringWriter();
-    XMLOutputFactory factory = XMLOutputFactory.newInstance();
-    configure(factory, pFlags);
-    try {
-      XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
-      pSerializable.serialize(serializer);
-    } catch (XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
-    return out.toString();
   }
 
   private static void configure(final Transformer pTransformer, final int pFlags) {

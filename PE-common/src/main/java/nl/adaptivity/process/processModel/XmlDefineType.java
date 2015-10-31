@@ -8,118 +8,46 @@
 
 package nl.adaptivity.process.processModel;
 
+import java.io.CharArrayReader;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.xml.bind.annotation.*;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 
-import nl.adaptivity.process.processModel.XmlDefineType.Adapter;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Node;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.NodeList;
 
 
-/**
- * May contain literal elements as content. In that case only the paramName
- * attribute is used.
- * <p>
- * Java class for ExportType complex type.
- * <p>
- * The following schema fragment specifies the expected content contained within
- * this class.
- *
- * <pre>
- * &lt;complexType name="ExportType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;any maxOccurs="unbounded" minOccurs="0"/>
- *       &lt;/sequence>
- *       &lt;attribute name="node" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="paramName" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="path" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- */
-@XmlJavaTypeAdapter(Adapter.class)
+@XmlDeserializer(XmlDefineType.Factory.class)
 public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
-  @XmlRootElement(name=XmlDefineType.ELEMENTNAME)
-  @XmlAccessorType(XmlAccessType.NONE)
-  @XmlType(name = "DefineType", propOrder = { "content" })
-  static class AdaptedDefine  extends XPathHolder {
-    @XmlMixed
-    @XmlAnyElement(lax = true)
-    protected List<Object> content = new ArrayList<>();
-
-    @XmlAttribute(name="refnode")
-    protected String refNode;
-
-    @XmlAttribute(name="refname")
-    protected String refName;
-
-    @XmlAttribute(name="name", required = true)
-    protected String name;
+  public static class Factory implements XmlDeserializerFactory<XmlDefineType> {
 
     @Override
-    protected void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext) {
-      // Don't do anything yet
-    }
-  }
-
-  static class Adapter extends XmlAdapter<AdaptedDefine, XmlDefineType> {
-
-    @Override
-    public XmlDefineType unmarshal(final AdaptedDefine v) throws Exception {
-      ArrayList<Object> newContent = new ArrayList<>(v.content.size());
-      for(Object o: v.content) {
-        if (o instanceof Node) {
-          try {
-            newContent.add(XmlUtil.cannonicallize((Node) o));
-          } catch (Exception e) {
-            Logger.getAnonymousLogger().log(Level.WARNING, "Failure to cannonicalize node", e);
-            newContent.add(o);
-          }
-        } else {
-          newContent.add(o);
-        }
-      }
-      return new XmlDefineType(v.getPath(), newContent, v.refNode, v.refName, v.name, v.getNamespaceContext());
-    }
-
-    @Override
-    public AdaptedDefine marshal(final XmlDefineType v) throws Exception {
-      AdaptedDefine result = new AdaptedDefine();
-      result.content = v.content;
-      result.name = v.name;
-      result.refName = v.refName;
-      result.refNode = v.getRefNode();
-      result.setPath(v.getPath());
-      return result;
+    public XmlDefineType deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return XmlDefineType.deserialize(in);
     }
   }
 
   public static final String ELEMENTNAME = "define";
-
-  private List<Object> content;
 
   private String refNode;
 
@@ -127,35 +55,22 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   private String name;
 
+  public static XmlDefineType deserialize(final XMLStreamReader pIn) throws XMLStreamException {
+    return null;
+  }
+
   public XmlDefineType() {}
 
-  @Override
-  protected void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext) {
-
-  }
-
-  private static void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext, final char[] content) {
-
-  }
-
-  public XmlDefineType(final String path, final List<Object> pContent, final String pRefNode, final String pRefName, final String pName, final NamespaceContext pNamesapceContext) {
-    setPath(path);
-    setNamespaceContext(pNamesapceContext);
-    content = pContent;
+  public XmlDefineType(final String pName, final String pRefNode, final String pRefName, String pPath, final char[] pContent, final NamespaceContext pOriginalNSContext) {
+    super(pContent, pOriginalNSContext, pPath);
+    name = pName;
     refNode = pRefNode;
     refName = pRefName;
-    name = pName;
   }
 
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#getContent()
-   */
   @Override
-  public List<Object> getContent() {
-    if (content == null) {
-      content = new ArrayList<>();
-    }
-    return this.content;
+  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
+    XmlUtil.writeStartElement(pOut, new QName(Engine.NAMESPACE, ELEMENTNAME, Engine.NSPREFIX));
   }
 
   /* (non-Javadoc)
@@ -206,14 +121,14 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     this.name = value;
   }
 
+  /**
+   *
+   * @param pExport
+   * @return
+   */
   public static XmlDefineType get(IXmlDefineType pExport) {
     if (pExport instanceof XmlDefineType) { return (XmlDefineType) pExport; }
-    XmlDefineType result = new XmlDefineType();
-    result.content = pExport.getContent();
-    result.refName = pExport.getRefName();
-    result.refNode = pExport.getRefNode();
-    result.name = pExport.getName();
-    result.setPath(pExport.getPath());
+    XmlDefineType result = new XmlDefineType(pExport.getName(), pExport.getRefNode(),pExport.getRefName(), pExport.getPath(), pExport.getContent(), pExport.getOriginalNSContext());
     return result;
   }
 
@@ -239,8 +154,18 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     } else {
       processData = null;
     }
-    if (content!=null && content.size()>0) {
-      List<Node> result = PETransformer.create(processData).transform(content);
+    char[] content = getContent();
+    if (getContent()!=null && getContent().length>0) {
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+      DocumentFragment result = null;
+      try {
+        result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
+        PETransformer.create(getNamespaceContext(), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
+      } catch (ParserConfigurationException | XMLStreamException pE) {
+        throw new RuntimeException(pE);
+      }
+
       return new ProcessData(name, result);
     } else {
       return processData;

@@ -10,6 +10,8 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
@@ -17,6 +19,9 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,23 +55,26 @@ import java.util.Iterator;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Message")
-@XmlRootElement(name= XmlMessage.ELEMENTNAME)
+@XmlRootElement(name= XmlMessage.ELEMENTLOCALNAME)
 public class XmlMessage extends BaseMessage implements IXmlMessage {
 
-  public static final String ELEMENTNAME = "message";
+  public static final String ELEMENTLOCALNAME = "message";
+
+  public static final QName ELEMENTNAME=new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   @XmlTransient ArrayList<Object> aAny;
 
   public XmlMessage() { /* default constructor */ }
 
 
-  public XmlMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody, Collection<Object> pAny) {
+  public XmlMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody, Collection<Object> pAny) throws
+          XMLStreamException {
     super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
     aAny = (pAny instanceof ArrayList) ? (ArrayList<Object>) pAny : new ArrayList<>(pAny);
   }
 
 
-  public static XmlMessage get(IXmlMessage pMessage) {
+  public static XmlMessage get(IXmlMessage pMessage) throws XMLStreamException {
     if (pMessage instanceof XmlMessage) { return (XmlMessage) pMessage; }
     return new XmlMessage(pMessage.getService(),
                           pMessage.getEndpoint(),
@@ -78,12 +86,18 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
                           pMessage.getAny());
   }
 
+  @Override
+  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
+    XmlUtil.writeStartElement(pOut, ELEMENTNAME);
+  }
+
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlMessage#getAny()
-   */
+       * @see nl.adaptivity.process.processModel.IXmlMessage#getAny()
+       */
   @Override
   @XmlAnyElement(lax = true)
   public Collection<Object> getAny() {
+
     if (aAny == null) {
       aAny = new ArrayList<>(1);
       if (getMessageBody() != null) {

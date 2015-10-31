@@ -2,10 +2,8 @@ package nl.adaptivity.process.engine;
 
 import nl.adaptivity.process.processModel.XPathHolder;
 import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.processModel.XmlResultType.Adapter;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlSerializable.SimpleAdapter;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -16,7 +14,6 @@ import org.xml.sax.SAXException;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -119,14 +116,12 @@ public class TestXmlResultType {
   @Test
   public void testXMLResultHolder() throws Exception {
     String testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
-    JAXBContext context = JAXBContext.newInstance(SimpleAdapter.class);
+
     XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader in = xif.createXMLStreamReader(new StringReader(testData));
 
-    Unmarshaller unmarshaller = context.createUnmarshaller();
-    Adapter adapter = new Adapter();
-    unmarshaller.setAdapter(adapter);
-    XmlResultType testHolder = (XmlResultType) adapter.unmarshal(unmarshaller.unmarshal(in, SimpleAdapter.class).getValue());
+
+    XmlResultType testHolder = XmlResultType.deserialize(in);
 
     assertNotNull(testHolder.getNamespaceContext());
     assertEquals(Constants.USER_MESSAGE_HANDLER_NS, testHolder.getNamespaceContext().getNamespaceURI("umh"));

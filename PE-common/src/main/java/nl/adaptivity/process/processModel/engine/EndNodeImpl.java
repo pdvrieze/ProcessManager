@@ -40,7 +40,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
     for(int i=0; i<in.getAttributeCount(); ++i) {
       switch (in.getAttributeLocalName(i)) {
         default:
-          result.deserializeAttr(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+          result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
       }
     }
 

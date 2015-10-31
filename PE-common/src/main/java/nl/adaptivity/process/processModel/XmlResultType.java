@@ -11,125 +11,36 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.processModel.XmlResultType.Adapter;
-import nl.adaptivity.process.processModel.XmlResultType.Factory;
 import nl.adaptivity.util.xml.*;
-import org.codehaus.stax2.XMLOutputFactory2;
-import org.w3c.dom.*;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import java.io.CharArrayReader;
-import java.util.*;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-/**
- * <p>
- * Java class for ImportType complex type.
- * <p>
- * The following schema fragment specifies the expected content contained within
- * this class.
- *
- * <pre>
- * &lt;complexType name="ImportType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="path" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- */
-//@XmlAccessorType(XmlAccessType.NONE)
-//@XmlType(name = "ResultType")
-@XmlJavaTypeAdapter(Adapter.class)
 @XmlDeserializer(XmlResultType.Factory.class)
 public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSerializable {
-
-  public static class Adapter extends JAXBUnmarshallingAdapter {
-    public Adapter() { super(XmlResultType.class); }
-  }
 
   public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
       return XmlResultType.deserialize(in);
-    }
-
-    private static void addUsedPrefixes(NamespaceContext pNamespaceContext, final Map<String, String> pCollectingMap, final char[] pContent) throws
-            XPathExpressionException, XMLStreamException {
-      if (pContent.length==0) { return; }
-      XMLInputFactory xif=XMLInputFactory.newFactory();
-      XMLStreamReader xsr=xif.createXMLStreamReader(new CharArrayReader(pContent));
-      while (xsr.hasNext()) {
-        int type = xsr.next();
-        switch (type) {
-          case XMLStreamConstants.START_ELEMENT: {
-            {
-              String ns = xsr.getNamespaceURI();
-              String prefix = xsr.getPrefix();
-              String knownNS = pNamespaceContext.getNamespaceURI(prefix);
-              if (ns==null || XMLConstants.NULL_NS_URI.equals(ns)) {
-                ns = knownNS;
-              }
-              if (! (ns==null || XMLConstants.NULL_NS_URI.equals(ns))) {
-                if (! pCollectingMap.containsKey(prefix)) {
-                  pCollectingMap.put(prefix, ns);
-                }
-              }
-            }
-            String xpath = null;
-            for(int i=xsr.getAttributeCount()-1; i>=0; --i) {
-              String ns = xsr.getAttributeNamespace(i);
-              if (ns!=null && ns.length()>0) {
-                String prefix = xsr.getAttributePrefix(i);
-                String knownNS = pNamespaceContext.getNamespaceURI(prefix);
-                if (ns.equals(knownNS)) { // Only add prefixes already in the context (others are declared locally)
-                  pCollectingMap.put(prefix, ns);
-                }
-              }
-              String localname = xsr.getAttributeLocalName(i);
-              if ("xpath".equals(localname) ||
-                      (xpath==null && "path".equals(localname))) {
-                xpath = xsr.getAttributeValue(i);
-              }
-            }
-
-            if (xpath!=null) {
-              NamespaceContext newContext = new CombiningNamespaceContext(xsr.getNamespaceContext(), pNamespaceContext);
-
-              if (xpath.length()>1) {
-                try {
-                  addXpathUsedPrefixes(pCollectingMap, xpath, newContext);
-                } catch (Exception e) {
-                  Logger.getAnonymousLogger().log(Level.FINE, "Error with getting used namespaces from prefix", e);
-                }
-              }
-            }
-
-          }
-          default:
-            // ignore other events
-        }
-      }
-
     }
 
   }
@@ -171,17 +82,9 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     while (in.getEventType()!=XMLStreamConstants.END_ELEMENT && in.hasNext()) {
       switch (in.next()) {
         case XMLStreamConstants.START_ELEMENT:
-          result.content = XmlUtil.childrenToCharArray(in);
+          result.setContent(in.getNamespaceContext(), XmlUtil.childrenToCharArray(in));
           break;
         default:
-      }
-    }
-
-    if (result.content!=null) {
-      try {
-        Factory.addUsedPrefixes(in.getNamespaceContext(), namespaceMap, result.content);
-      } catch (XPathExpressionException e) {
-        throw new XMLStreamException(e);
       }
     }
 
@@ -198,8 +101,6 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   public static final String ELEMENTNAME = "result";
 
-  private char[] content;
-
   private String name;
 
   public XmlResultType() {}
@@ -209,75 +110,13 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     this(name, pPath, content==null ? null : XmlUtil.toString(content).toCharArray(), namespaceContext);
   }
 
-  public XmlResultType(final String name, final String path, final char[] content, final NamespaceContext namespaceContext) {
-    this.name=name;
-    this.content= content;
-    setPath(path);
-    setNamespaceContext(namespaceContext);
+  public XmlResultType(final String pName, String pPath, final char[] pContent, final NamespaceContext pOriginalNSContext) {
+    super(pContent, pOriginalNSContext, pPath);
+    name = pName;
   }
 
   @Override
-  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
-    {
-      String prefix = out.getPrefix(Engine.NAMESPACE);
-      boolean writeNS = prefix==null;
-      if (prefix == null && getNamespaceContext() != null) {
-        prefix = getNamespaceContext().getPrefix(Engine.NAMESPACE);
-      }
-      if (prefix == null) {
-        prefix = Engine.NSPREFIX;
-      }
-      out.writeStartElement(prefix, ELEMENTNAME, nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE);
-      if (writeNS) {
-        if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-          out.writeDefaultNamespace(Engine.NAMESPACE);
-        } else {
-          out.writeNamespace(prefix, Engine.NAMESPACE);
-        }
-      }
-    }
-    serializeAttributes(out);
-    if (content!=null && content.length>0) {
-      XMLInputFactory xif = XMLInputFactory.newFactory();
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      XMLEventWriter xew = xof instanceof XMLOutputFactory2 ? ((XMLOutputFactory2)xof).createXMLEventWriter(out) : xof.createXMLEventWriter(new StAXResult(out));
-
-      XMLEventFactory xef = XMLEventFactory.newFactory();
-      SimpleNamespaceContext nscontext = (SimpleNamespaceContext) getNamespaceContext();
-      List<Namespace> namespaces = new ArrayList<>(nscontext.size());
-      for(int i=nscontext.size()-1; i>=0; --i) {
-        String prefix = nscontext.getPrefix(i);
-        String namespace = nscontext.getNamespaceURI(i);
-        if (XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-          xew.setDefaultNamespace(namespace);
-          namespaces.add(xef.createNamespace(namespace));
-        } else if (! (XMLConstants.XML_NS_URI.equals(namespace)||
-                      XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespace))){
-          xew.setPrefix(prefix, namespace);
-          namespaces.add(xef.createNamespace(prefix, namespace));
-        }
-      }
-
-      XMLEventReader contentReader = xif.createXMLEventReader(new CharArrayReader(content));
-      while(contentReader.hasNext()) { // loop until the first start element event
-        XMLEvent event = contentReader.nextEvent();
-        if (event.isStartElement()) { // Add all namespace declarations that are used to this element
-          StartElement startEvent = event.asStartElement();
-//          for(Iterator<Namespace> it = startEvent.getNamespaces(); it.hasNext(); ) {
-//            namespaces.add(it.next());
-//          }
-          xew.add(xef.createStartElement(startEvent.getName(), startEvent.getAttributes(), namespaces.iterator()));
-          break;
-        } else {
-          xew.add(contentReader);
-        }
-      }
-      xew.add(contentReader);
-    }
-  }
-
-  @Override
-  void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
     super.serializeAttributes(out);
     if (name!=null) {
       out.writeAttribute("name", name);
@@ -285,20 +124,13 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   }
 
   @Override
-  protected void addOtherUsedPrefixes(final Map<String, String> pTarget, final NamespaceContext pNamespaceContext) {
-    try {
-      Factory.addUsedPrefixes(pNamespaceContext, pTarget, content);
-    } catch (XPathExpressionException | XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
+  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
+    XmlUtil.writeStartElement(pOut, new QName(nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE, ELEMENTNAME, Engine.NSPREFIX));
   }
 
-  /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.IXmlResultType#getContent()
-       */
   @Override
-  public char[] getContent() {
-    return this.content;
+  protected Map<String, String> findNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    return super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue);
   }
 
   /* (non-Javadoc)
@@ -335,6 +167,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
       // shortcircuit missing path
       Node resultNode = (getPath()==null || ".".equals(getPath())) ? pPayload : (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
       ProcessData processData = new ProcessData(name, resultNode);
+      char[] content = getContent();
       if (content!=null && content.length>0) {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);

@@ -2,6 +2,7 @@ package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringCache;
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
@@ -11,6 +12,7 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Node;
 
@@ -20,6 +22,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -37,7 +40,7 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
+public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSerializable, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
 
   static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModelImpl> {
 
@@ -57,19 +60,29 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
     INSTANTIATE;
   }
 
-  class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public ProcessModelImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-      return ProcessModelImpl.this.deserialize(in);
+      return ProcessModelImpl.deserialize(in);
+    }
+  }
+
+  @Override
+  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeStartElement(out, XmlProcessModel.ELEMENTNAME);
+    XmlUtil.writeAttribute(out, "name", getName());
+    XmlUtil.writeAttribute(out, "owner", aOwner==null ? null : aOwner.getName());
+    if (aRoles!=null && aRoles.size()>0) {
+      XmlUtil.writeAttribute(out, XmlProcessModel.ATTR_ROLES,StringUtil.join(",", aRoles));
     }
   }
 
   public static ProcessModelImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-    XmlProcessModel result = new XmlProcessModel();
-    assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
-    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && XmlProcessModel.ELEMENTNAME.equals(in.getLocalName());
+    XmlUtil.skipPreamble(in);
+    assert XmlUtil.isElement(in, XmlProcessModel.ELEMENTNAME);
 
+    XmlProcessModel result = new XmlProcessModel();
     for(int i=0; i<in.getAttributeCount(); ++i) {
       switch (in.getAttributeLocalName(i)) {
         case "name" : result.setName(in.getAttributeValue(i)); break;
@@ -88,7 +101,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, Serializ
             switch (in.getLocalName()) {
               case EndNodeImpl.ELEMENTNAME:
                 nodes.add(EndNodeImpl.deserialize(in)); break;
-              case ActivityImpl.ELEMENTNAME:
+              case ActivityImpl.ELEMENTLOCALNAME:
                 nodes.add(ActivityImpl.deserialize(in)); break;
               case StartNodeImpl.ELEMENTNAME:
                 nodes.add(StartNodeImpl.deserialize(in)); break;

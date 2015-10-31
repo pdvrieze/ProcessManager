@@ -1,13 +1,15 @@
 package nl.adaptivity.process.engine;
 
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.IXmlResultType;
+import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlSerializable.SimpleAdapter;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.custommonkey.xmlunit.*;
 import org.junit.Before;
@@ -19,20 +21,19 @@ import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.*;
 import javax.xml.XMLConstants;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.transform.dom.DOMResult;
 
 import java.io.*;
@@ -131,6 +132,21 @@ public class TestProcessData {
     return TestProcessData.class.getResourceAsStream("/nl/adaptivity/process/engine/test/"+name);
   }
 
+  private static ProcessModelImpl getProcessModel(String name) throws XMLStreamException, IOException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    try (InputStream inputStream = getDocument(name)) {
+      XMLStreamReader in = xif.createXMLStreamReader(inputStream);
+      try {
+        XmlDeserializerFactory factory = ProcessModel.class.getAnnotation(XmlDeserializer.class)
+                                                           .value()
+                                                           .newInstance();
+        return (ProcessModelImpl) factory.deserialize(in);
+      } catch (InstantiationException | IllegalAccessException pE) {
+        throw new RuntimeException(pE);
+      }
+    }
+  }
+
   @Before
   public void setUp() throws ParserConfigurationException {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -164,14 +180,9 @@ public class TestProcessData {
   }
 
   @Test
-  public void testDeserializeProcessModel() throws IOException, SAXException, JAXBException {
+  public void testDeserializeProcessModel() throws IOException, SAXException, JAXBException, XMLStreamException {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      Unmarshaller unmarshaller = JAXBContext.newInstance(XmlProcessModel.class).createUnmarshaller();
-      unmarshaller.setEventHandler(new TestValidationEventHandler());
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
+    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     ActivityImpl ac1 = null;
     ActivityImpl ac2 = null;
     for(Object o: xpm.getNodes()) {
@@ -221,22 +232,26 @@ public class TestProcessData {
   }
 
   @Test
-  public void testRoundTripProcessModel1_ac1_result1() throws IOException, SAXException, JAXBException {
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
+  public void testRoundTripProcessModel1_ac1_result1() throws IOException, SAXException, JAXBException,
+          XMLStreamException {
+    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     {
-      DOMResult result = new DOMResult(getDocumentBuilder().newDocument());
+      CharArrayWriter caw = new CharArrayWriter();
+      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
       ProcessNodeImpl ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
       List<? extends IXmlResultType> ac1Results = (List<? extends IXmlResultType>) ac1.getResults();
-      JAXB.marshal(new ResultTypeHolder((XmlResultType) ac1Results.get(0)), result);
+
+      XmlResultType result = (XmlResultType) ac1Results.get(0);
+      result.serialize(xsw);
+      xsw.close();
+
+      String actual = caw.toString();
       String expected = "<result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
 
       XMLUnit.setIgnoreWhitespace(true);
       XMLUnit.setIgnoreAttributeOrder(true);
-      String actual = XmlUtil.toString(result.getNode().getFirstChild().getFirstChild());
       Diff diff = new Diff(expected, actual);
       try {
         assertXMLEqual(new DetailedDiff(diff), true);
@@ -252,17 +267,22 @@ public class TestProcessData {
   }
 
   @Test
-  public void testRoundTripProcessModel1_ac1_result2() throws IOException, SAXException, JAXBException {
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
+  public void testRoundTripProcessModel1_ac1_result2() throws IOException, SAXException, JAXBException,
+          XMLStreamException {
+    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     {
-      DOMResult result = new DOMResult(getDocumentBuilder().newDocument());
+      CharArrayWriter caw = new CharArrayWriter();
+      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+
       ProcessNodeImpl ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
       List<? extends IXmlResultType> ac1Results = (List<? extends IXmlResultType>) ac1.getResults();
-      JAXB.marshal(new ResultTypeHolder((XmlResultType) ac1Results.get(1)), result);
+      XmlResultType result = (XmlResultType) ac1Results.get(1);
+      result.serialize(xsw);
+      xsw.close();
+
+      String actual = caw.toString();
       String expected = "<result name=\"user\"><user>" +
               "<fullname>" +
               "<jbi:value  xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
@@ -272,32 +292,30 @@ public class TestProcessData {
 
       XMLUnit.setIgnoreWhitespace(true);
       XMLUnit.setIgnoreAttributeOrder(true);
-      Diff diff = new Diff(expected, XmlUtil.toString(result.getNode().getFirstChild().getFirstChild()));
+      Diff diff = new Diff(expected, actual);
 
       assertXMLEqual(new DetailedDiff(diff), true);
     }
   }
 
   @Test
-  public void testJaxbRoundTripProcessModel1() throws IOException, SAXException, JAXBException {
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
+  public void testJaxbRoundTripProcessModel1() throws IOException, SAXException, JAXBException, XMLStreamException {
+    ProcessModelImpl pm = getProcessModel("testModel2.xml");
 
     {
       CharArrayWriter caw = new CharArrayWriter();
-      JAXB.marshal(xpm, caw);
+      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+
+      pm.serialize(xsw);
+      xsw.close();
       XMLAssert.assertXMLEqual(new InputStreamReader(getDocument("testModel2.xml")), new CharArrayReader(caw.toCharArray()));
     }
   }
 
   @Test
   public void testSerializeResult1() throws IOException, SAXException, XMLStreamException {
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
+    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
 
     CharArrayWriter caw = new CharArrayWriter();
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
@@ -315,10 +333,7 @@ public class TestProcessData {
 
   @Test
   public void testSerializeResult2() throws IOException, SAXException, XMLStreamException {
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
+    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
 
     CharArrayWriter caw = new CharArrayWriter();
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
@@ -334,29 +349,6 @@ public class TestProcessData {
             "      </user></result>";
     try {
       XMLAssert.assertXMLEqual(control, caw.toString());
-    } catch (AssertionError e) {
-      assertEquals(control, caw.toString());
-    }
-  }
-
-  @Test
-  public void testJAXBMarshalResult1() throws Exception {
-    XmlProcessModel xpm;
-    try (InputStream in = getDocument("testModel2.xml")) {
-      xpm = JAXB.unmarshal(in, XmlProcessModel.class);
-    }
-
-    CharArrayWriter caw = new CharArrayWriter();
-    XmlResultType result = (XmlResultType) xpm.getNodes().get(1).getResults().iterator().next();
-    JAXBContext context = JAXBContext.newInstance(XmlResultType.class, SimpleAdapter.class);
-    Marshaller marshaller = context.createMarshaller();
-    XmlResultType.Adapter adapter = new XmlResultType.Adapter();
-    SimpleAdapter simpleAdaptedValue = adapter.marshal(result);
-    marshaller.marshal(new JAXBElement<SimpleAdapter>(new QName(Engine.NAMESPACE, "result", ""), SimpleAdapter.class, simpleAdaptedValue), caw);
-    String control = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xpath=\"/umh:result/umh:value[@name='user']/text()\" name=\"name\"/>";
-    try {
-      Diff diff = new Diff(control, caw.toString());
-      assertXMLEqual(null, diff, true);
     } catch (AssertionError e) {
       assertEquals(control, caw.toString());
     }
