@@ -42,6 +42,8 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessNode;
 
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -200,77 +202,6 @@ public class PMParser {
 
   }
 
-  private static final class RefNode extends ClientProcessNode<DrawableProcessNode> implements DrawableProcessNode {
-
-    final String aRef;
-
-    public RefNode(String pRef) {
-      super();
-      aRef = pRef;
-    }
-
-    @Override
-	  public RefNode clone() {
-    	return new RefNode(aRef);
-    }
-
-    @Override
-    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>>
-    void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pArg0, Rectangle pArg1) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public Rectangle getBounds() {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void move(double pX, double pY) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void setPos(double pLeft, double pTop) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public Drawable getItemAt(double pX, double pY) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public int getState() {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void setState(int pState) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public void serialize(SerializerAdapter pOut) {
-      // Don't serialize temps
-    }
-
-    @Override
-    public String getId() {
-      return aRef;
-    }
-
-    public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-      throw new UnsupportedOperationException("Not implemented");
-    }
-
-  }
-
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
   public static void serializeProcessModel(OutputStream pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
@@ -389,15 +320,13 @@ public class PMParser {
   }
 
   private static void resolveRefs(DrawableProcessNode pNode, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
-    for(DrawableProcessNode pred: pNode.getPredecessors()) {
+    for(Identifiable predid: pNode.getPredecessors()) {
       // It is a temporary predecessor
-      if (pred instanceof RefNode) {
+      if (! (predid instanceof DrawableProcessNode)) {
         // First remove the link with the temporary
-        pNode.removePredecessor(pred);
-        // Get the id we need
-        String ref = ((RefNode)pred).aRef;
+        pNode.removePredecessor(predid);
         // Get the node that should replace the temporary
-        DrawableProcessNode realNode = pNodes.get(ref);
+        DrawableProcessNode realNode = pNodes.get(predid);
         // Add the node as successor to the real predecessor
         addAsSuccessor(realNode, pNode, pModelElems);
       }
@@ -555,7 +484,7 @@ public class PMParser {
     DrawableJoin result = new DrawableJoin();
     parseCommon(pIn, pNodes, pModelElems, result);
     parseJoinSplitAttrs(pIn, result);
-    List<DrawableProcessNode> predecessors = new ArrayList<>();
+    List<Identifiable> predecessors = new ArrayList<>();
 
     for(int type = pIn.nextTag(); type!=END_TAG; type = pIn.nextTag()) {
       if (! (NS_PROCESSMODEL.equals(pIn.getNamespace()) && "predecessor".equals(pIn.getName()))) {
@@ -652,21 +581,23 @@ public class PMParser {
   }
 
   private static void addPredecessor(DrawableProcessNode pNode, String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
-    DrawableProcessNode predecessor = getPredecessor(pName, pNodes, pModelElems);
-    addAsSuccessor(predecessor, pNode, pModelElems);
+    Identifiable predecessor = getPredecessor(pName, pNodes, pModelElems);
+    if (predecessor instanceof DrawableProcessNode) {
+      addAsSuccessor((DrawableProcessNode) predecessor, pNode, pModelElems);
+    }
   }
 
-  private static DrawableProcessNode getPredecessor(String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
-    DrawableProcessNode val = pNodes.get(pName);
+  private static Identifiable getPredecessor(String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
+    Identifiable val = pNodes.get(pName);
     if (val==null) {
-      val = new RefNode(pName);
+      val = new Identifier(pName);
     } else { // there already is a node
       // Allow temporary references to collect as many successors as desired, it might be a split.
-      if ((val instanceof RefNode)|| (val.getSuccessors().size()<val.getMaxSuccessorCount())) {
+      if ((!(val instanceof DrawableProcessNode))|| (((DrawableProcessNode)val).getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
         return val;
       } else {
         // There is no suitable successor
-        return introduceSplit(val, pModelElems);
+        return introduceSplit((DrawableProcessNode)val, pModelElems);
       }
     }
     return val;
