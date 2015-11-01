@@ -1,5 +1,7 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.util.Identifiable;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -76,14 +78,14 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return the predecessor
    */
-  public abstract T getPredecessor();
+  public abstract Identifiable getPredecessor();
 
   /**
    * Set the predecessor for this activity.
    *
    * @param predecessor The predecessor
    */
-  public abstract void setPredecessor(T predecessor);
+  public abstract void setPredecessor(Identifiable predecessor);
 
   /**
    * Get the message of this activity. This provides all the information to be

@@ -5,6 +5,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
@@ -57,10 +58,10 @@ public interface IXmlMessage {
    */
   public QName getOperation();
 
-  public Collection<Object> getAny();
+  @Deprecated
+  public DocumentFragment getMessageBody();
 
-  public Node getMessageBody();
-
+  @Deprecated
   public void setMessageBody(Object o);
 
   /**

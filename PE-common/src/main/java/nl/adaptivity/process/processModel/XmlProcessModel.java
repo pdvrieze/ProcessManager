@@ -120,11 +120,11 @@ public class XmlProcessModel {
   }
 
   @XmlMixed
-  @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTNAME, type = EndNodeImpl.class),
+  @XmlElementRefs({ @XmlElementRef(name = EndNodeImpl.ELEMENTLOCALNAME, type = EndNodeImpl.class),
                    @XmlElementRef(name = ActivityImpl.ELEMENTLOCALNAME, type = ActivityImpl.class),
-                   @XmlElementRef(name = StartNodeImpl.ELEMENTNAME, type = StartNodeImpl.class),
-                   @XmlElementRef(name = JoinImpl.ELEMENTNAME, type = JoinImpl.class),
-                   @XmlElementRef(name = SplitImpl.ELEMENTNAME, type = SplitImpl.class)})
+                   @XmlElementRef(name = StartNodeImpl.ELEMENTLOCALNAME, type = StartNodeImpl.class),
+                   @XmlElementRef(name = JoinImpl.ELEMENTLOCALNAME, type = JoinImpl.class),
+                   @XmlElementRef(name = SplitImpl.ELEMENTLOCALNAME, type = SplitImpl.class)})
   public void setNodes(List<? extends ProcessNodeImpl> pNodes) {
     nodes.clear();
     nodes.addAll(pNodes);

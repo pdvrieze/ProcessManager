@@ -8,6 +8,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
 import nl.adaptivity.process.processModel.JoinSplit;
+import nl.adaptivity.process.util.Identifiable;
+
 
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ProcessNodeImpl>{
@@ -17,12 +19,12 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
   private int aMin;
   private int aMax;
 
-  public JoinSplitImpl() {
-    // default empty constructor for serialization (and xml work)
+  public JoinSplitImpl(final ProcessModelImpl pOwnerModel) {
+    super(pOwnerModel);
   }
 
-  public JoinSplitImpl(Collection<? extends ProcessNodeImpl> pPredecessors, int pMin, int pMax) {
-    super(pPredecessors);
+  public JoinSplitImpl(final ProcessModelImpl pOwnerModel, Collection<? extends Identifiable> pPredecessors, int pMin, int pMax) {
+    super(pOwnerModel, pPredecessors);
     aMin = pMin;
     aMax = pMax;
   }

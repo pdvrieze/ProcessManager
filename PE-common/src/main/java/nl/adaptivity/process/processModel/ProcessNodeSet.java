@@ -5,9 +5,10 @@ import java.util.*;
 
 import net.devrieze.annotations.NotNull;
 import net.devrieze.util.ReadMap;
+import nl.adaptivity.process.util.Identifiable;
 
-
-public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
+// TODO rename to IdentifyableSet and move to util package
+public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
 
 
 
@@ -136,7 +137,7 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
   
   }
 
-  private static final class BaseProcessNodeSet<V extends ProcessNode<V>> extends ProcessNodeSet<V> {
+  private static final class BaseProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
 
     private List<V> aStore;
 
@@ -202,7 +203,7 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
   }
 
-  private static final class EmptyProcessNodeSet<V extends ProcessNode<V>> extends ProcessNodeSet<V> {
+  private static final class EmptyProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
 
     @Override
     public EmptyProcessNodeSet<V> clone() {
@@ -226,7 +227,7 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
   }
 
-  private static final class SingletonProcessNodeSet<V extends ProcessNode<V>> extends ProcessNodeSet<V> {
+  private static final class SingletonProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
     private V aElement = null;
 
     public SingletonProcessNodeSet() {
@@ -319,7 +320,7 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
     @SuppressWarnings("unchecked")
     @Override
     public <T> T[] toArray(T[] pA) {
-      Class<T> cls = (Class<T>) pA.getClass();
+      Class<T> cls = (Class) pA.getClass();
       int size = size();
       if (pA.length<size()) {
         T[] result = (T[]) Array.newInstance(cls, size);
@@ -368,9 +369,9 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
   private static final class MyKeyIterator implements Iterator<String> {
 
-    private Iterator<? extends ProcessNode<?>> aParent;
+    private Iterator<? extends Identifiable> aParent;
 
-    public MyKeyIterator(Iterator<? extends ProcessNode<?>> pIterator) {
+    public MyKeyIterator(Iterator<? extends Identifiable> pIterator) {
       aParent = pIterator;
     }
 
@@ -404,15 +405,16 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
     }
 
   }
-  public static <V extends ProcessNode<V>> ProcessNodeSet<V> processNodeSet() {
+
+  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet() {
     return new BaseProcessNodeSet<>();
   }
 
-  public static <V extends ProcessNode<V>> ProcessNodeSet<V> processNodeSet(int pSize) {
+  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet(int pSize) {
     return new BaseProcessNodeSet<>(pSize);
   }
 
-  public static <V extends ProcessNode<V>> ProcessNodeSet<V> processNodeSet(Collection<? extends V> pCollection) {
+  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet(Collection<? extends V> pCollection) {
     return new BaseProcessNodeSet<>(pCollection);
   }
 
@@ -428,6 +430,10 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
 
   @Override
   public abstract ProcessNodeSet<T> clone();
+
+  public T get(Identifiable pKey) {
+    return get(pKey.getId());
+  }
 
   @Override
   public T get(String pKey) {
@@ -453,18 +459,18 @@ public abstract class ProcessNodeSet<T extends ProcessNode<T>> extends AbstractL
   }
 
   @SuppressWarnings("unchecked")
-  public static <V extends ProcessNode<V>> ProcessNodeSet<V> empty() {
+  public static <V extends Identifiable> ProcessNodeSet<V> empty() {
     return EMPTY;
   }
 
   @SuppressWarnings({ "rawtypes" })
   private static ProcessNodeSet EMPTY = new EmptyProcessNodeSet<>();
 
-  public static <V extends ProcessNode<V>> ProcessNodeSet<V> singleton() {
+  public static <V extends Identifiable> ProcessNodeSet<V> singleton() {
     return new SingletonProcessNodeSet<>();
   }
 
-  public static <V extends ProcessNode<V>> ProcessNodeSet<V> singleton(V pElement) {
+  public static <V extends Identifiable> ProcessNodeSet<V> singleton(V pElement) {
     return new SingletonProcessNodeSet<>(pElement);
   }
 

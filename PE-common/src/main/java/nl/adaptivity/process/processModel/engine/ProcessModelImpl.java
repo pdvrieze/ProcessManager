@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringCache;
 import net.devrieze.util.StringUtil;
@@ -10,6 +11,7 @@ import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlSerializable;
@@ -82,33 +84,32 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
     XmlUtil.skipPreamble(in);
     assert XmlUtil.isElement(in, XmlProcessModel.ELEMENTNAME);
 
-    XmlProcessModel result = new XmlProcessModel();
+    ProcessModelImpl result = new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList());
     for(int i=0; i<in.getAttributeCount(); ++i) {
       switch (in.getAttributeLocalName(i)) {
         case "name" : result.setName(in.getAttributeValue(i)); break;
-        case "owner": result.setOwner(in.getAttributeValue(i)); break;
-        case XmlProcessModel.ATTR_ROLES: result.setRolesString(in.getAttributeValue(i)); break;
-        case "uuid": result.setUuidString(in.getAttributeValue(i)); break;
+        case "owner": result.setOwner(new SimplePrincipal(in.getAttributeValue(i))); break;
+        case XmlProcessModel.ATTR_ROLES: result.aRoles.addAll(Arrays.asList(in.getAttributeValue(i).split(" *, *"))); break;
+        case "uuid": result.setUuid(UUID.fromString(in.getAttributeValue(i))); break;
       }
     }
 
     int t;
-    ArrayList<ProcessNodeImpl> nodes = new ArrayList<ProcessNodeImpl>();
     while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
       switch (t) {
         case XMLStreamConstants.START_ELEMENT: {
           if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
             switch (in.getLocalName()) {
-              case EndNodeImpl.ELEMENTNAME:
-                nodes.add(EndNodeImpl.deserialize(in)); break;
+              case EndNodeImpl.ELEMENTLOCALNAME:
+                EndNodeImpl.deserialize(result, in); break;
               case ActivityImpl.ELEMENTLOCALNAME:
-                nodes.add(ActivityImpl.deserialize(in)); break;
-              case StartNodeImpl.ELEMENTNAME:
-                nodes.add(StartNodeImpl.deserialize(in)); break;
-              case JoinImpl.ELEMENTNAME:
-                nodes.add(JoinImpl.deserialize(in)); break;
-              case SplitImpl.ELEMENTNAME:
-                nodes.add(SplitImpl.deserialize(in)); break;
+                ActivityImpl.deserialize(result, in); break;
+              case StartNodeImpl.ELEMENTLOCALNAME:
+                StartNodeImpl.deserialize(result, in); break;
+              case JoinImpl.ELEMENTLOCALNAME:
+                JoinImpl.deserialize(result, in); break;
+              case SplitImpl.ELEMENTLOCALNAME:
+                SplitImpl.deserialize(result, in); break;
             }
           }
         }
@@ -119,13 +120,12 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
       }
     }
 
-    result.setNodes(nodes);
-    return result.toProcessModel();
+    return result;
   }
 
   private static final long serialVersionUID = -4199223546188994559L;
 
-  private Collection<StartNodeImpl> aStartNodes;
+  private ProcessNodeSet<ProcessNodeImpl> aProcessNodes;
 
   private int aEndNodeCount;
 
@@ -154,30 +154,17 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
   }
 
   /**
-   * Create a new processModel based on the given endnodes. These endnodes must
-   * have proper predecessors set, and end with {@link StartNode StartNodes}
+   * Create a new processModel based on the given nodes. These nodes should be complete
    *
-   * @param pEndNodes The endnodes
    */
-  public ProcessModelImpl(final Collection<? extends EndNodeImpl> pEndNodes) {
-    aStartNodes = reverseGraph(pEndNodes);
-    aEndNodeCount = pEndNodes.size();
-  }
-
-  protected ProcessModelImpl(final Collection<? extends StartNodeImpl> pStartNodes, int pEndNodeCount) {
-    aStartNodes = new ArrayList<>(pStartNodes);
-    aEndNodeCount = pEndNodeCount;
-  }
-
-  /**
-   * Create a new processModel based on the given endnodes. This is a
-   * convenience constructor. These endnodes must have proper predecessors set,
-   * and end with {@link StartNode StartNodes}
-   *
-   * @param pEndNodes The endnodes
-   */
-  public ProcessModelImpl(final EndNodeImpl... pEndNodes) {
-    this(Arrays.asList(pEndNodes));
+  public ProcessModelImpl(final Collection<? extends ProcessNodeImpl> pProcessNodes) {
+    aProcessNodes=ProcessNodeSet.processNodeSet(pProcessNodes);
+    int endNodeCount=0;
+    for(ProcessNodeImpl node:aProcessNodes) {
+      node.setOwnerModel(this);
+      if (node instanceof EndNodeImpl) { ++endNodeCount; }
+    }
+    aEndNodeCount = endNodeCount;
   }
 
   /**
@@ -186,62 +173,22 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
    * @param pXmlModel The xml representation to base the model on.
    */
   public ProcessModelImpl(final XmlProcessModel pXmlModel) {
-    final Collection<EndNodeImpl> endNodes = new ArrayList<>();
+    this(pXmlModel.getNodes());
 
-    for (final Object node : pXmlModel.getNodes()) {
-      if (node instanceof EndNodeImpl) {
-        endNodes.add((EndNodeImpl) node);
-      }
-    }
-
-    aEndNodeCount = endNodes.size();
-
-    aStartNodes = reverseGraph(endNodes);
     setName(pXmlModel.getName());
     final String owner = pXmlModel.getOwner();
     aOwner = owner == null ? null : new SimplePrincipal(pXmlModel.getOwner());
     aUuid = pXmlModel.getUuid()==null ? null : pXmlModel.getUuid();
   }
 
-  /**
-   * Helper method that reverses the process model based on the set of endnodes.
-   *
-   * @param pEndNodes The endnodes to base the model on.
-   * @return A collection of startNodes.
-   */
-  private static Collection<StartNodeImpl> reverseGraph(final Collection<? extends EndNodeImpl> pEndNodes) {
-    final Collection<StartNodeImpl> resultList = new ArrayList<>();
-    for (final EndNodeImpl endNode : pEndNodes) {
-      reverseGraph(resultList, endNode);
+  public void ensureNode(final ProcessNodeImpl pProcessNode) {
+    if (aProcessNodes.add(pProcessNode)) {
+      pProcessNode.setOwnerModel(this);
     }
-    return resultList;
   }
 
-  /**
-   * Helper method for {@link #reverseGraph(Collection)} That does the actual
-   * reversing. Note that predecessors will also be updated to add the node they
-   * are predecessors to.
-   *
-   * @param pResultList The collection in which start nodes need to be stored.
-   * @param pNode The node to do the reversion from.
-   */
-  private static void reverseGraph(final Collection<? super StartNodeImpl> pResultList, final ProcessNodeImpl pNode) {
-    final Collection<? extends ProcessNodeImpl> previous = pNode.getPredecessors();
-    for (final ProcessNodeImpl prev : previous) {
-      if (prev instanceof StartNodeImpl) {
-        if (prev.getSuccessors() == null) {
-          prev.setSuccessors(Collections.singleton(pNode));
-        }
-        pResultList.add((StartNodeImpl) prev);
-      } else {
-        if ((prev.getSuccessors() == null) || (prev.getSuccessors().size() == 0)) {
-          prev.setSuccessors(Collections.singleton(pNode));
-          reverseGraph(pResultList, prev);
-        } else {
-          prev.addSuccessor(pNode);
-        }
-      }
-    }
+  public void removeNode(final ProcessNodeImpl pProcessNode) {
+    throw new UnsupportedOperationException("This will break in all kinds of ways");
   }
 
   @Override
@@ -261,14 +208,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
    */
   @Override
   public Collection<? extends ProcessNodeImpl> getModelNodes() {
-    final List<ProcessNodeImpl> list = new ArrayList<>();
-    final HashSet<String> seen = new HashSet<String>();
-    if (aStartNodes != null) {
-      for (final StartNodeImpl node : aStartNodes) {
-        extractElements(list, seen, node);
-      }
-    }
-    return Collections.<ProcessNodeImpl>unmodifiableList(list);
+    return Collections.unmodifiableCollection(aProcessNodes);
   }
 
   /**
@@ -280,14 +220,14 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
    * @param pProcessNodes The process nodes to base the model on.
    */
   public void setModelNodes(final Collection<? extends ProcessNodeImpl> pProcessNodes) {
-    final ArrayList<EndNodeImpl> endNodes = new ArrayList<EndNodeImpl>();
+    aProcessNodes = ProcessNodeSet.processNodeSet(pProcessNodes);
+    int endNodeCount = 0;
     for (final ProcessNodeImpl n : pProcessNodes) {
       if (n instanceof EndNodeImpl) {
-        endNodes.add((EndNodeImpl) n);
+        ++endNodeCount;
       }
     }
-    aStartNodes = reverseGraph(endNodes);
-    aEndNodeCount = endNodes.size();
+    aEndNodeCount = endNodeCount;
   }
 
   /**
@@ -317,7 +257,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
    */
   @Override
   public Collection<StartNodeImpl> getStartNodes() {
-    return Collections.unmodifiableCollection(aStartNodes);
+    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList(), aProcessNodes, StartNodeImpl.class));
   }
 
   /* (non-Javadoc)
@@ -432,28 +372,18 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
    * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
    */
   @Override
-  public ProcessNodeImpl getNode(String pNodeId) {
-    for(StartNodeImpl startNode: aStartNodes) {
-      ProcessNodeImpl result = getNode(startNode, pNodeId);
-      if (result!=null) {
-        return result;
-      }
-    }
-    return null;
+  public ProcessNodeImpl getNode(Identifiable pNodeId) {
+    if (pNodeId instanceof ProcessModelImpl) { return (ProcessNodeImpl) pNodeId; }
+    return aProcessNodes.get(pNodeId);
   }
 
   /**
-   * Recursive helper for {@link #getNode(String)}
+   * Faster method that doesn't require an {@link nl.adaptivity.process.util.Identifier intermediate}
+   * @param pNodeId
+   * @return
    */
-  private static ProcessNodeImpl getNode(ProcessNodeImpl pBaseNode, String pNodeId) {
-    if (pBaseNode.getId().equals(pNodeId)) { return pBaseNode; }
-    for(ProcessNodeImpl node: pBaseNode.getSuccessors()) {
-      ProcessNodeImpl result = getNode(node, pNodeId);
-      if (result!=null) {
-        return result;
-      }
-    }
-    return null;
+  public ProcessNodeImpl getNode(String pNodeId) {
+    return aProcessNodes.get(pNodeId);
   }
 
   public List<ProcessData> toInputs(Node pPayload) {

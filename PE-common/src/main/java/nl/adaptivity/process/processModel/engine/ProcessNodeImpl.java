@@ -23,7 +23,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import net.devrieze.util.IdFactory;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -36,6 +35,7 @@ import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 
@@ -45,9 +45,11 @@ import nl.adaptivity.util.xml.XmlUtil;
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
 public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, ProcessNode<ProcessNodeImpl> {
 
+  public static final String ATTR_PREDECESSOR = "predecessor";
   private static final long serialVersionUID = -7745019972129682199L;
+  private ProcessModelImpl aOwnerModel;
 
-  private ProcessNodeSet<ProcessNodeImpl> aPredecessors;
+  private ProcessNodeSet<Identifiable> aPredecessors;
 
   private ProcessNodeSet<ProcessNodeImpl> aSuccessors = null;
 
@@ -62,12 +64,16 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
 //
 //  private Collection<? extends IXmlExportType> aExports;
 
-  protected ProcessNodeImpl() {
-
+  protected ProcessNodeImpl(ProcessModelImpl pOwnerModel) {
+    aOwnerModel = pOwnerModel;
+    if (pOwnerModel!=null) {
+      aOwnerModel.ensureNode(this);
+    }
   }
 
 
-  public ProcessNodeImpl(final Collection<? extends ProcessNodeImpl> pPredecessors) {
+  public ProcessNodeImpl(ProcessModelImpl pOwnerModel, final Collection<? extends Identifiable> pPredecessors) {
+    this(pOwnerModel);
     if ((pPredecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
     }
@@ -82,6 +88,10 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
     XmlUtil.writeAttribute(pOut, "label", getLabel());
     XmlUtil.writeAttribute(pOut, "x", getX());
     XmlUtil.writeAttribute(pOut, "y", getY());
+  }
+
+  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
+
   }
 
   protected boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
@@ -100,7 +110,7 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
    * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
    */
   @Override
-  public Set<? extends ProcessNodeImpl> getPredecessors() {
+  public Set<? extends Identifiable> getPredecessors() {
     if (aPredecessors == null) {
       aPredecessors = ProcessNodeSet.processNodeSet();
     }
@@ -124,7 +134,7 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
    * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
    */
   @Override
-  public void setPredecessors(final Collection<? extends ProcessNodeImpl> predecessors) {
+  public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
     if (aPredecessors != null) {
       throw new UnsupportedOperationException("Not allowed to change predecessors");
     }
@@ -133,18 +143,18 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
 
 
   @Override
-  public void addPredecessor(ProcessNodeImpl pNode) {
-    if (aPredecessors.contains(pNode)) { return; }
+  public void addPredecessor(Identifiable pNode) {
+    if (aPredecessors.containsKey(pNode.getId())) { return; }
     if (aPredecessors.size()+1>getMaxPredecessorCount()) {
       throw new IllegalProcessModelException("Can not add more predecessors");
     }
     if(aPredecessors.add(pNode)) {
-      pNode.addSuccessor(this);
+      getOwnerModel().getNode(pNode).addSuccessor(this);
     }
   }
 
   @Override
-  public void removePredecessor(ProcessNodeImpl pNode) {
+  public void removePredecessor(Identifiable pNode) {
     aPredecessors.remove(pNode);
     // TODO perhaps make this reciprocal
   }
@@ -206,6 +216,18 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
    *         not.
    */
   public abstract boolean condition(IProcessNodeInstance<?> pInstance);
+
+  public ProcessModelImpl getOwnerModel() {
+    return aOwnerModel;
+  }
+
+  public void setOwnerModel(final ProcessModelImpl pOwnerModel) {
+    if (aOwnerModel!=pOwnerModel) {
+      if (aOwnerModel!=null) { aOwnerModel.removeNode(this); }
+      aOwnerModel = pOwnerModel;
+      pOwnerModel.ensureNode(this);
+    }
+  }
 
   @Deprecated
   public void skip() {
@@ -294,7 +316,7 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
       final int predCount = this.getPredecessors().size();
       if (predCount != 1) {
         result.append(", pred={");
-        for (final ProcessNodeImpl pred : getPredecessors()) {
+        for (final Identifiable pred : getPredecessors()) {
           result.append(pred.getId()).append(", ");
         }
         if (result.charAt(result.length() - 2) == ',') {
@@ -314,11 +336,11 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
    */
   @Override
   public boolean isPredecessorOf(final ProcessNodeImpl pNode) {
-    for (final ProcessNodeImpl pred : pNode.getPredecessors()) {
-      if (pred == pNode) {
+    for (final Identifiable pred : pNode.getPredecessors()) {
+      if (getId().equals(pred.getId())) {
         return true;
       }
-      if (isPredecessorOf(pred)) {
+      if (isPredecessorOf(getOwnerModel().getNode(pred))) {
         return true;
       }
     }

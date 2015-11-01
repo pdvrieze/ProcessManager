@@ -6,14 +6,12 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -23,12 +21,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -78,6 +73,21 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     XmlUtil.writeAttribute(pOut, "type", getContentType());
   }
 
+
+  protected boolean deserializeAttribute(XMLStreamReader in, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
+      switch (pAttributeLocalName) {
+        case "endpoint": endpoint = pAttributeValue; return true;
+        case "operation": operation = XmlUtil.asQName(in.getNamespaceContext(), pAttributeValue); return true;
+        case "url": url=pAttributeValue; return true;
+        case "method": method = pAttributeValue; return true;
+        case "type": type = pAttributeValue; return true;
+        case "serviceNS": setServiceNS(pAttributeValue); return true;
+        case "serviceName": setServiceName(pAttributeValue); return true;
+      }
+    }
+    return false;
+  }
 
   @Override
   public String getServiceName() {
@@ -133,9 +143,9 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
   @Override
-  public Node getMessageBody() {
+  public DocumentFragment getMessageBody() {
     try {
-      return XmlUtil.tryParseXml(new CharArrayReader(getContent()));
+      return XmlUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
     } catch (IOException pE) {
       throw new RuntimeException(pE);
     }
@@ -213,11 +223,6 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
       return super.toString();
     }
     return sw.toString();
-  }
-
-  @Override
-  public Collection<Object> getAny() {
-    return Arrays.<Object>asList(getMessageBody());
   }
 
   @Override

@@ -3,10 +3,12 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlResultType;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -15,16 +17,19 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
 @XmlDeserializer(StartNodeImpl.Factory.class)
-@XmlRootElement(name = StartNodeImpl.ELEMENTNAME)
+@XmlRootElement(name = StartNodeImpl.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl> {
 
@@ -32,15 +37,15 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
     @Override
     public StartNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-      return StartNodeImpl.deserialize(in);
+      return StartNodeImpl.deserialize(null, in);
     }
   }
 
-  public static StartNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+  public static StartNodeImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
     assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
-    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && ELEMENTNAME.equals(in.getLocalName());
+    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && ELEMENTLOCALNAME.equals(in.getLocalName());
 
-    StartNodeImpl result = new StartNodeImpl();
+    StartNodeImpl result = new StartNodeImpl(pOwnerModel);
 
     for(int i=0; i<in.getAttributeCount(); ++i) {
       switch (in.getAttributeLocalName(i)) {
@@ -69,14 +74,40 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
     return result;
   }
 
-  public StartNodeImpl() {
-  }
-
   private static final long serialVersionUID = 7779338146413772452L;
 
-  public static final String ELEMENTNAME = "start";
+  public static final String ELEMENTLOCALNAME = "start";
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   private List<XmlResultType> aImports;
+
+  public StartNodeImpl(final ProcessModelImpl pOwnerModel) {
+    super(pOwnerModel, Collections.<Identifiable>emptyList());
+  }
+
+  public StartNodeImpl(final ProcessModelImpl pOwnerModel, final List<XmlResultType> pImports) {
+    super(pOwnerModel, Collections.<Identifiable>emptyList());
+    aImports = pImports;
+  }
+
+  @Override
+  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    serializeAttributes(out);
+    serializeChildren(out);
+    out.writeEndElement();
+  }
+
+  @Override
+  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
+    super.serializeAttributes(pOut);
+  }
+
+  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
+    for(XmlResultType imp: aImports) {
+      imp.serialize(pOut);
+    }
+  }
 
   @Override
   public boolean condition(final IProcessNodeInstance<?> pInstance) {

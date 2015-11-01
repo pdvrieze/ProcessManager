@@ -4,9 +4,10 @@ import java.util.Collection;
 import java.util.Set;
 
 import nl.adaptivity.diagram.Positioned;
+import nl.adaptivity.process.util.Identifiable;
 
 
-public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
+public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Identifiable {
 
   public static interface Visitor<R> {
     R visitStartNode(StartNode<?> pStartNode);
@@ -16,13 +17,13 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
     R visitEndNode(EndNode<?> pEndNode);
   }
 
-  public Set<? extends T> getPredecessors();
+  public Set<? extends Identifiable> getPredecessors();
 
-  public void setPredecessors(Collection<? extends T> predecessors);
+  public void setPredecessors(Collection<? extends Identifiable> predecessors);
 
-  public void removePredecessor(T pNode);
+  public void removePredecessor(Identifiable pNode);
 
-  public void addPredecessor(T pNode);
+  public void addPredecessor(Identifiable pNode);
 
   public void addSuccessor(T pNode);
 
@@ -34,9 +35,7 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned {
 
   public int getMaxPredecessorCount();
 
-  public void setSuccessors(Collection<? extends T> pSuccessors);
-
-  public String getId();
+  public void setSuccessors(Collection<? extends T/** TODO Identifyable*/> pSuccessors);
 
   public String getLabel();
 

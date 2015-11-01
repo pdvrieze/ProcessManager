@@ -21,7 +21,6 @@ import java.util.Map.Entry;
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-@XmlDeserializer(XMLContainer.Factory.class)
 public abstract class XMLContainer implements XmlSerializable {
 
   public static class Factory<T extends XMLContainer> implements XmlDeserializerFactory<T> {
@@ -44,6 +43,10 @@ public abstract class XMLContainer implements XmlSerializable {
 
   public XMLContainer(final Source pSource) throws XMLStreamException {
     setContent(pSource);
+  }
+
+  protected void deserializeChildren(XMLStreamReader in) throws XMLStreamException {
+    content = XmlUtil.childrenToCharArray(in);
   }
 
   public char[] getContent() {

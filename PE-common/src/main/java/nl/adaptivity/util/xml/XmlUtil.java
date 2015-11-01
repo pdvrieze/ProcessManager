@@ -1,11 +1,13 @@
 package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.util.CombiningReader;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -125,13 +127,43 @@ public class XmlUtil {
     }
   }
 
+  public static DocumentFragment tryParseXmlFragment(final Reader pReader) throws IOException {
+    try {
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      Document doc = db.parse(new InputSource(new CombiningReader(new StringReader("<elem>"), pReader, new StringReader("</elem>"))));
+      DocumentFragment frag = doc.createDocumentFragment();
+      Element docelem = doc.getDocumentElement();
+      for(Node child=docelem.getFirstChild(); child!=null; child=child.getNextSibling()) {
+        frag.appendChild(child);
+      }
+      doc.removeChild(docelem);
+      return frag;
+    } catch (ParserConfigurationException |SAXException pE) {
+      throw new IOException(pE);
+    }
+
+  }
+
   public static QName asQName(final Node pReference, final String pName) {
     final int colPos = pName.indexOf(':');
     if (colPos >= 0) {
       final String prefix = pName.substring(0, colPos);
       return new QName(pReference.lookupNamespaceURI(prefix), pName.substring(colPos + 1), prefix);
     } else {
-      return new QName(pReference.lookupNamespaceURI(null), pName, XMLConstants.NULL_NS_URI);
+      return new QName(pReference.lookupNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), pName, XMLConstants.NULL_NS_URI);
+    }
+
+  }
+
+  public static QName asQName(final NamespaceContext pReference, final String pName) {
+    final int colPos = pName.indexOf(':');
+    if (colPos >= 0) {
+      final String prefix = pName.substring(0, colPos);
+      return new QName(pReference.getNamespaceURI(prefix), pName.substring(colPos + 1), prefix);
+    } else {
+      return new QName(pReference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), pName, XMLConstants.NULL_NS_URI);
     }
 
   }
@@ -291,6 +323,10 @@ public class XmlUtil {
   public static String toString(XmlSerializable pSerializable) {
     int flags = DEFAULT_FLAGS;
     return toString(pSerializable, flags);
+  }
+
+  public static String readSimpleElement(final XMLStreamReader pIn) throws XMLStreamException {
+    return pIn.getElementText();
   }
 
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {

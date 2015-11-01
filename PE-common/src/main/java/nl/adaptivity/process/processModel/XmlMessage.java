@@ -12,20 +12,17 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
+import java.io.CharArrayReader;
+import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 
 
 /**
@@ -62,15 +59,12 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
 
   public static final QName ELEMENTNAME=new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-  @XmlTransient ArrayList<Object> aAny;
-
   public XmlMessage() { /* default constructor */ }
 
 
-  public XmlMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody, Collection<Object> pAny) throws
+  public XmlMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, DocumentFragment pMessageBody) throws
           XMLStreamException {
     super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
-    aAny = (pAny instanceof ArrayList) ? (ArrayList<Object>) pAny : new ArrayList<>(pAny);
   }
 
 
@@ -82,8 +76,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
                           pMessage.getUrl(),
                           pMessage.getMethod(),
                           pMessage.getContentType(),
-                          pMessage.getMessageBody(),
-                          pMessage.getAny());
+                          pMessage.getMessageBody());
   }
 
   @Override
@@ -91,45 +84,25 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
     XmlUtil.writeStartElement(pOut, ELEMENTNAME);
   }
 
-  /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.IXmlMessage#getAny()
-       */
-  @Override
-  @XmlAnyElement(lax = true)
-  public Collection<Object> getAny() {
 
-    if (aAny == null) {
-      aAny = new ArrayList<>(1);
-      if (getMessageBody() != null) {
-        aAny.add(getMessageBody());
-        setMessageBody(null);
-      }
+  public static XmlMessage deserialize(final XMLStreamReader pIn) throws XMLStreamException {
+    XmlMessage result = new XmlMessage();
+    for(int i=pIn.getAttributeCount()-1; i==0; --i) {
+      result.deserializeAttribute(pIn, pIn.getAttributeNamespace(i), pIn.getAttributeLocalName(i), pIn.getAttributeValue(i));
     }
-    return aAny;
+    result.deserializeChildren(pIn);
+    return result;
   }
 
 
   @Override
   @XmlTransient
-  public Node getMessageBody() {
-    Node body = super.getMessageBody();
-    if ((body == null) && (aAny != null)) {
-      final Iterator<Object> it = aAny.iterator();
-      while (it.hasNext()) {
-        final Object next = it.next();
-        if ((next instanceof Element) || (next instanceof Document) || (next instanceof DocumentFragment)) {
-          if (body != null) {
-            throw new IllegalStateException("Only one member allowed");
-          }
-          body = (Node) next;
-        }
-      }
-      if (body != null) {
-        setMessageBody(body);
-        aAny = null;
-      }
+  public DocumentFragment getMessageBody() {
+    try {
+      return XmlUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
+    } catch (IOException pE) {
+      throw new RuntimeException(pE);
     }
-    return body;
   }
 
   @Override

@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 
 
@@ -40,7 +41,7 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
    * @param pNodeId The node id to look up.
    * @return The process node with the id.
    */
-  public T getNode(String pNodeId);
+  public T getNode(Identifiable pNodeId);
 
   public Collection<? extends T> getModelNodes();
 

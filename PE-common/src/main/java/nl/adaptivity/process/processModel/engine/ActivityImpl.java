@@ -6,12 +6,15 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -43,7 +46,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
     @Override
     public ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-      return ActivityImpl.deserialize(in);
+      return ActivityImpl.deserialize(null, in);
     }
   }
 
@@ -54,17 +57,13 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-  public static final String ELEM_CONDITION = "condition";
-
-  public static final String ATTR_PREDECESSOR = "predecessor";
-
   private String aName;
 
   private ConditionImpl aCondition;
 
-  private List<XmlResultType> aResults;
+  private List<XmlResultType> aResults = new ArrayList<>();
 
-  private List<XmlDefineType> aDefines;
+  private List<XmlDefineType> aDefines = new ArrayList<>();
 
   private XmlMessage aMessage;
 
@@ -75,22 +74,56 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @param pPredecessor The process node that starts immediately precedes this
    *          activity.
    */
-  public ActivityImpl(final ProcessNodeImpl pPredecessor) {
-    super(Collections.singletonList(pPredecessor));
+  public ActivityImpl(ProcessModelImpl pOwnerModel, final ProcessNodeImpl pPredecessor) {
+    super(pOwnerModel, Collections.singletonList(pPredecessor));
   }
 
   /**
    * Create an activity without predecessor. This constructor is needed for JAXB
    * to work.
    */
-  public ActivityImpl() {}
+  public ActivityImpl(ProcessModelImpl pOwnerModel) {super(pOwnerModel);}
 
-  public static ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+  public static ActivityImpl deserialize(ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
     XmlUtil.skipPreamble(in);
     assert XmlUtil.isElement(in, ELEMENTNAME);
+    ActivityImpl result = new ActivityImpl(pOwnerModel);
+    for(int i=in.getAttributeCount()-1; i>=0; --i) {
+      result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+    }
+    loop:while (in.hasNext()&& in.getEventType()!= XMLStreamConstants.END_ELEMENT) {
+      switch(in.next()) {
+        case XMLStreamConstants.START_ELEMENT:
+          if (Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+            switch (in.getLocalName()) {
+              case XmlDefineType.ELEMENTNAME:
+                result.aDefines.add(XmlDefineType.deserialize(in));
+                continue loop;
+              case XmlResultType.ELEMENTNAME:
+                result.aResults.add(XmlResultType.deserialize(in));
+                continue loop;
+              case ConditionImpl.ELEMENTLOCALNAME:
+                result.aCondition = ConditionImpl.deserialize(in);
+                continue loop;
+              case XmlMessage.ELEMENTLOCALNAME:
+                result.aMessage = XmlMessage.deserialize(in);
+                continue loop;
+            }
+          }
+          break;
+        default:
+          XmlUtil.unhandledEvent(in);
+      }
+    }
+    return result;
+  }
 
-
-    throw new UnsupportedOperationException("Not yet implemented");
+  @Override
+  protected boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    switch (pAttributeLocalName) {
+      case ATTR_PREDECESSOR: setPredecessor(new Identifier(pAttributeValue)); return true;
+    }
+    return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
   }
 
   @Override
@@ -108,14 +141,16 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     XmlUtil.writeAttribute(pOut, "name", getName());
   }
 
-  private void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
+  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
+    super.serializeChildren(pOut);
     for(XmlDefineType define:getDefines()) {
       define.serialize(pOut);
     }
     for(XmlResultType result:getResults()) {
       result.serialize(pOut);
     }
-    XmlUtil.writeSimpleElement(pOut, new QName(Engine.NAMESPACE, ELEM_CONDITION, Engine.NSPREFIX), getCondition());
+    aCondition.serialize(pOut);
+
     {
       XmlMessage m = getMessage();
       if (m!=null) { m.serialize(pOut); }
@@ -143,7 +178,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#getCondition()
    */
   @Override
-  @XmlElement(name = ELEM_CONDITION)
+  @XmlElement(name = ConditionImpl.ELEMENTLOCALNAME)
   public String getCondition() {
     return aCondition==null ? null : aCondition.toString();
   }
@@ -173,7 +208,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   public void setResults(final Collection<? extends IXmlResultType> pImports) {
-    aResults = toExportableResults(pImports);
+    aResults = pImports==null ? new ArrayList<XmlResultType>(0) : toExportableResults(pImports);
   }
 
   /* (non-Javadoc)
@@ -193,7 +228,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   public void setDefines(final Collection<? extends IXmlDefineType> pExports) {
-    aDefines = toExportableDefines(pExports);
+    aDefines = pExports==null ? new ArrayList<XmlDefineType>(0) : toExportableDefines(pExports);
   }
 
   /* (non-Javadoc)
@@ -202,8 +237,8 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   @Override
   @XmlAttribute(name = ATTR_PREDECESSOR, required = true)
   @XmlIDREF
-  public ProcessNodeImpl getPredecessor() {
-    final Collection<? extends ProcessNodeImpl> ps = getPredecessors();
+  public Identifiable getPredecessor() {
+    final Collection<? extends Identifiable> ps = getPredecessors();
     if ((ps == null) || (ps.size() != 1)) {
       return null;
     }
@@ -214,9 +249,11 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public void setPredecessor(final ProcessNodeImpl predecessor) {
+  public void setPredecessor(final Identifiable predecessor) {
     setPredecessors(Collections.singleton(predecessor));
   }
+
+
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.IActivity#getMessage()
@@ -232,11 +269,19 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   public void setMessage(final IXmlMessage message) {
-    aMessage = XmlMessage.get(message);
+    try {
+      aMessage = XmlMessage.get(message);
+    } catch (XMLStreamException pE) {
+      throw new RuntimeException(pE);
+    }
   }
 
   public void setMessage(final XmlMessage message) {
-    aMessage = XmlMessage.get(message);
+    try {
+      aMessage = XmlMessage.get(message);
+    } catch (XMLStreamException pE) {
+      throw new RuntimeException(pE);
+    }
   }
 
   /**
