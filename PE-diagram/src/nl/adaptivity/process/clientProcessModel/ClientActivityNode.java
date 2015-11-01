@@ -11,6 +11,7 @@ import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.util.Identifiable;
 
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
@@ -58,8 +59,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public T getPredecessor() {
-    ProcessNodeSet<T> list = getPredecessors();
+  public Identifiable getPredecessor() {
+    ProcessNodeSet<? extends Identifiable> list = getPredecessors();
     if (list.isEmpty()) {
       return null;
     } else {
@@ -68,8 +69,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setPredecessor(T pPredecessor) {
-    T previous = getPredecessor();
+  public void setPredecessor(Identifiable pPredecessor) {
+    Identifiable previous = getPredecessor();
     if (previous==null) {
       removePredecessor(previous);
     }

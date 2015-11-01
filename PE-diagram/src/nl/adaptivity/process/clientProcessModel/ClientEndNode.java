@@ -4,11 +4,13 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.util.Identifiable;
 
 
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
@@ -41,14 +43,14 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public T getPredecessor() {
-    ProcessNodeSet<T> list = getPredecessors();
+  public Identifiable getPredecessor() {
+    ProcessNodeSet<? extends Identifiable> list = getPredecessors();
     return list.isEmpty() ? null : list.get(0);
   }
 
   @Override
   public void setPredecessor(T pPredecessor) {
-    T previous = getPredecessor();
+    Identifiable previous = getPredecessor();
     if (previous==null) {
       removePredecessor(previous);
     }

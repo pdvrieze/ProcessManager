@@ -21,6 +21,7 @@ import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+import nl.adaptivity.process.util.Identifiable;
 
 
 public class ClientProcessModel<T extends IClientProcessNode<T>> implements ProcessModel<T>{
@@ -229,6 +230,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
+  public T getNode(Identifiable pNodeId) {
+    for(T n: getModelNodes()) {
+      if (pNodeId.getId().equals(n.getId())) {
+        return n;
+      }
+    }
+    return null;
+  }
+
   public T getNode(String pNodeId) {
     for(T n: getModelNodes()) {
       if (pNodeId.equals(n.getId())) {
@@ -395,7 +405,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           dn.getRightNodes().add(rightdn);
         }
       }
-      for(T predecessor:mn.getPredecessors()) {
+      for(Identifiable predecessorId:mn.getPredecessors()) {
+        T predecessor = getNode(predecessorId);
         DiagramNode<T> leftdn = map.get(predecessor);
         if (leftdn!=null) {
           dn.getLeftNodes().add(leftdn);

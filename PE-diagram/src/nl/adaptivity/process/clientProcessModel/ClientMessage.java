@@ -3,11 +3,14 @@ package nl.adaptivity.process.clientProcessModel;
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.process.processModel.BaseMessage;
 import nl.adaptivity.process.processModel.IXmlMessage;
 
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -26,23 +29,32 @@ public class ClientMessage extends BaseMessage {
   }
 
   public ClientMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType,
-                       Node pMessageBody) {
+                       Node pMessageBody) throws XMLStreamException {
     super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
   }
 
-  public ClientMessage(IXmlMessage pMessage) {
+  public ClientMessage(IXmlMessage pMessage) throws XMLStreamException {
     super(pMessage);
   }
 
   public static ClientMessage from(IXmlMessage pMessage) {
     if (pMessage==null) { return null; }
     if (pMessage instanceof ClientMessage) { return (ClientMessage) pMessage; }
-    return new ClientMessage(pMessage);
+    try {
+      return new ClientMessage(pMessage);
+    } catch (XMLStreamException pE) {
+      throw new RuntimeException(pE);
+    }
   }
 
   @Override
   public EndpointDescriptor getEndpointDescriptor() {
     throw new UnsupportedOperationException("Not supported for clientmessages yet");
+  }
+
+  @Override
+  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
+    XmlUtil.writeStartElement(pOut, new QName(NS_PM, "message", "pm"));
   }
 
   public void serialize(SerializerAdapter pOut) {

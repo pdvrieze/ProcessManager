@@ -1,15 +1,13 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import net.devrieze.util.CollectionUtil;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.util.Identifiable;
 
 
 public abstract class ClientProcessNode<T extends IClientProcessNode<T>> implements IClientProcessNode<T>{
@@ -28,7 +26,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
 
   private ClientProcessModel<T> aOwner;
 
-  private final ProcessNodeSet<T> aPredecessors;
+  private final ProcessNodeSet<Identifiable> aPredecessors;
 
   private final ProcessNodeSet<T> aSuccessors;
 
@@ -40,9 +38,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     aId = pId;
     aOwner = null;
     switch (getMaxPredecessorCount()) {
-      case 0: aPredecessors = ProcessNodeSet.<T>empty(); break;
-      case 1: aPredecessors = ProcessNodeSet.<T>singleton(); break;
-      default: aPredecessors = ProcessNodeSet.<T>processNodeSet();
+      case 0: aPredecessors = ProcessNodeSet.empty(); break;
+      case 1: aPredecessors = ProcessNodeSet.singleton(); break;
+      default: aPredecessors = ProcessNodeSet.processNodeSet();
     }
     switch (getMaxSuccessorCount()) {
       case 0: aSuccessors = ProcessNodeSet.<T>empty(); break;
@@ -83,13 +81,13 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final void setPredecessors(Collection<? extends T> pPredecessors) {
+  public final void setPredecessors(Collection<? extends Identifiable> pPredecessors) {
     if (pPredecessors.size()>getMaxPredecessorCount()) {
       throw new IllegalArgumentException();
     }
-    List<T> toRemove = new ArrayList<>(aPredecessors.size());
-    for(Iterator<T> it = aPredecessors.iterator();it.hasNext(); ) {
-      T item = it.next();
+    List<Identifiable> toRemove = new ArrayList<>(aPredecessors.size());
+    for(Iterator<Identifiable> it = aPredecessors.iterator(); it.hasNext(); ) {
+      Identifiable item = it.next();
       if (pPredecessors.contains(item)) {
         pPredecessors.remove(item);
       } else {
@@ -97,10 +95,10 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
         it.remove();
       }
     }
-    for(T oldPred: toRemove) {
+    for(Identifiable oldPred: toRemove) {
       removePredecessor(oldPred);
     }
-    for(T pred: pPredecessors) {
+    for(Identifiable pred: pPredecessors) {
       addPredecessor(pred);
     }
   }
@@ -129,13 +127,14 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final void addPredecessor(T pred) {
-    if (aPredecessors.contains(pred)) { return; }
+  public final void addPredecessor(Identifiable predId) {
+    if (aPredecessors.contains(predId)) { return; }
     if (aPredecessors.size()+1>getMaxPredecessorCount()) {
       throw new IllegalProcessModelException("Can not add more predecessors");
     }
 
-    aPredecessors.add(pred);
+    aPredecessors.add(predId);
+    T pred = getOwner().getNode(predId);
     if (!pred.getSuccessors().contains(this)) {
       pred.addSuccessor(this.asT());
     }
@@ -171,7 +170,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final ProcessNodeSet<T> getPredecessors() {
+  public final ProcessNodeSet<? extends Identifiable> getPredecessors() {
     return aPredecessors.readOnly();
   }
 
@@ -181,9 +180,9 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final void removePredecessor(T pNode) {
+  public final void removePredecessor(Identifiable pNode) {
     if (aPredecessors.remove(pNode)) {
-      pNode.removeSuccessor(this.asT());
+      getOwner().getNode(pNode).removeSuccessor(this.asT());
     }
   }
 
@@ -197,10 +196,10 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   @Override
   public void disconnect() {
     final T me = this.asT();
-    for(Iterator<T> it=aPredecessors.iterator(); it.hasNext();) {
-      T pred = it.next();
+    for(Iterator<Identifiable> it=aPredecessors.iterator(); it.hasNext();) {
+      Identifiable pred = it.next();
       it.remove(); // Remove first, otherwise we get strange iterator concurrent modification effects.
-      pred.removeSuccessor(me);
+      getOwner().getNode(pred).removeSuccessor(me);
     }
     for(Iterator<? extends T> it = aSuccessors.iterator(); it.hasNext();) {
       T suc = it.next();

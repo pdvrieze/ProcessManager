@@ -2,6 +2,9 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.util.Identifiable;
+
+import java.util.Set;
 
 
 public interface IClientProcessNode<T extends IClientProcessNode<T>> extends ProcessNode<T> {
@@ -23,7 +26,7 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   void setY(double pY);
 
   @Override
-  public ProcessNodeSet<? extends T> getPredecessors();
+  public Set<? extends Identifiable> getPredecessors();
 
   @Override
   public ProcessNodeSet<? extends T> getSuccessors();

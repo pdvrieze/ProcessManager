@@ -24,7 +24,7 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.processModel.StartNode;
-
+import nl.adaptivity.process.util.Identifiable;
 
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode> implements Diagram {
@@ -67,19 +67,20 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?>> pOriginal) {
     Map<String,DrawableProcessNode> cache = new HashMap<>(pOriginal.getModelNodes().size());
-    return cloneNodes(cache, pOriginal.getModelNodes());
+    return cloneNodes(pOriginal, cache, pOriginal.getModelNodes());
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(Map<String, DrawableProcessNode> cache, Collection<? extends ProcessNode<?>> pNodes) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<?> source, Map<String, DrawableProcessNode> cache, Collection<? extends Identifiable> pNodes) {
     List<DrawableProcessNode> result = new ArrayList<>(pNodes.size());
-    for(ProcessNode<?> orig: pNodes) {
-      DrawableProcessNode val = cache.get(orig.getId());
+    for(Identifiable origId: pNodes) {
+      DrawableProcessNode val = cache.get(origId.getId());
       if (val==null) {
+        ProcessNode orig = source.getNode(origId);
         DrawableProcessNode cpy = toDrawableNode(orig);
         result.add(cpy);
         cache.put(cpy.getId(), cpy);
         cpy.setSuccessors(Collections.<DrawableProcessNode>emptyList());
-        cpy.setPredecessors(cloneNodes(cache, orig.getPredecessors()));
+        cpy.setPredecessors(cloneNodes(source, cache, orig.getPredecessors()));
       } else {
         result.add(val);
       }

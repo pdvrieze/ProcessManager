@@ -3,6 +3,7 @@ package nl.adaptivity.process.clientProcessModel;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 import nl.adaptivity.process.processModel.JoinSplit;
+import nl.adaptivity.process.util.Identifiable;
 
 
 public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements JoinSplit<T>{
@@ -62,7 +63,7 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
     pOut.startTag(NS_PM, "join", true);
     serializeCommonAttrs(pOut);
     serializeCommonChildren(pOut);
-    for(T predecessor: getPredecessors()) {
+    for(Identifiable predecessor: getPredecessors()) {
       pOut.startTag(NS_PM, "predecessor", false);
       pOut.text(predecessor.getId());
       pOut.endTag(NS_PM, "predecessor", true);
