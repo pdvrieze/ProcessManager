@@ -7,6 +7,7 @@ import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.*;
 import org.custommonkey.xmlunit.*;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -361,6 +362,7 @@ public class TestProcessData {
       xsw.close();
     }
     try {
+      assertTrue(caw.toString().contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
       XMLAssert.assertXMLEqual(xml, caw.toString());
     } catch (Exception e) {
       assertEquals(xml, caw.toString());

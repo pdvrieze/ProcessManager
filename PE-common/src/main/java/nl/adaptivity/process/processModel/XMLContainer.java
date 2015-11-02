@@ -32,7 +32,7 @@ public abstract class XMLContainer implements XmlSerializable {
   }
 
   private char[] content;
-  private NamespaceContext originalNSContext;
+  private SimpleNamespaceContext originalNSContext;
 
   public XMLContainer() {
   }
@@ -83,7 +83,13 @@ public abstract class XMLContainer implements XmlSerializable {
       throw new RuntimeException(pE);
     }
 
-    originalNSContext = new SimpleNamespaceContext(nsmap);
+
+    SimpleNamespaceContext namespaceContext = new SimpleNamespaceContext(nsmap);
+    originalNSContext = (originalNSContext==null || originalNSContext.size()==0) ? namespaceContext :originalNSContext.combine(namespaceContext);
+  }
+
+  public void addNamespaceContext(final SimpleNamespaceContext pNamespaceContext) {
+    originalNSContext = (originalNSContext==null || originalNSContext.size()==0) ? pNamespaceContext: originalNSContext.combine(pNamespaceContext);
   }
 
   @Override
@@ -92,11 +98,7 @@ public abstract class XMLContainer implements XmlSerializable {
     Map<String,String> missingNamespaces = missingNamespaces(out.getNamespaceContext());
     serializeStartElement(out);
     for(Entry<String, String> name:missingNamespaces.entrySet()) {
-      if (XMLConstants.DEFAULT_NS_PREFIX.equals(name.getKey())||name.getKey()==null) {
-        out.writeDefaultNamespace(name.getValue());
-      } else {
-        out.writeNamespace(name.getKey(), name.getValue());
-      }
+      out.writeNamespace(name.getKey(), name.getValue());
     }
     serializeAttributes(out);
     serializeBody(out);

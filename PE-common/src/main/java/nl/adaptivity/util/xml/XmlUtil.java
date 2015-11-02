@@ -491,11 +491,7 @@ public class XmlUtil {
     }
     pOut.writeStartElement(prefix, pQName.getLocalPart(), namespace);
     if (writeNs) {
-      if ("".equals(prefix)) {
-        pOut.writeDefaultNamespace(namespace);
-      } else {
-        pOut.writeNamespace(prefix, namespace);
-      }
+      pOut.writeNamespace(prefix, namespace);
     }
   }
 

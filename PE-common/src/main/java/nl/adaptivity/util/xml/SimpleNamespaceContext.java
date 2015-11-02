@@ -36,6 +36,13 @@ public class SimpleNamespaceContext implements NamespaceContext {
     return aPrefixes.length;
   }
 
+  public SimpleNamespaceContext combine(final SimpleNamespaceContext other) {
+    Map<String, String> result = new TreeMap<>();
+    for(int i=0; i<aPrefixes.length; ++i) { result.put(aPrefixes[i], aNamespaces[i]); }
+    for(int i=0; i<other.aPrefixes.length; ++i) { result.put(other.aPrefixes[i], other.aNamespaces[i]); }
+    return new SimpleNamespaceContext(result);
+  }
+
   @Override
   public String getNamespaceURI(final String prefix) {
     if (prefix==null) { throw new IllegalArgumentException(); }

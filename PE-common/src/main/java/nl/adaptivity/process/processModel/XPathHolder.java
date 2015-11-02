@@ -1,5 +1,7 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -13,6 +15,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 
@@ -94,28 +97,42 @@ public abstract class XPathHolder extends XMLContainer {
   protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
     super.serializeAttributes(out);
     if (pathString!=null) {
+      Map<String, String> namepaces = new TreeMap<>();
+      // Have a namespace that gathers those namespaces that are not known already in the outer context
+      NamespaceContext referenceContext = out.getNamespaceContext();
+      NamespaceContext nsc = new GatheringNamespaceContext(new CombiningNamespaceContext(referenceContext, getNamespaceContext()), namepaces);
+      addXpathUsedPrefixes(pathString, nsc);
+      for(Entry<String, String> ns: namepaces.entrySet()) {
+        if (! ns.getValue().equals(referenceContext.getNamespaceURI(ns.getKey()))) {
+          out.writeNamespace(ns.getKey(), ns.getValue());
+        }
+      }
       out.writeAttribute("xpath", pathString);
+
     }
   }
+
+
 
   @Override
   protected Map<String,String> findNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    if (pAttributeNamespace==null && "xpath".equals(pAttributeLocalName)) {
-      Map<String, String> result = new TreeMap<>();
-      try {
-        addXpathUsedPrefixes(result, pathString, referenceContext);
-      } catch (XPathExpressionException pE) {
-        throw new RuntimeException(pE);
-      }
+    Map<String, String> result = new TreeMap<>();
+    if (Engine.NAMESPACE.equals(owner.getNamespaceURI()) && pAttributeNamespace==null && "xpath".equals(pAttributeLocalName)) {
+      addXpathUsedPrefixes(pathString, new GatheringNamespaceContext(referenceContext, result));
     }
-    return super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue);
+    result.putAll(super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue));
+    return result;
   }
 
-  public static void addXpathUsedPrefixes(final Map<String, String> pNamespaceMap, final String pPath, final NamespaceContext pNamespaceContext) throws
-          XPathExpressionException {
-    XPathFactory xpf = XPathFactory.newInstance();
-    XPath xpath = xpf.newXPath();
-    xpath.setNamespaceContext(new GatheringNamespaceContext(pNamespaceContext, pNamespaceMap));
-    xpath.compile(pPath);
+  protected static void addXpathUsedPrefixes(final String pPath, final NamespaceContext pNamespaceContext) {
+    try {
+      XPathFactory xpf = XPathFactory.newInstance();
+      XPath xpath = xpf.newXPath();
+      xpath.setNamespaceContext(pNamespaceContext);
+      xpath.compile(pPath);
+    } catch (XPathExpressionException pE) {
+      throw new RuntimeException(pE);
+    }
+
   }
 }

@@ -12,6 +12,7 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.GatheringNamespaceContext;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
@@ -72,12 +73,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
     String path = result.getPath();
     if (path!=null) {
-
-      try {
-        addXpathUsedPrefixes(namespaceMap, path, in.getNamespaceContext());
-      } catch (XPathExpressionException e) {
-        throw new RuntimeException(e);
-      }
+      addXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
     }
     while (in.getEventType()!=XMLStreamConstants.END_ELEMENT && in.hasNext()) {
       switch (in.next()) {
@@ -94,7 +90,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
 
     if (namespaceMap.size()>0) {
-      result.setNamespaceContext(new SimpleNamespaceContext(namespaceMap));
+      result.addNamespaceContext(new SimpleNamespaceContext(namespaceMap));
     }
     return result;
   }
