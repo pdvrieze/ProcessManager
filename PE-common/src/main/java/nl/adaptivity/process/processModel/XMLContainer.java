@@ -134,13 +134,15 @@ public abstract class XMLContainer implements XmlSerializable {
   }
 
   private Map<String, String> missingNamespaces(NamespaceContext baseContext) throws XMLStreamException {
-    Map<String, String> result = new TreeMap<>();
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    if (content != null) {
+      Map<String, String> result = new TreeMap<>();
+      XMLInputFactory xif = XMLInputFactory.newFactory();
+      XMLOutputFactory xof = XMLOutputFactory.newFactory();
 
-    XMLStreamReader xsr = xif.createXMLStreamReader(new CharArrayReader(content));
-    return missingNamespaces(baseContext, xsr, result, null);
-
+      XMLStreamReader xsr = xif.createXMLStreamReader(new CharArrayReader(content));
+      return missingNamespaces(baseContext, xsr, result, null);
+    }
+    return Collections.emptyMap();
   }
 
   public Map<String, String> undeclaredNamespaces() throws XMLStreamException {

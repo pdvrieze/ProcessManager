@@ -91,8 +91,9 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
-    loop:while (in.hasNext()&& in.getEventType()!= XMLStreamConstants.END_ELEMENT) {
-      switch(in.next()) {
+    int event = -1;
+    loop:while (in.hasNext()&& event!= XMLStreamConstants.END_ELEMENT) {
+      switch((event = in.next())) {
         case XMLStreamConstants.START_ELEMENT:
           if (Engine.NAMESPACE.equals(in.getNamespaceURI())) {
             switch (in.getLocalName()) {

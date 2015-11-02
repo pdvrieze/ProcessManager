@@ -1,16 +1,11 @@
 package nl.adaptivity.process.engine;
 
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.XmlProcessModel;
-import nl.adaptivity.process.processModel.XmlResultType;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlDeserializer;
-import nl.adaptivity.util.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
 import org.custommonkey.xmlunit.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +17,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
@@ -34,7 +28,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
-import javax.xml.transform.dom.DOMResult;
 
 import java.io.*;
 import java.util.Iterator;
@@ -352,6 +345,107 @@ public class TestProcessData {
     } catch (AssertionError e) {
       assertEquals(control, caw.toString());
     }
+  }
+
+  public static <T extends XmlSerializable> void testRoundTrip(String xml, Class<T> target) throws
+          IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
+    XmlDeserializerFactory<T> factory = target.getDeclaredAnnotation(XmlDeserializer.class).value().newInstance();
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    T obj = factory.deserialize(xif.createXMLStreamReader(new StringReader(xml)));
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    CharArrayWriter caw = new CharArrayWriter();
+    XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+    try {
+      obj.serialize(xsw);
+    } finally {
+      xsw.close();
+    }
+    try {
+      XMLAssert.assertXMLEqual(xml, caw.toString());
+    } catch (Exception e) {
+      assertEquals(xml, caw.toString());
+    }
+  }
+
+  @Test
+  public void testRoundTripResult1() throws Exception {
+    String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
+    testRoundTrip(xml, XmlResultType.class);
+  }
+
+  @Test
+  public void testRoundTripResult2() throws Exception {
+    String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+            "  <user xmlns=\"\"\n" +
+            "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+            "    <fullname>\n" +
+            "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+            "    </fullname>\n" +
+            "  </user>\n" +
+            "</result>";
+    testRoundTrip(xml, XmlResultType.class);
+  }
+
+  @Test
+  public void testRoundTripMessage() throws IOException, XMLStreamException, InstantiationException, SAXException,
+          IllegalAccessException {
+    String xml = "    <message xmlns=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" endpoint=\"internal\" operation=\"postTask\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" url=\"/PEUserMessageHandler/internal\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+            "      <Envelope:Envelope xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+            "        <Body>\n" +
+            "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+            "            <repliesParam>\n" +
+            "              <jbi:element value=\"endpoint\"/>\n" +
+            "            </repliesParam>\n" +
+            "            <taskParam>\n" +
+            "              <task summary=\"Task Foo\">\n" +
+            "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
+            "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
+            "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
+            "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
+            "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
+            "              </task>\n" +
+            "            </taskParam>\n" +
+            "          </umh:postTask>\n" +
+            "        </Body>\n" +
+            "      </Envelope:Envelope>\n" +
+            "    </message>\n";
+    testRoundTrip(xml, XmlMessage.class);
+  }
+
+  @Test
+  public void testRoundTripActivity() throws Exception {
+    String xml = "  <activity xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+            "    <result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+            "    <result name=\"user\">\n" +
+            "      <user xmlns=\"\"\n" +
+            "            xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+            "        <fullname>\n" +
+            "          <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+            "        </fullname>\n" +
+            "      </user>\n" +
+            "    </result>\n" +
+            "    <message type=\"application/soap+xml\" endpoint=\"internal\" operation=\"postTask\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" url=\"/PEUserMessageHandler/internal\">\n" +
+            "      <Envelope:Envelope xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+            "        <Body>\n" +
+            "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+            "            <repliesParam>\n" +
+            "              <jbi:element value=\"endpoint\"/>\n" +
+            "            </repliesParam>\n" +
+            "            <taskParam>\n" +
+            "              <task summary=\"Task Foo\">\n" +
+            "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
+            "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
+            "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
+            "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
+            "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
+            "              </task>\n" +
+            "            </taskParam>\n" +
+            "          </umh:postTask>\n" +
+            "        </Body>\n" +
+            "      </Envelope:Envelope>\n" +
+            "    </message>\n" +
+            "  </activity>\n";
+    testRoundTrip(xml, ActivityImpl.class);
   }
 
 }

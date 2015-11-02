@@ -439,13 +439,13 @@ public class XmlUtil {
       case XMLStreamConstants.CDATA:
       case XMLStreamConstants.CHARACTERS:
         if (!in.isWhiteSpace()) {
-          throw new XMLStreamException("Content found where not expected");
+          throw new XMLStreamException("Content found where not expected ["+in.getLocation()+"]");
         }
         break;
       case XMLStreamConstants.COMMENT:
         break; // ignore
       case XMLStreamConstants.START_ELEMENT:
-        throw new XMLStreamException("Element found where not expected "+in.getName());
+        throw new XMLStreamException("Element found where not expected ["+in.getLocation()+"]: "+in.getName());
       case XMLStreamConstants.END_DOCUMENT:
         throw new XMLStreamException("End of document found where not expected");
     }
@@ -476,6 +476,7 @@ public class XmlUtil {
   }
 
   public static void writeStartElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
+    boolean writeNs = false;
     String namespace = pQName.getNamespaceURI();
     String prefix;
     if (namespace==null) {
@@ -483,9 +484,19 @@ public class XmlUtil {
       prefix = pQName.getPrefix();
     } else {
       prefix = pOut.getPrefix(namespace);
-      if (prefix==null) { prefix = pQName.getPrefix(); }
+      if (prefix==null) { // The namespace is not know in the output context, so add an attribute
+        writeNs = true;
+        prefix = pQName.getPrefix();
+      }
     }
     pOut.writeStartElement(prefix, pQName.getLocalPart(), namespace);
+    if (writeNs) {
+      if ("".equals(prefix)) {
+        pOut.writeDefaultNamespace(namespace);
+      } else {
+        pOut.writeNamespace(prefix, namespace);
+      }
+    }
   }
 
   public static void writeEmptyElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
