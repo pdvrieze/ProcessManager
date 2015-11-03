@@ -56,13 +56,13 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   @Override
   protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
     super.serializeAttributes(pOut);
-    XmlUtil.writeAttribute(pOut, "serviceName", getServiceName());
+    XmlUtil.writeAttribute(pOut, "type", getContentType());
     XmlUtil.writeAttribute(pOut, "serviceNS", getServiceNS());
+    XmlUtil.writeAttribute(pOut, "serviceName", getServiceName());
     XmlUtil.writeAttribute(pOut, "endpoint", getEndpoint());
     XmlUtil.writeAttribute(pOut, "operation", getOperation());
     XmlUtil.writeAttribute(pOut, "url", getUrl());
     XmlUtil.writeAttribute(pOut, "method", getMethod());
-    XmlUtil.writeAttribute(pOut, "type", getContentType());
   }
 
 
