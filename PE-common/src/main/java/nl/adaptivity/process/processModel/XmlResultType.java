@@ -12,11 +12,9 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.GatheringNamespaceContext;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -29,9 +27,6 @@ import javax.xml.xpath.XPathExpressionException;
 
 import java.io.CharArrayReader;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 @XmlDeserializer(XmlResultType.Factory.class)
@@ -47,54 +42,10 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   }
 
   public static XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
-    if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { in.nextTag(); }
-    XmlResultType result = new XmlResultType();
-    Map<String, String> namespaceMap = new TreeMap<>();
-    for(int i=in.getAttributeCount()-1; i>=0;--i) {
-      String prefix = in.getAttributePrefix(i);
-      if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-        switch(in.getAttributeLocalName(i)) {
-          case "name":
-            result.name = in.getAttributeValue(i);
-            break;
-          case "path":
-          case "xpath":
-            result.setPath(in.getAttributeValue(i));
-            break;
-          case XMLConstants.XMLNS_ATTRIBUTE:
-            break;
-          default:
-            Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
-        }
-      } else if (! XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
-        Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
-      }
-    }
-
-    String path = result.getPath();
-    if (path!=null) {
-      addXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
-    }
-    if (in.hasNext()) {
-      if (in.next()!=XMLStreamConstants.END_ELEMENT) {
-        result.setContent(in.getNamespaceContext(), XmlUtil.childrenToCharArray(in));
-      }
-    }
-
-    if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
-      throw new RuntimeException("Missing end tag");
-    }
-
-
-    if (namespaceMap.size()>0) {
-      result.addNamespaceContext(new SimpleNamespaceContext(namespaceMap));
-    }
-    return result;
+    return deserialize(in, new XmlResultType());
   }
 
   public static final String ELEMENTNAME = "result";
-
-  private String name;
 
   public XmlResultType() {}
 
@@ -104,15 +55,14 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   }
 
   public XmlResultType(final String pName, String pPath, final char[] pContent, final NamespaceContext pOriginalNSContext) {
-    super(pContent, pOriginalNSContext, pPath);
-    name = pName;
+    super(pContent, pOriginalNSContext, pPath, pName);
   }
 
   @Override
   protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
     super.serializeAttributes(out);
-    if (name!=null) {
-      out.writeAttribute("name", name);
+    if (getName() !=null) {
+      out.writeAttribute("name", getName());
     }
   }
 
@@ -124,22 +74,6 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   @Override
   protected Map<String, String> findNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     return super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue);
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlResultType#getName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
-   */
-  @Override
-  public void setName(final String value) {
-    this.name = value;
   }
 
   public static XmlResultType get(IXmlResultType pImport) {
@@ -159,14 +93,14 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     try {
       // shortcircuit missing path
       Node resultNode = (getPath()==null || ".".equals(getPath())) ? pPayload : (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
-      ProcessData processData = new ProcessData(name, resultNode);
+      ProcessData processData = new ProcessData(getName(), resultNode);
       char[] content = getContent();
       if (content!=null && content.length>0) {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         DocumentFragment result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
         PETransformer.create(getNamespaceContext(), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
-        return new ProcessData(name, result);
+        return new ProcessData(getName(), result);
       } else {
         return processData;
       }

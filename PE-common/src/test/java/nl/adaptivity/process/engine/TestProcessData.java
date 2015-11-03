@@ -132,7 +132,7 @@ public class TestProcessData {
   private static ProcessModelImpl getProcessModel(String name) throws XMLStreamException, IOException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
     try (InputStream inputStream = getDocument(name)) {
-      XMLStreamReader in = xif.createXMLStreamReader(inputStream);
+      XMLStreamReader in = xif.createXMLStreamReader(name, inputStream);
       try {
         XmlDeserializerFactory factory = ProcessModel.class.getAnnotation(XmlDeserializer.class)
                                                            .value()
@@ -389,6 +389,12 @@ public class TestProcessData {
     String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
     String result = testRoundTrip(xml, XmlResultType.class);
     assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
+  }
+
+  @Test
+  public void testRoundTripDefine() throws Exception {
+    String xml = "<define refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>";
+    String result = testRoundTrip(xml, XmlDefineType.class);
   }
 
   @Test

@@ -454,6 +454,7 @@ public class XmlUtil {
     }
   }
   public static char[] childrenToCharArray(final XMLStreamReader in) throws XMLStreamException {
+    Location startLocation = in.getLocation();
     try {
       XMLInputFactory xif = XMLInputFactory.newFactory();
       XMLEventReader xer = xif.createXMLEventReader(in);
@@ -474,8 +475,7 @@ public class XmlUtil {
       out.close();
       return caw.toCharArray();
     } catch (XMLStreamException | RuntimeException e) {
-      e.printStackTrace();
-      throw e;
+      throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
     }
   }
 

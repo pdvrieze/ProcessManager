@@ -53,19 +53,26 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   private String refName;
 
-  private String name;
-
-  public static XmlDefineType deserialize(final XMLStreamReader pIn) throws XMLStreamException {
-    return null;
-  }
-
   public XmlDefineType() {}
 
   public XmlDefineType(final String pName, final String pRefNode, final String pRefName, String pPath, final char[] pContent, final NamespaceContext pOriginalNSContext) {
-    super(pContent, pOriginalNSContext, pPath);
-    name = pName;
+    super(pContent, pOriginalNSContext, pPath, pName);
     refNode = pRefNode;
     refName = pRefName;
+  }
+
+  public static XmlDefineType deserialize(final XMLStreamReader pIn) throws XMLStreamException {
+    return deserialize(pIn, new XmlDefineType());
+  }
+
+  @Override
+  protected boolean deserializeAttribute(final String pAttributeLocalName, final String pAttributeValue) {
+    switch (pAttributeLocalName) {
+      case "refnode": setRefNode(pAttributeValue); return true;
+      case "refname": setRefName(pAttributeValue); return true;
+      default:
+        return super.deserializeAttribute(pAttributeLocalName, pAttributeValue);
+    }
   }
 
   @Override
@@ -73,9 +80,16 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     XmlUtil.writeStartElement(pOut, new QName(Engine.NAMESPACE, ELEMENTNAME, Engine.NSPREFIX));
   }
 
+  @Override
+  protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+    super.serializeAttributes(out);
+    XmlUtil.writeAttribute(out, "refnode", getRefNode());
+    XmlUtil.writeAttribute(out, "refname", getRefName());
+  }
+
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IXmlDefineType#getRefNode()
-   */
+     * @see nl.adaptivity.process.processModel.IXmlDefineType#getRefNode()
+     */
   @Override
   public String getRefNode() {
     return refNode;
@@ -105,22 +119,6 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     this.refName = value;
   }
 
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#getParamName()
-   */
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.XmlImportType#setParamName(java.lang.String)
-   */
-  @Override
-  public void setName(final String value) {
-    this.name = value;
-  }
-
   /**
    *
    * @param pExport
@@ -143,9 +141,9 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       } else {
         try {
           if (getXPath()==null) {
-            processData = new ProcessData(name, origpair.getDocumentFragment());
+            processData = new ProcessData(getName(), origpair.getDocumentFragment());
           } else {
-            processData = new ProcessData(name, (NodeList) getXPath().evaluate(origpair.getNodeValue(), XPathConstants.NODESET));
+            processData = new ProcessData(getName(), (NodeList) getXPath().evaluate(origpair.getNodeValue(), XPathConstants.NODESET));
           }
         } catch (XPathExpressionException e) {
           throw new RuntimeException(e);
@@ -166,7 +164,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
         throw new RuntimeException(pE);
       }
 
-      return new ProcessData(name, result);
+      return new ProcessData(getName(), result);
     } else {
       return processData;
     }

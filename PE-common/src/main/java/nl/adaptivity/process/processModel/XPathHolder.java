@@ -3,12 +3,17 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
@@ -18,11 +23,14 @@ import javax.xml.xpath.XPathFactory;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public abstract class XPathHolder extends XMLContainer {
 
   private static final XPathExpression SELF_PATH;
+  private String name;
 
   private XPathExpression path;
   private String pathString;
@@ -39,9 +47,10 @@ public abstract class XPathHolder extends XMLContainer {
     super();
   }
 
-  public XPathHolder(final char[] pContent, final NamespaceContext pOriginalNSContext, final String pPath) {
+  public XPathHolder(final char[] pContent, final NamespaceContext pOriginalNSContext, final String pPath, final String pName) {
     super(pOriginalNSContext, pContent);
     pathString = pPath;
+    name = pName;
   }
 
   @XmlAttribute(name="xpath")
@@ -95,6 +104,60 @@ public abstract class XPathHolder extends XMLContainer {
     return path;
   }
 
+  protected boolean deserializeAttribute(final String pAttributeLocalName, final String pAttributeValue) {
+    switch(pAttributeLocalName) {
+      case "name":
+        setName(pAttributeValue);
+        return true;
+      case "path":
+      case "xpath":
+        setPath(pAttributeValue);
+        return true;
+      case XMLConstants.XMLNS_ATTRIBUTE:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  protected static <T extends XPathHolder> T deserialize(final XMLStreamReader in, final T pResult) throws
+          XMLStreamException {
+    XmlUtil.skipPreamble(in);
+    if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { in.nextTag(); }
+    for(int i=in.getAttributeCount()-1; i>=0;--i) {
+      String prefix = in.getAttributePrefix(i);
+      if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+        if (pResult.deserializeAttribute(in.getAttributeLocalName(i), in.getAttributeValue(i)) ) {
+          continue;
+        }
+      } else if (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
+        continue;
+      }
+      Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
+    }
+
+    Map<String, String> namespaceMap = new TreeMap<>();
+    String path = pResult.getPath();
+    if (path!=null) {
+      addXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
+    }
+    if (in.hasNext()) {
+      if (in.next()!=XMLStreamConstants.END_ELEMENT) {
+        pResult.setContent(in.getNamespaceContext(), XmlUtil.childrenToCharArray(in));
+      }
+    }
+
+    if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
+      throw new RuntimeException("Missing end tag");
+    }
+
+
+    if (namespaceMap.size()>0) {
+      pResult.addNamespaceContext(new SimpleNamespaceContext(namespaceMap));
+    }
+    return pResult;
+  }
+
   protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
     super.serializeAttributes(out);
     if (pathString!=null) {
@@ -123,6 +186,20 @@ public abstract class XPathHolder extends XMLContainer {
     }
     result.putAll(super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue));
     return result;
+  }
+
+  /* (non-Javadoc)
+     * @see nl.adaptivity.process.processModel.IXmlResultType#getName()
+     */
+  public String getName() {
+    return name;
+  }
+
+  /* (non-Javadoc)
+     * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
+     */
+  public void setName(final String value) {
+    this.name = value;
   }
 
   protected static void addXpathUsedPrefixes(final String pPath, final NamespaceContext pNamespaceContext) {
