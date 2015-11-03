@@ -388,7 +388,7 @@ public class PMParser {
   private static IXmlMessage parseMessage(XmlPullParser pIn) {
     ClientMessage result = new ClientMessage();
     String endpoint = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint");
-    QName operation = toQName(pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "operation"));
+    String operation = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "operation");
     String url = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "url");
     String method = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "method");
     String type = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "type");
@@ -464,8 +464,18 @@ public class PMParser {
     return element;
   }
 
-  private static QName toQName(String pValue) {
-    return pValue == null ? null : new QName(pValue);
+  private static QName toQName(XmlPullParser in, String pValue) {
+    if (pValue==null) { return null; }
+    int i = pValue.indexOf(':');
+    if (i>0) {
+      String prefix = pValue.substring(0, i);
+      String namespace = in.getNamespace(prefix);
+      String localname = pValue.substring(i+1);
+      return new QName(namespace, localname, prefix);
+    } else {
+      String namespace = in.getNamespace("");
+      return new QName(namespace, pValue);
+    }
   }
 
   private static void parseUnknownTag(XmlPullParser pIn) throws XmlPullParserException, IOException {
