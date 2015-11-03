@@ -28,7 +28,7 @@ public class ClientMessage extends BaseMessage {
     super();
   }
 
-  public ClientMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType,
+  public ClientMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType,
                        Node pMessageBody) throws XMLStreamException {
     super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
   }
@@ -62,7 +62,7 @@ public class ClientMessage extends BaseMessage {
     if (getServiceNS()!=null) { pOut.addAttribute(null, "serviceNS", getServiceNS()); }
     if (getServiceName()!=null) { pOut.addAttribute(null, "serviceName", getServiceName()); }
     if (getEndpoint()!=null) { pOut.addAttribute(null, "endpoint", getEndpoint()); }
-    if (getOperation()!=null) { pOut.addAttribute(null, "operation", getOperation().getLocalPart()); }
+    if (getOperation()!=null) { pOut.addAttribute(null, "operation", getOperation()); }
     if (getUrl()!=null) { pOut.addAttribute(null, "url", getUrl()); }
     if (getContentType()!=null) { pOut.addAttribute(null, "type", getContentType()); }
     if (getMethod()!=null) { pOut.addAttribute(null, "method", getMethod()); }
