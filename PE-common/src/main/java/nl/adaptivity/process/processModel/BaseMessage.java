@@ -2,9 +2,6 @@ package nl.adaptivity.process.processModel;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Collection;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -14,12 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.DocumentFragment;
@@ -31,7 +23,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   private QName service;
   private String endpoint;
-  private QName operation;
+  private String operation;
   private String url;
   private String method;
   private String type;
@@ -40,7 +32,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     super();
   }
 
-  public BaseMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody) throws
+  public BaseMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody) throws
           XMLStreamException {
     super(new DOMSource(pMessageBody));
     service = pService;
@@ -78,7 +70,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
       switch (pAttributeLocalName) {
         case "endpoint": endpoint = pAttributeValue; return true;
-        case "operation": operation = XmlUtil.asQName(in.getNamespaceContext(), pAttributeValue); return true;
+        case "operation": operation = pAttributeValue; return true;
         case "url": url=pAttributeValue; return true;
         case "method": method = pAttributeValue; return true;
         case "type": type = pAttributeValue; return true;
@@ -138,7 +130,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
   @Override
-  public QName getOperation() {
+  public String getOperation() {
     return operation;
   }
 
@@ -163,7 +155,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
   @Override
-  public void setOperation(final QName value) {
+  public void setOperation(final String value) {
     this.operation = value;
   }
 
@@ -208,21 +200,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   @Override
   public String toString() {
-    final TransformerFactory tf = TransformerFactory.newInstance();
-    Transformer t;
-    try {
-      t = tf.newTransformer();
-    } catch (final TransformerConfigurationException e) {
-      return super.toString();
-    }
-    final StringWriter sw = new StringWriter();
-    final StreamResult sr = new StreamResult(sw);
-    try {
-      t.transform(getBodySource(), sr);
-    } catch (final TransformerException e) {
-      return super.toString();
-    }
-    return sw.toString();
+    return XmlUtil.toString(this);
   }
 
   @Override

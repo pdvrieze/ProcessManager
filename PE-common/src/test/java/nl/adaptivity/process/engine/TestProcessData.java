@@ -364,8 +364,11 @@ public class TestProcessData {
     }
     try {
       Diff diff = new Diff(xml, caw.toString());
-      assertTrue(diff.similar());
+      DetailedDiff detailedDiff= new DetailedDiff(diff);
+      XMLUnit.setIgnoreWhitespace(true);
+      assertXMLEqual(detailedDiff,true);
     } catch (AssertionError | Exception e) {
+      e.printStackTrace();
       assertEquals(xml, caw.toString());
     }
     return caw.toString();
@@ -403,10 +406,10 @@ public class TestProcessData {
   @Test
   public void testRoundTripMessage() throws IOException, XMLStreamException, InstantiationException, SAXException,
           IllegalAccessException {
-    String xml = "    <message xmlns=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" endpoint=\"internal\" operation=\"postTask\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" url=\"/PEUserMessageHandler/internal\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
-            "      <Envelope:Envelope xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+    String xml = "    <message xmlns=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" endpoint=\"internal\" operation=\"postTask\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" url=\"/PEUserMessageHandler/internal\">\n" +
+            "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
             "        <Body>\n" +
-            "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+            "          <postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
             "            <repliesParam>\n" +
             "              <jbi:element value=\"endpoint\"/>\n" +
             "            </repliesParam>\n" +
@@ -419,9 +422,9 @@ public class TestProcessData {
             "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
             "              </task>\n" +
             "            </taskParam>\n" +
-            "          </umh:postTask>\n" +
+            "          </postTask>\n" +
             "        </Body>\n" +
-            "      </Envelope:Envelope>\n" +
+            "      </Envelope>\n" +
             "    </message>\n";
     testRoundTrip(xml, XmlMessage.class);
   }

@@ -13,7 +13,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
-import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
@@ -22,7 +21,6 @@ import javax.xml.transform.stax.StAXResult;
 import javax.xml.transform.stream.StreamResult;
 
 import java.io.*;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -447,7 +445,7 @@ public class XmlUtil {
         XMLEvent event = xer.nextEvent();
         out.add(event);
         if (event.isStartElement()) {
-          writeElement(xef, xer, out);
+          writeElementContent(xef, xer, out);
         }
       }
       return documentFragment;
@@ -455,7 +453,6 @@ public class XmlUtil {
       throw e;
     }
   }
-
   public static char[] childrenToCharArray(final XMLStreamReader in) throws XMLStreamException {
     try {
       XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -469,7 +466,10 @@ public class XmlUtil {
 
       while (xer.hasNext() && (! xer.peek().isEndElement())) {
         XMLEvent event = xer.nextEvent();
-        filterWriteEvent(xer, out, xef, event);
+        out.add(event);
+        if (event.isStartElement()) {
+          writeElementContent(xef, xer, out);
+        }
       }
       out.close();
       return caw.toCharArray();
@@ -630,24 +630,13 @@ public class XmlUtil {
     }
   }
 
-  private static void filterWriteEvent(final XMLEventReader pIn, final XMLEventWriter pOut, final XMLEventFactory pXef, final XMLEvent pEvent) throws
-          XMLStreamException {
-    if (pEvent.isStartElement()) {
-      pOut.add(filterStartElement(pXef, pEvent.asStartElement()));
-      writeElement(pXef, pIn, pOut);
-    } else {
-      pOut.add(pEvent);
-    }
-  }
-
-  private static StartElement filterStartElement(final XMLEventFactory pXef, final StartElement pEvent) {
-    return pXef.createStartElement(pEvent.getName(), pEvent.getAttributes(), Collections.emptyIterator());
-  }
-
-  private static void writeElement(final XMLEventFactory pXef, final XMLEventReader pIn, final XMLEventWriter pOut) throws XMLStreamException {
+  private static void writeElementContent(final XMLEventFactory pXef, final XMLEventReader pIn, final XMLEventWriter pOut) throws XMLStreamException {
     while (pIn.hasNext()) {
       XMLEvent event = pIn.nextEvent();
-      filterWriteEvent(pIn, pOut, pXef, event);
+      pOut.add(event);
+      if (event.isStartElement()) {
+        writeElementContent(pXef, pIn, pOut);
+      }
       if (event.isEndElement()) {
         break;
       }

@@ -75,12 +75,9 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     if (path!=null) {
       addXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
     }
-    while (in.getEventType()!=XMLStreamConstants.END_ELEMENT && in.hasNext()) {
-      switch (in.next()) {
-        case XMLStreamConstants.START_ELEMENT:
-          result.setContent(in.getNamespaceContext(), XmlUtil.childrenToCharArray(in));
-          break;
-        default:
+    if (in.hasNext()) {
+      if (in.next()!=XMLStreamConstants.END_ELEMENT) {
+        result.setContent(in.getNamespaceContext(), XmlUtil.childrenToCharArray(in));
       }
     }
 

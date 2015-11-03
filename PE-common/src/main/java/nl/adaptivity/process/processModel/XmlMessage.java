@@ -11,11 +11,14 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.*;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -53,7 +56,16 @@ import java.net.URI;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Message")
 @XmlRootElement(name= XmlMessage.ELEMENTLOCALNAME)
+@XmlDeserializer(XmlMessage.Factory.class)
 public class XmlMessage extends BaseMessage implements IXmlMessage {
+
+  public static class Factory implements XmlDeserializerFactory {
+
+    @Override
+    public Object deserialize(final XMLStreamReader in) throws XMLStreamException {
+      return XmlMessage.deserialize(in);
+    }
+  }
 
   public static final String ELEMENTLOCALNAME = "message";
 
@@ -62,7 +74,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
   public XmlMessage() { /* default constructor */ }
 
 
-  public XmlMessage(QName pService, String pEndpoint, QName pOperation, String pUrl, String pMethod, String pContentType, DocumentFragment pMessageBody) throws
+  public XmlMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, DocumentFragment pMessageBody) throws
           XMLStreamException {
     super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
   }
@@ -79,19 +91,23 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
                           pMessage.getMessageBody());
   }
 
+  public static XmlMessage deserialize(final XMLStreamReader pIn) throws XMLStreamException {
+    XmlUtil.skipPreamble(pIn);
+    assert XmlUtil.isElement(pIn, ELEMENTNAME);
+
+    XmlMessage result = new XmlMessage();
+    for(int i=pIn.getAttributeCount()-1; i>=0; --i) {
+      result.deserializeAttribute(pIn, pIn.getAttributeNamespace(i), pIn.getAttributeLocalName(i), pIn.getAttributeValue(i));
+    }
+    if (pIn.hasNext() && pIn.next()!= XMLStreamConstants.END_ELEMENT) {
+      result.deserializeChildren(pIn);
+    }
+    return result;
+  }
+
   @Override
   protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
     XmlUtil.writeStartElement(pOut, ELEMENTNAME);
-  }
-
-
-  public static XmlMessage deserialize(final XMLStreamReader pIn) throws XMLStreamException {
-    XmlMessage result = new XmlMessage();
-    for(int i=pIn.getAttributeCount()-1; i==0; --i) {
-      result.deserializeAttribute(pIn, pIn.getAttributeNamespace(i), pIn.getAttributeLocalName(i), pIn.getAttributeValue(i));
-    }
-    result.deserializeChildren(pIn);
-    return result;
   }
 
 
@@ -145,14 +161,14 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
   }
 
   @Override
-  public void setOperation(QName pValue) {
+  public void setOperation(String pValue) {
     super.setOperation(pValue);
   }
 
 
   @Override
   @XmlAttribute(name = "operation")
-  public QName getOperation() {
+  public String getOperation() {
     return super.getOperation();
   }
 

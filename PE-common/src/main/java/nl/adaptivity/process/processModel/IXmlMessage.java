@@ -1,12 +1,9 @@
 package nl.adaptivity.process.processModel;
 
-import java.util.Collection;
-
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 
 import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
 
@@ -56,7 +53,7 @@ public interface IXmlMessage {
    *
    * @return possible object is {@link String }
    */
-  public QName getOperation();
+  public String getOperation();
 
   @Deprecated
   public DocumentFragment getMessageBody();
@@ -69,7 +66,7 @@ public interface IXmlMessage {
    *
    * @param value allowed object is {@link String }
    */
-  public void setOperation(QName value);
+  public void setOperation(String value);
 
   public Source getBodySource();
 

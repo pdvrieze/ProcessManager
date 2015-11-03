@@ -12,34 +12,35 @@ import java.util.Map.Entry;
  */
 public class SimpleNamespaceContext implements NamespaceContext {
 
-  private final String[] aPrefixes;
-  private final String[] aNamespaces;
+  private final String[] aStrings;
 
   public SimpleNamespaceContext(final Map<String, String> pPrefixMap) {
-    aPrefixes = new String[pPrefixMap.size()];
-    aNamespaces = new String[aPrefixes.length];
+    aStrings = new String[pPrefixMap.size()*2];
     int i=0;
     for(Entry<String, String> entry: pPrefixMap.entrySet()) {
-      aPrefixes[i] = entry.getKey();
-      aNamespaces[i] = entry.getValue();
+      aStrings[(i*2)] = entry.getKey();
+      aStrings[(i*2+1)] = entry.getValue();
       ++i;
     }
   }
 
   public SimpleNamespaceContext(final String[] pPrefixes, final String[] pNamespaces) {
     assert pPrefixes.length==pNamespaces.length;
-    aPrefixes = pPrefixes.clone();
-    aNamespaces = pNamespaces.clone();
+    aStrings = new String[pPrefixes.length*2];
+    for(int i=0; i<pPrefixes.length; ++i) {
+      aStrings[(i*2)] = pPrefixes[i];
+      aStrings[(i*2+1)] = pNamespaces[i];
+    }
   }
 
   public int size() {
-    return aPrefixes.length;
+    return aStrings.length/2;
   }
 
   public SimpleNamespaceContext combine(final SimpleNamespaceContext other) {
     Map<String, String> result = new TreeMap<>();
-    for(int i=0; i<aPrefixes.length; ++i) { result.put(aPrefixes[i], aNamespaces[i]); }
-    for(int i=0; i<other.aPrefixes.length; ++i) { result.put(other.aPrefixes[i], other.aNamespaces[i]); }
+    for(int i=(aStrings.length/2)-1; i>=0; --i) { result.put(aStrings[i*2], aStrings[i*2+1]); }
+    for(int i=(other.aStrings.length/2)-1; i>=0; --i) { result.put(other.aStrings[i*2], other.aStrings[i*2+1]); }
     return new SimpleNamespaceContext(result);
   }
 
@@ -52,9 +53,9 @@ public class SimpleNamespaceContext implements NamespaceContext {
       case XMLConstants.XMLNS_ATTRIBUTE:
         return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
     }
-    for(int i=aPrefixes.length-1; i>=0; --i) {
-      if (prefix.equals(aPrefixes[i])) {
-        return aNamespaces[i];
+    for(int i=aStrings.length-2; i>=0; i-=2) {
+      if (prefix.equals(aStrings[i])) {
+        return aStrings[i+1];
       }
     }
 
@@ -73,9 +74,9 @@ public class SimpleNamespaceContext implements NamespaceContext {
       case XMLConstants.XMLNS_ATTRIBUTE_NS_URI:
         return XMLConstants.XMLNS_ATTRIBUTE;
       default:
-        for(int i=aPrefixes.length-1; i>=0; --i) {
-          if (namespaceURI.equals(aNamespaces[i])) {
-            return aPrefixes[i];
+        for(int i=aStrings.length-2; i>=0; i-=2) {
+          if (namespaceURI.equals(aStrings[i+1])) {
+            return aStrings[i];
           }
         }
     }
@@ -91,10 +92,10 @@ public class SimpleNamespaceContext implements NamespaceContext {
       case XMLConstants.XMLNS_ATTRIBUTE_NS_URI:
         return Collections.singleton(XMLConstants.XMLNS_ATTRIBUTE).iterator();
       default:
-        List<String> result = new ArrayList<>(aPrefixes.length);
-        for(int i=aPrefixes.length-1; i>=0; --i) {
-          if (namespaceURI.equals(aNamespaces[i])) {
-            result.add(aPrefixes[i]);
+        List<String> result = new ArrayList<>(aStrings.length/2);
+        for(int i=aStrings.length-2; i>=0; i-=2) {
+          if (namespaceURI.equals(aStrings[i+1])) {
+            result.add(aStrings[i]);
           }
         }
         if (result.size()==0) {
@@ -105,10 +106,10 @@ public class SimpleNamespaceContext implements NamespaceContext {
   }
 
   public String getPrefix(final int pIndex) {
-    return aPrefixes[pIndex];
+    return aStrings[pIndex*2];
   }
 
   public String getNamespaceURI(final int pIndex) {
-    return aNamespaces[pIndex];
+    return aStrings[pIndex*2+1];
   }
 }
