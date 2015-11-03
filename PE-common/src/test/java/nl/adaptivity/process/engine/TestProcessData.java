@@ -87,12 +87,16 @@ public class TestProcessData {
 
     @Override
     public int differenceFound(final Difference difference) {
-      if (difference.getId()==DifferenceConstants.ATTR_NAME_NOT_FOUND_ID) {
-        if ((difference.getControlNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getControlNodeDetail().getNode().getNamespaceURI()))||
-                (difference.getTestNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getTestNodeDetail().getNode().getNamespaceURI()))){
+      switch (difference.getId()) {
+        case DifferenceConstants.ATTR_NAME_NOT_FOUND_ID: {
+          if ((difference.getControlNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getControlNodeDetail().getNode().getNamespaceURI()))||
+                  (difference.getTestNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getTestNodeDetail().getNode().getNamespaceURI()))){
 
-          return RETURN_IGNORE_DIFFERENCE_NODES_SIMILAR;
+            return RETURN_IGNORE_DIFFERENCE_NODES_SIMILAR;
+          }
+          break;
         }
+
       }
       return RETURN_ACCEPT_DIFFERENCE;
     }
@@ -349,6 +353,11 @@ public class TestProcessData {
 
   public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target) throws
           IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
+    return testRoundTrip(xml, target, false);
+  }
+
+  public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target, boolean ignoreNs) throws
+          IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
     XmlDeserializerFactory<T> factory = target.getDeclaredAnnotation(XmlDeserializer.class).value().newInstance();
     XMLInputFactory xif = XMLInputFactory.newFactory();
     T obj = factory.deserialize(xif.createXMLStreamReader(new StringReader(xml)));
@@ -363,9 +372,12 @@ public class TestProcessData {
       xsw.close();
     }
     try {
+      XMLUnit.setIgnoreWhitespace(true);
       Diff diff = new Diff(xml, caw.toString());
       DetailedDiff detailedDiff= new DetailedDiff(diff);
-      XMLUnit.setIgnoreWhitespace(true);
+      if (ignoreNs) {
+        detailedDiff.overrideDifferenceListener(new NamespaceDeclIgnoringListener());
+      }
       assertXMLEqual(detailedDiff,true);
     } catch (AssertionError | Exception e) {
       e.printStackTrace();
@@ -406,7 +418,7 @@ public class TestProcessData {
   @Test
   public void testRoundTripMessage() throws IOException, XMLStreamException, InstantiationException, SAXException,
           IllegalAccessException {
-    String xml = "    <message xmlns=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" endpoint=\"internal\" operation=\"postTask\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" url=\"/PEUserMessageHandler/internal\">\n" +
+    String xml = "    <pe:message xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
             "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
             "        <Body>\n" +
             "          <postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
@@ -425,8 +437,8 @@ public class TestProcessData {
             "          </postTask>\n" +
             "        </Body>\n" +
             "      </Envelope>\n" +
-            "    </message>\n";
-    testRoundTrip(xml, XmlMessage.class);
+            "    </pe:message>\n";
+    testRoundTrip(xml, XmlMessage.class, false);
   }
 
   @Test
