@@ -155,7 +155,6 @@ public class NamespaceAddingStreamReader implements XMLStreamReader {
 
   @Override
   public NamespaceContext getNamespaceContext() {
-    // TODO evaluate necessity
     return new CombiningNamespaceContext(source.getNamespaceContext(), lookupSource);
   }
 

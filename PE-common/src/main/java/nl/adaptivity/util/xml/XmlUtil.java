@@ -84,6 +84,34 @@ public class XmlUtil {
 
   public static final int OMIT_XMLDECL = 1;
   private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
+  private static final StreamFilter SUBSTREAM_FILTER = new StreamFilter() {
+    @Override
+    public boolean accept(final XMLStreamReader reader) {
+      switch (reader.getEventType()) {
+        case XMLStreamConstants.START_DOCUMENT:
+        case XMLStreamConstants.END_DOCUMENT:
+        case XMLStreamConstants.DTD:
+        case XMLStreamConstants.PROCESSING_INSTRUCTION:
+          return false;
+        default:
+          return true;
+      }
+    }
+  };
+  private static final EventFilter SUBEVENTS_FILTER = new EventFilter() {
+    @Override
+    public boolean accept(final XMLEvent event) {
+      switch (event.getEventType()) {
+        case XMLStreamConstants.START_DOCUMENT:
+        case XMLStreamConstants.END_DOCUMENT:
+        case XMLStreamConstants.DTD:
+        case XMLStreamConstants.PROCESSING_INSTRUCTION:
+          return false;
+        default:
+          return true;
+      }
+    }
+  };;
 
   private XmlUtil() {}
 
@@ -327,6 +355,23 @@ public class XmlUtil {
 
   public static String readSimpleElement(final XMLStreamReader pIn) throws XMLStreamException {
     return pIn.getElementText();
+  }
+
+  /**
+   * Filter the stream such that is a valid substream. This basically strips start document, end document, processing
+   * instructions and dtd declarations.
+   * @param pStreamReader The original stream reader.
+   * @return A filtered stream
+   */
+  public static XMLStreamReader filterSubstream(final NamespaceAddingStreamReader pStreamReader) throws
+          XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    return xif.createFilteredReader(pStreamReader, SUBSTREAM_FILTER);
+  }
+
+  public static XMLEventReader filterSubstream(final XMLEventReader pXMLEventReader) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    return xif.createFilteredReader(pXMLEventReader, SUBEVENTS_FILTER);
   }
 
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {

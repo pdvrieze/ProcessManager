@@ -7,7 +7,6 @@ import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.*;
 import org.custommonkey.xmlunit.*;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -68,7 +67,7 @@ public class TestProcessData {
     }
   }
 
-  private class WhiteSpaceIgnoringListener implements DifferenceListener {
+  private static class WhiteSpaceIgnoringListener implements DifferenceListener {
 
     @Override
     public int differenceFound(final Difference difference) {
@@ -84,7 +83,7 @@ public class TestProcessData {
     }
   }
 
-  private class NamespaceDeclIgnoringListener implements DifferenceListener {
+  private static class NamespaceDeclIgnoringListener implements DifferenceListener {
 
     @Override
     public int differenceFound(final Difference difference) {
@@ -348,7 +347,7 @@ public class TestProcessData {
     }
   }
 
-  public static <T extends XmlSerializable> void testRoundTrip(String xml, Class<T> target) throws
+  public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target) throws
           IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
     XmlDeserializerFactory<T> factory = target.getDeclaredAnnotation(XmlDeserializer.class).value().newInstance();
     XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -358,21 +357,25 @@ public class TestProcessData {
     XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
     try {
       obj.serialize(xsw);
+    } catch (Exception e) {
+      e.printStackTrace();
     } finally {
       xsw.close();
     }
     try {
-      assertTrue(caw.toString().contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
-      XMLAssert.assertXMLEqual(xml, caw.toString());
-    } catch (Exception e) {
+      Diff diff = new Diff(xml, caw.toString());
+      assertTrue(diff.similar());
+    } catch (AssertionError | Exception e) {
       assertEquals(xml, caw.toString());
     }
+    return caw.toString();
   }
 
   @Test
   public void testRoundTripResult1() throws Exception {
     String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
-    testRoundTrip(xml, XmlResultType.class);
+    String result = testRoundTrip(xml, XmlResultType.class);
+    assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
   }
 
   @Test
@@ -386,6 +389,15 @@ public class TestProcessData {
             "  </user>\n" +
             "</result>";
     testRoundTrip(xml, XmlResultType.class);
+  }
+
+  @Test
+  public void testRoundTripResult3() throws Exception {
+    String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
+            "<jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>" +
+            "</result>";
+    String result = testRoundTrip(xml, XmlResultType.class);
+    assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
   }
 
   @Test

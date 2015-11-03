@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 
@@ -117,8 +118,8 @@ public abstract class XPathHolder extends XMLContainer {
   @Override
   protected Map<String,String> findNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     Map<String, String> result = new TreeMap<>();
-    if (Engine.NAMESPACE.equals(owner.getNamespaceURI()) && pAttributeNamespace==null && "xpath".equals(pAttributeLocalName)) {
-      addXpathUsedPrefixes(pathString, new GatheringNamespaceContext(referenceContext, result));
+    if (Constants.MODIFY_NS_STR.equals(owner.getNamespaceURI()) && pAttributeNamespace=="" && "xpath".equals(pAttributeLocalName)) {
+      addXpathUsedPrefixes(pAttributeValue, new GatheringNamespaceContext(referenceContext, result));
     }
     result.putAll(super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue));
     return result;

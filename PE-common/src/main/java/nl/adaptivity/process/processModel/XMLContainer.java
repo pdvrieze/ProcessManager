@@ -4,12 +4,10 @@ import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 import org.codehaus.stax2.XMLOutputFactory2;
 
-import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
 
 import java.io.CharArrayReader;
@@ -112,7 +110,7 @@ public abstract class XMLContainer implements XmlSerializable {
 
     for(int i=source.getAttributeCount()-1; i>=0; --i ) {
       String ns = source.getAttributeNamespace(i);
-      if (ns!=null && ns.length()>0) {
+      if (ns!=null && (ns.length()>0 || source.getAttributePrefix(i).length()>0)) {
         result.put(source.getAttributePrefix(i), source.getAttributeNamespace(i));
       }
       Map<String, String> v;
@@ -141,7 +139,15 @@ public abstract class XMLContainer implements XmlSerializable {
       XMLInputFactory xif = XMLInputFactory.newFactory();
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
 
-      XMLStreamReader xsr = xif.createXMLStreamReader(new CharArrayReader(content));
+      NamespaceContext context;
+      if (originalNSContext== null) {
+        context = baseContext;
+      } else {
+        context = new CombiningNamespaceContext(baseContext, originalNSContext);
+      }
+
+      XMLStreamReader xsr = new NamespaceAddingStreamReader(context, xif.createXMLStreamReader(new CharArrayReader(content)));
+
       return missingNamespaces(baseContext, xsr, result, null);
     }
     return Collections.emptyMap();
@@ -211,12 +217,14 @@ public abstract class XMLContainer implements XmlSerializable {
 
   public XMLStreamReader getBodyStreamReader() throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
-    return new NamespaceAddingStreamReader(originalNSContext,xif.createXMLStreamReader(new CharArrayReader(content)));
+    NamespaceAddingStreamReader streamReader = new NamespaceAddingStreamReader(originalNSContext, xif.createXMLStreamReader(new CharArrayReader(content)));
+    XMLStreamReader filteredReader = XmlUtil.filterSubstream(streamReader);
+    return streamReader;
   }
 
   public XMLEventReader getBodyEventReader() throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
-    return xif.createXMLEventReader(getBodyStreamReader());
+    return XmlUtil.filterSubstream(xif.createXMLEventReader(getBodyStreamReader()));
   }
 
   protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
