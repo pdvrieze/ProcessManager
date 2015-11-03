@@ -42,7 +42,7 @@ import java.util.List;
 @XmlType(name = ActivityImpl.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
 public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl> {
 
-  public class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public ActivityImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
@@ -123,6 +123,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   protected boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     switch (pAttributeLocalName) {
       case ATTR_PREDECESSOR: setPredecessor(new Identifier(pAttributeValue)); return true;
+      case "name": setName(pAttributeValue);
     }
     return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
   }
@@ -150,7 +151,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     for(XmlResultType result:getResults()) {
       result.serialize(pOut);
     }
-    aCondition.serialize(pOut);
+    if (aCondition!=null) { aCondition.serialize(pOut); }
 
     {
       XmlMessage m = getMessage();

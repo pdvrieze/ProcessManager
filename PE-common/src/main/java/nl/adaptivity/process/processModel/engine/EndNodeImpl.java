@@ -27,7 +27,7 @@ import java.util.*;
 @XmlType(name = "EndNode")
 public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl> {
 
-  public class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public EndNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {

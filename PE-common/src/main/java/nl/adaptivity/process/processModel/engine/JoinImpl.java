@@ -27,7 +27,7 @@ import java.util.List;
 @XmlType(name = "Join")
 public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
 
-  public class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public JoinImpl deserialize(final XMLStreamReader in) throws XMLStreamException {

@@ -366,8 +366,6 @@ public class TestProcessData {
     XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
     try {
       obj.serialize(xsw);
-    } catch (Exception e) {
-      e.printStackTrace();
     } finally {
       xsw.close();
     }
@@ -443,7 +441,7 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripActivity() throws Exception {
-    String xml = "  <activity xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+    String xml = "  <activity xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
             "    <result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
             "    <result name=\"user\">\n" +
             "      <user xmlns=\"\"\n" +
@@ -453,8 +451,8 @@ public class TestProcessData {
             "        </fullname>\n" +
             "      </user>\n" +
             "    </result>\n" +
-            "    <message type=\"application/soap+xml\" endpoint=\"internal\" operation=\"postTask\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" url=\"/PEUserMessageHandler/internal\">\n" +
-            "      <Envelope:Envelope xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
+            "    <message type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+            "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
             "        <Body>\n" +
             "          <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
             "            <repliesParam>\n" +
@@ -471,10 +469,10 @@ public class TestProcessData {
             "            </taskParam>\n" +
             "          </umh:postTask>\n" +
             "        </Body>\n" +
-            "      </Envelope:Envelope>\n" +
+            "      </Envelope>\n" +
             "    </message>\n" +
             "  </activity>\n";
-    testRoundTrip(xml, ActivityImpl.class);
+    testRoundTrip(xml, ActivityImpl.class, true);
   }
 
 }

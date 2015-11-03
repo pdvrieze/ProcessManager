@@ -28,7 +28,7 @@ import java.util.Collections;
 @XmlType(name = "Split")
 public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
 
-  public class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public SplitImpl deserialize(final XMLStreamReader in) throws XMLStreamException {

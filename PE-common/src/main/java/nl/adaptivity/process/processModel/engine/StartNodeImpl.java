@@ -33,7 +33,7 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl> {
 
-  public class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory {
 
     @Override
     public StartNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
