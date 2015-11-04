@@ -174,6 +174,7 @@ public abstract class XPathHolder extends XMLContainer {
       out.writeAttribute("xpath", pathString);
 
     }
+    XmlUtil.writeAttribute(out, "name", name);
   }
 
 
