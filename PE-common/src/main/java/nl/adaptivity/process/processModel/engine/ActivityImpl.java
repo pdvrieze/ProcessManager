@@ -145,12 +145,9 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
   protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
     super.serializeChildren(pOut);
-    for(XmlDefineType define:getDefines()) {
-      define.serialize(pOut);
-    }
-    for(XmlResultType result:getResults()) {
-      result.serialize(pOut);
-    }
+    XmlUtil.writeChildren(pOut, getDefines());
+    XmlUtil.writeChildren(pOut, getResults());
+    XmlUtil.writeChild(pOut, aCondition);
     if (aCondition!=null) { aCondition.serialize(pOut); }
 
     {

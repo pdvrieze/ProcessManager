@@ -104,9 +104,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
-    for(XmlResultType imp: aImports) {
-      imp.serialize(pOut);
-    }
+    XmlUtil.writeChildren(pOut, aImports);
   }
 
   @Override

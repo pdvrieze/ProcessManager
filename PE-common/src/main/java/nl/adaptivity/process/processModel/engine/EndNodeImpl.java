@@ -93,9 +93,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
     super.serializeChildren(pOut);
-    for(XmlDefineType export: aExports) {
-      export.serialize(pOut);
-    }
+    XmlUtil.writeChildren(pOut, aExports);
   }
 
   @Override
