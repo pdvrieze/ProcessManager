@@ -1,11 +1,6 @@
 package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.processModel.XmlDefineType;
-import nl.adaptivity.process.processModel.XmlMessage;
-import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.processModel.engine.ConditionImpl;
 import nl.adaptivity.util.CombiningReader;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -675,19 +670,46 @@ public class XmlUtil {
    * @param pElementname The name to check against
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
-  public static boolean isElement(final XMLStreamReader pIn, final QName pElementname) {
-    if (pIn.getEventType()!=XMLStreamConstants.START_ELEMENT) { return false; }
-    String expNs =  pElementname.getNamespaceURI(); if ("".equals(expNs)) { expNs = null; }
-    if (! pIn.getLocalName().equals(pElementname.getLocalPart())) { return false; }
 
-    if (nullOrEmpty(pElementname.getNamespaceURI())) {
-      if (nullOrEmpty(pElementname.getPrefix())) {
+  public static boolean isElement(final XMLStreamReader pIn, final QName pElementname) {
+    return isElement(pIn, pElementname.getNamespaceURI(), pElementname.getLocalPart(), pElementname.getPrefix());
+  }
+
+  /**
+   * Check that the current state is a start element for the given name. The prefix is ignored.
+   * @param pIn The stream reader to check
+   * @param pElementNamespace  The namespace to check against.
+   * @param pElementName The local name to check against
+   * @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(final XMLStreamReader pIn, final String pElementNamespace, final String pElementName) {
+    String pElementPrefix = null;
+    return isElement(pIn, pElementNamespace, pElementName, pElementPrefix);
+  }
+
+
+  /**
+   * Check that the current state is a start element for the given name. The prefix is ignored.
+   * @param pIn The stream reader to check
+   * @param pElementNamespace  The namespace to check against.
+   * @param pElementName The local name to check against
+   * @param pElementPrefix The prefix to fall back on if the namespace can't be determined
+   * @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(final XMLStreamReader pIn, final String pElementNamespace, final String pElementName, final String pElementPrefix) {
+    if (pIn.getEventType()!= XMLStreamConstants.START_ELEMENT) { return false; }
+    String expNs =  pElementNamespace;
+    if ("".equals(expNs)) { expNs = null; }
+    if (! pIn.getLocalName().equals(pElementName)) { return false; }
+
+    if (nullOrEmpty(pElementNamespace)) {
+      if (nullOrEmpty(pElementPrefix)) {
         return nullOrEmpty(pIn.getPrefix());
       } else {
-        return pElementname.getPrefix().equals(pIn.getPrefix());
+        return pElementPrefix.equals(pIn.getPrefix());
       }
     } else {
-      return pElementname.getNamespaceURI().equals(pIn.getNamespaceURI());
+      return pElementNamespace.equals(pIn.getNamespaceURI());
     }
   }
 
