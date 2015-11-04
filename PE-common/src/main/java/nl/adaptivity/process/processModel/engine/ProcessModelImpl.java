@@ -12,16 +12,16 @@ import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.stream.XMLStreamConstants;
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -42,7 +42,7 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSerializable, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
+public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXmlDeserializable, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
 
   static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModelImpl> {
 
@@ -78,49 +78,56 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
     if (aRoles!=null && aRoles.size()>0) {
       XmlUtil.writeAttribute(out, XmlProcessModel.ATTR_ROLES,StringUtil.join(",", aRoles));
     }
+    XmlUtil.writeChildren(out, aImports);
+    XmlUtil.writeChildren(out, aExports);
+    XmlUtil.writeChildren(out, aProcessNodes);
+  }
+
+  @Override
+  public boolean deserializeChild(final XMLStreamReader in) throws XMLStreamException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+      switch (in.getLocalName()) {
+        case EndNodeImpl.ELEMENTLOCALNAME:
+          EndNodeImpl.deserialize(this, in); break;
+        case ActivityImpl.ELEMENTLOCALNAME:
+          ActivityImpl.deserialize(this, in); break;
+        case StartNodeImpl.ELEMENTLOCALNAME:
+          StartNodeImpl.deserialize(this, in); break;
+        case JoinImpl.ELEMENTLOCALNAME:
+          JoinImpl.deserialize(this, in); break;
+        case SplitImpl.ELEMENTLOCALNAME:
+          SplitImpl.deserialize(this, in); break;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final String pElementText) {
+    return false; // No text expected except whitespace
+  }
+
+  @Override
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    switch (pAttributeLocalName) {
+      case "name" : setName(pAttributeValue); break;
+      case "owner": setOwner(new SimplePrincipal(pAttributeValue)); break;
+      case XmlProcessModel.ATTR_ROLES: aRoles.addAll(Arrays.asList(pAttributeValue.split(" *, *"))); break;
+      case "uuid": setUuid(UUID.fromString(pAttributeValue)); break;
+      default:
+        return false;
+    }
+    return true;
+  }
+
+  @Override
+  public QName getElementName() {
+    return XmlProcessModel.ELEMENTNAME;
   }
 
   public static ProcessModelImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-    XmlUtil.skipPreamble(in);
-    assert XmlUtil.isElement(in, XmlProcessModel.ELEMENTNAME);
-
     ProcessModelImpl result = new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList());
-    for(int i=0; i<in.getAttributeCount(); ++i) {
-      switch (in.getAttributeLocalName(i)) {
-        case "name" : result.setName(in.getAttributeValue(i)); break;
-        case "owner": result.setOwner(new SimplePrincipal(in.getAttributeValue(i))); break;
-        case XmlProcessModel.ATTR_ROLES: result.aRoles.addAll(Arrays.asList(in.getAttributeValue(i).split(" *, *"))); break;
-        case "uuid": result.setUuid(UUID.fromString(in.getAttributeValue(i))); break;
-      }
-    }
-
-    int t;
-    while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
-      switch (t) {
-        case XMLStreamConstants.START_ELEMENT: {
-          if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-            switch (in.getLocalName()) {
-              case EndNodeImpl.ELEMENTLOCALNAME:
-                EndNodeImpl.deserialize(result, in); break;
-              case ActivityImpl.ELEMENTLOCALNAME:
-                ActivityImpl.deserialize(result, in); break;
-              case StartNodeImpl.ELEMENTLOCALNAME:
-                StartNodeImpl.deserialize(result, in); break;
-              case JoinImpl.ELEMENTLOCALNAME:
-                JoinImpl.deserialize(result, in); break;
-              case SplitImpl.ELEMENTLOCALNAME:
-                SplitImpl.deserialize(result, in); break;
-            }
-          }
-        }
-
-        default:
-          XmlUtil.unhandledEvent(in);
-          break;
-      }
-    }
-
-    return result;
+    return XmlUtil.deserializeHelper(result, in);
   }
 
   private static final long serialVersionUID = -4199223546188994559L;
@@ -143,6 +150,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, XmlSeria
 
   private List<XmlDefineType> aExports = new ArrayList<>();
 
+  /**
+   * A class handle purely used for caching and special casing the DarwinPrincipal class.
+   */
   private static Class<?> _cls_darwin_principal;
 
   static {
