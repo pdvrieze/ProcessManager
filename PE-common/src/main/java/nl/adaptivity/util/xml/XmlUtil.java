@@ -462,17 +462,19 @@ public class XmlUtil {
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
       xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
       CharArrayWriter caw = new CharArrayWriter();
-      XMLEventWriter out = xof.createXMLEventWriter(caw);
       XMLEventFactory xef = XMLEventFactory.newFactory();
 
       while (xer.hasNext() && (! xer.peek().isEndElement())) {
         XMLEvent event = xer.nextEvent();
-        out.add(event);
         if (event.isStartElement()) {
+          XMLEventWriter out = xof.createXMLEventWriter(caw);
+          out.add(event);
           writeElementContent(xef, xer, out);
+          out.close();
+        } else if (event.isCharacters()) {
+          event.writeAsEncodedUnicode(caw);
         }
       }
-      out.close();
       return caw.toCharArray();
     } catch (XMLStreamException | RuntimeException e) {
       throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
