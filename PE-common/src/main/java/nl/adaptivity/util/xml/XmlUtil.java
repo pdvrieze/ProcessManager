@@ -500,7 +500,7 @@ public class XmlUtil {
       XMLEventReader xer = xif.createXMLEventReader(in);
 
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
+      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, false);
       CharArrayWriter caw = new CharArrayWriter();
       XMLEventFactory xef = XMLEventFactory.newFactory();
 

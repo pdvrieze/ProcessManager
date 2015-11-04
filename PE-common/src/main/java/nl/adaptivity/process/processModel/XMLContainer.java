@@ -1,10 +1,8 @@
 package nl.adaptivity.process.processModel;
 
-import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 import org.codehaus.stax2.XMLOutputFactory2;
-import org.codehaus.stax2.XMLStreamProperties;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -30,6 +28,8 @@ public abstract class XMLContainer implements XmlSerializable {
       return null;
     }
   }
+
+  private static final SimpleNamespaceContext BASE_NS_CONTEXT = new SimpleNamespaceContext(new String[]{""}, new String[]{""});
 
   private char[] content;
   private SimpleNamespaceContext originalNSContext;
@@ -59,43 +59,35 @@ public abstract class XMLContainer implements XmlSerializable {
 
   public void setContent(final NamespaceContext pOriginalNSContext, final char[] pContent) {
     content = pContent;
-    TreeMap<String, String> nsmap = new TreeMap<>();
-    GatheringNamespaceContext gatheringNamespaceContext = new GatheringNamespaceContext(pOriginalNSContext, nsmap);
+    updateNamespaceContext(pOriginalNSContext);
+  }
 
+  protected void updateNamespaceContext(final NamespaceContext pAdditionalContext) {
+    Map<String, String> nsmap = new TreeMap<>();
+    NamespaceContext context = originalNSContext == null ? pAdditionalContext : new CombiningNamespaceContext(pAdditionalContext, originalNSContext);
     try {
-      missingNamespaces(gatheringNamespaceContext);
+      visitNamespaces(new GatheringNamespaceContext(context, nsmap));
     } catch (XMLStreamException pE) {
       throw new RuntimeException(pE);
     }
-
     originalNSContext = new SimpleNamespaceContext(nsmap);
   }
 
   public void setContent(final Source pContent) throws XMLStreamException {
     content = XmlUtil.toCharArray(pContent);
-    Map<String, String> nsmap = new TreeMap<>();
-
-    try {
-      XMLInputFactory xif = XMLInputFactory.newFactory();
-      XMLStreamReader xsr = xif.createXMLStreamReader(pContent);
-      nsmap = missingNamespaces(new SimpleNamespaceContext(new TreeMap<String, String>()), xsr, nsmap, null);
-    } catch (XMLStreamException pE) {
-      throw new RuntimeException(pE);
-    }
-
-
-    SimpleNamespaceContext namespaceContext = new SimpleNamespaceContext(nsmap);
-    originalNSContext = (originalNSContext==null || originalNSContext.size()==0) ? namespaceContext :originalNSContext.combine(namespaceContext);
+    updateNamespaceContext(new SimpleNamespaceContext(new TreeMap<String, String>()));
   }
 
-  public void addNamespaceContext(final SimpleNamespaceContext pNamespaceContext) {
+  void addNamespaceContext(final SimpleNamespaceContext pNamespaceContext) {
     originalNSContext = (originalNSContext==null || originalNSContext.size()==0) ? pNamespaceContext: originalNSContext.combine(pNamespaceContext);
   }
 
   @Override
   public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+    Map<String,String> missingNamespaces = new TreeMap<>();
+    NamespaceContext context = new CombiningNamespaceContext(new GatheringNamespaceContext(getOriginalNSContext(), missingNamespaces), out.getNamespaceContext());
+    visitNamespaces(context);
 
-    Map<String,String> missingNamespaces = missingNamespaces(out.getNamespaceContext());
     serializeStartElement(out);
     for(Entry<String, String> name:missingNamespaces.entrySet()) {
       out.writeNamespace(name.getKey(), name.getValue());
@@ -105,29 +97,25 @@ public abstract class XMLContainer implements XmlSerializable {
     out.writeEndElement();
   }
 
-  protected Map<String,String> findNamesInTag(XMLStreamReader source) {
+  protected static void visitNamespace(XMLStreamReader in, String prefix) {
+    in.getNamespaceURI(prefix);
+  }
+
+  protected void visitNamesInElement(XMLStreamReader source) {
     assert source.getEventType()==XMLStreamConstants.START_ELEMENT;
-    Map<String,String> result = new TreeMap<>();
-    result.put(source.getPrefix(), source.getNamespaceURI());
+    visitNamespace(source, source.getPrefix());
 
     for(int i=source.getAttributeCount()-1; i>=0; --i ) {
-      String ns = source.getAttributeNamespace(i);
-      if (ns!=null && (ns.length()>0 || source.getAttributePrefix(i).length()>0)) {
-        result.put(source.getAttributePrefix(i), source.getAttributeNamespace(i));
-      }
-      Map<String, String> v;
-      if (! (v= findNamesInAttributeValue(source.getNamespaceContext(), source.getName(), source.getAttributeNamespace(i), source.getAttributeLocalName(i), source.getAttributeValue(i))).isEmpty()){
-        result.putAll(v);
-      }
+      String attrns = source.getNamespaceURI(source.getAttributePrefix(i));
+      visitNamesInAttributeValue(source.getNamespaceContext(), source.getName(), attrns, source.getAttributeLocalName(i), source.getAttributeValue(i));
     }
-    return result;
   }
 
-  protected Map<String,String> findNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    return Collections.emptyMap();
+  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    // By default there are no special attributes
   }
 
-  protected List<QName> findNamesInTextContent(QName parent, CharSequence textContent) {
+  protected List<QName> visitNamesInTextContent(QName parent, CharSequence textContent) {
     ArrayList<QName> result = new ArrayList<>();
 
 
@@ -135,63 +123,27 @@ public abstract class XMLContainer implements XmlSerializable {
     return result;
   }
 
-  private Map<String, String> missingNamespaces(NamespaceContext baseContext) throws XMLStreamException {
+  protected void visitNamespaces(NamespaceContext baseContext) throws XMLStreamException {
     if (content != null) {
-      Map<String, String> result = new TreeMap<>();
       XMLInputFactory xif = XMLInputFactory.newFactory();
-      NamespaceContext context;
-      if (originalNSContext== null) {
-        context = baseContext;
-      } else {
-        context = new CombiningNamespaceContext(baseContext, originalNSContext);
-      }
 
-      XMLStreamReader xsr = new NamespaceAddingStreamReader(context, XMLFragmentStreamReader.from(xif, new CharArrayReader(content)));
+      XMLStreamReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.from(xif, new CharArrayReader(content)));
 
-      return missingNamespaces(baseContext, xsr, result, null);
+      visitNamespacesInContent(xsr, null);
     }
-    return Collections.emptyMap();
   }
 
-  public Map<String, String> undeclaredNamespaces() throws XMLStreamException {
-    return missingNamespaces(new SimpleNamespaceContext(new String[0], new String[0]));
-  }
-
-  private Map<String, String> missingNamespaces(final NamespaceContext baseContext, final XMLStreamReader xsr, final Map<String, String> result, final QName parent) throws
+  private void visitNamespacesInContent(final XMLStreamReader xsr, final QName parent) throws
           XMLStreamException {
     while (xsr.hasNext()) {
       switch(xsr.next()) {
         case XMLStreamConstants.START_ELEMENT: {
-          NamespaceContext newBaseContext;
-          if (xsr.getNamespaceCount() > 0) {
-            String[] prefixes = new String[xsr.getNamespaceCount()];
-            String[] namespaces = new String[prefixes.length];
-            for(int i=namespaces.length-1; i>=0; --i) {
-              prefixes[i]=xsr.getNamespacePrefix(i);
-              namespaces[i]=xsr.getNamespaceURI(i);
-            }
-            newBaseContext = new CombiningNamespaceContext(new SimpleNamespaceContext(prefixes, namespaces), baseContext);
-          } else {
-            newBaseContext=baseContext;
-          }
-
-          Map<String, String> namesInTag = findNamesInTag(xsr);
-          for(Entry<String, String> name:namesInTag.entrySet()) {
-            if(! Objects.equals(newBaseContext.getNamespaceURI(name.getKey()), name.getValue())) {
-              result.put(name.getKey(), name.getValue());
-            }
-          }
-
-          missingNamespaces(newBaseContext, xsr, result, xsr.getName());
+          visitNamesInElement(xsr);
+          visitNamespacesInContent(xsr, xsr.getName());
           break;
         }
         case XMLStreamConstants.CHARACTERS: {
-          List<QName> namesInTag = findNamesInTextContent(parent, xsr.getText());
-          for(QName name:namesInTag) {
-            if(! Objects.equals(baseContext.getNamespaceURI(name.getPrefix()), name.getNamespaceURI())) {
-              result.put(name.getPrefix(), name.getNamespaceURI());
-            }
-          }
+          visitNamesInTextContent(parent, xsr.getText());
           break;
         }
 
@@ -199,9 +151,6 @@ public abstract class XMLContainer implements XmlSerializable {
           //ignore
       }
     }
-
-    return result;
-
   }
 
   private void serializeBody(final XMLStreamWriter pOut) throws XMLStreamException {
@@ -217,7 +166,8 @@ public abstract class XMLContainer implements XmlSerializable {
 
   public XMLStreamReader getBodyStreamReader() throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
-    NamespaceAddingStreamReader streamReader = new NamespaceAddingStreamReader(originalNSContext, XMLFragmentStreamReader.from(xif,new CharArrayReader(content)));
+    NamespaceContext nsContext = this.originalNSContext==null ? BASE_NS_CONTEXT : new CombiningNamespaceContext(BASE_NS_CONTEXT, originalNSContext);
+    NamespaceAddingStreamReader streamReader = new NamespaceAddingStreamReader(nsContext, XMLFragmentStreamReader.from(xif, new CharArrayReader(content)));
     return streamReader;
   }
 

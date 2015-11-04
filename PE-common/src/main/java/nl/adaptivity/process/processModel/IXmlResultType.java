@@ -1,10 +1,7 @@
 package nl.adaptivity.process.processModel;
 
-import java.util.List;
-
 import nl.adaptivity.process.engine.ProcessData;
 
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.NamespaceContext;
@@ -38,9 +35,10 @@ public interface IXmlResultType {
   /**
    * Sets the value of the path property.
    *
+   * @param pNamespaceContext
    * @param value allowed object is {@link String }
    */
-  public void setPath(String value);
+  public void setPath(final NamespaceContext pNamespaceContext, String value);
 
   ProcessData apply(Node pPayload);
 

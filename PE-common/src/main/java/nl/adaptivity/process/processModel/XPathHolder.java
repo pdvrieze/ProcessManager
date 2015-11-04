@@ -1,6 +1,5 @@
 package nl.adaptivity.process.processModel;
 
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
@@ -48,9 +47,10 @@ public abstract class XPathHolder extends XMLContainer {
   }
 
   public XPathHolder(final char[] pContent, final NamespaceContext pOriginalNSContext, final String pPath, final String pName) {
-    super(pOriginalNSContext, pContent);
-    pathString = pPath;
-    name = pName;
+    super();
+    setName(pName);
+    setPath(pOriginalNSContext, pPath);
+    setContent(pOriginalNSContext, pContent);
   }
 
   @XmlAttribute(name="xpath")
@@ -58,28 +58,12 @@ public abstract class XPathHolder extends XMLContainer {
     return pathString;
   }
 
-  public void setPath(final String value) {
+  public void setPath(final NamespaceContext baseNsContext, final String value) {
     if (pathString!=null && pathString.equals(value)) { return; }
     path = null;
     pathString = value;
     assert value==null || getXPath()!=null;
-  }
-
-  public NamespaceContext getNamespaceContext() {
-    return getOriginalNSContext();
-  }
-
-  @Deprecated
-  public void setNamespaceContext(NamespaceContext pNamespaceContext) {
-    setContent(pNamespaceContext, getContent());
-
-    path = null; // invalidate the cached path expression
-  }
-
-  String getPathAttr() { return null; }
-
-  void setPathAttr(String path) {
-    setPath(path);
+    updateNamespaceContext(baseNsContext);
   }
 
   public XPathExpression getXPath() {
@@ -104,6 +88,31 @@ public abstract class XPathHolder extends XMLContainer {
     return path;
   }
 
+  public NamespaceContext getNamespaceContext() {
+    return getOriginalNSContext();
+  }
+
+  @Deprecated
+  public void setNamespaceContext(NamespaceContext pNamespaceContext) {
+    setContent(pNamespaceContext, getContent());
+
+    path = null; // invalidate the cached path expression
+  }
+
+  /* (non-Javadoc)
+     * @see nl.adaptivity.process.processModel.IXmlResultType#getName()
+     */
+  public String getName() {
+    return name;
+  }
+
+  /* (non-Javadoc)
+     * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
+     */
+  public void setName(final String value) {
+    this.name = value;
+  }
+
   protected boolean deserializeAttribute(final String pAttributeLocalName, final String pAttributeValue) {
     switch(pAttributeLocalName) {
       case "name":
@@ -111,7 +120,7 @@ public abstract class XPathHolder extends XMLContainer {
         return true;
       case "path":
       case "xpath":
-        setPath(pAttributeValue);
+        pathString=pAttributeValue;
         return true;
       case XMLConstants.XMLNS_ATTRIBUTE:
         return true;
@@ -139,7 +148,7 @@ public abstract class XPathHolder extends XMLContainer {
     Map<String, String> namespaceMap = new TreeMap<>();
     String path = pResult.getPath();
     if (path!=null) {
-      addXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
+      visitXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
     }
     if (in.hasNext()) {
       if (in.next()!=XMLStreamConstants.END_ELEMENT) {
@@ -150,7 +159,6 @@ public abstract class XPathHolder extends XMLContainer {
     if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
       throw new RuntimeException("Missing end tag");
     }
-
 
     if (namespaceMap.size()>0) {
       pResult.addNamespaceContext(new SimpleNamespaceContext(namespaceMap));
@@ -164,8 +172,9 @@ public abstract class XPathHolder extends XMLContainer {
       Map<String, String> namepaces = new TreeMap<>();
       // Have a namespace that gathers those namespaces that are not known already in the outer context
       NamespaceContext referenceContext = out.getNamespaceContext();
+      // TODO streamline this, the right context should not require the filtering on the output context later.
       NamespaceContext nsc = new GatheringNamespaceContext(new CombiningNamespaceContext(referenceContext, getNamespaceContext()), namepaces);
-      addXpathUsedPrefixes(pathString, nsc);
+      visitXpathUsedPrefixes(pathString, nsc);
       for(Entry<String, String> ns: namepaces.entrySet()) {
         if (! ns.getValue().equals(referenceContext.getNamespaceURI(ns.getKey()))) {
           out.writeNamespace(ns.getKey(), ns.getValue());
@@ -177,41 +186,30 @@ public abstract class XPathHolder extends XMLContainer {
     XmlUtil.writeAttribute(out, "name", name);
   }
 
-
+  @Override
+  protected void visitNamespaces(final NamespaceContext pBaseContext) throws XMLStreamException {
+    path = null;
+    if (pathString!=null) { visitXpathUsedPrefixes(pathString, pBaseContext); }
+    super.visitNamespaces(pBaseContext);
+  }
 
   @Override
-  protected Map<String,String> findNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    Map<String, String> result = new TreeMap<>();
+  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     if (Constants.MODIFY_NS_STR.equals(owner.getNamespaceURI()) && pAttributeNamespace=="" && "xpath".equals(pAttributeLocalName)) {
-      addXpathUsedPrefixes(pAttributeValue, new GatheringNamespaceContext(referenceContext, result));
+      visitXpathUsedPrefixes(pAttributeValue, referenceContext);
     }
-    result.putAll(super.findNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue));
-    return result;
   }
 
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.IXmlResultType#getName()
-     */
-  public String getName() {
-    return name;
-  }
-
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
-     */
-  public void setName(final String value) {
-    this.name = value;
-  }
-
-  protected static void addXpathUsedPrefixes(final String pPath, final NamespaceContext pNamespaceContext) {
-    try {
-      XPathFactory xpf = XPathFactory.newInstance();
-      XPath xpath = xpf.newXPath();
-      xpath.setNamespaceContext(pNamespaceContext);
-      xpath.compile(pPath);
-    } catch (XPathExpressionException pE) {
-      throw new RuntimeException(pE);
+  protected static void visitXpathUsedPrefixes(final String pPath, final NamespaceContext pNamespaceContext) {
+    if (pPath!=null && pPath.length()>0) {
+      try {
+        XPathFactory xpf = XPathFactory.newInstance();
+        XPath xpath = xpf.newXPath();
+        xpath.setNamespaceContext(pNamespaceContext);
+        xpath.compile(pPath);
+      } catch (XPathExpressionException pE) {
+        throw new RuntimeException(pE);
+      }
     }
-
   }
 }

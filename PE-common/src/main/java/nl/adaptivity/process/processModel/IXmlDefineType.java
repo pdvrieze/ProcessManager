@@ -7,7 +7,6 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 import javax.xml.namespace.NamespaceContext;
 
 import java.sql.SQLException;
-import java.util.List;
 
 
 public interface IXmlDefineType {
@@ -69,9 +68,10 @@ public interface IXmlDefineType {
   /**
    * Sets the value of the path property.
    *
+   * @param pNamespaceContext
    * @param value allowed object is {@link String }
    */
-  public void setPath(String value);
+  public void setPath(final NamespaceContext pNamespaceContext, String value);
 
   /**
    * Get the namespace context that defines the "missing" namespaces in the content.

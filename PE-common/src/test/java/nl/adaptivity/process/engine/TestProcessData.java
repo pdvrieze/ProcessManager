@@ -7,14 +7,10 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.*;
-import org.codehaus.stax2.XMLStreamProperties;
 import org.custommonkey.xmlunit.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -30,8 +26,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
+import javax.xml.xpath.*;
 
-import java.io.*;
+import java.io.CharArrayWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
@@ -206,19 +206,15 @@ public class TestProcessData {
     assertEquals("name", result1.getName());
     assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath());
     SimpleNamespaceContext snc1 = (SimpleNamespaceContext) result1.getNamespaceContext();
-    assertEquals(3, snc1.size());
-    assertEquals("", snc1.getPrefix(0));
-    assertEquals("soapenc", snc1.getPrefix(1));
-    assertEquals("umh", snc1.getPrefix(2));
+    assertEquals(1, snc1.size());
+    assertEquals("umh", snc1.getPrefix(0));
 
     XmlResultType result2 = ac1.getResults().get(1);
     SimpleNamespaceContext snc2 = (SimpleNamespaceContext) result2.getNamespaceContext();
-    assertEquals(3, snc1.size());
-    assertEquals("", snc1.getPrefix(0));
-    assertEquals("soapenc", snc1.getPrefix(1));
-    assertEquals("umh", snc1.getPrefix(2));
+    assertEquals(1, snc1.size());
+    assertEquals("umh", snc1.getPrefix(0));
 
-    Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<ns1:result xmlns:ns1=\"http://adaptivity.nl/userMessageHandler\"><ns1:value name=\"user\">Paul</ns1:value></ns1:result>")));
+    Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
 
 
     Node result1_apply = result1.apply(testData).getNodeValue();
@@ -229,6 +225,32 @@ public class TestProcessData {
     assertTrue(result2_apply instanceof Element);
     XMLAssert.assertXMLEqual("<user><fullname>Paul</fullname></user>", XmlUtil.toString(result2_apply));
 
+  }
+
+  @Test
+  public void testXmlResultXpathParam() throws IOException, SAXException, XPathExpressionException {
+    SimpleNamespaceContext nsContext = new SimpleNamespaceContext(new String[]{"umh"}, new String[]{"http://adaptivity.nl/userMessageHandler"});
+    String expression = "/umh:result/umh:value[@name='user']/text()";
+    XmlResultType result = new XmlResultType("foo", expression, (char[]) null, nsContext);
+    assertEquals(1, ((SimpleNamespaceContext)result.getNamespaceContext()).size());
+
+    Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
+    XPath xPath = XPathFactory.newInstance().newXPath();
+    xPath.setNamespaceContext(result.getNamespaceContext());
+    XPathExpression pathExpression = xPath.compile(expression);
+    NodeList apply2 = (NodeList) pathExpression.evaluate(testData, XPathConstants.NODESET);
+    assertNotNull(apply2);
+    assertTrue(apply2.item(0) instanceof Text);
+    assertEquals("Paul", apply2.item(0).getTextContent());
+
+    Node apply3 = (Node) pathExpression.evaluate(testData, XPathConstants.NODE);
+    assertNotNull(apply3);
+    assertTrue(apply3 instanceof Text);
+    assertEquals("Paul", apply3.getTextContent());
+
+    ProcessData apply1 = result.apply(testData);
+    assertTrue(apply1.getGenericValue() instanceof Text);
+    assertEquals("Paul", apply1.getNodeValue().getTextContent());
   }
 
   @Test
@@ -326,24 +348,28 @@ public class TestProcessData {
 
   @Test
   public void testSerializeResult2() throws IOException, SAXException, XMLStreamException {
-    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    XmlResultType result;
+    {
+      XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+      Iterator<? extends IXmlResultType> iterator = xpm.getNodes().get(1).getResults().iterator();
+      assertNotNull(iterator.next());
+      result = (XmlResultType) iterator.next();
+    }
 
-    CharArrayWriter caw = new CharArrayWriter();
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    XMLStreamWriter xew = xof.createXMLStreamWriter(caw);
-    Iterator<? extends IXmlResultType> iterator = xpm.getNodes().get(1).getResults().iterator();
-    assertNotNull(iterator.next());
-    XmlResultType result = (XmlResultType) iterator.next();
-    result.serialize(xew);
-    xew.close();
-    String control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" " +
-            "xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><user><fullname><jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
-            "        </fullname>\n" +
-            "      </user></result>";
+    String control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+            "  <user xmlns=\"\"\n" +
+            "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+            "    <fullname>\n" +
+            "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+            "    </fullname>\n" +
+            "  </user>\n" +
+            "</result>";;
+    String found = XmlUtil.toString(result);
     try {
-      XMLAssert.assertXMLEqual(control, caw.toString());
+      XMLUnit.setIgnoreWhitespace(true);
+      XMLAssert.assertXMLEqual(control, found);
     } catch (AssertionError e) {
-      assertEquals(control, caw.toString());
+      assertEquals(control, found);
     }
   }
 
@@ -383,11 +409,8 @@ public class TestProcessData {
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
     CharArrayWriter caw = new CharArrayWriter();
     XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
-    try {
-      obj.serialize(xsw);
-    } finally {
-      xsw.close();
-    }
+    obj.serialize(xsw);
+    xsw.close();
     try {
       XMLUnit.setIgnoreWhitespace(true);
       Diff diff = new Diff(expected, caw.toString());
