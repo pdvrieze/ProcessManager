@@ -418,6 +418,7 @@ public class XmlUtil {
     try {
       XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
       pSerializable.serialize(serializer);
+      serializer.close();
     } catch (XMLStreamException e) {
       throw new RuntimeException(e);
     }
