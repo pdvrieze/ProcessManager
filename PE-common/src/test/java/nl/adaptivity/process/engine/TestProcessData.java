@@ -1,11 +1,13 @@
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ActivityImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.*;
+import org.codehaus.stax2.XMLStreamProperties;
 import org.custommonkey.xmlunit.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -296,18 +299,11 @@ public class TestProcessData {
   }
 
   @Test
-  public void testJaxbRoundTripProcessModel1() throws IOException, SAXException, JAXBException, XMLStreamException {
-    ProcessModelImpl pm = getProcessModel("testModel2.xml");
+  public void testJaxbRoundTripProcessModel1() throws IOException, SAXException, JAXBException, XMLStreamException,
+          InstantiationException, IllegalAccessException {
 
-    {
-      CharArrayWriter caw = new CharArrayWriter();
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+    testRoundTrip(getDocument("testModel2.xml"), ProcessModelImpl.class);
 
-      pm.serialize(xsw);
-      xsw.close();
-      XMLAssert.assertXMLEqual(new InputStreamReader(getDocument("testModel2.xml")), new CharArrayReader(caw.toCharArray()));
-    }
   }
 
   @Test
@@ -351,6 +347,24 @@ public class TestProcessData {
     }
   }
 
+  public static <T extends XmlSerializable> String testRoundTrip(InputStream in, Class<T> target) throws IOException,
+          XMLStreamException, IllegalAccessException, InstantiationException {
+    String expected;
+    XMLStreamReader streamReader;
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    if (in.markSupported()) {
+      in.mark(Integer.MAX_VALUE);
+      expected = Streams.toString(in, Charset.defaultCharset());
+      in.reset();
+      streamReader = xif.createXMLStreamReader(in);
+    } else {
+      expected = Streams.toString(in, Charset.defaultCharset());
+      streamReader = xif.createXMLStreamReader(new StringReader(expected));
+    }
+
+    return testRoundTrip(streamReader, expected, target, false);
+  }
+
   public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target) throws
           IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
     return testRoundTrip(xml, target, false);
@@ -358,9 +372,14 @@ public class TestProcessData {
 
   public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target, boolean ignoreNs) throws
           IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
-    XmlDeserializerFactory<T> factory = target.getDeclaredAnnotation(XmlDeserializer.class).value().newInstance();
     XMLInputFactory xif = XMLInputFactory.newFactory();
-    T obj = factory.deserialize(xif.createXMLStreamReader(new StringReader(xml)));
+    return testRoundTrip(xif.createXMLStreamReader(new StringReader(xml)), xml, target, ignoreNs);
+  }
+
+  private static <T extends XmlSerializable> String testRoundTrip(final XMLStreamReader in, final String expected, final Class<T> target, final boolean ignoreNs) throws
+          InstantiationException, IllegalAccessException, XMLStreamException {
+    XmlDeserializerFactory<T> factory = target.getDeclaredAnnotation(XmlDeserializer.class).value().newInstance();
+    T obj = factory.deserialize(in);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
     CharArrayWriter caw = new CharArrayWriter();
     XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
@@ -371,7 +390,7 @@ public class TestProcessData {
     }
     try {
       XMLUnit.setIgnoreWhitespace(true);
-      Diff diff = new Diff(xml, caw.toString());
+      Diff diff = new Diff(expected, caw.toString());
       DetailedDiff detailedDiff= new DetailedDiff(diff);
       if (ignoreNs) {
         detailedDiff.overrideDifferenceListener(new NamespaceDeclIgnoringListener());
@@ -379,7 +398,7 @@ public class TestProcessData {
       assertXMLEqual(detailedDiff,true);
     } catch (AssertionError | Exception e) {
       e.printStackTrace();
-      assertEquals(xml, caw.toString());
+      assertEquals(expected, caw.toString());
     }
     return caw.toString();
   }
