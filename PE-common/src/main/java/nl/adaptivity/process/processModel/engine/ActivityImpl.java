@@ -100,7 +100,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
               case XmlDefineType.ELEMENTNAME:
                 result.aDefines.add(XmlDefineType.deserialize(in));
                 continue loop;
-              case XmlResultType.ELEMENTNAME:
+              case XmlResultType.ELEMENTLOCALNAME:
                 result.aResults.add(XmlResultType.deserialize(in));
                 continue loop;
               case ConditionImpl.ELEMENTLOCALNAME:
@@ -197,7 +197,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#getImports()
    */
   @Override
-  @XmlElement(name = XmlResultType.ELEMENTNAME)
+  @XmlElement(name = XmlResultType.ELEMENTLOCALNAME)
   public List<? extends XmlResultType> getResults() {
     if (aResults==null) {
       aResults = new ArrayList<>();

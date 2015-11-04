@@ -45,7 +45,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     return deserialize(in, new XmlResultType());
   }
 
-  public static final String ELEMENTNAME = "result";
+  public static final String ELEMENTLOCALNAME = "result";
+  private static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   public XmlResultType() {}
 
@@ -59,16 +60,8 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   }
 
   @Override
-  protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
-    super.serializeAttributes(out);
-    if (getName() !=null) {
-      out.writeAttribute("name", getName());
-    }
-  }
-
-  @Override
   protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeStartElement(pOut, new QName(nl.adaptivity.process.ProcessConsts.Engine.NAMESPACE, ELEMENTNAME, Engine.NSPREFIX));
+    XmlUtil.writeStartElement(pOut, ELEMENTNAME);
   }
 
   @Override
