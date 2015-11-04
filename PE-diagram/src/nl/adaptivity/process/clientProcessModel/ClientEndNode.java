@@ -1,16 +1,16 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
+
+import java.util.Collection;
+import java.util.List;
+
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
@@ -49,12 +49,12 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public void setPredecessor(T pPredecessor) {
+  public void setPredecessor(Identifier predecessor) {
     Identifiable previous = getPredecessor();
     if (previous==null) {
       removePredecessor(previous);
     }
-    addPredecessor(pPredecessor);
+    addPredecessor(predecessor);
   }
 
   @Override
