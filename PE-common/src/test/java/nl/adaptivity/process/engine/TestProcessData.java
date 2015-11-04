@@ -393,7 +393,7 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripDefine() throws Exception {
-    String xml = "<define refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>";
+    String xml = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>";
     String result = testRoundTrip(xml, XmlDefineType.class);
   }
 
