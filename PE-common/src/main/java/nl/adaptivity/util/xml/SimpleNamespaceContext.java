@@ -106,10 +106,18 @@ public class SimpleNamespaceContext implements NamespaceContext {
   }
 
   public String getPrefix(final int pIndex) {
-    return aStrings[pIndex*2];
+    try {
+      return aStrings[pIndex * 2];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      throw new ArrayIndexOutOfBoundsException(pIndex);
+    }
   }
 
   public String getNamespaceURI(final int pIndex) {
-    return aStrings[pIndex*2+1];
+    try {
+      return aStrings[pIndex * 2 + 1];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      throw new ArrayIndexOutOfBoundsException(pIndex);
+    }
   }
 }
