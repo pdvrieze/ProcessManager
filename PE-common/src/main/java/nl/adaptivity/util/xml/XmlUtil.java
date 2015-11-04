@@ -303,9 +303,11 @@ public class XmlUtil {
             if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
               continue loop;
             }
+            XmlUtil.unhandledEvent(in);
+            break;
           case XMLStreamConstants.CHARACTERS:
           case XMLStreamConstants.CDATA:
-            if (((SimpleXmlDeserializable)result).deserializeChildText(in.getElementText())) {
+            if (((SimpleXmlDeserializable)result).deserializeChildText(in.getText())) {
               continue loop;
             }
           default:
