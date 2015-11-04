@@ -36,6 +36,7 @@ import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.XmlDeserializable;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 
@@ -43,7 +44,7 @@ import nl.adaptivity.util.xml.XmlUtil;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
-public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, ProcessNode<ProcessNodeImpl> {
+public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable, ProcessNode<ProcessNodeImpl> {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   private static final long serialVersionUID = -7745019972129682199L;
@@ -94,7 +95,8 @@ public abstract class ProcessNodeImpl implements XmlSerializable, Serializable, 
 
   }
 
-  protected boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+  @Override
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
       switch (pAttributeLocalName) {
         case "id": setId(pAttributeValue); return true;

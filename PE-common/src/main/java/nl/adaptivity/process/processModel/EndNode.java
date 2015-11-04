@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
 
 import java.util.Collection;
 
@@ -10,6 +11,6 @@ public interface EndNode<T extends ProcessNode<T>> extends ProcessNode<T>{
 
   Identifiable getPredecessor();
 
-  void setPredecessor(T pPredecessor);
+  void setPredecessor(Identifier predecessor);
 
 }

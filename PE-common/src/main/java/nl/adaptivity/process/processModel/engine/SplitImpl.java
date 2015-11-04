@@ -9,6 +9,7 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -80,6 +81,20 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    if (ATTR_PREDECESSOR.equals(pAttributeLocalName)) {
+      setPredecessor(new Identifier(pAttributeValue));
+      return true;
+    }
+    return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
+  }
+
+  @Override
   public boolean condition(final IProcessNodeInstance<?> pInstance) {
     return true;
   }
@@ -123,7 +138,7 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
     return getPredecessors().iterator().next();
   }
 
-  void setPredecessor(ProcessNodeImpl pred) {
+  void setPredecessor(Identifier pred) {
     setPredecessors(Collections.singleton(pred));
   }
 

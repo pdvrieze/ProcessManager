@@ -6,6 +6,8 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -36,7 +38,7 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   }
 
   public static JoinImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return XmlUtil.deserializeHelper(new JoinImpl(pOwnerModel), in);
   }
 
   private static final long serialVersionUID = -8598245023280025173L;
@@ -73,6 +75,21 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
     for(Identifiable pred: getPredecessors()) {
       XmlUtil.writeSimpleElement(pOut, PREDELEMNAME, pred.getId());
     }
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public boolean deserializeChild(final XMLStreamReader pIn) throws XMLStreamException {
+    if (XmlUtil.isElement(pIn, PREDELEMNAME)) {
+      String id = XmlUtil.readSimpleElement(pIn);
+      addPredecessor(new Identifier(id));
+      return true;
+    }
+    return super.deserializeChild(pIn);
   }
 
   @Override

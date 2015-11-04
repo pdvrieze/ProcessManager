@@ -8,13 +8,13 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -40,7 +40,7 @@ import java.util.List;
 @XmlRootElement(name = ActivityImpl.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = ActivityImpl.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
-public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl> {
+public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl>, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -85,47 +85,43 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   public ActivityImpl(ProcessModelImpl pOwnerModel) {super(pOwnerModel);}
 
   public static ActivityImpl deserialize(ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    XmlUtil.skipPreamble(in);
-    assert XmlUtil.isElement(in, ELEMENTNAME);
-    ActivityImpl result = new ActivityImpl(pOwnerModel);
-    for(int i=in.getAttributeCount()-1; i>=0; --i) {
-      result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
-    }
-    int event = -1;
-    loop:while (in.hasNext()&& event!= XMLStreamConstants.END_ELEMENT) {
-      switch((event = in.next())) {
-        case XMLStreamConstants.START_ELEMENT:
-          if (Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-            switch (in.getLocalName()) {
-              case XmlDefineType.ELEMENTNAME:
-                result.aDefines.add(XmlDefineType.deserialize(in));
-                continue loop;
-              case XmlResultType.ELEMENTLOCALNAME:
-                result.aResults.add(XmlResultType.deserialize(in));
-                continue loop;
-              case ConditionImpl.ELEMENTLOCALNAME:
-                result.aCondition = ConditionImpl.deserialize(in);
-                continue loop;
-              case XmlMessage.ELEMENTLOCALNAME:
-                result.aMessage = XmlMessage.deserialize(in);
-                continue loop;
-            }
-          }
-          break;
-        default:
-          XmlUtil.unhandledEvent(in);
-      }
-    }
-    return result;
+    return XmlUtil.deserializeHelper(new ActivityImpl(pOwnerModel), in);
   }
 
   @Override
-  protected boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     switch (pAttributeLocalName) {
       case ATTR_PREDECESSOR: setPredecessor(new Identifier(pAttributeValue)); return true;
       case "name": setName(pAttributeValue);
     }
     return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
+  }
+
+  @Override
+  public boolean deserializeChild(final XMLStreamReader in) throws XMLStreamException {
+    if (Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+      switch (in.getLocalName()) {
+        case XmlDefineType.ELEMENTLOCALNAME:
+          aDefines.add(XmlDefineType.deserialize(in));return true;
+        case XmlResultType.ELEMENTLOCALNAME:
+          aResults.add(XmlResultType.deserialize(in));return true;
+        case ConditionImpl.ELEMENTLOCALNAME:
+          aCondition = ConditionImpl.deserialize(in); return true;
+        case XmlMessage.ELEMENTLOCALNAME:
+          aMessage = XmlMessage.deserialize(in);return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final String pElementText) {
+    return false;
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
@@ -214,7 +210,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @see nl.adaptivity.process.processModel.IActivity#getExports()
    */
   @Override
-  @XmlElement(name = XmlDefineType.ELEMENTNAME)
+  @XmlElement(name = XmlDefineType.ELEMENTLOCALNAME)
   public List<? extends XmlDefineType> getDefines() {
     if (aDefines==null) {
       aDefines = new ArrayList<>();

@@ -47,7 +47,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     }
   }
 
-  public static final String ELEMENTNAME = "define";
+  public static final String ELEMENTLOCALNAME = "define";
 
   private String refNode;
 
@@ -77,7 +77,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   @Override
   protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeStartElement(pOut, new QName(Engine.NAMESPACE, ELEMENTNAME, Engine.NSPREFIX));
+    XmlUtil.writeStartElement(pOut, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
   }
 
   @Override

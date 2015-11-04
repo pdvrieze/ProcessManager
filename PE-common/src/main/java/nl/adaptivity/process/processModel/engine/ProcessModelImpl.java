@@ -78,6 +78,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
     if (aRoles!=null && aRoles.size()>0) {
       XmlUtil.writeAttribute(out, XmlProcessModel.ATTR_ROLES,StringUtil.join(",", aRoles));
     }
+    if (aUuid!=null) {
+      XmlUtil.writeAttribute(out, "uuid", aUuid.toString());
+    }
     XmlUtil.writeChildren(out, aImports);
     XmlUtil.writeChildren(out, aExports);
     XmlUtil.writeChildren(out, aProcessNodes);

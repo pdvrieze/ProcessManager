@@ -9,6 +9,7 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -31,7 +32,7 @@ import java.util.List;
 @XmlDeserializer(StartNodeImpl.Factory.class)
 @XmlRootElement(name = StartNodeImpl.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl> {
+public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl>, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -42,36 +43,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   public static StartNodeImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
-    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && ELEMENTLOCALNAME.equals(in.getLocalName());
-
-    StartNodeImpl result = new StartNodeImpl(pOwnerModel);
-
-    for(int i=0; i<in.getAttributeCount(); ++i) {
-      switch (in.getAttributeLocalName(i)) {
-        default:
-          result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
-      }
-    }
-
-    int t;
-    while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
-      switch (t) {
-        case XMLStreamConstants.START_ELEMENT: {
-          if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-            switch (in.getLocalName()) {
-              case "import":
-                result.getResults().add(XmlResultType.deserialize(in)); break;
-            }
-          }
-        }
-
-        default:
-          XmlUtil.unhandledEvent(in);
-          break;
-      }
-    }
-    return result;
+    return XmlUtil.deserializeHelper(new StartNodeImpl(pOwnerModel), in);
   }
 
   private static final long serialVersionUID = 7779338146413772452L;
@@ -88,6 +60,27 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   public StartNodeImpl(final ProcessModelImpl pOwnerModel, final List<XmlResultType> pImports) {
     super(pOwnerModel, Collections.<Identifiable>emptyList());
     aImports = pImports;
+  }
+
+  @Override
+  public boolean deserializeChild(final XMLStreamReader pIn) throws XMLStreamException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(pIn.getNamespaceURI())) {
+      switch (pIn.getLocalName()) {
+        case "import":
+          getResults().add(XmlResultType.deserialize(pIn)); return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final String pElementText) {
+    return false;
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override

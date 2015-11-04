@@ -7,13 +7,14 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -25,7 +26,7 @@ import java.util.*;
 @XmlRootElement(name = EndNodeImpl.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "EndNode")
-public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl> {
+public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl>, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -36,36 +37,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   public static EndNodeImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    assert in.getEventType()== XMLStreamConstants.START_ELEMENT;
-    assert ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI()) && ELEMENTLOCALNAME.equals(in.getLocalName());
-
-    EndNodeImpl result = new EndNodeImpl(pOwnerModel);
-
-    for(int i=0; i<in.getAttributeCount(); ++i) {
-      switch (in.getAttributeLocalName(i)) {
-        default:
-          result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
-      }
-    }
-
-    int t;
-    while ((t=in.next())!=XMLStreamConstants.END_ELEMENT) {
-      switch (t) {
-        case XMLStreamConstants.START_ELEMENT: {
-          if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-            switch (in.getLocalName()) {
-              case "export":
-                result.getDefines(); result.aExports.add(XmlDefineType.deserialize(in)); break;
-            }
-          }
-        }
-
-        default:
-          XmlUtil.unhandledEvent(in);
-          break;
-      }
-    }
-    return result;
+    return XmlUtil.deserializeHelper(new EndNodeImpl(pOwnerModel), in);
   }
 
   private static final long serialVersionUID = 220908810658246960L;
@@ -81,6 +53,37 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   public EndNodeImpl(final ProcessModelImpl pOwnerModel) {
     super(pOwnerModel);
+  }
+
+  @Override
+  public boolean deserializeChild(final XMLStreamReader in) throws XMLStreamException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+      switch (in.getLocalName()) {
+        case "export":
+        case XmlDefineType.ELEMENTLOCALNAME:
+          getDefines(); aExports.add(XmlDefineType.deserialize(in)); return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+    if (ATTR_PREDECESSOR.equals(pAttributeLocalName)) {
+      setPredecessor(new Identifier(pAttributeValue));
+      return true;
+    }
+    return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
+  }
+
+  @Override
+  public boolean deserializeChildText(final String pElementText) {
+    return false;
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
@@ -127,7 +130,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
    * @see nl.adaptivity.process.processModel.EndNode#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public void setPredecessor(final ProcessNodeImpl predecessor) {
+  public void setPredecessor(final Identifier predecessor) {
     setPredecessors(Arrays.asList(predecessor));
   }
 
