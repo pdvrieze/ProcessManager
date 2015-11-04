@@ -1,6 +1,11 @@
 package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.processModel.XmlResultType;
+import nl.adaptivity.process.processModel.engine.ConditionImpl;
 import nl.adaptivity.util.CombiningReader;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
@@ -283,6 +288,43 @@ public class XmlUtil {
     }
   }
 
+  public static <T extends XmlDeserializable> T deserializeHelper(T result, final XMLStreamReader in) throws XMLStreamException {
+    XmlUtil.skipPreamble(in);
+    QName elementName = result.getElementName();
+    assert XmlUtil.isElement(in, elementName);
+    for(int i=in.getAttributeCount()-1; i>=0; --i) {
+      result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+    }
+    int event = -1;
+    if (result instanceof SimpleXmlDeserializable) {
+      loop: while (in.hasNext() && event != XMLStreamConstants.END_ELEMENT) {
+        switch ((event = in.next())) {
+          case XMLStreamConstants.START_ELEMENT:
+            if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
+              continue loop;
+            }
+          case XMLStreamConstants.CHARACTERS:
+          case XMLStreamConstants.CDATA:
+            if (((SimpleXmlDeserializable)result).deserializeChildText(in.getElementText())) {
+              continue loop;
+            }
+          default:
+            XmlUtil.unhandledEvent(in);
+        }
+      }
+    } else if (result instanceof ExtXmlDeserializable){
+      ((ExtXmlDeserializable)result).deSerializeChildren(in);
+      if (XmlUtil.class.desiredAssertionStatus()) {
+        in.require(XMLStreamConstants.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
+      }
+    } else {// Neither, means ignore children
+      if(! isXmlWhitespace(childrenToCharArray(in))) {
+        throw new XMLStreamException("Unexpected child content in element");
+      }
+    }
+    return result;
+  }
+
   public static <T> T deSerialize(InputStream pIn, Class<T> type) throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
     return deSerialize(xif.createXMLStreamReader(pIn), type);
@@ -522,6 +564,21 @@ public class XmlUtil {
     }
   }
 
+  public static void writeChild(final XMLStreamWriter pOut, final XmlSerializable pChild) throws XMLStreamException {
+    if (pChild!=null) {
+      pChild.serialize(pOut);
+    }
+  }
+
+  public static void writeChildren(final XMLStreamWriter pOut, final Iterable<? extends XmlSerializable> pChildren) throws
+          XMLStreamException {
+    if (pChildren!=null) {
+      for (XmlSerializable child : pChildren) {
+        writeChild(pOut, child);
+      }
+    }
+  }
+
   public static void writeStartElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
     boolean writeNs = false;
     String namespace = pQName.getNamespaceURI();
@@ -654,6 +711,17 @@ public class XmlUtil {
   private static void configure(final XMLOutputFactory pFactory, final int pDEFAULT_FLAGS) {
     // Nothing to configure for now
   }
+
+  private static boolean isXmlWhitespace(final char[] pData) {
+    for(int i=pData.length-1; i>=0; --i) {
+      final char c = pData[i];
+      if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   public static boolean isXmlWhitespace(CharSequence pData) {
     for(int i=pData.length()-1; i>=0; --i) {
