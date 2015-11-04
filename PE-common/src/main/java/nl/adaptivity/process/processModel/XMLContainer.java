@@ -1,8 +1,10 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.codehaus.stax2.XMLStreamProperties;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -137,8 +139,6 @@ public abstract class XMLContainer implements XmlSerializable {
     if (content != null) {
       Map<String, String> result = new TreeMap<>();
       XMLInputFactory xif = XMLInputFactory.newFactory();
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
-
       NamespaceContext context;
       if (originalNSContext== null) {
         context = baseContext;
@@ -146,7 +146,7 @@ public abstract class XMLContainer implements XmlSerializable {
         context = new CombiningNamespaceContext(baseContext, originalNSContext);
       }
 
-      XMLStreamReader xsr = new NamespaceAddingStreamReader(context, xif.createXMLStreamReader(new CharArrayReader(content)));
+      XMLStreamReader xsr = new NamespaceAddingStreamReader(context, XMLFragmentStreamReader.from(xif, new CharArrayReader(content)));
 
       return missingNamespaces(baseContext, xsr, result, null);
     }
@@ -217,8 +217,7 @@ public abstract class XMLContainer implements XmlSerializable {
 
   public XMLStreamReader getBodyStreamReader() throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
-    NamespaceAddingStreamReader streamReader = new NamespaceAddingStreamReader(originalNSContext, xif.createXMLStreamReader(new CharArrayReader(content)));
-    XMLStreamReader filteredReader = XmlUtil.filterSubstream(streamReader);
+    NamespaceAddingStreamReader streamReader = new NamespaceAddingStreamReader(originalNSContext, XMLFragmentStreamReader.from(xif,new CharArrayReader(content)));
     return streamReader;
   }
 
