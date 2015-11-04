@@ -11,8 +11,11 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stax.StAXResult;
 
 import java.io.CharArrayReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 /**
@@ -45,7 +48,7 @@ public abstract class XMLContainer implements XmlSerializable {
     setContent(pSource);
   }
 
-  protected void deserializeChildren(XMLStreamReader in) throws XMLStreamException {
+  public void deserializeChildren(XMLStreamReader in) throws XMLStreamException {
     content = XmlUtil.childrenToCharArray(in);
   }
 
@@ -156,6 +159,7 @@ public abstract class XMLContainer implements XmlSerializable {
   private void serializeBody(final XMLStreamWriter pOut) throws XMLStreamException {
     if (content!=null && content.length>0) {
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,true); // Make sure to repair namespaces when writing
       XMLEventWriter xew = xof instanceof XMLOutputFactory2 ? ((XMLOutputFactory2)xof).createXMLEventWriter(pOut) : xof.createXMLEventWriter(new StAXResult(pOut));
 
       XMLEventReader contentReader = getBodyEventReader();

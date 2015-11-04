@@ -1,21 +1,20 @@
 package nl.adaptivity.process.processModel;
 
-import java.io.CharArrayReader;
-import java.io.IOException;
+import nl.adaptivity.util.xml.XmlUtil;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
+import java.io.CharArrayReader;
+import java.io.IOException;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -66,7 +65,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
 
-  protected boolean deserializeAttribute(XMLStreamReader in, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
       switch (pAttributeLocalName) {
         case "endpoint": endpoint = pAttributeValue; return true;

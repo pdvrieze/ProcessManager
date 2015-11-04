@@ -310,7 +310,7 @@ public class XmlUtil {
         }
       }
     } else if (result instanceof ExtXmlDeserializable){
-      ((ExtXmlDeserializable)result).deSerializeChildren(in);
+      ((ExtXmlDeserializable)result).deserializeChildren(in);
       if (XmlUtil.class.desiredAssertionStatus()) {
         in.require(XMLStreamConstants.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }

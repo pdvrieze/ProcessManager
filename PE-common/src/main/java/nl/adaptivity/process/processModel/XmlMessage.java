@@ -11,14 +11,14 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.ExtXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.*;
+import org.w3c.dom.DocumentFragment;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -57,7 +57,7 @@ import java.net.URI;
 @XmlType(name = "Message")
 @XmlRootElement(name= XmlMessage.ELEMENTLOCALNAME)
 @XmlDeserializer(XmlMessage.Factory.class)
-public class XmlMessage extends BaseMessage implements IXmlMessage {
+public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -92,17 +92,12 @@ public class XmlMessage extends BaseMessage implements IXmlMessage {
   }
 
   public static XmlMessage deserialize(final XMLStreamReader pIn) throws XMLStreamException {
-    XmlUtil.skipPreamble(pIn);
-    assert XmlUtil.isElement(pIn, ELEMENTNAME);
+    return XmlUtil.deserializeHelper(new XmlMessage(), pIn);
+  }
 
-    XmlMessage result = new XmlMessage();
-    for(int i=pIn.getAttributeCount()-1; i>=0; --i) {
-      result.deserializeAttribute(pIn, pIn.getAttributeNamespace(i), pIn.getAttributeLocalName(i), pIn.getAttributeValue(i));
-    }
-    if (pIn.hasNext() && pIn.next()!= XMLStreamConstants.END_ELEMENT) {
-      result.deserializeChildren(pIn);
-    }
-    return result;
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
