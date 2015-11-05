@@ -315,7 +315,7 @@ public class XmlUtil {
         in.require(XMLStreamConstants.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
-      if(! isXmlWhitespace(childrenToCharArray(in))) {
+      if(! isXmlWhitespace(siblingsToCharArray(in))) {
         throw new XMLStreamException("Unexpected child content in element");
       }
     }
@@ -493,7 +493,14 @@ public class XmlUtil {
       throw e;
     }
   }
-  public static char[] childrenToCharArray(final XMLStreamReader in) throws XMLStreamException {
+
+  /**
+   * Get a character array containing the current node and all it's following siblings.
+   * @param in
+   * @return
+   * @throws XMLStreamException
+   */
+  public static char[] siblingsToCharArray(final XMLStreamReader in) throws XMLStreamException {
     Location startLocation = in.getLocation();
     try {
       XMLInputFactory xif = XMLInputFactory.newFactory();

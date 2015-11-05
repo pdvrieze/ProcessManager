@@ -49,7 +49,11 @@ public abstract class XMLContainer implements XmlSerializable {
   }
 
   public void deserializeChildren(XMLStreamReader in) throws XMLStreamException {
-    content = XmlUtil.childrenToCharArray(in);
+    if (in.hasNext()) {
+      if (in.next() != XMLStreamConstants.END_ELEMENT) {
+        content = XmlUtil.siblingsToCharArray(in);
+      }
+    }
   }
 
   public char[] getContent() {

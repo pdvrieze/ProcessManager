@@ -152,7 +152,7 @@ public abstract class XPathHolder extends XMLContainer {
     }
     if (in.hasNext()) {
       if (in.next()!=XMLStreamConstants.END_ELEMENT) {
-        pResult.setContent(in.getNamespaceContext(), XmlUtil.childrenToCharArray(in));
+        pResult.setContent(in.getNamespaceContext(), XmlUtil.siblingsToCharArray(in));
       }
     }
 
