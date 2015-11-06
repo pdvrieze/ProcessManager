@@ -15,7 +15,6 @@ import nl.adaptivity.util.xml.*;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -63,11 +62,6 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   @Override
   protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
     XmlUtil.writeStartElement(pOut, ELEMENTNAME);
-  }
-
-  @Override
-  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    super.visitNamesInAttributeValue(referenceContext, owner, pAttributeNamespace, pAttributeLocalName, pAttributeValue);
   }
 
   public static XmlResultType get(IXmlResultType pImport) {
