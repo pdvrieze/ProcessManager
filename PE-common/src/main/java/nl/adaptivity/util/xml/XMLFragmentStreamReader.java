@@ -11,6 +11,9 @@ import java.io.CharArrayReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 
 /**
@@ -20,9 +23,67 @@ import java.util.Collections;
  */
 public class XMLFragmentStreamReader implements XMLStreamReader {
 
+  private static class FragmentNamespaceContext extends SimpleNamespaceContext {
+
+    private final FragmentNamespaceContext aParent;
+
+    public FragmentNamespaceContext(FragmentNamespaceContext parent, String[] prefixes, String[] namespaces) {
+      super(prefixes, namespaces);
+      aParent = parent;
+    }
+
+    @Override
+    public String getNamespaceURI(final String prefix) {
+      String namespaceURI = super.getNamespaceURI(prefix);
+      if (namespaceURI==null && aParent!=null) {
+        return aParent.getNamespaceURI(prefix);
+      }
+      return namespaceURI;
+    }
+
+    @Override
+    public String getPrefix(final String namespaceURI) {
+
+      String prefix = super.getPrefix(namespaceURI);
+      if (prefix==null && aParent!=null) { return aParent.getPrefix(namespaceURI); }
+      return prefix;
+
+    }
+
+    @Override
+    public Iterator<String> getPrefixes(final String namespaceURI) {
+      if (aParent==null) { return super.getPrefixes(namespaceURI); }
+      Set<String> prefixes = new HashSet<>();
+
+      for(Iterator<String> it = super.getPrefixes(namespaceURI); it.hasNext();) {
+        prefixes.add(it.next());
+      }
+
+      for(Iterator<String> it = aParent.getPrefixes(namespaceURI); it.hasNext();) {
+        String prefix = it.next();
+        String localNamespaceUri = getLocalNamespaceUri(prefix);
+        if (localNamespaceUri==null) {
+          prefixes.add(prefix);
+        }
+      }
+
+      return prefixes.iterator();
+    }
+
+    private String getLocalNamespaceUri(final String pPrefix) {
+      for(int i=size()-1; i>=0; --i) {
+        if (pPrefix.equals(getPrefix(i))) {
+          return getNamespaceURI(i);
+        }
+      }
+      return null;
+    }
+  }
+
   private static final String WRAPPERPPREFIX = "SDFKLJDSF";
   private static final String WRAPPERNAMESPACE = "http://wrapperns";
   private final XMLStreamReader delegate;
+  private FragmentNamespaceContext localNamespaceContext;
 
   public XMLFragmentStreamReader(final XMLInputFactory pXif, final Reader pIn, final Iterable<Namespace> pWrapperNamespaceContext) throws XMLStreamException {
     StringBuilder wrapperBuilder = new StringBuilder();
@@ -42,6 +103,7 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
     String wrapper = wrapperBuilder.toString();
     Reader actualInput = new CombiningReader(new StringReader(wrapper), pIn, new StringReader("</" + WRAPPERPPREFIX + ":wrapper>"));
     delegate = pXif.createXMLStreamReader(actualInput);
+    localNamespaceContext = new FragmentNamespaceContext(null, new String[0], new String[0]);
   }
 
   public static XMLFragmentStreamReader from (XMLInputFactory xif, Reader in, Iterable<Namespace> pNamespaceContext) throws XMLStreamException {
@@ -71,10 +133,26 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
       case XMLStreamConstants.DTD:
         return next();
       case XMLStreamConstants.START_ELEMENT:
+        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceURI())) { return delegate.next(); }
+        extendNamespace();
+        break;
       case XMLStreamConstants.END_ELEMENT:
         if (WRAPPERNAMESPACE.equals(delegate.getNamespaceURI())) { return delegate.next(); }
+        localNamespaceContext = localNamespaceContext.aParent;
+        break;
     }
     return result;
+  }
+
+  private void extendNamespace() {
+    int nscount = delegate.getNamespaceCount();
+    String[] prefixes = new String[nscount];
+    String[] namespaces = new String[nscount];
+    for(int i=nscount-1; i>=0; --i) {
+      prefixes[i] = delegate.getNamespacePrefix(i);
+      namespaces[i] = delegate.getNamespaceURI(i);
+    }
+    localNamespaceContext = new FragmentNamespaceContext(localNamespaceContext, prefixes, namespaces);
   }
 
   @Override
@@ -189,7 +267,7 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
 
   @Override
   public NamespaceContext getNamespaceContext() {
-    return delegate.getNamespaceContext();
+    return localNamespaceContext;
   }
 
   @Override
