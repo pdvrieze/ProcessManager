@@ -1,10 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.CombiningNamespaceContext;
-import nl.adaptivity.util.xml.Namespace;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 
 import javax.xml.XMLConstants;
@@ -169,8 +166,8 @@ public abstract class XPathHolder extends XMLContainer {
   }
 
   @Override
-  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    if (Constants.MODIFY_NS_STR.equals(owner.getNamespaceURI()) && pAttributeNamespace=="" && "xpath".equals(pAttributeLocalName)) {
+  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final QName pAttributeName, final String pAttributeValue) {
+    if (Constants.MODIFY_NS_STR.equals(owner.getNamespaceURI()) && (XMLConstants.NULL_NS_URI.equals(pAttributeName.getNamespaceURI())||XMLConstants.DEFAULT_NS_PREFIX.equals(pAttributeName.getPrefix())) && "xpath".equals(pAttributeName.getLocalPart())) {
       visitXpathUsedPrefixes(pAttributeValue, referenceContext);
     }
   }
