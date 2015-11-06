@@ -1,28 +1,21 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.process.processModel.BaseMessage;
+import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.util.xml.XmlUtil;
+import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.process.processModel.BaseMessage;
-import nl.adaptivity.process.processModel.IXmlMessage;
-
-import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Attr;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Comment;
-import org.w3c.dom.Element;
-import org.w3c.dom.EntityReference;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientMessage extends BaseMessage {
 
 
+  public static final QName ELEMENTNAME = new QName(NS_PM, "message", "pm");
 
   public ClientMessage() {
     super();
@@ -54,7 +47,12 @@ public class ClientMessage extends BaseMessage {
 
   @Override
   protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeStartElement(pOut, new QName(NS_PM, "message", "pm"));
+    XmlUtil.writeStartElement(pOut, getElementName());
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   public void serialize(SerializerAdapter pOut) {
