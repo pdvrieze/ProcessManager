@@ -8,10 +8,15 @@
 
 package nl.adaptivity.process.processModel;
 
-import java.io.CharArrayReader;
-import java.sql.SQLException;
+import net.devrieze.util.Transaction;
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.process.engine.PETransformer;
+import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.util.xml.*;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.NodeList;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,17 +28,8 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import net.devrieze.util.Transaction;
-import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.engine.PETransformer;
-import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
-
-import nl.adaptivity.util.xml.XmlDeserializer;
-import nl.adaptivity.util.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.NodeList;
+import java.io.CharArrayReader;
+import java.sql.SQLException;
 
 
 @XmlDeserializer(XmlDefineType.Factory.class)
@@ -48,6 +44,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   }
 
   public static final String ELEMENTLOCALNAME = "define";
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   private String refNode;
 
@@ -55,7 +52,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   public XmlDefineType() {}
 
-  public XmlDefineType(final String pName, final String pRefNode, final String pRefName, String pPath, final char[] pContent, final NamespaceContext pOriginalNSContext) {
+  public XmlDefineType(final String pName, final String pRefNode, final String pRefName, String pPath, final char[] pContent, final Iterable<Namespace> pOriginalNSContext) {
     super(pContent, pOriginalNSContext, pPath, pName);
     refNode = pRefNode;
     refName = pRefName;
@@ -66,12 +63,17 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   }
 
   @Override
-  protected boolean deserializeAttribute(final String pAttributeLocalName, final String pAttributeValue) {
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     switch (pAttributeLocalName) {
       case "refnode": setRefNode(pAttributeValue); return true;
       case "refname": setRefName(pAttributeValue); return true;
       default:
-        return super.deserializeAttribute(pAttributeLocalName, pAttributeValue);
+        return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
     }
   }
 
@@ -159,7 +161,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       DocumentFragment result = null;
       try {
         result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
-        PETransformer.create(getNamespaceContext(), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
+        PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
       } catch (ParserConfigurationException | XMLStreamException pE) {
         throw new RuntimeException(pE);
       }

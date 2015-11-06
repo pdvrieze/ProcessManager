@@ -1,9 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.CombiningNamespaceContext;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 
 import javax.xml.XMLConstants;
@@ -46,11 +44,12 @@ public abstract class XPathHolder extends XMLContainer {
     super();
   }
 
-  public XPathHolder(final char[] pContent, final NamespaceContext pOriginalNSContext, final String pPath, final String pName) {
+  public XPathHolder(final char[] pContent, final Iterable<Namespace> pOriginalNSContext, final String pPath, final String pName) {
     super();
     setName(pName);
-    setPath(pOriginalNSContext, pPath);
-    setContent(pOriginalNSContext, pContent);
+    SimpleNamespaceContext context = SimpleNamespaceContext.from(pOriginalNSContext);
+    setPath(context, pPath);
+    setContent(context, pContent);
   }
 
   @XmlAttribute(name="xpath")
@@ -58,7 +57,7 @@ public abstract class XPathHolder extends XMLContainer {
     return pathString;
   }
 
-  public void setPath(final NamespaceContext baseNsContext, final String value) {
+  public void setPath(final Iterable<Namespace> baseNsContext, final String value) {
     if (pathString!=null && pathString.equals(value)) { return; }
     path = null;
     pathString = value;
@@ -76,7 +75,7 @@ public abstract class XPathHolder extends XMLContainer {
         try {
           XPath xPath = f.newXPath();
           if (getOriginalNSContext()!=null) {
-            xPath.setNamespaceContext(getOriginalNSContext());
+            xPath.setNamespaceContext(SimpleNamespaceContext.from(getOriginalNSContext()));
           }
           path = xPath.compile(pathString);
           return path;
@@ -88,12 +87,8 @@ public abstract class XPathHolder extends XMLContainer {
     return path;
   }
 
-  public NamespaceContext getNamespaceContext() {
-    return getOriginalNSContext();
-  }
-
   @Deprecated
-  public void setNamespaceContext(NamespaceContext pNamespaceContext) {
+  public void setNamespaceContext(Iterable<Namespace> pNamespaceContext) {
     setContent(pNamespaceContext, getContent());
 
     path = null; // invalidate the cached path expression
@@ -113,7 +108,7 @@ public abstract class XPathHolder extends XMLContainer {
     this.name = value;
   }
 
-  protected boolean deserializeAttribute(final String pAttributeLocalName, final String pAttributeValue) {
+  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
     switch(pAttributeLocalName) {
       case "name":
         setName(pAttributeValue);
@@ -136,7 +131,7 @@ public abstract class XPathHolder extends XMLContainer {
     for(int i=in.getAttributeCount()-1; i>=0;--i) {
       String prefix = in.getAttributePrefix(i);
       if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-        if (pResult.deserializeAttribute(in.getAttributeLocalName(i), in.getAttributeValue(i)) ) {
+        if (pResult.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i)) ) {
           continue;
         }
       } else if (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
@@ -152,7 +147,8 @@ public abstract class XPathHolder extends XMLContainer {
     }
     if (in.hasNext()) {
       if (in.next()!=XMLStreamConstants.END_ELEMENT) {
-        pResult.setContent(in.getNamespaceContext(), XmlUtil.siblingsToCharArray(in));
+        CompactFragment compactFragment = XmlUtil.siblingsToFragment(in);
+        pResult.setContent(compactFragment.getNamespaces(), compactFragment.getContent());
       }
     }
 
@@ -173,7 +169,7 @@ public abstract class XPathHolder extends XMLContainer {
       // Have a namespace that gathers those namespaces that are not known already in the outer context
       NamespaceContext referenceContext = out.getNamespaceContext();
       // TODO streamline this, the right context should not require the filtering on the output context later.
-      NamespaceContext nsc = new GatheringNamespaceContext(new CombiningNamespaceContext(referenceContext, getNamespaceContext()), namepaces);
+      NamespaceContext nsc = new GatheringNamespaceContext(new CombiningNamespaceContext(referenceContext, SimpleNamespaceContext.from(getOriginalNSContext())), namepaces);
       visitXpathUsedPrefixes(pathString, nsc);
       for(Entry<String, String> ns: namepaces.entrySet()) {
         if (! ns.getValue().equals(referenceContext.getNamespaceURI(ns.getKey()))) {

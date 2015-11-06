@@ -1,10 +1,8 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.engine.ProcessData;
-
+import nl.adaptivity.util.xml.Namespace;
 import org.w3c.dom.Node;
-
-import javax.xml.namespace.NamespaceContext;
 
 
 public interface IXmlResultType {
@@ -38,7 +36,7 @@ public interface IXmlResultType {
    * @param pNamespaceContext
    * @param value allowed object is {@link String }
    */
-  public void setPath(final NamespaceContext pNamespaceContext, String value);
+  public void setPath(final Iterable<Namespace> pNamespaceContext, String value);
 
   ProcessData apply(Node pPayload);
 
@@ -46,5 +44,5 @@ public interface IXmlResultType {
    * Get the namespace context for evaluating the xpath expression.
    * @return the context
    */
-  NamespaceContext getNamespaceContext();
+  Iterable<Namespace> getOriginalNSContext();
 }

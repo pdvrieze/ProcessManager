@@ -107,8 +107,9 @@ public class TestXmlResultType {
 
     XPathHolder testHolder = context.createUnmarshaller().unmarshal(in, XPathHolder.class).getValue();
 
-    assertNotNull(testHolder.getNamespaceContext());
-    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, testHolder.getNamespaceContext().getNamespaceURI("umh"));
+    assertNotNull(SimpleNamespaceContext.from(testHolder.getOriginalNSContext()));
+    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
+                                                                          .getNamespaceURI("umh"));
 
   }
 
@@ -123,9 +124,11 @@ public class TestXmlResultType {
 
     XmlResultType testHolder = XmlResultType.deserialize(in);
 
-    assertNotNull(testHolder.getNamespaceContext());
-    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, testHolder.getNamespaceContext().getNamespaceURI("umh"));
-    assertEquals(Constants.PROCESS_ENGINE_NS, testHolder.getNamespaceContext().getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX));
+    assertNotNull(SimpleNamespaceContext.from(testHolder.getOriginalNSContext()));
+    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
+                                                                          .getNamespaceURI("umh"));
+    assertEquals(Constants.PROCESS_ENGINE_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
+                                                                    .getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX));
     assertEquals("foo", testHolder.getName());
   }
 

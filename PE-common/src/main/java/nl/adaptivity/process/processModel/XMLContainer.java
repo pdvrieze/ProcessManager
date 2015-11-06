@@ -11,18 +11,15 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stax.StAXResult;
 
 import java.io.CharArrayReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 
 
 /**
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-public abstract class XMLContainer implements XmlSerializable {
+public abstract class XMLContainer implements XmlDeserializable {
 
   public static class Factory<T extends XMLContainer> implements XmlDeserializerFactory<T> {
 
@@ -40,7 +37,7 @@ public abstract class XMLContainer implements XmlSerializable {
   public XMLContainer() {
   }
 
-  public XMLContainer(final NamespaceContext pOriginalNSContext, final char[] pContent) {
+  public XMLContainer(final Iterable<Namespace> pOriginalNSContext, final char[] pContent) {
     setContent(pOriginalNSContext, pContent);
   }
 
@@ -51,8 +48,16 @@ public abstract class XMLContainer implements XmlSerializable {
   public void deserializeChildren(XMLStreamReader in) throws XMLStreamException {
     if (in.hasNext()) {
       if (in.next() != XMLStreamConstants.END_ELEMENT) {
-        content = XmlUtil.siblingsToCharArray(in);
+        CompactFragment content = XmlUtil.siblingsToFragment(in);
+        setContent(content);
       }
+    }
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XMLStreamReader pIn) {
+    for(int i=pIn.getNamespaceCount()-1; i>=0; --i) {
+      visitNamespace(pIn, pIn.getNamespacePrefix(i));
     }
   }
 
@@ -60,18 +65,22 @@ public abstract class XMLContainer implements XmlSerializable {
     return content;
   }
 
-  public NamespaceContext getOriginalNSContext() {
+  public Iterable<Namespace> getOriginalNSContext() {
     return originalNSContext;
   }
 
-  public void setContent(final NamespaceContext pOriginalNSContext, final char[] pContent) {
+  public void setContent(final Iterable<Namespace> pOriginalNSContext, final char[] pContent) {
+    originalNSContext = SimpleNamespaceContext.from(pOriginalNSContext);
     content = pContent;
-    updateNamespaceContext(pOriginalNSContext);
   }
 
-  protected void updateNamespaceContext(final NamespaceContext pAdditionalContext) {
+  public void setContent(final CompactFragment pContent) {
+    setContent(pContent.getNamespaces(), pContent.getContent());
+  }
+
+  protected void updateNamespaceContext(final Iterable<Namespace> pAdditionalContext) {
     Map<String, String> nsmap = new TreeMap<>();
-    NamespaceContext context = originalNSContext == null ? pAdditionalContext : new CombiningNamespaceContext(pAdditionalContext, originalNSContext);
+    SimpleNamespaceContext context = originalNSContext == null ? SimpleNamespaceContext.from(pAdditionalContext) : originalNSContext.combine(pAdditionalContext);
     try {
       visitNamespaces(new GatheringNamespaceContext(context, nsmap));
     } catch (XMLStreamException pE) {
@@ -81,8 +90,7 @@ public abstract class XMLContainer implements XmlSerializable {
   }
 
   public void setContent(final Source pContent) throws XMLStreamException {
-    content = XmlUtil.toCharArray(pContent);
-    updateNamespaceContext(new SimpleNamespaceContext(new TreeMap<String, String>()));
+    setContent(Collections.<Namespace>emptyList(), XmlUtil.toCharArray(pContent));
   }
 
   void addNamespaceContext(final SimpleNamespaceContext pNamespaceContext) {
@@ -92,7 +100,7 @@ public abstract class XMLContainer implements XmlSerializable {
   @Override
   public void serialize(final XMLStreamWriter out) throws XMLStreamException {
     Map<String,String> missingNamespaces = new TreeMap<>();
-    NamespaceContext context = new CombiningNamespaceContext(new GatheringNamespaceContext(getOriginalNSContext(), missingNamespaces), out.getNamespaceContext());
+    NamespaceContext context = new CombiningNamespaceContext(new GatheringNamespaceContext(originalNSContext, missingNamespaces), out.getNamespaceContext());
     visitNamespaces(context);
 
     serializeStartElement(out);
@@ -134,7 +142,7 @@ public abstract class XMLContainer implements XmlSerializable {
     if (content != null) {
       XMLInputFactory xif = XMLInputFactory.newFactory();
 
-      XMLStreamReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.from(xif, new CharArrayReader(content)));
+      XMLStreamReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.from(xif, new CharArrayReader(content), originalNSContext));
 
       visitNamespacesInContent(xsr, null);
     }
@@ -161,7 +169,7 @@ public abstract class XMLContainer implements XmlSerializable {
   }
 
   private void serializeBody(final XMLStreamWriter pOut) throws XMLStreamException {
-    if (content!=null && content.length>0) {
+    if (content !=null && content.length>0) {
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
       xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,true); // Make sure to repair namespaces when writing
       XMLEventWriter xew = xof instanceof XMLOutputFactory2 ? ((XMLOutputFactory2)xof).createXMLEventWriter(pOut) : xof.createXMLEventWriter(new StAXResult(pOut));
@@ -174,9 +182,7 @@ public abstract class XMLContainer implements XmlSerializable {
 
   public XMLStreamReader getBodyStreamReader() throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
-    NamespaceContext nsContext = this.originalNSContext==null ? BASE_NS_CONTEXT : new CombiningNamespaceContext(BASE_NS_CONTEXT, originalNSContext);
-    NamespaceAddingStreamReader streamReader = new NamespaceAddingStreamReader(nsContext, XMLFragmentStreamReader.from(xif, new CharArrayReader(content)));
-    return streamReader;
+    return XMLFragmentStreamReader.from(xif, new CharArrayReader(content), originalNSContext);
   }
 
   public XMLEventReader getBodyEventReader() throws XMLStreamException {

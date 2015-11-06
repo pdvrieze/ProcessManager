@@ -3,8 +3,7 @@ package nl.adaptivity.process.processModel;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-
-import javax.xml.namespace.NamespaceContext;
+import nl.adaptivity.util.xml.Namespace;
 
 import java.sql.SQLException;
 
@@ -71,12 +70,12 @@ public interface IXmlDefineType {
    * @param pNamespaceContext
    * @param value allowed object is {@link String }
    */
-  public void setPath(final NamespaceContext pNamespaceContext, String value);
+  public void setPath(final Iterable<Namespace> pNamespaceContext, String value);
 
   /**
    * Get the namespace context that defines the "missing" namespaces in the content.
    * @return
    */
-  public NamespaceContext getOriginalNSContext();
+  public Iterable<Namespace> getOriginalNSContext();
 
 }

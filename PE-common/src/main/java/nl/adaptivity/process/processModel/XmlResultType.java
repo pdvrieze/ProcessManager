@@ -11,10 +11,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.util.xml.XmlDeserializer;
-import nl.adaptivity.util.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 
@@ -55,11 +52,11 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   public XmlResultType() {}
 
   @Deprecated
-  public XmlResultType(String name, final String pPath, DocumentFragment content, NamespaceContext namespaceContext) {
+  public XmlResultType(String name, final String pPath, DocumentFragment content, Iterable<Namespace> namespaceContext) {
     this(name, pPath, content==null ? null : XmlUtil.toString(content).toCharArray(), namespaceContext);
   }
 
-  public XmlResultType(final String pName, String pPath, final char[] pContent, final NamespaceContext pOriginalNSContext) {
+  public XmlResultType(final String pName, String pPath, final char[] pContent, final Iterable<Namespace> pOriginalNSContext) {
     super(pContent, pOriginalNSContext, pPath, pName);
   }
 
@@ -75,8 +72,13 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   public static XmlResultType get(IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
-    XmlResultType result = new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getNamespaceContext());
+    XmlResultType result = new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getOriginalNSContext());
     return result;
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   /**
@@ -96,7 +98,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         DocumentFragment result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
-        PETransformer.create(getNamespaceContext(), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
+        PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
         return new ProcessData(getName(), result);
       } else {
         return processData;

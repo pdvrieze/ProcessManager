@@ -124,6 +124,11 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   @Override
+  public void onBeforeDeserializeChildren(final XMLStreamReader pIn) {
+    // do nothing
+  }
+
+  @Override
   public QName getElementName() {
     return XmlProcessModel.ELEMENTNAME;
   }

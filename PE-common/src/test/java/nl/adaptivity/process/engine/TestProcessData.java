@@ -205,12 +205,12 @@ public class TestProcessData {
     XmlResultType result1 = ac1.getResults().get(0);
     assertEquals("name", result1.getName());
     assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath());
-    SimpleNamespaceContext snc1 = (SimpleNamespaceContext) result1.getNamespaceContext();
+    SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result1.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
     XmlResultType result2 = ac1.getResults().get(1);
-    SimpleNamespaceContext snc2 = (SimpleNamespaceContext) result2.getNamespaceContext();
+    SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result2.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
@@ -232,11 +232,11 @@ public class TestProcessData {
     SimpleNamespaceContext nsContext = new SimpleNamespaceContext(new String[]{"umh"}, new String[]{"http://adaptivity.nl/userMessageHandler"});
     String expression = "/umh:result/umh:value[@name='user']/text()";
     XmlResultType result = new XmlResultType("foo", expression, (char[]) null, nsContext);
-    assertEquals(1, ((SimpleNamespaceContext)result.getNamespaceContext()).size());
+    assertEquals(1, ((SimpleNamespaceContext) SimpleNamespaceContext.from(result.getOriginalNSContext())).size());
 
     Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
     XPath xPath = XPathFactory.newInstance().newXPath();
-    xPath.setNamespaceContext(result.getNamespaceContext());
+    xPath.setNamespaceContext(SimpleNamespaceContext.from(result.getOriginalNSContext()));
     XPathExpression pathExpression = xPath.compile(expression);
     NodeList apply2 = (NodeList) pathExpression.evaluate(testData, XPathConstants.NODESET);
     assertNotNull(apply2);

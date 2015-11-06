@@ -1,44 +1,25 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.io.Serializable;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import net.devrieze.util.IdFactory;
+import net.devrieze.util.Transaction;
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.XmlDeserializable;
+import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-import net.devrieze.util.IdFactory;
-import net.devrieze.util.Transaction;
-
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.IllegalProcessModelException;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
-import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.process.processModel.XmlDefineType;
-import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.XmlDeserializable;
-import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
+import java.io.Serializable;
+import java.sql.SQLException;
+import java.util.*;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -108,9 +89,14 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     return false;
   }
 
+  @Override
+  public void onBeforeDeserializeChildren(final XMLStreamReader pIn) {
+    // do nothing
+  }
+
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
-   */
+     * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
+     */
   @Override
   public Set<? extends Identifiable> getPredecessors() {
     if (aPredecessors == null) {

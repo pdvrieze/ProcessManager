@@ -2,6 +2,7 @@ package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
+import nl.adaptivity.xml.GatheringNamespaceContext;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -23,6 +24,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public class XmlUtil {
@@ -290,6 +292,7 @@ public class XmlUtil {
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
+    result.onBeforeDeserializeChildren(in);
     int event = -1;
     if (result instanceof SimpleXmlDeserializable) {
       loop: while (in.hasNext() && event != XMLStreamConstants.END_ELEMENT) {
@@ -315,7 +318,7 @@ public class XmlUtil {
         in.require(XMLStreamConstants.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
-      if(! isXmlWhitespace(siblingsToCharArray(in))) {
+      if(! isXmlWhitespace(siblingsToFragment(in).getContent())) {
         throw new XMLStreamException("Unexpected child content in element");
       }
     }
@@ -411,6 +414,31 @@ public class XmlUtil {
     return xif.createFilteredReader(pXMLEventReader, SUBEVENTS_FILTER);
   }
 
+  public static String xmlEncode(final String pUnEncoded) {
+    StringBuilder result = null;
+    int last=0;
+    for(int i=0; i<pUnEncoded.length(); ++i) {
+      switch (pUnEncoded.charAt(i)) {
+        case '<':
+          if (result==null) { result = new StringBuilder(pUnEncoded.length()); }
+          result.append(pUnEncoded,last, i).append("&lt;");
+          last = i+1;
+          break;
+        case '&':
+          if (result==null) { result = new StringBuilder(pUnEncoded.length()); }
+          result.append(pUnEncoded,last, i).append("&amp;");
+          last = i+1;
+          break;
+        default:
+          break;
+      }
+
+    }
+    if (result==null) { return pUnEncoded; }
+    result.append(pUnEncoded, last, pUnEncoded.length());
+    return result.toString();
+  }
+
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {
     StringWriter out =new StringWriter();
     XMLOutputFactory factory = XMLOutputFactory.newInstance();
@@ -494,13 +522,16 @@ public class XmlUtil {
     }
   }
 
-  /**
-   * Get a character array containing the current node and all it's following siblings.
-   * @param in
-   * @return
-   * @throws XMLStreamException
-   */
   public static char[] siblingsToCharArray(final XMLStreamReader in) throws XMLStreamException {
+    return siblingsToFragment(in).getContent();
+  }
+    /**
+     * Get a character array containing the current node and all it's following siblings.
+     * @param in
+     * @return
+     * @throws XMLStreamException
+     */
+  public static CompactFragment siblingsToFragment(final XMLStreamReader in) throws XMLStreamException {
     Location startLocation = in.getLocation();
     try {
       XMLInputFactory xif = XMLInputFactory.newFactory();
@@ -511,10 +542,13 @@ public class XmlUtil {
       CharArrayWriter caw = new CharArrayWriter();
       XMLEventFactory xef = XMLEventFactory.newFactory();
 
+      TreeMap<String, String> missingNamespaces = new TreeMap<>();
+      GatheringNamespaceContext gatheringContext = new GatheringNamespaceContext(in.getNamespaceContext(), missingNamespaces);
       while (xer.hasNext() && (! xer.peek().isEndElement())) {
         XMLEvent event = xer.nextEvent();
         if (event.isStartElement()) {
           XMLEventWriter out = xof.createXMLEventWriter(caw);
+          out.setNamespaceContext(gatheringContext);
           out.add(event);
           writeElementContent(xef, xer, out);
           out.close();
@@ -522,7 +556,7 @@ public class XmlUtil {
           event.writeAsEncodedUnicode(caw);
         }
       }
-      return caw.toCharArray();
+      return new CompactFragment(new SimpleNamespaceContext(missingNamespaces),caw.toCharArray());
     } catch (XMLStreamException | RuntimeException e) {
       throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
     }

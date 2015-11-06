@@ -2,12 +2,15 @@ package nl.adaptivity.util.xml;
 
 import nl.adaptivity.util.CombiningReader;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 
+import java.io.CharArrayReader;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Collections;
 
 
 /**
@@ -21,13 +24,36 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
   private static final String WRAPPERNAMESPACE = "http://wrapperns";
   private final XMLStreamReader delegate;
 
-  public XMLFragmentStreamReader(final XMLInputFactory pXif, final Reader pIn) throws XMLStreamException {
-    Reader actualInput = new CombiningReader(new StringReader("<" + WRAPPERPPREFIX + ":wrapper xmlns:"+WRAPPERPPREFIX+ "=\"" + WRAPPERNAMESPACE + "\">"), pIn, new StringReader("</" + WRAPPERPPREFIX + ":wrapper>"));
+  public XMLFragmentStreamReader(final XMLInputFactory pXif, final Reader pIn, final Iterable<Namespace> pWrapperNamespaceContext) throws XMLStreamException {
+    StringBuilder wrapperBuilder = new StringBuilder();
+    wrapperBuilder.append("<" + WRAPPERPPREFIX + ":wrapper xmlns:" + WRAPPERPPREFIX + "=\"" + WRAPPERNAMESPACE+'"');
+    for(Namespace ns:pWrapperNamespaceContext) {
+      String prefix = ns.getPrefix();
+      String uri = ns.getNamespaceURI();
+      if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
+        wrapperBuilder.append(" xmlns");
+      } else {
+        wrapperBuilder.append(" xmlns:").append(prefix);
+      }
+      wrapperBuilder.append("=\"").append(XmlUtil.xmlEncode(uri)).append('"');
+    }
+    wrapperBuilder.append(" >");
+
+    String wrapper = wrapperBuilder.toString();
+    Reader actualInput = new CombiningReader(new StringReader(wrapper), pIn, new StringReader("</" + WRAPPERPPREFIX + ":wrapper>"));
     delegate = pXif.createXMLStreamReader(actualInput);
   }
 
+  public static XMLFragmentStreamReader from (XMLInputFactory xif, Reader in, Iterable<Namespace> pNamespaceContext) throws XMLStreamException {
+    return new XMLFragmentStreamReader(xif, in, pNamespaceContext);
+  }
+
   public static XMLFragmentStreamReader from (XMLInputFactory xif, Reader in) throws XMLStreamException {
-    return new XMLFragmentStreamReader(xif, in);
+    return new XMLFragmentStreamReader(xif, in, Collections.<Namespace>emptyList());
+  }
+
+  public static XMLFragmentStreamReader from(CompactFragment fragment) throws XMLStreamException {
+    return new XMLFragmentStreamReader(XMLInputFactory.newFactory(), new CharArrayReader(fragment.getContent()), fragment.getNamespaces());
   }
 
   @Override
