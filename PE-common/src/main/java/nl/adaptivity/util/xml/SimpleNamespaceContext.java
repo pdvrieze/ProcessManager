@@ -74,7 +74,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     aStrings = pStrings;
   }
 
-  private SimpleNamespaceContext(final Iterable<Namespace> pNamespaces) {
+  public SimpleNamespaceContext(final Iterable<Namespace> pNamespaces) {
     if (pNamespaces instanceof Collection) {
       int len = ((Collection) pNamespaces).size();
       aStrings = new String[len*2];
