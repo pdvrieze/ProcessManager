@@ -1,14 +1,16 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.CombiningNamespaceContext;
+import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.GatheringNamespaceContext;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -20,8 +22,6 @@ import javax.xml.xpath.XPathFactory;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public abstract class XPathHolder extends XMLContainer {
@@ -124,42 +124,21 @@ public abstract class XPathHolder extends XMLContainer {
     }
   }
 
+  @Override
+  public void deserializeChildren(final XMLStreamReader in) throws XMLStreamException {
+    NamespaceContext origContext = in.getNamespaceContext();
+    super.deserializeChildren(in);
+    Map<String, String> namespaces = new TreeMap<>();
+    NamespaceContext gatheringNamespaceContext = new CombiningNamespaceContext(SimpleNamespaceContext.from(getOriginalNSContext()),new GatheringNamespaceContext(in.getNamespaceContext(), namespaces));
+    visitNamespaces(gatheringNamespaceContext);
+    if (namespaces.size() > 0) {
+      addNamespaceContext(new SimpleNamespaceContext(namespaces));
+    }
+  }
+
   protected static <T extends XPathHolder> T deserialize(final XMLStreamReader in, final T pResult) throws
           XMLStreamException {
-    XmlUtil.skipPreamble(in);
-    if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { in.nextTag(); }
-    for(int i=in.getAttributeCount()-1; i>=0;--i) {
-      String prefix = in.getAttributePrefix(i);
-      if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
-        if (pResult.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i)) ) {
-          continue;
-        }
-      } else if (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
-        continue;
-      }
-      Logger.getAnonymousLogger().log(Level.FINER, "Unsupported attribute in result: "+in.getAttributeName(i), in);
-    }
-
-    Map<String, String> namespaceMap = new TreeMap<>();
-    String path = pResult.getPath();
-    if (path!=null) {
-      visitXpathUsedPrefixes(path, new GatheringNamespaceContext(in.getNamespaceContext(), namespaceMap));
-    }
-    if (in.hasNext()) {
-      if (in.next()!=XMLStreamConstants.END_ELEMENT) {
-        CompactFragment compactFragment = XmlUtil.siblingsToFragment(in);
-        pResult.setContent(compactFragment.getNamespaces(), compactFragment.getContent());
-      }
-    }
-
-    if (! (in.getEventType()==XMLStreamConstants.END_ELEMENT|| in.getEventType()==XMLStreamConstants.END_DOCUMENT)) {
-      throw new RuntimeException("Missing end tag");
-    }
-
-    if (namespaceMap.size()>0) {
-      pResult.addNamespaceContext(new SimpleNamespaceContext(namespaceMap));
-    }
-    return pResult;
+    return XmlUtil.deserializeHelper(pResult, in);
   }
 
   protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {

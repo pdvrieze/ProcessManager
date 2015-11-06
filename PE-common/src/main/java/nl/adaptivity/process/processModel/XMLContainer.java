@@ -19,7 +19,7 @@ import java.util.Map.Entry;
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-public abstract class XMLContainer implements XmlDeserializable {
+public abstract class XMLContainer implements ExtXmlDeserializable {
 
   public static class Factory<T extends XMLContainer> implements XmlDeserializerFactory<T> {
 
@@ -66,7 +66,7 @@ public abstract class XMLContainer implements XmlDeserializable {
   }
 
   public Iterable<Namespace> getOriginalNSContext() {
-    return originalNSContext;
+    return originalNSContext !=null ? originalNSContext : Collections.<Namespace>emptyList();
   }
 
   public void setContent(final Iterable<Namespace> pOriginalNSContext, final char[] pContent) {
