@@ -1,6 +1,6 @@
 package nl.adaptivity.process.engine;
 
-import nl.adaptivity.process.processModel.XPathHolder;
+import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
@@ -11,8 +11,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -99,13 +97,12 @@ public class TestXmlResultType {
 
 
   @Test
-  public void testXPathHolder() throws JAXBException, XMLStreamException {
-    String testData = "<foo xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
-    JAXBContext context = JAXBContext.newInstance(XPathHolder.class);
+  public void testXDefineHolder() throws JAXBException, XMLStreamException {
+    String testData = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
     XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader in = xif.createXMLStreamReader(new StringReader(testData));
 
-    XPathHolder testHolder = context.createUnmarshaller().unmarshal(in, XPathHolder.class).getValue();
+    XmlDefineType testHolder = XmlDefineType.deserialize(in);
 
     assertNotNull(SimpleNamespaceContext.from(testHolder.getOriginalNSContext()));
     assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
@@ -127,8 +124,6 @@ public class TestXmlResultType {
     assertNotNull(SimpleNamespaceContext.from(testHolder.getOriginalNSContext()));
     assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
                                                                           .getNamespaceURI("umh"));
-    assertEquals(Constants.PROCESS_ENGINE_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
-                                                                    .getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX));
     assertEquals("foo", testHolder.getName());
   }
 
