@@ -16,6 +16,7 @@ import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
@@ -31,9 +32,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.*;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -268,11 +267,17 @@ public class TestProcessEngine {
     mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemTransactionedHandleMap<ProcessModelImpl>(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
   }
 
-  private char[] jaxbToCharArray(final Object pObject) {
+  private char[] serializeToXmlCharArray(final Object pObject) throws XMLStreamException {
     char[] receivedChars;
     {
       CharArrayWriter caw = new CharArrayWriter();
-      JAXB.marshal(pObject, caw);
+      if (pObject instanceof XmlSerializable) {
+        XMLStreamWriter xsw = XMLOutputFactory.newFactory().createXMLStreamWriter(caw);
+        ((XmlSerializable) pObject).serialize(xsw);
+        xsw.close();
+      } else {
+        JAXB.marshal(pObject, caw);
+      }
       receivedChars = caw.toCharArray();
     }
     return receivedChars;
@@ -306,7 +311,7 @@ public class TestProcessEngine {
 
     InputStream expected = getXml("testModel1_task1.xml");
 
-    char[] receivedChars = jaxbToCharArray(mStubMessageService.mMessages.get(0));
+    char[] receivedChars = serializeToXmlCharArray(mStubMessageService.mMessages.get(0));
 
     XMLUnit.setIgnoreWhitespace(true);
     assertXMLEqual(new InputStreamReader(expected), new CharArrayReader(receivedChars));
@@ -346,7 +351,7 @@ public class TestProcessEngine {
     assertEquals(1, mStubMessageService.mMessages.size());
 
     XMLUnit.setIgnoreWhitespace(true);
-    assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(jaxbToCharArray(mStubMessageService.mMessages.get(0))));
+    assertXMLEqual(new InputStreamReader(getXml("testModel2_task1.xml")), new CharArrayReader(serializeToXmlCharArray(mStubMessageService.mMessages.get(0))));
     ProcessNodeInstance ac1 = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);// This should be 0 as it's the first activity
 
 
