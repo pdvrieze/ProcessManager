@@ -12,7 +12,6 @@ import javax.xml.transform.stax.StAXResult;
 
 import java.io.CharArrayReader;
 import java.util.*;
-import java.util.Map.Entry;
 
 
 /**
@@ -82,7 +81,8 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     Map<String, String> nsmap = new TreeMap<>();
     SimpleNamespaceContext context = originalNSContext == null ? SimpleNamespaceContext.from(pAdditionalContext) : originalNSContext.combine(pAdditionalContext);
     try {
-      visitNamespaces(new GatheringNamespaceContext(context, nsmap));
+      GatheringNamespaceContext gatheringNamespaceContext = new GatheringNamespaceContext(context, nsmap);
+      visitNamespaces(gatheringNamespaceContext);
     } catch (XMLStreamException pE) {
       throw new RuntimeException(pE);
     }
@@ -99,15 +99,16 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
 
   @Override
   public void serialize(final XMLStreamWriter out) throws XMLStreamException {
-    Map<String,String> missingNamespaces = new TreeMap<>();
-    NamespaceContext context = new CombiningNamespaceContext(new GatheringNamespaceContext(originalNSContext, missingNamespaces), out.getNamespaceContext());
-    visitNamespaces(context);
-
     serializeStartElement(out);
-    for(Entry<String, String> name:missingNamespaces.entrySet()) {
-      out.writeNamespace(name.getKey(), name.getValue());
-    }
     serializeAttributes(out);
+    NamespaceContext outNs = out.getNamespaceContext();
+    if (originalNSContext!=null) {
+      for (Namespace ns : originalNSContext) {
+        if (!ns.getNamespaceURI().equals(outNs.getNamespaceURI(ns.getPrefix()))) {
+          out.writeNamespace(ns.getPrefix(), ns.getNamespaceURI());
+        }
+      }
+    }
     serializeBody(out);
     out.writeEndElement();
   }
@@ -121,12 +122,12 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     visitNamespace(source, source.getPrefix());
 
     for(int i=source.getAttributeCount()-1; i>=0; --i ) {
-      String attrns = source.getNamespaceURI(source.getAttributePrefix(i));
-      visitNamesInAttributeValue(source.getNamespaceContext(), source.getName(), attrns, source.getAttributeLocalName(i), source.getAttributeValue(i));
+      QName attrName = source.getAttributeName(i);
+      visitNamesInAttributeValue(source.getNamespaceContext(), source.getName(), attrName, source.getAttributeValue(i));
     }
   }
 
-  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
+  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final QName pAttributeName, final String pAttributeValue) {
     // By default there are no special attributes
   }
 
