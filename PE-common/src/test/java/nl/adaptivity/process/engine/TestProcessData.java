@@ -2,9 +2,7 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.engine.ActivityImpl;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.*;
 import org.custommonkey.xmlunit.*;
@@ -185,22 +183,44 @@ public class TestProcessData {
     XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     ActivityImpl ac1 = null;
     ActivityImpl ac2 = null;
+    StartNodeImpl start = null;
+    EndNodeImpl end = null;
     for(Object o: xpm.getNodes()) {
       if (o instanceof ProcessNodeImpl) {
         ProcessNodeImpl node = (ProcessNodeImpl) o;
         if (node.getId() != null) {
           switch (node.getId()) {
+            case "start":
+              start = (StartNodeImpl) node;
+              break;
             case "ac1":
               ac1 = (ActivityImpl) node;
               break;
             case "ac2":
               ac2 = (ActivityImpl) node;
               break;
+            case "end":
+              end = (EndNodeImpl) node;
+              break;
           }
         }
       }
     }
+    assertNotNull(start);
     assertNotNull(ac1);
+    assertNotNull(ac2);
+    assertNotNull(end);
+
+    assertEquals("ac1", start.getSuccessors().iterator().next().getId());
+
+    assertEquals("start", ac1.getPredecessor().getId());
+    assertEquals("ac2", ac1.getSuccessors().iterator().next().getId());
+
+    assertEquals("ac1", ac2.getPredecessor().getId());
+    assertEquals("end", ac2.getSuccessors().iterator().next().getId());
+
+    assertEquals("ac2", end.getPredecessor().getId());
+
     assertEquals(2, ac1.getResults().size());
     XmlResultType result1 = ac1.getResults().get(0);
     assertEquals("name", result1.getName());
@@ -404,7 +424,7 @@ public class TestProcessData {
 
   private static <T extends XmlSerializable> String testRoundTrip(final XMLStreamReader in, final String expected, final Class<T> target, final boolean ignoreNs) throws
           InstantiationException, IllegalAccessException, XMLStreamException {
-    XmlDeserializerFactory<T> factory = target.getDeclaredAnnotation(XmlDeserializer.class).value().newInstance();
+    XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
     T obj = factory.deserialize(in);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
     CharArrayWriter caw = new CharArrayWriter();
