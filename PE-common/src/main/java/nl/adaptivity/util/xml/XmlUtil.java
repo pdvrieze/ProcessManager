@@ -163,7 +163,7 @@ public class XmlUtil {
       Document doc = db.parse(new InputSource(new CombiningReader(new StringReader("<elem>"), pReader, new StringReader("</elem>"))));
       DocumentFragment frag = doc.createDocumentFragment();
       Element docelem = doc.getDocumentElement();
-      for(Node child=docelem.getFirstChild(); child!=null; child=child.getNextSibling()) {
+      for(Node child=docelem.getFirstChild(); child!=null; child=docelem.getFirstChild()) {
         frag.appendChild(child);
       }
       doc.removeChild(docelem);
