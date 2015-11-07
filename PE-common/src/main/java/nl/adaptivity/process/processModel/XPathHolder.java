@@ -58,8 +58,8 @@ public abstract class XPathHolder extends XMLContainer {
     if (pathString!=null && pathString.equals(value)) { return; }
     path = null;
     pathString = value;
-    assert value==null || getXPath()!=null;
     updateNamespaceContext(baseNsContext);
+    assert value==null || getXPath()!=null;
   }
 
   public XPathExpression getXPath() {
