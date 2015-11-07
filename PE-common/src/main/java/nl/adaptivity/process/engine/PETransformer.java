@@ -71,51 +71,49 @@ public class PETransformer {
       while(aEventInput.hasNext()) {
         XMLEvent event = aEventInput.nextEvent();
         if (event.isStartElement()) {
-          return peekStartElement(event.asStartElement());
+          peekStartElement(event.asStartElement());
+          return peekFirst();
         } else if (event.isNamespace()){
           if (! Constants.MODIFY_NS_STR.equals(((Namespace)event).getNamespaceURI())) {
             add(event);
-            return event;
+            return peekFirst();
           }
         } else if (event.isCharacters()) {
-          if (! (mRemoveWhitespace && isIgnorableWhiteSpace(event.asCharacters()))) {
+          if (isIgnorableWhiteSpace(event.asCharacters())) {
+            if (mRemoveWhitespace) { continue; /* Continue with the loop, get another event */ }
             add(event);
-            return event;
+            continue; // peek more, so that if we find
           }
+          add(event);
+          return peekFirst();
         } else {
           add(event);
-          return event;
+          return peekFirst();
         }
       }
-      return null;
+      return peekFirst();
     }
 
-    private static boolean isIgnorableWhiteSpace(Characters pCharacters) {
-      if (pCharacters.isIgnorableWhiteSpace()) {
-        return true;
-      }
-      return XmlUtil.isXmlWhitespace(pCharacters.getData());
-    }
-
-    private XMLEvent peekStartElement(StartElement pElement) throws XMLStreamException {
-      if (Constants.MODIFY_NS_STR.toString().equals(pElement.getName().getNamespaceURI())) {
+    private void peekStartElement(StartElement pElement) throws XMLStreamException {
+      if (Constants.MODIFY_NS_STR.equals(pElement.getName().getNamespaceURI())) {
         String localname = pElement.getName().getLocalPart();
 
         final Map<String, String> attributes = parseAttributes(aEventInput, pElement);
 
         switch (localname) {
           case "attribute":
+            stripWhiteSpaceFromPeekBuffer();
             add(getAttribute(attributes));
             readEndTag(pElement.getName());
-            return peekFirst();
+            return;
           case "element":
             processElement(attributes, false);
             readEndTag(pElement.getName());
-            return peekFirst();
+            return;
           case "value":
             processElement(attributes, true);
             readEndTag(pElement.getName());
-            return peekFirst();
+            return;
           default:
             throw new XMLStreamException("Unsupported element: "+pElement.getName());
         }
@@ -144,7 +142,7 @@ public class PETransformer {
         } else {
           add(pElement);
         }
-        return pElement;
+        return;
       }
     }
 
@@ -295,9 +293,13 @@ public class PETransformer {
         case XMLEvent.END_ELEMENT:
           throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: ("+event.getClass().getSimpleName()+") "+event.getEventType());
         case XMLEvent.CDATA:
-        case XMLEvent.CHARACTERS:
-          result.append(event.asCharacters().getData());
+        case XMLEvent.CHARACTERS: {
+          Characters characters = event.asCharacters();
+          if (! isIgnorableWhiteSpace(characters)) {
+            result.append(characters.getData());
+          }
           break;
+        }
         case XMLEvent.START_DOCUMENT:
         case XMLEvent.END_DOCUMENT:
         case XMLEvent.COMMENT:
@@ -490,4 +492,10 @@ public class PETransformer {
     return result;
   }
 
+  static boolean isIgnorableWhiteSpace(Characters pCharacters) {
+    if (pCharacters.isIgnorableWhiteSpace()) {
+      return true;
+    }
+    return XmlUtil.isXmlWhitespace(pCharacters.getData());
+  }
 }

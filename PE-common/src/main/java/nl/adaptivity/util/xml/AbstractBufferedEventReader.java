@@ -1,11 +1,11 @@
 package nl.adaptivity.util.xml;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.XMLEvent;
+
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.NoSuchElementException;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
 
 
 public abstract class AbstractBufferedEventReader extends AbstractEventReader {
@@ -28,6 +28,12 @@ public abstract class AbstractBufferedEventReader extends AbstractEventReader {
       return peek()!=null;
     } catch (XMLStreamException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  protected void stripWhiteSpaceFromPeekBuffer() {
+    while(aPeekBuffer.size()>0 && aPeekBuffer.peekLast().isCharacters() && XmlUtil.isXmlWhitespace(aPeekBuffer.peekLast().asCharacters().getData())) {
+      aPeekBuffer.removeLast();
     }
   }
 
