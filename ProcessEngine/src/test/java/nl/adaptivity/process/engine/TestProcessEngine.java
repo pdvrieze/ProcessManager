@@ -12,12 +12,10 @@ import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
@@ -33,7 +31,9 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -41,6 +41,7 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
 import java.io.*;
 import java.net.URI;
 import java.sql.Connection;
@@ -50,8 +51,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.*;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
+import static org.junit.Assert.*;
 
 
 /**
@@ -244,6 +245,15 @@ public class TestProcessEngine {
     }
   }
 
+  private XMLStreamReader getStream(String name) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    return xif.createXMLStreamReader(getXml(name));
+  }
+
+  private ProcessModelImpl getProcessModel(String name) throws XMLStreamException {
+    return ProcessModelImpl.deserialize(getStream(name));
+  }
+
   private Document getDocument(String name) {
     try (InputStream in = getClass().getResourceAsStream("/nl/adaptivity/process/engine/test/"+name)) {
       return getDocumentBuilder().parse(in);
@@ -284,9 +294,8 @@ public class TestProcessEngine {
   }
 
   @Test
-  public void testExecuteSingleActivity() throws SQLException, IOException, SAXException, ParserConfigurationException {
-    XmlProcessModel xmlmodel = JAXB.unmarshal(getXml("testModel1.xml"), XmlProcessModel.class);
-    ProcessModelImpl model = new ProcessModelImpl(xmlmodel);
+  public void testExecuteSingleActivity() throws XMLStreamException, SQLException, IOException, SAXException {
+    ProcessModelImpl model = getProcessModel("testModel1");
     StubTransaction transaction = mStubTransactionFactory.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
@@ -326,9 +335,9 @@ public class TestProcessEngine {
   }
 
   @Test
-  public void testGetDataFromTask() throws SQLException, IOException, SAXException, TransformerException {
-    XmlProcessModel xmlmodel = JAXB.unmarshal(getXml("testModel2.xml"), XmlProcessModel.class);
-    ProcessModelImpl model = new ProcessModelImpl(xmlmodel);
+  public void testGetDataFromTask() throws SQLException, IOException, SAXException, TransformerException,
+          XMLStreamException {
+    ProcessModelImpl model = getProcessModel("testModel1");
     StubTransaction transaction = mStubTransactionFactory.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
