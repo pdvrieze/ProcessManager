@@ -134,8 +134,14 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   public static ProcessModelImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
-    ProcessModelImpl result = new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList());
-    return XmlUtil.deserializeHelper(result, in);
+    ProcessModelImpl processModel = XmlUtil.deserializeHelper(new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList()), in);
+    for(ProcessNodeImpl node:processModel.aProcessNodes) {
+      for(Identifiable pred: node.getPredecessors()) {
+        ProcessNodeImpl predNode = processModel.getNode(pred);
+        predNode.addSuccessor(node);
+      }
+    }
+    return processModel;
   }
 
   private static final long serialVersionUID = -4199223546188994559L;
