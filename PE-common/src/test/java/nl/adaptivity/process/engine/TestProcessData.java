@@ -270,7 +270,7 @@ public class TestProcessData {
       xsw.close();
 
       String actual = caw.toString();
-      String expected = "<result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
+      String expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
 
       XMLUnit.setIgnoreWhitespace(true);
       XMLUnit.setIgnoreAttributeOrder(true);
@@ -305,7 +305,7 @@ public class TestProcessData {
       xsw.close();
 
       String actual = caw.toString();
-      String expected = "<result name=\"user\"><user>" +
+      String expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\"><user xmlns=\"\">" +
               "<fullname>" +
               "<jbi:value  xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
               "</fullname>" +
