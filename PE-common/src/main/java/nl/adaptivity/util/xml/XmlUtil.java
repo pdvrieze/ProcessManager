@@ -288,7 +288,7 @@ public class XmlUtil {
   public static <T extends XmlDeserializable> T deserializeHelper(T result, final XMLStreamReader in) throws XMLStreamException {
     XmlUtil.skipPreamble(in);
     QName elementName = result.getElementName();
-    assert XmlUtil.isElement(in, elementName);
+    assert XmlUtil.isElement(in, elementName): "Expected "+elementName+" but found "+in.getName();
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
