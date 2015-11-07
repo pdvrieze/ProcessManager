@@ -24,11 +24,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
-import java.io.CharArrayReader;
 import java.sql.SQLException;
 
 
@@ -161,7 +160,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       DocumentFragment result = null;
       try {
         result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
-        PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
+        PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData).transform(new StAXSource(getBodyStreamReader()), new DOMResult(result));
       } catch (ParserConfigurationException | XMLStreamException pE) {
         throw new RuntimeException(pE);
       }
