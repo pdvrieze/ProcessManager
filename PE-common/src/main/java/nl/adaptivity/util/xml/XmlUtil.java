@@ -550,6 +550,7 @@ public class XmlUtil {
           XMLEventWriter out = xof.createXMLEventWriter(caw);
           out.setNamespaceContext(gatheringContext);
           out.add(event);
+          out.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
           writeElementContent(xef, xer, out);
           out.close();
         } else if (event.isCharacters()) {
@@ -760,6 +761,7 @@ public class XmlUtil {
       XMLEvent event = pIn.nextEvent();
       pOut.add(event);
       if (event.isStartElement()) {
+        pOut.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
         writeElementContent(pXef, pIn, pOut);
       }
       if (event.isEndElement()) {
