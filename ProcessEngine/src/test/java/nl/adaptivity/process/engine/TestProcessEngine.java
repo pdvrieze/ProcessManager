@@ -295,7 +295,7 @@ public class TestProcessEngine {
 
   @Test
   public void testExecuteSingleActivity() throws XMLStreamException, SQLException, IOException, SAXException {
-    ProcessModelImpl model = getProcessModel("testModel1");
+    ProcessModelImpl model = getProcessModel("testModel1.xml");
     StubTransaction transaction = mStubTransactionFactory.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
@@ -337,7 +337,7 @@ public class TestProcessEngine {
   @Test
   public void testGetDataFromTask() throws SQLException, IOException, SAXException, TransformerException,
           XMLStreamException {
-    ProcessModelImpl model = getProcessModel("testModel1");
+    ProcessModelImpl model = getProcessModel("testModel2.xml");
     StubTransaction transaction = mStubTransactionFactory.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
 
