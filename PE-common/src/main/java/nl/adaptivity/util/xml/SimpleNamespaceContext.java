@@ -135,6 +135,8 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
   public static SimpleNamespaceContext from(final Iterable<Namespace> pOriginalNSContext) {
     if (pOriginalNSContext instanceof SimpleNamespaceContext) {
       return (SimpleNamespaceContext) pOriginalNSContext;
+    } else if (pOriginalNSContext==null) {
+      return null;
     } else {
       return new SimpleNamespaceContext(pOriginalNSContext);
     }
