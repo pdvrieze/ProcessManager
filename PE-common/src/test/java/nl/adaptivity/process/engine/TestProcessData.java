@@ -3,14 +3,19 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
@@ -24,6 +29,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
+import javax.xml.transform.stax.StAXSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 
 import java.io.CharArrayWriter;
@@ -31,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -268,6 +276,40 @@ public class TestProcessData {
 
     ProcessData apply1 = result.apply(testData);
     assertEquals("Paul", apply1.getContent().getContentString());
+  }
+
+  private static CompactFragment createEndpoint() {
+    SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS));
+    StringBuilder content = new StringBuilder();
+    content.append("<jbi:endpointDescriptor");
+    content.append(" endpointLocation=\"http://localhost\"");
+    content.append(" endpointName=\"internal\"");
+    content.append(" serviceLocalName=\"foobar\"");
+    content.append(" serviceNS=\"http://foo.bar\"");
+    content.append(" />");
+    return new CompactFragment(namespaces, content.toString().toCharArray());
+
+  }
+
+  @Test
+  public void testTransform() throws XMLStreamException, IOException, SAXException {
+    ProcessData endpoint = new ProcessData("endpoint", createEndpoint());
+    PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(Collections.<Namespace>emptyList()),endpoint);
+    final String INPUT = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                         "  <jbi:element value=\"endpoint\"/>\n" +
+                         "</umh:postTask>";
+    CompactFragment cf = new CompactFragment(new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)), INPUT.toCharArray());
+    CharArrayWriter caw = new CharArrayWriter();
+    transformer.transform(new StAXSource(XMLFragmentStreamReader.from(cf)), new StreamResult(caw));
+    {
+      String control = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>";
+      String test = caw.toString();
+      try {
+        assertXMLEqual(control, test);
+      } catch (SAXParseException| AssertionError pE) {
+        assertEquals(control, test);
+      }
+    }
   }
 
   @Test

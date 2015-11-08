@@ -16,6 +16,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
@@ -25,9 +27,8 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.Map.Entry;
 
 
 public class XmlUtil {
@@ -460,6 +461,53 @@ public class XmlUtil {
     if (result==null) { return pUnEncoded; }
     result.append(pUnEncoded, last, pUnEncoded.length());
     return result.toString();
+  }
+
+  public static void safeAdd(final XMLEventWriter pXew, final XMLEventReader pXer) throws XMLStreamException {
+    while(pXer.hasNext()) {
+      safeAdd(pXew, pXer.nextEvent());
+    }
+  }
+
+  public static void safeAdd(final XMLEventWriter pXew, final XMLEvent pEvent) throws XMLStreamException {
+    if (pEvent.isStartElement()) {
+      StartElement startElement = pEvent.asStartElement();
+      Map<String,String> prefixes = new HashMap<>();
+      prefixes.put(startElement.getName().getPrefix(), startElement.getName().getNamespaceURI());
+      for(@SuppressWarnings("unchecked") Iterator<Attribute> attrs = startElement.getAttributes(); attrs.hasNext();) {
+        Attribute attr = attrs.next();
+        String prefix = attr.getName().getPrefix();
+        if(!(prefixes.containsKey(prefix)|| prefix.isEmpty())) {
+          prefixes.put(prefix, attr.getName().getNamespaceURI());
+        }
+      }
+      List<javax.xml.stream.events.Namespace> namespaceDecls = new ArrayList<>();
+      for(Iterator<javax.xml.stream.events.Namespace> namespaces = startElement.getNamespaces(); namespaces.hasNext(); ) {
+        javax.xml.stream.events.Namespace namespace = namespaces.next();
+        namespaceDecls.add(namespace);
+        prefixes.remove(namespace.getPrefix()); // Remove the prefixes locally declared
+      }
+      if (! prefixes.isEmpty()) {
+        for (Iterator<Entry<String, String>> prefixit = prefixes.entrySet().iterator(); prefixit.hasNext(); ) {
+          Entry<String, String> prefix = prefixit.next();
+          if (Objects.equals(prefix.getValue(), pXew.getNamespaceContext().getNamespaceURI(prefix.getKey()))) {
+            prefixit.remove(); // No need to add the namespace
+          }
+        }
+      }
+      if (prefixes.isEmpty()) {
+        pXew.add(pEvent);
+      } else {
+        XMLEventFactory xef = XMLEventFactory.newFactory();
+        for(Entry<String, String> prefix:prefixes.entrySet()) {
+          namespaceDecls.add(xef.createNamespace(prefix.getKey(), prefix.getValue()));
+        }
+        StartElement newEvent = xef.createStartElement(startElement.getName(), startElement.getAttributes(), namespaceDecls.iterator());
+        pXew.add(newEvent);
+      }
+    } else {
+      pXew.add(pEvent);
+    }
   }
 
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {

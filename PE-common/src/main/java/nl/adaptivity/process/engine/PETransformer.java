@@ -1,7 +1,10 @@
 package nl.adaptivity.process.engine;
 
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.AbstractBufferedEventReader;
+import nl.adaptivity.util.xml.CombiningNamespaceContext;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
@@ -16,7 +19,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
 import javax.xml.stream.events.*;
-import javax.xml.stream.events.Namespace;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
@@ -344,7 +346,7 @@ public class PETransformer {
     @Override
     protected ProcessData getData(String pValueName) {
       for(ProcessData candidate: aProcessData) {
-        if (pValueName.equals(candidate)) { return candidate; }
+        if (pValueName.equals(candidate.getName())) { return candidate; }
       }
       return null;
     }
@@ -462,13 +464,17 @@ public class PETransformer {
 
   public void transform(Source source, final Result result) throws XMLStreamException {
     final XMLEventReader xer = createFilter(XmlUtil.createXMLEventReader(XMLInputFactory.newInstance(), source));
-    final XMLEventWriter xew = XmlUtil.createXMLEventWriter(XMLOutputFactory.newFactory(), result);
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
+    final XMLEventWriter xew = XmlUtil.createXMLEventWriter(xof, result);
     xew.add(xer);
   }
 
   public void transform(final XMLStreamReader source, final XMLStreamWriter result) throws XMLStreamException {
     final XMLEventReader xer = createFilter(source);
-    final XMLEventWriter xew = XmlUtil.createXMLEventWriter(XMLOutputFactory.newFactory(), new StAXResult(result));
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
+    final XMLEventWriter xew = XmlUtil.createXMLEventWriter(xof, new StAXResult(result));
     xew.add(xer);
   }
 
