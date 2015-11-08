@@ -271,6 +271,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     List<ProcessData> defines = getDefines(pTransaction);
     PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, aState== TaskState.Complete), pRemoveWhitespace);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
     XMLStreamWriter xsw = XmlUtil.stripMetatags(xof.createXMLStreamWriter(caw));
     transformer.transform(source, new StAXResult(xsw));
     xsw.close();
