@@ -11,20 +11,15 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.util.xml.ExtXmlDeserializable;
-import nl.adaptivity.util.xml.XmlDeserializer;
-import nl.adaptivity.util.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.DocumentFragment;
+import nl.adaptivity.util.xml.*;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.Source;
 
-import java.io.CharArrayReader;
-import java.io.IOException;
 import java.net.URI;
 
 
@@ -74,7 +69,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
   public XmlMessage() { /* default constructor */ }
 
 
-  public XmlMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, DocumentFragment pMessageBody) throws
+  public XmlMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, Source pMessageBody) throws
           XMLStreamException {
     super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
   }
@@ -88,7 +83,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
                           pMessage.getUrl(),
                           pMessage.getMethod(),
                           pMessage.getContentType(),
-                          pMessage.getMessageBody());
+                          pMessage.getBodySource());
   }
 
   public static XmlMessage deserialize(final XMLStreamReader pIn) throws XMLStreamException {
@@ -105,16 +100,6 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
     XmlUtil.writeStartElement(pOut, ELEMENTNAME);
   }
 
-
-  @Override
-  @XmlTransient
-  public DocumentFragment getMessageBody() {
-    try {
-      return XmlUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
-    } catch (IOException pE) {
-      throw new RuntimeException(pE);
-    }
-  }
 
   @Override
   public void setServiceName(String pName) {

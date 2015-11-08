@@ -237,13 +237,11 @@ public class TestProcessData {
     Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
 
 
-    Node result1_apply = result1.apply(testData).getNodeValue();
-    assertTrue(result1_apply instanceof Text);
-    assertEquals("Paul", result1_apply.getTextContent());
+    CompactFragment result1_apply = result1.apply(testData).getContent();
+    assertEquals("Paul", result1_apply.getContentString());
 
-    Node result2_apply = result2.apply(testData).getNodeValue();
-    assertTrue(result2_apply instanceof Element);
-    XMLAssert.assertXMLEqual("<user><fullname>Paul</fullname></user>", XmlUtil.toString(result2_apply));
+    CompactFragment result2_apply = result2.apply(testData).getContent();
+    XMLAssert.assertXMLEqual("<user><fullname>Paul</fullname></user>", result2_apply.getContentString());
 
   }
 
@@ -269,8 +267,7 @@ public class TestProcessData {
     assertEquals("Paul", apply3.getTextContent());
 
     ProcessData apply1 = result.apply(testData);
-    assertTrue(apply1.getGenericValue() instanceof Text);
-    assertEquals("Paul", apply1.getNodeValue().getTextContent());
+    assertEquals("Paul", apply1.getContent().getContentString());
   }
 
   @Test

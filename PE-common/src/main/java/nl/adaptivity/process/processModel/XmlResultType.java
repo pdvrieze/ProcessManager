@@ -14,19 +14,14 @@ import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.util.xml.*;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-
-import java.io.CharArrayReader;
 
 
 @XmlDeserializer(XmlResultType.Factory.class)
@@ -85,21 +80,23 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     // TODO add support for variable and function resolvers.
     try {
       // shortcircuit missing path
-      Node resultNode = (getPath()==null || ".".equals(getPath())) ? pPayload : (Node) getXPath().evaluate(pPayload, XPathConstants.NODE);
-      ProcessData processData = new ProcessData(getName(), resultNode);
+      ProcessData processData;
+      if (getPath() == null || ".".equals(getPath())) {
+        processData = new ProcessData(getName(), pPayload);
+      } else {
+        processData = new ProcessData(getName(), (NodeList) getXPath().evaluate(pPayload, XPathConstants.NODESET));
+      }
       char[] content = getContent();
       if (content!=null && content.length>0) {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        DocumentFragment result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
-        PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData).transform(new StreamSource(new CharArrayReader(content)), new DOMResult(result));
-        return new ProcessData(getName(), result);
+        PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
+        CompactFragment transformed = XmlUtil.siblingsToFragment(transformer.createFilter(getBodyStreamReader()));
+        return new ProcessData(getName(), transformed);
       } else {
         return processData;
       }
 
 
-    } catch (XPathExpressionException | ParserConfigurationException | XMLStreamException e) {
+    } catch (XPathExpressionException | XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }

@@ -3,6 +3,8 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.xml.GatheringNamespaceContext;
+import org.codehaus.stax2.XMLInputFactory2;
+import org.codehaus.stax2.XMLOutputFactory2;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -19,6 +21,7 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import java.io.*;
@@ -30,6 +33,7 @@ import java.util.TreeMap;
 public class XmlUtil {
 
   private static class NamespaceInfo {
+
     String prefix;
     String url;
 
@@ -111,18 +115,20 @@ public class XmlUtil {
           return true;
       }
     }
-  };;
+  };
+  ;
 
-  private XmlUtil() {}
+  private XmlUtil() {
+  }
 
   public static Element createElement(final Document pDocument, final QName pOuterName) {
     Element root;
-    if (XMLConstants.NULL_NS_URI.equals(pOuterName.getNamespaceURI()) || null== pOuterName.getNamespaceURI()) {
+    if (XMLConstants.NULL_NS_URI.equals(pOuterName.getNamespaceURI()) || null == pOuterName.getNamespaceURI()) {
       root = pDocument.createElement(pOuterName.getLocalPart());
     } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(pOuterName.getPrefix())) {
       root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getLocalPart());
     } else {
-      root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getPrefix()+':'+ pOuterName.getLocalPart());
+      root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getPrefix() + ':' + pOuterName.getLocalPart());
     }
     return root;
   }
@@ -163,12 +169,12 @@ public class XmlUtil {
       Document doc = db.parse(new InputSource(new CombiningReader(new StringReader("<elem>"), pReader, new StringReader("</elem>"))));
       DocumentFragment frag = doc.createDocumentFragment();
       Element docelem = doc.getDocumentElement();
-      for(Node child=docelem.getFirstChild(); child!=null; child=docelem.getFirstChild()) {
+      for (Node child = docelem.getFirstChild(); child != null; child = docelem.getFirstChild()) {
         frag.appendChild(child);
       }
       doc.removeChild(docelem);
       return frag;
-    } catch (ParserConfigurationException |SAXException pE) {
+    } catch (ParserConfigurationException | SAXException pE) {
       throw new IOException(pE);
     }
 
@@ -204,7 +210,7 @@ public class XmlUtil {
     for (Element child = getFirstChildElement(pParent); child != null; child = getNextSiblingElement(child)) {
       if ((pNamespaceURI == null) || (pNamespaceURI.length() == 0)) {
         if (((child.getNamespaceURI() == null) || (child.getNamespaceURI().length() == 0))
-            && StringUtil.isEqual(pLocalName, child.getLocalName())) {
+                && StringUtil.isEqual(pLocalName, child.getLocalName())) {
           return child;
         }
       } else {
@@ -271,8 +277,25 @@ public class XmlUtil {
     serialize(pOut, new DOMSource(pNode));
   }
 
+  public static void serialize(XMLStreamWriter pOut, final StAXSource source) throws
+          XMLStreamException {
+    serialize(createXMLEventWriter(XMLOutputFactory.newFactory(), pOut), createXMLEventReader(XMLInputFactory.newFactory(), source));
+  }
+
+  public static void serialize(XMLEventWriter out, XMLEventReader in) throws XMLStreamException {
+    out.add(in);
+  }
+
+  /**
+   * @deprecated  This goes throught transformer and DOM, as such avoid it.
+   */
+  @Deprecated
   public static void serialize(XMLStreamWriter pOut, final Source source) throws TransformerFactoryConfigurationError,
       XMLStreamException {
+    if (source instanceof StAXSource) {
+      serialize(pOut, (StAXSource) source);
+      return;
+    }
     try {
       Transformer transformer = TransformerFactory
               .newInstance()
@@ -403,7 +426,7 @@ public class XmlUtil {
    * @param pStreamReader The original stream reader.
    * @return A filtered stream
    */
-  public static XMLStreamReader filterSubstream(final NamespaceAddingStreamReader pStreamReader) throws
+  public static XMLStreamReader filterSubstream(final XMLStreamReader pStreamReader) throws
           XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
     return xif.createFilteredReader(pStreamReader, SUBSTREAM_FILTER);
@@ -463,12 +486,75 @@ public class XmlUtil {
 
   private static CharArrayWriter toCharArrayWriter(final Source pSource) throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
+    XMLEventReader in = createXMLEventReader(xif, pSource);
+    return toCharArrayWriter(in);
+  }
+
+  public static XMLEventReader createXMLEventReader(final XMLInputFactory pXif, final StAXSource pSource) throws
+          XMLStreamException {
+    XMLEventReader eventReader = pSource.getXMLEventReader();
+    if (eventReader !=null) { return eventReader; }
+    if (pXif instanceof XMLInputFactory2) {
+      return ((XMLInputFactory2)pXif).createXMLEventReader(pSource.getXMLStreamReader());
+    }
+    return pXif.createXMLEventReader(pSource);
+  }
+
+  public static XMLEventReader createXMLEventReader(final XMLInputFactory pXif, final Source pSource) throws
+          XMLStreamException {
+    if (pSource instanceof StAXSource) {
+      return createXMLEventReader(pXif, (StAXSource) pSource);
+    }
+    return pXif.createXMLEventReader(pSource);
+  }
+
+  public static XMLStreamReader createXMLStreamReader(final XMLInputFactory pXif, final StAXSource pSource) throws
+          XMLStreamException {
+    XMLStreamReader streamReader = pSource.getXMLStreamReader();
+    if (streamReader !=null) { return streamReader; }
+    return new XMLEventStreamReader(pSource.getXMLEventReader());
+  }
+
+  public static XMLStreamReader createXMLStreamReader(final XMLInputFactory pXif, final Source pSource) throws
+          XMLStreamException {
+    if (pSource instanceof StAXSource) {
+      return createXMLStreamReader(pXif, (StAXSource) pSource);
+    }
+    return pXif.createXMLStreamReader(pSource);
+  }
+
+  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory pXof, final Result pResult) throws
+          XMLStreamException {
+    if (pResult instanceof StAXResult) {
+      return createXMLEventWriter(pXof, (StAXResult) pResult);
+    }
+    return pXof.createXMLEventWriter(pResult);
+  }
+
+  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory pXof, final StAXResult pResult) throws
+          XMLStreamException {
+    XMLEventWriter eventWriter = pResult.getXMLEventWriter();
+    if (eventWriter!=null) { return eventWriter; }
+    if (pXof instanceof XMLOutputFactory2) {
+      return ((XMLOutputFactory2) pXof).createXMLEventWriter(pResult.getXMLStreamWriter());
+    }
+    return pXof.createXMLEventWriter(pResult);
+  }
+
+  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory pXof, final XMLStreamWriter streamWriter) throws
+          XMLStreamException {
+    if (pXof instanceof XMLOutputFactory2) {
+      return ((XMLOutputFactory2) pXof).createXMLEventWriter(streamWriter);
+    }
+    return pXof.createXMLEventWriter(new StAXResult(streamWriter));
+  }
+
+  private static CharArrayWriter toCharArrayWriter(final XMLEventReader pIn) throws XMLStreamException {
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    XMLEventReader in = xif.createXMLEventReader(pSource);
     CharArrayWriter caw = new CharArrayWriter();
     XMLEventWriter xew = xof.createXMLEventWriter(caw);
     try {
-      xew.add(in);
+      xew.add(pIn);
     } finally {
       xew.close();
     }
@@ -513,7 +599,7 @@ public class XmlUtil {
         XMLEvent event = xer.nextEvent();
         out.add(event);
         if (event.isStartElement()) {
-          writeElementContent(xef, xer, out);
+          writeElementContent(xer, out);
         }
       }
       return documentFragment;
@@ -532,32 +618,39 @@ public class XmlUtil {
      * @throws XMLStreamException
      */
   public static CompactFragment siblingsToFragment(final XMLStreamReader in) throws XMLStreamException {
-    Location startLocation = in.getLocation();
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    XMLEventReader xer = xif.createXMLEventReader(in);
+    return siblingsToFragment(xer);
+  }
+
+  public static CompactFragment siblingsToFragment(final XMLEventReader in) throws
+          XMLStreamException {
+    Location startLocation = in.peek().getLocation();
     try {
-      XMLInputFactory xif = XMLInputFactory.newFactory();
-      XMLEventReader xer = xif.createXMLEventReader(in);
 
       XMLOutputFactory xof = XMLOutputFactory.newFactory();
       xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, false);
       CharArrayWriter caw = new CharArrayWriter();
-      XMLEventFactory xef = XMLEventFactory.newFactory();
 
       TreeMap<String, String> missingNamespaces = new TreeMap<>();
-      GatheringNamespaceContext gatheringContext = new GatheringNamespaceContext(in.getNamespaceContext(), missingNamespaces);
-      while (xer.hasNext() && (! xer.peek().isEndElement())) {
-        XMLEvent event = xer.nextEvent();
+      GatheringNamespaceContext gatheringContext = null;
+      while (in.hasNext() && (! in.peek().isEndElement())) {
+        XMLEvent event = in.nextEvent();
         if (event.isStartElement()) {
+          if (gatheringContext==null) {
+            gatheringContext = new GatheringNamespaceContext(event.asStartElement().getNamespaceContext(), missingNamespaces);
+          }
           XMLEventWriter out = xof.createXMLEventWriter(caw);
           out.setNamespaceContext(gatheringContext);
           out.add(event);
           out.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
-          writeElementContent(xef, xer, out);
+          writeElementContent(in, out);
           out.close();
         } else if (event.isCharacters()) {
           event.writeAsEncodedUnicode(caw);
         }
       }
-      return new CompactFragment(new SimpleNamespaceContext(missingNamespaces),caw.toCharArray());
+      return new CompactFragment(new SimpleNamespaceContext(missingNamespaces), caw.toCharArray());
     } catch (XMLStreamException | RuntimeException e) {
       throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
     }
@@ -752,17 +845,17 @@ public class XmlUtil {
         return pElementPrefix.equals(pIn.getPrefix());
       }
     } else {
-      return pElementNamespace.equals(pIn.getNamespaceURI());
+      return expNs.equals(pIn.getNamespaceURI());
     }
   }
 
-  private static void writeElementContent(final XMLEventFactory pXef, final XMLEventReader pIn, final XMLEventWriter pOut) throws XMLStreamException {
+  private static void writeElementContent(final XMLEventReader pIn, final XMLEventWriter pOut) throws XMLStreamException {
     while (pIn.hasNext()) {
       XMLEvent event = pIn.nextEvent();
       pOut.add(event);
       if (event.isStartElement()) {
         pOut.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
-        writeElementContent(pXef, pIn, pOut);
+        writeElementContent(pIn, pOut);
       }
       if (event.isEndElement()) {
         break;
@@ -802,6 +895,7 @@ public class XmlUtil {
   }
 
   public static void cannonicallize(Source in, Result out) throws XMLStreamException {
+    // TODO add wrapper methods that get stream readers and writers analogous to the event writers and readers
     XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader xsr = xif.createXMLStreamReader(in);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();

@@ -27,7 +27,10 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
       return result;
     }
 
-
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException("Read only iterator");
+    }
   }
 
   private class SimpleNamespace implements Namespace {
@@ -222,5 +225,22 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
   @Override
   public Iterator<Namespace> iterator() {
     return new SimpleIterator();
+  }
+
+  @Override
+  public boolean equals(final Object pO) {
+    if (this == pO) return true;
+    if (pO == null || getClass() != pO.getClass()) return false;
+
+    SimpleNamespaceContext that = (SimpleNamespaceContext) pO;
+
+    // Probably incorrect - comparing Object[] arrays with Arrays.equals
+    return Arrays.equals(aStrings, that.aStrings);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(aStrings);
   }
 }

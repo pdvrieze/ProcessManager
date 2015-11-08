@@ -3,6 +3,8 @@ package nl.adaptivity.process.engine;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.Namespace;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.junit.Test;
@@ -25,6 +27,7 @@ import javax.xml.xpath.XPathFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -67,10 +70,9 @@ public class TestXmlResultType {
 
     ProcessData actual = xrt.apply(testData);
 
-    Document doc = getDB().newDocument();
-    ProcessData expected = new ProcessData("user",doc.createTextNode("Paul"));
+    ProcessData expected = new ProcessData("user", new CompactFragment(Collections.<Namespace>emptyList(),"Paul".toCharArray()));
     assertEquals(expected.getName(), actual.getName());
-    assertEquals(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
+    assertEquals(expected.getContent(), actual.getContent());
 //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
   }
 
@@ -91,7 +93,7 @@ public class TestXmlResultType {
     ProcessData expected = new ProcessData("user",getDB().newDocument().createTextNode("Paul"));
     ProcessData actual = xrt.apply(testData);
     assertEquals(expected.getName(), actual.getName());
-    assertEquals(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
+    assertEquals(expected.getContent(), actual.getContent());
 //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
   }
 

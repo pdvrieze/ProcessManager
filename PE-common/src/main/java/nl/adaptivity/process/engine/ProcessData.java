@@ -2,22 +2,22 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Named;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.*;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
+import javax.xml.transform.stax.StAXSource;
+
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,24 +25,44 @@ import java.util.logging.Logger;
 
 @XmlJavaTypeAdapter(XmlSerializable.JAXBAdapter.class)
 /** Class to represent data attached to process instances. */
-public class ProcessData implements Named, XmlSerializable {
+public class ProcessData implements Named/*, XmlSerializable*/ {
 
   private final String mName;
-  private final Node mValue;
+  private final CompactFragment mValue;
   private final boolean mIsNodeList = false;
 
+// Object Initialization
+  @Deprecated
   private ProcessData(String pName, Node pValue, boolean pIsNodeList) {
-    assert pIsNodeList==false;
+    this(pName, toCompactFragment(pValue));
+  }
+// Object Initialization end
+
+  public ProcessData(String pName, CompactFragment pValue) {
     mName = pName;
     mValue = pValue;
   }
 
+  @Deprecated
   public ProcessData(String pName, Node pValue) {
     this(pName, pValue, false);
   }
 
+  @Deprecated
   public ProcessData(String pName, NodeList pValue) {
     this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : toDocFragment(pValue), false);
+  }
+
+  private static CompactFragment toCompactFragment(final Node pValue) {
+    if (pValue instanceof Text) {
+      return new CompactFragment(((Text) pValue).getData());
+    }
+    CompactFragment value;XMLInputFactory xif = XMLInputFactory.newFactory();
+    try {
+      return XmlUtil.siblingsToFragment(xif.createXMLStreamReader(new DOMSource(pValue)));
+    } catch (XMLStreamException pE) {
+      throw new RuntimeException(pE);
+    }
   }
 
   private static Node toNode(NodeList pValue) {
@@ -66,6 +86,7 @@ public class ProcessData implements Named, XmlSerializable {
     return fragment;
   }
 
+  @Deprecated
   public ProcessData(String pName, List<Node> pValue) {
     this(pName, toDocFragment(pValue), false);
   }
@@ -87,7 +108,7 @@ public class ProcessData implements Named, XmlSerializable {
 
   @Override
   public Named newWithName(String pName) {
-    return new ProcessData(pName, mValue, mIsNodeList);
+    return new ProcessData(pName, mValue);
   }
 
 
@@ -96,34 +117,15 @@ public class ProcessData implements Named, XmlSerializable {
     return mName;
   }
 
-  public Node getNodeValue() {
-    if (mValue instanceof DocumentFragment && mValue.getFirstChild()!=null && mValue.getFirstChild().getNextSibling()==null) {
-      return mValue.getFirstChild();
-    }
+  public CompactFragment getContent() {
     return mValue;
   }
 
-  public DocumentFragment getDocumentFragment() {
-    if (mValue instanceof DocumentFragment) {
-      return (DocumentFragment) mValue;
-    } else if (mValue==null) {
-      return null;
-    }
-    DocumentFragment fragment;
-    if (mValue instanceof Document) {
-      fragment = ((Document) mValue).createDocumentFragment();
-      fragment.appendChild(((Document) mValue).getDocumentElement().cloneNode(true));
-    } else {
-      fragment = mValue.getOwnerDocument().createDocumentFragment();
-      fragment.appendChild(mValue.cloneNode(true));
-    }
-    return fragment;
+  public XMLStreamReader getContentStream() throws XMLStreamException {
+    return XMLFragmentStreamReader.from(getContent());
   }
 
-  public Object getGenericValue() {
-    return mValue;
-  }
-
+  @SuppressWarnings("Duplicates")
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -155,8 +157,6 @@ public class ProcessData implements Named, XmlSerializable {
     return true;
   }
 
-
-  @Override
   public void serialize(XMLStreamWriter pOut) throws XMLStreamException {
     if (pOut.getNamespaceContext().getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
       pOut.writeStartElement(Constants.PROCESS_ENGINE_NS_PREFIX, "value", Constants.PROCESS_ENGINE_NS);
@@ -168,11 +168,7 @@ public class ProcessData implements Named, XmlSerializable {
 
     try {
       out.writeAttribute("name", mName);
-      if (!mIsNodeList) {
-        XmlUtil.serialize(out, new DOMSource(mValue));
-      } else if (mValue instanceof NodeList) {
-        serializeNodeList(out);
-      }
+      XmlUtil.serialize(out, new StAXSource(getContentStream()));
     } catch (Exception e) {
       Logger.getAnonymousLogger().log(Level.WARNING,"Error serializing children", e);
     } finally {
@@ -180,7 +176,7 @@ public class ProcessData implements Named, XmlSerializable {
     }
   }
 
-  protected void serializeNodeList(XMLStreamWriter pOut) throws XMLStreamException {
+  private void serializeNodeList(XMLStreamWriter pOut) throws XMLStreamException {
     NodeList nodelist = (NodeList) mValue;
     try {
       final Transformer transformer = TransformerFactory
@@ -196,7 +192,7 @@ public class ProcessData implements Named, XmlSerializable {
     }
   }
 
-  protected void serializeDocumentFragment2(XMLStreamWriter pOut) throws XMLStreamException {
+  private void serializeDocumentFragment2(XMLStreamWriter pOut) throws XMLStreamException {
     DocumentFragment nodelist = (DocumentFragment) mValue;
     try {
       final Transformer transformer = TransformerFactory

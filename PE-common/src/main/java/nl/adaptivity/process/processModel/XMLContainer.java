@@ -90,7 +90,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
   }
 
   public void setContent(final Source pContent) throws XMLStreamException {
-    setContent(Collections.<Namespace>emptyList(), XmlUtil.toCharArray(pContent));
+    setContent(XmlUtil.siblingsToFragment(XmlUtil.createXMLStreamReader(XMLInputFactory.newFactory(), pContent)));
   }
 
   void addNamespaceContext(final SimpleNamespaceContext pNamespaceContext) {

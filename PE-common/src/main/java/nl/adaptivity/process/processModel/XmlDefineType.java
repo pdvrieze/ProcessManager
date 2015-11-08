@@ -14,17 +14,12 @@ import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.util.xml.*;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.stax.StAXSource;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -142,9 +137,9 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       } else {
         try {
           if (getXPath()==null) {
-            processData = new ProcessData(getName(), origpair.getDocumentFragment());
+            processData = new ProcessData(getName(), origpair.getContent());
           } else {
-            processData = new ProcessData(getName(), (NodeList) getXPath().evaluate(origpair.getNodeValue(), XPathConstants.NODESET));
+            processData = new ProcessData(getName(), (NodeList) getXPath().evaluate(origpair.getContent(), XPathConstants.NODESET));
           }
         } catch (XPathExpressionException e) {
           throw new RuntimeException(e);
@@ -155,17 +150,15 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     }
     char[] content = getContent();
     if (getContent()!=null && getContent().length>0) {
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-      DocumentFragment result = null;
       try {
-        result = dbf.newDocumentBuilder().newDocument().createDocumentFragment();
-        PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData).transform(new StAXSource(getBodyStreamReader()), new DOMResult(result));
-      } catch (ParserConfigurationException | XMLStreamException pE) {
+        PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
+
+        CompactFragment transformed = XmlUtil.siblingsToFragment(transformer.createFilter(getBodyStreamReader()));
+        return new ProcessData(getName(), transformed);
+
+      } catch (XMLStreamException pE) {
         throw new RuntimeException(pE);
       }
-
-      return new ProcessData(getName(), result);
     } else {
       return processData;
     }

@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
@@ -12,6 +13,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXSource;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -31,9 +33,15 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     super();
   }
 
+  @Deprecated
   public BaseMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, Node pMessageBody) throws
           XMLStreamException {
-    super(new DOMSource(pMessageBody));
+    this(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, new DOMSource(pMessageBody));
+  }
+
+  public BaseMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, Source pMessageBody) throws
+    XMLStreamException {
+    super(pMessageBody);
     service = pService;
     endpoint = pEndpoint;
     operation = pOperation;
@@ -49,7 +57,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
          pMessage.getUrl(),
          pMessage.getMethod(),
          pMessage.getContentType(),
-         pMessage.getMessageBody());
+         pMessage.getBodySource());
   }
 
   @Override
@@ -134,7 +142,11 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
   @Override
-  public DocumentFragment getMessageBody() {
+  public CompactFragment getMessageBody() {
+    return new CompactFragment(getOriginalNSContext(), getContent());
+  }
+
+  public DocumentFragment getMessageBodyNode() {
     try {
       return XmlUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
     } catch (IOException pE) {
@@ -143,24 +155,26 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
   @Override
-  public void setMessageBody(final Object o) {
-    if (o instanceof Node) {
-      try {
-        setContent(new DOMSource((Node) o));
-      } catch (XMLStreamException pE) {
-        throw new RuntimeException(pE);
-      }
+  public void setMessageBody(final Source o) {
+    try {
+      setContent(o);
+    } catch (XMLStreamException pE) {
+      throw new RuntimeException(pE);
+    }
+  }
+
+  @Override
+  public Source getBodySource() {
+    try {
+      return new StAXSource(getBodyStreamReader());
+    } catch (XMLStreamException pE) {
+      throw new RuntimeException(pE);
     }
   }
 
   @Override
   public void setOperation(final String value) {
     this.operation = value;
-  }
-
-  @Override
-  public Source getBodySource() {
-    return new DOMSource(getMessageBody());
   }
 
   @Override
