@@ -12,12 +12,14 @@ import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -33,13 +35,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.*;
-import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.stax.StAXSource;
 
 import java.io.*;
 import java.net.URI;
@@ -81,22 +81,18 @@ public class TestProcessEngine {
     }
 
     @Override
-    public boolean sendMessage(final Transaction pTransaction, final IXmlMessage pMessage, final ProcessNodeInstance pInstance) throws
+    public boolean sendMessage(final Transaction pTransaction, final IXmlMessage protoMessage, final ProcessNodeInstance pInstance) throws
             SQLException {
       try {
-        Source source = pMessage.getBodySource();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Result unformattedResult = new StreamResult(out);
-        pInstance.instantiateXmlPlaceholders(pTransaction, source, unformattedResult, false);
+        CompactFragment instantiatedContent = pInstance.instantiateXmlPlaceholders(pTransaction, protoMessage.getBodySource(), false);
+        Source contentSource = new StAXSource(XMLFragmentStreamReader.from(instantiatedContent));
+        XmlMessage processedMessage = new XmlMessage(protoMessage.getService(), protoMessage.getEndpoint(), protoMessage.getOperation(), protoMessage.getUrl(), protoMessage.getMethod(), protoMessage.getContentType(), contentSource);
 
-        Document resultDocument = getDocumentBuilder().newDocument();
-        DOMResult formattedResult = new DOMResult(resultDocument);
-        Sources.writeToResult(new StreamSource(new ByteArrayInputStream(out.toByteArray())), formattedResult, true);
-        pMessage.setMessageBody(resultDocument.getDocumentElement());
-        mMessages.add(pMessage);
+        ((XmlMessage) processedMessage).setContent(instantiatedContent.getNamespaces(), instantiatedContent.getContent());
+        mMessages.add(processedMessage);
         mMessageNodes.add(new HProcessNodeInstance(pInstance.getHandle()));
         return true;
-      } catch (XMLStreamException|TransformerException e) {
+      } catch (XMLStreamException e) {
         throw new RuntimeException(e);
       }
     }
@@ -272,7 +268,8 @@ public class TestProcessEngine {
     {
       CharArrayWriter caw = new CharArrayWriter();
       if (pObject instanceof XmlSerializable) {
-        XMLStreamWriter xsw = XMLOutputFactory.newFactory().createXMLStreamWriter(caw);
+        XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
+        XMLStreamWriter xsw = xmlOutputFactory.createXMLStreamWriter(caw);
         ((XmlSerializable) pObject).serialize(xsw);
         xsw.close();
       } else {
@@ -362,10 +359,10 @@ public class TestProcessEngine {
     ProcessData result1 = ac1.getResults().get(0);
     ProcessData result2 = ac1.getResults().get(1);
     assertEquals("name", result1.getName());
-    assertEquals("Paul", XmlUtil.toString(result1.getNodeValue()));
+    assertEquals("Paul", result1.getContent().getContentString());
     assertEquals("user", result2.getName());
-    assertXMLSimilar(XmlUtil.tryParseXml("<user><fullname>Paul</fullname></user>"), toDocument(result2.getNodeValue()));
-    assertEquals("<user><fullname>Paul</fullname></user>", XmlUtil.toString(result2.getNodeValue()).trim());
+    assertXMLEqual("<user><fullname>Paul</fullname></user>", result2.getContent().getContentString());
+    assertEquals("<user><fullname>Paul</fullname></user>", result2.getContent().getContentString().trim());
 
     assertEquals(1, mStubMessageService.mMessages.size());
     assertEquals(2L, mStubMessageService.mMessageNodes.get(0).getHandle()); //We should have a new message with the new task (with the data)
@@ -377,7 +374,7 @@ public class TestProcessEngine {
 
     ProcessData define = ac2Defines.get(0);
     assertEquals("mylabel", define.getName());
-    assertEquals("Hi Paul. Welcome!", XmlUtil.toString(define.getNodeValue()));
+    assertEquals("Hi Paul. Welcome!", define.getContent().getContentString());
 
   }
 

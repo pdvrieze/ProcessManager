@@ -1,30 +1,9 @@
 package nl.adaptivity.process.engine.processModel;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMResult;
-
-import net.devrieze.util.Transaction;
-import nl.adaptivity.process.processModel.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.HandleMap.Handle;
-import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
-
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
@@ -32,7 +11,32 @@ import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance.Body;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.util.xml.XmlUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.stax.StAXResult;
+
+import java.io.CharArrayWriter;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
@@ -258,14 +262,19 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   public void instantiateXmlPlaceholders(Transaction pTransaction, Source source, final Result result) throws XMLStreamException, SQLException {
-    instantiateXmlPlaceholders(pTransaction, source, result, true);
+    instantiateXmlPlaceholders(pTransaction, source, true);
   }
 
-  public void instantiateXmlPlaceholders(final Transaction pTransaction, final Source source, final Result result, final boolean pRemoveWhitespace) throws
+  public CompactFragment instantiateXmlPlaceholders(final Transaction pTransaction, final Source source, final boolean pRemoveWhitespace) throws
           SQLException, XMLStreamException {
+    CharArrayWriter caw = new CharArrayWriter();
     List<ProcessData> defines = getDefines(pTransaction);
     PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, aState== TaskState.Complete), pRemoveWhitespace);
-    transformer.transform(source, result);
+    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    XMLStreamWriter xsw = XmlUtil.stripMetatags(xof.createXMLStreamWriter(caw));
+    transformer.transform(source, new StAXResult(xsw));
+    xsw.close();
+    return new CompactFragment(Collections.<Namespace>emptyList(), caw.toCharArray());
   }
 
   private static Logger getLogger() {

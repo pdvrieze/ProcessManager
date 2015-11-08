@@ -1,42 +1,34 @@
 package nl.adaptivity.process.engine.processModel;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.sql.DataSource;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import net.devrieze.util.TransactionFactory;
-import nl.adaptivity.process.engine.HProcessInstance;
-import nl.adaptivity.util.xml.XmlUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
 import net.devrieze.util.StringCache;
+import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
-
+import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 
 public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstance> {
@@ -301,7 +293,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       for(ProcessData data: pElement.getResults()) {
         statement.setLong(1, pHandle);
         statement.setString(2, data.getName());
-        String value = XmlUtil.toString(data.getNodeValue(), XmlUtil.OMIT_XMLDECL);
+        String value = new String(data.getContent().getContent());
         statement.setString(3, value);
 
         statement.addBatch();
