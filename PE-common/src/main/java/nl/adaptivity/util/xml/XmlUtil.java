@@ -510,6 +510,21 @@ public class XmlUtil {
     }
   }
 
+  public static DocumentFragment toDocFragment(NodeList pValue) {
+    if (pValue==null || pValue.getLength()==0) { return null; }
+    Document document = pValue.item(0).getOwnerDocument();
+    DocumentFragment fragment = document.createDocumentFragment();
+    for(int i=0; i<pValue.getLength(); ++i) {
+      final Node n = pValue.item(i);
+      if (n.getOwnerDocument()!=document) {
+        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
+      } else {
+        fragment.appendChild(n.cloneNode(true));
+      }
+    }
+    return fragment;
+  }
+
   private static String toString(final XmlSerializable pSerializable, final int pFlags) {
     StringWriter out =new StringWriter();
     XMLOutputFactory factory = XMLOutputFactory.newInstance();
@@ -701,6 +716,18 @@ public class XmlUtil {
       return new CompactFragment(new SimpleNamespaceContext(missingNamespaces), caw.toCharArray());
     } catch (XMLStreamException | RuntimeException e) {
       throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
+    }
+  }
+
+  public static CompactFragment nodeListToFragment(final NodeList pNodeList) throws XMLStreamException {
+    XMLInputFactory xif = XMLInputFactory.newFactory();
+    switch(pNodeList.getLength()) {
+      case 0:
+        return new CompactFragment("");
+      case 1:
+        return siblingsToFragment(xif.createXMLStreamReader(new DOMSource(pNodeList.item(0))));
+      default:
+        return siblingsToFragment(xif.createXMLStreamReader(new DOMSource(toDocFragment(pNodeList))));
     }
   }
 
@@ -1073,4 +1100,17 @@ public class XmlUtil {
     }
   }
 
+  public static DocumentFragment toDocFragment(List<Node> pValue) {
+    if (pValue==null || pValue.size()==0) { return null; }
+    final Document document = pValue.get(0).getOwnerDocument();
+    DocumentFragment fragment = document.createDocumentFragment();
+    for(Node n: pValue) {
+      if (n.getOwnerDocument()!=document) {
+        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
+      } else {
+        fragment.appendChild(n.cloneNode(true));
+      }
+    }
+    return fragment;
+  }
 }

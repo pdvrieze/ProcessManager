@@ -50,7 +50,7 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
 
   @Deprecated
   public ProcessData(String pName, NodeList pValue) {
-    this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : toDocFragment(pValue), false);
+    this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : XmlUtil.toDocFragment(pValue), false);
   }
 
   public DocumentFragment getContentFragment() throws XMLStreamException {
@@ -75,40 +75,11 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     return pValue.item(0);
   }
 
-  private static DocumentFragment toDocFragment(NodeList pValue) {
-    if (pValue==null || pValue.getLength()==0) { return null; }
-    Document document = pValue.item(0).getOwnerDocument();
-    DocumentFragment fragment = document.createDocumentFragment();
-    for(int i=0; i<pValue.getLength(); ++i) {
-      final Node n = pValue.item(i);
-      if (n.getOwnerDocument()!=document) {
-        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
-      } else {
-        fragment.appendChild(n.cloneNode(true));
-      }
-    }
-    return fragment;
-  }
-
   @Deprecated
   public ProcessData(String pName, List<Node> pValue) {
-    this(pName, toDocFragment(pValue), false);
+    this(pName, XmlUtil.toDocFragment(pValue), false);
   }
 
-
-  private static DocumentFragment toDocFragment(List<Node> pValue) {
-    if (pValue==null || pValue.size()==0) { return null; }
-    final Document document = pValue.get(0).getOwnerDocument();
-    DocumentFragment fragment = document.createDocumentFragment();
-    for(Node n: pValue) {
-      if (n.getOwnerDocument()!=document) {
-        fragment.appendChild(document.adoptNode(n.cloneNode(true)));
-      } else {
-        fragment.appendChild(n.cloneNode(true));
-      }
-    }
-    return fragment;
-  }
 
   @Override
   public Named newWithName(String pName) {
