@@ -53,6 +53,10 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : toDocFragment(pValue), false);
   }
 
+  public DocumentFragment getContentFragment() throws XMLStreamException {
+    return XmlUtil.childrenToDocumentFragment(getContentStream());
+  }
+
   private static CompactFragment toCompactFragment(final Node pValue) {
     if (pValue instanceof Text) {
       return new CompactFragment(((Text) pValue).getData());
