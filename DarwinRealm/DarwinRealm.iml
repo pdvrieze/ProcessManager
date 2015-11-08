@@ -32,9 +32,9 @@
     <orderEntry type="module" module-name="DarwinCommon" exported="" />
     <orderEntry type="module" module-name="DarwinJavaApi" exported="" />
     <orderEntry type="module" module-name="JavaCommonApi" exported="" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="catalina-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="coyote-6.0.44" level="project" />
-    <orderEntry type="library" exported="" scope="PROVIDED" name="servlet-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="juli-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="PROVIDED" name="annotations-api-6.0.44" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="HikariCP-2.4.0" level="project" />
