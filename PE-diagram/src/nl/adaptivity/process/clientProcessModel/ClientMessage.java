@@ -65,7 +65,8 @@ public class ClientMessage extends BaseMessage {
     if (getContentType()!=null) { pOut.addAttribute(null, "type", getContentType()); }
     if (getMethod()!=null) { pOut.addAttribute(null, "method", getMethod()); }
 
-    serialize(pOut, getMessageBody());
+    // TODO don't do this through DOM
+    serialize(pOut, getMessageBodyNode());
 
     pOut.endTag(NS_PM, "message", true);
   }
