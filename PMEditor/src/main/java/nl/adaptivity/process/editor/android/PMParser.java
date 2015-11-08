@@ -1,61 +1,29 @@
 package nl.adaptivity.process.editor.android;
 
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
-import static org.xmlpull.v1.XmlPullParser.TEXT;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
+import android.util.Log;
 import nl.adaptivity.process.clientProcessModel.ClientMessage;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
-import nl.adaptivity.process.diagram.DrawableActivity;
-import nl.adaptivity.process.diagram.DrawableEndNode;
-import nl.adaptivity.process.diagram.DrawableJoin;
-import nl.adaptivity.process.diagram.DrawableJoinSplit;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.DrawableSplit;
-import nl.adaptivity.process.diagram.DrawableStartNode;
-import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.ProcessNode;
-
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
+import org.w3c.dom.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
-import android.util.Log;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.dom.DOMSource;
+
+import java.io.*;
+import java.util.*;
+
+import static org.xmlpull.v1.XmlPullParser.*;
 
 public class PMParser {
 
@@ -433,7 +401,8 @@ public class PMParser {
     } catch (DOMException | XmlPullParserException | IOException e) {
       Log.e(PMParser.class.getSimpleName(), "Error parsing activity body", e);
     }
-    result.setMessageBody(doc.getDocumentElement());
+    // TODO fix this as it does not do fragments properly
+    result.setMessageBody(new DOMSource(doc.getDocumentElement()));
     return result;
   }
 
