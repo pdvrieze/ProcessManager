@@ -362,7 +362,6 @@ public class TestProcessEngine {
     assertEquals("Paul", result1.getContent().getContentString());
     assertEquals("user", result2.getName());
     assertXMLEqual("<user><fullname>Paul</fullname></user>", result2.getContent().getContentString());
-    assertEquals("<user><fullname>Paul</fullname></user>", result2.getContent().getContentString().trim());
 
     assertEquals(1, mStubMessageService.mMessages.size());
     assertEquals(2L, mStubMessageService.mMessageNodes.get(0).getHandle()); //We should have a new message with the new task (with the data)
