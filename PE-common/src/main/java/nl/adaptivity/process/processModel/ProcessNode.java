@@ -9,7 +9,7 @@ import nl.adaptivity.process.util.Identifiable;
 
 public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Identifiable {
 
-  public static interface Visitor<R> {
+  interface Visitor<R> {
     R visitStartNode(StartNode<?> pStartNode);
     R visitActivity(Activity<?> pActivity);
     R visitSplit(Split<?> pSplit);
@@ -17,34 +17,34 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
     R visitEndNode(EndNode<?> pEndNode);
   }
 
-  public Set<? extends Identifiable> getPredecessors();
+  Set<? extends Identifiable> getPredecessors();
 
-  public void setPredecessors(Collection<? extends Identifiable> predecessors);
+  void setPredecessors(Collection<? extends Identifiable> predecessors);
 
-  public void removePredecessor(Identifiable pNode);
+  void removePredecessor(Identifiable pNode);
 
-  public void addPredecessor(Identifiable pNode);
+  void addPredecessor(Identifiable pNode);
 
-  public void addSuccessor(T pNode);
+  void addSuccessor(T pNode);
 
-  public void removeSuccessor(T pNode);
+  void removeSuccessor(T pNode);
 
-  public Set<? extends T> getSuccessors();
+  Set<? extends T> getSuccessors();
 
-  public int getMaxSuccessorCount();
+  int getMaxSuccessorCount();
 
-  public int getMaxPredecessorCount();
+  int getMaxPredecessorCount();
 
-  public void setSuccessors(Collection<? extends T/** TODO Identifyable*/> pSuccessors);
+  void setSuccessors(Collection<? extends T/** TODO Identifyable*/> pSuccessors);
 
-  public String getLabel();
+  String getLabel();
 
-  public boolean isPredecessorOf(T pNode);
+  boolean isPredecessorOf(T pNode);
 
-  public <R> R visit(Visitor<R> pVisitor);
+  <R> R visit(Visitor<R> pVisitor);
 
-  public Collection<? extends IXmlResultType> getResults();
+  Collection<? extends IXmlResultType> getResults();
 
-  public Collection<? extends IXmlDefineType> getDefines();
+  Collection<? extends IXmlDefineType> getDefines();
 
 }

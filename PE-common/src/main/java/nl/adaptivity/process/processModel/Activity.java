@@ -13,7 +13,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The name
    */
-  public abstract String getName();
+  String getName();
 
   /**
    * Set the name of this activity. Note that for serialization to XML to work
@@ -23,21 +23,21 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pName The name of the activity.
    */
-  public abstract void setName(String pName);
+  void setName(String pName);
 
   /**
    * Get the condition of the activity.
    *
    * @return The condition.
    */
-  public abstract String getCondition();
+  String getCondition();
 
   /**
    * Set the condition that needs to be true to start this activity.
    *
    * @param pCondition The condition.
    */
-  public abstract void setCondition(String pCondition);
+  void setCondition(String pCondition);
 
   /**
    * Get the list of imports. The imports are provided to the message for use as
@@ -46,7 +46,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    * @return The list of imports.
    */
   @Override
-  public abstract List<? extends IXmlResultType> getResults();
+  List<? extends IXmlResultType> getResults();
 
   /**
    * Set the import requirements for this activity. This will create a copy of
@@ -54,7 +54,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pResults The imports to set.
    */
-  public abstract void setResults(Collection<? extends IXmlResultType> pResults);
+  void setResults(Collection<? extends IXmlResultType> pResults);
 
   /**
    * Get the list of exports. Exports will allow storing the response of an
@@ -63,7 +63,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    * @return The list of exports.
    */
   @Override
-  public abstract List<? extends IXmlDefineType> getDefines();
+  List<? extends IXmlDefineType> getDefines();
 
   /**
    * Set the export requirements for this activity. This will create a copy of
@@ -71,21 +71,21 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param pDefines The exports to set.
    */
-  public abstract void setDefines(Collection<? extends IXmlDefineType> pDefines);
+  void setDefines(Collection<? extends IXmlDefineType> pDefines);
 
   /**
    * Get the predecessor node for this activity.
    *
    * @return the predecessor
    */
-  public abstract Identifiable getPredecessor();
+  Identifiable getPredecessor();
 
   /**
    * Set the predecessor for this activity.
    *
    * @param predecessor The predecessor
    */
-  public abstract void setPredecessor(Identifiable predecessor);
+  void setPredecessor(Identifiable predecessor);
 
   /**
    * Get the message of this activity. This provides all the information to be
@@ -93,7 +93,7 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @return The message.
    */
-  public abstract IXmlMessage getMessage();
+  IXmlMessage getMessage();
 
   /**
    * Set the message of this activity. This encodes what actually needs to be
@@ -101,6 +101,6 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    *
    * @param message The message.
    */
-  public abstract void setMessage(IXmlMessage message);
+  void setMessage(IXmlMessage message);
 
 }

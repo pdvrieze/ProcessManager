@@ -12,38 +12,38 @@ import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
 
-  public interface TaskItem {
+  interface TaskItem {
 
-    public abstract List<String> getOptions();
+    List<String> getOptions();
 
-    public abstract String getValue();
+    String getValue();
 
-    public abstract String getType();
+    String getType();
 
-    public abstract String getName();
+    String getName();
 
-    public abstract String getParams();
+    String getParams();
 
-    public abstract String getLabel();
+    String getLabel();
 
   }
 
-  public TaskState getState();
+  TaskState getState();
 
-  public void setState(TaskState aNewState, Principal pUser);
+  void setState(TaskState aNewState, Principal pUser);
 
-  public void setEndpoint(EndpointDescriptorImpl pEndPoint);
+  void setEndpoint(EndpointDescriptorImpl pEndPoint);
 
-  public Principal getOwner();
+  Principal getOwner();
 
-  public List<? extends TaskItem> getItems();
+  List<? extends TaskItem> getItems();
 
-  public void setItems(List<? extends TaskItem> pItems);
+  void setItems(List<? extends TaskItem> pItems);
 
-  public long getRemoteHandle();
+  long getRemoteHandle();
 
-  public long getInstanceHandle();
+  long getInstanceHandle();
 
-  public String getSummary();
+  String getSummary();
 
 }

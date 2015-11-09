@@ -5,5 +5,5 @@ import java.util.Collection;
 
 public interface GroupDrawable extends Drawable {
 
-  public Collection<? extends Drawable> getChildElements();
+  Collection<? extends Drawable> getChildElements();
 }

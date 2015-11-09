@@ -1,11 +1,11 @@
 package nl.adaptivity.process.processModel;
 
-import java.lang.reflect.Array;
-import java.util.*;
-
 import net.devrieze.annotations.NotNull;
 import net.devrieze.util.ReadMap;
 import nl.adaptivity.process.util.Identifiable;
+
+import java.lang.reflect.Array;
+import java.util.*;
 
 // TODO rename to IdentifyableSet and move to util package
 public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractList<T> implements ReadMap<String, T>, RandomAccess, Cloneable {
@@ -75,6 +75,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return this;
     }
 
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public ProcessNodeSet<T> clone() {
       return this;
@@ -139,7 +140,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private static final class BaseProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
 
-    private List<V> aStore;
+    private final List<V> aStore;
 
     public BaseProcessNodeSet() {
       aStore = new ArrayList<>();
@@ -154,6 +155,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       addAll(c);
     }
 
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public BaseProcessNodeSet<V> clone() {
       return new BaseProcessNodeSet<>(aStore);
@@ -205,6 +207,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private static final class EmptyProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
 
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public EmptyProcessNodeSet<V> clone() {
       return this;
@@ -238,6 +241,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       aElement = pElement;
     }
 
+    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public SingletonProcessNodeSet<V> clone() {
       if (aElement==null) {
@@ -369,7 +373,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private static final class MyKeyIterator implements Iterator<String> {
 
-    private Iterator<? extends Identifiable> aParent;
+    private final Iterator<? extends Identifiable> aParent;
 
     public MyKeyIterator(Iterator<? extends Identifiable> pIterator) {
       aParent = pIterator;
@@ -464,7 +468,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
   }
 
   @SuppressWarnings({ "rawtypes" })
-  private static ProcessNodeSet EMPTY = new EmptyProcessNodeSet<>();
+  private static final ProcessNodeSet EMPTY = new EmptyProcessNodeSet<>();
 
   public static <V extends Identifiable> ProcessNodeSet<V> singleton() {
     return new SingletonProcessNodeSet<>();

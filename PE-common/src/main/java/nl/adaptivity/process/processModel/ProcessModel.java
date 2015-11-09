@@ -18,7 +18,7 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
    * Get the UUID for this process model.
    * @return The UUID this process model has.
    */
-  public UUID getUuid();
+  UUID getUuid();
 
   void setUuid(UUID pUUID);
 
@@ -27,33 +27,33 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
    *
    * @return The amount of end nodes.
    */
-  public int getEndNodeCount();
+  int getEndNodeCount();
 
   /**
    * Get a reference node for this model.
    *
    * @return A reference node.
    */
-  public IProcessModelRef<? extends T> getRef();
+  IProcessModelRef<? extends T> getRef();
 
   /**
    * Get the process node with the given id.
    * @param pNodeId The node id to look up.
    * @return The process node with the id.
    */
-  public T getNode(Identifiable pNodeId);
+  T getNode(Identifiable pNodeId);
 
-  public Collection<? extends T> getModelNodes();
+  Collection<? extends T> getModelNodes();
 
-  public String getName();
+  String getName();
 
-  public Principal getOwner();
+  Principal getOwner();
 
-  public Set<String> getRoles();
+  Set<String> getRoles();
 
-  public Collection<? extends StartNode<? extends T>> getStartNodes();
+  Collection<? extends StartNode<? extends T>> getStartNodes();
 
-  public Collection<? extends IXmlResultType> getImports();
+  Collection<? extends IXmlResultType> getImports();
 
-  public Collection<? extends IXmlDefineType> getExports();
+  Collection<? extends IXmlDefineType> getExports();
 }

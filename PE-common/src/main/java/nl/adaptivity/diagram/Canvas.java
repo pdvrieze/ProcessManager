@@ -3,13 +3,13 @@ package nl.adaptivity.diagram;
 
 public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> {
   
-  public enum TextPos {
+  enum TextPos {
     MAXTOPLEFT, MAXTOP, MAXTOPRIGHT,
     ASCENTLEFT, ASCENT, ASCENTRIGHT,
     LEFT, MIDDLE, RIGHT,
     BASELINELEFT, BASELINEMIDDLE, BASELINERIGHT,
     DESCENTLEFT, DESCENT, DESCENTRIGHT,
-    BOTTOMLEFT, BOTTOM, BOTTOMRIGHT;
+    BOTTOMLEFT, BOTTOM, BOTTOMRIGHT
   }
 
   S getStrategy();
@@ -49,7 +49,7 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
 
   void drawPath(PATH_T pPath, PEN_T pStroke, PEN_T pFill);
 
-  public Theme<S, PEN_T, PATH_T> getTheme();
+  Theme<S, PEN_T, PATH_T> getTheme();
 
   /**
    * Draw the given text onto the canvas.
@@ -60,6 +60,6 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
    * @param foldWidth The width at which to fold the text.
    * @param pen The pen to use for it all.
    */
-  public void drawText(TextPos pTextPos, double left, double baselineY, String text, double foldWidth, PEN_T pen);
+  void drawText(TextPos pTextPos, double left, double baselineY, String text, double foldWidth, PEN_T pen);
 
 }

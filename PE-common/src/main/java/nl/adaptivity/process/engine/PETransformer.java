@@ -43,7 +43,7 @@ public class PETransformer {
     private XMLStreamReader aStreamInput2;
     private XMLEventReader aEventInput;
     private XMLEventFactory aXef;
-    private boolean mRemoveWhitespace;
+    private final boolean mRemoveWhitespace;
 
     public MyFilter(PETransformerContext pContext, NamespaceContext pNamespaceContext, XMLStreamReader pInput, boolean pRemoveWhitespace) throws
             XMLStreamException {
@@ -123,7 +123,7 @@ public class PETransformer {
       } else {
         boolean filterAttributes = false;
         List<Attribute> newAttrs = new ArrayList<>();
-        for(Iterator<Attribute> it = pElement.getAttributes(); it.hasNext(); ) {
+        for(@SuppressWarnings("unchecked") Iterator<Attribute> it = pElement.getAttributes(); it.hasNext(); ) {
           Attribute attr = it.next();
           if (attr.isNamespace() && Constants.MODIFY_NS_STR.equals(attr.getValue())) {
             filterAttributes=true;
@@ -132,7 +132,7 @@ public class PETransformer {
           }
         }
         List<Namespace> newNamespaces = new ArrayList<>();
-        for(Iterator<Namespace> it = pElement.getNamespaces(); it.hasNext();) {
+        for(@SuppressWarnings("unchecked") Iterator<Namespace> it = pElement.getNamespaces(); it.hasNext();) {
           Namespace ns = it.next();
           if (Constants.MODIFY_NS_STR.equals(ns.getNamespaceURI())) {
             filterAttributes=true;
@@ -145,7 +145,6 @@ public class PETransformer {
         } else {
           add(pElement);
         }
-        return;
       }
     }
 
@@ -201,7 +200,7 @@ public class PETransformer {
       xew.close();
       NodeList applicationResult = (NodeList) xpath.evaluate(eventFragment, XPathConstants.NODESET);
       if (applicationResult.getLength()>0) {
-        result.addAll(toEvents(new ProcessData("--xpath result--", applicationResult)));
+        result.addAll(toEvents(new ProcessData("--xpath result--", XmlUtil.nodeListToFragment(applicationResult))));
       }
       return result;
     }
@@ -393,7 +392,7 @@ public class PETransformer {
   }
 
   public static PETransformer create(NamespaceContext pNamespaceContext, PETransformerContext pContext) {
-    return create(pContext, true);
+    return create(pNamespaceContext, pContext, true);
   }
 
   public static PETransformer create(PETransformerContext pContext, boolean pRemoveWhitespace) {
@@ -404,7 +403,7 @@ public class PETransformer {
     return new PETransformer(pContext, pNamespaceContext, pRemoveWhitespace);
   }
 
-  public List<Node> transform(List<? extends Object> pContent) {
+  public List<Node> transform(List<?> pContent) {
     try {
       Document document = null;
       ArrayList<Node> result = new ArrayList<>(pContent.size());

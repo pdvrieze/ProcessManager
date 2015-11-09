@@ -90,7 +90,7 @@ public class TestXmlResultType {
 
     XmlResultType xrt = new XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()", (char[]) null, null);
 
-    ProcessData expected = new ProcessData("user",getDB().newDocument().createTextNode("Paul"));
+    ProcessData expected = new ProcessData("user", new CompactFragment("Paul"));
     ProcessData actual = xrt.apply(testData);
     assertEquals(expected.getName(), actual.getName());
     assertEquals(expected.getContent(), actual.getContent());

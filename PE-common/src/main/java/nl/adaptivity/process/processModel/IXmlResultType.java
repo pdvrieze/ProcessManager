@@ -14,21 +14,21 @@ public interface IXmlResultType {
    *
    * @return possible object is {@link String }
    */
-  public String getName();
+  String getName();
 
   /**
    * Sets the value of the name property.
    *
    * @param value allowed object is {@link String }
    */
-  public void setName(String value);
+  void setName(String value);
 
   /**
    * Gets the value of the path property.
    *
    * @return possible object is {@link String }
    */
-  public String getPath();
+  String getPath();
 
   /**
    * Sets the value of the path property.
@@ -36,7 +36,7 @@ public interface IXmlResultType {
    * @param pNamespaceContext
    * @param value allowed object is {@link String }
    */
-  public void setPath(final Iterable<Namespace> pNamespaceContext, String value);
+  void setPath(final Iterable<Namespace> pNamespaceContext, String value);
 
   ProcessData apply(Node pPayload);
 

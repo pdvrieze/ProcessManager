@@ -1,15 +1,10 @@
 package nl.adaptivity.util.activation;
 
-import java.util.AbstractMap;
-import java.util.AbstractSet;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import nl.adaptivity.process.engine.NormalizedMessage;
 
 import javax.activation.DataHandler;
 
-import nl.adaptivity.process.engine.NormalizedMessage;
+import java.util.*;
 
 
 public class AttachmentMap extends AbstractMap<String, DataHandler> {
@@ -59,8 +54,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     public Entry next() {
 
       final String next = aBackingIterator.next();
-      final Entry result = new Entry(next);
-      return result;
+      return new Entry(next);
     }
 
     @Override

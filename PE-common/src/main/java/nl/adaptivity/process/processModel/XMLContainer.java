@@ -132,11 +132,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
   }
 
   protected List<QName> visitNamesInTextContent(QName parent, CharSequence textContent) {
-    ArrayList<QName> result = new ArrayList<>();
-
-
-
-    return result;
+    return Collections.emptyList();
   }
 
   protected void visitNamespaces(NamespaceContext baseContext) throws XMLStreamException {

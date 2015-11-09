@@ -16,5 +16,5 @@ import java.lang.annotation.Target;
 @Target(value={TYPE, METHOD, PARAMETER})
 @Retention(RUNTIME)
 public @interface SoapSeeAlso {
-  public abstract Class<?>[] value();
+  Class<?>[] value();
 }

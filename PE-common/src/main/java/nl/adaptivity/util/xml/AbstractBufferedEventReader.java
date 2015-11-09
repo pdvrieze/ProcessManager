@@ -37,6 +37,7 @@ public abstract class AbstractBufferedEventReader extends AbstractEventReader {
     }
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   protected boolean isPeekBufferEmpty() {
     return aPeekBuffer.isEmpty();
   }

@@ -31,16 +31,16 @@ import java.util.*;
 import java.util.Map.Entry;
 
 
-public class XmlUtil {
+public final class XmlUtil {
 
   private static class NamespaceInfo {
 
-    String prefix;
-    String url;
+    final String mPrefix;
+    final String mUrl;
 
-    public NamespaceInfo(String prefix, String url) {
-      this.prefix = prefix;
-      this.url = url;
+    public NamespaceInfo(final String prefix, final String url) {
+      this.mPrefix = prefix;
+      this.mUrl = url;
 
     }
   }
@@ -117,7 +117,7 @@ public class XmlUtil {
       }
     }
   };
-  ;
+
 
   private XmlUtil() {
   }
@@ -152,8 +152,7 @@ public class XmlUtil {
       dbf.setNamespaceAware(true);
       final DocumentBuilder db = dbf.newDocumentBuilder();
 
-      final Document d = db.parse(s);
-      return d;
+      return db.parse(s);
     } catch (final SAXException e) {
       return null;
     } catch (final ParserConfigurationException e) {
@@ -275,7 +274,7 @@ public class XmlUtil {
   }
 
   public static void serialize(XMLStreamWriter pOut, Node pNode) throws XMLStreamException {
-    serialize(pOut, new DOMSource(pNode));
+    serialize(pOut, new StAXSource(createXMLStreamReader(XMLInputFactory.newFactory(), new DOMSource(pNode))));
   }
 
   public static void serialize(XMLStreamWriter pOut, final StAXSource source) throws
@@ -368,7 +367,7 @@ public class XmlUtil {
     XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
     if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
     try {
-      XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
+      @SuppressWarnings("unchecked") XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
       return factory.deserialize(pIn);
     } catch (InstantiationException | IllegalAccessException pE) {
       throw new RuntimeException(pE);
@@ -482,7 +481,8 @@ public class XmlUtil {
         }
       }
       List<javax.xml.stream.events.Namespace> namespaceDecls = new ArrayList<>();
-      for(Iterator<javax.xml.stream.events.Namespace> namespaces = startElement.getNamespaces(); namespaces.hasNext(); ) {
+      for(@SuppressWarnings("unchecked")
+          Iterator<javax.xml.stream.events.Namespace> namespaces = startElement.getNamespaces(); namespaces.hasNext(); ) {
         javax.xml.stream.events.Namespace namespace = namespaces.next();
         namespaceDecls.add(namespace);
         prefixes.remove(namespace.getPrefix()); // Remove the prefixes locally declared
@@ -719,16 +719,32 @@ public class XmlUtil {
     }
   }
 
-  public static CompactFragment nodeListToFragment(final NodeList pNodeList) throws XMLStreamException {
+  public static CompactFragment nodeListToFragment(NodeList pNodeList) throws XMLStreamException {
     XMLInputFactory xif = XMLInputFactory.newFactory();
+    return nodeListToFragment(xif, pNodeList);
+  }
+
+  public static CompactFragment nodeListToFragment(XMLInputFactory xif, final NodeList pNodeList) throws XMLStreamException {
     switch(pNodeList.getLength()) {
       case 0:
         return new CompactFragment("");
       case 1:
-        return siblingsToFragment(xif.createXMLStreamReader(new DOMSource(pNodeList.item(0))));
+        Node node = pNodeList.item(0);
+        return nodeToFragment(xif, node);
       default:
-        return siblingsToFragment(xif.createXMLStreamReader(new DOMSource(toDocFragment(pNodeList))));
+        return nodeToFragment(xif, toDocFragment(pNodeList));
     }
+  }
+
+  public static CompactFragment nodeToFragment(final Node pNode) throws XMLStreamException {
+    return nodeToFragment(XMLInputFactory.newFactory(), pNode);
+  }
+
+  public static CompactFragment nodeToFragment(final XMLInputFactory pXif, final Node pNode) throws XMLStreamException {
+    if (pNode instanceof Text) {
+      return new CompactFragment(((Text) pNode).getData());
+    }
+    return siblingsToFragment(pXif.createXMLStreamReader(new DOMSource(pNode)));
   }
 
   public static void unhandledEvent(final XMLStreamReader in) throws XMLStreamException {
@@ -876,7 +892,7 @@ public class XmlUtil {
   }
 
   /**
-   * Check that the current state is a start element for the given name. The prefix is ignored.
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
    * @param pIn The stream reader to check
    * @param pElementname The name to check against
    * @return <code>true</code> if it matches, otherwise <code>false</code>
@@ -887,7 +903,7 @@ public class XmlUtil {
   }
 
   /**
-   * Check that the current state is a start element for the given name. The prefix is ignored.
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
    * @param pIn The stream reader to check
    * @param pElementNamespace  The namespace to check against.
    * @param pElementName The local name to check against
@@ -900,11 +916,11 @@ public class XmlUtil {
 
 
   /**
-   * Check that the current state is a start element for the given name. The prefix is ignored.
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
    * @param pIn The stream reader to check
    * @param pElementNamespace  The namespace to check against.
    * @param pElementName The local name to check against
-   * @param pElementPrefix The prefix to fall back on if the namespace can't be determined
+   * @param pElementPrefix The mPrefix to fall back on if the namespace can't be determined
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
   public static boolean isElement(final XMLStreamReader pIn, final String pElementNamespace, final String pElementName, final String pElementPrefix) {
@@ -1001,24 +1017,24 @@ public class XmlUtil {
     boolean first = true;
     while (xsr.hasNext()) {
       int type = xsr.next();
-      switch (type) {
+      switch (type) { // TODO extract the default elements to a separate method that is also used to copy StreamReader to StreamWriter without events.
         case XMLStreamConstants.START_ELEMENT:
           {
             if (first) {
               NamespaceInfo namespaceInfo = collectedNS.get(xsr.getNamespaceURI());
               if (namespaceInfo != null) {
                 if (XMLConstants.DEFAULT_NS_PREFIX.equals(xsr.getPrefix())) {
-                  namespaceInfo.prefix="";
+                  namespaceInfo = new NamespaceInfo("", namespaceInfo.mUrl);
                 }
-                xsw.setPrefix(namespaceInfo.prefix, namespaceInfo.url);
-                xsw.writeStartElement(namespaceInfo.prefix, xsr.getLocalName(), namespaceInfo.url);
+                xsw.setPrefix(namespaceInfo.mPrefix, namespaceInfo.mUrl);
+                xsw.writeStartElement(namespaceInfo.mPrefix, xsr.getLocalName(), namespaceInfo.mUrl);
               } else { // no namespace info (probably no namespace at all)
                 xsw.writeStartElement(xsr.getPrefix(), xsr.getLocalName(), xsr.getNamespaceURI());
               }
               first = false;
               for (NamespaceInfo ns : collectedNS.values()) {
-                xsw.setPrefix(ns.prefix, ns.url);
-                xsw.writeNamespace(ns.prefix, ns.url);
+                xsw.setPrefix(ns.mPrefix, ns.mUrl);
+                xsw.writeNamespace(ns.mPrefix, ns.mUrl);
               }
             } else {
               xsw.writeStartElement(xsr.getNamespaceURI(), xsr.getLocalName());
@@ -1094,8 +1110,8 @@ public class XmlUtil {
       NamespaceInfo nsInfo = pCollectedNS.get(pNamespaceURI);
       if (nsInfo==null) {
         pCollectedNS.put(pNamespaceURI, new NamespaceInfo(pPrefix, pNamespaceURI));
-      } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(nsInfo.prefix)) {
-        nsInfo.prefix=pPrefix;
+      } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(nsInfo.mPrefix)) {
+        nsInfo=new NamespaceInfo(pPrefix, nsInfo.mUrl);
       }
     }
   }

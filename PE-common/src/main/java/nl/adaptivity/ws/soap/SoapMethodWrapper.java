@@ -184,7 +184,7 @@ public class SoapMethodWrapper {
       return (Source) aResult;
     }
 
-    List<Tripple<String, ? extends Class<? extends Object>, ?>> params;
+    List<Tripple<String, ? extends Class<?>, ?>> params;
     List<Object> headers;
     if (aResult == null && aMethod.getReturnType()==Void.class) {
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),

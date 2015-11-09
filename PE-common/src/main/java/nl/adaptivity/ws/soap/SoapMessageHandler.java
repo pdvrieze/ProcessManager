@@ -1,13 +1,12 @@
 package nl.adaptivity.ws.soap;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import net.devrieze.util.PrefixMap;
+import net.devrieze.util.PrefixMap.Entry;
+import net.devrieze.util.ValueCollection;
+import nl.adaptivity.messaging.HttpResponseException;
+import nl.adaptivity.util.HttpMessage;
+import org.w3.soapEnvelope.Envelope;
+import org.w3c.dom.Element;
 
 import javax.activation.DataSource;
 import javax.jws.WebMethod;
@@ -18,15 +17,10 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Element;
-
-import net.devrieze.util.PrefixMap;
-import net.devrieze.util.PrefixMap.Entry;
-import net.devrieze.util.ValueCollection;
-
-import nl.adaptivity.messaging.HttpResponseException;
-import nl.adaptivity.util.HttpMessage;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class SoapMessageHandler {
@@ -129,8 +123,7 @@ public class SoapMessageHandler {
 
       if ((annotation != null)
           && (((annotation.operationName().length() == 0) && candidate.getName().equals(pOperation.getLocalPart())) || annotation.operationName().equals(pOperation.getLocalPart()))) {
-        final SoapMethodWrapper result = new SoapMethodWrapper(target, candidate);
-        return result;
+        return new SoapMethodWrapper(target, candidate);
       }
 
     }
@@ -138,7 +131,7 @@ public class SoapMessageHandler {
   }
 
 
-  private Collection<Method> getCandidatesFor(final Class<? extends Object> pClass, final QName pOperation) {
+  private Collection<Method> getCandidatesFor(final Class<?> pClass, final QName pOperation) {
     if (cache == null) {
       cache = new HashMap<>();
     }
@@ -155,7 +148,7 @@ public class SoapMessageHandler {
     return new ValueCollection<>(w);
   }
 
-  private static PrefixMap<Method> createCacheElem(final Class<? extends Object> pClass) {
+  private static PrefixMap<Method> createCacheElem(final Class<?> pClass) {
     final PrefixMap<Method> result = new PrefixMap<>();
     final Method[] methods = pClass.getDeclaredMethods();
 

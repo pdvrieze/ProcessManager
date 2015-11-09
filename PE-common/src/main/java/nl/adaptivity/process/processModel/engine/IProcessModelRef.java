@@ -9,8 +9,8 @@ import nl.adaptivity.process.processModel.ProcessNode;
 
 public interface IProcessModelRef<T extends ProcessNode<T>>  extends Handle<ProcessModel<T>>{
 
-  public abstract String getName();
+  String getName();
 
-  public abstract UUID getUuid();
+  UUID getUuid();
 
 }

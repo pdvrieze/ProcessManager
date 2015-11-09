@@ -8,7 +8,7 @@ public interface Bounded {
    * be drawn only inside their bounds. And the bounds are expected to be as small as possible.
    * @return The bounds of the object.
    */
-  public Rectangle getBounds();
+  Rectangle getBounds();
 
   /**
    * Determine whether the given coordinate lies within the object. As objects may be
@@ -18,6 +18,6 @@ public interface Bounded {
    * @param aY The Y coordinate
    * @return <code>null</code> if no item could be found, otherwise the item found.
    */
-  public Bounded getItemAt(double pX, double pY);
+  Bounded getItemAt(double pX, double pY);
 
 }

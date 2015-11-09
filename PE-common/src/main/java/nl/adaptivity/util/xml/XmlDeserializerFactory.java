@@ -10,6 +10,6 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public interface XmlDeserializerFactory<T> {
 
-  public T deserialize(XMLStreamReader in) throws XMLStreamException;
+  T deserialize(XMLStreamReader in) throws XMLStreamException;
 
 }

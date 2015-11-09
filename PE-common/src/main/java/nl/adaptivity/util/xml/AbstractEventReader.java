@@ -45,7 +45,7 @@ public abstract class AbstractEventReader implements XMLEventReader{
           throw new XMLStreamException("Non-whitespace text encountered");
         }
       } else {
-        throw new XMLStreamException("Unexpected tags enountered");
+        throw new XMLStreamException("Unexpected tags encountered");
       }
     }
     throw new XMLStreamException("Unexpected end of document");

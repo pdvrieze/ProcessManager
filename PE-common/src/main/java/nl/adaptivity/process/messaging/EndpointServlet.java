@@ -1,16 +1,5 @@
 package nl.adaptivity.process.messaging;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.HttpResponseException;
 import nl.adaptivity.messaging.MessagingException;
@@ -18,6 +7,17 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -137,7 +137,6 @@ public class EndpointServlet extends HttpServlet {
         pResponse.sendError(e.getResponseCode(), e.getMessage());
       } catch (final PermissionDeniedException e) {
         pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
-        return;
       } catch (final FileNotFoundException e) {
         pResponse.sendError(HttpServletResponse.SC_NOT_FOUND, "The requested resource is not available.");
       }

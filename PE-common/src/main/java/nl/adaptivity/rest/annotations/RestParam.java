@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 public @interface RestParam {
 
 
-  public enum ParamType {
+  enum ParamType {
     /**
      * This will use both POST and GET parameters, where GET overrides POST.
      */

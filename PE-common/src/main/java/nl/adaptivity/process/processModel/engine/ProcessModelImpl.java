@@ -59,7 +59,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   public enum Permissions implements SecurityProvider.Permission {
-    INSTANTIATE;
+    INSTANTIATE
   }
 
   public static class Factory implements XmlDeserializerFactory {
@@ -281,7 +281,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
    */
   @Override
   public Collection<StartNodeImpl> getStartNodes() {
-    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList(), aProcessNodes, StartNodeImpl.class));
+    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList<StartNodeImpl>(), aProcessNodes, StartNodeImpl.class));
   }
 
   /* (non-Javadoc)

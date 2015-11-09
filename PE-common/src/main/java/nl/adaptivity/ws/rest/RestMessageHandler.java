@@ -1,21 +1,17 @@
 package nl.adaptivity.ws.rest;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.transform.TransformerException;
-
 import net.devrieze.util.PrefixMap;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.transform.TransformerException;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class RestMessageHandler {
@@ -53,12 +49,11 @@ public class RestMessageHandler {
   }
 
   public boolean processRequest(final HttpMethod pMethod, final HttpMessage pRequest, final HttpServletResponse pResponse) throws IOException {
-    final HttpMessage httpMessage = pRequest;
 
-    final RestMethodWrapper method = getMethodFor(pMethod, httpMessage);
+    final RestMethodWrapper method = getMethodFor(pMethod, pRequest);
 
     if (method != null) {
-      method.unmarshalParams(httpMessage);
+      method.unmarshalParams(pRequest);
       method.exec();
       try {
         method.marshalResult(pResponse);
@@ -107,15 +102,12 @@ public class RestMessageHandler {
     final int postdiff = pBaseAnnotation.post().length - pAnnotation.post().length;
     final int getdiff = pBaseAnnotation.get().length - pAnnotation.get().length;
     final int querydiff = pBaseAnnotation.query().length - pAnnotation.query().length;
-    if (((postdiff < 0) && (getdiff <= 0) && (querydiff <= 0)) || ((postdiff <= 0) && (getdiff < 0) && (querydiff <= 0))
-        || ((postdiff <= 0) && (getdiff <= 0) && (querydiff < 0))) {
-      return true;
-    }
-    return false;
+    return ((postdiff < 0) && (getdiff <= 0) && (querydiff <= 0)) || ((postdiff <= 0) && (getdiff < 0) && (querydiff <= 0))
+            || ((postdiff <= 0) && (getdiff <= 0) && (querydiff < 0));
   }
 
   private Collection<Method> getCandidatesFor(final HttpMethod pHttpMethod, final String pPathInfo) {
-    final Class<? extends Object> targetClass = aTarget.getClass();
+    final Class<?> targetClass = aTarget.getClass();
     EnumMap<HttpMethod, PrefixMap<Method>> v;
     if (cache == null) {
       cache = new HashMap<>();
@@ -135,7 +127,7 @@ public class RestMessageHandler {
     return w.getPrefixValues(pPathInfo);
   }
 
-  private static EnumMap<HttpMethod, PrefixMap<Method>> createCacheElem(final Class<? extends Object> pClass) {
+  private static EnumMap<HttpMethod, PrefixMap<Method>> createCacheElem(final Class<?> pClass) {
     final EnumMap<HttpMethod, PrefixMap<Method>> result = new EnumMap<>(HttpMethod.class);
     final Method[] methods = pClass.getDeclaredMethods();
 

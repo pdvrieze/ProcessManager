@@ -11,12 +11,12 @@ import java.lang.annotation.Target;
 public @interface RestMethod {
 
 
-  public enum HttpMethod {
+  enum HttpMethod {
     GET,
     POST,
     PUT,
     DELETE,
-    HEAD;
+    HEAD
 
   }
 

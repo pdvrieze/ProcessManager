@@ -122,8 +122,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
    */
   public static XmlDefineType get(IXmlDefineType pExport) {
     if (pExport instanceof XmlDefineType) { return (XmlDefineType) pExport; }
-    XmlDefineType result = new XmlDefineType(pExport.getName(), pExport.getRefNode(),pExport.getRefName(), pExport.getPath(), pExport.getContent(), pExport.getOriginalNSContext());
-    return result;
+    return new XmlDefineType(pExport.getName(), pExport.getRefNode(), pExport.getRefName(), pExport.getPath(), pExport.getContent(), pExport.getOriginalNSContext());
   }
 
   @Override

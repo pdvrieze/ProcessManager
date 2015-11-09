@@ -77,7 +77,7 @@ public class ItemCache {
 //    return array;
 //  }
 
-  private final <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> int getStrategyIndex(S pStrategy) {
+  private <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> int getStrategyIndex(S pStrategy) {
     int strategyIdx = -1;
     int strategyLen = aStrategies.length;
     for (int i=0; i<strategyLen; ++i) {

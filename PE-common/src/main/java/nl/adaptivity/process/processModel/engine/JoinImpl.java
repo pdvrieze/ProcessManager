@@ -4,10 +4,11 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.IllegalProcessModelException;
+import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -21,6 +22,7 @@ import javax.xml.stream.XMLStreamWriter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 
 @XmlDeserializer(JoinImpl.Factory.class)
@@ -97,6 +99,10 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
     return true;
   }
 
+  /**
+   * @deprecated  Should be removed
+   */
+  @Deprecated
   @Override
   public void skip() {
     //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
@@ -107,9 +113,9 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
     //    throw new UnsupportedOperationException("Not yet correct");
   }
 
-  List<? extends ProcessNodeImpl> getXmlPrececessors() {
+  Set<? extends Identifiable> getXmlPrececessors() {
     if (getPredecessors()==null) { return null; }
-    return (ProcessNodeSet<? extends ProcessNodeImpl>) getPredecessors();
+    return getPredecessors();
   }
 
   @XmlElement(name = "predecessor")

@@ -19,22 +19,22 @@ public interface Pen<PEN_T extends Pen<PEN_T>> {
    * @param pen The pen that would be be used.
    * @return The width of the text with the given pen
    */
-  public double measureTextWidth(String text, double foldWidth);
+  double measureTextWidth(String text, double foldWidth);
 
-  public double getTextMaxAscent();
+  double getTextMaxAscent();
 
-  public double getTextAscent();
+  double getTextAscent();
 
-  public double getTextMaxDescent();
+  double getTextMaxDescent();
 
-  public double getTextDescent();
+  double getTextDescent();
 
   /**
    * The space recommended to separate two lines (beyond ascent and descent.
    * @return The leading
    */
-  public double getTextLeading();
+  double getTextLeading();
 
-  public void setTextItalics(boolean italics);
+  void setTextItalics(boolean italics);
 
 }

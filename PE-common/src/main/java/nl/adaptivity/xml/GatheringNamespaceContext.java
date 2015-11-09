@@ -39,6 +39,7 @@ public class GatheringNamespaceContext implements NamespaceContext {
     return prefix;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Iterator<String> getPrefixes(final String namespaceURI) {
     if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI)) {

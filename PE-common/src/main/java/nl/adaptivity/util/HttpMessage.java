@@ -1,40 +1,26 @@
 package nl.adaptivity.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.security.Principal;
-import java.util.*;
-import java.util.Map.Entry;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import net.devrieze.util.Iterators;
 import net.devrieze.util.Streams;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.annotation.*;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+
+import java.io.*;
+import java.net.URLDecoder;
+import java.security.Principal;
+import java.util.*;
+import java.util.Map.Entry;
 
 
 // TODO change this to handle regular request bodies.
@@ -610,6 +596,14 @@ public class HttpMessage {
   @XmlAttribute
   public String getContextPath() {
     return aContextPath;
+  }
+
+  public String getContentType() {
+    return aContentType;
+  }
+
+  public String getCharacterEncoding() {
+    return aCharacterEncoding;
   }
 
   public Source getContent() {

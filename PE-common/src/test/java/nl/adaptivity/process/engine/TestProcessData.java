@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -117,7 +118,6 @@ public class TestProcessData {
   }
 
   private static DocumentBuilder _documentBuilder;
-  private Document mDocument;
 
   private static DocumentBuilder getDocumentBuilder() {
     if (_documentBuilder==null) {
@@ -158,7 +158,6 @@ public class TestProcessData {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder db = dbf.newDocumentBuilder();
-    mDocument = db.newDocument();
   }
 
   @Test
@@ -167,7 +166,7 @@ public class TestProcessData {
     CharArrayWriter caw = new CharArrayWriter();
     XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
 
-    ProcessData data = new ProcessData("foo", mDocument.createTextNode("Hello"));
+    ProcessData data = new ProcessData("foo", new CompactFragment("Hello"));
     data.serialize(xsw);
     xsw.flush();
     assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>", caw.toString());
@@ -179,7 +178,7 @@ public class TestProcessData {
     CharArrayWriter caw = new CharArrayWriter();
     XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
 
-    ProcessData data = new ProcessData("foo", mDocument.createElement("bar"));
+    ProcessData data = new ProcessData("foo", new CompactFragment("bar"));
     data.serialize(xsw);
     xsw.flush();
     assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>", caw.toString());
@@ -322,7 +321,7 @@ public class TestProcessData {
       XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
       ProcessNodeImpl ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
-      List<? extends IXmlResultType> ac1Results = (List<? extends IXmlResultType>) ac1.getResults();
+      List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
 
       XmlResultType result = (XmlResultType) ac1Results.get(0);
       result.serialize(xsw);
@@ -358,7 +357,7 @@ public class TestProcessData {
 
       ProcessNodeImpl ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
-      List<? extends IXmlResultType> ac1Results = (List<? extends IXmlResultType>) ac1.getResults();
+      List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
       XmlResultType result = (XmlResultType) ac1Results.get(1);
       result.serialize(xsw);
       xsw.close();
@@ -422,7 +421,7 @@ public class TestProcessData {
             "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
             "    </fullname>\n" +
             "  </user>\n" +
-            "</result>";;
+            "</result>";
     String found = XmlUtil.toString(result);
     try {
       XMLUnit.setIgnoreWhitespace(true);
@@ -463,7 +462,7 @@ public class TestProcessData {
 
   private static <T extends XmlSerializable> String testRoundTrip(final XMLStreamReader in, final String expected, final Class<T> target, final boolean ignoreNs) throws
           InstantiationException, IllegalAccessException, XMLStreamException {
-    XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
+    @SuppressWarnings("unchecked") XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
     T obj = factory.deserialize(in);
     XMLOutputFactory xof = XMLOutputFactory.newFactory();
     CharArrayWriter caw = new CharArrayWriter();

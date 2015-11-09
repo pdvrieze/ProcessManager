@@ -55,7 +55,7 @@ public class SoapHelper {
 
   private SoapHelper() {}
 
-  public static Source createMessage(final QName pOperationName, final List<Tripple<String, ? extends Class<? extends Object>, ?>> pParams) throws JAXBException {
+  public static Source createMessage(final QName pOperationName, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException {
     return createMessage(pOperationName, null, pParams);
   }
 
@@ -70,7 +70,7 @@ public class SoapHelper {
    * @return a Source that encapsulates the message.
    * @throws JAXBException
    */
-  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final List<Tripple<String, ? extends Class<? extends Object>, ?>> pParams) throws JAXBException {
+  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException {
     DocumentBuilder db;
     {
       final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

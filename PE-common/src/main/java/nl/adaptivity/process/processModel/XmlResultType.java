@@ -61,8 +61,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   public static XmlResultType get(IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
-    XmlResultType result = new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getOriginalNSContext());
-    return result;
+    return new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getOriginalNSContext());
   }
 
   @Override
@@ -82,9 +81,9 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
       // shortcircuit missing path
       ProcessData processData;
       if (getPath() == null || ".".equals(getPath())) {
-        processData = new ProcessData(getName(), pPayload);
+        processData = new ProcessData(getName(), XmlUtil.nodeToFragment(pPayload));
       } else {
-        processData = new ProcessData(getName(), (NodeList) getXPath().evaluate(pPayload, XPathConstants.NODESET));
+        processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(pPayload, XPathConstants.NODESET)));
       }
       char[] content = getContent();
       if (content!=null && content.length>0) {

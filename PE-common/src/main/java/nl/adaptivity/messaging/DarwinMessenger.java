@@ -1,34 +1,28 @@
 package nl.adaptivity.messaging;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.bind.JAXB;
-import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-
 import net.devrieze.util.InputStreamOutputStream;
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
+
+import javax.xml.bind.JAXB;
+import javax.xml.namespace.QName;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -436,7 +430,7 @@ public class DarwinMessenger implements IMessenger {
     static final DarwinMessenger globalMessenger = new DarwinMessenger();
   }
 
-  private ExecutorService aExecutor;
+  private final ExecutorService aExecutor;
 
   private ConcurrentMap<QName, ConcurrentMap<String, EndpointDescriptor>> aServices;
 

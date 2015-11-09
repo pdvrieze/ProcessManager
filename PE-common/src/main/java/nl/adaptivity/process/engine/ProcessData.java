@@ -33,7 +33,7 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
 
 // Object Initialization
   @Deprecated
-  private ProcessData(String pName, Node pValue, boolean pIsNodeList) {
+  public ProcessData(String pName, Node pValue) {
     this(pName, toCompactFragment(pValue));
   }
 // Object Initialization end
@@ -44,13 +44,8 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
   }
 
   @Deprecated
-  public ProcessData(String pName, Node pValue) {
-    this(pName, pValue, false);
-  }
-
-  @Deprecated
   public ProcessData(String pName, NodeList pValue) {
-    this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : XmlUtil.toDocFragment(pValue), false);
+    this(pName, (pValue==null || pValue.getLength()<=1)? toNode(pValue) : XmlUtil.toDocFragment(pValue));
   }
 
   public DocumentFragment getContentFragment() throws XMLStreamException {
@@ -58,12 +53,8 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
   }
 
   private static CompactFragment toCompactFragment(final Node pValue) {
-    if (pValue instanceof Text) {
-      return new CompactFragment(((Text) pValue).getData());
-    }
-    CompactFragment value;XMLInputFactory xif = XMLInputFactory.newFactory();
     try {
-      return XmlUtil.siblingsToFragment(xif.createXMLStreamReader(new DOMSource(pValue)));
+      return XmlUtil.nodeToFragment(pValue);
     } catch (XMLStreamException pE) {
       throw new RuntimeException(pE);
     }
@@ -77,7 +68,7 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
 
   @Deprecated
   public ProcessData(String pName, List<Node> pValue) {
-    this(pName, XmlUtil.toDocFragment(pValue), false);
+    this(pName, XmlUtil.toDocFragment(pValue));
   }
 
 

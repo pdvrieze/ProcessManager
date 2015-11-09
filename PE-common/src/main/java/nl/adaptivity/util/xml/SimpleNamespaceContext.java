@@ -35,7 +35,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
   private class SimpleNamespace implements Namespace {
 
-    private int pos;
+    private final int pos;
 
     public SimpleNamespace(final int pPos) {
       pos = pPos;

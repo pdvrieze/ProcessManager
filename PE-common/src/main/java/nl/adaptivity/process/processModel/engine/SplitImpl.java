@@ -7,7 +7,6 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
@@ -99,6 +98,10 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
     return true;
   }
 
+  /**
+   * @deprecated  Should be removed
+   */
+  @Deprecated
   @Override
   public void skip() {
     //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);

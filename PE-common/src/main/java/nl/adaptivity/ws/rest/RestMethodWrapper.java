@@ -1,18 +1,18 @@
 package nl.adaptivity.ws.rest;
 
-import java.io.*;
-import java.lang.annotation.Annotation;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
-import java.security.Principal;
-import java.util.Collection;
-import java.util.Map;
+import net.devrieze.util.Annotations;
+import net.devrieze.util.JAXBCollectionWrapper;
+import net.devrieze.util.Types;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.rest.annotations.RestMethod;
+import nl.adaptivity.rest.annotations.RestParam;
+import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.util.HttpMessage.Body;
+import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XmlSerializable;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -38,21 +38,14 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import net.devrieze.util.Annotations;
-import net.devrieze.util.JAXBCollectionWrapper;
-import net.devrieze.util.Types;
-
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.rest.annotations.RestMethod;
-import nl.adaptivity.rest.annotations.RestParam;
-import nl.adaptivity.rest.annotations.RestParam.ParamType;
-import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.util.HttpMessage.Body;
-import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.XmlSerializable;
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.*;
+import java.security.Principal;
+import java.util.Collection;
+import java.util.Map;
 
 
 public abstract class RestMethodWrapper {
@@ -433,12 +426,8 @@ public abstract class RestMethodWrapper {
   }
 
   private static <T> T getParamXPath(final Class<T> pClass, final String pXpath, final Body pBody) {
-    boolean jaxb;
-    if (CharSequence.class.isAssignableFrom(pClass)) {
-      jaxb = false;
-    } else {
-      jaxb = true;
-    }
+    // TODO Avoid JAXB where possible, use XMLDeserializer instead
+    final boolean jaxb = !CharSequence.class.isAssignableFrom(pClass);
     Node match;
     for (final Node n : pBody.getElements()) {
       match = xpathMatch(n, pXpath);
