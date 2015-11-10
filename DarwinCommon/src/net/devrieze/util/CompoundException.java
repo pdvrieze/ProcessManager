@@ -12,20 +12,20 @@ public class CompoundException extends RuntimeException {
   private static final long serialVersionUID = -395370803660462253L;
 
   @NotNull
-  private final List<? extends Throwable> aCauses;
+  private final List<? extends Throwable> mCauses;
 
   private int replayPos = 0;
 
   public CompoundException(@NotNull final List<? extends Exception> causes) {
     super("Multiple exceptions occurred");
-    aCauses = causes;
+    mCauses = causes;
   }
 
   public <T extends Throwable> void replayNext(@NotNull final Class<T> clazz) throws T {
     final int pos = replayPos;
     replayPos++;
-    if (pos < aCauses.size()) {
-      final Throwable e = aCauses.get(pos);
+    if (pos < mCauses.size()) {
+      final Throwable e = mCauses.get(pos);
       if (clazz.isInstance(e)) {
         throw clazz.cast(e);
       }
@@ -47,11 +47,11 @@ public class CompoundException extends RuntimeException {
   public void printStackTrace(final PrintStream s) {
     synchronized (Objects.requireNonNull(s)) {
       s.println(this);
-      for (int i = 0; i < aCauses.size(); ++i) {
+      for (int i = 0; i < mCauses.size(); ++i) {
         if (i >= 1) {
           s.println();
         }
-        final Throwable cause = aCauses.get(i);
+        final Throwable cause = mCauses.get(i);
         s.print("Cause ");
         s.print(i);
         s.print(": ");
@@ -89,11 +89,11 @@ public class CompoundException extends RuntimeException {
   public void printStackTrace(final PrintWriter s) {
     synchronized (Objects.requireNonNull(s)) {
       s.println(this);
-      for (int i = 0; i < aCauses.size(); ++i) {
+      for (int i = 0; i < mCauses.size(); ++i) {
         if (i >= 1) {
           s.println();
         }
-        final Throwable cause = aCauses.get(i);
+        final Throwable cause = mCauses.get(i);
         s.print("Cause ");
         s.print(i);
         s.print(": ");

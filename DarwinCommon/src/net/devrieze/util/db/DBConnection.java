@@ -22,12 +22,12 @@ public class DBConnection implements AutoCloseable {
   public static class DBHelper {
 
     @NotNull
-    private DataSource aDataSource;
-    private StringCache aStringCache;
+    private DataSource mDataSource;
+    private StringCache mStringCache;
 
     // Object Initialization
     public DBHelper(@NotNull DataSource dataSource) {
-      aDataSource = dataSource;
+      mDataSource = dataSource;
     }
 
     @NotNull
@@ -62,16 +62,16 @@ public class DBConnection implements AutoCloseable {
     // Property accessors start
     @NotNull
     public DBConnection getConnection() throws SQLException {
-      final DBConnection dbConnection = new DBConnection(aDataSource);
-      final StringCache aStringCache2 = aStringCache;
-      if (aStringCache2 != null) {
-        dbConnection.setStringCache(aStringCache2);
+      final DBConnection dbConnection = new DBConnection(mDataSource);
+      final StringCache mStringCache2 = mStringCache;
+      if (mStringCache2 != null) {
+        dbConnection.setStringCache(mStringCache2);
       }
       return dbConnection;
     }
 
     public void setStringCache(StringCache stringCache) {
-      aStringCache = stringCache;
+      mStringCache = stringCache;
     }
 // Property acccessors end
 
@@ -81,11 +81,11 @@ public class DBConnection implements AutoCloseable {
   static class DataSourceWrapper {
 
     @NotNull
-    final DataSource aDataSource;
+    final DataSource mDataSource;
 
     // Object Initialization
     DataSourceWrapper(@NotNull final DataSource dataSource) {
-      aDataSource = dataSource;
+      mDataSource = dataSource;
     }
 // Object Initialization end
   }
@@ -154,7 +154,7 @@ public class DBConnection implements AutoCloseable {
   private class DBStatementImpl implements DBStatement {
 
     @Nullable
-    PreparedStatement aSQLStatement;
+    PreparedStatement mSQLStatement;
 
     // Object Initialization
     public DBStatementImpl() {
@@ -162,33 +162,33 @@ public class DBConnection implements AutoCloseable {
     }
 
     DBStatementImpl(@NotNull final String sQL, @Nullable final String errorMsg) throws SQLException {
-      final Connection connection = aConnection;
+      final Connection connection = mConnection;
       if (connection == null) {
         throw new SQLException("Committing closed connection");
       }
       try {
-        aSQLStatement = connection.prepareStatement(sQL);
+        mSQLStatement = connection.prepareStatement(sQL);
       } catch (final SQLException e) {
         throw e;
       } finally {
         logWarnings("Preparing statement", connection);
       }
 
-      DBConnection.this.aErrorMsg = errorMsg;
+      DBConnection.this.mErrorMsg = errorMsg;
     }
 // Object Initialization end
 
     @Override
     @NotNull
     public DBStatement addParam(final int column, final String value) {
-      if (aSQLStatement != null) {
+      if (mSQLStatement != null) {
         checkValid();
         try {
-          aSQLStatement.setString(column, value);
+          mSQLStatement.setString(column, value);
         } catch (final SQLException e) {
           logException("Failure to set parameter on prepared statement", e);
           DBStatementImpl.this.close();
-          aSQLStatement = null;
+          mSQLStatement = null;
         }
       }
       return this;
@@ -196,10 +196,10 @@ public class DBConnection implements AutoCloseable {
 
     protected final void checkValid() {
       try {
-        if (aSQLStatement == null) {
+        if (mSQLStatement == null) {
           throw new IllegalStateException("No underlying statement");
         }
-        if (aSQLStatement.isClosed()) {
+        if (mSQLStatement.isClosed()) {
           throw new IllegalStateException("Trying to use a closed prepared statement");
         }
       } catch (final SQLException e) {
@@ -211,14 +211,14 @@ public class DBConnection implements AutoCloseable {
     @Override
     @NotNull
     public DBStatement addParam(final int column, final int value) {
-      if (aSQLStatement != null) {
+      if (mSQLStatement != null) {
         checkValid();
         try {
-          aSQLStatement.setInt(column, value);
+          mSQLStatement.setInt(column, value);
         } catch (final SQLException e) {
           logException("Failure to create prepared statement", e);
           DBStatementImpl.this.close();
-          aSQLStatement = null;
+          mSQLStatement = null;
         }
       }
       return this;
@@ -228,13 +228,13 @@ public class DBConnection implements AutoCloseable {
     @NotNull
     public DBStatement addParam(final int column, final long value) {
       checkValid();
-      if (aSQLStatement != null) {
+      if (mSQLStatement != null) {
         try {
-          aSQLStatement.setLong(column, value);
+          mSQLStatement.setLong(column, value);
         } catch (final SQLException e) {
           logException("Failure to create prepared statement", e);
           DBStatementImpl.this.close();
-          aSQLStatement = null;
+          mSQLStatement = null;
         }
       }
       return this;
@@ -243,7 +243,7 @@ public class DBConnection implements AutoCloseable {
     @Override
     public boolean exec() throws SQLException {
       checkValid();
-      final PreparedStatement sqlStatement = this.aSQLStatement;
+      final PreparedStatement sqlStatement = this.mSQLStatement;
       if (sqlStatement == null) {
         logException("No prepared statement available", new NullPointerException());
         return false;
@@ -253,7 +253,7 @@ public class DBConnection implements AutoCloseable {
         logWarnings("Executing prepared statement", sqlStatement);
         return true;
       } catch (final SQLException e) {
-        logException(aErrorMsg, e);
+        logException(mErrorMsg, e);
         try {
           sqlStatement.close();
         } catch (final SQLException e2) {
@@ -261,7 +261,7 @@ public class DBConnection implements AutoCloseable {
           e.addSuppressed(e2);
         }
 
-        aSQLStatement = null;
+        mSQLStatement = null;
         rollback();
         return false;
       }
@@ -281,20 +281,20 @@ public class DBConnection implements AutoCloseable {
     @Override
     @NotNull
     public StringCache getStringCache() {
-      return aStringCache;
+      return mStringCache;
     }
 
     @Override
     public void close() {
-      if (aSQLStatement != null) {
+      if (mSQLStatement != null) {
         try {
-          aSQLStatement.close();
+          mSQLStatement.close();
         } catch (SQLException e) {
           logException("Error closing statement", e);
-          aSQLStatement = null;
+          mSQLStatement = null;
           throw new RuntimeException(e);
         }
-        aSQLStatement = null;
+        mSQLStatement = null;
       }
     }
 
@@ -307,7 +307,7 @@ public class DBConnection implements AutoCloseable {
 
   public class DBQueryImpl extends DBStatementImpl implements DBQuery {
 
-    List<ResultSet> aResultSets;
+    List<ResultSet> mResultSets;
 
     // Object Initialization
     public DBQueryImpl() {
@@ -316,7 +316,7 @@ public class DBConnection implements AutoCloseable {
 
     public DBQueryImpl(@NotNull final String sQL, final String errorMsg) throws SQLException {
       super(sQL, errorMsg);
-      aResultSets = new ArrayList<>();
+      mResultSets = new ArrayList<>();
     }
 // Object Initialization end
 
@@ -363,16 +363,16 @@ public class DBConnection implements AutoCloseable {
     public ResultSet execQuery() {
       checkValid();
       try {
-        final PreparedStatement sqlStatement = this.aSQLStatement;
+        final PreparedStatement sqlStatement = this.mSQLStatement;
         if (sqlStatement == null) {
           return null;
         }
         final ResultSet result = sqlStatement.executeQuery();
         logWarnings("Prepared statement " + sqlStatement.toString(), sqlStatement);
-        aResultSets.add(result);
+        mResultSets.add(result);
         return result;
       } catch (final SQLException e) {
-        logException(aErrorMsg, e);
+        logException(mErrorMsg, e);
       }
       return null;
     }
@@ -415,7 +415,7 @@ public class DBConnection implements AutoCloseable {
         return null;
       }
       if (rs.getMetaData().getColumnCount() != 1) {
-        logWarning("The query " + aSQLStatement + " does not return 1 element");
+        logWarning("The query " + mSQLStatement + " does not return 1 element");
         try {
           rs.close();
         } catch (SQLException e) {
@@ -444,7 +444,7 @@ public class DBConnection implements AutoCloseable {
         return null;
       }
       logWarnings("getSingleHelper resultset", rs);
-      aResultSets.add(rs);
+      mResultSets.add(rs);
       return rs;
     }    @Override
     @NotNull
@@ -466,8 +466,8 @@ public class DBConnection implements AutoCloseable {
 
     @Override
     public void close() {
-      if (aResultSets != null) {
-        for (ResultSet rs : aResultSets) {
+      if (mResultSets != null) {
+        for (ResultSet rs : mResultSets) {
           try {
             rs.close();
           } catch (SQLException e) {
@@ -501,20 +501,20 @@ public class DBConnection implements AutoCloseable {
   private static final Level DETAIL_LOG_LEVEL = Level.FINE;
   private static final String LOGGER_NAME = "DBHelper";
   @NotNull
-  private static StringCache aStringCache;
+  private static StringCache mStringCache;
   @Nullable
-  public String aErrorMsg;
+  public String mErrorMsg;
   @Nullable
-  private Connection aConnection;
+  private Connection mConnection;
   @NotNull
-  private List<DBStatement> aStatements;
+  private List<DBStatement> mStatements;
 
   // Object Initialization
   private DBConnection(@NotNull final DataSource dataSource) throws SQLException {
-    aConnection = dataSource.getConnection();
-    aConnection.setAutoCommit(false);
-    aStatements = new ArrayList<>();
-    aStringCache = StringCache.NOPCACHE;
+    mConnection = dataSource.getConnection();
+    mConnection.setAutoCommit(false);
+    mStatements = new ArrayList<>();
+    mStringCache = StringCache.NOPCACHE;
   }
 
   /**
@@ -553,7 +553,7 @@ public class DBConnection implements AutoCloseable {
    * @param stringCache The string cache.
    */
   public static void setStringCache(@NotNull final StringCache stringCache) {
-    aStringCache = stringCache;
+    mStringCache = stringCache;
   }
 
   public static DataSource getDataSource(String dbresource) throws NamingException {
@@ -583,7 +583,7 @@ public class DBConnection implements AutoCloseable {
 
   @NotNull
   private <T extends DBStatement> T recordStatement(@NotNull T statement) {
-    aStatements.add(statement);
+    mStatements.add(statement);
     return statement;
   }
 
@@ -603,7 +603,7 @@ public class DBConnection implements AutoCloseable {
   }
 
   public void commit() throws SQLException {
-    final Connection connection = this.aConnection;
+    final Connection connection = this.mConnection;
     if (connection == null) {
       throw new SQLException("Committing closed connection");
     }
@@ -639,7 +639,7 @@ public class DBConnection implements AutoCloseable {
   }
 
   public void rollback() throws SQLException {
-    final Connection connection = this.aConnection;
+    final Connection connection = this.mConnection;
     if (connection == null) {
       throw new SQLException("Committing closed connection");
     }
@@ -706,13 +706,13 @@ public class DBConnection implements AutoCloseable {
    */
   @Override
   public void close() {
-    final Connection connection = this.aConnection;
+    final Connection connection = this.mConnection;
     if (connection == null) {
       return;
     }
     Exception error = null;
     getLogger().log(DETAIL_LOG_LEVEL, "Closing connection");
-    for (DBStatement statement : aStatements) {
+    for (DBStatement statement : mStatements) {
       try {
         statement.close();
       } catch (RuntimeException e) {
@@ -724,7 +724,7 @@ public class DBConnection implements AutoCloseable {
         }
       }
     }
-    aStatements = new ArrayList<>();
+    mStatements = new ArrayList<>();
     try {
       connection.close();
     } catch (SQLException e) {
@@ -735,7 +735,7 @@ public class DBConnection implements AutoCloseable {
       }
       logException("Failure to close database connection", e);
     } finally {
-      aConnection = null;
+      mConnection = null;
     }
     if (error != null) {
       if (error instanceof RuntimeException) {

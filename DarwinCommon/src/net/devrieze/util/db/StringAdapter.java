@@ -31,7 +31,7 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
   }
 
-  private final boolean aAutoClose;
+  private final boolean mAutoClose;
 
   public StringAdapter(final DBStatement statement, final ResultSet resultSet) {
     this(statement, resultSet, false);
@@ -39,14 +39,14 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
   public StringAdapter(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
     super(statement, resultSet);
-    aAutoClose = autoClose;
+    mAutoClose = autoClose;
   }
 
   @Override
   @NotNull
   public StringAdapterIterator iterator() {
 
-    return new StringAdapterIterator(aStatement, aResultSet, aAutoClose);
+    return new StringAdapterIterator(mStatement, mResultSet, mAutoClose);
   }
 
 }

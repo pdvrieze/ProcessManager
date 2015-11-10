@@ -19,42 +19,42 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   public abstract static class ResultSetAdapterIterator<T> implements AutoCloseableIterator<T> {
 
     @Nullable
-    private ResultSet aResultSet;
+    private ResultSet mResultSet;
 
     @Nullable
-    private DBStatement aStatement;
+    private DBStatement mStatement;
 
-    private final boolean aAutoClose;
+    private final boolean mAutoClose;
 
-    private boolean aPeeked = false;
+    private boolean mPeeked = false;
 
-    private boolean aInitialized = false;
+    private boolean mInitialized = false;
 
     @NotNull
-    private StringCache aStringCache;
+    private StringCache mStringCache;
 
     public ResultSetAdapterIterator(final DBStatement statement, final ResultSet resultSet) {
       this(statement, resultSet, false);
     }
 
     public ResultSetAdapterIterator(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
-      aResultSet = resultSet;
-      aStatement = statement;
-      aAutoClose = autoClose;
-      aStringCache = statement.getStringCache();
+      mResultSet = resultSet;
+      mStatement = statement;
+      mAutoClose = autoClose;
+      mStringCache = statement.getStringCache();
     }
 
     private void init() {
-      if (aResultSet != null) {
+      if (mResultSet != null) {
         try {
-          aResultSet.beforeFirst();
-          DBConnection.logWarnings("Resetting resultset for AdapterIterator", aResultSet);
-          final ResultSetMetaData metadata = aResultSet.getMetaData();
-          DBConnection.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet);
+          mResultSet.beforeFirst();
+          DBConnection.logWarnings("Resetting resultset for AdapterIterator", mResultSet);
+          final ResultSetMetaData metadata = mResultSet.getMetaData();
+          DBConnection.logWarnings("Getting resultset metadata for AdapterIterator", mResultSet);
           for (int i = 1; i <= metadata.getColumnCount(); ++i) {
             doRegisterColumn(i, metadata.getColumnName(i));
           }
-          aInitialized = true;
+          mInitialized = true;
         } catch (final SQLException e) {
           DBConnection.logException("Initializing resultset iterator", e);
           closeStatement();
@@ -69,20 +69,20 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
     @Override
     public final boolean hasNext() {
-      if (!aInitialized) {
+      if (!mInitialized) {
         init();
       }
-      final ResultSet resultSet = this.aResultSet;
+      final ResultSet resultSet = this.mResultSet;
       if (resultSet == null) {
         return false;
       }
       try {
-        aPeeked = resultSet.next();
+        mPeeked = resultSet.next();
         DBConnection.logWarnings("Getting a peek at next row in resultset", resultSet);
-        if (aAutoClose && !aPeeked) {
+        if (mAutoClose && !mPeeked) {
           closeStatement();
         }
-        return aPeeked;
+        return mPeeked;
       } catch (final SQLException e) {
         DBConnection.logException("Initializing resultset iterator", e);
         closeStatement();
@@ -93,15 +93,15 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     @Override
     @Nullable
     public final T next() {
-      final ResultSet resultSet = this.aResultSet;
+      final ResultSet resultSet = this.mResultSet;
       if (resultSet == null) {
         throw new IllegalStateException("Trying to access a null resultset");
       }
-      if (!aInitialized) {
+      if (!mInitialized) {
         init();
       }
       try {
-        if (!aPeeked) {
+        if (!mPeeked) {
           if (!resultSet.next()) {
             closeStatement();
             DBConnection.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
@@ -109,7 +109,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
           }
           DBConnection.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
         }
-        aPeeked = false;
+        mPeeked = false;
 
         return doCreateElem(resultSet);
 
@@ -121,8 +121,8 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
     @Override
     public final void remove() {
-      final ResultSet resultSet = this.aResultSet;
-      if ((!aInitialized) || (resultSet==null)) {
+      final ResultSet resultSet = this.mResultSet;
+      if ((!mInitialized) || (resultSet==null)) {
         throw new IllegalStateException("Trying to remove an element before reading the iterator");
       }
       try {
@@ -138,39 +138,39 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
     @Override
     public void close() {
-      if (aResultSet != null) {
+      if (mResultSet != null) {
         try {
-          DBConnection.logWarnings("Closing resultset in ResultSetAdapter", aResultSet);
-          aResultSet.close();
+          DBConnection.logWarnings("Closing resultset in ResultSetAdapter", mResultSet);
+          mResultSet.close();
         } catch (final SQLException e) {
           DBConnection.logException("Error closing resultset", e);
         }
-        aResultSet = null;
+        mResultSet = null;
       }
     }
 
     public void closeStatement() {
-      final ResultSet resultSet = this.aResultSet;
+      final ResultSet resultSet = this.mResultSet;
       if (resultSet != null) {
         try {
           try {
             resultSet.close();
           } finally {
-            if (aStatement != null) {
-              aStatement.close();
+            if (mStatement != null) {
+              mStatement.close();
             }
           }
         } catch (final SQLException e) {
           DBConnection.logException("Error closing owning iterator for resultset", e);
         }
-        aResultSet = null;
-        aStatement = null;
+        mResultSet = null;
+        mStatement = null;
       }
     }
 
     @NotNull
     protected StringCache getStringCache() {
-      return aStringCache;
+      return mStringCache;
     }
 
   }
@@ -200,26 +200,26 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   }
 
   public void closeStatement() {
-    final ResultSet resultSet = this.aResultSet;
+    final ResultSet resultSet = this.mResultSet;
     if (resultSet != null) {
       try {
         try {
           resultSet.close();
         } finally {
-          if (aStatement != null) {
-            aStatement.close();
+          if (mStatement != null) {
+            mStatement.close();
           }
         }
       } catch (final SQLException e) {
         DBConnection.logException("Error closing owning iterator for resultset", e);
       }
-      aResultSet = null;
-      aStatement = null;
+      mResultSet = null;
+      mStatement = null;
     }
   }
 
   public void closeAll() {
-    final DBStatement statement = aStatement; //needed as closeStatement nulls this
+    final DBStatement statement = mStatement; //needed as closeStatement nulls this
     if (statement!=null) {
       statement.closeHelper();
     }
@@ -227,14 +227,14 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   }
 
   @Nullable
-  protected ResultSet aResultSet;
+  protected ResultSet mResultSet;
 
   @Nullable
-  protected DBStatement aStatement;
+  protected DBStatement mStatement;
 
   protected ResultSetAdapter(final DBStatement statement, final ResultSet resultSet) {
-    aResultSet = resultSet;
-    aStatement = statement;
+    mResultSet = resultSet;
+    mStatement = statement;
   }
 
   @Override

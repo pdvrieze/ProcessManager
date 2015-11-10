@@ -13,25 +13,25 @@ public abstract class JSONObject {
   public static class JSONString extends JSONObject {
 
     @NotNull
-    private final CharSequence aString;
+    private final CharSequence mString;
 
     public JSONString(@NotNull final CharSequence string) {
-      aString = string;
+      mString = string;
     }
 
     @Override
     @NotNull
     public CharSequence getValue() {
-      return aString;
+      return mString;
     }
 
     @Override
     @NotNull
     public StringBuilder appendTo(@NotNull final StringBuilder stringBuilder) {
-      final int len = aString.length();
+      final int len = mString.length();
       stringBuilder.append('"');
       for (int i = 0; i < len; ++i) {
-        final char c = aString.charAt(i);
+        final char c = mString.charAt(i);
         switch (c) {
           case '"':
             stringBuilder.append("\\\"");
@@ -67,23 +67,23 @@ public abstract class JSONObject {
   public static class JSONArray extends JSONObject {
 
     @NotNull
-    private final List<JSONObject> aItems;
+    private final List<JSONObject> mItems;
 
     private JSONArray(@NotNull final List<JSONObject> items) {
-      aItems = items;
+      mItems = items;
     }
 
     @Override
     @NotNull
     public List<JSONObject> getValue() {
-      return aItems;
+      return mItems;
     }
 
     @Override
     @NotNull
     public StringBuilder appendTo(@NotNull final StringBuilder stringBuilder) {
       stringBuilder.append('[');
-      for (final Iterator<JSONObject> it = aItems.iterator(); it.hasNext();) {
+      for (final Iterator<JSONObject> it = mItems.iterator(); it.hasNext();) {
         it.next().appendTo(stringBuilder);
         if (it.hasNext()) {
           stringBuilder.append(',');
