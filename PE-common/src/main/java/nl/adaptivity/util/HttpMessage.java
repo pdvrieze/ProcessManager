@@ -5,6 +5,8 @@ import net.devrieze.util.Streams;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -39,6 +41,7 @@ public class HttpMessage {
     @XmlAnyElement(lax = false)
     List<Object> elements;
 
+    @NotNull
     public List<Node> getElements() {
       @SuppressWarnings("unchecked")
       final List<Node> result = (List<Node>) ((List<?>) elements);
@@ -55,10 +58,10 @@ public class HttpMessage {
 
     private String name;
 
-    public ByteContentDataSource(final String pName, final String pContentType, final byte[] pByteContent) {
-      name = pName;
-      contentType = pContentType;
-      byteContent = pByteContent;
+    public ByteContentDataSource(final String name, final String contentType, final byte[] byteContent) {
+      this.name = name;
+      this.contentType = contentType;
+      this.byteContent = byteContent;
     }
 
     public void setContentType(final String contentType) {
@@ -80,6 +83,7 @@ public class HttpMessage {
       return byteContent;
     }
 
+    @NotNull
     public DataHandler getDataHandler() {
       return new DataHandler(this);
     }
@@ -94,17 +98,20 @@ public class HttpMessage {
       return name;
     }
 
+    @NotNull
     @Override
     public InputStream getInputStream() throws IOException {
       return new ByteArrayInputStream(byteContent);
     }
 
+    @NotNull
     @Override
     public OutputStream getOutputStream() throws IOException {
       throw new UnsupportedOperationException("Byte content is not writable");
 
     }
 
+    @NotNull
     @Override
     public String toString() {
       return "ByteContentDataSource [name=" + name + ", contentType=" + contentType + ", byteContent=\"" + new String(byteContent) + "\"]";
@@ -116,8 +123,8 @@ public class HttpMessage {
 
     private final Iterator<Entry<String, String>> aIterator;
 
-    public QueryIterator(final Iterator<Entry<String, String>> pIterator) {
-      aIterator = pIterator;
+    public QueryIterator(final Iterator<Entry<String, String>> iterator) {
+      aIterator = iterator;
     }
 
     @Override
@@ -125,6 +132,7 @@ public class HttpMessage {
       return (aIterator != null) && aIterator.hasNext();
     }
 
+    @NotNull
     @Override
     public Query next() {
       if (aIterator == null) {
@@ -153,9 +161,9 @@ public class HttpMessage {
 
     protected Query() {}
 
-    public Query(final Entry<String, String> pEntry) {
-      aKey = pEntry.getKey();
-      aValue = pEntry.getValue();
+    public Query(@NotNull final Entry<String, String> entry) {
+      aKey = entry.getKey();
+      aValue = entry.getValue();
     }
 
     public void setKey(final String key) {
@@ -186,7 +194,7 @@ public class HttpMessage {
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(@Nullable final Object obj) {
       if (this == obj) {
         return true;
       }
@@ -220,16 +228,16 @@ public class HttpMessage {
 
     private Map<String, String> aMap;
 
-    public QueryMapCollection(final Map<String, String> pMap) {
-      aMap = pMap;
+    public QueryMapCollection(final Map<String, String> map) {
+      aMap = map;
     }
 
     @Override
-    public boolean add(final Query pE) {
+    public boolean add(@NotNull final Query e) {
       if (aMap == null) {
         aMap = new HashMap<>();
       }
-      return aMap.put(pE.getKey(), pE.getValue()) != null;
+      return aMap.put(e.getKey(), e.getValue()) != null;
     }
 
     @Override
@@ -240,9 +248,9 @@ public class HttpMessage {
     }
 
     @Override
-    public boolean contains(final Object pO) {
-      if (pO instanceof Query) {
-        final Query q = (Query) pO;
+    public boolean contains(final Object o) {
+      if (o instanceof Query) {
+        final Query q = (Query) o;
         final String match = aMap.get(q.getKey());
         return ((match == null) && (q.getValue() == null)) || ((q.getValue() != null) && q.getValue().equals(match));
       } else {
@@ -258,6 +266,7 @@ public class HttpMessage {
       return aMap.isEmpty();
     }
 
+    @NotNull
     @Override
     public Iterator<Query> iterator() {
       if (aMap == null) {
@@ -267,11 +276,11 @@ public class HttpMessage {
     }
 
     @Override
-    public boolean remove(final Object pO) {
+    public boolean remove(final Object o) {
       if (aMap == null) {
         return false;
       }
-      final Query q = (Query) pO;
+      final Query q = (Query) o;
       final String candidate = aMap.get(q.getKey());
 
       if (((candidate == null) && (q.getValue() == null)) || ((candidate != null) && candidate.equals(q.getValue()))) {
@@ -308,26 +317,26 @@ public class HttpMessage {
 
   private String aContentType;
 
-  private String aCharacterEncoding;
+  @Nullable private String aCharacterEncoding;
 
-  private final Map<String, List<String>> aHeaders;
+  @NotNull private final Map<String, List<String>> aHeaders;
 
   private Map<String, DataSource> aAttachments;
 
   private Principal aUserPrincipal;
 
-  public HttpMessage(final HttpServletRequest pRequest) throws UnsupportedEncodingException, IOException {
-    aHeaders = getHeaders(pRequest);
+  public HttpMessage(@NotNull final HttpServletRequest request) throws IOException {
+    aHeaders = getHeaders(request);
 
-    aQueries = toQueries(pRequest.getQueryString());
-    aUserPrincipal = pRequest.getUserPrincipal();
+    aQueries = toQueries(request.getQueryString());
+    aUserPrincipal = request.getUserPrincipal();
 
-    setMethod(pRequest.getMethod());
-    final String pathInfo = pRequest.getPathInfo();
-    setRequestPath((pathInfo == null) || (pathInfo.length() == 0) ? pRequest.getServletPath() : pathInfo);
-    setContextPath(pRequest.getContextPath());
-    if ("POST".equals(pRequest.getMethod()) || "PUT".equals(pRequest.getMethod())) {
-      aContentType = pRequest.getContentType();
+    setMethod(request.getMethod());
+    final String pathInfo = request.getPathInfo();
+    setRequestPath((pathInfo == null) || (pathInfo.length() == 0) ? request.getServletPath() : pathInfo);
+    setContextPath(request.getContextPath());
+    if ("POST".equals(request.getMethod()) || "PUT".equals(request.getMethod())) {
+      aContentType = request.getContentType();
       aCharacterEncoding = null;
       if (aContentType != null) {
         int i = aContentType.indexOf(';');
@@ -355,25 +364,25 @@ public class HttpMessage {
         }
       }
       if (aCharacterEncoding == null) {
-        aCharacterEncoding = pRequest.getCharacterEncoding();
+        aCharacterEncoding = request.getCharacterEncoding();
       }
       if (aCharacterEncoding == null) {
         aCharacterEncoding = "UTF-8";
       }
       final boolean isMultipart = (aContentType != null) && aContentType.startsWith("multipart/");
       if ("application/x-www-form-urlencoded".equals(aContentType)) {
-        aPost = toQueries(getBody(pRequest).toString(aCharacterEncoding));
+        aPost = toQueries(getBody(request).toString(aCharacterEncoding));
       } else if (isMultipart) {
-        aAttachments = HttpRequest.parseMultipartFormdata(pRequest.getInputStream(), HttpRequest.mimeType(pRequest.getContentType()), null);
+        aAttachments = HttpRequest.parseMultipartFormdata(request.getInputStream(), HttpRequest.mimeType(request.getContentType()), null);
       } else {
         @SuppressWarnings("resource")
-        final ByteArrayOutputStream baos = getBody(pRequest);
+        final ByteArrayOutputStream baos = getBody(request);
 
         final Document xml;
 
         xml = XmlUtil.tryParseXml(new ByteArrayInputStream(baos.toByteArray()));
         if (xml == null) {
-          addByteContent(baos.toByteArray(), pRequest.getContentType());
+          addByteContent(baos.toByteArray(), request.getContentType());
         } else {
           aBody = new Body();
           aBody.elements = new ArrayList<>(1);
@@ -388,25 +397,27 @@ public class HttpMessage {
    * Utility methods
    */
 
+  @NotNull
   @SuppressWarnings("unchecked")
-  private static Map<String, List<String>> getHeaders(final HttpServletRequest pRequest) {
+  private static Map<String, List<String>> getHeaders(@NotNull final HttpServletRequest request) {
     final Map<String, List<String>> result = new HashMap<>();
-    for (final Object oname : Iterators.<String> toIterable(pRequest.getHeaderNames())) {
-      String name = (String) oname;
-      final List<String> values = Iterators.<String> toList(pRequest.getHeaders(name));
+    for (final Object oname : Iterators.<String> toIterable(request.getHeaderNames())) {
+      final String name = (String) oname;
+      final List<String> values = Iterators.<String> toList(request.getHeaders(name));
       result.put(name, values);
     }
     return result;
   }
 
-  private static Map<String, String> toQueries(final String pQueryString) {
+  @NotNull
+  private static Map<String, String> toQueries(@Nullable final String queryString) {
     final Map<String, String> result = new HashMap<>();
 
-    if (pQueryString == null) {
+    if (queryString == null) {
       return result;
     }
 
-    String query = pQueryString;
+    String query = queryString;
     if ((query.length() > 0) && (query.charAt(0) == '?')) {
       /* strip questionmark */
       query = query.substring(1);
@@ -422,10 +433,10 @@ public class HttpMessage {
         }
       } else {
         if (('&' == query.charAt(i)) || (';' == query.charAt(i))) {
-          String value;
+          final String value;
           try {
             value = URLDecoder.decode(query.substring(startPos, i), "UTF-8");
-          } catch (final UnsupportedEncodingException e) {
+          } catch (@NotNull final UnsupportedEncodingException e) {
             throw new RuntimeException(e);
           }
           result.put(key, value);
@@ -443,7 +454,7 @@ public class HttpMessage {
       try {
         final String value = URLDecoder.decode(query.substring(startPos), "UTF-8");
         result.put(key, value);
-      } catch (final UnsupportedEncodingException e) {
+      } catch (@NotNull final UnsupportedEncodingException e) {
         throw new RuntimeException(e);
       }
 
@@ -453,13 +464,14 @@ public class HttpMessage {
   }
 
 
-  private static ByteArrayOutputStream getBody(final HttpServletRequest pRequest) throws IOException {
-    ByteArrayOutputStream baos;
+  @NotNull
+  private static ByteArrayOutputStream getBody(@NotNull final HttpServletRequest request) throws IOException {
+    final ByteArrayOutputStream baos;
     {
-      final int contentLength = pRequest.getContentLength();
+      final int contentLength = request.getContentLength();
       baos = contentLength > 0 ? new ByteArrayOutputStream(contentLength) : new ByteArrayOutputStream();
       final byte[] buffer = new byte[0xfffff];
-      try (final ServletInputStream is = pRequest.getInputStream()) {
+      try (final ServletInputStream is = request.getInputStream()) {
         int i;
         while ((i = is.read(buffer)) >= 0) {
           baos.write(buffer, 0, i);
@@ -469,50 +481,54 @@ public class HttpMessage {
     return baos;
   }
 
-  private void addByteContent(final byte[] pByteArray, final String pContentType) {
-    getByteContent().add(new ByteContentDataSource(null, pContentType, pByteArray));
+  private void addByteContent(final byte[] byteArray, final String contentType) {
+    getByteContent().add(new ByteContentDataSource(null, contentType, byteArray));
   }
 
   /*
    * Getters and setters
    */
 
-  public String getQuery(final String pName) {
-    return aQueries == null ? null : aQueries.get(pName);
+  @Nullable
+  public String getQuery(final String name) {
+    return aQueries == null ? null : aQueries.get(name);
   }
 
-  public String getPost(final String pName) {
+  @Nullable
+  public String getPost(final String name) {
     if (aPost != null) {
-      String result = aPost.get(pName);
+      String result = aPost.get(name);
       if ((result == null) && (aAttachments != null)) {
-        final DataSource source = aAttachments.get(pName);
+        final DataSource source = aAttachments.get(name);
         if (source != null) {
           try {
             result = Streams.toString(new InputStreamReader(source.getInputStream(), "UTF-8"));
-          } catch (final UnsupportedEncodingException e) {
+          } catch (@NotNull final UnsupportedEncodingException e) {
             throw new RuntimeException(e);
-          } catch (final IOException e) {
+          } catch (@NotNull final IOException e) {
             throw new RuntimeException(e);
           }
         }
       }
     }
-    return aPost == null ? null : aPost.get(pName);
+    return aPost == null ? null : aPost.get(name);
   }
 
-  public String getParam(final String pName) {
-    final String result = getQuery(pName);
+  @Nullable
+  public String getParam(final String name) {
+    final String result = getQuery(name);
     if (result != null) {
       return result;
     }
-    return getPost(pName);
+    return getPost(name);
   }
 
-  public DataSource getAttachment(final String pName) {
+  @Nullable
+  public DataSource getAttachment(final String name) {
     if (aAttachments == null) {
       return null;
     }
-    return aAttachments.get(pName);
+    return aAttachments.get(name);
   }
 
   public Map<String, DataSource> getAttachments() {
@@ -523,6 +539,7 @@ public class HttpMessage {
   }
 
 
+  @NotNull
   @XmlElement(name = "query", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getQueries() {
     if (aQueries == null) {
@@ -531,6 +548,7 @@ public class HttpMessage {
     return new QueryMapCollection(aQueries);
   }
 
+  @NotNull
   @XmlElement(name = "post", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getPost() {
     if (aPost == null) {
@@ -544,8 +562,8 @@ public class HttpMessage {
     return aBody;
   }
 
-  public void setBody(final Body pBody) {
-    aBody = pBody;
+  public void setBody(final Body body) {
+    aBody = body;
   }
 
   public Collection<ByteContentDataSource> getByteContent() {
@@ -564,12 +582,13 @@ public class HttpMessage {
     return aRequestPath;
   }
 
-  public Iterable<String> getHeaders(final String pName) {
-    return Collections.unmodifiableList(aHeaders.get(pName));
+  public Iterable<String> getHeaders(final String name) {
+    return Collections.unmodifiableList(aHeaders.get(name));
   }
 
-  public String getHeader(final String pName) {
-    final List<String> list = aHeaders.get(pName);
+  @Nullable
+  public String getHeader(final String name) {
+    final List<String> list = aHeaders.get(name);
     if ((list == null) || (list.size() < 1)) {
       return null;
     }
@@ -602,10 +621,12 @@ public class HttpMessage {
     return aContentType;
   }
 
+  @Nullable
   public String getCharacterEncoding() {
     return aCharacterEncoding;
   }
 
+  @Nullable
   public Source getContent() {
     final List<Node> elements = aBody.getElements();
     if (elements.size() == 0) {
@@ -622,15 +643,15 @@ public class HttpMessage {
     return aUserPrincipal.getName();
   }
 
-  void setUser(final String pName) {
-    aUserPrincipal = new SimplePrincipal(pName);
+  void setUser(final String name) {
+    aUserPrincipal = new SimplePrincipal(name);
   }
 
   public Principal getUserPrincipal() {
     return aUserPrincipal;
   }
 
-  void setUserPrincipal(final Principal pUserPrincipal) {
-    aUserPrincipal = pUserPrincipal;
+  void setUserPrincipal(final Principal userPrincipal) {
+    aUserPrincipal = userPrincipal;
   }
 }

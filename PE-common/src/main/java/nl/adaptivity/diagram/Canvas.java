@@ -14,52 +14,52 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
 
   S getStrategy();
 
-  Canvas<S, PEN_T, PATH_T> childCanvas(Rectangle area, double pScale);
+  Canvas<S, PEN_T, PATH_T> childCanvas(Rectangle area, double scale);
 
   /**
    * Draw a circle filled with the given color.
    *
-   * @param pX
-   * @param pY
-   * @param pRadius
-   * @param pColor
+   * @param x
+   * @param y
+   * @param radius
+   * @param color
    */
-  void drawFilledCircle(double pX, double pY, double pRadius, PEN_T pColor);
+  void drawFilledCircle(double x, double y, double radius, PEN_T color);
 
-  void drawRect(Rectangle pRect, PEN_T pColor);
+  void drawRect(Rectangle rect, PEN_T color);
 
-  void drawFilledRect(Rectangle pRect, PEN_T pColor);
+  void drawFilledRect(Rectangle rect, PEN_T color);
 
-  void drawCircle(double pX, double pY, double pRadius, PEN_T pColor);
+  void drawCircle(double x, double y, double radius, PEN_T color);
 
-  void drawRoundRect(Rectangle pRect, double pRx, double pRy, PEN_T pColor);
+  void drawRoundRect(Rectangle rect, double rx, double ry, PEN_T color);
 
-  void drawFilledRoundRect(Rectangle pRect, double pRx, double pRy, PEN_T pColor);
+  void drawFilledRoundRect(Rectangle rect, double rx, double ry, PEN_T color);
 
   /**
    * These are implemented in terms of drawPath, but don't allow for path caching.
-   * @param pPoints The points of the poly
-   * @param pColor The color
+   * @param points The points of the poly
+   * @param color The color
    */
   @Deprecated
-  void drawPoly(double[] pPoints, PEN_T pColor);
+  void drawPoly(double[] points, PEN_T color);
 
   @Deprecated
-  void drawFilledPoly(double[] pPoints, PEN_T pColor);
+  void drawFilledPoly(double[] points, PEN_T color);
 
-  void drawPath(PATH_T pPath, PEN_T pStroke, PEN_T pFill);
+  void drawPath(PATH_T path, PEN_T stroke, PEN_T fill);
 
   Theme<S, PEN_T, PATH_T> getTheme();
 
   /**
    * Draw the given text onto the canvas.
-   * @param TextPos The position of the text anchor.
+   * @param textPos The position of the text anchor.
    * @param left The left point for drawing the text.
    * @param baselineY The coordinate of the text baseline
    * @param text The text to draw.
    * @param foldWidth The width at which to fold the text.
    * @param pen The pen to use for it all.
    */
-  void drawText(TextPos pTextPos, double left, double baselineY, String text, double foldWidth, PEN_T pen);
+  void drawText(TextPos textPos, double left, double baselineY, String text, double foldWidth, PEN_T pen);
 
 }

@@ -12,6 +12,8 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
@@ -56,8 +58,9 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
   public static class Factory implements XmlDeserializerFactory {
 
+    @NotNull
     @Override
-    public Object deserialize(final XMLStreamReader in) throws XMLStreamException {
+    public Object deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
       return XmlMessage.deserialize(in);
     }
   }
@@ -69,120 +72,51 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
   public XmlMessage() { /* default constructor */ }
 
 
-  public XmlMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType, Source pMessageBody) throws
+  public XmlMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final Source messageBody) throws
           XMLStreamException {
-    super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
+    super(service, endpoint, operation, url, method, contentType, messageBody);
   }
 
 
-  public static XmlMessage get(IXmlMessage pMessage) throws XMLStreamException {
-    if (pMessage instanceof XmlMessage) { return (XmlMessage) pMessage; }
-    return new XmlMessage(pMessage.getService(),
-                          pMessage.getEndpoint(),
-                          pMessage.getOperation(),
-                          pMessage.getUrl(),
-                          pMessage.getMethod(),
-                          pMessage.getContentType(),
-                          pMessage.getBodySource());
+  @NotNull
+  public static XmlMessage get(final IXmlMessage message) throws XMLStreamException {
+    if (message instanceof XmlMessage) { return (XmlMessage) message; }
+    return new XmlMessage(message.getService(),
+                          message.getEndpoint(),
+                          message.getOperation(),
+                          message.getUrl(),
+                          message.getMethod(),
+                          message.getContentType(),
+                          message.getBodySource());
   }
 
-  public static XmlMessage deserialize(final XMLStreamReader pIn) throws XMLStreamException {
-    return XmlUtil.deserializeHelper(new XmlMessage(), pIn);
+  @NotNull
+  public static XmlMessage deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    return XmlUtil.deserializeHelper(new XmlMessage(), in);
   }
 
+  @NotNull
   @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
   @Override
-  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeStartElement(pOut, ELEMENTNAME);
+  protected void serializeStartElement(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
   }
 
 
-  @Override
-  public void setServiceName(String pName) {
-    super.setServiceName(pName);
-  }
-
-  @Override
-  @XmlAttribute(name = "serviceName", required = true)
-  public String getServiceName() {
-    return super.getServiceName();
-  }
-
-  @Override
-  public void setServiceNS(String pNamespace) {
-    super.setServiceNS(pNamespace);
-  }
-
-  @Override
-  @XmlAttribute(name = "serviceNS")
-  public String getServiceNS() {
-    return super.getServiceNS();
-  }
-
-  @Override
-  public void setEndpoint(String pValue) {
-    super.setEndpoint(pValue);
-  }
-
-  @Override
-  @XmlAttribute(name = "endpoint")
-  public String getEndpoint() {
-    return super.getEndpoint();
-  }
-
+  @Nullable
   @Override
   public EndpointDescriptor getEndpointDescriptor() {
     final String url = getUrl();
     return new EndpointDescriptorImpl(getService(), getEndpoint(), url==null ? null : URI.create(url));
   }
 
-  @Override
-  public void setOperation(String pValue) {
-    super.setOperation(pValue);
-  }
 
-
-  @Override
-  @XmlAttribute(name = "operation")
-  public String getOperation() {
-    return super.getOperation();
-  }
-
-  @Override
-  public void setUrl(String pValue) {
-    super.setUrl(pValue);
-  }
-
-  @Override
-  @XmlAttribute(name = "url")
-  public String getUrl() {
-    return super.getUrl();
-  }
-
-  @Override
-  public void setMethod(String pValue) {
-    super.setMethod(pValue);
-  }
-
-  @Override
-  @XmlAttribute(name = "method")
-  public String getMethod() {
-    return super.getMethod();
-  }
-
-  public void setContentType(String pType) {
-    super.setType(pType);
-  }
-
-
-  @Override
-  @XmlAttribute(name = "type")
-  public String getContentType() {
-    return super.getContentType();
+  public void setContentType(final String type) {
+    super.setType(type);
   }
 
 

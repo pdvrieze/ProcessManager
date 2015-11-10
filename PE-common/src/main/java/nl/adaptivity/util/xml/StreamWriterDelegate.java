@@ -13,7 +13,7 @@ public class StreamWriterDelegate implements XMLStreamWriter {
 
   final XMLStreamWriter mDelegate;
 
-  public StreamWriterDelegate(XMLStreamWriter delegate) {
+  public StreamWriterDelegate(final XMLStreamWriter delegate) {
     mDelegate = delegate;
   }
 

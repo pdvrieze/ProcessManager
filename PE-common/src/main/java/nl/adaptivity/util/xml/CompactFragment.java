@@ -1,5 +1,8 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -13,14 +16,14 @@ public class CompactFragment {
   private final SimpleNamespaceContext namespaces;
   private final char[] content;
 
-  public CompactFragment(final Iterable<Namespace> pNamespaces, final char[] pContent) {
-    namespaces = SimpleNamespaceContext.from(pNamespaces);
-    content = pContent;
+  public CompactFragment(final Iterable<Namespace> namespaces, final char[] content) {
+    this.namespaces = SimpleNamespaceContext.from(namespaces);
+    this.content = content;
   }
 
   /** Convenience constructor for content without namespaces. */
-  public CompactFragment(final String pString) {
-    this(Collections.<Namespace>emptyList(), pString.toCharArray());
+  public CompactFragment(@NotNull final String string) {
+    this(Collections.<Namespace>emptyList(), string.toCharArray());
   }
 
   public SimpleNamespaceContext getNamespaces() {
@@ -32,11 +35,11 @@ public class CompactFragment {
   }
 
   @Override
-  public boolean equals(final Object pO) {
-    if (this == pO) return true;
-    if (pO == null || getClass() != pO.getClass()) return false;
+  public boolean equals(@Nullable final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    CompactFragment that = (CompactFragment) pO;
+    final CompactFragment that = (CompactFragment) o;
 
     if (!namespaces.equals(that.namespaces)) return false;
     return Arrays.equals(content, that.content);
@@ -50,12 +53,13 @@ public class CompactFragment {
     return result;
   }
 
+  @NotNull
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder("CompactFragment{");
     sb.append("namespaces=[");
     {
-      int nsCount = namespaces.size();
+      final int nsCount = namespaces.size();
       for(int i = 0; i< nsCount; ++i) {
         if (i>0) { sb.append(", "); }
         sb.append(namespaces.getPrefix(i)).append(" -> ").append(namespaces.getNamespaceURI(i));
@@ -69,6 +73,7 @@ public class CompactFragment {
     return sb.toString();
   }
 
+  @NotNull
   public String getContentString() {
     return new String(getContent());
   }

@@ -1,130 +1,142 @@
 package nl.adaptivity.process.processModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import org.jetbrains.annotations.NotNull;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import nl.adaptivity.process.processModel.engine.IProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 
 @XmlRootElement(name = "processModels")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModelRefs<T extends ProcessNodeImpl> implements Collection<ProcessModelRef> {
+public class ProcessModelRefs implements Collection<IProcessModelRef<ProcessNodeImpl>> {
 
-  private Collection<ProcessModelRef> aCollection;
+  private Collection<IProcessModelRef<ProcessNodeImpl>> mCollection;
 
   public ProcessModelRefs() {
-    aCollection = new ArrayList<>();
+    mCollection = new ArrayList<>();
   }
 
-  public ProcessModelRefs(final Collection<? extends IProcessModelRef<? extends T>> pCollection) {
-    aCollection = new ArrayList<>(pCollection.size());
-    addAllI(pCollection);
+  /**
+   * Create a new collection with the given source of references to initialise it
+   * @param collection The initialiser.
+   */
+  public ProcessModelRefs(@NotNull final Collection<? extends IProcessModelRef<ProcessNodeImpl>> collection) {
+    mCollection = new ArrayList<>(collection.size());
+    addAll(collection);
   }
 
+  @NotNull
   @XmlElement(name = "processModel")
   public Collection<ProcessModelRef> getElements() {
-    if (aCollection == null) {
-      aCollection = new ArrayList<>();
+    if (mCollection == null) {
+      mCollection = new ArrayList<>();
     }
-    return aCollection;
+    //noinspection unchecked
+    return (Collection) mCollection;
   }
 
-  public boolean add(final IProcessModelRef<?> pE) {
-    if (pE instanceof ProcessModelRef) {
-      return aCollection.add((ProcessModelRef)pE);
+  public boolean add(final IProcessModelRef<ProcessNodeImpl> modelRef) {
+    if (modelRef instanceof ProcessModelRef) {
+      return mCollection.add(modelRef);
     } else {
-      return aCollection.add(new ProcessModelRef(pE));
+      return mCollection.add(new ProcessModelRef(modelRef));
     }
   }
 
-  @Override
-  public boolean add(final ProcessModelRef pE) {
-    return aCollection.add(pE);
+  public boolean add(final ProcessModelRef e) {
+    return mCollection.add(e);
   }
 
-  public boolean addAllI(final Collection<? extends IProcessModelRef<? extends T>> pC) {
+  public boolean addAll(@NotNull final Collection<? extends IProcessModelRef<ProcessNodeImpl>> c) {
     boolean changed = false;
-    for(IProcessModelRef<? extends T> elem:pC) {
-      if (elem instanceof ProcessModelRef) {
-        changed = aCollection.add((ProcessModelRef)elem) || changed;
-      } else {
-        changed = aCollection.add(new ProcessModelRef(elem)) || changed;
-      }
+    for(final IProcessModelRef<ProcessNodeImpl> elem:c) {
+      changed |= add(elem);
     }
     return changed;
   }
 
-  @Override
-  public boolean addAll(final Collection<? extends ProcessModelRef> pC) {
-    return aCollection.addAll(pC);
-  }
+//  @Override
+//  public boolean addAll(final Collection<? extends ProcessModelRef> pC) {
+//    return mCollection.addAll(pC);
+//  }
 
   @Override
   public void clear() {
-    aCollection.clear();
+    mCollection.clear();
   }
 
   @Override
-  public boolean contains(final Object pO) {
-    return aCollection.contains(pO);
+  public boolean contains(final Object o) {
+    return mCollection.contains(o);
   }
 
   @Override
-  public boolean containsAll(final Collection<?> pC) {
-    return aCollection.containsAll(pC);
+  public boolean containsAll(@NotNull final Collection<?> c) {
+    return mCollection.containsAll(c);
   }
 
   @Override
   public int hashCode() {
-    return aCollection.hashCode();
+    return mCollection.hashCode();
+  }
+
+  @Override
+  public boolean equals(@NotNull final Object obj) {
+    if (getClass()!=obj.getClass()) { return false; }
+    return mCollection.equals(((ProcessModelRefs)obj).mCollection);
   }
 
   @Override
   public boolean isEmpty() {
-    return aCollection.isEmpty();
+    return mCollection.isEmpty();
+  }
+
+  @NotNull
+  @Override
+  public Iterator<IProcessModelRef<ProcessNodeImpl>> iterator() {
+    return mCollection.iterator();
   }
 
   @Override
-  public Iterator<ProcessModelRef> iterator() {
-    return aCollection.iterator();
+  public boolean remove(final Object o) {
+    return mCollection.remove(o);
   }
 
   @Override
-  public boolean remove(final Object pO) {
-    return aCollection.remove(pO);
+  public boolean removeAll(@NotNull final Collection<?> c) {
+    return mCollection.removeAll(c);
   }
 
   @Override
-  public boolean removeAll(final Collection<?> pC) {
-    return aCollection.removeAll(pC);
-  }
-
-  @Override
-  public boolean retainAll(final Collection<?> pC) {
-    return aCollection.retainAll(pC);
+  public boolean retainAll(@NotNull final Collection<?> c) {
+    return mCollection.retainAll(c);
   }
 
   @Override
   public int size() {
-    return aCollection.size();
+    return mCollection.size();
   }
 
+  @NotNull
   @Override
   public Object[] toArray() {
-    return aCollection.toArray();
+    return mCollection.toArray();
   }
 
+  @NotNull
   @Override
-  public <U> U[] toArray(final U[] pA) {
-    return aCollection.toArray(pA);
+  public <U> U[] toArray(@NotNull final U[] a) {
+    //noinspection SuspiciousToArrayCall
+    return mCollection.toArray(a);
   }
 
 }

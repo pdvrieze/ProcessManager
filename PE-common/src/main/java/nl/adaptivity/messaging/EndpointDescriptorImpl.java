@@ -1,10 +1,13 @@
 package nl.adaptivity.messaging;
 
-import java.net.URI;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+
+import java.net.URI;
 
 
 /**
@@ -20,113 +23,114 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
 
-  private String aServiceLocalName;
+  private String mServiceLocalName;
 
-  private String aServiceNamespace;
+  private String mServiceNamespace;
 
-  private String aEndpointName;
+  private String mEndpointName;
 
-  private URI aEndpointLocation;
+  private URI mEndpointLocation;
 
   public EndpointDescriptorImpl() {}
 
-  public EndpointDescriptorImpl(final QName pServiceName, final String pEndpointName, final URI pEndpointLocation) {
-    aServiceLocalName = pServiceName.getLocalPart();
-    aServiceNamespace = pServiceName.getNamespaceURI();
-    aEndpointName = pEndpointName;
-    aEndpointLocation = pEndpointLocation;
+  public EndpointDescriptorImpl(@NotNull final QName serviceName, final String endpointName, final URI endpointLocation) {
+    mServiceLocalName = serviceName.getLocalPart();
+    mServiceNamespace = serviceName.getNamespaceURI();
+    mEndpointName = endpointName;
+    mEndpointLocation = endpointLocation;
   }
 
   @Override
   @XmlAttribute(name = "endpointName")
   public String getEndpointName() {
-    return aEndpointName;
+    return mEndpointName;
   }
 
   public void setEndpointName(final String endpointName) {
-    aEndpointName = endpointName;
+    mEndpointName = endpointName;
   }
 
   @XmlAttribute(name = "endpointLocation")
   String getEndpointLocationString() {
-    return aEndpointLocation.toString();
+    return mEndpointLocation.toString();
   }
 
-  void setEndpointLocationString(final String pLocation) {
-    aEndpointLocation = URI.create(pLocation);
+  void setEndpointLocationString(@NotNull final String location) {
+    mEndpointLocation = URI.create(location);
   }
 
   @Override
   public URI getEndpointLocation() {
-    return aEndpointLocation;
+    return mEndpointLocation;
   }
 
-  public void setEndpointLocation(final URI pLocation) {
-    aEndpointLocation = pLocation;
+  public void setEndpointLocation(final URI location) {
+    mEndpointLocation = location;
   }
 
   @XmlAttribute(name = "serviceLocalName")
   String getServiceLocalName() {
-    return aServiceLocalName;
+    return mServiceLocalName;
   }
 
   void setServiceLocalName(final String localName) {
-    aServiceLocalName = localName;
+    mServiceLocalName = localName;
   }
 
   @XmlAttribute(name = "serviceNS")
   String getServiceNamespace() {
-    return aServiceNamespace;
+    return mServiceNamespace;
   }
 
   void setServiceNamespace(final String serviceNamespace) {
-    aServiceNamespace = serviceNamespace;
+    mServiceNamespace = serviceNamespace;
   }
 
+  @NotNull
   @Override
   public QName getServiceName() {
-    return new QName(aServiceNamespace, aServiceLocalName);
+    return new QName(mServiceNamespace, mServiceLocalName);
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((aEndpointLocation == null) ? 0 : aEndpointLocation.hashCode());
-    result = prime * result + ((aEndpointName == null) ? 0 : aEndpointName.hashCode());
-    result = prime * result + ((aServiceLocalName == null) ? 0 : aServiceLocalName.hashCode());
-    result = prime * result + ((aServiceNamespace == null) ? 0 : aServiceNamespace.hashCode());
+    result = prime * result + ((mEndpointLocation == null) ? 0 : mEndpointLocation.hashCode());
+    result = prime * result + ((mEndpointName == null) ? 0 : mEndpointName.hashCode());
+    result = prime * result + ((mServiceLocalName == null) ? 0 : mServiceLocalName.hashCode());
+    result = prime * result + ((mServiceNamespace == null) ? 0 : mServiceNamespace.hashCode());
     return result;
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable final Object obj) {
     if (this == obj)
       return true;
     if (obj == null)
       return false;
     if (getClass() != obj.getClass())
       return false;
-    EndpointDescriptorImpl other = (EndpointDescriptorImpl) obj;
-    if (aEndpointLocation == null) {
-      if (other.aEndpointLocation != null)
+    final EndpointDescriptorImpl other = (EndpointDescriptorImpl) obj;
+    if (mEndpointLocation == null) {
+      if (other.mEndpointLocation != null)
         return false;
-    } else if (!aEndpointLocation.equals(other.aEndpointLocation))
+    } else if (!mEndpointLocation.equals(other.mEndpointLocation))
       return false;
-    if (aEndpointName == null) {
-      if (other.aEndpointName != null)
+    if (mEndpointName == null) {
+      if (other.mEndpointName != null)
         return false;
-    } else if (!aEndpointName.equals(other.aEndpointName))
+    } else if (!mEndpointName.equals(other.mEndpointName))
       return false;
-    if (aServiceLocalName == null) {
-      if (other.aServiceLocalName != null)
+    if (mServiceLocalName == null) {
+      if (other.mServiceLocalName != null)
         return false;
-    } else if (!aServiceLocalName.equals(other.aServiceLocalName))
+    } else if (!mServiceLocalName.equals(other.mServiceLocalName))
       return false;
-    if (aServiceNamespace == null) {
-      if (other.aServiceNamespace != null)
+    if (mServiceNamespace == null) {
+      if (other.mServiceNamespace != null)
         return false;
-    } else if (!aServiceNamespace.equals(other.aServiceNamespace))
+    } else if (!mServiceNamespace.equals(other.mServiceNamespace))
       return false;
     return true;
   }

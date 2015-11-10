@@ -16,14 +16,14 @@ public class GatheringNamespaceContext implements NamespaceContext {
   private final NamespaceContext aParentContext;
   private final Map<String, String> aResultMap;
 
-  public GatheringNamespaceContext(final NamespaceContext pParentContext, final Map<String, String> pResultMap) {
-    aParentContext = pParentContext;
-    aResultMap = pResultMap;
+  public GatheringNamespaceContext(final NamespaceContext parentContext, final Map<String, String> resultMap) {
+    aParentContext = parentContext;
+    aResultMap = resultMap;
   }
 
   @Override
   public String getNamespaceURI(final String prefix) {
-    String namespaceURI = aParentContext.getNamespaceURI(prefix);
+    final String namespaceURI = aParentContext.getNamespaceURI(prefix);
     if (namespaceURI != null && !(XMLConstants.XMLNS_ATTRIBUTE.equals(prefix))) {
       aResultMap.put(prefix, namespaceURI);
     }
@@ -32,7 +32,7 @@ public class GatheringNamespaceContext implements NamespaceContext {
 
   @Override
   public String getPrefix(final String namespaceURI) {
-    String prefix = aParentContext.getNamespaceURI(namespaceURI);
+    final String prefix = aParentContext.getNamespaceURI(namespaceURI);
     if (prefix != null && !(XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI))) {
       aResultMap.put(prefix, namespaceURI);
     }
@@ -43,7 +43,7 @@ public class GatheringNamespaceContext implements NamespaceContext {
   @Override
   public Iterator<String> getPrefixes(final String namespaceURI) {
     if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI)) {
-      for (Iterator<String> it = aParentContext.getPrefixes(namespaceURI); it.hasNext(); ) {
+      for (final Iterator<String> it = aParentContext.getPrefixes(namespaceURI); it.hasNext(); ) {
         aResultMap.put(it.next(), namespaceURI);
       }
     }

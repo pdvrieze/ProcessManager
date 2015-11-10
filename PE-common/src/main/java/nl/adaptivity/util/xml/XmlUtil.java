@@ -3,8 +3,9 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.xml.GatheringNamespaceContext;
-import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -47,8 +48,8 @@ public final class XmlUtil {
 
   private static class MetaStripper extends StreamWriterDelegate {
 
-    public MetaStripper(final XMLStreamWriter pWrapped) {
-      super(pWrapped);
+    public MetaStripper(final XMLStreamWriter wrapped) {
+      super(wrapped);
     }
 
     @Override
@@ -91,7 +92,7 @@ public final class XmlUtil {
   private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
   private static final StreamFilter SUBSTREAM_FILTER = new StreamFilter() {
     @Override
-    public boolean accept(final XMLStreamReader reader) {
+    public boolean accept(@NotNull final XMLStreamReader reader) {
       switch (reader.getEventType()) {
         case XMLStreamConstants.START_DOCUMENT:
         case XMLStreamConstants.END_DOCUMENT:
@@ -105,7 +106,7 @@ public final class XmlUtil {
   };
   private static final EventFilter SUBEVENTS_FILTER = new EventFilter() {
     @Override
-    public boolean accept(final XMLEvent event) {
+    public boolean accept(@NotNull final XMLEvent event) {
       switch (event.getEventType()) {
         case XMLStreamConstants.START_DOCUMENT:
         case XMLStreamConstants.END_DOCUMENT:
@@ -122,28 +123,31 @@ public final class XmlUtil {
   private XmlUtil() {
   }
 
-  public static Element createElement(final Document pDocument, final QName pOuterName) {
-    Element root;
-    if (XMLConstants.NULL_NS_URI.equals(pOuterName.getNamespaceURI()) || null == pOuterName.getNamespaceURI()) {
-      root = pDocument.createElement(pOuterName.getLocalPart());
-    } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(pOuterName.getPrefix())) {
-      root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getLocalPart());
+  public static Element createElement(@NotNull final Document document, @NotNull final QName outerName) {
+    final Element root;
+    if (XMLConstants.NULL_NS_URI.equals(outerName.getNamespaceURI()) || null == outerName.getNamespaceURI()) {
+      root = document.createElement(outerName.getLocalPart());
+    } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(outerName.getPrefix())) {
+      root = document.createElementNS(outerName.getNamespaceURI(), outerName.getLocalPart());
     } else {
-      root = pDocument.createElementNS(pOuterName.getNamespaceURI(), pOuterName.getPrefix() + ':' + pOuterName.getLocalPart());
+      root = document.createElementNS(outerName.getNamespaceURI(), outerName.getPrefix() + ':' + outerName.getLocalPart());
     }
     return root;
   }
 
-  public static Document tryParseXml(final InputStream pInputStream) throws IOException {
-    return tryParseXml(new InputSource(pInputStream));
+  @Nullable
+  public static Document tryParseXml(final InputStream inputStream) throws IOException {
+    return tryParseXml(new InputSource(inputStream));
   }
 
-  public static Document tryParseXml(final Reader pReader) throws IOException {
-    return tryParseXml(new InputSource(pReader));
+  @Nullable
+  public static Document tryParseXml(final Reader reader) throws IOException {
+    return tryParseXml(new InputSource(reader));
   }
 
-  public static Document tryParseXml(final String pString) throws IOException {
-    return tryParseXml(new StringReader(pString));
+  @Nullable
+  public static Document tryParseXml(@NotNull final String string) throws IOException {
+    return tryParseXml(new StringReader(string));
   }
 
   public static Document tryParseXml(final InputSource s) throws IOException {
@@ -153,68 +157,71 @@ public final class XmlUtil {
       final DocumentBuilder db = dbf.newDocumentBuilder();
 
       return db.parse(s);
-    } catch (final SAXException e) {
+    } catch (@NotNull final SAXException e) {
       return null;
-    } catch (final ParserConfigurationException e) {
+    } catch (@NotNull final ParserConfigurationException e) {
       e.printStackTrace();
       return null;
     }
   }
 
-  public static DocumentFragment tryParseXmlFragment(final Reader pReader) throws IOException {
+  public static DocumentFragment tryParseXmlFragment(final Reader reader) throws IOException {
     try {
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
-      DocumentBuilder db = dbf.newDocumentBuilder();
-      Document doc = db.parse(new InputSource(new CombiningReader(new StringReader("<elem>"), pReader, new StringReader("</elem>"))));
-      DocumentFragment frag = doc.createDocumentFragment();
-      Element docelem = doc.getDocumentElement();
+      final DocumentBuilder db = dbf.newDocumentBuilder();
+      final Document doc = db.parse(new InputSource(new CombiningReader(new StringReader("<elem>"), reader, new StringReader("</elem>"))));
+      final DocumentFragment frag = doc.createDocumentFragment();
+      final Element docelem = doc.getDocumentElement();
       for (Node child = docelem.getFirstChild(); child != null; child = docelem.getFirstChild()) {
         frag.appendChild(child);
       }
       doc.removeChild(docelem);
       return frag;
-    } catch (ParserConfigurationException | SAXException pE) {
-      throw new IOException(pE);
+    } catch (@NotNull ParserConfigurationException | SAXException e) {
+      throw new IOException(e);
     }
 
   }
 
-  public static QName asQName(final Node pReference, final String pName) {
-    final int colPos = pName.indexOf(':');
+  @NotNull
+  public static QName asQName(@NotNull final Node reference, @NotNull final String name) {
+    final int colPos = name.indexOf(':');
     if (colPos >= 0) {
-      final String prefix = pName.substring(0, colPos);
-      return new QName(pReference.lookupNamespaceURI(prefix), pName.substring(colPos + 1), prefix);
+      final String prefix = name.substring(0, colPos);
+      return new QName(reference.lookupNamespaceURI(prefix), name.substring(colPos + 1), prefix);
     } else {
-      return new QName(pReference.lookupNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), pName, XMLConstants.NULL_NS_URI);
+      return new QName(reference.lookupNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.NULL_NS_URI);
     }
 
   }
 
-  public static QName asQName(final NamespaceContext pReference, final String pName) {
-    final int colPos = pName.indexOf(':');
+  @NotNull
+  public static QName asQName(@NotNull final NamespaceContext reference, @NotNull final String name) {
+    final int colPos = name.indexOf(':');
     if (colPos >= 0) {
-      final String prefix = pName.substring(0, colPos);
-      return new QName(pReference.getNamespaceURI(prefix), pName.substring(colPos + 1), prefix);
+      final String prefix = name.substring(0, colPos);
+      return new QName(reference.getNamespaceURI(prefix), name.substring(colPos + 1), prefix);
     } else {
-      return new QName(pReference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), pName, XMLConstants.NULL_NS_URI);
+      return new QName(reference.getNamespaceURI(XMLConstants.DEFAULT_NS_PREFIX), name, XMLConstants.NULL_NS_URI);
     }
 
   }
 
-  public static Element getChild(final Element pParent, final QName pName) {
-    return getFirstChild(pParent, pName.getNamespaceURI(), pName.getLocalPart());
+  @Nullable
+  public static Element getChild(@NotNull final Element parent, @NotNull final QName name) {
+    return getFirstChild(parent, name.getNamespaceURI(), name.getLocalPart());
   }
 
-  public static Element getFirstChild(final Element pParent, final String pNamespaceURI, final String pLocalName) {
-    for (Element child = getFirstChildElement(pParent); child != null; child = getNextSiblingElement(child)) {
-      if ((pNamespaceURI == null) || (pNamespaceURI.length() == 0)) {
+  public static Element getFirstChild(@NotNull final Element parent, @Nullable final String namespaceURI, final String localName) {
+    for (Element child = getFirstChildElement(parent); child != null; child = getNextSiblingElement(child)) {
+      if ((namespaceURI == null) || (namespaceURI.length() == 0)) {
         if (((child.getNamespaceURI() == null) || (child.getNamespaceURI().length() == 0))
-                && StringUtil.isEqual(pLocalName, child.getLocalName())) {
+                && StringUtil.isEqual(localName, child.getLocalName())) {
           return child;
         }
       } else {
-        if (StringUtil.isEqual(pNamespaceURI, child.getNamespaceURI()) && StringUtil.isEqual(pLocalName, child.getLocalName())) {
+        if (StringUtil.isEqual(namespaceURI, child.getNamespaceURI()) && StringUtil.isEqual(localName, child.getLocalName())) {
           return child;
         }
       }
@@ -222,35 +229,36 @@ public final class XmlUtil {
     return null;
   }
 
-  public static Element getNextSibling(final Element pSibling, final QName pName) {
-    return getNextSibling(pSibling, pName.getNamespaceURI(), pName.getLocalPart());
+  @Nullable
+  public static Element getNextSibling(@NotNull final Element sibling, @NotNull final QName name) {
+    return getNextSibling(sibling, name.getNamespaceURI(), name.getLocalPart());
   }
 
-  public static Element getNextSibling(final Element pSibling, final String pNamespaceURI, final String pLocalName) {
-    for (Element child = getNextSiblingElement(pSibling); child != null; child = getNextSiblingElement(child)) {
-      if (StringUtil.isEqual(pNamespaceURI, child.getNamespaceURI()) && StringUtil.isEqual(pLocalName, child.getLocalName())) {
+  public static Element getNextSibling(@NotNull final Element sibling, final String namespaceURI, final String localName) {
+    for (Element child = getNextSiblingElement(sibling); child != null; child = getNextSiblingElement(child)) {
+      if (StringUtil.isEqual(namespaceURI, child.getNamespaceURI()) && StringUtil.isEqual(localName, child.getLocalName())) {
         return child;
       }
     }
     return null;
   }
 
-  public static String getQualifiedName(final QName pName) {
-    final String prefix = pName.getPrefix();
+  public static String getQualifiedName(@NotNull final QName name) {
+    final String prefix = name.getPrefix();
     if ((prefix == null) || (prefix == XMLConstants.NULL_NS_URI)) {
-      return pName.getLocalPart();
+      return name.getLocalPart();
     }
-    return prefix + ':' + pName.getLocalPart();
+    return prefix + ':' + name.getLocalPart();
   }
 
   /**
    * Return the first child that is an element.
    *
-   * @param pParent The parent element.
+   * @param parent The parent element.
    * @return The first element child, or <code>null</code> if there is none.
    */
-  public static Element getFirstChildElement(final Element pParent) {
-    for (Node child = pParent.getFirstChild(); child != null; child = child.getNextSibling()) {
+  public static Element getFirstChildElement(@NotNull final Element parent) {
+    for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (child instanceof Element) {
         return (Element) child;
       }
@@ -261,11 +269,11 @@ public final class XmlUtil {
   /**
    * Return the next sibling that is an element.
    *
-   * @param pSibling The reference element.
+   * @param sibling The reference element.
    * @return The next element sibling, or <code>null</code> if there is none.
    */
-  public static Element getNextSiblingElement(final Element pSibling) {
-    for (Node child = pSibling.getNextSibling(); child != null; child = child.getNextSibling()) {
+  public static Element getNextSiblingElement(@NotNull final Element sibling) {
+    for (Node child = sibling.getNextSibling(); child != null; child = child.getNextSibling()) {
       if (child instanceof Element) {
         return (Element) child;
       }
@@ -273,16 +281,16 @@ public final class XmlUtil {
     return null;
   }
 
-  public static void serialize(XMLStreamWriter pOut, Node pNode) throws XMLStreamException {
-    serialize(pOut, new StAXSource(createXMLStreamReader(XMLInputFactory.newFactory(), new DOMSource(pNode))));
+  public static void serialize(@NotNull final XMLStreamWriter out, final Node node) throws XMLStreamException {
+    serialize(out, new StAXSource(createXMLStreamReader(XMLInputFactory.newFactory(), new DOMSource(node))));
   }
 
-  public static void serialize(XMLStreamWriter pOut, final StAXSource source) throws
+  public static void serialize(@NotNull final XMLStreamWriter out, @NotNull final StAXSource source) throws
           XMLStreamException {
-    serialize(createXMLEventWriter(XMLOutputFactory.newFactory(), pOut), createXMLEventReader(XMLInputFactory.newFactory(), source));
+    serialize(createXMLEventWriter(XMLOutputFactory.newFactory(), out), createXMLEventReader(XMLInputFactory.newFactory(), source));
   }
 
-  public static void serialize(XMLEventWriter out, XMLEventReader in) throws XMLStreamException {
+  public static void serialize(@NotNull final XMLEventWriter out, final XMLEventReader in) throws XMLStreamException {
     out.add(in);
   }
 
@@ -290,27 +298,28 @@ public final class XmlUtil {
    * @deprecated  This goes throught transformer and DOM, as such avoid it.
    */
   @Deprecated
-  public static void serialize(XMLStreamWriter pOut, final Source source) throws TransformerFactoryConfigurationError,
+  public static void serialize(@NotNull final XMLStreamWriter out, final Source source) throws TransformerFactoryConfigurationError,
       XMLStreamException {
     if (source instanceof StAXSource) {
-      serialize(pOut, (StAXSource) source);
+      serialize(out, (StAXSource) source);
       return;
     }
     try {
-      Transformer transformer = TransformerFactory
+      final Transformer transformer = TransformerFactory
               .newInstance()
               .newTransformer();
       transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-      transformer.transform(source, new StAXResult(pOut));
+      transformer.transform(source, new StAXResult(out));
 
-    } catch (TransformerException e) {
+    } catch (@NotNull final TransformerException e) {
       throw new XMLStreamException(e);
     }
   }
 
-  public static <T extends XmlDeserializable> T deserializeHelper(T result, final XMLStreamReader in) throws XMLStreamException {
+  @NotNull
+  public static <T extends XmlDeserializable> T deserializeHelper(@NotNull final T result, @NotNull final XMLStreamReader in) throws XMLStreamException {
     XmlUtil.skipPreamble(in);
-    QName elementName = result.getElementName();
+    final QName elementName = result.getElementName();
     assert XmlUtil.isElement(in, elementName): "Expected "+elementName+" but found "+in.getName();
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
@@ -348,108 +357,109 @@ public final class XmlUtil {
     return result;
   }
 
-  public static <T> T deSerialize(InputStream pIn, Class<T> type) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return deSerialize(xif.createXMLStreamReader(pIn), type);
+  public static <T> T deSerialize(final InputStream in, @NotNull final Class<T> type) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    return deSerialize(xif.createXMLStreamReader(in), type);
   }
 
-  public static <T> T deSerialize(Reader pIn, Class<T> type) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return deSerialize(xif.createXMLStreamReader(pIn), type);
+  public static <T> T deSerialize(final Reader in, @NotNull final Class<T> type) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    return deSerialize(xif.createXMLStreamReader(in), type);
   }
 
-  public static <T> T deSerialize(Source pIn, Class<T> type) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return deSerialize(xif.createXMLStreamReader(pIn), type);
+  public static <T> T deSerialize(final Source in, @NotNull final Class<T> type) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    return deSerialize(xif.createXMLStreamReader(in), type);
   }
 
-  public static <T> T deSerialize(XMLStreamReader pIn, Class<T> type) throws XMLStreamException {
-    XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
+  public static <T> T deSerialize(final XMLStreamReader in, @NotNull final Class<T> type) throws XMLStreamException {
+    final XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
     if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
     try {
-      @SuppressWarnings("unchecked") XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
-      return factory.deserialize(pIn);
-    } catch (InstantiationException | IllegalAccessException pE) {
-      throw new RuntimeException(pE);
+      @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
+      return factory.deserialize(in);
+    } catch (@NotNull InstantiationException | IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
-  public static String toString(Node pValue) {
-    return toString(pValue, DEFAULT_FLAGS);
+  public static String toString(final Node value) {
+    return toString(value, DEFAULT_FLAGS);
   }
 
-  public static String toString(Node pValue, int flags) {
-    StringWriter out =new StringWriter();
+  public static String toString(final Node value, final int flags) {
+    final StringWriter out =new StringWriter();
     try {
       final Transformer t = TransformerFactory
         .newInstance()
         .newTransformer();
       configure(t, flags);
-      t.transform(new DOMSource(pValue), new StreamResult(out));
-    } catch (TransformerException e) {
+      t.transform(new DOMSource(value), new StreamResult(out));
+    } catch (@NotNull final TransformerException e) {
       throw new RuntimeException(e);
     }
     return out.toString();
   }
 
-  public static String toString(NodeList pNodeList) {
-    return toString(pNodeList, DEFAULT_FLAGS);
+  public static String toString(@NotNull final NodeList nodeList) {
+    return toString(nodeList, DEFAULT_FLAGS);
   }
 
-  public static String toString(final NodeList pNodeList, final int pFlags) {
-    StringWriter out =new StringWriter();
+  public static String toString(@NotNull final NodeList nodeList, final int flags) {
+    final StringWriter out =new StringWriter();
     try {
       final Transformer t = TransformerFactory
         .newInstance()
         .newTransformer();
-      configure(t, pFlags);
-      for(int i=0; i<pNodeList.getLength(); ++i) {
-        t.transform(new DOMSource(pNodeList.item(i)), new StreamResult(out));
+      configure(t, flags);
+      for(int i=0; i<nodeList.getLength(); ++i) {
+        t.transform(new DOMSource(nodeList.item(i)), new StreamResult(out));
       }
-    } catch (TransformerException e) {
+    } catch (@NotNull final TransformerException e) {
       throw new RuntimeException(e);
     }
     return out.toString();
   }
 
-  public static String toString(XmlSerializable pSerializable) {
-    int flags = DEFAULT_FLAGS;
-    return toString(pSerializable, flags);
+  public static String toString(@NotNull final XmlSerializable serializable) {
+    final int flags = DEFAULT_FLAGS;
+    return toString(serializable, flags);
   }
 
-  public static String readSimpleElement(final XMLStreamReader pIn) throws XMLStreamException {
-    return pIn.getElementText();
+  public static String readSimpleElement(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    return in.getElementText();
   }
 
   /**
    * Filter the stream such that is a valid substream. This basically strips start document, end document, processing
    * instructions and dtd declarations.
-   * @param pStreamReader The original stream reader.
+   * @param streamReader The original stream reader.
    * @return A filtered stream
    */
-  public static XMLStreamReader filterSubstream(final XMLStreamReader pStreamReader) throws
+  public static XMLStreamReader filterSubstream(final XMLStreamReader streamReader) throws
           XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return xif.createFilteredReader(pStreamReader, SUBSTREAM_FILTER);
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    return xif.createFilteredReader(streamReader, SUBSTREAM_FILTER);
   }
 
-  public static XMLEventReader filterSubstream(final XMLEventReader pXMLEventReader) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return xif.createFilteredReader(pXMLEventReader, SUBEVENTS_FILTER);
+  public static XMLEventReader filterSubstream(final XMLEventReader xMLEventReader) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    return xif.createFilteredReader(xMLEventReader, SUBEVENTS_FILTER);
   }
 
-  public static String xmlEncode(final String pUnEncoded) {
+  @NotNull
+  public static String xmlEncode(@NotNull final String unEncoded) {
     StringBuilder result = null;
     int last=0;
-    for(int i=0; i<pUnEncoded.length(); ++i) {
-      switch (pUnEncoded.charAt(i)) {
+    for(int i=0; i<unEncoded.length(); ++i) {
+      switch (unEncoded.charAt(i)) {
         case '<':
-          if (result==null) { result = new StringBuilder(pUnEncoded.length()); }
-          result.append(pUnEncoded,last, i).append("&lt;");
+          if (result==null) { result = new StringBuilder(unEncoded.length()); }
+          result.append(unEncoded,last, i).append("&lt;");
           last = i+1;
           break;
         case '&':
-          if (result==null) { result = new StringBuilder(pUnEncoded.length()); }
-          result.append(pUnEncoded,last, i).append("&amp;");
+          if (result==null) { result = new StringBuilder(unEncoded.length()); }
+          result.append(unEncoded,last, i).append("&amp;");
           last = i+1;
           break;
         default:
@@ -457,65 +467,66 @@ public final class XmlUtil {
       }
 
     }
-    if (result==null) { return pUnEncoded; }
-    result.append(pUnEncoded, last, pUnEncoded.length());
+    if (result==null) { return unEncoded; }
+    result.append(unEncoded, last, unEncoded.length());
     return result.toString();
   }
 
-  public static void safeAdd(final XMLEventWriter pXew, final XMLEventReader pXer) throws XMLStreamException {
-    while(pXer.hasNext()) {
-      safeAdd(pXew, pXer.nextEvent());
+  public static void safeAdd(@NotNull final XMLEventWriter xew, @NotNull final XMLEventReader xer) throws XMLStreamException {
+    while(xer.hasNext()) {
+      safeAdd(xew, xer.nextEvent());
     }
   }
 
-  public static void safeAdd(final XMLEventWriter pXew, final XMLEvent pEvent) throws XMLStreamException {
-    if (pEvent.isStartElement()) {
-      StartElement startElement = pEvent.asStartElement();
-      Map<String,String> prefixes = new HashMap<>();
+  public static void safeAdd(@NotNull final XMLEventWriter xew, @NotNull final XMLEvent event) throws XMLStreamException {
+    if (event.isStartElement()) {
+      final StartElement startElement = event.asStartElement();
+      final Map<String,String> prefixes = new HashMap<>();
       prefixes.put(startElement.getName().getPrefix(), startElement.getName().getNamespaceURI());
-      for(@SuppressWarnings("unchecked") Iterator<Attribute> attrs = startElement.getAttributes(); attrs.hasNext();) {
-        Attribute attr = attrs.next();
-        String prefix = attr.getName().getPrefix();
+      for(@SuppressWarnings("unchecked") final Iterator<Attribute> attrs = startElement.getAttributes(); attrs.hasNext();) {
+        final Attribute attr = attrs.next();
+        final String prefix = attr.getName().getPrefix();
         if(!(prefixes.containsKey(prefix)|| prefix.isEmpty())) {
           prefixes.put(prefix, attr.getName().getNamespaceURI());
         }
       }
-      List<javax.xml.stream.events.Namespace> namespaceDecls = new ArrayList<>();
-      for(@SuppressWarnings("unchecked")
+      final List<javax.xml.stream.events.Namespace> namespaceDecls = new ArrayList<>();
+      for(@SuppressWarnings("unchecked") final
           Iterator<javax.xml.stream.events.Namespace> namespaces = startElement.getNamespaces(); namespaces.hasNext(); ) {
-        javax.xml.stream.events.Namespace namespace = namespaces.next();
+        final javax.xml.stream.events.Namespace namespace = namespaces.next();
         namespaceDecls.add(namespace);
         prefixes.remove(namespace.getPrefix()); // Remove the prefixes locally declared
       }
       if (! prefixes.isEmpty()) {
-        for (Iterator<Entry<String, String>> prefixit = prefixes.entrySet().iterator(); prefixit.hasNext(); ) {
-          Entry<String, String> prefix = prefixit.next();
-          if (Objects.equals(prefix.getValue(), pXew.getNamespaceContext().getNamespaceURI(prefix.getKey()))) {
+        for (final Iterator<Entry<String, String>> prefixit = prefixes.entrySet().iterator(); prefixit.hasNext(); ) {
+          final Entry<String, String> prefix = prefixit.next();
+          if (Objects.equals(prefix.getValue(), xew.getNamespaceContext().getNamespaceURI(prefix.getKey()))) {
             prefixit.remove(); // No need to add the namespace
           }
         }
       }
       if (prefixes.isEmpty()) {
-        pXew.add(pEvent);
+        xew.add(event);
       } else {
-        XMLEventFactory xef = XMLEventFactory.newFactory();
-        for(Entry<String, String> prefix:prefixes.entrySet()) {
+        final XMLEventFactory xef = XMLEventFactory.newFactory();
+        for(final Entry<String, String> prefix:prefixes.entrySet()) {
           namespaceDecls.add(xef.createNamespace(prefix.getKey(), prefix.getValue()));
         }
-        StartElement newEvent = xef.createStartElement(startElement.getName(), startElement.getAttributes(), namespaceDecls.iterator());
-        pXew.add(newEvent);
+        final StartElement newEvent = xef.createStartElement(startElement.getName(), startElement.getAttributes(), namespaceDecls.iterator());
+        xew.add(newEvent);
       }
     } else {
-      pXew.add(pEvent);
+      xew.add(event);
     }
   }
 
-  public static DocumentFragment toDocFragment(NodeList pValue) {
-    if (pValue==null || pValue.getLength()==0) { return null; }
-    Document document = pValue.item(0).getOwnerDocument();
-    DocumentFragment fragment = document.createDocumentFragment();
-    for(int i=0; i<pValue.getLength(); ++i) {
-      final Node n = pValue.item(i);
+  @Nullable
+  public static DocumentFragment toDocFragment(@Nullable final NodeList value) {
+    if (value==null || value.getLength()==0) { return null; }
+    final Document document = value.item(0).getOwnerDocument();
+    final DocumentFragment fragment = document.createDocumentFragment();
+    for(int i=0; i<value.getLength(); ++i) {
+      final Node n = value.item(i);
       if (n.getOwnerDocument()!=document) {
         fragment.appendChild(document.adoptNode(n.cloneNode(true)));
       } else {
@@ -525,148 +536,148 @@ public final class XmlUtil {
     return fragment;
   }
 
-  private static String toString(final XmlSerializable pSerializable, final int pFlags) {
-    StringWriter out =new StringWriter();
-    XMLOutputFactory factory = XMLOutputFactory.newInstance();
-    configure(factory, pFlags);
+  private static String toString(@NotNull final XmlSerializable serializable, final int flags) {
+    final StringWriter out =new StringWriter();
+    final XMLOutputFactory factory = XMLOutputFactory.newInstance();
+    configure(factory, flags);
     try {
-      XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
-      pSerializable.serialize(serializer);
+      final XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
+      serializable.serialize(serializer);
       serializer.close();
-    } catch (XMLStreamException e) {
+    } catch (@NotNull final XMLStreamException e) {
       throw new RuntimeException(e);
     }
     return out.toString();
   }
 
-  public static char[] toCharArray(final Source pContent) throws XMLStreamException {
-    return toCharArrayWriter(pContent).toCharArray();
+  public static char[] toCharArray(final Source content) throws XMLStreamException {
+    return toCharArrayWriter(content).toCharArray();
   }
 
-  public static String toString(final Source pSource) throws XMLStreamException {
-    return toCharArrayWriter(pSource).toString();
+  public static String toString(final Source source) throws XMLStreamException {
+    return toCharArrayWriter(source).toString();
   }
 
-  private static CharArrayWriter toCharArrayWriter(final Source pSource) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    XMLEventReader in = createXMLEventReader(xif, pSource);
+  @NotNull
+  private static CharArrayWriter toCharArrayWriter(final Source source) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    final XMLEventReader in = createXMLEventReader(xif, source);
     return toCharArrayWriter(in);
   }
 
-  public static XMLEventReader createXMLEventReader(final XMLInputFactory pXif, final StAXSource pSource) throws
+  public static XMLEventReader createXMLEventReader(final XMLInputFactory xif, @NotNull final StAXSource source) throws
           XMLStreamException {
-    XMLEventReader eventReader = pSource.getXMLEventReader();
+    final XMLEventReader eventReader = source.getXMLEventReader();
     if (eventReader !=null) { return eventReader; }
-    if (pXif instanceof XMLInputFactory2) {
-      return ((XMLInputFactory2)pXif).createXMLEventReader(pSource.getXMLStreamReader());
-    }
-    return pXif.createXMLEventReader(pSource);
+    return xif.createXMLEventReader(source.getXMLStreamReader());
   }
 
-  public static XMLEventReader createXMLEventReader(final XMLInputFactory pXif, final Source pSource) throws
+  public static XMLEventReader createXMLEventReader(@NotNull final XMLInputFactory xif, final Source source) throws
           XMLStreamException {
-    if (pSource instanceof StAXSource) {
-      return createXMLEventReader(pXif, (StAXSource) pSource);
+    if (source instanceof StAXSource) {
+      return createXMLEventReader(xif, (StAXSource) source);
     }
-    return pXif.createXMLEventReader(pSource);
+    return xif.createXMLEventReader(source);
   }
 
-  public static XMLStreamReader createXMLStreamReader(final XMLInputFactory pXif, final StAXSource pSource) throws
+  public static XMLStreamReader createXMLStreamReader(final XMLInputFactory xif, @NotNull final StAXSource source) throws
           XMLStreamException {
-    XMLStreamReader streamReader = pSource.getXMLStreamReader();
+    final XMLStreamReader streamReader = source.getXMLStreamReader();
     if (streamReader !=null) { return streamReader; }
-    return new XMLEventStreamReader(pSource.getXMLEventReader());
+    return new XMLEventStreamReader(source.getXMLEventReader());
   }
 
-  public static XMLStreamReader createXMLStreamReader(final XMLInputFactory pXif, final Source pSource) throws
+  public static XMLStreamReader createXMLStreamReader(@NotNull final XMLInputFactory xif, final Source source) throws
           XMLStreamException {
-    if (pSource instanceof StAXSource) {
-      return createXMLStreamReader(pXif, (StAXSource) pSource);
+    if (source instanceof StAXSource) {
+      return createXMLStreamReader(xif, (StAXSource) source);
     }
-    return pXif.createXMLStreamReader(pSource);
+    return xif.createXMLStreamReader(source);
   }
 
-  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory pXof, final Result pResult) throws
+  public static XMLEventWriter createXMLEventWriter(@NotNull final XMLOutputFactory xof, final Result result) throws
           XMLStreamException {
-    if (pResult instanceof StAXResult) {
-      return createXMLEventWriter(pXof, (StAXResult) pResult);
+    if (result instanceof StAXResult) {
+      return createXMLEventWriter(xof, (StAXResult) result);
     }
-    return pXof.createXMLEventWriter(pResult);
+    return xof.createXMLEventWriter(result);
   }
 
-  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory pXof, final StAXResult pResult) throws
+  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory xof, @NotNull final StAXResult result) throws
           XMLStreamException {
-    XMLEventWriter eventWriter = pResult.getXMLEventWriter();
+    final XMLEventWriter eventWriter = result.getXMLEventWriter();
     if (eventWriter!=null) { return eventWriter; }
-    if (pXof instanceof XMLOutputFactory2) {
-      return ((XMLOutputFactory2) pXof).createXMLEventWriter(pResult.getXMLStreamWriter());
+    if (xof instanceof XMLOutputFactory2) {
+      return ((XMLOutputFactory2) xof).createXMLEventWriter(result.getXMLStreamWriter());
     }
-    return pXof.createXMLEventWriter(pResult);
+    return xof.createXMLEventWriter(result);
   }
 
-  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory pXof, final XMLStreamWriter streamWriter) throws
+  public static XMLEventWriter createXMLEventWriter(final XMLOutputFactory xof, @NotNull final XMLStreamWriter streamWriter) throws
           XMLStreamException {
-    if (pXof instanceof XMLOutputFactory2) {
-      return ((XMLOutputFactory2) pXof).createXMLEventWriter(streamWriter);
+    if (xof instanceof XMLOutputFactory2) {
+      return ((XMLOutputFactory2) xof).createXMLEventWriter(streamWriter);
     }
-    return pXof.createXMLEventWriter(new StAXResult(streamWriter));
+    return xof.createXMLEventWriter(new StAXResult(streamWriter));
   }
 
-  private static CharArrayWriter toCharArrayWriter(final XMLEventReader pIn) throws XMLStreamException {
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    CharArrayWriter caw = new CharArrayWriter();
-    XMLEventWriter xew = xof.createXMLEventWriter(caw);
+  @NotNull
+  private static CharArrayWriter toCharArrayWriter(final XMLEventReader in) throws XMLStreamException {
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final CharArrayWriter caw = new CharArrayWriter();
+    final XMLEventWriter xew = xof.createXMLEventWriter(caw);
     try {
-      xew.add(pIn);
+      xew.add(in);
     } finally {
       xew.close();
     }
     return caw;
   }
 
-  public static XMLStreamWriter stripMetatags(final XMLStreamWriter pOut) {
-    return new MetaStripper(pOut);
+  @NotNull
+  public static XMLStreamWriter stripMetatags(final XMLStreamWriter out) {
+    return new MetaStripper(out);
   }
 
-  public static void setAttribute(final Element pElement, final QName pName, final String pValue) {
-    if (pName.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(pName.getNamespaceURI())) {
-      pElement.setAttribute(pName.getLocalPart(), pValue);
-    } else if (pName.getPrefix()==null || XMLConstants.DEFAULT_NS_PREFIX.equals(pName.getPrefix())) {
-      pElement.setAttributeNS(pName.getNamespaceURI(),pName.getLocalPart(), pValue);
+  public static void setAttribute(@NotNull final Element element, @NotNull final QName name, final String value) {
+    if (name.getNamespaceURI()==null || XMLConstants.NULL_NS_URI.equals(name.getNamespaceURI())) {
+      element.setAttribute(name.getLocalPart(), value);
+    } else if (name.getPrefix()==null || XMLConstants.DEFAULT_NS_PREFIX.equals(name.getPrefix())) {
+      element.setAttributeNS(name.getNamespaceURI(),name.getLocalPart(), value);
     } else {
-      pElement.setAttributeNS(pName.getNamespaceURI(),pName.getPrefix()+':'+pName.getLocalPart(), pValue);
+      element.setAttributeNS(name.getNamespaceURI(),name.getPrefix()+':'+name.getLocalPart(), value);
     }
   }
 
   public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in) throws XMLStreamException {
     try {
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
-      Document doc = null;
+      Document doc;
       try {
         doc = dbf.newDocumentBuilder().newDocument();
-      } catch (ParserConfigurationException e) {
+      } catch (@NotNull final ParserConfigurationException e) {
         throw new XMLStreamException(e);
       }
 
-      XMLInputFactory xif = XMLInputFactory.newFactory();
-      XMLEventReader xer = xif.createXMLEventReader(in);
+      final XMLInputFactory xif = XMLInputFactory.newFactory();
+      final XMLEventReader xer = xif.createXMLEventReader(in);
 
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
       xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
-      DocumentFragment documentFragment = doc.createDocumentFragment();
-      XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
-      XMLEventFactory xef = XMLEventFactory.newFactory();
+      final DocumentFragment documentFragment = doc.createDocumentFragment();
+      final XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
+      final XMLEventFactory xef = XMLEventFactory.newFactory();
 
       while (xer.hasNext() && (! xer.peek().isEndElement())) {
-        XMLEvent event = xer.nextEvent();
+        final XMLEvent event = xer.nextEvent();
         out.add(event);
         if (event.isStartElement()) {
           writeElementContent(xer, out);
         }
       }
       return documentFragment;
-    } catch (XMLStreamException | RuntimeException e) {
+    } catch (@NotNull XMLStreamException | RuntimeException e) {
       throw e;
     }
   }
@@ -680,30 +691,32 @@ public final class XmlUtil {
      * @return
      * @throws XMLStreamException
      */
+  @NotNull
   public static CompactFragment siblingsToFragment(final XMLStreamReader in) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    XMLEventReader xer = xif.createXMLEventReader(in);
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    final XMLEventReader xer = xif.createXMLEventReader(in);
     return siblingsToFragment(xer);
   }
 
-  public static CompactFragment siblingsToFragment(final XMLEventReader in) throws
+  @NotNull
+  public static CompactFragment siblingsToFragment(@NotNull final XMLEventReader in) throws
           XMLStreamException {
-    Location startLocation = in.peek().getLocation();
+    final Location startLocation = in.peek().getLocation();
     try {
 
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
       xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, false);
-      CharArrayWriter caw = new CharArrayWriter();
+      final CharArrayWriter caw = new CharArrayWriter();
 
-      TreeMap<String, String> missingNamespaces = new TreeMap<>();
+      final TreeMap<String, String> missingNamespaces = new TreeMap<>();
       GatheringNamespaceContext gatheringContext = null;
       while (in.hasNext() && (! in.peek().isEndElement())) {
-        XMLEvent event = in.nextEvent();
+        final XMLEvent event = in.nextEvent();
         if (event.isStartElement()) {
           if (gatheringContext==null) {
             gatheringContext = new GatheringNamespaceContext(event.asStartElement().getNamespaceContext(), missingNamespaces);
           }
-          XMLEventWriter out = xof.createXMLEventWriter(caw);
+          final XMLEventWriter out = xof.createXMLEventWriter(caw);
           out.setNamespaceContext(gatheringContext);
           out.add(event);
           out.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
@@ -714,40 +727,44 @@ public final class XmlUtil {
         }
       }
       return new CompactFragment(new SimpleNamespaceContext(missingNamespaces), caw.toCharArray());
-    } catch (XMLStreamException | RuntimeException e) {
+    } catch (@NotNull XMLStreamException | RuntimeException e) {
       throw new XMLStreamException("Failure to parse children into string at "+startLocation, e);
     }
   }
 
-  public static CompactFragment nodeListToFragment(NodeList pNodeList) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return nodeListToFragment(xif, pNodeList);
+  @NotNull
+  public static CompactFragment nodeListToFragment(@NotNull final NodeList nodeList) throws XMLStreamException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    return nodeListToFragment(xif, nodeList);
   }
 
-  public static CompactFragment nodeListToFragment(XMLInputFactory xif, final NodeList pNodeList) throws XMLStreamException {
-    switch(pNodeList.getLength()) {
+  @NotNull
+  public static CompactFragment nodeListToFragment(@NotNull final XMLInputFactory xif, @NotNull final NodeList nodeList) throws XMLStreamException {
+    switch(nodeList.getLength()) {
       case 0:
         return new CompactFragment("");
       case 1:
-        Node node = pNodeList.item(0);
+        final Node node = nodeList.item(0);
         return nodeToFragment(xif, node);
       default:
-        return nodeToFragment(xif, toDocFragment(pNodeList));
+        return nodeToFragment(xif, toDocFragment(nodeList));
     }
   }
 
-  public static CompactFragment nodeToFragment(final Node pNode) throws XMLStreamException {
-    return nodeToFragment(XMLInputFactory.newFactory(), pNode);
+  @NotNull
+  public static CompactFragment nodeToFragment(final Node node) throws XMLStreamException {
+    return nodeToFragment(XMLInputFactory.newFactory(), node);
   }
 
-  public static CompactFragment nodeToFragment(final XMLInputFactory pXif, final Node pNode) throws XMLStreamException {
-    if (pNode instanceof Text) {
-      return new CompactFragment(((Text) pNode).getData());
+  @NotNull
+  public static CompactFragment nodeToFragment(@NotNull final XMLInputFactory xif, final Node node) throws XMLStreamException {
+    if (node instanceof Text) {
+      return new CompactFragment(((Text) node).getData());
     }
-    return siblingsToFragment(pXif.createXMLStreamReader(new DOMSource(pNode)));
+    return siblingsToFragment(xif.createXMLStreamReader(new DOMSource(node)));
   }
 
-  public static void unhandledEvent(final XMLStreamReader in) throws XMLStreamException {
+  public static void unhandledEvent(@NotNull final XMLStreamReader in) throws XMLStreamException {
     switch (in.getEventType()) {
       case XMLStreamConstants.CDATA:
       case XMLStreamConstants.CHARACTERS:
@@ -766,16 +783,16 @@ public final class XmlUtil {
 
   /**
    * Skil the preamble events in the stream reader
-   * @param pIn The stream reader to skip
+   * @param in The stream reader to skip
    */
-  public static void skipPreamble(final XMLStreamReader pIn) throws XMLStreamException {
-    int type = pIn.getEventType();
-    while (isPreamble(type) && pIn.hasNext()) {
-      type = pIn.next();
+  public static void skipPreamble(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    int type = in.getEventType();
+    while (isPreamble(type) && in.hasNext()) {
+      type = in.next();
     }
   }
 
-  public static boolean isPreamble(int type) {
+  public static boolean isPreamble(final int type) {
     switch (type) {
       case XMLStreamConstants.COMMENT:
       case XMLStreamConstants.START_DOCUMENT:
@@ -788,165 +805,165 @@ public final class XmlUtil {
     }
   }
 
-  public static void writeChild(final XMLStreamWriter pOut, final XmlSerializable pChild) throws XMLStreamException {
-    if (pChild!=null) {
-      pChild.serialize(pOut);
+  public static void writeChild(final XMLStreamWriter out, @Nullable final XmlSerializable child) throws XMLStreamException {
+    if (child!=null) {
+      child.serialize(out);
     }
   }
 
-  public static void writeChildren(final XMLStreamWriter pOut, final Iterable<? extends XmlSerializable> pChildren) throws
+  public static void writeChildren(final XMLStreamWriter out, @Nullable final Iterable<? extends XmlSerializable> children) throws
           XMLStreamException {
-    if (pChildren!=null) {
-      for (XmlSerializable child : pChildren) {
-        writeChild(pOut, child);
+    if (children!=null) {
+      for (final XmlSerializable child : children) {
+        writeChild(out, child);
       }
     }
   }
 
-  public static void writeStartElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
+  public static void writeStartElement(@NotNull final XMLStreamWriter out, @NotNull final QName qName) throws XMLStreamException {
     boolean writeNs = false;
-    String namespace = pQName.getNamespaceURI();
+    String namespace = qName.getNamespaceURI();
     String prefix;
     if (namespace==null) {
-      namespace = pOut.getNamespaceContext().getNamespaceURI(pQName.getPrefix());
-      prefix = pQName.getPrefix();
+      namespace = out.getNamespaceContext().getNamespaceURI(qName.getPrefix());
+      prefix = qName.getPrefix();
     } else {
-      prefix = pOut.getPrefix(namespace);
+      prefix = out.getPrefix(namespace);
       if (prefix==null) { // The namespace is not know in the output context, so add an attribute
         writeNs = true;
-        prefix = pQName.getPrefix();
+        prefix = qName.getPrefix();
       }
     }
-    pOut.writeStartElement(prefix, pQName.getLocalPart(), namespace);
+    out.writeStartElement(prefix, qName.getLocalPart(), namespace);
     if (writeNs) {
-      pOut.writeNamespace(prefix, namespace);
+      out.writeNamespace(prefix, namespace);
     }
   }
 
-  public static void writeEmptyElement(final XMLStreamWriter pOut, final QName pQName) throws XMLStreamException {
-    String namespace = pQName.getNamespaceURI();
+  public static void writeEmptyElement(@NotNull final XMLStreamWriter out, @NotNull final QName qName) throws XMLStreamException {
+    String namespace = qName.getNamespaceURI();
     String prefix;
     if (namespace==null) {
-      namespace = pOut.getNamespaceContext().getNamespaceURI(pQName.getPrefix());
-      prefix = pQName.getPrefix();
+      namespace = out.getNamespaceContext().getNamespaceURI(qName.getPrefix());
+      prefix = qName.getPrefix();
     } else {
-      prefix = pOut.getPrefix(namespace);
-      if (prefix==null) { prefix = pQName.getPrefix(); }
+      prefix = out.getPrefix(namespace);
+      if (prefix==null) { prefix = qName.getPrefix(); }
     }
-    pOut.writeEmptyElement(prefix, pQName.getLocalPart(), namespace);
+    out.writeEmptyElement(prefix, qName.getLocalPart(), namespace);
   }
 
 
-  public static void writeSimpleElement(final XMLStreamWriter pOut, final QName pQName, final String pValue) throws
+  public static void writeSimpleElement(@NotNull final XMLStreamWriter out, @NotNull final QName qName, @Nullable final String value) throws
   XMLStreamException {
-    if (pValue!=null) {
-      if (pValue.isEmpty()) {
-        writeEmptyElement(pOut, pQName);
+    if (value!=null) {
+      if (value.isEmpty()) {
+        writeEmptyElement(out, qName);
       } else {
-        writeStartElement(pOut, pQName);
-        pOut.writeCharacters(pValue);
-        pOut.writeEndElement();
+        writeStartElement(out, qName);
+        out.writeCharacters(value);
+        out.writeEndElement();
       }
     }
   }
 
-  public static void writeAttribute(final XMLStreamWriter pOut, final String pName, final String pValue) throws
+  public static void writeAttribute(@NotNull final XMLStreamWriter out, final String name, @Nullable final String value) throws
   XMLStreamException {
-    if (pValue!=null) {
-      pOut.writeAttribute(pName, pValue);
+    if (value!=null) {
+      out.writeAttribute(name, value);
     }
   }
 
-  public static void writeAttribute(final XMLStreamWriter pOut, final String pName, final double pValue) throws
+  public static void writeAttribute(@NotNull final XMLStreamWriter out, final String name, final double value) throws
   XMLStreamException {
-    if (! Double.isNaN(pValue)) {
-      pOut.writeAttribute(pName, Double.toString(pValue));
+    if (! Double.isNaN(value)) {
+      out.writeAttribute(name, Double.toString(value));
     }
   }
 
-  public static void writeAttribute(final XMLStreamWriter pOut, final String pName, final QName pValue) throws
+  public static void writeAttribute(@NotNull final XMLStreamWriter out, final String name, @Nullable final QName value) throws
           XMLStreamException {
-    if (pValue!=null) {
+    if (value!=null) {
       String prefix;
-      if (pValue.getNamespaceURI()!=null) {
-        if (pValue.getPrefix()!=null && pValue.getNamespaceURI().equals(pOut.getNamespaceContext().getNamespaceURI(pValue.getPrefix()))) {
-          prefix = pValue.getPrefix();
+      if (value.getNamespaceURI()!=null) {
+        if (value.getPrefix()!=null && value.getNamespaceURI().equals(out.getNamespaceContext().getNamespaceURI(value.getPrefix()))) {
+          prefix = value.getPrefix();
         } else {
-          prefix = pOut.getNamespaceContext().getPrefix(pValue.getNamespaceURI());
+          prefix = out.getNamespaceContext().getPrefix(value.getNamespaceURI());
           if (prefix == null) {
-            prefix = pValue.getPrefix();
-            pOut.writeNamespace(prefix, pValue.getNamespaceURI());
+            prefix = value.getPrefix();
+            out.writeNamespace(prefix, value.getNamespaceURI());
           }
         }
       } else {
-        prefix = pValue.getPrefix();
-        String ns = pOut.getNamespaceContext().getNamespaceURI(prefix);
+        prefix = value.getPrefix();
+        final String ns = out.getNamespaceContext().getNamespaceURI(prefix);
         if (ns==null) { throw new IllegalArgumentException("Cannot determine namespace of qname"); }
       }
-      pOut.writeAttribute(pName, prefix+':'+pValue.getLocalPart());
+      out.writeAttribute(name, prefix+':'+value.getLocalPart());
     }
   }
 
-  private static boolean nullOrEmpty(String s) {
+  private static boolean nullOrEmpty(@Nullable final String s) {
     return s==null || s.isEmpty();
   }
 
   /**
    * Check that the current state is a start element for the given name. The mPrefix is ignored.
-   * @param pIn The stream reader to check
-   * @param pElementname The name to check against
+   * @param in The stream reader to check
+   * @param elementname The name to check against
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
 
-  public static boolean isElement(final XMLStreamReader pIn, final QName pElementname) {
-    return isElement(pIn, pElementname.getNamespaceURI(), pElementname.getLocalPart(), pElementname.getPrefix());
+  public static boolean isElement(@NotNull final XMLStreamReader in, @NotNull final QName elementname) {
+    return isElement(in, elementname.getNamespaceURI(), elementname.getLocalPart(), elementname.getPrefix());
   }
 
   /**
    * Check that the current state is a start element for the given name. The mPrefix is ignored.
-   * @param pIn The stream reader to check
-   * @param pElementNamespace  The namespace to check against.
-   * @param pElementName The local name to check against
+   * @param in The stream reader to check
+   * @param elementNamespace  The namespace to check against.
+   * @param elementName The local name to check against
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
-  public static boolean isElement(final XMLStreamReader pIn, final String pElementNamespace, final String pElementName) {
-    String pElementPrefix = null;
-    return isElement(pIn, pElementNamespace, pElementName, pElementPrefix);
+  public static boolean isElement(@NotNull final XMLStreamReader in, final String elementNamespace, final String elementName) {
+    final String elementPrefix = null;
+    return isElement(in, elementNamespace, elementName, elementPrefix);
   }
 
 
   /**
    * Check that the current state is a start element for the given name. The mPrefix is ignored.
-   * @param pIn The stream reader to check
-   * @param pElementNamespace  The namespace to check against.
-   * @param pElementName The local name to check against
-   * @param pElementPrefix The mPrefix to fall back on if the namespace can't be determined
+   * @param in The stream reader to check
+   * @param elementNamespace  The namespace to check against.
+   * @param elementName The local name to check against
+   * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
-  public static boolean isElement(final XMLStreamReader pIn, final String pElementNamespace, final String pElementName, final String pElementPrefix) {
-    if (pIn.getEventType()!= XMLStreamConstants.START_ELEMENT) { return false; }
-    String expNs =  pElementNamespace;
+  public static boolean isElement(@NotNull final XMLStreamReader in, final String elementNamespace, final String elementName, @NotNull final String elementPrefix) {
+    if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { return false; }
+    String expNs =  elementNamespace;
     if ("".equals(expNs)) { expNs = null; }
-    if (! pIn.getLocalName().equals(pElementName)) { return false; }
+    if (! in.getLocalName().equals(elementName)) { return false; }
 
-    if (nullOrEmpty(pElementNamespace)) {
-      if (nullOrEmpty(pElementPrefix)) {
-        return nullOrEmpty(pIn.getPrefix());
+    if (nullOrEmpty(elementNamespace)) {
+      if (nullOrEmpty(elementPrefix)) {
+        return nullOrEmpty(in.getPrefix());
       } else {
-        return pElementPrefix.equals(pIn.getPrefix());
+        return elementPrefix.equals(in.getPrefix());
       }
     } else {
-      return expNs.equals(pIn.getNamespaceURI());
+      return expNs.equals(in.getNamespaceURI());
     }
   }
 
-  private static void writeElementContent(final XMLEventReader pIn, final XMLEventWriter pOut) throws XMLStreamException {
-    while (pIn.hasNext()) {
-      XMLEvent event = pIn.nextEvent();
-      pOut.add(event);
+  private static void writeElementContent(@NotNull final XMLEventReader in, @NotNull final XMLEventWriter out) throws XMLStreamException {
+    while (in.hasNext()) {
+      final XMLEvent event = in.nextEvent();
+      out.add(event);
       if (event.isStartElement()) {
-        pOut.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
-        writeElementContent(pIn, pOut);
+        out.getNamespaceContext().getNamespaceURI(event.asStartElement().getName().getPrefix());
+        writeElementContent(in, out);
       }
       if (event.isEndElement()) {
         break;
@@ -954,19 +971,19 @@ public final class XmlUtil {
     }
   }
 
-  private static void configure(final Transformer pTransformer, final int pFlags) {
-    if ((pFlags & OMIT_XMLDECL)!=0) {
-      pTransformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+  private static void configure(@NotNull final Transformer transformer, final int flags) {
+    if ((flags & OMIT_XMLDECL)!=0) {
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     }
   }
 
-  private static void configure(final XMLOutputFactory pFactory, final int pDEFAULT_FLAGS) {
+  private static void configure(final XMLOutputFactory factory, final int flags) {
     // Nothing to configure for now
   }
 
-  private static boolean isXmlWhitespace(final char[] pData) {
-    for(int i=pData.length-1; i>=0; --i) {
-      final char c = pData[i];
+  private static boolean isXmlWhitespace(@NotNull final char[] data) {
+    for(int i=data.length-1; i>=0; --i) {
+      final char c = data[i];
       if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
         return false;
       }
@@ -975,9 +992,9 @@ public final class XmlUtil {
   }
 
 
-  public static boolean isXmlWhitespace(CharSequence pData) {
-    for(int i=pData.length()-1; i>=0; --i) {
-      final char c = pData.charAt(i);
+  public static boolean isXmlWhitespace(@NotNull final CharSequence data) {
+    for(int i=data.length()-1; i>=0; --i) {
+      final char c = data.charAt(i);
       if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {
         return false;
       }
@@ -985,17 +1002,17 @@ public final class XmlUtil {
     return true;
   }
 
-  public static void cannonicallize(Source in, Result out) throws XMLStreamException {
+  public static void cannonicallize(final Source in, final Result out) throws XMLStreamException {
     // TODO add wrapper methods that get stream readers and writers analogous to the event writers and readers
-    XMLInputFactory xif = XMLInputFactory.newFactory();
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
     XMLStreamReader xsr = xif.createXMLStreamReader(in);
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
     xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
-    XMLStreamWriter xsw = xof.createXMLStreamWriter(out);
-    Map<String, NamespaceInfo> collectedNS = new HashMap<>();
+    final XMLStreamWriter xsw = xof.createXMLStreamWriter(out);
+    final Map<String, NamespaceInfo> collectedNS = new HashMap<>();
 
     while (xsr.hasNext()) {
-      int type=xsr.next();
+      final int type=xsr.next();
       switch (type) {
         case XMLStreamConstants.START_ELEMENT:
 //          if (xsr.getNamespaceCount()>0) {
@@ -1016,7 +1033,7 @@ public final class XmlUtil {
 
     boolean first = true;
     while (xsr.hasNext()) {
-      int type = xsr.next();
+      final int type = xsr.next();
       switch (type) { // TODO extract the default elements to a separate method that is also used to copy StreamReader to StreamWriter without events.
         case XMLStreamConstants.START_ELEMENT:
           {
@@ -1032,7 +1049,7 @@ public final class XmlUtil {
                 xsw.writeStartElement(xsr.getPrefix(), xsr.getLocalName(), xsr.getNamespaceURI());
               }
               first = false;
-              for (NamespaceInfo ns : collectedNS.values()) {
+              for (final NamespaceInfo ns : collectedNS.values()) {
                 xsw.setPrefix(ns.mPrefix, ns.mUrl);
                 xsw.writeNamespace(ns.mPrefix, ns.mUrl);
               }
@@ -1084,43 +1101,44 @@ public final class XmlUtil {
     xsr.close();
   }
 
-  public static Node cannonicallize(final Node pContent) throws ParserConfigurationException,
+  public static Node cannonicallize(final Node content) throws ParserConfigurationException,
           XMLStreamException {
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
-    DocumentBuilder db = dbf.newDocumentBuilder();
+    final DocumentBuilder db = dbf.newDocumentBuilder();
 
-    if (pContent instanceof DocumentFragment) {
-      DocumentFragment df = (DocumentFragment) pContent;
-      DocumentFragment result = db.newDocument().createDocumentFragment();
-      DOMResult dr = new DOMResult(result);
+    if (content instanceof DocumentFragment) {
+      final DocumentFragment df = (DocumentFragment) content;
+      final DocumentFragment result = db.newDocument().createDocumentFragment();
+      final DOMResult dr = new DOMResult(result);
       for(Node child=df.getFirstChild(); child!=null; child=child.getNextSibling()) {
         cannonicallize(new DOMSource(child), dr);
       }
       return result;
     } else {
-      Document result = db.newDocument();
-      cannonicallize(new DOMSource(pContent), new DOMResult(result));
+      final Document result = db.newDocument();
+      cannonicallize(new DOMSource(content), new DOMResult(result));
       return result.getDocumentElement();
     }
   }
 
-  private static void addNamespace(final Map<String, NamespaceInfo> pCollectedNS, final String pPrefix, final String pNamespaceURI) {
-    if (! (pNamespaceURI==null || XMLConstants.NULL_NS_URI.equals(pNamespaceURI))) {
-      NamespaceInfo nsInfo = pCollectedNS.get(pNamespaceURI);
+  private static void addNamespace(@NotNull final Map<String, NamespaceInfo> collectedNS, final String prefix, @Nullable final String namespaceURI) {
+    if (! (namespaceURI==null || XMLConstants.NULL_NS_URI.equals(namespaceURI))) {
+      NamespaceInfo nsInfo = collectedNS.get(namespaceURI);
       if (nsInfo==null) {
-        pCollectedNS.put(pNamespaceURI, new NamespaceInfo(pPrefix, pNamespaceURI));
+        collectedNS.put(namespaceURI, new NamespaceInfo(prefix, namespaceURI));
       } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(nsInfo.mPrefix)) {
-        nsInfo=new NamespaceInfo(pPrefix, nsInfo.mUrl);
+        nsInfo=new NamespaceInfo(prefix, nsInfo.mUrl);
       }
     }
   }
 
-  public static DocumentFragment toDocFragment(List<Node> pValue) {
-    if (pValue==null || pValue.size()==0) { return null; }
-    final Document document = pValue.get(0).getOwnerDocument();
-    DocumentFragment fragment = document.createDocumentFragment();
-    for(Node n: pValue) {
+  @Nullable
+  public static DocumentFragment toDocFragment(@Nullable final List<Node> value) {
+    if (value==null || value.size()==0) { return null; }
+    final Document document = value.get(0).getOwnerDocument();
+    final DocumentFragment fragment = document.createDocumentFragment();
+    for(final Node n: value) {
       if (n.getOwnerDocument()!=document) {
         fragment.appendChild(document.adoptNode(n.cloneNode(true)));
       } else {

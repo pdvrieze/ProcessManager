@@ -7,6 +7,7 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import org.custommonkey.xmlunit.*;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -72,15 +73,15 @@ public class TestProcessData {
 
     public ResultTypeHolder() {}
 
-    public ResultTypeHolder(final XmlResultType pXmlResultType) {
-      xmlResultType = pXmlResultType;
+    public ResultTypeHolder(final XmlResultType xmlResultType) {
+      this.xmlResultType = xmlResultType;
     }
   }
 
   private static class WhiteSpaceIgnoringListener implements DifferenceListener {
 
     @Override
-    public int differenceFound(final Difference difference) {
+    public int differenceFound(@NotNull final Difference difference) {
       if(DifferenceConstants.TEXT_VALUE_ID==difference.getId()) {
         return 0;
       }
@@ -96,7 +97,7 @@ public class TestProcessData {
   private static class NamespaceDeclIgnoringListener implements DifferenceListener {
 
     @Override
-    public int differenceFound(final Difference difference) {
+    public int differenceFound(@NotNull final Difference difference) {
       switch (difference.getId()) {
         case DifferenceConstants.ATTR_NAME_NOT_FOUND_ID: {
           if ((difference.getControlNodeDetail().getNode()!=null && XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(difference.getControlNodeDetail().getNode().getNamespaceURI()))||
@@ -121,52 +122,53 @@ public class TestProcessData {
 
   private static DocumentBuilder getDocumentBuilder() {
     if (_documentBuilder==null) {
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       try {
         dbf.setNamespaceAware(true);
         dbf.setIgnoringElementContentWhitespace(false);
         dbf.setCoalescing(false);
         _documentBuilder = dbf.newDocumentBuilder();
-      } catch (ParserConfigurationException e) {
+      } catch (@NotNull final ParserConfigurationException e) {
         throw new RuntimeException(e);
       }
     }
     return _documentBuilder;
   }
 
-  private static InputStream getDocument(String name) {
+  private static InputStream getDocument(final String name) {
     return TestProcessData.class.getResourceAsStream("/nl/adaptivity/process/engine/test/"+name);
   }
 
-  private static ProcessModelImpl getProcessModel(String name) throws XMLStreamException, IOException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
+  @NotNull
+  private static ProcessModelImpl getProcessModel(final String name) throws XMLStreamException, IOException {
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
     try (InputStream inputStream = getDocument(name)) {
-      XMLStreamReader in = xif.createXMLStreamReader(name, inputStream);
+      final XMLStreamReader in = xif.createXMLStreamReader(name, inputStream);
       try {
-        XmlDeserializerFactory factory = ProcessModel.class.getAnnotation(XmlDeserializer.class)
-                                                           .value()
-                                                           .newInstance();
+        final XmlDeserializerFactory factory = ProcessModel.class.getAnnotation(XmlDeserializer.class)
+                                                                 .value()
+                                                                 .newInstance();
         return (ProcessModelImpl) factory.deserialize(in);
-      } catch (InstantiationException | IllegalAccessException pE) {
-        throw new RuntimeException(pE);
+      } catch (@NotNull InstantiationException | IllegalAccessException e) {
+        throw new RuntimeException(e);
       }
     }
   }
 
   @Before
   public void setUp() throws ParserConfigurationException {
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
-    DocumentBuilder db = dbf.newDocumentBuilder();
+    final DocumentBuilder db = dbf.newDocumentBuilder();
   }
 
   @Test
   public void testSerializeTextNode() throws XMLStreamException {
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    CharArrayWriter caw = new CharArrayWriter();
-    XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final CharArrayWriter caw = new CharArrayWriter();
+    final XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
 
-    ProcessData data = new ProcessData("foo", new CompactFragment("Hello"));
+    final ProcessData data = new ProcessData("foo", new CompactFragment("Hello"));
     data.serialize(xsw);
     xsw.flush();
     assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>", caw.toString());
@@ -174,11 +176,11 @@ public class TestProcessData {
 
   @Test
   public void testSerializeSingleNode() throws XMLStreamException {
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    CharArrayWriter caw = new CharArrayWriter();
-    XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final CharArrayWriter caw = new CharArrayWriter();
+    final XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
 
-    ProcessData data = new ProcessData("foo", new CompactFragment("bar"));
+    final ProcessData data = new ProcessData("foo", new CompactFragment("<bar/>"));
     data.serialize(xsw);
     xsw.flush();
     assertEquals("<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>", caw.toString());
@@ -187,14 +189,14 @@ public class TestProcessData {
   @Test
   public void testDeserializeProcessModel() throws IOException, SAXException, JAXBException, XMLStreamException {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     ActivityImpl ac1 = null;
     ActivityImpl ac2 = null;
     StartNodeImpl start = null;
     EndNodeImpl end = null;
-    for(Object o: xpm.getNodes()) {
+    for(final Object o: xpm.getNodes()) {
       if (o instanceof ProcessNodeImpl) {
-        ProcessNodeImpl node = (ProcessNodeImpl) o;
+        final ProcessNodeImpl node = (ProcessNodeImpl) o;
         if (node.getId() != null) {
           switch (node.getId()) {
             case "start":
@@ -229,57 +231,58 @@ public class TestProcessData {
     assertEquals("ac2", end.getPredecessor().getId());
 
     assertEquals(2, ac1.getResults().size());
-    XmlResultType result1 = ac1.getResults().get(0);
+    final XmlResultType result1 = ac1.getResults().get(0);
     assertEquals("name", result1.getName());
     assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath());
-    SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result1.getOriginalNSContext());
+    final SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result1.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
-    XmlResultType result2 = ac1.getResults().get(1);
-    SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result2.getOriginalNSContext());
+    final XmlResultType result2 = ac1.getResults().get(1);
+    final SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result2.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
-    Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
+    final Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
 
 
-    CompactFragment result1_apply = result1.apply(testData).getContent();
+    final CompactFragment result1_apply = result1.apply(testData).getContent();
     assertEquals("Paul", result1_apply.getContentString());
 
-    CompactFragment result2_apply = result2.apply(testData).getContent();
+    final CompactFragment result2_apply = result2.apply(testData).getContent();
     XMLAssert.assertXMLEqual("<user><fullname>Paul</fullname></user>", result2_apply.getContentString());
 
   }
 
   @Test
   public void testXmlResultXpathParam() throws IOException, SAXException, XPathExpressionException {
-    SimpleNamespaceContext nsContext = new SimpleNamespaceContext(new String[]{"umh"}, new String[]{"http://adaptivity.nl/userMessageHandler"});
-    String expression = "/umh:result/umh:value[@name='user']/text()";
-    XmlResultType result = new XmlResultType("foo", expression, (char[]) null, nsContext);
+    final SimpleNamespaceContext nsContext = new SimpleNamespaceContext(new String[]{"umh"}, new String[]{"http://adaptivity.nl/userMessageHandler"});
+    final String expression = "/umh:result/umh:value[@name='user']/text()";
+    final XmlResultType result = new XmlResultType("foo", expression, (char[]) null, nsContext);
     assertEquals(1, ((SimpleNamespaceContext) SimpleNamespaceContext.from(result.getOriginalNSContext())).size());
 
-    Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
-    XPath xPath = XPathFactory.newInstance().newXPath();
+    final Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
+    final XPath xPath = XPathFactory.newInstance().newXPath();
     xPath.setNamespaceContext(SimpleNamespaceContext.from(result.getOriginalNSContext()));
-    XPathExpression pathExpression = xPath.compile(expression);
-    NodeList apply2 = (NodeList) pathExpression.evaluate(testData, XPathConstants.NODESET);
+    final XPathExpression pathExpression = xPath.compile(expression);
+    final NodeList apply2 = (NodeList) pathExpression.evaluate(testData, XPathConstants.NODESET);
     assertNotNull(apply2);
     assertTrue(apply2.item(0) instanceof Text);
     assertEquals("Paul", apply2.item(0).getTextContent());
 
-    Node apply3 = (Node) pathExpression.evaluate(testData, XPathConstants.NODE);
+    final Node apply3 = (Node) pathExpression.evaluate(testData, XPathConstants.NODE);
     assertNotNull(apply3);
     assertTrue(apply3 instanceof Text);
     assertEquals("Paul", apply3.getTextContent());
 
-    ProcessData apply1 = result.apply(testData);
+    final ProcessData apply1 = result.apply(testData);
     assertEquals("Paul", apply1.getContent().getContentString());
   }
 
+  @NotNull
   private static CompactFragment createEndpoint() {
-    SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS));
-    StringBuilder content = new StringBuilder();
+    final SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS));
+    final StringBuilder content = new StringBuilder();
     content.append("<jbi:endpointDescriptor");
     content.append(" endpointLocation=\"http://localhost\"");
     content.append(" endpointName=\"internal\"");
@@ -292,20 +295,20 @@ public class TestProcessData {
 
   @Test
   public void testTransform() throws XMLStreamException, IOException, SAXException {
-    ProcessData endpoint = new ProcessData("endpoint", createEndpoint());
-    PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(Collections.<Namespace>emptyList()),endpoint);
+    final ProcessData endpoint = new ProcessData("endpoint", createEndpoint());
+    final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(Collections.<Namespace>emptyList()), endpoint);
     final String INPUT = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
                          "  <jbi:element value=\"endpoint\"/>\n" +
                          "</umh:postTask>";
-    CompactFragment cf = new CompactFragment(new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)), INPUT.toCharArray());
-    CharArrayWriter caw = new CharArrayWriter();
+    final CompactFragment cf = new CompactFragment(new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)), INPUT.toCharArray());
+    final CharArrayWriter caw = new CharArrayWriter();
     transformer.transform(new StAXSource(XMLFragmentStreamReader.from(cf)), new StreamResult(caw));
     {
-      String control = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>";
-      String test = caw.toString();
+      final String control = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>";
+      final String test = caw.toString();
       try {
         assertXMLEqual(control, test);
-      } catch (SAXParseException| AssertionError pE) {
+      } catch (@NotNull SAXParseException| AssertionError e) {
         assertEquals(control, test);
       }
     }
@@ -314,31 +317,31 @@ public class TestProcessData {
   @Test
   public void testRoundTripProcessModel1_ac1_result1() throws IOException, SAXException, JAXBException,
           XMLStreamException {
-    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     {
-      CharArrayWriter caw = new CharArrayWriter();
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
-      ProcessNodeImpl ac1 = xpm.getNodes().get(1);
+      final CharArrayWriter caw = new CharArrayWriter();
+      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      final XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+      final ProcessNodeImpl ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
-      List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
+      final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
 
-      XmlResultType result = (XmlResultType) ac1Results.get(0);
+      final XmlResultType result = (XmlResultType) ac1Results.get(0);
       result.serialize(xsw);
       xsw.close();
 
-      String actual = caw.toString();
-      String expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
+      final String actual = caw.toString();
+      final String expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
 
       XMLUnit.setIgnoreWhitespace(true);
       XMLUnit.setIgnoreAttributeOrder(true);
-      Diff diff = new Diff(expected, actual);
+      final Diff diff = new Diff(expected, actual);
       try {
         assertXMLEqual(new DetailedDiff(diff), true);
-      } catch (AssertionError e) {
+      } catch (@NotNull final AssertionError e) {
         try {
           assertEquals(expected, actual);
-        } catch (AssertionError f) {
+        } catch (@NotNull final AssertionError f) {
           f.addSuppressed(e);
           throw f;
         }
@@ -349,21 +352,21 @@ public class TestProcessData {
   @Test
   public void testRoundTripProcessModel1_ac1_result2() throws IOException, SAXException, JAXBException,
           XMLStreamException {
-    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     {
-      CharArrayWriter caw = new CharArrayWriter();
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+      final CharArrayWriter caw = new CharArrayWriter();
+      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      final XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
 
-      ProcessNodeImpl ac1 = xpm.getNodes().get(1);
+      final ProcessNodeImpl ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
-      List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
-      XmlResultType result = (XmlResultType) ac1Results.get(1);
+      final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
+      final XmlResultType result = (XmlResultType) ac1Results.get(1);
       result.serialize(xsw);
       xsw.close();
 
-      String actual = caw.toString();
-      String expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\"><user xmlns=\"\">" +
+      final String actual = caw.toString();
+      final String expected = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\"><user xmlns=\"\">" +
               "<fullname>" +
               "<jbi:value  xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
               "</fullname>" +
@@ -372,7 +375,7 @@ public class TestProcessData {
 
       XMLUnit.setIgnoreWhitespace(true);
       XMLUnit.setIgnoreAttributeOrder(true);
-      Diff diff = new Diff(expected, actual);
+      final Diff diff = new Diff(expected, actual);
 
       assertXMLEqual(new DetailedDiff(diff), true);
     }
@@ -388,33 +391,33 @@ public class TestProcessData {
 
   @Test
   public void testSerializeResult1() throws IOException, SAXException, XMLStreamException {
-    XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
 
-    CharArrayWriter caw = new CharArrayWriter();
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    XMLStreamWriter xew = xof.createXMLStreamWriter(caw);
-    XmlResultType result = (XmlResultType) xpm.getNodes().get(1).getResults().iterator().next();
+    final CharArrayWriter caw = new CharArrayWriter();
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final XMLStreamWriter xew = xof.createXMLStreamWriter(caw);
+    final XmlResultType result = (XmlResultType) xpm.getNodes().get(1).getResults().iterator().next();
     result.serialize(xew);
     xew.close();
-    String control = "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>";
+    final String control = "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>";
     try {
       XMLAssert.assertXMLEqual(control, caw.toString());
-    } catch (AssertionError e) {
+    } catch (@NotNull final AssertionError e) {
       assertEquals(control, caw.toString());
     }
   }
 
   @Test
   public void testSerializeResult2() throws IOException, SAXException, XMLStreamException {
-    XmlResultType result;
+    final XmlResultType result;
     {
-      XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
-      Iterator<? extends IXmlResultType> iterator = xpm.getNodes().get(1).getResults().iterator();
+      final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+      final Iterator<? extends IXmlResultType> iterator = xpm.getNodes().get(1).getResults().iterator();
       assertNotNull(iterator.next());
       result = (XmlResultType) iterator.next();
     }
 
-    String control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+    final String control = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
             "  <user xmlns=\"\"\n" +
             "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
             "    <fullname>\n" +
@@ -422,20 +425,21 @@ public class TestProcessData {
             "    </fullname>\n" +
             "  </user>\n" +
             "</result>";
-    String found = XmlUtil.toString(result);
+    final String found = XmlUtil.toString(result);
     try {
       XMLUnit.setIgnoreWhitespace(true);
       XMLAssert.assertXMLEqual(control, found);
-    } catch (AssertionError e) {
+    } catch (@NotNull final AssertionError e) {
       assertEquals(control, found);
     }
   }
 
-  public static <T extends XmlSerializable> String testRoundTrip(InputStream in, Class<T> target) throws IOException,
+  @SuppressWarnings("UnusedReturnValue")
+  public static <T extends XmlSerializable> String testRoundTrip(@NotNull final InputStream in, @NotNull final Class<T> target) throws IOException,
           XMLStreamException, IllegalAccessException, InstantiationException {
-    String expected;
-    XMLStreamReader streamReader;
-    XMLInputFactory xif = XMLInputFactory.newFactory();
+    final String expected;
+    final XMLStreamReader streamReader;
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
     if (in.markSupported()) {
       in.mark(Integer.MAX_VALUE);
       expected = Streams.toString(in, Charset.defaultCharset());
@@ -449,35 +453,35 @@ public class TestProcessData {
     return testRoundTrip(streamReader, expected, target, false);
   }
 
-  public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target) throws
+  public static <T extends XmlSerializable> String testRoundTrip(@NotNull final String xml, @NotNull final Class<T> target) throws
           IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
     return testRoundTrip(xml, target, false);
   }
 
-  public static <T extends XmlSerializable> String testRoundTrip(String xml, Class<T> target, boolean ignoreNs) throws
+  public static <T extends XmlSerializable> String testRoundTrip(@NotNull final String xml, @NotNull final Class<T> target, final boolean ignoreNs) throws
           IllegalAccessException, InstantiationException, XMLStreamException, IOException, SAXException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
     return testRoundTrip(xif.createXMLStreamReader(new StringReader(xml)), xml, target, ignoreNs);
   }
 
-  private static <T extends XmlSerializable> String testRoundTrip(final XMLStreamReader in, final String expected, final Class<T> target, final boolean ignoreNs) throws
+  private static <T extends XmlSerializable> String testRoundTrip(final XMLStreamReader in, final String expected, @NotNull final Class<T> target, final boolean ignoreNs) throws
           InstantiationException, IllegalAccessException, XMLStreamException {
-    @SuppressWarnings("unchecked") XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
-    T obj = factory.deserialize(in);
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    CharArrayWriter caw = new CharArrayWriter();
-    XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
+    @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
+    final T obj = factory.deserialize(in);
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final CharArrayWriter caw = new CharArrayWriter();
+    final XMLStreamWriter xsw = xof.createXMLStreamWriter(caw);
     obj.serialize(xsw);
     xsw.close();
     try {
       XMLUnit.setIgnoreWhitespace(true);
-      Diff diff = new Diff(expected, caw.toString());
-      DetailedDiff detailedDiff= new DetailedDiff(diff);
+      final Diff diff = new Diff(expected, caw.toString());
+      final DetailedDiff detailedDiff= new DetailedDiff(diff);
       if (ignoreNs) {
         detailedDiff.overrideDifferenceListener(new NamespaceDeclIgnoringListener());
       }
       assertXMLEqual(detailedDiff,true);
-    } catch (AssertionError | Exception e) {
+    } catch (@NotNull AssertionError | Exception e) {
       e.printStackTrace();
       assertEquals(expected, caw.toString());
     }
@@ -486,20 +490,20 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripResult1() throws Exception {
-    String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
-    String result = testRoundTrip(xml, XmlResultType.class);
+    final String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>";
+    final String result = testRoundTrip(xml, XmlResultType.class);
     assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
   }
 
   @Test
   public void testRoundTripDefine() throws Exception {
-    String xml = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>";
-    String result = testRoundTrip(xml, XmlDefineType.class);
+    final String xml = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" refnode=\"ac1\" refname=\"name\" name=\"mylabel\">Hi <jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\".\"/>. Welcome!</define>";
+    final String result = testRoundTrip(xml, XmlDefineType.class);
   }
 
   @Test
   public void testRoundTripResult2() throws Exception {
-    String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+    final String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
             "  <user xmlns=\"\"\n" +
             "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
             "    <fullname>\n" +
@@ -512,17 +516,17 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripResult3() throws Exception {
-    String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
+    final String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
             "<jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>" +
             "</result>";
-    String result = testRoundTrip(xml, XmlResultType.class);
+    final String result = testRoundTrip(xml, XmlResultType.class);
     assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""));
   }
 
   @Test
   public void testRoundTripMessage() throws IOException, XMLStreamException, InstantiationException, SAXException,
           IllegalAccessException {
-    String xml = "    <pe:message xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
+    final String xml = "    <pe:message xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
             "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
             "        <Body>\n" +
             "          <postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
@@ -547,7 +551,7 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripActivity() throws Exception {
-    String xml = "  <activity xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
+    final String xml = "  <activity xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"ac1\" predecessor=\"start\" id=\"ac1\">\n" +
             "    <result name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
             "    <result name=\"user\">\n" +
             "      <user xmlns=\"\"\n" +

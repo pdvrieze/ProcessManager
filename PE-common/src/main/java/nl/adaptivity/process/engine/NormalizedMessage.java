@@ -1,5 +1,7 @@
 package nl.adaptivity.process.engine;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 
 import javax.activation.DataHandler;
@@ -8,16 +10,19 @@ import javax.xml.transform.Source;
 
 public interface NormalizedMessage {
 
+  @NotNull
   Source getContent();
 
-  void setContent(Source pResult);
+  void setContent(Source result);
 
-  DataHandler getAttachment(String pKey);
+  @NotNull
+  DataHandler getAttachment(String key);
 
-  void addAttachment(String pString, DataHandler pDataHandler);
+  void addAttachment(String string, DataHandler dataHandler);
 
-  void removeAttachment(String pKey);
+  void removeAttachment(String key);
 
+  @NotNull
   Set<String> getAttachmentNames();
 
 }

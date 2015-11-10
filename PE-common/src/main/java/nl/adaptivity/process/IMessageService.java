@@ -23,22 +23,22 @@ public interface IMessageService<T, U extends IProcessNodeInstance<U>> {
   /**
    * Create a message.
    *
-   * @param pMessage The message to create (for later sending)
+   * @param message The message to create (for later sending)
    * @return The sendable message that can be sent.
    */
-  T createMessage(IXmlMessage pMessage);
+  T createMessage(IXmlMessage message);
 
   /**
    * Send a message.
    *
-   * @param pTransaction The transaction to use in sending.
-   * @param pMessage The message to send. (Created by
+   * @param transaction The transaction to use in sending.
+   * @param message The message to send. (Created by
    *          {@link #createMessage(IXmlMessage)}).
-   * @param pInstance The task instance to link the sending to.
+   * @param instance The task instance to link the sending to.
    * @return <code>true</code> or lack of failure, <code>false</code> on failure.
    * @throws SQLException
    */
-  boolean sendMessage(Transaction pTransaction, T pMessage, U pInstance) throws SQLException;
+  boolean sendMessage(Transaction transaction, T message, U instance) throws SQLException;
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

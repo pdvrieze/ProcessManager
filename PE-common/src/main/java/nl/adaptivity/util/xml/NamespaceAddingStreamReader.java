@@ -1,5 +1,8 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.Location;
@@ -12,30 +15,30 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class NamespaceAddingStreamReader implements XMLStreamReader {
 
-  private final XMLStreamReader source;
-  private final NamespaceContext lookupSource;
+  private final XMLStreamReader mSource;
+  private final NamespaceContext mLookupSource;
 
-  public NamespaceAddingStreamReader(final NamespaceContext pLookupSource, final XMLStreamReader pSource) {
-    source = pSource;
-    lookupSource = pLookupSource;
+  public NamespaceAddingStreamReader(final NamespaceContext lookupSource, final XMLStreamReader source) {
+    mSource = source;
+    mLookupSource = lookupSource;
   }
 
   @Override
   public Object getProperty(final String name) throws IllegalArgumentException {
-    return source.getProperty(name);
+    return mSource.getProperty(name);
   }
 
   @Override
   public int next() throws XMLStreamException {
-    return source.next();
+    return mSource.next();
   }
 
   @Override
-  public void require(final int type, final String namespaceURI, final String localName) throws XMLStreamException {
+  public void require(final int type, @Nullable final String namespaceURI, @Nullable final String localName) throws XMLStreamException {
     if (type != getEventType() ||
             (namespaceURI != null && !namespaceURI.equals(getNamespaceURI())) ||
             (localName != null && !localName.equals(getLocalName()))) {
-      source.require(type, namespaceURI, localName);
+      mSource.require(type, namespaceURI, localName);
     } {
       throw new XMLStreamException("Require failed");
     }
@@ -43,52 +46,53 @@ public class NamespaceAddingStreamReader implements XMLStreamReader {
 
   @Override
   public String getElementText() throws XMLStreamException {
-    return source.getElementText();
+    return mSource.getElementText();
   }
 
   @Override
   public int nextTag() throws XMLStreamException {
-    return source.nextTag();
+    return mSource.nextTag();
   }
 
   @Override
   public boolean hasNext() throws XMLStreamException {
-    return source.hasNext();
+    return mSource.hasNext();
   }
 
   @Override
   public void close() throws XMLStreamException {
-    source.close();
+    mSource.close();
   }
 
   @Override
   public String getNamespaceURI(final String prefix) {
-    String namespaceURI = source.getNamespaceURI(prefix);
-    return namespaceURI != null ? namespaceURI : lookupSource.getNamespaceURI(prefix);
+    final String namespaceURI = mSource.getNamespaceURI(prefix);
+    return namespaceURI != null ? namespaceURI : mLookupSource.getNamespaceURI(prefix);
   }
 
   @Override
   public boolean isStartElement() {
-    return source.isStartElement();
+    return mSource.isStartElement();
   }
 
   @Override
   public boolean isEndElement() {
-    return source.isEndElement();
+    return mSource.isEndElement();
   }
 
   @Override
   public boolean isCharacters() {
-    return source.isCharacters();
+    return mSource.isCharacters();
   }
 
   @Override
   public boolean isWhiteSpace() {
-    return source.isWhiteSpace();
+    return mSource.isWhiteSpace();
   }
 
+  @Nullable
   @Override
-  public String getAttributeValue(final String namespaceURI, final String localName) {
+  public String getAttributeValue(@Nullable final String namespaceURI, @NotNull final String localName) {
     for(int i=getAttributeCount()-1; i>=0; --i) {
       if ((namespaceURI==null || namespaceURI.equals(getAttributeNamespace(i))) && localName.equals(getAttributeLocalName(i))) {
         return getAttributeValue(i);
@@ -99,9 +103,10 @@ public class NamespaceAddingStreamReader implements XMLStreamReader {
 
   @Override
   public int getAttributeCount() {
-    return source.getAttributeCount();
+    return mSource.getAttributeCount();
   }
 
+  @NotNull
   @Override
   public QName getAttributeName(final int index) {
     return new QName(getAttributeNamespace(index),getAttributeLocalName(index), getAttributePrefix(index));
@@ -109,101 +114,103 @@ public class NamespaceAddingStreamReader implements XMLStreamReader {
 
   @Override
   public String getAttributeNamespace(final int index) {
-    String attributeNamespace = source.getAttributeNamespace(index);
-    return attributeNamespace!=null ? attributeNamespace :lookupSource.getNamespaceURI(source.getAttributePrefix(index));
+    final String attributeNamespace = mSource.getAttributeNamespace(index);
+    return attributeNamespace!=null ? attributeNamespace : mLookupSource.getNamespaceURI(mSource.getAttributePrefix(index));
   }
 
   @Override
   public String getAttributeLocalName(final int index) {
-    return source.getAttributeLocalName(index);
+    return mSource.getAttributeLocalName(index);
   }
 
   @Override
   public String getAttributePrefix(final int index) {
-    return source.getAttributePrefix(index);
+    return mSource.getAttributePrefix(index);
   }
 
   @Override
   public String getAttributeType(final int index) {
-    return source.getAttributeType(index);
+    return mSource.getAttributeType(index);
   }
 
   @Override
   public String getAttributeValue(final int index) {
-    return source.getAttributeValue(index);
+    return mSource.getAttributeValue(index);
   }
 
   @Override
   public boolean isAttributeSpecified(final int index) {
-    return source.isAttributeSpecified(index);
+    return mSource.isAttributeSpecified(index);
   }
 
   @Override
   public int getNamespaceCount() {
-    return source.getNamespaceCount();
+    return mSource.getNamespaceCount();
   }
 
   @Override
   public String getNamespacePrefix(final int index) {
-    return source.getNamespacePrefix(index);
+    return mSource.getNamespacePrefix(index);
   }
 
   @Override
   public String getNamespaceURI(final int index) {
-    return source.getNamespaceURI(index);
+    return mSource.getNamespaceURI(index);
   }
 
+  @NotNull
   @Override
   public NamespaceContext getNamespaceContext() {
-    return new CombiningNamespaceContext(source.getNamespaceContext(), lookupSource);
+    return new CombiningNamespaceContext(mSource.getNamespaceContext(), mLookupSource);
   }
 
   @Override
   public int getEventType() {
-    return source.getEventType();
+    return mSource.getEventType();
   }
 
   @Override
   public String getText() {
-    return source.getText();
+    return mSource.getText();
   }
 
   @Override
   public char[] getTextCharacters() {
-    return source.getTextCharacters();
+    return mSource.getTextCharacters();
   }
 
   @Override
   public int getTextCharacters(final int sourceStart, final char[] target, final int targetStart, final int length) throws
           XMLStreamException {
-    return source.getTextCharacters(sourceStart, target, targetStart, length);
+    return mSource.getTextCharacters(sourceStart, target, targetStart, length);
   }
 
   @Override
   public int getTextStart() {
-    return source.getTextStart();
+    return mSource.getTextStart();
   }
 
   @Override
   public int getTextLength() {
-    return source.getTextLength();
+    return mSource.getTextLength();
   }
 
   @Override
   public String getEncoding() {
-    return source.getEncoding();
+    return mSource.getEncoding();
   }
 
   @Override
   public boolean hasText() {
-    return source.hasText();
+    return mSource.hasText();
   }
 
   @Override
   public Location getLocation() {
-    return source.getLocation();
+    return mSource.getLocation();
   }
 
+  @NotNull
   @Override
   public QName getName() {
     return new QName(getNamespaceURI(), getLocalName(), getPrefix());
@@ -211,52 +218,52 @@ public class NamespaceAddingStreamReader implements XMLStreamReader {
 
   @Override
   public String getLocalName() {
-    return source.getLocalName();
+    return mSource.getLocalName();
   }
 
   @Override
   public boolean hasName() {
-    return source.hasName();
+    return mSource.hasName();
   }
 
   @Override
   public String getNamespaceURI() {
-    String namespaceURI = source.getNamespaceURI();
-    return namespaceURI !=null ? namespaceURI : lookupSource.getNamespaceURI(source.getPrefix());
+    final String namespaceURI = mSource.getNamespaceURI();
+    return namespaceURI !=null ? namespaceURI : mLookupSource.getNamespaceURI(mSource.getPrefix());
   }
 
   @Override
   public String getPrefix() {
-    return source.getPrefix();
+    return mSource.getPrefix();
   }
 
   @Override
   public String getVersion() {
-    return source.getVersion();
+    return mSource.getVersion();
   }
 
   @Override
   public boolean isStandalone() {
-    return source.isStandalone();
+    return mSource.isStandalone();
   }
 
   @Override
   public boolean standaloneSet() {
-    return source.standaloneSet();
+    return mSource.standaloneSet();
   }
 
   @Override
   public String getCharacterEncodingScheme() {
-    return source.getCharacterEncodingScheme();
+    return mSource.getCharacterEncodingScheme();
   }
 
   @Override
   public String getPITarget() {
-    return source.getPITarget();
+    return mSource.getPITarget();
   }
 
   @Override
   public String getPIData() {
-    return source.getPIData();
+    return mSource.getPIData();
   }
 }

@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.util.Identifiable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,23 +22,24 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    * can not be null or an empty string. While in Java mode other nodes are
    * referred to by reference, not name.
    *
-   * @param pName The name of the activity.
+   * @param name The name of the activity.
    */
-  void setName(String pName);
+  void setName(String name);
 
   /**
    * Get the condition of the activity.
    *
    * @return The condition.
    */
+  @Nullable
   String getCondition();
 
   /**
    * Set the condition that needs to be true to start this activity.
    *
-   * @param pCondition The condition.
+   * @param condition The condition.
    */
-  void setCondition(String pCondition);
+  void setCondition(String condition);
 
   /**
    * Get the list of imports. The imports are provided to the message for use as
@@ -52,9 +54,9 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    * Set the import requirements for this activity. This will create a copy of
    * the parameter for safety.
    *
-   * @param pResults The imports to set.
+   * @param results The imports to set.
    */
-  void setResults(Collection<? extends IXmlResultType> pResults);
+  void setResults(Collection<? extends IXmlResultType> results);
 
   /**
    * Get the list of exports. Exports will allow storing the response of an
@@ -69,15 +71,16 @@ public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
    * Set the export requirements for this activity. This will create a copy of
    * the parameter for safety.
    *
-   * @param pDefines The exports to set.
+   * @param defines The exports to set.
    */
-  void setDefines(Collection<? extends IXmlDefineType> pDefines);
+  void setDefines(Collection<? extends IXmlDefineType> defines);
 
   /**
    * Get the predecessor node for this activity.
    *
    * @return the predecessor
    */
+  @Nullable
   Identifiable getPredecessor();
 
   /**

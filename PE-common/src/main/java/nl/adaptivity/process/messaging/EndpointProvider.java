@@ -1,5 +1,7 @@
 package nl.adaptivity.process.messaging;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 
 
@@ -18,6 +20,7 @@ public interface EndpointProvider {
    * 
    * @return The collection
    */
+  @NotNull
   Collection<GenericEndpoint> getEndpoints();
 
 }

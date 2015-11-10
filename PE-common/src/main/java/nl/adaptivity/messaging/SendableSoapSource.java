@@ -15,6 +15,8 @@ import javax.xml.transform.TransformerException;
 
 import nl.adaptivity.util.activation.Sources;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3.soapEnvelope.Envelope;
 
 
@@ -26,14 +28,14 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
 
   private final Map<String, DataSource> aAttachments;
 
-  public SendableSoapSource(final EndpointDescriptor pDestination, final Source pMessage) {
-    this(pDestination, pMessage, Collections.<String,DataSource>emptyMap());
+  public SendableSoapSource(final EndpointDescriptor destination, final Source message) {
+    this(destination, message, Collections.<String,DataSource>emptyMap());
   }
 
-  public SendableSoapSource(final EndpointDescriptor pDestination, final Source pMessage, Map<String, DataSource> pAttachments) {
-    aDestination = pDestination;
-    aMessage = pMessage;
-    aAttachments = pAttachments;
+  public SendableSoapSource(final EndpointDescriptor destination, final Source message, final Map<String, DataSource> attachments) {
+    aDestination = destination;
+    aMessage = message;
+    aAttachments = attachments;
   }
 
   @Override
@@ -41,16 +43,19 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
     return aDestination;
   }
 
+  @Nullable
   @Override
   public String getMethod() {
     return null;
   }
 
+  @NotNull
   @Override
   public Collection<? extends IHeader> getHeaders() {
     return Collections.emptyList();
   }
 
+  @NotNull
   @Override
   public DataSource getBodySource() {
     return this;
@@ -61,22 +66,25 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
     return Envelope.MIMETYPE;
   }
 
+  @NotNull
   @Override
   public InputStream getInputStream() throws IOException {
     final ByteArrayOutputStream boas = new ByteArrayOutputStream();
     try {
       Sources.writeToStream(aMessage, boas);
-    } catch (final TransformerException e) {
+    } catch (@NotNull final TransformerException e) {
       throw new IOException(e);
     }
     return new ByteArrayInputStream(boas.toByteArray());
   }
 
+  @Nullable
   @Override
   public String getName() {
     return null; // No relevant name
   }
 
+  @NotNull
   @Override
   public OutputStream getOutputStream() throws IOException {
     throw new UnsupportedOperationException("Not supported");

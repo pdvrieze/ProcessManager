@@ -20,6 +20,7 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 
@@ -92,6 +93,7 @@ public class Header {
    *
    * @return always non-null
    */
+  @NotNull
   public Map<QName, String> getOtherAttributes() {
     return otherAttributes;
   }

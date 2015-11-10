@@ -1,20 +1,23 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class SingletonNodeList implements NodeList {
 
-  private final Node node;
+  private final Node mNode;
 
-  public SingletonNodeList(Node pNode) {
-    node = pNode;
+  public SingletonNodeList(final Node node) {
+    mNode = node;
   }
 
+  @Nullable
   @Override
-  public Node item(int pIndex) {
-    if (pIndex!=0) { return null; }
-    return node;
+  public Node item(final int index) {
+    if (index!=0) { return null; }
+    return mNode;
   }
 
   @Override
@@ -22,9 +25,10 @@ public class SingletonNodeList implements NodeList {
     return 1;
   }
 
+  @NotNull
   @Override
   public String toString() {
-    return "[" + node.toString()+"]";
+    return "[" + mNode.toString()+"]";
   }
 
 }

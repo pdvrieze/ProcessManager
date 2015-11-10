@@ -4,13 +4,15 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.util.xml.Namespace;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 
 
 public interface IXmlDefineType {
 
-  <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction pTransaction, IProcessNodeInstance<T> pNode) throws
+  @Nullable
+  <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction transaction, IProcessNodeInstance<T> node) throws
           SQLException;
 
   char[] getContent();
@@ -62,20 +64,22 @@ public interface IXmlDefineType {
    *
    * @return possible object is {@link String }
    */
+  @Nullable
   String getPath();
 
   /**
    * Sets the value of the path property.
    *
-   * @param pNamespaceContext
+   * @param namespaceContext
    * @param value allowed object is {@link String }
    */
-  void setPath(final Iterable<Namespace> pNamespaceContext, String value);
+  void setPath(final Iterable<Namespace> namespaceContext, String value);
 
   /**
    * Get the namespace context that defines the "missing" namespaces in the content.
    * @return
    */
+  @Nullable
   Iterable<Namespace> getOriginalNSContext();
 
 }

@@ -8,19 +8,16 @@
 
 package org.w3.soapEnvelope;
 
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyAttribute;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
-import org.w3c.dom.Element;
 
 
 /**
@@ -90,6 +87,7 @@ public class Body {
    *
    * @return always non-null
    */
+  @NotNull
   public Map<QName, String> getOtherAttributes() {
     return otherAttributes;
   }

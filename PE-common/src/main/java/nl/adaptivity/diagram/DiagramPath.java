@@ -11,20 +11,20 @@ public interface DiagramPath<PATH_T extends DiagramPath<PATH_T>> {
   /**
    * Move to a new point. This will create a new sub-path.
    * 
-   * @param pX The new X coordinate.
-   * @param pY The new Y coordinate
+   * @param x The new X coordinate.
+   * @param y The new Y coordinate
    * @return The path itself, to allow for method chaining.
    */
-  PATH_T moveTo(double pX, double pY);
+  PATH_T moveTo(double x, double y);
 
   /**
    * Draw a line from the current point to a new point.
    * 
-   * @param pX The new X coordinate.
-   * @param pY The new Y coordinate
+   * @param x The new X coordinate.
+   * @param y The new Y coordinate
    * @return The path itself, to allow for method chaining.
    */
-  PATH_T lineTo(double pX, double pY);
+  PATH_T lineTo(double x, double y);
 
 
   /**

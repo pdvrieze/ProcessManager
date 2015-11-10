@@ -24,23 +24,23 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
   private int aMin;
   private int aMax;
 
-  public JoinSplitImpl(final ProcessModelImpl pOwnerModel) {
-    super(pOwnerModel);
+  public JoinSplitImpl(final ProcessModelImpl ownerModel) {
+    super(ownerModel);
   }
 
-  public JoinSplitImpl(final ProcessModelImpl pOwnerModel, Collection<? extends Identifiable> pPredecessors, int pMin, int pMax) {
-    super(pOwnerModel, pPredecessors);
-    aMin = pMin;
-    aMax = pMax;
+  public JoinSplitImpl(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+    super(ownerModel, predecessors);
+    aMin = min;
+    aMax = max;
   }
 
   @Override
-  public boolean deserializeChild(final XMLStreamReader pIn) throws XMLStreamException {
+  public boolean deserializeChild(final XMLStreamReader in) throws XMLStreamException {
     return false;
   }
 
   @Override
-  public boolean deserializeChildText(final String pElementText) {
+  public boolean deserializeChildText(final String elementText) {
     return false;
   }
 

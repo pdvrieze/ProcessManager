@@ -1,5 +1,8 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 
@@ -9,7 +12,7 @@ import java.util.NoSuchElementException;
 
 
 public abstract class AbstractBufferedEventReader extends AbstractEventReader {
-  private ArrayDeque<XMLEvent> aPeekBuffer = new ArrayDeque<>();
+  @Nullable private ArrayDeque<XMLEvent> aPeekBuffer = new ArrayDeque<>();
 
   @Override
   public XMLEvent nextEvent() throws XMLStreamException {
@@ -26,7 +29,7 @@ public abstract class AbstractBufferedEventReader extends AbstractEventReader {
     if (! aPeekBuffer.isEmpty()) { return true; }
     try {
       return peek()!=null;
-    } catch (XMLStreamException e) {
+    } catch (@NotNull final XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }
@@ -46,11 +49,11 @@ public abstract class AbstractBufferedEventReader extends AbstractEventReader {
     return aPeekBuffer.peekFirst();
   }
 
-  protected void add(XMLEvent event) {
+  protected void add(final XMLEvent event) {
     aPeekBuffer.addLast(event);
   }
 
-  protected void addAll(Collection<? extends XMLEvent> events) {
+  protected void addAll(final Collection<? extends XMLEvent> events) {
     aPeekBuffer.addAll(events);
   }
 

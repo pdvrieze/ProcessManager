@@ -1,5 +1,8 @@
 package nl.adaptivity.process.util;
 
+import org.jetbrains.annotations.Nullable;
+
+
 /**
  * Created by pdvrieze on 01/11/15.
  */
@@ -7,8 +10,8 @@ public class Identifier implements Identifiable {
 
   private String aID;
 
-  public Identifier(final String pID) {
-    aID = pID;
+  public Identifier(final String iD) {
+    aID = iD;
   }
 
   @Override
@@ -16,16 +19,16 @@ public class Identifier implements Identifiable {
     return aID;
   }
 
-  public void setID(final String pID) {
-    aID = pID;
+  public void setID(final String iD) {
+    aID = iD;
   }
 
   @Override
-  public boolean equals(final Object pO) {
-    if (this == pO) return true;
-    if (pO == null || getClass() != pO.getClass()) return false;
+  public boolean equals(@Nullable final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    Identifier that = (Identifier) pO;
+    final Identifier that = (Identifier) o;
 
     return aID.equals(that.aID);
 

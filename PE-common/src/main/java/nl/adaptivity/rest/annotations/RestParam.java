@@ -1,5 +1,7 @@
 package nl.adaptivity.rest.annotations;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -47,10 +49,10 @@ public @interface RestParam {
     PRINCIPAL
   }
 
-  String name() default "";
+  @NotNull String name() default "";
 
-  ParamType type() default ParamType.QUERY;
+  @NotNull ParamType type() default ParamType.QUERY;
 
-  String xpath() default "";
+  @NotNull String xpath() default "";
 
 }

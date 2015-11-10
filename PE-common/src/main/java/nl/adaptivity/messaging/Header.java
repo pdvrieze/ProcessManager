@@ -3,18 +3,18 @@ package nl.adaptivity.messaging;
 
 public class Header implements nl.adaptivity.messaging.ISendableMessage.IHeader {
 
-  private final String aName;
+  private final String mName;
 
   private final String aValue;
 
-  public Header(final String pName, final String pValue) {
-    aName = pName;
-    aValue = pValue;
+  public Header(final String name, final String value) {
+    mName = name;
+    aValue = value;
   }
 
   @Override
   public String getName() {
-    return aName;
+    return mName;
   }
 
   @Override

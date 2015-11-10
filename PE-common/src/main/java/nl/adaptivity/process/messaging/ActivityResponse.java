@@ -8,16 +8,12 @@
 
 package nl.adaptivity.process.messaging;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
-
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.ws.soap.SoapHelper;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.bind.annotation.*;
 
 
 /**
@@ -85,26 +81,27 @@ public class ActivityResponse<T> {
   /**
    * Create a new ActivityResponse.
    *
-   * @param pTaskState The state of the task requested.
-   * @param pReturnType The actual return type of the method.
-   * @param pReturnValue The value to return.
+   * @param taskState The state of the task requested.
+   * @param returnType The actual return type of the method.
+   * @param returnValue The value to return.
    */
-  protected ActivityResponse(final TaskState pTaskState, final Class<T> pReturnType, final T pReturnValue) {
-    aTaskState = pTaskState;
-    aReturnType = pReturnType;
-    aReturnValue = pReturnValue;
+  protected ActivityResponse(final TaskState taskState, final Class<T> returnType, final T returnValue) {
+    aTaskState = taskState;
+    aReturnType = returnType;
+    aReturnValue = returnValue;
   }
 
   /**
    * Static helper factory for creating a new ActivityResponse.
    *
-   * @param pTaskState The state of the task requested.
-   * @param pReturnType The actual return type of the method.
-   * @param pReturnValue The value to return.
+   * @param taskState The state of the task requested.
+   * @param returnType The actual return type of the method.
+   * @param returnValue The value to return.
    * @return
    */
-  public static <V> ActivityResponse<V> create(final TaskState pTaskState, final Class<V> pReturnType, final V pReturnValue) {
-    return new ActivityResponse<>(pTaskState, pReturnType, pReturnValue);
+  @NotNull
+  public static <V> ActivityResponse<V> create(final TaskState taskState, final Class<V> returnType, final V returnValue) {
+    return new ActivityResponse<>(taskState, returnType, returnValue);
   }
 
   /**
@@ -138,10 +135,10 @@ public class ActivityResponse<T> {
   /**
    * Sets the value of the taskState property.
    *
-   * @param pTaskState the new task state.
+   * @param taskState the new task state.
    */
-  public void setTaskState(final TaskState pTaskState) {
-    aTaskState = pTaskState;
+  public void setTaskState(final TaskState taskState) {
+    aTaskState = taskState;
   }
 
   /**

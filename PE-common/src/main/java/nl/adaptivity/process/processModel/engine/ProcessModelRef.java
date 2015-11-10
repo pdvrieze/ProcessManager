@@ -1,5 +1,8 @@
 package nl.adaptivity.process.processModel.engine;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -16,23 +19,24 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
 
   private long aHandle;
 
-  private UUID aUuid;
+  @Nullable private UUID aUuid;
 
   public ProcessModelRef() {}
 
-  public ProcessModelRef(final String pName, final long pHandle, UUID pUuid) {
-    aName = pName;
-    aHandle = pHandle;
-    aUuid = pUuid;
+  public ProcessModelRef(final String name, final long handle, final UUID uuid) {
+    aName = name;
+    aHandle = handle;
+    aUuid = uuid;
   }
 
-  public ProcessModelRef(IProcessModelRef<?> pSource) {
-    aHandle = pSource.getHandle();
-    aName = pSource.getName();
-    aUuid = pSource.getUuid();
+  public ProcessModelRef(@NotNull final IProcessModelRef<?> source) {
+    aHandle = source.getHandle();
+    aName = source.getName();
+    aUuid = source.getUuid();
   }
 
-  public static ProcessModelRef get(IProcessModelRef<?> src) {
+  @NotNull
+  public static ProcessModelRef get(final IProcessModelRef<?> src) {
     if (src instanceof ProcessModelRef) { return (ProcessModelRef) src; }
     return new ProcessModelRef(src);
   }
@@ -57,18 +61,20 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
     return aHandle;
   }
 
+  @Nullable
   @Override
   public UUID getUuid() {
     return aUuid;
   }
 
+  @Nullable
   @XmlAttribute(name="uuid")
   String getXmlUuid() {
     return aUuid==null ? null : aUuid.toString();
   }
 
-  void setXmlUuid(String pUuid) {
-    aUuid = pUuid==null ? null : UUID.fromString(pUuid);
+  void setXmlUuid(@Nullable final String uuid) {
+    aUuid = uuid==null ? null : UUID.fromString(uuid);
   }
 
 }

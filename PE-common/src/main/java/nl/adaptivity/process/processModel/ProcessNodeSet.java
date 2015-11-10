@@ -1,8 +1,9 @@
 package nl.adaptivity.process.processModel;
 
-import net.devrieze.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
 import net.devrieze.util.ReadMap;
 import nl.adaptivity.process.util.Identifiable;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -17,8 +18,8 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
     private final ListIterator<T> aIterator;
     
-    private ReadonlyIterator(ListIterator<T> pListIterator) {
-      aIterator = pListIterator;
+    private ReadonlyIterator(final ListIterator<T> listIterator) {
+      aIterator = listIterator;
     }
     
     @Override
@@ -57,12 +58,12 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public void set(T pE) {
+    public void set(final T e) {
       throw new UnsupportedOperationException("This set is immutable");
     }
 
     @Override
-    public void add(T pE) {
+    public void add(final T e) {
       throw new UnsupportedOperationException("This set is immutable");
     }
 
@@ -70,11 +71,13 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private class ReadOnlyProcessNodeSet extends ProcessNodeSet<T> {
 
+    @NotNull
     @Override
     public Collection<T> values() {
       return this;
     }
 
+    @NotNull
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public ProcessNodeSet<T> clone() {
@@ -82,8 +85,8 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public T get(int pIndex) {
-      return ProcessNodeSet.this.get(pIndex);
+    public T get(final int index) {
+      return ProcessNodeSet.this.get(index);
     }
 
     @Override
@@ -92,47 +95,52 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public boolean add(T pE) {
+    public boolean add(final T e) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
+
+    @NotNull
+    @Override
+    public T set(final int index, final T element) {
       throw new UnsupportedOperationException("This set is immutable");
     }
 
     @Override
-    public T set(int pIndex, T pElement) {
+    public void add(final int index, final T element) {
       throw new UnsupportedOperationException("This set is immutable");
     }
 
+    @NotNull
     @Override
-    public void add(int pIndex, T pElement) {
+    public T remove(final int index) {
       throw new UnsupportedOperationException("This set is immutable");
     }
 
-    @Override
-    public T remove(int pIndex) {
-      throw new UnsupportedOperationException("This set is immutable");
-    }
-
+    @NotNull
     @Override
     public Iterator<T> iterator() {
       return new ReadonlyIterator(super.listIterator());
     }
 
+    @NotNull
     @Override
     public ListIterator<T> listIterator() {
       return new ReadonlyIterator(super.listIterator());
     }
 
+    @NotNull
     @Override
-    public ListIterator<T> listIterator(int pIndex) {
-      return new ReadonlyIterator(super.listIterator(pIndex));
+    public ListIterator<T> listIterator(final int index) {
+      return new ReadonlyIterator(super.listIterator(index));
     }
 
     @Override
-    public boolean remove(Object pO) {
+    public boolean remove(final Object o) {
       throw new UnsupportedOperationException("This set is immutable");
     }
 
     @Override
-    public boolean retainAll(Collection<?> pC) {
+    public boolean retainAll(final Collection<?> c) {
       throw new UnsupportedOperationException("This set is immutable");
     }
   
@@ -140,21 +148,22 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private static final class BaseProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
 
-    private final List<V> aStore;
+    @NotNull private final List<V> aStore;
 
     public BaseProcessNodeSet() {
       aStore = new ArrayList<>();
     }
 
-    public BaseProcessNodeSet(int initialcapacity) {
+    public BaseProcessNodeSet(final int initialcapacity) {
       aStore = new ArrayList<>(initialcapacity);
     }
 
-    public BaseProcessNodeSet(Collection<? extends V> c) {
+    public BaseProcessNodeSet(@NotNull final Collection<? extends V> c) {
       aStore = new ArrayList<>(c.size());
       addAll(c);
     }
 
+    @NotNull
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public BaseProcessNodeSet<V> clone() {
@@ -162,25 +171,25 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public boolean add(V pObject) {
-      final String name = pObject.getId();
+    public boolean add(@NotNull final V object) {
+      final String name = object.getId();
 
       if (containsKey(name)) {
         return false;
       }
 
-      aStore.add(pObject);
+      aStore.add(object);
       return true;
     }
 
     @Override
-    public V remove(int pIndex) {
-      return aStore.remove(pIndex);
+    public V remove(final int index) {
+      return aStore.remove(index);
     }
 
     @Override
-    public boolean remove(Object pO) {
-      return aStore.remove(pO);
+    public boolean remove(final Object o) {
+      return aStore.remove(o);
     }
 
     @Override
@@ -194,8 +203,8 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public V get(int pIndex) {
-      return aStore.get(pIndex);
+    public V get(final int index) {
+      return aStore.get(index);
     }
 
     @Override
@@ -207,6 +216,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private static final class EmptyProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
 
+    @NotNull
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public EmptyProcessNodeSet<V> clone() {
@@ -218,8 +228,9 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return Collections.emptyList();
     }
 
+    @NotNull
     @Override
-    public V get(int pIndex) {
+    public V get(final int index) {
       throw new IndexOutOfBoundsException();
     }
 
@@ -231,16 +242,17 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
   }
 
   private static final class SingletonProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
-    private V aElement = null;
+    @Nullable private V aElement = null;
 
     public SingletonProcessNodeSet() {
     }
 
-    public SingletonProcessNodeSet(V pElement) {
-      if (pElement==null) { throw new NullPointerException(); }
-      aElement = pElement;
+    public SingletonProcessNodeSet(@Nullable final V element) {
+      if (element==null) { throw new NullPointerException(); }
+      aElement = element;
     }
 
+    @Nullable
     @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public SingletonProcessNodeSet<V> clone() {
@@ -252,11 +264,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public boolean add(@NotNull V pE) {
-      if (pE.equals(aElement)) {
+    public boolean add(@NotNull final V e) {
+      if (e.equals(aElement)) {
         return false;
       } else if (aElement==null) {
-        aElement = pE;
+        aElement = e;
         return true;
       } else {
         throw new IllegalStateException("Singleton node set can only contain one element");
@@ -268,9 +280,10 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return Collections.singleton(aElement);
     }
 
+    @Nullable
     @Override
-    public V get(int pIndex) {
-      if (aElement==null || pIndex!=0) {
+    public V get(final int index) {
+      if (aElement==null || index!=0) {
         throw new IndexOutOfBoundsException();
       }
       return aElement;
@@ -281,25 +294,26 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return aElement==null ? 0 : 1;
     }
 
+    @Nullable
     @Override
-    public V remove(int pIndex) {
-      if (aElement==null || pIndex!=0) {
+    public V remove(final int index) {
+      if (aElement==null || index!=0) {
         throw new IndexOutOfBoundsException();
       }
-      V result = aElement;
+      final V result = aElement;
       aElement = null;
       return result;
     }
 
     @Override
-    public int indexOf(Object pO) {
-      if (pO.equals(aElement)) { return 0; }
+    public int indexOf(@NotNull final Object o) {
+      if (o.equals(aElement)) { return 0; }
       return -1;
     }
 
     @Override
-    public int lastIndexOf(Object pO) {
-      return indexOf(pO);
+    public int lastIndexOf(@NotNull final Object o) {
+      return indexOf(o);
     }
 
     @Override
@@ -308,10 +322,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public boolean contains(Object pO) {
-      return pO.equals(aElement);
+    public boolean contains(@NotNull final Object o) {
+      return o.equals(aElement);
     }
 
+    @NotNull
     @Override
     public Object[] toArray() {
       if (aElement==null) {
@@ -321,26 +336,27 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       }
     }
 
+    @NotNull
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T[] toArray(T[] pA) {
-      Class<T> cls = (Class) pA.getClass();
-      int size = size();
-      if (pA.length<size()) {
-        T[] result = (T[]) Array.newInstance(cls, size);
+    public <T> T[] toArray(@NotNull final T[] a) {
+      final Class<T> cls = (Class) a.getClass();
+      final int size = size();
+      if (a.length<size()) {
+        final T[] result = (T[]) Array.newInstance(cls, size);
         if (size==1) { result[0] = cls.cast(aElement); }
         return result;
       }
-      if (size==1) { pA[0] = cls.cast(aElement); }
-      if (pA.length>size) {
-        pA[size+1] = null;
+      if (size==1) { a[0] = cls.cast(aElement); }
+      if (a.length>size) {
+        a[size+1] = null;
       }
-      return pA;
+      return a;
     }
 
     @Override
-    public boolean remove(Object pO) {
-      if (pO.equals(aElement)) {
+    public boolean remove(@NotNull final Object o) {
+      if (o.equals(aElement)) {
         aElement = null;
         return true;
       }
@@ -348,18 +364,18 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public boolean containsAll(Collection<?> pC) {
-      for(Object o:pC) {
+    public boolean containsAll(@NotNull final Collection<?> c) {
+      for(final Object o:c) {
         if (! o.equals(aElement)) { return false; }
       }
       return true;
     }
 
     @Override
-    public boolean retainAll(Collection<?> pC) {
+    public boolean retainAll(@NotNull final Collection<?> c) {
       if (aElement==null) { return false; }
       boolean change = true;
-      for(Object o:pC) {
+      for(final Object o:c) {
         if (o.equals(aElement)) {
           change = false;
         }
@@ -375,8 +391,8 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
     private final Iterator<? extends Identifiable> aParent;
 
-    public MyKeyIterator(Iterator<? extends Identifiable> pIterator) {
-      aParent = pIterator;
+    public MyKeyIterator(final Iterator<? extends Identifiable> iterator) {
+      aParent = iterator;
     }
 
     @Override
@@ -398,6 +414,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   private final class MyKeySet extends AbstractSet<String> {
 
+    @NotNull
     @Override
     public Iterator<String> iterator() {
       return new MyKeyIterator(ProcessNodeSet.this.iterator());
@@ -410,46 +427,52 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   }
 
+  @NotNull
   public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet() {
     return new BaseProcessNodeSet<>();
   }
 
-  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet(int pSize) {
-    return new BaseProcessNodeSet<>(pSize);
+  @NotNull
+  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet(final int size) {
+    return new BaseProcessNodeSet<>(size);
   }
 
-  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet(Collection<? extends V> pCollection) {
-    return new BaseProcessNodeSet<>(pCollection);
-  }
-
-  @Override
-  public boolean containsKey(String pKey) {
-    return get(pKey) !=null;
+  @NotNull
+  public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet(@NotNull final Collection<? extends V> collection) {
+    return new BaseProcessNodeSet<>(collection);
   }
 
   @Override
-  public boolean containsValue(T pValue) {
-    return contains(pValue);
+  public boolean containsKey(final String key) {
+    return get(key) !=null;
   }
 
+  @Override
+  public boolean containsValue(final T value) {
+    return contains(value);
+  }
+
+  @Nullable
   @Override
   public abstract ProcessNodeSet<T> clone();
 
-  public T get(Identifiable pKey) {
-    return get(pKey.getId());
+  @Nullable
+  public T get(@NotNull final Identifiable key) {
+    return get(key.getId());
   }
 
+  @Nullable
   @Override
-  public T get(String pKey) {
-    if (pKey==null) {
-      for(T elem: this) {
+  public T get(@Nullable final String key) {
+    if (key==null) {
+      for(final T elem: this) {
         if (elem.getId()==null) {
           return elem;
         }
       }
     } else {
-      for(T elem: this) {
-        if (pKey.equals(elem.getId())) {
+      for(final T elem: this) {
+        if (key.equals(elem.getId())) {
           return elem;
         }
       }
@@ -457,11 +480,13 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     return null;
   }
 
+  @NotNull
   @Override
   public Set<String> keySet() {
     return new MyKeySet();
   }
 
+  @NotNull
   @SuppressWarnings("unchecked")
   public static <V extends Identifiable> ProcessNodeSet<V> empty() {
     return EMPTY;
@@ -470,14 +495,17 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
   @SuppressWarnings({ "rawtypes" })
   private static final ProcessNodeSet EMPTY = new EmptyProcessNodeSet<>();
 
+  @NotNull
   public static <V extends Identifiable> ProcessNodeSet<V> singleton() {
     return new SingletonProcessNodeSet<>();
   }
 
-  public static <V extends Identifiable> ProcessNodeSet<V> singleton(V pElement) {
-    return new SingletonProcessNodeSet<>(pElement);
+  @NotNull
+  public static <V extends Identifiable> ProcessNodeSet<V> singleton(final V element) {
+    return new SingletonProcessNodeSet<>(element);
   }
 
+  @NotNull
   public ProcessNodeSet<T> readOnly() {
     if (this instanceof ProcessNodeSet.ReadOnlyProcessNodeSet) {
       return this;

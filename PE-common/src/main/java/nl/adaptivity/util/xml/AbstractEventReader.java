@@ -1,5 +1,7 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
@@ -12,14 +14,15 @@ public abstract class AbstractEventReader implements XMLEventReader{
   public Object next() {
     try {
       return nextEvent();
-    } catch (XMLStreamException e) {
+    } catch (@NotNull final XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }
 
+  @NotNull
   @Override
   public String getElementText() throws XMLStreamException {
-    StringBuilder result = new StringBuilder();
+    final StringBuilder result = new StringBuilder();
     for (XMLEvent event = nextEvent(); ! event.isEndElement();event = nextEvent()) {
       if (event.isCharacters()) {
         result.append(((Characters) event).getData());

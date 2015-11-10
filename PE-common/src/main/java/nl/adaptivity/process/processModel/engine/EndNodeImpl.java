@@ -12,6 +12,8 @@ import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
@@ -30,14 +32,16 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   public static class Factory implements XmlDeserializerFactory {
 
+    @NotNull
     @Override
-    public EndNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    public EndNodeImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
       return EndNodeImpl.deserialize(null, in);
     }
   }
 
-  public static EndNodeImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    return XmlUtil.deserializeHelper(new EndNodeImpl(pOwnerModel), in);
+  @NotNull
+  public static EndNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XMLStreamReader in) throws XMLStreamException {
+    return XmlUtil.deserializeHelper(new EndNodeImpl(ownerModel), in);
   }
 
   private static final long serialVersionUID = 220908810658246960L;
@@ -47,16 +51,16 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   private List<XmlDefineType> aExports;
 
-  public EndNodeImpl(final ProcessModelImpl pOwnerModel, final ProcessNodeImpl pPrevious) {
-    super(pOwnerModel, Collections.singletonList(pPrevious));
+  public EndNodeImpl(final ProcessModelImpl ownerModel, final ProcessNodeImpl previous) {
+    super(ownerModel, Collections.singletonList(previous));
   }
 
-  public EndNodeImpl(final ProcessModelImpl pOwnerModel) {
-    super(pOwnerModel);
+  public EndNodeImpl(final ProcessModelImpl ownerModel) {
+    super(ownerModel);
   }
 
   @Override
-  public boolean deserializeChild(final XMLStreamReader in) throws XMLStreamException {
+  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
     if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
       switch (in.getLocalName()) {
         case "export":
@@ -68,53 +72,55 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    if (ATTR_PREDECESSOR.equals(pAttributeLocalName)) {
-      setPredecessor(new Identifier(pAttributeValue));
+  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
+    if (ATTR_PREDECESSOR.equals(attributeLocalName)) {
+      setPredecessor(new Identifier(attributeValue));
       return true;
     }
-    return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
+    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
   }
 
   @Override
-  public boolean deserializeChildText(final String pElementText) {
+  public boolean deserializeChildText(final String elementText) {
     return false;
   }
 
+  @NotNull
   @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
   @Override
-  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
     out.writeEndElement();
   }
 
-  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
-    super.serializeChildren(pOut);
-    XmlUtil.writeChildren(pOut, aExports);
+  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
+    super.serializeChildren(out);
+    XmlUtil.writeChildren(out, aExports);
   }
 
   @Override
-  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
-    super.serializeAttributes(pOut);
+  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+    super.serializeAttributes(out);
     if (getPredecessor()!=null) {
-      XmlUtil.writeAttribute(pOut, ATTR_PREDECESSOR, getPredecessor().getId());
+      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessor().getId());
     }
   }
 
   @Override
-  public boolean condition(final IProcessNodeInstance<?> pInstance) {
+  public boolean condition(final Transaction transaction, final IProcessNodeInstance<?> instance) {
     return true;
   }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.EndNode#getPredecessor()
    */
+  @Nullable
   @Override
   @XmlAttribute(name = "predecessor", required = true)
   @XmlIDREF
@@ -152,37 +158,38 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public void setDefines(Collection<? extends IXmlDefineType> pExports) {
-    aExports = toExportableDefines(pExports);
+  public void setDefines(final Collection<? extends IXmlDefineType> exports) {
+    aExports = toExportableDefines(exports);
   }
 
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.EndNode#getSuccessors()
    */
+  @NotNull
   @Override
   public Set<? extends ProcessNodeImpl> getSuccessors() {
     return Collections.emptySet();
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final Transaction transaction, final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> messageService, final U instance) {
     //    pProcessInstance.finish();
     return true;
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitEndNode(this);
+  public <R> R visit(@NotNull final ProcessNode.Visitor<R> visitor) {
+    return visitor.visitEndNode(this);
   }
 
 }

@@ -1,5 +1,8 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 
@@ -20,9 +23,10 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
       return pos<aStrings.length;
     }
 
+    @NotNull
     @Override
     public Namespace next() {
-      SimpleNamespace result = new SimpleNamespace(pos);
+      final SimpleNamespace result = new SimpleNamespace(pos);
       pos+=2;
       return result;
     }
@@ -37,8 +41,8 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
     private final int pos;
 
-    public SimpleNamespace(final int pPos) {
-      pos = pPos;
+    public SimpleNamespace(final int pos) {
+      this.pos = pos;
     }
 
     @Override
@@ -54,41 +58,41 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
   private final String[] aStrings;
 
-  public SimpleNamespaceContext(final Map<String, String> pPrefixMap) {
-    aStrings = new String[pPrefixMap.size()*2];
+  public SimpleNamespaceContext(@NotNull final Map<String, String> prefixMap) {
+    aStrings = new String[prefixMap.size()*2];
     int i=0;
-    for(Entry<String, String> entry: pPrefixMap.entrySet()) {
+    for(final Entry<String, String> entry: prefixMap.entrySet()) {
       aStrings[(i*2)] = entry.getKey();
       aStrings[(i*2+1)] = entry.getValue();
       ++i;
     }
   }
 
-  public SimpleNamespaceContext(final String[] pPrefixes, final String[] pNamespaces) {
-    assert pPrefixes.length==pNamespaces.length;
-    aStrings = new String[pPrefixes.length*2];
-    for(int i=0; i<pPrefixes.length; ++i) {
-      aStrings[(i*2)] = pPrefixes[i];
-      aStrings[(i*2+1)] = pNamespaces[i];
+  public SimpleNamespaceContext(@NotNull final String[] prefixes, @NotNull final String[] namespaces) {
+    assert prefixes.length==namespaces.length;
+    aStrings = new String[prefixes.length*2];
+    for(int i=0; i<prefixes.length; ++i) {
+      aStrings[(i*2)] = prefixes[i];
+      aStrings[(i*2+1)] = namespaces[i];
     }
   }
 
-  private SimpleNamespaceContext(final String[] pStrings) {
-    aStrings = pStrings;
+  private SimpleNamespaceContext(final String[] strings) {
+    aStrings = strings;
   }
 
-  public SimpleNamespaceContext(final Iterable<Namespace> pNamespaces) {
-    if (pNamespaces instanceof Collection) {
-      int len = ((Collection) pNamespaces).size();
+  public SimpleNamespaceContext(final Iterable<Namespace> namespaces) {
+    if (namespaces instanceof Collection) {
+      final int len = ((Collection) namespaces).size();
       aStrings = new String[len*2];
       int i=0;
-      for(Namespace ns:pNamespaces) {
+      for(final Namespace ns:namespaces) {
         aStrings[i++] = ns.getPrefix();
         aStrings[i++] = ns.getNamespaceURI();
       }
     } else {
-      ArrayList<String> intermediate = new ArrayList<>();
-      for(Namespace ns: pNamespaces) {
+      final ArrayList<String> intermediate = new ArrayList<>();
+      for(final Namespace ns: namespaces) {
         intermediate.add(ns.getPrefix());
         intermediate.add(ns.getNamespaceURI());
       }
@@ -100,8 +104,9 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     return aStrings.length/2;
   }
 
-  public SimpleNamespaceContext combine(final SimpleNamespaceContext other) {
-    Map<String, String> result = new TreeMap<>();
+  @NotNull
+  public SimpleNamespaceContext combine(@NotNull final SimpleNamespaceContext other) {
+    final Map<String, String> result = new TreeMap<>();
     for(int i=(aStrings.length/2)-1; i>=0; --i) { result.put(aStrings[i*2], aStrings[i*2+1]); }
     for(int i=(other.aStrings.length/2)-1; i>=0; --i) { result.put(other.aStrings[i*2], other.aStrings[i*2+1]); }
     return new SimpleNamespaceContext(result);
@@ -112,22 +117,23 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
    * @param other The namespaces to add
    * @return the new context
    */
-  public SimpleNamespaceContext combine(final Iterable<Namespace> other) {
+  @Nullable
+  public SimpleNamespaceContext combine(@Nullable final Iterable<Namespace> other) {
     if (aStrings.length==0) {
       return from(other);
     }
     if (other==null || ! (other.iterator().hasNext())) {
       return this;
     }
-    Map<String, String> result = new TreeMap<>();
+    final Map<String, String> result = new TreeMap<>();
     for(int i=(aStrings.length/2)-1; i>=0; --i) { result.put(aStrings[i*2], aStrings[i*2+1]); }
     if (other instanceof SimpleNamespaceContext) {
-      SimpleNamespaceContext snother = (SimpleNamespaceContext) other;
+      final SimpleNamespaceContext snother = (SimpleNamespaceContext) other;
       for (int i = (snother.aStrings.length / 2) - 1; i >= 0; --i) {
         result.put(snother.aStrings[i * 2], snother.aStrings[i * 2 + 1]);
       }
     } else {
-      for(Namespace ns: other) {
+      for(final Namespace ns: other) {
         result.put(ns.getPrefix(), ns.getNamespaceURI());
       }
     }
@@ -135,18 +141,19 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
   }
 
-  public static SimpleNamespaceContext from(final Iterable<Namespace> pOriginalNSContext) {
-    if (pOriginalNSContext instanceof SimpleNamespaceContext) {
-      return (SimpleNamespaceContext) pOriginalNSContext;
-    } else if (pOriginalNSContext==null) {
+  @Nullable
+  public static SimpleNamespaceContext from(final Iterable<Namespace> originalNSContext) {
+    if (originalNSContext instanceof SimpleNamespaceContext) {
+      return (SimpleNamespaceContext) originalNSContext;
+    } else if (originalNSContext==null) {
       return null;
     } else {
-      return new SimpleNamespaceContext(pOriginalNSContext);
+      return new SimpleNamespaceContext(originalNSContext);
     }
   }
 
   @Override
-  public String getNamespaceURI(final String prefix) {
+  public String getNamespaceURI(@Nullable final String prefix) {
     if (prefix==null) { throw new IllegalArgumentException(); }
     switch (prefix) {
       case XMLConstants.XML_NS_PREFIX:
@@ -163,8 +170,9 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     return XMLConstants.NULL_NS_URI;
   }
 
+  @Nullable
   @Override
-  public String getPrefix(final String namespaceURI) {
+  public String getPrefix(@Nullable final String namespaceURI) {
     if (namespaceURI==null) { throw new IllegalArgumentException(); }
 
     switch(namespaceURI) {
@@ -185,7 +193,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
   }
 
   @Override
-  public Iterator<String> getPrefixes(final String namespaceURI) {
+  public Iterator<String> getPrefixes(@Nullable final String namespaceURI) {
     if (namespaceURI==null) { throw new IllegalArgumentException(); }
     switch(namespaceURI) {
       case XMLConstants.XML_NS_URI:
@@ -193,7 +201,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
       case XMLConstants.XMLNS_ATTRIBUTE_NS_URI:
         return Collections.singleton(XMLConstants.XMLNS_ATTRIBUTE).iterator();
       default:
-        List<String> result = new ArrayList<>(aStrings.length/2);
+        final List<String> result = new ArrayList<>(aStrings.length/2);
         for(int i=aStrings.length-2; i>=0; i-=2) {
           if (namespaceURI.equals(aStrings[i+1])) {
             result.add(aStrings[i]);
@@ -206,33 +214,34 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     }
   }
 
-  public String getPrefix(final int pIndex) {
+  public String getPrefix(final int index) {
     try {
-      return aStrings[pIndex * 2];
-    } catch (ArrayIndexOutOfBoundsException e) {
-      throw new ArrayIndexOutOfBoundsException(pIndex);
+      return aStrings[index * 2];
+    } catch (@NotNull final ArrayIndexOutOfBoundsException e) {
+      throw new ArrayIndexOutOfBoundsException(index);
     }
   }
 
-  public String getNamespaceURI(final int pIndex) {
+  public String getNamespaceURI(final int index) {
     try {
-      return aStrings[pIndex * 2 + 1];
-    } catch (ArrayIndexOutOfBoundsException e) {
-      throw new ArrayIndexOutOfBoundsException(pIndex);
+      return aStrings[index * 2 + 1];
+    } catch (@NotNull final ArrayIndexOutOfBoundsException e) {
+      throw new ArrayIndexOutOfBoundsException(index);
     }
   }
 
+  @NotNull
   @Override
   public Iterator<Namespace> iterator() {
     return new SimpleIterator();
   }
 
   @Override
-  public boolean equals(final Object pO) {
-    if (this == pO) return true;
-    if (pO == null || getClass() != pO.getClass()) return false;
+  public boolean equals(@Nullable final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    SimpleNamespaceContext that = (SimpleNamespaceContext) pO;
+    final SimpleNamespaceContext that = (SimpleNamespaceContext) o;
 
     // Probably incorrect - comparing Object[] arrays with Arrays.equals
     return Arrays.equals(aStrings, that.aStrings);

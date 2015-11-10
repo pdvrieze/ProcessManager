@@ -8,6 +8,9 @@
 
 package org.w3.soapEnvelope;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
@@ -48,6 +51,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Reasontext }
    */
+  @NotNull
   public Reasontext createReasontext() {
     return new Reasontext();
   }
@@ -55,6 +59,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Faultreason }
    */
+  @NotNull
   public Faultreason createFaultreason() {
     return new Faultreason();
   }
@@ -62,6 +67,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Faultcode }
    */
+  @NotNull
   public Faultcode createFaultcode() {
     return new Faultcode();
   }
@@ -69,6 +75,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Fault }
    */
+  @NotNull
   public Fault createFault() {
     return new Fault();
   }
@@ -76,6 +83,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Detail }
    */
+  @NotNull
   public Detail createDetail() {
     return new Detail();
   }
@@ -83,6 +91,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link SupportedEnvType }
    */
+  @NotNull
   public SupportedEnvType createSupportedEnvType() {
     return new SupportedEnvType();
   }
@@ -90,6 +99,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Body }
    */
+  @NotNull
   public Body createBody() {
     return new Body();
   }
@@ -97,6 +107,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Subcode }
    */
+  @NotNull
   public Subcode createSubcode() {
     return new Subcode();
   }
@@ -104,6 +115,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Header }
    */
+  @NotNull
   public Header createHeader() {
     return new Header();
   }
@@ -111,6 +123,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link Envelope }
    */
+  @NotNull
   public Envelope createEnvelope() {
     return new Envelope();
   }
@@ -118,6 +131,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link UpgradeType }
    */
+  @NotNull
   public UpgradeType createUpgradeType() {
     return new UpgradeType();
   }
@@ -125,6 +139,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link NotUnderstoodType }
    */
+  @NotNull
   public NotUnderstoodType createNotUnderstoodType() {
     return new NotUnderstoodType();
   }
@@ -132,6 +147,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link JAXBElement }{@code <}{@link Envelope }{@code >}
    */
+  @Nullable
   @XmlElementDecl(namespace = "http://www.w3.org/2003/05/soap-envelope", name = "Envelope")
   public JAXBElement<Envelope> createEnvelope(final Envelope value) {
     return new JAXBElement<>(_Envelope_QNAME, Envelope.class, null, value);
@@ -141,6 +157,7 @@ public class ObjectFactory {
    * Create an instance of {@link JAXBElement }{@code <}{@link UpgradeType }
    * {@code >}
    */
+  @Nullable
   @XmlElementDecl(namespace = "http://www.w3.org/2003/05/soap-envelope", name = "Upgrade")
   public JAXBElement<UpgradeType> createUpgrade(final UpgradeType value) {
     return new JAXBElement<>(_Upgrade_QNAME, UpgradeType.class, null, value);
@@ -149,6 +166,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link JAXBElement }{@code <}{@link Header }{@code >}
    */
+  @Nullable
   @XmlElementDecl(namespace = "http://www.w3.org/2003/05/soap-envelope", name = "Header")
   public JAXBElement<Header> createHeader(final Header value) {
     return new JAXBElement<>(_Header_QNAME, Header.class, null, value);
@@ -157,6 +175,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link JAXBElement }{@code <}{@link Body }{@code >}
    */
+  @Nullable
   @XmlElementDecl(namespace = "http://www.w3.org/2003/05/soap-envelope", name = "Body")
   public JAXBElement<Body> createBody(final Body value) {
     return new JAXBElement<>(_Body_QNAME, Body.class, null, value);
@@ -166,6 +185,7 @@ public class ObjectFactory {
    * Create an instance of {@link JAXBElement }{@code <}{@link NotUnderstoodType }
    * {@code >}
    */
+  @Nullable
   @XmlElementDecl(namespace = "http://www.w3.org/2003/05/soap-envelope", name = "NotUnderstood")
   public JAXBElement<NotUnderstoodType> createNotUnderstood(final NotUnderstoodType value) {
     return new JAXBElement<>(_NotUnderstood_QNAME, NotUnderstoodType.class, null, value);
@@ -174,6 +194,7 @@ public class ObjectFactory {
   /**
    * Create an instance of {@link JAXBElement }{@code <}{@link Fault }{@code >}
    */
+  @Nullable
   @XmlElementDecl(namespace = "http://www.w3.org/2003/05/soap-envelope", name = "Fault")
   public JAXBElement<Fault> createFault(final Fault value) {
     return new JAXBElement<>(_Fault_QNAME, Fault.class, null, value);

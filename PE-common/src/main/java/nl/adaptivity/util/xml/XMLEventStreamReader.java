@@ -1,5 +1,8 @@
 package nl.adaptivity.util.xml;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
@@ -16,39 +19,41 @@ import java.util.List;
  */
 public class XMLEventStreamReader implements XMLStreamReader {
 
-  private final XMLEventReader source;
-  private XMLEvent event;
-  private List<Attribute> attributes;
-  private List<Namespace> namespaces;
+  private final XMLEventReader mSource;
+  @Nullable private XMLEvent mEvent;
+  @Nullable private List<Attribute> mAttributes;
+  @Nullable private List<Namespace> mNamespaces;
 
-  public XMLEventStreamReader(final XMLEventReader pSource) throws XMLStreamException {
-    source = pSource;
-    event = null;
-    attributes = null;
-    namespaces = null;
+  public XMLEventStreamReader(final XMLEventReader source) {
+    mSource = source;
+    mEvent = null;
+    mAttributes = null;
+    mNamespaces = null;
   }
 
   @Override
   public Object getProperty(final String name) throws IllegalArgumentException {
-    return source.getProperty(name);
+    return mSource.getProperty(name);
   }
 
   @Override
   public int next() throws XMLStreamException {
-    event = source.nextEvent();
-    attributes = null;
-    namespaces = null;
-    return event.getEventType();
+    if (! mSource.hasNext()) { throw new IllegalStateException("Beyond end of underlying stream"); }
+    mEvent = mSource.nextEvent();
+    mAttributes = null;
+    mNamespaces = null;
+    return getEvent().getEventType();
   }
 
   @Override
-  public void require(final int type, final String namespaceURI, final String localName) throws XMLStreamException {
+  public void require(final int type, @Nullable final String namespaceURI, @Nullable final String localName) throws XMLStreamException {
+    XMLEvent event = getEvent();
     boolean valid = true;
     if (event.getEventType()!= type) {
       valid = false;
     } else {
       if (namespaceURI!=null || localName!=null) {
-        QName eventName = getEventName(event);
+        final QName eventName = getEventName(event);
         if (namespaceURI!=null && (! namespaceURI.equals(eventName.getNamespaceURI()))) {
           valid = false;
         }
@@ -62,22 +67,25 @@ public class XMLEventStreamReader implements XMLStreamReader {
     }
   }
 
-  private static QName getEventName(final XMLEvent pEvent) {
-    if (pEvent.isStartElement()) { return pEvent.asStartElement().getName(); }
-    else if (pEvent.isAttribute()) { return ((Attribute) pEvent).getName(); }
-    else if (pEvent.isEndElement()) { return pEvent.asEndElement().getName(); }
-    throw new IllegalStateException("The given event does not have a name");
+  private static QName getEventName(@NotNull final XMLEvent event) {
+    if (event.isStartElement()) { return event.asStartElement().getName(); }
+    else if (event.isAttribute()) { return ((Attribute) event).getName(); }
+    else if (event.isEndElement()) { return event.asEndElement().getName(); }
+    throw new IllegalStateException("The given mEvent does not have a name");
   }
 
+  @NotNull
   @Override
   public String getElementText() throws XMLStreamException {
+    XMLEvent event = getEvent();
+    if (event==null) { throw new IllegalStateException("Not in a valid state of the stream"); }
     if(! event.isStartElement()) {
       throw new XMLStreamException(
               "parser must be on START_ELEMENT to read next text", getLocation());
     }
-    int eventType = next();
-    StringBuilder content = new StringBuilder();
-    while (source.hasNext() && !(event=source.nextEvent()).isEndElement()) {
+    final int eventType = next();
+    final StringBuilder content = new StringBuilder();
+    while (mSource.hasNext() && !(event = mSource.nextEvent()).isEndElement()) {
       if (event.isCharacters()) {
         content.append(event.asCharacters().getData());
       } else if (event.isEntityReference()) {
@@ -90,7 +98,7 @@ public class XMLEventStreamReader implements XMLStreamReader {
       } else if(event.isStartElement()) {
         throw new XMLStreamException("element text content may not contain START_ELEMENT", event.getLocation());
       } else {
-        throw new XMLStreamException("Unexpected event type "+eventType, getLocation());
+        throw new XMLStreamException("Unexpected mEvent type "+eventType, getLocation());
       }
     }
     return content.toString();
@@ -103,61 +111,62 @@ public class XMLEventStreamReader implements XMLStreamReader {
       result = next();
     } while (result==XMLStreamConstants.COMMENT || (result==CHARACTERS && isWhiteSpace())|| (result==PROCESSING_INSTRUCTION));
     if (result!=START_ELEMENT && result!=END_ELEMENT) {
-      throw new XMLStreamException("Unexpected event while searching next tag",event.getLocation());
+      throw new XMLStreamException("Unexpected mEvent while searching next tag", getEvent() ==null ? null : getEvent().getLocation());
     }
     return result;
   }
 
   @Override
   public boolean hasNext() throws XMLStreamException {
-    return source.hasNext();
+    return mSource.hasNext();
   }
 
   @Override
   public void close() throws XMLStreamException {
-    source.close();
+    mSource.close();
   }
 
   @Override
   public String getNamespaceURI(final String prefix) {
-    return event.asStartElement().getNamespaceURI(prefix);
+    return getEvent().asStartElement().getNamespaceURI(prefix);
   }
 
   @Override
   public boolean isStartElement() {
-    return event.isStartElement();
+    return getEvent().isStartElement();
   }
 
   @Override
   public boolean isEndElement() {
-    return event.isEndElement();
+    return getEvent().isEndElement();
   }
 
   @Override
   public boolean isCharacters() {
-    return event.isCharacters();
+    return getEvent().isCharacters();
   }
 
   @Override
   public boolean isWhiteSpace() {
-    return event.isCharacters() && event.asCharacters().isWhiteSpace();
+    return getEvent().isCharacters() && getEvent().asCharacters().isWhiteSpace();
   }
 
   private void cacheAttrs() {
-    if (attributes==null) {
-      ArrayList<Attribute> attrs = new ArrayList<>();
-      for (@SuppressWarnings("unchecked") Iterator<Attribute> attributeIterator = event.asStartElement().getAttributes(); attributeIterator.hasNext(); ) {
+    if (mAttributes ==null) {
+      final ArrayList<Attribute> attrs = new ArrayList<>();
+      for (@SuppressWarnings("unchecked") final Iterator<Attribute> attributeIterator = getEvent().asStartElement().getAttributes(); attributeIterator.hasNext(); ) {
         attrs.add(attributeIterator.next());
       }
-      attributes = attrs;
+      mAttributes = attrs;
     }
   }
 
+  @Nullable
   @Override
-  public String getAttributeValue(final String namespaceURI, final String localName) {
+  public String getAttributeValue(@Nullable final String namespaceURI, @NotNull final String localName) {
     cacheAttrs();
-    for(Attribute candidate: attributes) {
-      QName name = candidate.getName();
+    for(final Attribute candidate: mAttributes) {
+      final QName name = candidate.getName();
       if ((namespaceURI==null || namespaceURI.equals(name.getNamespaceURI())) && localName.equals(name.getLocalPart())) {
         return candidate.getValue();
       }
@@ -168,13 +177,13 @@ public class XMLEventStreamReader implements XMLStreamReader {
   @Override
   public int getAttributeCount() {
     cacheAttrs();
-    return attributes.size();
+    return mAttributes.size();
   }
 
   @Override
   public QName getAttributeName(final int index) {
     cacheAttrs();
-    return attributes.get(index).getName();
+    return mAttributes.get(index).getName();
   }
 
   @Override
@@ -195,71 +204,72 @@ public class XMLEventStreamReader implements XMLStreamReader {
   @Override
   public String getAttributeType(final int index) {
     cacheAttrs();
-    return attributes.get(index).getDTDType();
+    return mAttributes.get(index).getDTDType();
   }
 
   @Override
   public String getAttributeValue(final int index) {
     cacheAttrs();
-    return attributes.get(index).getValue();
+    return mAttributes.get(index).getValue();
   }
 
   @Override
   public boolean isAttributeSpecified(final int index) {
     cacheAttrs();
-    return attributes.get(index).isSpecified();
+    return mAttributes.get(index).isSpecified();
   }
 
   private void cacheNamespaces() {
-    List<javax.xml.stream.events.Namespace> collector = new ArrayList<>();
-    for(@SuppressWarnings("unchecked") Iterator<Namespace> namespaceIterator = event.asStartElement().getNamespaces(); namespaceIterator.hasNext();) {
+    final List<javax.xml.stream.events.Namespace> collector = new ArrayList<>();
+    for(@SuppressWarnings("unchecked") final Iterator<Namespace> namespaceIterator = getEvent().asStartElement().getNamespaces(); namespaceIterator.hasNext();) {
       collector.add(namespaceIterator.next());
     }
-    namespaces = collector;
+    mNamespaces = collector;
   }
 
   @Override
   public int getNamespaceCount() {
     cacheNamespaces();
-    return namespaces.size();
+    return mNamespaces.size();
   }
 
   @Override
   public String getNamespacePrefix(final int index) {
     cacheNamespaces();
-    return namespaces.get(index).getPrefix();
+    return mNamespaces.get(index).getPrefix();
   }
 
   @Override
   public String getNamespaceURI(final int index) {
     cacheNamespaces();
-    return namespaces.get(index).getNamespaceURI();
+    return mNamespaces.get(index).getNamespaceURI();
   }
 
   @Override
   public NamespaceContext getNamespaceContext() {
-    return event.asStartElement().getNamespaceContext();
+    return getEvent().asStartElement().getNamespaceContext();
   }
 
   @Override
   public int getEventType() {
-    return event.getEventType();
+    return getEvent().getEventType();
   }
 
   @Override
   public String getText() {
-    return event.asCharacters().getData();
+    return getEvent().asCharacters().getData();
   }
 
+  @NotNull
   @Override
   public char[] getTextCharacters() {
-    return event.asCharacters().getData().toCharArray();
+    return getEvent().asCharacters().getData().toCharArray();
   }
 
   @Override
-  public int getTextCharacters(final int sourceStart, final char[] target, final int targetStart, final int length) throws
+  public int getTextCharacters(final int sourceStart, @NotNull final char[] target, final int targetStart, final int length) throws
           XMLStreamException {
-    String text = getText();
+    final String text = getText();
     // TODO be more flexible in fitting in the target buffer
     text.getChars(sourceStart, sourceStart+length, target, targetStart);
     return length;
@@ -272,9 +282,10 @@ public class XMLEventStreamReader implements XMLStreamReader {
 
   @Override
   public int getTextLength() {
-    return event.asCharacters().getData().length();
+    return getEvent().asCharacters().getData().length();
   }
 
+  @Nullable
   @Override
   public String getEncoding() {
     return null;
@@ -282,16 +293,18 @@ public class XMLEventStreamReader implements XMLStreamReader {
 
   @Override
   public boolean hasText() {
-    return event.isCharacters() || event.getEventType()==XMLStreamConstants.DTD || event.isEntityReference();
+    return getEvent().isCharacters() || getEvent().getEventType()==XMLStreamConstants.DTD || getEvent().isEntityReference();
   }
 
   @Override
   public Location getLocation() {
-    return event.getLocation();
+    return getEvent().getLocation();
   }
 
+  @Nullable
   @Override
   public QName getName() {
+    final XMLEvent event= getEvent();
     if (event.isStartElement()) {
       return event.asStartElement().getName();
     }
@@ -308,7 +321,7 @@ public class XMLEventStreamReader implements XMLStreamReader {
 
   @Override
   public boolean hasName() {
-    return event.isStartElement()||event.isEndElement();
+    return getEvent().isStartElement()|| getEvent().isEndElement();
   }
 
   @Override
@@ -323,31 +336,37 @@ public class XMLEventStreamReader implements XMLStreamReader {
 
   @Override
   public String getVersion() {
-    return ((StartDocument) event).getVersion();
+    return ((StartDocument) getEvent()).getVersion();
   }
 
   @Override
   public boolean isStandalone() {
-    return ((StartDocument) event).isStandalone();
+    return ((StartDocument) getEvent()).isStandalone();
   }
 
   @Override
   public boolean standaloneSet() {
-    return ((StartDocument) event).standaloneSet();
+    return ((StartDocument) getEvent()).standaloneSet();
   }
 
   @Override
   public String getCharacterEncodingScheme() {
-    return ((StartDocument) event).getCharacterEncodingScheme();
+    return ((StartDocument) getEvent()).getCharacterEncodingScheme();
   }
 
   @Override
   public String getPITarget() {
-    return ((ProcessingInstruction) event).getTarget();
+    return ((ProcessingInstruction) getEvent()).getTarget();
   }
 
   @Override
   public String getPIData() {
-    return ((ProcessingInstruction) event).getData();
+    return ((ProcessingInstruction) getEvent()).getData();
+  }
+
+  @NotNull
+  public XMLEvent getEvent() {
+    if (mEvent==null) { throw new IllegalStateException("Not in a valid state of the stream"); }
+    return mEvent;
   }
 }

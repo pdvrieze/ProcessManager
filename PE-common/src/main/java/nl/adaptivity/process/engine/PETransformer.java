@@ -5,6 +5,8 @@ import nl.adaptivity.util.xml.AbstractBufferedEventReader;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
@@ -38,25 +40,23 @@ public class PETransformer {
 
   public static class MyFilter extends AbstractBufferedEventReader {
 
-    private PETransformerContext aContext;
-    private final NamespaceContext aNamespaceContext;
-    private XMLStreamReader aStreamInput2;
-    private XMLEventReader aEventInput;
-    private XMLEventFactory aXef;
+    @NotNull private PETransformerContext mContext;
+    @Nullable private final NamespaceContext mNamespaceContext;
+    @NotNull private XMLEventReader mEventInput;
+    @NotNull private XMLEventFactory mXef;
     private final boolean mRemoveWhitespace;
 
-    public MyFilter(PETransformerContext pContext, NamespaceContext pNamespaceContext, XMLStreamReader pInput, boolean pRemoveWhitespace) throws
+    public MyFilter(final PETransformerContext context, final NamespaceContext namespaceContext, final XMLStreamReader input, final boolean removeWhitespace) throws
             XMLStreamException {
-      this(pContext, pNamespaceContext, XMLInputFactory.newFactory().createXMLEventReader(pInput), pRemoveWhitespace);
+      this(context, namespaceContext, XMLInputFactory.newFactory().createXMLEventReader(input), removeWhitespace);
     }
 
-    public MyFilter(PETransformerContext pContext, NamespaceContext pNamespaceContext, XMLEventReader pInput, boolean pRemoveWhitespace) throws
-            XMLStreamException {
-      aContext = pContext;
-      aNamespaceContext = pNamespaceContext;
-      aEventInput = pInput;
-      aXef = XMLEventFactory.newInstance();
-      mRemoveWhitespace = pRemoveWhitespace;
+    public MyFilter(@NotNull final PETransformerContext context, @Nullable final NamespaceContext namespaceContext, @NotNull final XMLEventReader input, final boolean removeWhitespace) {
+      mContext = context;
+      mNamespaceContext = namespaceContext;
+      mEventInput = input;
+      mXef = XMLEventFactory.newInstance();
+      mRemoveWhitespace = removeWhitespace;
     }
 
     @Override
@@ -71,8 +71,8 @@ public class PETransformer {
       if (! isPeekBufferEmpty()) {
         return peekFirst();
       }
-      while(aEventInput.hasNext()) {
-        XMLEvent event = aEventInput.nextEvent();
+      while(mEventInput.hasNext()) {
+        final XMLEvent event = mEventInput.nextEvent();
         if (event.isStartElement()) {
           peekStartElement(event.asStartElement());
           return peekFirst();
@@ -97,43 +97,43 @@ public class PETransformer {
       return peekFirst();
     }
 
-    private void peekStartElement(StartElement pElement) throws XMLStreamException {
-      if (Constants.MODIFY_NS_STR.equals(pElement.getName().getNamespaceURI())) {
-        String localname = pElement.getName().getLocalPart();
+    private void peekStartElement(@NotNull final StartElement element) throws XMLStreamException {
+      if (Constants.MODIFY_NS_STR.equals(element.getName().getNamespaceURI())) {
+        final String localname = element.getName().getLocalPart();
 
-        final Map<String, String> attributes = parseAttributes(aEventInput, pElement);
+        final Map<String, String> attributes = parseAttributes(mEventInput, element);
 
         switch (localname) {
           case "attribute":
             stripWhiteSpaceFromPeekBuffer();
             add(getAttribute(attributes));
-            readEndTag(pElement.getName());
+            readEndTag(element.getName());
             return;
           case "element":
-            processElement(pElement, attributes, false);
-            readEndTag(pElement.getName());
+            processElement(element, attributes, false);
+            readEndTag(element.getName());
             return;
           case "value":
-            processElement(pElement, attributes, true);
-            readEndTag(pElement.getName());
+            processElement(element, attributes, true);
+            readEndTag(element.getName());
             return;
           default:
-            throw new XMLStreamException("Unsupported element: "+pElement.getName());
+            throw new XMLStreamException("Unsupported element: "+element.getName());
         }
       } else {
         boolean filterAttributes = false;
-        List<Attribute> newAttrs = new ArrayList<>();
-        for(@SuppressWarnings("unchecked") Iterator<Attribute> it = pElement.getAttributes(); it.hasNext(); ) {
-          Attribute attr = it.next();
+        final List<Attribute> newAttrs = new ArrayList<>();
+        for(@SuppressWarnings("unchecked") final Iterator<Attribute> it = element.getAttributes(); it.hasNext(); ) {
+          final Attribute attr = it.next();
           if (attr.isNamespace() && Constants.MODIFY_NS_STR.equals(attr.getValue())) {
             filterAttributes=true;
           } else {
             newAttrs.add(attr);
           }
         }
-        List<Namespace> newNamespaces = new ArrayList<>();
-        for(@SuppressWarnings("unchecked") Iterator<Namespace> it = pElement.getNamespaces(); it.hasNext();) {
-          Namespace ns = it.next();
+        final List<Namespace> newNamespaces = new ArrayList<>();
+        for(@SuppressWarnings("unchecked") final Iterator<Namespace> it = element.getNamespaces(); it.hasNext();) {
+          final Namespace ns = it.next();
           if (Constants.MODIFY_NS_STR.equals(ns.getNamespaceURI())) {
             filterAttributes=true;
           } else {
@@ -141,114 +141,113 @@ public class PETransformer {
           }
         }
         if (filterAttributes) {
-          add(aXef.createStartElement(pElement.getName(), newAttrs.iterator(), newNamespaces.iterator()));
+          add(mXef.createStartElement(element.getName(), newAttrs.iterator(), newNamespaces.iterator()));
         } else {
-          add(pElement);
+          add(element);
         }
       }
     }
 
-    private void readEndTag(QName pName) throws XMLStreamException {
-      XMLEvent ev = aEventInput.nextTag();
-      if (! (ev.isEndElement() && ev.asEndElement().getName().equals(pName))) {
-        throw new XMLStreamException("Unexpected tag found ("+ev+")when expecting an end tag for "+pName);
+    private void readEndTag(final QName name) throws XMLStreamException {
+      final XMLEvent ev = mEventInput.nextTag();
+      if (! (ev.isEndElement() && ev.asEndElement().getName().equals(name))) {
+        throw new XMLStreamException("Unexpected tag found ("+ev+")when expecting an end tag for "+name);
       }
     }
 
-    private void processElement(StartElement event, Map<String,String> pAttributes, boolean pHasDefault) throws XMLStreamException {
-      String valueName = pAttributes.get("value");
-      String xpath = pAttributes.get("xpath");
+    private void processElement(@NotNull final StartElement event, @NotNull final Map<String,String> attributes, final boolean hasDefault) throws XMLStreamException {
+      final String valueName = attributes.get("value");
+      final String xpath = attributes.get("xpath");
       try {
         if (valueName == null) {
-          if (pHasDefault) {
-            addAll(applyXpath(event.getNamespaceContext(), aContext.resolveDefaultValue(aXef), xpath));
+          if (hasDefault) {
+            addAll(applyXpath(event.getNamespaceContext(), mContext.resolveDefaultValue(mXef), xpath));
           } else {
             throw new XMLStreamException("This context does not allow for a missing value parameter");
           }
         } else {
-          addAll(applyXpath(event.getNamespaceContext(), aContext.resolveElementValue(aXef, valueName), xpath));
+          addAll(applyXpath(event.getNamespaceContext(), mContext.resolveElementValue(mXef, valueName), xpath));
         }
-      } catch (XPathExpressionException|ParserConfigurationException e) {
+      } catch (@NotNull XPathExpressionException|ParserConfigurationException e) {
         throw new XMLStreamException(e);
       }
     }
 
-    private Collection<? extends XMLEvent> applyXpath(final NamespaceContext pNamespaceContext, final List<XMLEvent> pPendingEvents, final String pXpath) throws
+    @NotNull
+    private Collection<? extends XMLEvent> applyXpath(final NamespaceContext namespaceContext, @NotNull final List<XMLEvent> pendingEvents, @Nullable final String xpathstr) throws
             XPathExpressionException, XMLStreamException, ParserConfigurationException {
-      if (pXpath==null || ".".equals(pXpath)) {
-        return pPendingEvents;
+      if (xpathstr==null || ".".equals(xpathstr)) {
+        return pendingEvents;
       }
       // TODO add a function resolver
-      XPath rawPath = XPathFactory.newInstance().newXPath();
+      final XPath rawPath = XPathFactory.newInstance().newXPath();
       // Do this better
-      if (aNamespaceContext==null) {
-        rawPath.setNamespaceContext(pNamespaceContext);
+      if (mNamespaceContext ==null) {
+        rawPath.setNamespaceContext(namespaceContext);
       } else {
-        rawPath.setNamespaceContext(new CombiningNamespaceContext(pNamespaceContext, aNamespaceContext));
+        rawPath.setNamespaceContext(new CombiningNamespaceContext(namespaceContext, mNamespaceContext));
       }
-      XPathExpression xpath = rawPath.compile(pXpath);
-      ArrayList<XMLEvent> result = new ArrayList<>();
-      XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); dbf.setNamespaceAware(true);
-      DocumentBuilder db = dbf.newDocumentBuilder();
-      DocumentFragment eventFragment = db.newDocument().createDocumentFragment();
-      DOMResult domResult= new DOMResult(eventFragment);
-      XMLEventWriter xew = xof.createXMLEventWriter(domResult);
-      for(XMLEvent event: pPendingEvents) {
+      final XPathExpression xpathexpr = rawPath.compile(xpathstr);
+      final ArrayList<XMLEvent> result = new ArrayList<>();
+      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance(); dbf.setNamespaceAware(true);
+      final DocumentBuilder db = dbf.newDocumentBuilder();
+      final DocumentFragment eventFragment = db.newDocument().createDocumentFragment();
+      final DOMResult domResult= new DOMResult(eventFragment);
+      final XMLEventWriter xew = xof.createXMLEventWriter(domResult);
+      for(final XMLEvent event: pendingEvents) {
         xew.add(event);
       }
       xew.close();
-      NodeList applicationResult = (NodeList) xpath.evaluate(eventFragment, XPathConstants.NODESET);
+      final NodeList applicationResult = (NodeList) xpathexpr.evaluate(eventFragment, XPathConstants.NODESET);
       if (applicationResult.getLength()>0) {
         result.addAll(toEvents(new ProcessData("--xpath result--", XmlUtil.nodeListToFragment(applicationResult))));
       }
       return result;
     }
 
-    private static Map<String,String> parseAttributes(XMLEventReader pIn, StartElement pStartElement) throws XMLStreamException {
-      TreeMap<String, String> result = new TreeMap<>();
+    @NotNull
+    private static Map<String,String> parseAttributes(@NotNull final XMLEventReader in, @NotNull final StartElement startElement) throws XMLStreamException {
+      final TreeMap<String, String> result = new TreeMap<>();
 
-      @SuppressWarnings("unchecked")
-      Iterator<Attribute> attributes = pStartElement.getAttributes();
+      @SuppressWarnings("unchecked") final
+      Iterator<Attribute> attributes = startElement.getAttributes();
       while (attributes.hasNext()) {
-        Attribute attribute = attributes.next();
+        final Attribute attribute = attributes.next();
         result.put(attribute.getName().getLocalPart(), attribute.getValue());
       }
 
-      while(pIn.peek().isAttribute()) {
-        Attribute attribute = (Attribute) pIn.nextEvent();
+      while(in.peek().isAttribute()) {
+        final Attribute attribute = (Attribute) in.nextEvent();
         result.put(attribute.getName().getLocalPart(), attribute.getValue());
       }
       return result;
     }
 
-    private XMLEvent getAttribute(Map<String,String> pAttributes) throws XMLStreamException {
-      String valueName = pAttributes.get("value");
-      String xpath = pAttributes.get("xpath");
-      String paramName = pAttributes.get("name");
+    private XMLEvent getAttribute(@NotNull final Map<String,String> attributes) throws XMLStreamException {
+      final String valueName = attributes.get("value");
+      final String xpath = attributes.get("xpath");
+      String paramName = attributes.get("name");
 
       if (valueName != null) {
         if (paramName==null) {
-          paramName = aContext.resolveAttributeName(valueName);
+          paramName = mContext.resolveAttributeName(valueName);
         }
-        String value = aContext.resolveAttributeValue(valueName, xpath);
-        return aXef.createAttribute(paramName, value);
+        final String value = mContext.resolveAttributeValue(valueName, xpath);
+        return mXef.createAttribute(paramName, value);
       } else {
         throw new MessagingFormatException("Missing parameter name");
       }
     }
 
     @Override
-    public Object getProperty(String pName) throws IllegalArgumentException {
-      return aEventInput.getProperty(pName);
+    public Object getProperty(final String name) throws IllegalArgumentException {
+      return mEventInput.getProperty(name);
     }
 
     @Override
     public void close() throws XMLStreamException {
-      aEventInput.close();
-      aEventInput = null;
-      aContext = null;
-      aXef = null;
+      mEventInput.close();
       super.close();
     }
 
@@ -256,55 +255,61 @@ public class PETransformer {
 
   public interface PETransformerContext {
 
-    List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) throws XMLStreamException;
-    List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException; //Just return DOM, not events (that then need to be dom-ified)
-    String resolveAttributeValue(String pValueName, final String pXpath) throws XMLStreamException;
-    String resolveAttributeName(String pValueName);
+    @NotNull
+    List<XMLEvent> resolveElementValue(XMLEventFactory xef, String valueName) throws XMLStreamException;
+    List<XMLEvent> resolveDefaultValue(XMLEventFactory xef) throws XMLStreamException; //Just return DOM, not events (that then need to be dom-ified)
+    @NotNull
+    String resolveAttributeValue(String valueName, final String xpath) throws XMLStreamException;
+    @NotNull
+    String resolveAttributeName(String valueName);
 
   }
 
   public static abstract class AbstractDataContext implements PETransformerContext {
 
-    protected abstract ProcessData getData(String pValueName);
+    @Nullable
+    protected abstract ProcessData getData(String valueName);
 
+    @NotNull
     @Override
-    public List<XMLEvent> resolveElementValue(XMLEventFactory pXef, String pValueName) throws XMLStreamException {
-      ProcessData data = getData(pValueName);
+    public List<XMLEvent> resolveElementValue(final XMLEventFactory xef, final String valueName) throws XMLStreamException {
+      final ProcessData data = getData(valueName);
       if (data==null) {
-        throw new IllegalArgumentException("No value with name "+pValueName+" found");
+        throw new IllegalArgumentException("No value with name "+valueName+" found");
       }
       return toEvents(data);
     }
 
+    @NotNull
     @Override
-    public String resolveAttributeValue(String pValueName, final String pXpath) throws XMLStreamException {
-      ProcessData data = getData(pValueName);
+    public String resolveAttributeValue(final String valueName, final String xpath) throws XMLStreamException {
+      final ProcessData data = getData(valueName);
       if (data==null) {
-        throw new IllegalArgumentException("No data value with name "+pValueName+" found");
+        throw new IllegalArgumentException("No data value with name "+valueName+" found");
       }
-      XMLInputFactory xif = XMLInputFactory.newFactory();
-      XMLEventReader dataReader = XmlUtil.createXMLEventReader(xif, new StAXSource(XMLFragmentStreamReader.from(data.getContent())));
-      StringBuilder result = new StringBuilder();
+      final XMLInputFactory xif = XMLInputFactory.newFactory();
+      final XMLEventReader dataReader = XmlUtil.createXMLEventReader(xif, new StAXSource(XMLFragmentStreamReader.from(data.getContent())));
+      final StringBuilder result = new StringBuilder();
       while (dataReader.hasNext()) {
-        XMLEvent event = dataReader.nextEvent();
+        final XMLEvent event = dataReader.nextEvent();
         switch (event.getEventType()) {
-        case XMLEvent.ATTRIBUTE:
-        case XMLEvent.DTD:
-        case XMLEvent.START_ELEMENT:
-        case XMLEvent.END_ELEMENT:
+        case XMLStreamConstants.ATTRIBUTE:
+        case XMLStreamConstants.DTD:
+        case XMLStreamConstants.START_ELEMENT:
+        case XMLStreamConstants.END_ELEMENT:
           throw new XMLStreamException("Unexpected node found while resolving attribute. Only CDATA allowed: ("+event.getClass().getSimpleName()+") "+event.getEventType());
-        case XMLEvent.CDATA:
-        case XMLEvent.CHARACTERS: {
-          Characters characters = event.asCharacters();
+        case XMLStreamConstants.CDATA:
+        case XMLStreamConstants.CHARACTERS: {
+          final Characters characters = event.asCharacters();
           if (! isIgnorableWhiteSpace(characters)) {
             result.append(characters.getData());
           }
           break;
         }
-        case XMLEvent.START_DOCUMENT:
-        case XMLEvent.END_DOCUMENT:
-        case XMLEvent.COMMENT:
-        case XMLEvent.PROCESSING_INSTRUCTION:
+        case XMLStreamConstants.START_DOCUMENT:
+        case XMLStreamConstants.END_DOCUMENT:
+        case XMLStreamConstants.COMMENT:
+        case XMLStreamConstants.PROCESSING_INSTRUCTION:
           break; // ignore
         default:
           throw new XMLStreamException("Unexpected node type: "+event);
@@ -313,9 +318,10 @@ public class PETransformer {
       return result.toString();
     }
 
+    @NotNull
     @Override
-    public String resolveAttributeName(String pValueName) {
-      ProcessData data = getData(pValueName);
+    public String resolveAttributeName(final String valueName) {
+      final ProcessData data = getData(valueName);
       return new String(data.getContent().getContent());
     }
 
@@ -323,35 +329,37 @@ public class PETransformer {
 
   public static class ProcessDataContext extends AbstractDataContext {
 
-    private ProcessData[] aProcessData;
+    @Nullable private ProcessData[] aProcessData;
     private int aDefaultIdx;
 
-    public ProcessDataContext(ProcessData... pProcessData) {
-      if (pProcessData==null) {
+    public ProcessDataContext(@Nullable final ProcessData... processData) {
+      if (processData==null) {
         aProcessData= new ProcessData[0];
         aDefaultIdx=0;
       } else {
-        aProcessData = pProcessData;
-        aDefaultIdx = pProcessData.length==1 ? 0 : -1;
+        aProcessData = processData;
+        aDefaultIdx = processData.length==1 ? 0 : -1;
       }
     }
 
-    public ProcessDataContext(int pDefaultIdx, ProcessData... pProcessData) {
-      assert pDefaultIdx>=-1 && pDefaultIdx<pProcessData.length;
-      aProcessData = pProcessData;
-      aDefaultIdx = pDefaultIdx;
+    public ProcessDataContext(final int defaultIdx, @NotNull final ProcessData... processData) {
+      assert defaultIdx>=-1 && defaultIdx<processData.length;
+      aProcessData = processData;
+      aDefaultIdx = defaultIdx;
     }
 
+    @Nullable
     @Override
-    protected ProcessData getData(String pValueName) {
-      for(ProcessData candidate: aProcessData) {
-        if (pValueName.equals(candidate.getName())) { return candidate; }
+    protected ProcessData getData(@NotNull final String valueName) {
+      for(final ProcessData candidate: aProcessData) {
+        if (valueName.equals(candidate.getName())) { return candidate; }
       }
       return null;
     }
 
+    @NotNull
     @Override
-    public List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException {
+    public List<XMLEvent> resolveDefaultValue(final XMLEventFactory xef) throws XMLStreamException {
       if (aProcessData.length==0 || aProcessData[aDefaultIdx]==null) { return Collections.emptyList(); }
       return toEvents(aProcessData[aDefaultIdx]);
     }
@@ -362,77 +370,86 @@ public class PETransformer {
   private final NamespaceContext aNamespaceContext;
   private final boolean mRemoveWhitespace;
 
-  private PETransformer(PETransformerContext pContext, NamespaceContext pNamespaceContext, boolean pRemoveWhitespace) {
-    aContext = pContext;
-    aNamespaceContext = pNamespaceContext;
-    mRemoveWhitespace = pRemoveWhitespace;
+  private PETransformer(final PETransformerContext context, final NamespaceContext namespaceContext, final boolean removeWhitespace) {
+    aContext = context;
+    aNamespaceContext = namespaceContext;
+    mRemoveWhitespace = removeWhitespace;
   }
 
-  public static PETransformer create(NamespaceContext pNamespaceContext, boolean pRemoveWhitespace, ProcessData... pProcessData) {
-    return new PETransformer(new ProcessDataContext(pProcessData), pNamespaceContext, pRemoveWhitespace);
+  @NotNull
+  public static PETransformer create(final NamespaceContext namespaceContext, final boolean removeWhitespace, final ProcessData... processData) {
+    return new PETransformer(new ProcessDataContext(processData), namespaceContext, removeWhitespace);
   }
 
+  @NotNull
   @Deprecated
-  public static PETransformer create(boolean pRemoveWhitespace, ProcessData... pProcessData) {
-    return create(null, pRemoveWhitespace, pProcessData);
+  public static PETransformer create(final boolean removeWhitespace, final ProcessData... processData) {
+    return create(null, removeWhitespace, processData);
   }
 
-  public static PETransformer create(NamespaceContext pNamespaceContext, ProcessData... pProcessData) {
-    return create(pNamespaceContext, true, pProcessData);
+  @NotNull
+  public static PETransformer create(final NamespaceContext namespaceContext, final ProcessData... processData) {
+    return create(namespaceContext, true, processData);
   }
 
+  @NotNull
   @Deprecated
-  public static PETransformer create(ProcessData... pProcessData) {
-    return create(null, true, pProcessData);
+  public static PETransformer create(final ProcessData... processData) {
+    return create(null, true, processData);
   }
 
+  @NotNull
   @Deprecated
-  public static PETransformer create(PETransformerContext pContext) {
-    return create(pContext, true);
+  public static PETransformer create(final PETransformerContext context) {
+    return create(context, true);
   }
 
-  public static PETransformer create(NamespaceContext pNamespaceContext, PETransformerContext pContext) {
-    return create(pNamespaceContext, pContext, true);
+  @NotNull
+  public static PETransformer create(final NamespaceContext namespaceContext, final PETransformerContext context) {
+    return create(namespaceContext, context, true);
   }
 
-  public static PETransformer create(PETransformerContext pContext, boolean pRemoveWhitespace) {
-    return create(null, pContext, pRemoveWhitespace);
+  @NotNull
+  public static PETransformer create(final PETransformerContext context, final boolean removeWhitespace) {
+    return create(null, context, removeWhitespace);
   }
 
-  public static PETransformer create(NamespaceContext pNamespaceContext, PETransformerContext pContext, boolean pRemoveWhitespace) {
-    return new PETransformer(pContext, pNamespaceContext, pRemoveWhitespace);
+  @NotNull
+  public static PETransformer create(final NamespaceContext namespaceContext, final PETransformerContext context, final boolean removeWhitespace) {
+    return new PETransformer(context, namespaceContext, removeWhitespace);
   }
 
-  public List<Node> transform(List<?> pContent) {
+  @NotNull
+  public List<Node> transform(@NotNull final List<?> content) {
     try {
       Document document = null;
-      ArrayList<Node> result = new ArrayList<>(pContent.size());
-      for(Object obj: pContent) {
+      final ArrayList<Node> result = new ArrayList<>(content.size());
+      for(final Object obj: content) {
         if (obj instanceof CharSequence) {
           if (document == null) {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             document = dbf.newDocumentBuilder().newDocument();
           }
           result.add(document.createTextNode(obj.toString()));
         } else if (obj instanceof Node) {
           if (document==null) { document = ((Node) obj).getOwnerDocument(); }
-          DocumentFragment v = transform((Node) obj);
+          final DocumentFragment v = transform((Node) obj);
           if (v!=null) {
             result.add(v);
           }
         } else if (obj instanceof JAXBElement<?>) {
           if (document == null) {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
             document = dbf.newDocumentBuilder().newDocument();
           }
-          JAXBElement<?> jbe = (JAXBElement<?>) obj;
+          final JAXBElement<?> jbe = (JAXBElement<?>) obj;
           final DocumentFragment df = document.createDocumentFragment();
-          DOMResult domResult = new DOMResult(df);
+          final DOMResult domResult = new DOMResult(df);
           JAXB.marshal(jbe, domResult);
           for(Node n = df.getFirstChild(); n!=null; n=n.getNextSibling()) {
-            DocumentFragment v = transform(n);
+            final DocumentFragment v = transform(n);
             if (v!=null) {
               result.add(v);
             }
@@ -442,64 +459,67 @@ public class PETransformer {
         }
       }
       return result;
-    } catch (ParserConfigurationException e) {
+    } catch (@NotNull final ParserConfigurationException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public DocumentFragment transform(Node pNode) {
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    Document document;
+  public DocumentFragment transform(final Node node) {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    final Document document;
     try {
       document = dbf.newDocumentBuilder().newDocument();
-      DocumentFragment fragment = document.createDocumentFragment();
-      DOMResult result = new DOMResult(fragment);
-      transform(new DOMSource(pNode), result);
+      final DocumentFragment fragment = document.createDocumentFragment();
+      final DOMResult result = new DOMResult(fragment);
+      transform(new DOMSource(node), result);
       return fragment;
-    } catch (ParserConfigurationException | XMLStreamException e) {
+    } catch (@NotNull ParserConfigurationException | XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void transform(Source source, final Result result) throws XMLStreamException {
+  public void transform(final Source source, final Result result) throws XMLStreamException {
     final XMLEventReader xer = createFilter(XmlUtil.createXMLEventReader(XMLInputFactory.newInstance(), source));
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
     xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
     final XMLEventWriter xew = XmlUtil.createXMLEventWriter(xof, result);
     xew.add(xer);
   }
 
-  public void transform(final XMLStreamReader source, final XMLStreamWriter result) throws XMLStreamException {
+  public void transform(final XMLStreamReader source, @NotNull final XMLStreamWriter result) throws XMLStreamException {
     final XMLEventReader xer = createFilter(source);
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
     xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
     final XMLEventWriter xew = XmlUtil.createXMLEventWriter(xof, new StAXResult(result));
     xew.add(xer);
   }
 
-  public XMLEventReader createFilter(XMLStreamReader pInput) throws XMLStreamException {
-    return new MyFilter(aContext, aNamespaceContext, pInput, mRemoveWhitespace);
+  @NotNull
+  public XMLEventReader createFilter(final XMLStreamReader input) throws XMLStreamException {
+    return new MyFilter(aContext, aNamespaceContext, input, mRemoveWhitespace);
   }
 
-  public XMLEventReader createFilter(XMLEventReader pInput) throws XMLStreamException {
-    return new MyFilter(aContext, aNamespaceContext, pInput, mRemoveWhitespace);
+  @NotNull
+  public XMLEventReader createFilter(final XMLEventReader input) throws XMLStreamException {
+    return new MyFilter(aContext, aNamespaceContext, input, mRemoveWhitespace);
   }
 
-  protected static List<XMLEvent> toEvents(ProcessData data) throws XMLStreamException {
-    List<XMLEvent> result = new ArrayList<>();
+  @NotNull
+  protected static List<XMLEvent> toEvents(@NotNull final ProcessData data) throws XMLStreamException {
+    final List<XMLEvent> result = new ArrayList<>();
 
-    XMLStreamReader frag = data.getContentStream();
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    for(XMLEventReader dataReader = XmlUtil.filterSubstream(XmlUtil.createXMLEventReader(xif, new StAXSource(frag))); dataReader.hasNext();) {
+    final XMLStreamReader frag = data.getContentStream();
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    for(final XMLEventReader dataReader = XmlUtil.filterSubstream(XmlUtil.createXMLEventReader(xif, new StAXSource(frag))); dataReader.hasNext();) {
       result.add(dataReader.nextEvent());
     }
     return result;
   }
 
-  static boolean isIgnorableWhiteSpace(Characters pCharacters) {
-    if (pCharacters.isIgnorableWhiteSpace()) {
+  static boolean isIgnorableWhiteSpace(@NotNull final Characters characters) {
+    if (characters.isIgnorableWhiteSpace()) {
       return true;
     }
-    return XmlUtil.isXmlWhitespace(pCharacters.getData());
+    return XmlUtil.isXmlWhitespace(characters.getData());
   }
 }

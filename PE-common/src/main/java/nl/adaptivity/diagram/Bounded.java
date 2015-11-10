@@ -14,10 +14,10 @@ public interface Bounded {
    * Determine whether the given coordinate lies within the object. As objects may be
    * shaped, this may mean that some points are not part even though they look to be.
    * The method will return the most specific element contained.
-   * @param aX The X coordinate
-   * @param aY The Y coordinate
+   * @param x The X coordinate
+   * @param y The Y coordinate
    * @return <code>null</code> if no item could be found, otherwise the item found.
    */
-  Bounded getItemAt(double pX, double pY);
+  Bounded getItemAt(double x, double y);
 
 }

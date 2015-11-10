@@ -1,5 +1,7 @@
 package nl.adaptivity.rest.annotations;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -20,25 +22,25 @@ public @interface RestMethod {
 
   }
 
-  HttpMethod method();
+  @NotNull HttpMethod method();
 
-  String path();
+  @NotNull String path();
 
   /**
    * Expressions that put conditions on post parameters
    */
-  String[] post() default {};
+  @NotNull String[] post() default {};
 
   /**
    * Expressions that put conditions on get parameters
    */
-  String[] get() default {};
+  @NotNull String[] get() default {};
 
   /**
    * Expressions that put conditions on any request parameters (post or get)
    */
-  String[] query() default {};
+  @NotNull String[] query() default {};
 
-  String contentType() default "";
+  @NotNull String contentType() default "";
 
 }

@@ -1,12 +1,11 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.security.Principal;
-import java.util.List;
-
 import net.devrieze.util.HandleMap.HandleAware;
-
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+
+import java.security.Principal;
+import java.util.List;
 
 
 public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
@@ -30,15 +29,15 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
   TaskState getState();
 
-  void setState(TaskState aNewState, Principal pUser);
+  void setState(TaskState newState, Principal user);
 
-  void setEndpoint(EndpointDescriptorImpl pEndPoint);
+  void setEndpoint(EndpointDescriptorImpl endPoint);
 
   Principal getOwner();
 
   List<? extends TaskItem> getItems();
 
-  void setItems(List<? extends TaskItem> pItems);
+  void setItems(List<? extends TaskItem> items);
 
   long getRemoteHandle();
 

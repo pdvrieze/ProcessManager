@@ -2,6 +2,8 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.util.xml.CompactFragment;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
@@ -14,13 +16,15 @@ public interface IXmlMessage {
    *
    * @return possible object is {@link QName }
    */
+  @Nullable
   String getServiceName();
 
-  void setServiceName(String pName);
+  void setServiceName(String name);
 
+  @Nullable
   String getServiceNS();
 
-  void setServiceNS(String pNamespace);
+  void setServiceNS(String namespace);
 
   QName getService();
 
@@ -45,6 +49,7 @@ public interface IXmlMessage {
    */
   void setEndpoint(String value);
 
+  @Nullable
   EndpointDescriptor getEndpointDescriptor();
 
   /**
@@ -57,8 +62,10 @@ public interface IXmlMessage {
   @Deprecated
   void setMessageBody(Source o);
 
+  @NotNull
   CompactFragment getMessageBody();
 
+  @NotNull
   Source getBodySource();
 
   /**
@@ -98,7 +105,7 @@ public interface IXmlMessage {
 
   String getContentType();
 
-  void setType(String pType);
+  void setType(String type);
 
   @Override
   String toString();

@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import nl.adaptivity.process.engine.ProcessData;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
@@ -69,7 +70,7 @@ public class XmlProcessNodeInstance {
   @XmlAttribute(name = "handle", required = true)
   protected long handle = -1L;
 
-  private TaskState aState;
+  @Nullable private TaskState aState;
 
   private long processinstance = -1;
 
@@ -104,7 +105,7 @@ public class XmlProcessNodeInstance {
    *
    * @param value allowed object is {@link XmlProcessNodeInstance.Body }
    */
-  public void setBody(XmlProcessNodeInstance.Body value) {
+  public void setBody(final XmlProcessNodeInstance.Body value) {
     this.body = value;
   }
 
@@ -118,7 +119,7 @@ public class XmlProcessNodeInstance {
   /**
    * Sets the value of the handle property.
    */
-  public void setHandle(long value) {
+  public void setHandle(final long value) {
     this.handle = value;
   }
 
@@ -137,7 +138,7 @@ public class XmlProcessNodeInstance {
    *
    * @param value allowed object is {@link TaskState }
    */
-  public void setStateXml(String value) {
+  public void setStateXml(@Nullable final String value) {
     if (value == null) {
       aState = null;
     } else {
@@ -146,12 +147,13 @@ public class XmlProcessNodeInstance {
   }
 
 
+  @Nullable
   public TaskState getState() {
     return aState;
   }
 
-  public void setState(TaskState pState) {
-    aState = pState;
+  public void setState(final TaskState state) {
+    aState = state;
   }
 
   /**
@@ -159,6 +161,7 @@ public class XmlProcessNodeInstance {
    *
    * @return possible object is {@link Long }
    */
+  @Nullable
   @XmlAttribute(name="processintance")
   public Long getXmlProcessinstance() {
     return processinstance==-1L ? null : Long.valueOf(processinstance);
@@ -169,7 +172,7 @@ public class XmlProcessNodeInstance {
    *
    * @param value allowed object is {@link Long }
    */
-  public void setXmlProcessinstance(Long value) {
+  public void setXmlProcessinstance(@Nullable final Long value) {
     this.processinstance = value==null ? -1L : value.longValue();
   }
 
@@ -187,7 +190,7 @@ public class XmlProcessNodeInstance {
    *
    * @param value allowed object is {@link Long }
    */
-  public void setProcessinstance(long value) {
+  public void setProcessinstance(final long value) {
     this.processinstance = value;
   }
 
@@ -200,8 +203,8 @@ public class XmlProcessNodeInstance {
 
     public Body() {}
 
-    public Body(Node pNode) {
-      getAny().add(pNode);
+    public Body(final Node node) {
+      getAny().add(node);
     }
 
     public List<Object> getAny() {
@@ -214,16 +217,16 @@ public class XmlProcessNodeInstance {
   }
 
 
-  public void setNodeId(String pId) {
-    aNodeId = pId;
+  public void setNodeId(final String id) {
+    aNodeId = id;
   }
 
   public String getNodeId() {
     return aNodeId;
   }
 
-  public void setResults(final List<ProcessData> pResults) {
-    mResults = pResults;
+  public void setResults(final List<ProcessData> results) {
+    mResults = results;
   }
 
   @XmlElement(name = "result")

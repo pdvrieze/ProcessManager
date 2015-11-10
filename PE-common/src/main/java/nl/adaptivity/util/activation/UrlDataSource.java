@@ -1,5 +1,7 @@
 package nl.adaptivity.util.activation;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,20 +20,20 @@ public class UrlDataSource implements DataSource {
 
   private final String aContentType;
 
-  private final URL aURL;
+  @NotNull private final URL aURL;
 
   private final InputStream aInputStream;
 
   private final Map<String, List<String>> aHeaders;
 
-  public UrlDataSource(final URL pFinalUrl) throws IOException {
-    URLConnection connection;
-    connection = pFinalUrl.openConnection();
+  public UrlDataSource(@NotNull final URL finalUrl) throws IOException {
+    final URLConnection connection;
+    connection = finalUrl.openConnection();
     {
 
       String contentType = connection.getContentType();
       if ("content/unknown".equals(contentType)) {
-        contentType = getMimeTypeForFileName(pFinalUrl.getFile());
+        contentType = getMimeTypeForFileName(finalUrl.getFile());
       }
       aContentType = contentType;
     }
@@ -40,7 +42,7 @@ public class UrlDataSource implements DataSource {
 
     aHeaders = connection.getHeaderFields();
 
-    aURL = pFinalUrl;
+    aURL = finalUrl;
   }
 
   @Override
@@ -58,18 +60,19 @@ public class UrlDataSource implements DataSource {
     return aURL.getPath();
   }
 
+  @NotNull
   @Override
   public OutputStream getOutputStream() throws IOException {
     throw new UnsupportedOperationException("Not allowed");
 
   }
 
-  private static String getMimeTypeForFileName(final String pFileName) {
+  private static String getMimeTypeForFileName(@NotNull final String fileName) {
     if (_mimeMap == null) {
       _mimeMap = new MimetypesFileTypeMap();
       _mimeMap.addMimeTypes("text/css css\ntext/html htm html shtml\nimage/png png\n");
     }
-    return _mimeMap.getContentType(pFileName);
+    return _mimeMap.getContentType(fileName);
   }
 
   public Map<String, List<String>> getHeaders() {

@@ -8,6 +8,8 @@
 
 package org.w3.soapEnvelope;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -112,6 +114,7 @@ public class Envelope {
    *
    * @return always non-null
    */
+  @NotNull
   public Map<QName, String> getOtherAttributes() {
     return otherAttributes;
   }

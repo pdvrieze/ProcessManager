@@ -8,6 +8,9 @@
 
 package nl.adaptivity.process.exec;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
@@ -44,6 +47,7 @@ public class ObjectFactory {
      * Create an instance of {@link XmlProcessNodeInstance }
      *
      */
+    @NotNull
     public XmlProcessNodeInstance createXmlProcessNodeInstance() {
         return new XmlProcessNodeInstance();
     }
@@ -52,6 +56,7 @@ public class ObjectFactory {
      * Create an instance of {@link XmlProcessNodeInstance.Body }
      *
      */
+    @NotNull
     public XmlProcessNodeInstance.Body createXmlProcessNodeInstanceBody() {
         return new XmlProcessNodeInstance.Body();
     }
@@ -60,8 +65,9 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link XmlProcessNodeInstance }{@code >}}
      *
      */
+    @Nullable
     @XmlElementDecl(namespace = "http://adaptivity.nl/ProcessEngine/", name = "processNodeInstance")
-    public JAXBElement<XmlProcessNodeInstance> createProcessNodeInstance(XmlProcessNodeInstance value) {
+    public JAXBElement<XmlProcessNodeInstance> createProcessNodeInstance(final XmlProcessNodeInstance value) {
         return new JAXBElement<>(_ProcessNodeInstance_QNAME, XmlProcessNodeInstance.class, null, value);
     }
 

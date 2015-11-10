@@ -1,12 +1,12 @@
 package nl.adaptivity.process.messaging;
 
+import nl.adaptivity.messaging.Endpoint;
+import nl.adaptivity.rest.annotations.RestMethod;
+
 import javax.jws.WebMethod;
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.xml.namespace.QName;
-
-import nl.adaptivity.messaging.Endpoint;
-import nl.adaptivity.rest.annotations.RestMethod;
 
 
 /**
@@ -45,8 +45,8 @@ public interface GenericEndpoint extends Endpoint {
    * Called to initialize the endpoint to a given context. This can not be
    * called init as that would conflict with {@link Servlet#init(ServletConfig)}
    * 
-   * @param pConfig The configuration information to use
+   * @param config The configuration information to use
    */
-  void initEndpoint(ServletConfig pConfig);
+  void initEndpoint(ServletConfig config);
 
 }

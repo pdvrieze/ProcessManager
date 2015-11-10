@@ -2,6 +2,8 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.util.xml.Namespace;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 
@@ -28,21 +30,24 @@ public interface IXmlResultType {
    *
    * @return possible object is {@link String }
    */
+  @Nullable
   String getPath();
 
   /**
    * Sets the value of the path property.
    *
-   * @param pNamespaceContext
+   * @param namespaceContext
    * @param value allowed object is {@link String }
    */
-  void setPath(final Iterable<Namespace> pNamespaceContext, String value);
+  void setPath(final Iterable<Namespace> namespaceContext, String value);
 
-  ProcessData apply(Node pPayload);
+  @NotNull
+  ProcessData apply(Node payload);
 
   /**
    * Get the namespace context for evaluating the xpath expression.
    * @return the context
    */
+  @Nullable
   Iterable<Namespace> getOriginalNSContext();
 }

@@ -1,12 +1,12 @@
 package nl.adaptivity.process.processModel.engine;
 
-import java.io.Serializable;
-
+import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -19,24 +19,24 @@ import javax.xml.stream.XMLStreamWriter;
  *
  * @author Paul de Vrieze
  */
-public class ConditionImpl implements XmlSerializable, Serializable, Condition {
+public class ConditionImpl implements XmlSerializable, Condition {
 
-  private static final long serialVersionUID = -4361822049137881021L;
   public static final String ELEMENTLOCALNAME = "condition";
 
   private final String aCondition;
 
-  public ConditionImpl(final String pCondition) {
-    aCondition = pCondition;
+  public ConditionImpl(final String condition) {
+    aCondition = condition;
   }
 
   @Override
-  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
     XmlUtil.writeSimpleElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX), getCondition());
   }
 
-  public static ConditionImpl deserialize(final XMLStreamReader pIn) throws XMLStreamException {
-    String condition = XmlUtil.readSimpleElement(pIn);
+  @NotNull
+  public static ConditionImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    final String condition = XmlUtil.readSimpleElement(in);
     return new ConditionImpl(condition);
   }
 
@@ -51,10 +51,12 @@ public class ConditionImpl implements XmlSerializable, Serializable, Condition {
   /**
    * Evaluate the condition.
    *
-   * @param pInstance The instance to use to evaluate against.
-   * @return <code>true</code>
+   * @param transaction The transaction to use for reading state
+   * @param instance The instance to use to evaluate against.
+   * @return <code>true</code> if the condition holds, <code>false</code> if not
    */
-  public boolean eval(final IProcessNodeInstance<?> pInstance) {
+  public boolean eval(final Transaction transaction, final IProcessNodeInstance<?> instance) {
+    // TODO process the condition as xpath, expose the node's defines as variables
     return true;
   }
 

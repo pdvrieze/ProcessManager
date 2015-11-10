@@ -83,69 +83,69 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * Set the state of the task.
    *
    * @param aNewState The new state of the task.
-   * @param pTransaction
-   * @param pNewState
+   * @param transaction
+   * @param newState
    */
-  void setState(Transaction pTransaction, TaskState pNewState) throws SQLException;
+  void setState(Transaction transaction, TaskState newState) throws SQLException;
 
   /**
    * Called by the processEngine so indicate starting of the task.
    *
-   * @param pMessageService Service to use for communication of change of state.
+   * @param messageService Service to use for communication of change of state.
    * @return <code>true</code> if this stage is complete and the engine should
    *         progress to {
    * @throws SQLException @link #takeTask(IMessageService)
 
    */
-  <T> boolean provideTask(Transaction pTransaction, IMessageService<T, V> pMessageService) throws SQLException;
+  <T> boolean provideTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
 
   /**
    * Called by the processEngine to let the task be taken.
    *
-   * @param pMessageService Service to use for communication of change of state.
+   * @param messageService Service to use for communication of change of state.
    * @return <code>true</code> if this stage has completed and the task should
    *         be {@link #startTask(IMessageService) started}.
    */
-  <T> boolean takeTask(Transaction pTransaction, IMessageService<T, V> pMessageService) throws SQLException;
+  <T> boolean takeTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
 
   /**
    * Called by the processEngine to let the system start the task.
    *
-   * @param pMessageService Service to use for communication of change of state.
+   * @param messageService Service to use for communication of change of state.
    * @return <code>true</code> if the task has completed and
    *         {@link #finishTask(Node)} should be called.
    */
-  <T> boolean startTask(Transaction pTransaction, IMessageService<T, V> pMessageService) throws SQLException;
+  <T> boolean startTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
 
   /**
    * Called by the processEngine to signify to the task that it is finished
    * (with the given payload).
    *
-   * @param pPayload The payload which is the result of the processing.
+   * @param payload The payload which is the result of the processing.
    */
-  void finishTask(Transaction pTransaction, Node pPayload) throws SQLException;
+  void finishTask(Transaction transaction, Node payload) throws SQLException;
 
   /**
    * Called to signify that this task has failed.
    */
-  void failTask(Transaction pTransaction, Throwable pCause) throws SQLException;
+  void failTask(Transaction transaction, Throwable cause) throws SQLException;
 
   /**
    * Called to signify that creating this task has failed, a retry would be expected.
    */
-  void failTaskCreation(Transaction pTransaction, Throwable pCause) throws SQLException;
+  void failTaskCreation(Transaction transaction, Throwable cause) throws SQLException;
 
   /**
    * Called to signify that this task has been cancelled.
    * @throws SQLException
    */
-  void cancelTask(Transaction pTransaction) throws SQLException;
+  void cancelTask(Transaction transaction) throws SQLException;
 
   /** Get the predecessor instance with the given node name.
    * @throws SQLException
    * */
-  IProcessNodeInstance<V> getPredecessor(Transaction pTransaction, String pNodeName) throws SQLException;
+  IProcessNodeInstance<V> getPredecessor(Transaction transaction, String nodeName) throws SQLException;
 
   /** Get the result instance with the given data name. */
-  ProcessData getResult(Transaction pTransaction, String pName) throws SQLException;
+  ProcessData getResult(Transaction transaction, String name) throws SQLException;
 }

@@ -8,6 +8,8 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.*;
@@ -29,11 +31,11 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   private static final long serialVersionUID = -7745019972129682199L;
-  private ProcessModelImpl aOwnerModel;
+  @Nullable private ProcessModelImpl aOwnerModel;
 
-  private ProcessNodeSet<Identifiable> aPredecessors;
+  @Nullable private ProcessNodeSet<Identifiable> aPredecessors;
 
-  private ProcessNodeSet<ProcessNodeImpl> aSuccessors = null;
+  @Nullable private ProcessNodeSet<ProcessNodeImpl> aSuccessors = null;
 
   private String aId;
 
@@ -46,57 +48,58 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
 //
 //  private Collection<? extends IXmlExportType> aExports;
 
-  protected ProcessNodeImpl(ProcessModelImpl pOwnerModel) {
-    aOwnerModel = pOwnerModel;
-    if (pOwnerModel!=null) {
+  protected ProcessNodeImpl(@Nullable final ProcessModelImpl ownerModel) {
+    aOwnerModel = ownerModel;
+    if (ownerModel!=null) {
       aOwnerModel.ensureNode(this);
     }
   }
 
 
-  public ProcessNodeImpl(ProcessModelImpl pOwnerModel, final Collection<? extends Identifiable> pPredecessors) {
-    this(pOwnerModel);
-    if ((pPredecessors.size() < 1) && (!(this instanceof StartNode))) {
+  public ProcessNodeImpl(final ProcessModelImpl ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
+    this(ownerModel);
+    if ((predecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
     }
-    if ((pPredecessors.size() > 1) && (!(this instanceof Join))) {
+    if ((predecessors.size() > 1) && (!(this instanceof Join))) {
       throw new IllegalProcessModelException("Only join nodes may have multiple predecessors");
     }
-    setPredecessors(pPredecessors);
+    setPredecessors(predecessors);
   }
 
-  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
-    pOut.writeAttribute("id", getId());
-    XmlUtil.writeAttribute(pOut, "label", getLabel());
-    XmlUtil.writeAttribute(pOut, "x", getX());
-    XmlUtil.writeAttribute(pOut, "y", getY());
+  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+    out.writeAttribute("id", getId());
+    XmlUtil.writeAttribute(out, "label", getLabel());
+    XmlUtil.writeAttribute(out, "x", getX());
+    XmlUtil.writeAttribute(out, "y", getY());
   }
 
-  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
+  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
 
   }
 
   @Override
-  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    if (XMLConstants.NULL_NS_URI.equals(pAttributeNamespace)) {
-      switch (pAttributeLocalName) {
-        case "id": setId(pAttributeValue); return true;
-        case "label": setLabel(pAttributeValue); return true;
-        case "x": setX(Double.parseDouble(pAttributeValue)); return true;
-        case "y": setY(Double.parseDouble(pAttributeValue)); return true;
+  public boolean deserializeAttribute(final String attributeNamespace, @NotNull final String attributeLocalName, final String attributeValue) {
+    if (XMLConstants.NULL_NS_URI.equals(attributeNamespace)) {
+      switch (attributeLocalName) {
+        case "id": setId(attributeValue); return true;
+        case "label": setLabel(attributeValue); return true;
+        case "x": setX(Double.parseDouble(attributeValue)); return true;
+        case "y": setY(Double.parseDouble(attributeValue)); return true;
       }
     }
     return false;
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XMLStreamReader pIn) {
+  public void onBeforeDeserializeChildren(final XMLStreamReader in) {
     // do nothing
   }
 
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
      */
+  @Nullable
   @Override
   public Set<? extends Identifiable> getPredecessors() {
     if (aPredecessors == null) {
@@ -105,10 +108,10 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     return aPredecessors;
   }
 
-  protected void swapPredecessors(final Collection<?> predecessors) {
+  protected void swapPredecessors(@NotNull final Collection<?> predecessors) {
     aPredecessors=null;
-    List<ProcessNodeImpl> tmp = new ArrayList<>(predecessors.size());
-    for(Object pred:predecessors) {
+    final List<ProcessNodeImpl> tmp = new ArrayList<>(predecessors.size());
+    for(final Object pred:predecessors) {
       if (pred instanceof ProcessNodeImpl) {
         tmp.add((ProcessNodeImpl) pred);
       }
@@ -131,19 +134,19 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
 
 
   @Override
-  public void addPredecessor(Identifiable pNode) {
-    if (aPredecessors.containsKey(pNode.getId())) { return; }
+  public void addPredecessor(@NotNull final Identifiable node) {
+    if (aPredecessors.containsKey(node.getId())) { return; }
     if (aPredecessors.size()+1>getMaxPredecessorCount()) {
       throw new IllegalProcessModelException("Can not add more predecessors");
     }
-    if(aPredecessors.add(pNode)) {
-      getOwnerModel().getNode(pNode).addSuccessor(this);
+    if(aPredecessors.add(node)) {
+      getOwnerModel().getNode(node).addSuccessor(this);
     }
   }
 
   @Override
-  public void removePredecessor(Identifiable pNode) {
-    aPredecessors.remove(pNode);
+  public void removePredecessor(final Identifiable node) {
+    aPredecessors.remove(node);
     // TODO perhaps make this reciprocal
   }
 
@@ -153,20 +156,20 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
    * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
    */
   @Override
-  public void addSuccessor(final ProcessNodeImpl pNode) {
-    if (pNode == null) {
+  public void addSuccessor(@Nullable final ProcessNodeImpl node) {
+    if (node == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
     if (aSuccessors == null) {
       aSuccessors = ProcessNodeSet.processNodeSet(1);
     }
-    aSuccessors.add(pNode);
+    aSuccessors.add(node);
   }
 
 
   @Override
-  public void setSuccessors(Collection<? extends ProcessNodeImpl> pSuccessors) {
-    for(ProcessNodeImpl n: pSuccessors) {
+  public void setSuccessors(@NotNull final Collection<? extends ProcessNodeImpl> successors) {
+    for(final ProcessNodeImpl n: successors) {
       addSuccessor(n);
     }
   }
@@ -174,6 +177,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.ProcessNode#getSuccessors()
    */
+  @Nullable
   @Override
   public Set<? extends ProcessNodeImpl> getSuccessors() {
     return aSuccessors;
@@ -192,36 +196,32 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   }
 
   @Override
-  public void removeSuccessor(ProcessNodeImpl pNode) {
-    aSuccessors.remove(pNode);
+  public void removeSuccessor(final ProcessNodeImpl node) {
+    aSuccessors.remove(node);
   }
 
   /**
    * Should this node be able to be provided?
    *
-   * @param pInstance The instance against which the condition should be evaluated.
+   *
+   * @param transaction
+   * @param instance The instance against which the condition should be evaluated.
    * @return <code>true</code> if the node can be started, <code>false</code> if
    *         not.
    */
-  public abstract boolean condition(IProcessNodeInstance<?> pInstance);
+  public abstract boolean condition(final Transaction transaction, IProcessNodeInstance<?> instance);
 
+  @Nullable
   public ProcessModelImpl getOwnerModel() {
     return aOwnerModel;
   }
 
-  public void setOwnerModel(final ProcessModelImpl pOwnerModel) {
-    if (aOwnerModel!=pOwnerModel) {
+  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+    if (aOwnerModel!=ownerModel) {
       if (aOwnerModel!=null) { aOwnerModel.removeNode(this); }
-      aOwnerModel = pOwnerModel;
-      pOwnerModel.ensureNode(this);
+      aOwnerModel = ownerModel;
+      ownerModel.ensureNode(this);
     }
-  }
-
-  @Deprecated
-  public void skip() {
-    //    for(ProcessNode successor: aSuccessors) {
-    //      successor.skip(pThreads, pProcessInstance, pPredecessor);
-    //    }
   }
 
   /* (non-Javadoc)
@@ -260,8 +260,8 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     return aX;
   }
 
-  public void setX(double pX) {
-    aX = pX;
+  public void setX(final double x) {
+    aX = x;
   }
 
   @XmlAttribute(name="y")
@@ -270,30 +270,31 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     return aY;
   }
 
-  public void setY(double pY) {
-    aY = pY;
+  public void setY(final double y) {
+    aY = y;
   }
 
   /**
    * Take action to make task available
    *
-   * @param pMessageService The message service to use for the communication.
-   * @param pInstance The processnode instance involved.
+   * @param messageService The message service to use for the communication.
+   * @param instance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically taken
    */
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, IMessageService<T, U> pMessageService, U pInstance) throws SQLException;
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction transaction, IMessageService<T, U> messageService, U instance) throws SQLException;
 
   /**
    * Take action to accept the task (but not start it yet)
    *
-   * @param pMessageService The message service to use for the communication.
-   * @param pInstance The processnode instance involved.
+   * @param messageService The message service to use for the communication.
+   * @param instance The processnode instance involved.
    * @return <code>true</code> if the task can/must be automatically started
    */
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean takeTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean takeTask(IMessageService<T, U> messageService, U instance);
 
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean startTask(IMessageService<T, U> pMessageService, U pInstance);
+  public abstract <T, U extends IProcessNodeInstance<U>> boolean startTask(IMessageService<T, U> messageService, U instance);
 
+  @NotNull
   @Override
   public String toString() {
     final StringBuilder result = new StringBuilder();
@@ -323,8 +324,8 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
    * @see nl.adaptivity.process.processModel.ProcessNode#isPredecessorOf(nl.adaptivity.process.processModel.ProcessNode)
    */
   @Override
-  public boolean isPredecessorOf(final ProcessNodeImpl pNode) {
-    for (final Identifiable pred : pNode.getPredecessors()) {
+  public boolean isPredecessorOf(@NotNull final ProcessNodeImpl node) {
+    for (final Identifiable pred : node.getPredecessors()) {
       if (getId().equals(pred.getId())) {
         return true;
       }
@@ -351,11 +352,12 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   }
 
 
-  protected static List<XmlDefineType> toExportableDefines(Collection<? extends IXmlDefineType> pExports) {
-    List<XmlDefineType> newExports;
-    if (pExports!=null) {
-      newExports = new ArrayList<>(pExports.size());
-      for(IXmlDefineType export:pExports) {
+  @NotNull
+  protected static List<XmlDefineType> toExportableDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
+    final List<XmlDefineType> newExports;
+    if (exports!=null) {
+      newExports = new ArrayList<>(exports.size());
+      for(final IXmlDefineType export:exports) {
         newExports.add(XmlDefineType.get(export));
       }
     } else {
@@ -364,11 +366,12 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     return newExports;
   }
 
-  protected static List<XmlResultType> toExportableResults(Collection<? extends IXmlResultType> pImports) {
-    List<XmlResultType> newImports;
-    if (pImports!=null) {
-      newImports = new ArrayList<>(pImports.size());
-      for(IXmlResultType imp:pImports) {
+  @NotNull
+  protected static List<XmlResultType> toExportableResults(@Nullable final Collection<? extends IXmlResultType> imports) {
+    final List<XmlResultType> newImports;
+    if (imports!=null) {
+      newImports = new ArrayList<>(imports.size());
+      for(final IXmlResultType imp:imports) {
         newImports.add(XmlResultType.get(imp));
       }
     } else {

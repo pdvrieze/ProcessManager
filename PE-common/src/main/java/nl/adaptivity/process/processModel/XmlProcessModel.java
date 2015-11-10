@@ -8,33 +8,18 @@
 
 package nl.adaptivity.process.processModel;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.processModel.engine.ActivityImpl;
-import nl.adaptivity.process.processModel.engine.EndNodeImpl;
-import nl.adaptivity.process.processModel.engine.JoinImpl;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
-import nl.adaptivity.process.processModel.engine.SplitImpl;
-import nl.adaptivity.process.processModel.engine.StartNodeImpl;
+import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.util.ListFilter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
+
+import java.util.*;
 
 
 /**
@@ -76,7 +61,7 @@ public class XmlProcessModel {
 
   }
 
-  public XmlProcessModel(final ProcessModel<? extends ProcessNodeImpl> m) {
+  public XmlProcessModel(@NotNull final ProcessModel<? extends ProcessNodeImpl> m) {
     nodes = filter(CollectionUtil.<Object>copy(m.getModelNodes()), ProcessNodeImpl.class);
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
@@ -86,12 +71,12 @@ public class XmlProcessModel {
 
   private List<ProcessNodeImpl> nodes;
 
-  private UUID uuid;
+  @Nullable private UUID uuid;
 
   @XmlAttribute(name = ATTR_NAME)
   private String name;
 
-  private String owner;
+  @Nullable private String owner;
 
   private Set<String> roles;
 
@@ -125,20 +110,22 @@ public class XmlProcessModel {
                    @XmlElementRef(name = StartNodeImpl.ELEMENTLOCALNAME, type = StartNodeImpl.class),
                    @XmlElementRef(name = JoinImpl.ELEMENTLOCALNAME, type = JoinImpl.class),
                    @XmlElementRef(name = SplitImpl.ELEMENTLOCALNAME, type = SplitImpl.class)})
-  public void setNodes(List<? extends ProcessNodeImpl> pNodes) {
-    nodes.clear();
-    nodes.addAll(pNodes);
+  public void setNodes(@NotNull final List<? extends ProcessNodeImpl> nodes) {
+    this.nodes.clear();
+    this.nodes.addAll(nodes);
   }
 
-  private static <T> List<T> filter(List<?> source, Class<T> clazz) {
-    ListFilter<T> result = new ListFilter<>(clazz, true);
-    result.addAllObjects(source);
+  @NotNull
+  private static <T> List<T> filter(@NotNull final List<?> source, final Class<T> clazz) {
+    final ListFilter<T> result = new ListFilter<>(clazz, true);
+    result.addAllFiltered(source);
     return result;
   }
 
+  @NotNull
   public ProcessModelImpl toProcessModel() {
     if (nodes instanceof ArrayList) {
-      List<ProcessNodeImpl> filtered = filter(nodes, ProcessNodeImpl.class);
+      final List<ProcessNodeImpl> filtered = filter(nodes, ProcessNodeImpl.class);
       if (nodes.size()!=filtered.size()) {
         nodes.clear();
         nodes.addAll(filtered);
@@ -155,13 +142,14 @@ public class XmlProcessModel {
     return name;
   }
 
+  @Nullable
   @XmlAttribute(name = "owner")
   public String getOwner() {
     return owner;
   }
 
-  public void setOwner(final String pOwner) {
-    owner = pOwner;
+  public void setOwner(final String owner) {
+    this.owner = owner;
   }
 
   public Set<String> getRoles() {
@@ -171,6 +159,7 @@ public class XmlProcessModel {
     return roles;
   }
 
+  @Nullable
   @XmlAttribute(name = ATTR_ROLES)
   public String getRolesString() {
     if ((roles == null) || (roles.size() == 0)) {
@@ -179,32 +168,34 @@ public class XmlProcessModel {
     return StringUtil.join(",", roles);
   }
 
+  @Nullable
   @XmlAttribute(name="uuid")
   String getUuidString() {
     return uuid==null ? null : uuid.toString();
   }
 
-  public void setUuidString(String pUuid) {
-    uuid = pUuid==null ? null : UUID.fromString(pUuid);
+  public void setUuidString(@Nullable final String uuid) {
+    this.uuid = uuid==null ? null : UUID.fromString(uuid);
   }
 
   /**
    * @todo Optimize this to use a cache of role names.
    */
-  public void setRolesString(final String pRoles) {
-    roles = new HashSet<>();
-    if ((pRoles == null) || (pRoles.trim().length() == 0)) {
+  public void setRolesString(@Nullable final String rolesString) {
+    this.roles = new HashSet<>();
+    if ((rolesString == null) || (rolesString.trim().length() == 0)) {
       return;
     }
     int i = 0;
-    int j = pRoles.indexOf(',');
+    int j = rolesString.indexOf(',');
     while (j >= 0) {
-      roles.add(pRoles.substring(i, j));
+      this.roles.add(rolesString.substring(i, j));
       i = j + 1;
-      j = pRoles.indexOf(',', i);
+      j = rolesString.indexOf(',', i);
     }
   }
 
+  @Nullable
   public UUID getUuid() {
     return uuid;
   }

@@ -22,7 +22,6 @@ sourceSets {
 
 idea {
     module {
-//        scopes.COMPILE.minus += [configurations.providedCompile]
         scopes.PROVIDED.plus += [configurations.providedCompile]
         scopes.TEST.plus += [configurations.providedCompile]
     }

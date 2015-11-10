@@ -13,13 +13,13 @@ import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
@@ -36,14 +36,16 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
   public static class Factory implements XmlDeserializerFactory {
 
+    @NotNull
     @Override
-    public StartNodeImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    public StartNodeImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
       return StartNodeImpl.deserialize(null, in);
     }
   }
 
-  public static StartNodeImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    return XmlUtil.deserializeHelper(new StartNodeImpl(pOwnerModel), in);
+  @NotNull
+  public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XMLStreamReader in) throws XMLStreamException {
+    return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
 
   private static final long serialVersionUID = 7779338146413772452L;
@@ -53,55 +55,51 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
   private List<XmlResultType> aImports;
 
-  public StartNodeImpl(final ProcessModelImpl pOwnerModel) {
-    super(pOwnerModel, Collections.<Identifiable>emptyList());
+  public StartNodeImpl(final ProcessModelImpl ownerModel) {
+    super(ownerModel, Collections.<Identifiable>emptyList());
   }
 
-  public StartNodeImpl(final ProcessModelImpl pOwnerModel, final List<XmlResultType> pImports) {
-    super(pOwnerModel, Collections.<Identifiable>emptyList());
-    aImports = pImports;
+  public StartNodeImpl(final ProcessModelImpl ownerModel, final List<XmlResultType> imports) {
+    super(ownerModel, Collections.<Identifiable>emptyList());
+    aImports = imports;
   }
 
   @Override
-  public boolean deserializeChild(final XMLStreamReader pIn) throws XMLStreamException {
-    if (ProcessConsts.Engine.NAMESPACE.equals(pIn.getNamespaceURI())) {
-      switch (pIn.getLocalName()) {
+  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
+      switch (in.getLocalName()) {
         case "import":
-          getResults().add(XmlResultType.deserialize(pIn)); return true;
+          getResults().add(XmlResultType.deserialize(in)); return true;
       }
     }
     return false;
   }
 
   @Override
-  public boolean deserializeChildText(final String pElementText) {
+  public boolean deserializeChildText(final String elementText) {
     return false;
   }
 
+  @NotNull
   @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
   @Override
-  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
     out.writeEndElement();
   }
 
-  @Override
-  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
-    super.serializeAttributes(pOut);
-  }
-
-  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeChildren(pOut, aImports);
+  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeChildren(out, aImports);
   }
 
   @Override
-  public boolean condition(final IProcessNodeInstance<?> pInstance) {
+  public boolean condition(final Transaction transaction, final IProcessNodeInstance<?> instance) {
     return true;
   }
 
@@ -123,23 +121,23 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final Transaction transaction, final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitStartNode(this);
+  public <R> R visit(@NotNull final ProcessNode.Visitor<R> visitor) {
+    return visitor.visitStartNode(this);
   }
 
 }

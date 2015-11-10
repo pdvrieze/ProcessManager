@@ -1,6 +1,8 @@
 package nl.adaptivity.util.activation;
 
 import nl.adaptivity.process.engine.NormalizedMessage;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.activation.DataHandler;
 
@@ -14,8 +16,8 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
     private final String aKey;
 
-    public Entry(final String pKey) {
-      aKey = pKey;
+    public Entry(final String key) {
+      aKey = key;
     }
 
     @Override
@@ -29,9 +31,9 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     }
 
     @Override
-    public DataHandler setValue(final DataHandler pValue) {
+    public DataHandler setValue(final DataHandler value) {
       final DataHandler result = aMessage.getAttachment(aKey);
-      aMessage.addAttachment(aKey, pValue);
+      aMessage.addAttachment(aKey, value);
       return result;
     }
 
@@ -39,7 +41,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
   private class EntryIterator implements Iterator<Map.Entry<String, DataHandler>> {
 
-    private final Iterator<String> aBackingIterator;
+    @NotNull private final Iterator<String> aBackingIterator;
 
     public EntryIterator() {
       aBackingIterator = aMessage.getAttachmentNames().iterator();
@@ -50,6 +52,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
       return aBackingIterator.hasNext();
     }
 
+    @NotNull
     @Override
     public Entry next() {
 
@@ -67,9 +70,9 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   private class EntrySet extends AbstractSet<Map.Entry<String, DataHandler>> {
 
     @Override
-    public boolean remove(final Object pO) {
-      if (pO instanceof Map.Entry) {
-        final Map.Entry<?, ?> me = (Map.Entry<?, ?>) pO;
+    public boolean remove(final Object o) {
+      if (o instanceof Map.Entry) {
+        final Map.Entry<?, ?> me = (Map.Entry<?, ?>) o;
         return AttachmentMap.this.remove(me.getKey()) != null;
       }
       return false;
@@ -77,6 +80,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
     private int aSize = -1;
 
+    @NotNull
     @Override
     public Iterator<Map.Entry<String, DataHandler>> iterator() {
       return new EntryIterator();
@@ -91,9 +95,9 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
     }
 
     @Override
-    public boolean removeAll(final Collection<?> pC) {
+    public boolean removeAll(@NotNull final Collection<?> c) {
       boolean result = false;
-      for (final Object o : pC) {
+      for (final Object o : c) {
         result |= AttachmentMap.this.remove(o) != null;
       }
       return result;
@@ -103,38 +107,42 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
   private final NormalizedMessage aMessage;
 
-  public AttachmentMap(final NormalizedMessage pMessage) {
-    aMessage = pMessage;
+  public AttachmentMap(final NormalizedMessage message) {
+    aMessage = message;
   }
 
+  @NotNull
   @Override
   public Set<java.util.Map.Entry<String, DataHandler>> entrySet() {
     return new EntrySet();
   }
 
   @Override
-  public boolean containsKey(final Object pKey) {
-    return keySet().contains(pKey);
+  public boolean containsKey(final Object key) {
+    return keySet().contains(key);
   }
 
+  @Nullable
   @Override
-  public DataHandler get(final Object pKey) {
-    if (pKey instanceof String) {
-      return aMessage.getAttachment((String) pKey);
+  public DataHandler get(final Object key) {
+    if (key instanceof String) {
+      return aMessage.getAttachment((String) key);
     }
     return null;
   }
 
+  @NotNull
   @Override
   public Set<String> keySet() {
     return aMessage.getAttachmentNames();
   }
 
+  @Nullable
   @Override
-  public DataHandler remove(final Object pKey) {
-    if (pKey instanceof String) {
-      final DataHandler old = aMessage.getAttachment((String) pKey);
-      aMessage.removeAttachment((String) pKey);
+  public DataHandler remove(final Object key) {
+    if (key instanceof String) {
+      final DataHandler old = aMessage.getAttachment((String) key);
+      aMessage.removeAttachment((String) key);
       return old;
     }
     return null;

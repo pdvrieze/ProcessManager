@@ -7,6 +7,7 @@ import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -52,50 +53,50 @@ public class EndpointServlet extends HttpServlet {
   /**
    * A constructor for subclasses that provide an endpoint to use.
    *
-   * @param pEndpoint The endpoint to provide.
+   * @param endpoint The endpoint to provide.
    */
-  protected EndpointServlet(final GenericEndpoint pEndpoint) {
-    aEndpoint = pEndpoint;
+  protected EndpointServlet(final GenericEndpoint endpoint) {
+    aEndpoint = endpoint;
   }
 
   /**
    * Handle DELETE requests.
    */
   @Override
-  protected void doDelete(final HttpServletRequest pReq, final HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.DELETE, pReq, pResp);
+  protected void doDelete(@NotNull final HttpServletRequest req, @NotNull final HttpServletResponse resp) throws ServletException, IOException {
+    processRestSoap(HttpMethod.DELETE, req, resp);
   }
 
   /**
    * Handle GET requests.
    */
   @Override
-  protected void doGet(final HttpServletRequest pReq, final HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.GET, pReq, pResp);
+  protected void doGet(@NotNull final HttpServletRequest req, @NotNull final HttpServletResponse resp) throws ServletException, IOException {
+    processRestSoap(HttpMethod.GET, req, resp);
   }
 
   /**
    * Handle HEAD requests.
    */
   @Override
-  protected void doHead(final HttpServletRequest pReq, final HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.HEAD, pReq, pResp);
+  protected void doHead(@NotNull final HttpServletRequest req, @NotNull final HttpServletResponse resp) throws ServletException, IOException {
+    processRestSoap(HttpMethod.HEAD, req, resp);
   }
 
   /**
    * Handle POST requests.
    */
   @Override
-  protected void doPost(final HttpServletRequest pReq, final HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.POST, pReq, pResp);
+  protected void doPost(@NotNull final HttpServletRequest req, @NotNull final HttpServletResponse resp) throws ServletException, IOException {
+    processRestSoap(HttpMethod.POST, req, resp);
   }
 
   /**
    * Handle PUT requests.
    */
   @Override
-  protected void doPut(final HttpServletRequest pReq, final HttpServletResponse pResp) throws ServletException, IOException {
-    processRestSoap(HttpMethod.PUT, pReq, pResp);
+  protected void doPut(@NotNull final HttpServletRequest req, @NotNull final HttpServletResponse resp) throws ServletException, IOException {
+    processRestSoap(HttpMethod.PUT, req, resp);
   }
 
   /**
@@ -104,47 +105,47 @@ public class EndpointServlet extends HttpServlet {
    * use a {@link SoapMessageHandler} or {@link RestMessageHandler} to actually
    * process the message.
    *
-   * @param pMethod The HTTP method invoked.
-   * @param pRequest The request.
-   * @param pResponse The response object on which responses are written.
+   * @param method The HTTP method invoked.
+   * @param request The request.
+   * @param response The response object on which responses are written.
    * @todo In case we have a soap request, respond with a proper SOAP fault, not
    *       a generic error message.
    */
-  private void processRestSoap(final HttpMethod pMethod, final HttpServletRequest pRequest, final HttpServletResponse pResponse) {
+  private void processRestSoap(final HttpMethod method, @NotNull final HttpServletRequest request, @NotNull final HttpServletResponse response) {
     try {
-      final HttpMessage message = new HttpMessage(pRequest);
+      final HttpMessage message = new HttpMessage(request);
       try {
         try {
-          if (!SoapMessageHandler.isSoapMessage(pRequest)) {
+          if (!SoapMessageHandler.isSoapMessage(request)) {
             final RestMessageHandler restHandler = getRestMessageHandler();
-            if (!restHandler.processRequest(pMethod, message, pResponse)) {
+            if (!restHandler.processRequest(method, message, response)) {
               getLogger().warning("Error processing rest request");
             }
           } else {
             final SoapMessageHandler soapHandler = getSoapMessageHandler();
-            if (!soapHandler.processRequest(message, pResponse)) {
+            if (!soapHandler.processRequest(message, response)) {
               getLogger().warning("Error processing soap request");
             }
           }
-        } catch (MessagingException e) {
+        } catch (@NotNull final MessagingException e) {
           if (e.getCause() instanceof Exception) {
             throw (Exception) e.getCause();
           } else {
             throw e;
           }
         }
-      } catch (HttpResponseException e) {
-        pResponse.sendError(e.getResponseCode(), e.getMessage());
-      } catch (final PermissionDeniedException e) {
-        pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
-      } catch (final FileNotFoundException e) {
-        pResponse.sendError(HttpServletResponse.SC_NOT_FOUND, "The requested resource is not available.");
+      } catch (@NotNull final HttpResponseException e) {
+        response.sendError(e.getResponseCode(), e.getMessage());
+      } catch (@NotNull final PermissionDeniedException e) {
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, "This user is not allowed to perform the requested action.");
+      } catch (@NotNull final FileNotFoundException e) {
+        response.sendError(HttpServletResponse.SC_NOT_FOUND, "The requested resource is not available.");
       }
-    } catch (final Exception e) {
+    } catch (@NotNull final Exception e) {
       try {
         getLogger().log(Level.WARNING, "Error when processing REST/SOAP", e);
-        pResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-      } catch (final IOException e1) {
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+      } catch (@NotNull final IOException e1) {
         e1.addSuppressed(e);
         getLogger().log(Level.WARNING, "Failure to notify client of error", e);
       }
@@ -216,32 +217,32 @@ public class EndpointServlet extends HttpServlet {
    * actually used endpoint.
    */
   @Override
-  public void init(final ServletConfig pConfig) throws ServletException {
-    super.init(pConfig);
-    final String className = pConfig.getInitParameter("endpoint");
+  public void init(@NotNull final ServletConfig config) throws ServletException {
+    super.init(config);
+    final String className = config.getInitParameter("endpoint");
     if ((className == null) && (getEndpointProvider() == null)) {
       throw new ServletException("The EndpointServlet needs to be configured with an endpoint parameter.");
     }
     if ((getEndpointProvider() == null) || (className != null)) {
-      Class<? extends GenericEndpoint> clazz;
+      final Class<? extends GenericEndpoint> clazz;
       try {
         clazz = Class.forName(className).asSubclass(GenericEndpoint.class);
-      } catch (final ClassNotFoundException e) {
+      } catch (@NotNull final ClassNotFoundException e) {
         throw new ServletException(e);
-      } catch (final ClassCastException e) {
+      } catch (@NotNull final ClassCastException e) {
         throw new ServletException("The endpoint for an EndpointServlet needs to implement " + GenericEndpoint.class.getName()
             + " the class given is " + className, e);
       }
       try {
         aEndpoint = clazz.newInstance();
-        aEndpoint.initEndpoint(pConfig);
-      } catch (final InstantiationException e) {
+        aEndpoint.initEndpoint(config);
+      } catch (@NotNull final InstantiationException e) {
         throw new ServletException(e);
-      } catch (final IllegalAccessException e) {
+      } catch (@NotNull final IllegalAccessException e) {
         throw new ServletException(e);
       }
     } else {
-      getEndpointProvider().initEndpoint(pConfig);
+      getEndpointProvider().initEndpoint(config);
     }
   }
 

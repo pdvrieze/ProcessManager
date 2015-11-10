@@ -14,16 +14,16 @@ public class MessagingFormatException extends HttpResponseException {
 
   private static final long serialVersionUID = 7931145565871734159L;
 
-  public MessagingFormatException(final String pMessage) {
-    super(HttpServletResponse.SC_BAD_REQUEST, pMessage);
+  public MessagingFormatException(final String message) {
+    super(HttpServletResponse.SC_BAD_REQUEST, message);
   }
 
-  public MessagingFormatException(final Throwable pCause) {
-    super(HttpServletResponse.SC_BAD_REQUEST, pCause);
+  public MessagingFormatException(final Throwable cause) {
+    super(HttpServletResponse.SC_BAD_REQUEST, cause);
   }
 
-  public MessagingFormatException(final String pMessage, final Throwable pCause) {
-    super(HttpServletResponse.SC_BAD_REQUEST, pMessage, pCause);
+  public MessagingFormatException(final String message, final Throwable cause) {
+    super(HttpServletResponse.SC_BAD_REQUEST, message, cause);
   }
 
 }

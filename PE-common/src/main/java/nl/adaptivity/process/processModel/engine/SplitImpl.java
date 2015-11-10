@@ -12,6 +12,8 @@ import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
@@ -30,14 +32,16 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
 
   public static class Factory implements XmlDeserializerFactory {
 
+    @NotNull
     @Override
     public SplitImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
       return SplitImpl.deserialize(null, in);
     }
   }
 
-  public static SplitImpl deserialize(final ProcessModelImpl pOwnerModel, final XMLStreamReader in) throws XMLStreamException {
-    throw new UnsupportedOperationException("Not yet implemented");
+  @NotNull
+  public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XMLStreamReader in) throws XMLStreamException {
+    return XmlUtil.deserializeHelper(new SplitImpl(ownerModel), in);
   }
 
   private static final long serialVersionUID = -8598245023280025173L;
@@ -45,71 +49,56 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   public static final String ELEMENTLOCALNAME = "split";
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-  public SplitImpl(final ProcessModelImpl pOwnerModel, final ProcessNodeImpl pPredecessor, final int pMin, final int pMax) {
-    super(pOwnerModel, Collections.singleton(pPredecessor), pMin, pMax);
-    if ((getMin() < 1) || (pMax < pMin)) {
-      throw new IllegalProcessModelException("Join range (" + pMin + ", " + pMax + ") must be sane");
+  public SplitImpl(final ProcessModelImpl ownerModel, final ProcessNodeImpl predecessor, final int min, final int max) {
+    super(ownerModel, Collections.singleton(predecessor), min, max);
+    if ((getMin() < 1) || (max < min)) {
+      throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
   }
 
-  public SplitImpl(final ProcessModelImpl pOwnerModel) {
-    super(pOwnerModel);
+  public SplitImpl(final ProcessModelImpl ownerModel) {
+    super(ownerModel);
   }
 
-  public static SplitImpl andSplit(final ProcessModelImpl pOwnerModel, final ProcessNodeImpl pPredecessor) {
-    return new SplitImpl(pOwnerModel, pPredecessor, Integer.MAX_VALUE, Integer.MAX_VALUE);
+  @NotNull
+  public static SplitImpl andSplit(final ProcessModelImpl ownerModel, final ProcessNodeImpl predecessor) {
+    return new SplitImpl(ownerModel, predecessor, Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
   @Override
-  public void serialize(final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
     out.writeEndElement();
   }
 
-  protected void serializeChildren(final XMLStreamWriter pOut) throws XMLStreamException {
-  }
-
   @Override
-  protected void serializeAttributes(final XMLStreamWriter pOut) throws XMLStreamException {
-    super.serializeAttributes(pOut);
+  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+    super.serializeAttributes(out);
     if (getPredecessor()!=null) {
-      XmlUtil.writeAttribute(pOut, ATTR_PREDECESSOR, getPredecessor().getId());
+      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessor().getId());
     }
   }
 
+  @NotNull
   @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
   @Override
-  public boolean deserializeAttribute(final String pAttributeNamespace, final String pAttributeLocalName, final String pAttributeValue) {
-    if (ATTR_PREDECESSOR.equals(pAttributeLocalName)) {
-      setPredecessor(new Identifier(pAttributeValue));
+  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
+    if (ATTR_PREDECESSOR.equals(attributeLocalName)) {
+      setPredecessor(new Identifier(attributeValue));
       return true;
     }
-    return super.deserializeAttribute(pAttributeNamespace, pAttributeLocalName, pAttributeValue);
+    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
   }
 
   @Override
-  public boolean condition(final IProcessNodeInstance<?> pInstance) {
+  public boolean condition(final Transaction transaction, final IProcessNodeInstance<?> instance) {
     return true;
-  }
-
-  /**
-   * @deprecated  Should be removed
-   */
-  @Deprecated
-  @Override
-  public void skip() {
-    //    JoinInstance j = pProcessInstance.getJoinInstance(this, pPredecessor);
-    //    if (j.isFinished()) {
-    //      return;
-    //    }
-    //    j.incSkipped();
-    //    throw new UnsupportedOperationException("Not yet correct");
   }
 
   @Override
@@ -118,36 +107,37 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction pTransaction, final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final Transaction transaction, final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean takeTask(final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
   @Override
-  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> pMessageService, final U pInstance) {
+  public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> messageService, final U instance) {
     return true;
   }
 
+  @Nullable
   @XmlAttribute(name="predecessor")
   @XmlIDREF
   Identifiable getPredecessor() {
-    int c = getPredecessors().size();
+    final int c = getPredecessors().size();
     if (c>1) { throw new IllegalStateException("Too many predecessors"); }
     if (c==0) { return null; }
     return getPredecessors().iterator().next();
   }
 
-  void setPredecessor(Identifier pred) {
+  void setPredecessor(final Identifier pred) {
     setPredecessors(Collections.singleton(pred));
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitSplit(this);
+  public <R> R visit(@NotNull final ProcessNode.Visitor<R> visitor) {
+    return visitor.visitSplit(this);
   }
 
 }

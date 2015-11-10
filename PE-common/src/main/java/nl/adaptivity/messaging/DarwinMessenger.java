@@ -6,6 +6,8 @@ import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
@@ -77,15 +79,15 @@ public class DarwinMessenger implements IMessenger {
    *
    * @author Paul de Vrieze
    */
-  private class MessageCompletionNotifier extends Thread {
+  private class MessageCompletionNotifier<T> extends Thread {
 
     /**
      * Queue containing the notifications still to be sent. This is internally
      * synchronized so doesn't need to be manually synchronized.
      */
-    private final BlockingQueue<MessageTask<?>> aPendingNotifications;
+    @NotNull private final BlockingQueue<MessageTask<T>> mPendingNotifications;
 
-    private volatile boolean aFinished = false;
+    private volatile boolean mFinished = false;
 
 
     /**
@@ -94,7 +96,7 @@ public class DarwinMessenger implements IMessenger {
     public MessageCompletionNotifier() {
       super(NOTIFIERTHREADNAME);
       this.setDaemon(true); // This is just a helper thread, don't block cleanup.
-      aPendingNotifications = new LinkedBlockingQueue<>(CONCURRENTCAPACITY);
+      mPendingNotifications = new LinkedBlockingQueue<>(CONCURRENTCAPACITY);
     }
 
     /**
@@ -102,13 +104,13 @@ public class DarwinMessenger implements IMessenger {
      */
     @Override
     public void run() {
-      while (!aFinished) {
+      while (!mFinished) {
         try {
-          final MessageTask<?> future = aPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
+          final MessageTask<T> future = mPendingNotifications.poll(NOTIFICATIONPOLLTIMEOUTMS, TimeUnit.MILLISECONDS);
           if (future != null) {
             notififyCompletion(future);
           }
-        } catch (final InterruptedException e) {
+        } catch (@NotNull final InterruptedException e) {
           // Ignore the interruption. Just continue
         }
       }
@@ -116,32 +118,32 @@ public class DarwinMessenger implements IMessenger {
     }
 
     /**
-     * Allow for shutting down the thread. As aFinished is volatile, this should
+     * Allow for shutting down the thread. As mFinished is volatile, this should
      * not need further synchronization.
      */
     public void shutdown() {
-      aFinished = true;
+      mFinished = true;
       interrupt();
     }
 
     /**
      * Add a notification to the message queue.
      *
-     * @param pFuture The future whose completion should be communicated.
+     * @param future The future whose completion should be communicated.
      */
-    public void addNotification(final MessageTask<?> pFuture) {
-      // aPendingNotifications is threadsafe!
-      aPendingNotifications.add(pFuture);
+    public void addNotification(final MessageTask<T> future) {
+      // mPendingNotifications is threadsafe!
+      mPendingNotifications.add(future);
 
     }
 
     /**
      * Helper method to notify of future completion.
      *
-     * @param pFuture The future to notify completion of.
+     * @param future The future to notify completion of.
      */
-    private void notififyCompletion(final MessageTask<?> pFuture) {
-      pFuture.aCompletionListener.onMessageCompletion(pFuture);
+    private void notififyCompletion(@NotNull final MessageTask<T> future) {
+      future.aCompletionListener.onMessageCompletion(future);
     }
 
 
@@ -163,10 +165,10 @@ public class DarwinMessenger implements IMessenger {
     private ISendableMessage aMessage;
 
     /** The listener to notify of completion. */
-    private CompletionListener aCompletionListener;
+    private CompletionListener<T> aCompletionListener;
 
     /** The result value. */
-    private T aResult = null;
+    @Nullable private T aResult = null;
 
     /** The cancellation state. */
     private boolean aCancelled = false;
@@ -175,35 +177,35 @@ public class DarwinMessenger implements IMessenger {
     private int aResponseCode;
 
     /** The exception in this future. */
-    private Exception aError = null;
+    @Nullable private Exception aError = null;
 
     /** Set when the message sending is actually active. The processing of the future has started. */
     private boolean aStarted = false;
 
     /** The return type of the future. */
-    private final Class<T> aReturnType;
+    @Nullable private final Class<T> aReturnType;
 
     /**
      * Create a new task.
-     * @param pDestURL The url to invoke
-     * @param pMessage The message to send.
-     * @param pCompletionListener The listener to notify. This may be <code>null</code>.
-     * @param pReturnType The return type of the message. Needed for unmarshalling.
+     * @param destURL The url to invoke
+     * @param message The message to send.
+     * @param completionListener The listener to notify. This may be <code>null</code>.
+     * @param returnType The return type of the message. Needed for unmarshalling.
      */
-    public MessageTask(final URI pDestURL, final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType) {
-      aDestURL = pDestURL;
-      aMessage = pMessage;
-      aCompletionListener = pCompletionListener;
-      aReturnType = pReturnType;
+    public MessageTask(final URI destURL, final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType) {
+      aDestURL = destURL;
+      aMessage = message;
+      aCompletionListener = completionListener;
+      aReturnType = returnType;
     }
 
     /**
      * Simple constructor that creates a future encapsulating the exception
      *
-     * @param pE The exception to encapsulate.
+     * @param e The exception to encapsulate.
      */
-    public MessageTask(final Exception pE) {
-      aError = pE;
+    public MessageTask(final Exception e) {
+      aError = e;
       aReturnType = null;
     }
 
@@ -212,21 +214,21 @@ public class DarwinMessenger implements IMessenger {
      * possible. The result value. This is for returning synchronous values as
      * future.
      *
-     * @param pResult The result value of the future.
+     * @param result The result value of the future.
      */
     @SuppressWarnings("unchecked")
-    public MessageTask(final T pResult) {
-      if (pResult == null) {
+    public MessageTask(@Nullable final T result) {
+      if (result == null) {
         aResult = (T) NULL;
       } else {
-        aResult = pResult;
+        aResult = result;
       }
       aReturnType = null;
     }
 
     @Override
     public void run() {
-      boolean cancelled;
+      final boolean cancelled;
       synchronized (this) {
         aStarted = true;
         cancelled = aCancelled;
@@ -245,10 +247,10 @@ public class DarwinMessenger implements IMessenger {
             }
           }
         }
-      } catch (final MessagingException e) {
+      } catch (@NotNull final MessagingException e) {
         Logger.getLogger(DarwinMessenger.class.getName()).log(Level.WARNING, "Error sending message", e);
         throw e;
-      } catch (final Exception e) {
+      } catch (@NotNull final Exception e) {
         Logger.getLogger(DarwinMessenger.class.getName()).log(Level.WARNING, "Error sending message", e);
         synchronized (this) {
           aError = e;
@@ -264,12 +266,12 @@ public class DarwinMessenger implements IMessenger {
      * @throws IOException
      * @throws ProtocolException
      */
-    private T sendMessage() throws IOException, ProtocolException {
-      URL destination;
+    private T sendMessage() throws IOException {
+      final URL destination;
 
       try {
         destination = aDestURL.toURL();
-      } catch (final MalformedURLException e) {
+      } catch (@NotNull final MalformedURLException e) {
         throw new MessagingException(e);
       }
 
@@ -297,7 +299,7 @@ public class DarwinMessenger implements IMessenger {
         }
         try {
           httpConnection.connect();
-        } catch (final ConnectException e) {
+        } catch (@NotNull final ConnectException e) {
           throw new MessagingException("Error connecting to " + destination, e);
         }
         try {
@@ -337,7 +339,7 @@ public class DarwinMessenger implements IMessenger {
      * the parameter and will never interrupt after the sending started.
      */
     @Override
-    public synchronized boolean cancel(final boolean pMayInterruptIfRunning) {
+    public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
       if (aCancelled) {
         return true;
       }
@@ -359,6 +361,7 @@ public class DarwinMessenger implements IMessenger {
       return aCancelled || (aResult != null) || (aError != null);
     }
 
+    @Nullable
     @Override
     public synchronized T get() throws InterruptedException, ExecutionException {
       if (aCancelled) {
@@ -384,8 +387,9 @@ public class DarwinMessenger implements IMessenger {
      * time especially if the waiting started before the message delivery
      * started, but the timeout finished while the result was not yet in.
      */
+    @Nullable
     @Override
-    public synchronized T get(final long pTimeout, final TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+    public synchronized T get(final long timeout, @NotNull final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
       if (aCancelled) {
         throw new CancellationException();
       }
@@ -398,18 +402,18 @@ public class DarwinMessenger implements IMessenger {
       if (aResult != null) {
         return aResult;
       }
-      if (pTimeout == 0) {
+      if (timeout == 0) {
         throw new TimeoutException();
       }
 
 
       try {
-        if (pUnit == TimeUnit.NANOSECONDS) {
-          wait(pUnit.toMillis(pTimeout), (int) (pUnit.toNanos(pTimeout) % 1000000));
+        if (unit == TimeUnit.NANOSECONDS) {
+          wait(unit.toMillis(timeout), (int) (unit.toNanos(timeout) % 1000000));
         } else {
-          wait(pUnit.toMillis(pTimeout));
+          wait(unit.toMillis(timeout));
         }
-      } catch (final InterruptedException e) {
+      } catch (@NotNull final InterruptedException e) {
         if (isDone()) {
           return get(0, TimeUnit.MILLISECONDS);// Don't wait, even if somehow the state is wrong.
         } else {
@@ -425,18 +429,18 @@ public class DarwinMessenger implements IMessenger {
    * Let the class loader do the nasty synchronization for us, but still
    * initialise ondemand.
    */
-  private static class MessengerHolder {
+  private static final class MessengerHolder {
 
-    static final DarwinMessenger globalMessenger = new DarwinMessenger();
+    static final DarwinMessenger _GlobalMessenger = new DarwinMessenger();
   }
 
-  private final ExecutorService aExecutor;
+  @NotNull private final ExecutorService mExecutor;
 
-  private ConcurrentMap<QName, ConcurrentMap<String, EndpointDescriptor>> aServices;
+  @Nullable private ConcurrentMap<QName, ConcurrentMap<String, EndpointDescriptor>> mServices;
 
-  private final MessageCompletionNotifier aNotifier;
+  @NotNull private final MessageCompletionNotifier mNotifier;
 
-  private URI aLocalUrl;
+  private URI mLocalUrl;
 
   /**
    * Get the singleton instance. This also updates the base URL.
@@ -444,7 +448,7 @@ public class DarwinMessenger implements IMessenger {
    * @return The singleton instance.
    */
   public static void register() {
-    MessagingRegistry.registerMessenger(MessengerHolder.globalMessenger);
+    MessagingRegistry.registerMessenger(MessengerHolder._GlobalMessenger);
   }
 
   /**
@@ -452,10 +456,10 @@ public class DarwinMessenger implements IMessenger {
    * (indirectly) through {@link #register()}
    */
   private DarwinMessenger() {
-    aExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
-    aNotifier = new MessageCompletionNotifier();
-    aServices = new ConcurrentHashMap<>();
-    aNotifier.start();
+    mExecutor = new ThreadPoolExecutor(INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(CONCURRENTCAPACITY, true));
+    mNotifier = new MessageCompletionNotifier();
+    mServices = new ConcurrentHashMap<>();
+    mNotifier.start();
 
     final String localUrl = System.getProperty("nl.adaptivity.messaging.localurl");
 
@@ -471,8 +475,8 @@ public class DarwinMessenger implements IMessenger {
       Logger.getAnonymousLogger().warning(msg.toString());
     } else {
       try {
-        aLocalUrl = URI.create(localUrl);
-      } catch (final IllegalArgumentException e) {
+        mLocalUrl = URI.create(localUrl);
+      } catch (@NotNull final IllegalArgumentException e) {
         Logger.getAnonymousLogger().log(Level.SEVERE, "The given local url is not a valid uri.", e);
       }
     }
@@ -480,35 +484,37 @@ public class DarwinMessenger implements IMessenger {
   }
 
 
+  @NotNull
   @Override
-  public EndpointDescriptor registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
-    final EndpointDescriptorImpl endpoint = new EndpointDescriptorImpl(pService, pEndPoint, pTarget);
+  public EndpointDescriptor registerEndpoint(final QName service, final String endPoint, final URI target) {
+    final EndpointDescriptorImpl endpoint = new EndpointDescriptorImpl(service, endPoint, target);
     registerEndpoint(endpoint);
     return endpoint;
   }
 
 
   @Override
-  public synchronized void registerEndpoint(final EndpointDescriptor pEndpoint) {
+  public synchronized void registerEndpoint(@NotNull final EndpointDescriptor endpoint) {
     // Note that even though it's a concurrent map we still need to synchronize to
     // prevent race conditions with multiple registrations.
-    ConcurrentMap<String, EndpointDescriptor> service = aServices.get(pEndpoint.getServiceName());
+    ConcurrentMap<String, EndpointDescriptor> service = mServices.get(endpoint.getServiceName());
     if (service == null) {
       service = new ConcurrentHashMap<>();
-      aServices.put(pEndpoint.getServiceName(), service);
+      mServices.put(endpoint.getServiceName(), service);
     }
-    if (service.containsKey(pEndpoint.getEndpointName())) {
-      service.remove(pEndpoint.getEndpointName());
+    if (service.containsKey(endpoint.getEndpointName())) {
+      service.remove(endpoint.getEndpointName());
     }
-    service.put(pEndpoint.getEndpointName(), pEndpoint);
+    service.put(endpoint.getEndpointName(), endpoint);
   }
 
+  @NotNull
   @Override
   public List<EndpointDescriptor> getRegisteredEndpoints() {
-    ArrayList<EndpointDescriptor> result = new ArrayList<>();
-    synchronized (aServices) {
-      for (ConcurrentMap<String, EndpointDescriptor> service:aServices.values()) {
-        for(EndpointDescriptor endpoint:service.values()) {
+    final ArrayList<EndpointDescriptor> result = new ArrayList<>();
+    synchronized (mServices) {
+      for (final ConcurrentMap<String, EndpointDescriptor> service: mServices.values()) {
+        for(final EndpointDescriptor endpoint:service.values()) {
           result.add(endpoint);
         }
       }
@@ -517,13 +523,13 @@ public class DarwinMessenger implements IMessenger {
   }
 
   @Override
-  public boolean unregisterEndpoint(EndpointDescriptor pEndpoint) {
-    synchronized (aServices) {
-      ConcurrentMap<String, EndpointDescriptor> service = aServices.get(pEndpoint.getServiceName());
+  public boolean unregisterEndpoint(@NotNull final EndpointDescriptor endpoint) {
+    synchronized (mServices) {
+      final ConcurrentMap<String, EndpointDescriptor> service = mServices.get(endpoint.getServiceName());
       if (service==null) { return false; }
-      EndpointDescriptor result = service.remove(pEndpoint.getEndpointName());
+      final EndpointDescriptor result = service.remove(endpoint.getEndpointName());
       if (service.isEmpty()) {
-        aServices.remove(pEndpoint.getServiceName());
+        mServices.remove(endpoint.getServiceName());
       }
       return result!=null;
     }
@@ -544,63 +550,64 @@ public class DarwinMessenger implements IMessenger {
    * appropriate soap methods on the endpoint.
    * </p>
    */
+  @Nullable
   @Override
-  public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, final Class<?>[] pReturnContext) {
-    EndpointDescriptor registeredEndpoint = getEndpoint(pMessage.getDestination());
+  public <T> Future<T> sendMessage(@NotNull final ISendableMessage message, @Nullable final CompletionListener completionListener, @NotNull final Class<T> returnType, final Class<?>[] returnContext) {
+    EndpointDescriptor registeredEndpoint = getEndpoint(message.getDestination());
 
     if (registeredEndpoint instanceof DirectEndpoint) {
-      return ((DirectEndpoint) registeredEndpoint).deliverMessage(pMessage, pCompletionListener, pReturnType);
+      return ((DirectEndpoint) registeredEndpoint).deliverMessage(message, completionListener, returnType);
     }
 
     if (registeredEndpoint instanceof Endpoint) { // Direct delivery when we don't just have a descriptor.
-      if ("application/soap+xml".equals(pMessage.getBodySource().getContentType())) {
+      if ("application/soap+xml".equals(message.getBodySource().getContentType())) {
         final SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
-        Source resultSource;
+        final Source resultSource;
         try {
-          resultSource = handler.processMessage(pMessage.getBodySource(), pMessage.getAttachments());
-        } catch (final Exception e) {
+          resultSource = handler.processMessage(message.getBodySource(), message.getAttachments());
+        } catch (@NotNull final Exception e) {
           final Future<T> resultfuture = new MessageTask<>(e);
-          if (pCompletionListener != null) {
-            pCompletionListener.onMessageCompletion(resultfuture);
+          if (completionListener != null) {
+            completionListener.onMessageCompletion(resultfuture);
           }
           return resultfuture;
         }
 
         final MessageTask<T> resultfuture;
-        if (pReturnType.isAssignableFrom(SourceDataSource.class)) {
+        if (returnType.isAssignableFrom(SourceDataSource.class)) {
           final ByteArrayOutputStream baos = new ByteArrayOutputStream();
           try {
             InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
-          } catch (final IOException e) {
+          } catch (@NotNull final IOException e) {
             throw new MessagingException(e);
           }
-          resultfuture = new MessageTask<>(pReturnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+          resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
         } else {
-          final T resultval = SoapHelper.processResponse(pReturnType, pReturnContext, resultSource);
+          final T resultval = SoapHelper.processResponse(returnType, returnContext, resultSource);
           resultfuture = new MessageTask<>(resultval);
         }
 
         //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
-        if (pCompletionListener != null) {
-          pCompletionListener.onMessageCompletion(resultfuture);
+        if (completionListener != null) {
+          completionListener.onMessageCompletion(resultfuture);
         }
         return resultfuture;
       }
     }
 
     if (registeredEndpoint == null) {
-      registeredEndpoint = pMessage.getDestination();
+      registeredEndpoint = message.getDestination();
     }
 
     final URI destURL;
-    if (aLocalUrl == null) {
+    if (mLocalUrl == null) {
       destURL = registeredEndpoint.getEndpointLocation();
     } else {
-      destURL = aLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
+      destURL = mLocalUrl.resolve(registeredEndpoint.getEndpointLocation());
     }
 
-    final MessageTask<T> messageTask = new MessageTask<>(destURL, pMessage, pCompletionListener, pReturnType);
-    aExecutor.execute(messageTask);
+    final MessageTask<T> messageTask = new MessageTask<>(destURL, message, completionListener, returnType);
+    mExecutor.execute(messageTask);
     return messageTask;
   }
 
@@ -610,9 +617,9 @@ public class DarwinMessenger implements IMessenger {
   @Override
   public void shutdown() {
     MessagingRegistry.registerMessenger(null); // Unregister this messenger
-    aNotifier.shutdown();
-    aExecutor.shutdown();
-    aServices = null;
+    mNotifier.shutdown();
+    mExecutor.shutdown();
+    mServices = null;
   }
 
   /**
@@ -621,38 +628,40 @@ public class DarwinMessenger implements IMessenger {
    * thread. As there is only one notifier thread, the handling of notifications
    * is expected to be fast.
    *
-   * @param pFuture The Task whose completion to notify of.
+   * @param future The Task whose completion to notify of.
    */
-  void notifyCompletionListener(final MessageTask<?> pFuture) {
-    aNotifier.addNotification(pFuture);
+  void notifyCompletionListener(final MessageTask<?> future) {
+    mNotifier.addNotification(future);
   }
 
   /**
    * Get the endpoint registered with the given service and endpoint name.
-   * @param pServiceName The name of the service.
-   * @param pEndpointName The name of the endpoint in the service.
+   * @param serviceName The name of the service.
+   * @param endpointName The name of the endpoint in the service.
    * @return
    */
-  public EndpointDescriptor getEndpoint(final QName pServiceName, final String pEndpointName) {
-    Map<String, EndpointDescriptor> service = aServices.get(pServiceName);
+  @Nullable
+  public EndpointDescriptor getEndpoint(final QName serviceName, final String endpointName) {
+    final Map<String, EndpointDescriptor> service = mServices.get(serviceName);
     if (service == null) {
       return null;
     }
-    return service.get(pEndpointName);
+    return service.get(endpointName);
   }
 
   /**
    * Get the endpoint registered for the given endpoint descriptor. This
-   * @param pEndpoint The
+   * @param endpoint The
    * @return
    */
-  public EndpointDescriptor getEndpoint(final EndpointDescriptor pEndpoint) {
-    final Map<String, EndpointDescriptor> service = aServices.get(pEndpoint.getServiceName());
+  @Nullable
+  public EndpointDescriptor getEndpoint(@NotNull final EndpointDescriptor endpoint) {
+    final Map<String, EndpointDescriptor> service = mServices.get(endpoint.getServiceName());
     if (service == null) {
       return null;
     }
 
-    return service.get(pEndpoint.getEndpointName());
+    return service.get(endpoint.getEndpointName());
   }
 
 }

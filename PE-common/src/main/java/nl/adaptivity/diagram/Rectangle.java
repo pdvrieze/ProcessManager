@@ -1,6 +1,9 @@
 package nl.adaptivity.diagram;
 
 
+import org.jetbrains.annotations.NotNull;
+
+
 public final class Rectangle implements Cloneable{
 
   public double left;
@@ -8,18 +11,19 @@ public final class Rectangle implements Cloneable{
   public double width;
   public double height;
 
-  public Rectangle(double left, double top, double width, double height) {
+  public Rectangle(final double left, final double top, final double width, final double height) {
     this.top = top;
     this.left = left;
     this.height = height;
     this.width = width;
   }
 
+  @NotNull
   @Override
   public Rectangle clone() {
     try {
       return (Rectangle) super.clone();
-    } catch (CloneNotSupportedException e) {
+    } catch (@NotNull final CloneNotSupportedException e) {
       throw new RuntimeException(e);
     }
   }
@@ -59,48 +63,50 @@ public final class Rectangle implements Cloneable{
   /**
    * Create an offsetted rectangle. The offsets should not be prescaled. They will be scaled in the method.
    * The scaling is from the top left of the rectangle.
-   * @param pXOffset The x offset.
-   * @param pYOffset The y offset.
-   * @param pScale The scaling needed.
+   * @param xOffset The x offset.
+   * @param yOffset The y offset.
+   * @param scale The scaling needed.
    * @return A new rectangle that is moved from the original one.
    */
-  public final Rectangle offsetScaled(double pXOffset, double pYOffset, double pScale) {
-    return new Rectangle((left+pXOffset)*pScale, (top+pYOffset)*pScale, width*pScale, height*pScale);
+  @NotNull
+  public final Rectangle offsetScaled(final double xOffset, final double yOffset, final double scale) {
+    return new Rectangle((left+xOffset)*scale, (top+yOffset)*scale, width*scale, height*scale);
   }
 
+  @NotNull
   @Override
   public final String toString() {
     return "Rectangle [l=" + left + ", t=" + top + ", w=" + width + ", h=" + height + "]";
   }
 
-  public final void set(double pLeft, double pTop, double pWidth, double pHeight) {
-    left = pLeft;
-    top = pTop;
-    width = pWidth;
-    height = pHeight;
+  public final void set(final double left, final double top, final double width, final double height) {
+    this.left = left;
+    this.top = top;
+    this.width = width;
+    this.height = height;
   }
 
-  public final void set(Rectangle pBounds) {
-    left = pBounds.left;
-    top = pBounds.top;
-    width = pBounds.width;
-    height = pBounds.height;
+  public final void set(@NotNull final Rectangle bounds) {
+    left = bounds.left;
+    top = bounds.top;
+    width = bounds.width;
+    height = bounds.height;
   }
 
-  public final void extendBounds(Rectangle pBounds) {
-    double newleft = Math.min(left,  pBounds.left);
-    double newtop = Math.min(top,  pBounds.left);
-    width = Math.max(right(),  pBounds.right())-newleft;
-    height = Math.max(bottom(),  pBounds.bottom())-newtop;
+  public final void extendBounds(@NotNull final Rectangle bounds) {
+    final double newleft = Math.min(left, bounds.left);
+    final double newtop = Math.min(top, bounds.left);
+    width = Math.max(right(),  bounds.right())-newleft;
+    height = Math.max(bottom(),  bounds.bottom())-newtop;
     left = newleft;
     top = newtop;
   }
 
-  public final boolean contains(double pX, double pY) {
-    return (pX>=left) &&
-           (pY>=top) &&
-           (pX<=left+width) &&
-           (pY<=top+height);
+  public final boolean contains(final double x, final double y) {
+    return (x>=left) &&
+           (y>=top) &&
+           (x<=left+width) &&
+           (y<=top+height);
   }
 
 }

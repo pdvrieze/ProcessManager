@@ -12,6 +12,8 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.util.xml.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -29,14 +31,16 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   public static class Factory implements XmlDeserializerFactory {
 
+    @NotNull
     @Override
-    public XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
+    public XmlResultType deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
       return XmlResultType.deserialize(in);
     }
 
   }
 
-  public static XmlResultType deserialize(final XMLStreamReader in) throws XMLStreamException {
+  @NotNull
+  public static XmlResultType deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
     return deserialize(in, new XmlResultType());
   }
 
@@ -46,17 +50,17 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   public XmlResultType() {}
 
   @Deprecated
-  public XmlResultType(String name, final String pPath, DocumentFragment content, Iterable<Namespace> namespaceContext) {
-    this(name, pPath, content==null ? null : XmlUtil.toString(content).toCharArray(), namespaceContext);
+  public XmlResultType(final String name, final String path, @Nullable final DocumentFragment content, final Iterable<Namespace> namespaceContext) {
+    this(name, path, content==null ? null : XmlUtil.toString(content).toCharArray(), namespaceContext);
   }
 
-  public XmlResultType(final String pName, String pPath, final char[] pContent, final Iterable<Namespace> pOriginalNSContext) {
-    super(pContent, pOriginalNSContext, pPath, pName);
+  public XmlResultType(final String name, final String path, final char[] content, final Iterable<Namespace> originalNSContext) {
+    super(content, originalNSContext, path, name);
   }
 
   @Override
-  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeStartElement(pOut, ELEMENTNAME);
+  protected void serializeStartElement(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
   }
 
   public static XmlResultType get(IXmlResultType pImport) {
@@ -64,6 +68,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     return new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getOriginalNSContext());
   }
 
+  @NotNull
   @Override
   public QName getElementName() {
     return ELEMENTNAME;
@@ -71,31 +76,32 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
 
   /**
    * Transform the given payload as specified by tag.
-   * @param pPayload
+   * @param payload
    * @return
    */
+  @NotNull
   @Override
-  public ProcessData apply(Node pPayload) {
+  public ProcessData apply(final Node payload) {
     // TODO add support for variable and function resolvers.
     try {
       // shortcircuit missing path
-      ProcessData processData;
+      final ProcessData processData;
       if (getPath() == null || ".".equals(getPath())) {
-        processData = new ProcessData(getName(), XmlUtil.nodeToFragment(pPayload));
+        processData = new ProcessData(getName(), XmlUtil.nodeToFragment(payload));
       } else {
-        processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(pPayload, XPathConstants.NODESET)));
+        processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(payload, XPathConstants.NODESET)));
       }
-      char[] content = getContent();
+      final char[] content = getContent();
       if (content!=null && content.length>0) {
-        PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
-        CompactFragment transformed = XmlUtil.siblingsToFragment(transformer.createFilter(getBodyStreamReader()));
+        final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
+        final CompactFragment transformed = XmlUtil.siblingsToFragment(transformer.createFilter(getBodyStreamReader()));
         return new ProcessData(getName(), transformed);
       } else {
         return processData;
       }
 
 
-    } catch (XPathExpressionException | XMLStreamException e) {
+    } catch (@NotNull XPathExpressionException | XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }

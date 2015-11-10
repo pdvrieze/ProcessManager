@@ -15,7 +15,7 @@ public interface ThemeItem {
    * @param The state needed.
    * @return The effective state.
    */
-  int getEffectiveState(int pState);
+  int getEffectiveState(int state);
 
-  <PEN_T extends Pen<PEN_T>> PEN_T createPen(DrawingStrategy<?, PEN_T, ?> pStrategy, int pState);
+  <PEN_T extends Pen<PEN_T>> PEN_T createPen(DrawingStrategy<?, PEN_T, ?> strategy, int state);
 }

@@ -1,119 +1,113 @@
 package nl.adaptivity.util.activation;
 
 import net.devrieze.util.Streams;
-
-import java.io.*;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.util.JAXBSource;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.*;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import java.io.*;
 
 
 public final class Sources {
 
   private Sources() {}
 
-  public static void writeToStream(final Source pSource, final OutputStream pOutputStream) throws TransformerException {
-    writeToResult(pSource, new StreamResult(pOutputStream), false);
+  public static void writeToStream(final Source source, final OutputStream outputStream) throws TransformerException {
+    writeToResult(source, new StreamResult(outputStream), false);
   }
 
-  public static void writeToStream(final Source pSource, final OutputStream pOutputStream, boolean pIndent) throws TransformerException {
-    writeToResult(pSource, new StreamResult(pOutputStream), pIndent);
+  public static void writeToStream(final Source source, final OutputStream outputStream, final boolean indent) throws TransformerException {
+    writeToResult(source, new StreamResult(outputStream), indent);
   }
 
-  public static void writeToWriter(final Source pSource, final Writer pWriter) throws TransformerException {
-    writeToWriter(pSource, pWriter, false);
+  public static void writeToWriter(final Source source, final Writer writer) throws TransformerException {
+    writeToWriter(source, writer, false);
   }
 
-  public static void writeToWriter(final Source pSource, final Writer pWriter, final boolean pIndent) throws TransformerException {
-    writeToResult(pSource, new StreamResult(pWriter), pIndent);
+  public static void writeToWriter(final Source source, final Writer writer, final boolean indent) throws TransformerException {
+    writeToResult(source, new StreamResult(writer), indent);
   }
 
-  public static void writeToResult(final Source pSource, final Result pResult) throws TransformerException{
-    writeToResult(pSource, pResult, false);
+  public static void writeToResult(final Source source, final Result result) throws TransformerException{
+    writeToResult(source, result, false);
   }
 
-  public static void writeToResult(final Source pSource, final Result pResult, final boolean pIndent)
-      throws TransformerFactoryConfigurationError, TransformerConfigurationException, TransformerException {
+  public static void writeToResult(final Source source, final Result result, final boolean indent)
+      throws TransformerFactoryConfigurationError, TransformerException {
     final TransformerFactory factory = TransformerFactory.newInstance();
     final Transformer identityTransformer = factory.newTransformer();
-    if (pIndent) {
+    if (indent) {
       identityTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
       identityTransformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
     }
-    identityTransformer.transform(pSource, pResult);
+    identityTransformer.transform(source, result);
   }
 
-  public static InputStream toInputStream(final Source pSource) {
-    if (pSource instanceof StreamSource) {
-      final InputStream result = ((StreamSource) pSource).getInputStream();
+  public static InputStream toInputStream(final Source source) {
+    if (source instanceof StreamSource) {
+      final InputStream result = ((StreamSource) source).getInputStream();
       if (result!=null) { return result; }
     }
-    if (pSource instanceof SAXSource && (! (pSource instanceof JAXBSource))) {
-      final InputStream result = ((SAXSource) pSource).getInputSource().getByteStream();
+    if (source instanceof SAXSource && (! (source instanceof JAXBSource))) {
+      final InputStream result = ((SAXSource) source).getInputSource().getByteStream();
       if (result!=null) { return result; }
     }
     final ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
-      Sources.writeToStream(pSource, baos);
-    } catch (final TransformerException e) {
+      Sources.writeToStream(source, baos);
+    } catch (@NotNull final TransformerException e) {
       throw new RuntimeException(e);
     }
     return new ByteArrayInputStream(baos.toByteArray());
 
   }
 
-  public static Reader toReader(final Source pSource) {
+  public static Reader toReader(final Source source) {
     {
-      if (pSource instanceof StreamSource) {
-        Reader result = ((StreamSource) pSource).getReader();
+      if (source instanceof StreamSource) {
+        final Reader result = ((StreamSource) source).getReader();
         if (result!=null) { return result; }
       }
-      if (pSource instanceof SAXSource && (! (pSource instanceof JAXBSource))) {
-        final InputStream byteStream = ((SAXSource) pSource).getInputSource().getByteStream();
+      if (source instanceof SAXSource && (! (source instanceof JAXBSource))) {
+        final InputStream byteStream = ((SAXSource) source).getInputSource().getByteStream();
         if (byteStream!=null) { return new InputStreamReader(byteStream); }
       }
     }
     final CharArrayWriter caw = new CharArrayWriter();
     try {
-      Sources.writeToWriter(pSource, caw);
-    } catch (final TransformerException e) {
+      Sources.writeToWriter(source, caw);
+    } catch (@NotNull final TransformerException e) {
       throw new RuntimeException(e);
     }
     return new CharArrayReader(caw.toCharArray());
   }
 
-  public static String toString(final Source pSource) {
-    return toString(pSource, false);
+  public static String toString(final Source source) {
+    return toString(source, false);
   }
 
-  public static String toString(final Source pSource, boolean pIndent) {
-    Reader in = null;
+  public static String toString(final Source source, final boolean indent) {
+    final Reader in = null;
     try {
-      if (pSource instanceof StreamSource) {
-        Reader result = ((StreamSource) pSource).getReader();
+      if (source instanceof StreamSource) {
+        final Reader result = ((StreamSource) source).getReader();
         if (result!=null) { return Streams.toString(result); }
       }
-      if (pSource instanceof SAXSource && (! (pSource instanceof JAXBSource))) {
-        final InputStream byteStream = ((SAXSource) pSource).getInputSource().getByteStream();
+      if (source instanceof SAXSource && (! (source instanceof JAXBSource))) {
+        final InputStream byteStream = ((SAXSource) source).getInputSource().getByteStream();
         if (byteStream!=null) { return Streams.toString(new InputStreamReader(byteStream)); }
       }
-    } catch (IOException e) {
+    } catch (@NotNull final IOException e) {
       throw new RuntimeException(e);
     }
     final StringWriter sw = new StringWriter();
     try {
-      Sources.writeToWriter(pSource, sw, pIndent);
-    } catch (final TransformerException e) {
+      Sources.writeToWriter(source, sw, indent);
+    } catch (@NotNull final TransformerException e) {
       throw new RuntimeException(e);
     }
     return sw.toString();
