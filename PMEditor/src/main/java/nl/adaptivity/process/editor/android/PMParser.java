@@ -37,41 +37,41 @@ public class PMParser {
     private boolean aPendingBreak = false;
     private boolean aExtraIndent = false;
 
-    public XmlSerializerAdapter(XmlSerializer pSerializer) {
-      mSerializer = pSerializer;
+    public XmlSerializerAdapter(XmlSerializer serializer) {
+      mSerializer = serializer;
     }
 
     @Override
-    public void addNamespace(String pPrefix, String pNamespace) {
+    public void addNamespace(String prefix, String namespace) {
       // TODO maybe record pending namespaces and only add them on startTag
       try {
-        mSerializer.setPrefix(pPrefix, pNamespace);
+        mSerializer.setPrefix(prefix, namespace);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void startTag(String pNamespace, String pName, boolean pAddWs) {
+    public void startTag(String namespace, String name, boolean addWs) {
       try {
         if (aPendingBreak) {
           printBreak();
         }
         printExtraIndent();
-        mSerializer.startTag(pNamespace, pName);
+        mSerializer.startTag(namespace, name);
         ++aIndent;
-        aPendingBreak = pAddWs;
+        aPendingBreak = addWs;
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void endTag(String pNamespace, String pName, boolean pAddWs) {
+    public void endTag(String namespace, String name, boolean addWs) {
       try {
-        mSerializer.endTag(pNamespace, pName);
+        mSerializer.endTag(namespace, name);
         --aIndent;
-        if (pAddWs) {
+        if (addWs) {
           printBreak();
         }
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
@@ -94,74 +94,74 @@ public class PMParser {
     }
 
     @Override
-    public void addAttribute(String pNamespace, String pName, String pValue) {
+    public void addAttribute(String namespace, String name, String value) {
       try {
-        mSerializer.attribute(pNamespace, pName, pValue);
+        mSerializer.attribute(namespace, name, value);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void text(String pString) {
+    public void text(String string) {
       try {
         if (aPendingBreak) {
           printBreak();
         }
         printExtraIndent();
-        mSerializer.text(pString);
+        mSerializer.text(string);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void cdata(String pData) {
+    public void cdata(String data) {
       try {
         if (aPendingBreak) {
           printBreak();
         }
         printExtraIndent();
-        mSerializer.cdsect(pData);
+        mSerializer.cdsect(data);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void comment(String pData) {
+    public void comment(String data) {
       try {
         if (aPendingBreak) {
           printBreak();
         }
         printExtraIndent();
-        mSerializer.comment(pData);
+        mSerializer.comment(data);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void entityReference(String pEntityRef) {
+    public void entityReference(String entityRef) {
       try {
         if (aPendingBreak) {
           printBreak();
         }
         printExtraIndent();
-        mSerializer.entityRef(pEntityRef);;
+        mSerializer.entityRef(entityRef);;
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public void ignorableWhitespace(String pString) {
+    public void ignorableWhitespace(String string) {
       try {
         if (aPendingBreak) {
           printBreak();
         }
         printExtraIndent();
-        mSerializer.ignorableWhitespace(pString);
+        mSerializer.ignorableWhitespace(string);
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -172,14 +172,14 @@ public class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  public static void serializeProcessModel(OutputStream pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
-    XmlSerializer serializer = getSerializer(pOut);
-    serializeProcessModel(serializer, pProcessModel);
+  public static void serializeProcessModel(OutputStream out, ClientProcessModel<?> processModel) throws XmlPullParserException, IOException {
+    XmlSerializer serializer = getSerializer(out);
+    serializeProcessModel(serializer, processModel);
   }
 
-  public static void serializeProcessModel(Writer pOut, ClientProcessModel<?> pProcessModel) throws XmlPullParserException, IOException {
-    XmlSerializer serializer = getSerializer(pOut);
-    serializeProcessModel(serializer, pProcessModel);
+  public static void serializeProcessModel(Writer out, ClientProcessModel<?> processModel) throws XmlPullParserException, IOException {
+    XmlSerializer serializer = getSerializer(out);
+    serializeProcessModel(serializer, processModel);
   }
 
   private static XmlSerializer getSerializer() throws XmlPullParserException {
@@ -190,66 +190,66 @@ public class PMParser {
     return serializer;
   }
 
-  static XmlSerializer getSerializer(OutputStream pOut) throws XmlPullParserException, IOException {
+  static XmlSerializer getSerializer(OutputStream out) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer();
     try {
-      serializer.setOutput(pOut, "UTF-8");
+      serializer.setOutput(out, "UTF-8");
     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
       throw new IOException(e);
     }
     return serializer;
   }
 
-  static XmlSerializer getSerializer(Writer pOut) throws XmlPullParserException, IOException {
+  static XmlSerializer getSerializer(Writer out) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer();
     try {
-      serializer.setOutput(pOut);
+      serializer.setOutput(out);
     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
       throw new IOException(e);
     }
     return serializer;
   }
 
-  private static void serializeProcessModel(XmlSerializer pSerializer, ClientProcessModel<?> pProcessModel) {
+  private static void serializeProcessModel(XmlSerializer serializer, ClientProcessModel<?> processModel) {
     try {
-      pSerializer.startDocument(null, null);
-      pSerializer.ignorableWhitespace("\n");
-      pProcessModel.serialize(new XmlSerializerAdapter(pSerializer));
-      pSerializer.endDocument();
+      serializer.startDocument(null, null);
+      serializer.ignorableWhitespace("\n");
+      processModel.serialize(new XmlSerializerAdapter(serializer));
+      serializer.endDocument();
     } catch (IllegalArgumentException | IllegalStateException | IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public static DrawableProcessModel parseProcessModel(Reader pIn, LayoutAlgorithm<DrawableProcessNode> pSimpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
-    XmlPullParser in;
+  public static DrawableProcessModel parseProcessModel(Reader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+    XmlPullParser parser;
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
-      in = factory.newPullParser();
-      in.setInput(pIn);
+      parser = factory.newPullParser();
+      parser.setInput(in);
     } catch (Exception e){
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseProcessModel(in, pSimpleLayoutAlgorithm, pAdvancedAlgorithm);
+    return parseProcessModel(parser, simpleLayoutAlgorithm, advancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(InputStream pIn, LayoutAlgorithm<DrawableProcessNode> pSimpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
-    XmlPullParser in;
+  public static DrawableProcessModel parseProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+    XmlPullParser parser;
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
-      in = factory.newPullParser();
-      in.setInput(pIn, "utf-8");
+      parser = factory.newPullParser();
+      parser.setInput(in, "utf-8");
     } catch (Exception e){
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseProcessModel(in, pSimpleLayoutAlgorithm, pAdvancedAlgorithm);
+    return parseProcessModel(parser, simpleLayoutAlgorithm, advancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(XmlPullParser in, LayoutAlgorithm<DrawableProcessNode> pSimpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> pAdvancedAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(XmlPullParser in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     try {
 
       if(in.nextTag()==START_TAG && NS_PROCESSMODEL.equals(in.getNamespace()) && "processModel".equals(in.getName())){
@@ -274,7 +274,7 @@ public class PMParser {
           resolveRefs(elem, nodeMap, modelElems);
           noPos|=Double.isNaN(elem.getX())||Double.isNaN(elem.getY());
         }
-        final DrawableProcessModel drawableProcessModel = new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, noPos ? pAdvancedAlgorithm : pSimpleLayoutAlgorithm);
+        final DrawableProcessModel drawableProcessModel = new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, noPos ? advancedAlgorithm : simpleLayoutAlgorithm);
         if (owner!=null) { drawableProcessModel.setOwner(owner); }
         return drawableProcessModel;
 
@@ -287,63 +287,63 @@ public class PMParser {
     }
   }
 
-  private static void resolveRefs(DrawableProcessNode pNode, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
-    for(Identifiable predid: pNode.getPredecessors()) {
+  private static void resolveRefs(DrawableProcessNode node, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) {
+    for(Identifiable predid: node.getPredecessors()) {
       // It is a temporary predecessor
       if (! (predid instanceof DrawableProcessNode)) {
         // First remove the link with the temporary
-        pNode.removePredecessor(predid);
+        node.removePredecessor(predid);
         // Get the node that should replace the temporary
-        DrawableProcessNode realNode = pNodes.get(predid);
+        DrawableProcessNode realNode = nodes.get(predid);
         // Add the node as successor to the real predecessor
-        addAsSuccessor(realNode, pNode, pModelElems);
+        addAsSuccessor(realNode, node, modelElems);
       }
     }
   }
 
-  private static DrawableProcessNode parseNode(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
-    if (!NS_PROCESSMODEL.equals(pIn.getNamespace())) {
+  private static DrawableProcessNode parseNode(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+    if (!NS_PROCESSMODEL.equals(in.getNamespace())) {
       throw new IllegalArgumentException("Invalid process model");
     }
-    if ("start".equals(pIn.getName())) {
-      return parseStart(pIn, pNodes, pModelElems);
-    } else if ("activity".equals(pIn.getName())) {
-      return parseActivity(pIn, pNodes, pModelElems);
-    } else if ("split".equals(pIn.getName())) {
-      return parseSplit(pIn, pNodes, pModelElems);
-    } else if ("join".equals(pIn.getName())) {
-      return parseJoin(pIn, pNodes, pModelElems);
-    } else if ("end".equals(pIn.getName())) {
-      return parseEnd(pIn, pNodes, pModelElems);
+    if ("start".equals(in.getName())) {
+      return parseStart(in, nodes, modelElems);
+    } else if ("activity".equals(in.getName())) {
+      return parseActivity(in, nodes, modelElems);
+    } else if ("split".equals(in.getName())) {
+      return parseSplit(in, nodes, modelElems);
+    } else if ("join".equals(in.getName())) {
+      return parseJoin(in, nodes, modelElems);
+    } else if ("end".equals(in.getName())) {
+      return parseEnd(in, nodes, modelElems);
     }
     throw new UnsupportedOperationException("Unsupported tag");
   }
 
-  private static DrawableProcessNode parseStart(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseStart(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
     DrawableStartNode result = new DrawableStartNode();
-    parseCommon(pIn, pNodes, pModelElems, result);
-    if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
+    parseCommon(in, nodes, modelElems, result);
+    if (in.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static DrawableProcessNode parseActivity(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseActivity(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
     DrawableActivity result = new DrawableActivity();
-    parseCommon(pIn, pNodes, pModelElems, result);
-    String name = trimWS(pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
+    parseCommon(in, nodes, modelElems, result);
+    String name = trimWS(in.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
     if (name!=null && name.length()>0) {
       result.setName(name);
     }
-    for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
+    for(int type = in.next(); type!=END_TAG; type = in.next()) {
       switch (type) {
       case START_TAG:
-        if (NS_PROCESSMODEL.equals(pIn.getNamespace())) {
-          if ("message".equals(pIn.getName())) {
-            result.setMessage(parseMessage(pIn));
+        if (NS_PROCESSMODEL.equals(in.getNamespace())) {
+          if ("message".equals(in.getName())) {
+            result.setMessage(parseMessage(in));
           } else {
-            parseUnknownTag(pIn);
+            parseUnknownTag(in);
           }
         } else {
-          parseUnknownTag(pIn);
+          parseUnknownTag(in);
         }
         break;
       default:
@@ -353,15 +353,15 @@ public class PMParser {
     return result;
   }
 
-  private static IXmlMessage parseMessage(XmlPullParser pIn) {
+  private static IXmlMessage parseMessage(XmlPullParser in) {
     ClientMessage result = new ClientMessage();
-    String endpoint = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint");
-    String operation = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "operation");
-    String url = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "url");
-    String method = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "method");
-    String type = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "type");
-    String serviceNS = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceNS");
-    String serviceName = pIn.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceName");
+    String endpoint = in.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint");
+    String operation = in.getAttributeValue(XMLConstants.NULL_NS_URI, "operation");
+    String url = in.getAttributeValue(XMLConstants.NULL_NS_URI, "url");
+    String method = in.getAttributeValue(XMLConstants.NULL_NS_URI, "method");
+    String type = in.getAttributeValue(XMLConstants.NULL_NS_URI, "type");
+    String serviceNS = in.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceNS");
+    String serviceName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceName");
     result.setEndpoint(endpoint);
     result.setOperation(operation);
     result.setUrl(url);
@@ -382,10 +382,10 @@ public class PMParser {
     }
     int tagtype;
     try {
-      while ((tagtype=pIn.next())!=END_TAG) {
+      while ((tagtype=in.next())!=END_TAG) {
         switch (tagtype) {
           case START_TAG: {
-            Node node = parseXmlTag(doc, pIn);
+            Node node = parseXmlTag(doc, in);
             if (doc.getDocumentElement()!=null) {
               doc.replaceChild(node, doc.getDocumentElement());
             } else {
@@ -406,25 +406,25 @@ public class PMParser {
     return result;
   }
 
-  private static Element parseXmlTag(Document pDoc, XmlPullParser pIn) throws IOException, XmlPullParserException {
-    Element element=pDoc.createElementNS(pIn.getNamespace(), pIn.getName());
-    element.setPrefix(pIn.getPrefix());
-    for(int i=0; i<pIn.getAttributeCount(); ++i) {
-      Attr a = pDoc.createAttributeNS(pIn.getAttributeNamespace(i), pIn.getAttributeName(i));
-      a.setPrefix(pIn.getAttributePrefix(i));
-      a.setNodeValue(pIn.getAttributeValue(i));
+  private static Element parseXmlTag(Document doc, XmlPullParser in) throws IOException, XmlPullParserException {
+    Element element=doc.createElementNS(in.getNamespace(), in.getName());
+    element.setPrefix(in.getPrefix());
+    for(int i=0; i<in.getAttributeCount(); ++i) {
+      Attr a = doc.createAttributeNS(in.getAttributeNamespace(i), in.getAttributeName(i));
+      a.setPrefix(in.getAttributePrefix(i));
+      a.setNodeValue(in.getAttributeValue(i));
       element.setAttributeNode(a);
     }
     int type;
-    while ((type=pIn.next())!=END_TAG) {
+    while ((type=in.next())!=END_TAG) {
       switch (type) {
         case START_TAG: {
-          Element e = parseXmlTag(pDoc, pIn);
+          Element e = parseXmlTag(doc, in);
           element.appendChild(e);
           break;
         }
         case TEXT: {
-          Text text = pDoc.createTextNode(pIn.getText());
+          Text text = doc.createTextNode(in.getText());
           element.appendChild(text);
           break;
         }
@@ -433,25 +433,25 @@ public class PMParser {
     return element;
   }
 
-  private static QName toQName(XmlPullParser in, String pValue) {
-    if (pValue==null) { return null; }
-    int i = pValue.indexOf(':');
+  private static QName toQName(XmlPullParser in, String value) {
+    if (value==null) { return null; }
+    int i = value.indexOf(':');
     if (i>0) {
-      String prefix = pValue.substring(0, i);
+      String prefix = value.substring(0, i);
       String namespace = in.getNamespace(prefix);
-      String localname = pValue.substring(i+1);
+      String localname = value.substring(i+1);
       return new QName(namespace, localname, prefix);
     } else {
       String namespace = in.getNamespace("");
-      return new QName(namespace, pValue);
+      return new QName(namespace, value);
     }
   }
 
-  private static void parseUnknownTag(XmlPullParser pIn) throws XmlPullParserException, IOException {
-    for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
+  private static void parseUnknownTag(XmlPullParser in) throws XmlPullParserException, IOException {
+    for(int type = in.next(); type!=END_TAG; type = in.next()) {
       switch (type) {
       case START_TAG:
-        parseUnknownTag(pIn);
+        parseUnknownTag(in);
         break;
       default:
           // ignore
@@ -459,27 +459,27 @@ public class PMParser {
     }
   }
 
-  private static DrawableProcessNode parseJoin(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseJoin(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
     DrawableJoin result = new DrawableJoin();
-    parseCommon(pIn, pNodes, pModelElems, result);
-    parseJoinSplitAttrs(pIn, result);
+    parseCommon(in, nodes, modelElems, result);
+    parseJoinSplitAttrs(in, result);
     List<Identifiable> predecessors = new ArrayList<>();
 
-    for(int type = pIn.nextTag(); type!=END_TAG; type = pIn.nextTag()) {
-      if (! (NS_PROCESSMODEL.equals(pIn.getNamespace()) && "predecessor".equals(pIn.getName()))) {
+    for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
+      if (! (NS_PROCESSMODEL.equals(in.getNamespace()) && "predecessor".equals(in.getName()))) {
         throw new IllegalArgumentException("Invalid process model");
       }
       StringBuilder name = new StringBuilder();
-      type = pIn.next();
+      type = in.next();
       while (type!=END_TAG) {
         if (type==TEXT) {
-          name.append(pIn.getText());
+          name.append(in.getText());
         } else if (type==START_TAG) {
           throw new IllegalArgumentException("Invalid process model");
         }
-        type=pIn.next();
+        type=in.next();
       }
-      predecessors.add(getPredecessor(trimWS(name), pNodes, pModelElems));
+      predecessors.add(getPredecessor(trimWS(name), nodes, modelElems));
     }
     result.setPredecessors(predecessors);
 
@@ -498,14 +498,14 @@ public class PMParser {
     return codepoint==0x20|codepoint==0x9||codepoint==0xD||codepoint==0xA;
   }
 
-  private static DrawableProcessNode parseSplit(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseSplit(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
     DrawableSplit result = new DrawableSplit();
-    parseCommon(pIn, pNodes, pModelElems, result);
-    parseJoinSplitAttrs(pIn, result);
-    for(int type = pIn.next(); type!=END_TAG; type = pIn.next()) {
+    parseCommon(in, nodes, modelElems, result);
+    parseJoinSplitAttrs(in, result);
+    for(int type = in.next(); type!=END_TAG; type = in.next()) {
       switch (type) {
       case START_TAG:
-        parseUnknownTag(pIn);
+        parseUnknownTag(in);
         break;
       default:
           // ignore
@@ -515,74 +515,74 @@ public class PMParser {
     return result;
   }
 
-  private static void parseJoinSplitAttrs(XmlPullParser pIn, DrawableJoinSplit pNode) {
-    for(int i=0; i< pIn.getAttributeCount();++i) {
-      if (XMLConstants.NULL_NS_URI.equals(pIn.getAttributeNamespace(i))) {
-        final String aname = pIn.getAttributeName(i);
+  private static void parseJoinSplitAttrs(XmlPullParser in, DrawableJoinSplit node) {
+    for(int i=0; i< in.getAttributeCount();++i) {
+      if (XMLConstants.NULL_NS_URI.equals(in.getAttributeNamespace(i))) {
+        final String aname = in.getAttributeName(i);
         if ("min".equals(aname)) {
-          pNode.setMin(Integer.parseInt(pIn.getAttributeValue(i)));
+          node.setMin(Integer.parseInt(in.getAttributeValue(i)));
         } else if ("max".equals(aname)) {
-          pNode.setMax(Integer.parseInt(pIn.getAttributeValue(i)));
+          node.setMax(Integer.parseInt(in.getAttributeValue(i)));
         }
       }
     }
   }
 
-  private static DrawableProcessNode parseEnd(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseEnd(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
     DrawableEndNode result = new DrawableEndNode();
-    parseCommon(pIn, pNodes, pModelElems, result);
-    if (pIn.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
+    parseCommon(in, nodes, modelElems, result);
+    if (in.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static void parseCommon(XmlPullParser pIn, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems, DrawableProcessNode pNode) {
-    for(int i=0; i< pIn.getAttributeCount();++i) {
-      if (XMLConstants.NULL_NS_URI.equals(pIn.getAttributeNamespace(i))) {
-        final String aname = pIn.getAttributeName(i);
+  private static void parseCommon(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems, DrawableProcessNode node) {
+    for(int i=0; i< in.getAttributeCount();++i) {
+      if (XMLConstants.NULL_NS_URI.equals(in.getAttributeNamespace(i))) {
+        final String aname = in.getAttributeName(i);
         if ("x".equals(aname)) {
-          pNode.setX(Double.parseDouble(pIn.getAttributeValue(i)));
+          node.setX(Double.parseDouble(in.getAttributeValue(i)));
         } else if ("y".equals(aname)) {
-          pNode.setY(Double.parseDouble(pIn.getAttributeValue(i)));
+          node.setY(Double.parseDouble(in.getAttributeValue(i)));
         } else if ("id".equals(aname)) {
-          pNode.setId(trimWS(pIn.getAttributeValue(i)));
+          node.setId(trimWS(in.getAttributeValue(i)));
         } else if ("label".equals(aname)) {
-          pNode.setLabel(pIn.getAttributeValue(i));
+          node.setLabel(in.getAttributeValue(i));
         } else if ("name".equals(aname)) {
-          if (pNode.getLabel()==null) {
-            pNode.setLabel(pIn.getAttributeValue(i));
+          if (node.getLabel()==null) {
+            node.setLabel(in.getAttributeValue(i));
           }
         } else if ("predecessor".equals(aname)) {
-          addPredecessor(pNode, trimWS(pIn.getAttributeValue(i)), pNodes, pModelElems);
+          addPredecessor(node, trimWS(in.getAttributeValue(i)), nodes, modelElems);
 //          pNode.setPredecessors(getPredecessors(pIn.getAttributeValue(i),pNodes, pModelElems));
         }
       }
     }
   }
 
-  private static void addPredecessor(DrawableProcessNode pNode, String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
-    Identifiable predecessor = getPredecessor(pName, pNodes, pModelElems);
+  private static void addPredecessor(DrawableProcessNode node, String name, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) {
+    Identifiable predecessor = getPredecessor(name, nodes, modelElems);
     if (predecessor instanceof DrawableProcessNode) {
-      addAsSuccessor((DrawableProcessNode) predecessor, pNode, pModelElems);
+      addAsSuccessor((DrawableProcessNode) predecessor, node, modelElems);
     }
   }
 
-  private static Identifiable getPredecessor(String pName, Map<String, DrawableProcessNode> pNodes, List<DrawableProcessNode> pModelElems) {
-    Identifiable val = pNodes.get(pName);
+  private static Identifiable getPredecessor(String name, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) {
+    Identifiable val = nodes.get(name);
     if (val==null) {
-      val = new Identifier(pName);
+      val = new Identifier(name);
     } else { // there already is a node
       // Allow temporary references to collect as many successors as desired, it might be a split.
       if ((!(val instanceof DrawableProcessNode))|| (((DrawableProcessNode)val).getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
         return val;
       } else {
         // There is no suitable successor
-        return introduceSplit((DrawableProcessNode)val, pModelElems);
+        return introduceSplit((DrawableProcessNode)val, modelElems);
       }
     }
     return val;
   }
 
-  private static DrawableSplit introduceSplit(DrawableProcessNode predecessor, List<DrawableProcessNode> pModelElems) {
+  private static DrawableSplit introduceSplit(DrawableProcessNode predecessor, List<DrawableProcessNode> modelElems) {
     for(DrawableProcessNode successor:predecessor.getSuccessors()) {
       if (successor instanceof DrawableSplit) {
         return (DrawableSplit) successor;
@@ -599,16 +599,16 @@ public class PMParser {
     }
     predecessor.addSuccessor(newSplit);
     newSplit.addPredecessor(predecessor);
-    pModelElems.add(newSplit);
+    modelElems.add(newSplit);
     return newSplit;
   }
 
-  private static void addAsSuccessor(DrawableProcessNode predecessor, DrawableProcessNode successor, List<DrawableProcessNode> pModelElems) {
+  private static void addAsSuccessor(DrawableProcessNode predecessor, DrawableProcessNode successor, List<DrawableProcessNode> modelElems) {
     if (predecessor.getSuccessors().size()<predecessor.getMaxSuccessorCount()) {
       predecessor.addSuccessor(successor);
       successor.addPredecessor(predecessor);
     } else {
-      DrawableSplit newSplit = introduceSplit(predecessor, pModelElems);
+      DrawableSplit newSplit = introduceSplit(predecessor, modelElems);
       newSplit.addSuccessor(successor);
       successor.addPredecessor(newSplit);
     }

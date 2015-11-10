@@ -12,9 +12,9 @@ public class LabelItem extends TaskItem {
 
   private String mValue;
 
-  public LabelItem(String pName, String pValue) {
-    super(pName);
-    mValue = pValue;
+  public LabelItem(String name, String value) {
+    super(name);
+    mValue = value;
   }
 
   @Override
@@ -23,15 +23,15 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
-  public View createView(LayoutInflater pInflater, ViewGroup pParent) {
-    TextView view = (TextView) pInflater.inflate(R.layout.taskitem_label, pParent, false);
+  public View createView(LayoutInflater inflater, ViewGroup parent) {
+    TextView view = (TextView) inflater.inflate(R.layout.taskitem_label, parent, false);
     view.setText(mValue);
     return view;
   }
 
   @Override
-  public void updateView(View pV) {
-    ((TextView) pV).setText(mValue);
+  public void updateView(View v) {
+    ((TextView) v).setText(mValue);
   }
 
   @Override

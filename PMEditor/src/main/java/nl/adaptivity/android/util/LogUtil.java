@@ -14,19 +14,19 @@ import java.io.InputStreamReader;
 public class LogUtil {
   private LogUtil() {}
 
-  public static void logResponse(final String pTag, final int pDebugLevel, final String pUrl, final String pStatusLine, final InputStream pContent) throws
+  public static void logResponse(final String tag, final int debugLevel, final String url, final String statusLine, final InputStream content) throws
           IOException {
     StringBuilder errorMessage = new StringBuilder();
     errorMessage.append("Error updating the server for url: ")
-                .append(pUrl).append("\n    ")
-                .append(pStatusLine).append("\n    ");
-    BufferedReader contentBuffer = new BufferedReader(new InputStreamReader(pContent));
+                .append(url).append("\n    ")
+                .append(statusLine).append("\n    ");
+    BufferedReader contentBuffer = new BufferedReader(new InputStreamReader(content));
     String line = contentBuffer.readLine();
     while (line!=null) {
       errorMessage.append("    ").append(line).append('\n');
       line = contentBuffer.readLine();
     }
-    Log.d(pTag, errorMessage.toString());
+    Log.d(tag, errorMessage.toString());
 
   }
 }

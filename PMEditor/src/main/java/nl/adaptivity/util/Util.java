@@ -5,7 +5,7 @@ public final class Util {
 
   public interface NameChecker {
 
-    boolean isAvailable(String pString);
+    boolean isAvailable(String string);
 
   }
 

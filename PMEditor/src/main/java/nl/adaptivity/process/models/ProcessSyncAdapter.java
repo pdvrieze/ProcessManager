@@ -10,8 +10,8 @@ import android.preference.PreferenceManager;
 
 public class ProcessSyncAdapter extends DelegatingRemoteXmlSyncAdapter {
 
-  public ProcessSyncAdapter(Context pContext) {
-    super(pContext, true, false, Arrays.asList(new ProcessModelSyncAdapter(), new ProcessInstanceSyncAdapter()));
+  public ProcessSyncAdapter(Context context) {
+    super(context, true, false, Arrays.asList(new ProcessModelSyncAdapter(), new ProcessInstanceSyncAdapter()));
   }
 
   @Override
@@ -20,8 +20,8 @@ public class ProcessSyncAdapter extends DelegatingRemoteXmlSyncAdapter {
     return prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/ProcessEngine/");
   }
 
-  protected String getListUrl(String pBase) {
-    return pBase+"/processModels";
+  protected String getListUrl(String base) {
+    return base+"/processModels";
   }
 
 

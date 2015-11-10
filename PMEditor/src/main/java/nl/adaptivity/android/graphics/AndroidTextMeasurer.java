@@ -1,30 +1,29 @@
 package nl.adaptivity.android.graphics;
 
-import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
-import nl.adaptivity.process.diagram.svg.SVGPen;
-import nl.adaptivity.process.diagram.svg.TextMeasurer;
-import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Typeface;
+import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
+import nl.adaptivity.process.diagram.svg.SVGPen;
+import nl.adaptivity.process.diagram.svg.TextMeasurer;
 
 
-public class AndroidTextMeasurer implements TextMeasurer<AndroidMeasureInfo> {
+public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.AndroidMeasureInfo> {
 
 
-  public static class AndroidMeasureInfo implements MeasureInfo {
+  public static class AndroidMeasureInfo implements TextMeasurer.MeasureInfo {
 
     final Paint aPaint;
     final FontMetrics aFontMetrics = new FontMetrics();
 
-    public AndroidMeasureInfo(Paint pPaint) {
-      aPaint = pPaint;
+    public AndroidMeasureInfo(Paint paint) {
+      aPaint = paint;
       aPaint.getFontMetrics(aFontMetrics);
     }
 
     @Override
-    public void setFontSize(double pFontSize) {
-      aPaint.setTextSize((float) pFontSize*FONT_MEASURE_FACTOR);
+    public void setFontSize(double fontSize) {
+      aPaint.setTextSize((float) fontSize*FONT_MEASURE_FACTOR);
       aPaint.getFontMetrics(aFontMetrics);
     }
 
@@ -33,10 +32,10 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidMeasureInfo> {
   private static final float FONT_MEASURE_FACTOR = 1f;
 
   @Override
-  public AndroidMeasureInfo getTextMeasureInfo(SVGPen<AndroidMeasureInfo> pSvgPen) {
+  public AndroidMeasureInfo getTextMeasureInfo(SVGPen<AndroidMeasureInfo> svgPen) {
     Paint paint = new Paint();
-    paint.setTextSize((float) pSvgPen.getFontSize()*FONT_MEASURE_FACTOR);
-    if (pSvgPen.isTextItalics()) {
+    paint.setTextSize((float) svgPen.getFontSize()*FONT_MEASURE_FACTOR);
+    if (svgPen.isTextItalics()) {
       paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.ITALIC));
     } else {
       paint.setTypeface(Typeface.create(paint.getTypeface(), Typeface.NORMAL));
@@ -45,33 +44,33 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidMeasureInfo> {
   }
 
   @Override
-  public double measureTextWidth(AndroidMeasureInfo pTextMeasureInfo, String pText, double pFoldWidth) {
-    return pTextMeasureInfo.aPaint.measureText(pText)/FONT_MEASURE_FACTOR;
+  public double measureTextWidth(AndroidMeasureInfo textMeasureInfo, String text, double foldWidth) {
+    return textMeasureInfo.aPaint.measureText(text)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextMaxAscent(AndroidMeasureInfo pTextMeasureInfo) {
-    return Math.abs(pTextMeasureInfo.aFontMetrics.top)/FONT_MEASURE_FACTOR;
+  public double getTextMaxAscent(AndroidMeasureInfo textMeasureInfo) {
+    return Math.abs(textMeasureInfo.aFontMetrics.top)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextAscent(AndroidMeasureInfo pTextMeasureInfo) {
-    return Math.abs(pTextMeasureInfo.aFontMetrics.ascent)/FONT_MEASURE_FACTOR;
+  public double getTextAscent(AndroidMeasureInfo textMeasureInfo) {
+    return Math.abs(textMeasureInfo.aFontMetrics.ascent)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextMaxDescent(AndroidMeasureInfo pTextMeasureInfo) {
-    return Math.abs(pTextMeasureInfo.aFontMetrics.bottom)/FONT_MEASURE_FACTOR;
+  public double getTextMaxDescent(AndroidMeasureInfo textMeasureInfo) {
+    return Math.abs(textMeasureInfo.aFontMetrics.bottom)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextDescent(AndroidMeasureInfo pTextMeasureInfo) {
-    return Math.abs(pTextMeasureInfo.aFontMetrics.descent)/FONT_MEASURE_FACTOR;
+  public double getTextDescent(AndroidMeasureInfo textMeasureInfo) {
+    return Math.abs(textMeasureInfo.aFontMetrics.descent)/FONT_MEASURE_FACTOR;
   }
 
   @Override
-  public double getTextLeading(AndroidMeasureInfo pTextMeasureInfo) {
-    return (Math.abs(pTextMeasureInfo.aFontMetrics.top)+Math.abs(pTextMeasureInfo.aFontMetrics.bottom)-Math.abs(pTextMeasureInfo.aFontMetrics.ascent)-Math.abs(pTextMeasureInfo.aFontMetrics.descent))/FONT_MEASURE_FACTOR;
+  public double getTextLeading(AndroidMeasureInfo textMeasureInfo) {
+    return (Math.abs(textMeasureInfo.aFontMetrics.top)+Math.abs(textMeasureInfo.aFontMetrics.bottom)-Math.abs(textMeasureInfo.aFontMetrics.ascent)-Math.abs(textMeasureInfo.aFontMetrics.descent))/FONT_MEASURE_FACTOR;
   }
 
 }

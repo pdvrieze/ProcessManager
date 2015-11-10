@@ -27,9 +27,9 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
   public interface ProcessModelListCallbacks {
 
-    void requestSyncProcessModelList(boolean pImmediate);
+    void requestSyncProcessModelList(boolean immediate);
 
-    void onInstantiateModel(long pId, String pSuggestedName);
+    void onInstantiateModel(long id, String suggestedName);
 
   }
 
@@ -52,10 +52,10 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
-    if (pActivity instanceof ProcessModelListCallbacks) {
-      mCallbacks = (ProcessModelListCallbacks) pActivity;
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    if (activity instanceof ProcessModelListCallbacks) {
+      mCallbacks = (ProcessModelListCallbacks) activity;
     }
   }
 
@@ -72,14 +72,14 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
    * that the item with the given ID was selected.
    */
   @Override
-  public void onProcessModelSelected(long pProcessModelId) {
+  public void onProcessModelSelected(long processModelId) {
     if (mTwoPane) {
-      if (pProcessModelId>=0) {
+      if (processModelId>=0) {
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.
         Bundle arguments = new Bundle();
-        arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelId);
+        arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, processModelId);
         ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
         fragment.setArguments(arguments);
         getChildFragmentManager().beginTransaction()
@@ -95,39 +95,39 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
       }
 
     } else {
-      if (pProcessModelId>=0) {
+      if (processModelId>=0) {
         // In single-pane mode, simply start the detail activity
         // for the selected item ID.
         Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
-        detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelId);
+        detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, processModelId);
         startActivity(detailIntent);
       }
     }
   }
 
   @Override
-  protected ProcessModelDetailFragment createDetailFragment(int pRow, long pItemId) {
+  protected ProcessModelDetailFragment createDetailFragment(int row, long itemId) {
     ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
     Bundle arguments = new Bundle();
-    arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, pItemId);
+    arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, itemId);
     fragment.setArguments(arguments);
     return fragment;
   }
 
   @Override
-  protected Intent getDetailIntent(int pRow, long pItemId) {
+  protected Intent getDetailIntent(int row, long itemId) {
     Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
-    detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pItemId);
+    detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, itemId);
     return detailIntent;
   }
 
   @Override
-  public CharSequence getTitle(Context pContext) {
-    return pContext.getString(R.string.title_processmodel_list);
+  public CharSequence getTitle(Context context) {
+    return context.getString(R.string.title_processmodel_list);
   }
 
   @Override
-  public void onInstantiateModel(long pModelId, String pSuggestedName) {
-    mCallbacks.onInstantiateModel(pModelId, pSuggestedName);
+  public void onInstantiateModel(long modelId, String suggestedName) {
+    mCallbacks.onInstantiateModel(modelId, suggestedName);
   }
 }

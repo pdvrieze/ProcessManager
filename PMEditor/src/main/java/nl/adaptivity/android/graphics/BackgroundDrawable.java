@@ -63,14 +63,14 @@ public class BackgroundDrawable extends Drawable {
   }
 
   @Override
-  protected boolean onStateChange(int[] pStateSet) {
-    boolean result = aBackground.setState(pStateSet);
+  protected boolean onStateChange(int[] stateSet) {
+    boolean result = aBackground.setState(stateSet);
     if (result) {
       Rect bounds = getBounds();
       aBackground.getCurrent().getPadding(aTmpRect);
       aForeground.setBounds(bounds.left+aTmpRect.left, bounds.top+aTmpRect.top, bounds.right-aTmpRect.right, bounds.bottom-aTmpRect.bottom);
     }
-    result|=aForeground.setState(pStateSet);
+    result|=aForeground.setState(stateSet);
     return result;
   }
 
@@ -112,11 +112,11 @@ public class BackgroundDrawable extends Drawable {
   }
 
   @Override
-  public void setBounds(int pLeft, int pTop, int pRight, int pBottom) {
-    aBackground.setBounds(pLeft, pTop, pRight, pBottom);
+  public void setBounds(int left, int top, int right, int bottom) {
+    aBackground.setBounds(left, top, right, bottom);
     aBackground.getCurrent().getPadding(aTmpRect);
-    aForeground.setBounds(pLeft+aTmpRect.left, pTop+aTmpRect.top, pRight-aTmpRect.right, pBottom-aTmpRect.bottom);
-    super.setBounds(pLeft, pTop, pRight, pBottom);
+    aForeground.setBounds(left+aTmpRect.left, top+aTmpRect.top, right-aTmpRect.right, bottom-aTmpRect.bottom);
+    super.setBounds(left, top, right, bottom);
   }
 
   @Override

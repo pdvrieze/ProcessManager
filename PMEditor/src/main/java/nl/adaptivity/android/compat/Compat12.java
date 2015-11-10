@@ -6,8 +6,8 @@ import android.view.MotionEvent;
 @TargetApi(12)
 class Compat12 {
 
-  public static boolean isZoomIn(MotionEvent pEvent) {
-    return pEvent.getAxisValue(MotionEvent.AXIS_VSCROLL)<0f;
+  public static boolean isZoomIn(MotionEvent event) {
+    return event.getAxisValue(MotionEvent.AXIS_VSCROLL)<0f;
     
   }
 

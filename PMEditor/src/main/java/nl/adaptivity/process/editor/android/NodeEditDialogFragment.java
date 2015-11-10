@@ -53,12 +53,12 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   private TextView mLblLabel;
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
   }
 
   @Override
-  public Dialog onCreateDialog(Bundle pSavedInstanceState) {
+  public Dialog onCreateDialog(Bundle savedInstanceState) {
     mPos = getArguments().getInt(NODE_POS,-1);
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     builder.setTitle("Edit node")
@@ -146,7 +146,7 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public void onClick(DialogInterface pDialog, int which) {
+  public void onClick(DialogInterface dialog, int which) {
     if (which==DialogInterface.BUTTON_POSITIVE) {
       if (getActivity() instanceof NodeEditListener) {
         NodeEditListener listener = (NodeEditListener) getActivity();
@@ -164,9 +164,9 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public void onValueChange(NumberPicker pPicker, int pOldVal, int pNewVal) {
-    if (pPicker.getId()==R.id.np_min) {
-      mNpMax.setMinValue(Math.max(1, pNewVal));
+  public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+    if (picker.getId()==R.id.np_min) {
+      mNpMax.setMinValue(Math.max(1, newVal));
       if (mNpMax.getValue()<mNpMax.getMinValue()) {
         mNpMax.setValue(mNpMax.getMinValue());
       }
@@ -174,11 +174,11 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   @Override
-  public void onCheckedChanged(RadioGroup pGroup, int pCheckedId) {
+  public void onCheckedChanged(RadioGroup group, int checkedId) {
     DrawableJoinSplit jsnode = (DrawableJoinSplit) ((NodeEditListener)getActivity()).getNode(mPos);
     int max = jsnode.getMaxPredecessorCount()==1 ? jsnode.getSuccessors().size() :jsnode.getPredecessors().size();
 
-    switch (pCheckedId) {
+    switch (checkedId) {
       case R.id.radioand:
         mNpMin.setValue(max);
         mNpMax.setValue(max);
@@ -195,12 +195,12 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
         mNpMax.setMinValue(1);
         break;
     }
-    setMinMaxEditEnabled(pCheckedId==R.id.radioother);
+    setMinMaxEditEnabled(checkedId==R.id.radioother);
   }
 
   @Override
-  public boolean onEditorAction(TextView pV, int pActionId, KeyEvent pEvent) {
-    if (pActionId==EditorInfo.IME_ACTION_DONE) {
+  public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+    if (actionId==EditorInfo.IME_ACTION_DONE) {
       // TODO make a method of this that both call
       onClick(null, DialogInterface.BUTTON_POSITIVE);
       return true;

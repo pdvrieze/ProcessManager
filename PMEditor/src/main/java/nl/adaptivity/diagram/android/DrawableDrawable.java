@@ -16,9 +16,9 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
   private double aScale;
 
-  public DrawableDrawable(nl.adaptivity.diagram.Drawable pImage, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme) {
-    aTheme = pTheme;
-    aImage = pImage;
+  public DrawableDrawable(nl.adaptivity.diagram.Drawable image, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme) {
+    aTheme = theme;
+    aImage = image;
     DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
     aScale = dm.density*160/96;
   }
@@ -33,9 +33,9 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public void draw(Canvas pCanvas) {
+  public void draw(Canvas canvas) {
     if (aImage!=null) {
-      AndroidCanvas androidCanvas =  new AndroidCanvas(pCanvas, aTheme);
+      AndroidCanvas androidCanvas =  new AndroidCanvas(canvas, aTheme);
       aImage.draw(androidCanvas.scale(aScale), null);
     }
   }
@@ -46,12 +46,12 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public void setAlpha(int pAlpha) {
+  public void setAlpha(int alpha) {
     throw new UnsupportedOperationException("Setting alpha not supported");
   }
 
   @Override
-  public void setColorFilter(ColorFilter pCf) {
+  public void setColorFilter(ColorFilter cf) {
     throw new UnsupportedOperationException("Color filters not supported");
   }
 
@@ -61,10 +61,10 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
-  public boolean setState(int[] pStateSet) {
+  public boolean setState(int[] stateSet) {
     if (aImage!=null) {
       int dState = nl.adaptivity.diagram.Drawable.STATE_DISABLED;
-      for(int state:pStateSet) {
+      for(int state:stateSet) {
         switch (state) {
         case android.R.attr.state_enabled:
           dState &= ~nl.adaptivity.diagram.Drawable.STATE_DISABLED;
@@ -82,10 +82,10 @@ public class DrawableDrawable extends Drawable implements Cloneable {
       }
       boolean result = aImage.getState()!=dState;
       aImage.setState(dState);
-      super.setState(pStateSet);
+      super.setState(stateSet);
       return result;
     }
-    return super.setState(pStateSet);
+    return super.setState(stateSet);
   }
 
   @Override
@@ -104,8 +104,8 @@ public class DrawableDrawable extends Drawable implements Cloneable {
     return aScale;
   }
 
-  public void setScale(double pScale) {
-    aScale = pScale;
+  public void setScale(double scale) {
+    aScale = scale;
   }
 
 }

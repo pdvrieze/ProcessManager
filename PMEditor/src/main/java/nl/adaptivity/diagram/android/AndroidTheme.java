@@ -19,25 +19,25 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
   private final AndroidStrategy aStrategy;
   private SparseArray<SparseArray<AndroidPen>> aPens;
 
-  public AndroidTheme(AndroidStrategy pStrategy){
-    aStrategy = pStrategy;
+  public AndroidTheme(AndroidStrategy strategy){
+    aStrategy = strategy;
     aPens = new SparseArray<>();
   }
 
   @Override
-  public AndroidPen getPen(ThemeItem pItem, int pState) {
-    int itemState = pItem.getEffectiveState(pState);
-    int themeState = overrideState(pItem, pState, itemState);
-    SparseArray<AndroidPen> statePens = aPens.get(pItem.getItemNo());
+  public AndroidPen getPen(ThemeItem item, int state) {
+    int itemState = item.getEffectiveState(state);
+    int themeState = overrideState(item, state, itemState);
+    SparseArray<AndroidPen> statePens = aPens.get(item.getItemNo());
     if (statePens==null) {
       statePens = new SparseArray<>();
-      aPens.append(pItem.getItemNo(), statePens);
+      aPens.append(item.getItemNo(), statePens);
     }
 
     AndroidPen result = statePens.get(themeState);
     if (result==null) {
-      result = pItem.createPen(aStrategy, itemState);
-      result = overrideTheme(result, pItem, themeState);
+      result = item.createPen(aStrategy, itemState);
+      result = overrideTheme(result, item, themeState);
       statePens.append(themeState, result);
     }
 
@@ -46,52 +46,52 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
 
   /**
    * Override the state provided by the themeItem.
-   * @param pItem The item for which to override the state.
-   * @param pState The state present.
-   * @param pItemState The effective state of the item from the item's perspective
+   * @param item The item for which to override the state.
+   * @param state The state present.
+   * @param itemState The effective state of the item from the item's perspective
    * @return
    */
-  private static int overrideState(ThemeItem pItem, int pState, int pItemState) {
-    if (pItem instanceof ProcessThemeItems) {
-      switch ((ProcessThemeItems) pItem) {
+  private static int overrideState(ThemeItem item, int state, int itemState) {
+    if (item instanceof ProcessThemeItems) {
+      switch ((ProcessThemeItems) item) {
         case BACKGROUND:
         case ENDNODEOUTERLINE:
         case LINEBG:
-          return pItemState | (pState & SHADE_STATE_MASK);
+          return itemState | (state & SHADE_STATE_MASK);
         case LINE:
         default:
-          return pItemState;
+          return itemState;
       }
     }
-    return pItemState;
+    return itemState;
   }
 
   /**
    * Add a method that allows the theme from PE-diagram to be overridden for android. The current purpose
    * is to enable blur shadows.
-   * @param pPen The pen to override.
-   * @param pItem The item for which the pen is.
-   * @param pState The state of the item.
+   * @param pen The pen to override.
+   * @param item The item for which the pen is.
+   * @param state The state of the item.
    * @return The overridden pen. Optimally this is actually the same pen passed in.
    */
-  private static AndroidPen overrideTheme(AndroidPen pPen, ThemeItem pItem, int pState) {
-    if (pItem instanceof ProcessThemeItems) {
-      switch ((ProcessThemeItems) pItem) {
+  private static AndroidPen overrideTheme(AndroidPen pen, ThemeItem item, int state) {
+    if (item instanceof ProcessThemeItems) {
+      switch ((ProcessThemeItems) item) {
         case BACKGROUND:
         case ENDNODEOUTERLINE:
         case LINEBG:
           break;
         case LINE:
         default:
-          return pPen;
+          return pen;
       }
-      if ((pState & nl.adaptivity.diagram.Drawable.STATE_TOUCHED)>0) {
-        pPen.setShadowLayer(SHADER_RADIUS, TOUCHED_SHADE_COLOR);
-      } else if ((pState & nl.adaptivity.diagram.Drawable.STATE_SELECTED)>0) {
-        pPen.setShadowLayer(SHADER_RADIUS, SELECTED_SHADE_COLOR);
+      if ((state & nl.adaptivity.diagram.Drawable.STATE_TOUCHED)>0) {
+        pen.setShadowLayer(SHADER_RADIUS, TOUCHED_SHADE_COLOR);
+      } else if ((state & nl.adaptivity.diagram.Drawable.STATE_SELECTED)>0) {
+        pen.setShadowLayer(SHADER_RADIUS, SELECTED_SHADE_COLOR);
       }
     }
-    return pPen;
+    return pen;
   }
 
 }

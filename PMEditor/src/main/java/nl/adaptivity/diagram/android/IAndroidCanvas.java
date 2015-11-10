@@ -5,8 +5,8 @@ import android.graphics.Bitmap;
 
 
 public interface IAndroidCanvas extends nl.adaptivity.diagram.Canvas<AndroidStrategy, AndroidPen, AndroidPath>{
-  IAndroidCanvas scale(double pScale);
+  IAndroidCanvas scale(double scale);
   @Override
-  IAndroidCanvas childCanvas(Rectangle pArea, double pScale);
-  void drawBitmap(double pLeft, double pTop, Bitmap pBitmap, AndroidPen pPen);
+  IAndroidCanvas childCanvas(Rectangle area, double scale);
+  void drawBitmap(double left, double top, Bitmap bitmap, AndroidPen pen);
 }

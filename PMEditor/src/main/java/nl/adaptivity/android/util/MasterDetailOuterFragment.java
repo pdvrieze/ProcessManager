@@ -20,15 +20,15 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   private boolean mTwoPane;
   private MasterListFragment mListFragment;
 
-  public MasterDetailOuterFragment(int pLayoutId, int pListContainerId, int pDetailContainerId) {
-    mLayoutId = pLayoutId;
-    mListContainerId = pListContainerId;
-    mDetailContainerId = pDetailContainerId;
+  public MasterDetailOuterFragment(int layoutId, int listContainerId, int detailContainerId) {
+    mLayoutId = layoutId;
+    mListContainerId = listContainerId;
+    mDetailContainerId = detailContainerId;
   }
 
   @Override
-  public View onCreateView(LayoutInflater pInflater, ViewGroup pContainer, Bundle pSavedInstanceState) {
-    View result = pInflater.inflate(mLayoutId, pContainer, false);
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View result = inflater.inflate(mLayoutId, container, false);
     if (result.findViewById(mListContainerId) != null) {
       mTwoPane = true;
     }
@@ -56,7 +56,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
    * that the item with the given ID was selected.
    */
   @Override
-  public void onItemSelected(int pRow, long pItemId) {
+  public void onItemSelected(int row, long itemId) {
     if (mTwoPane) {
       final ListView listView = mListFragment.getListView();
       {
@@ -65,14 +65,14 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
           listView.setItemChecked(oldCheckedItem, false);
         }
       }
-      if (pItemId>=0) {
-        if (pRow!=AdapterView.INVALID_POSITION) {
-          listView.setItemChecked(pRow, true);
+      if (itemId>=0) {
+        if (row!=AdapterView.INVALID_POSITION) {
+          listView.setItemChecked(row, true);
         }
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.
-        Fragment fragment = createDetailFragment(pRow, pItemId);
+        Fragment fragment = createDetailFragment(row, itemId);
         getChildFragmentManager().beginTransaction()
             .replace(mDetailContainerId, fragment)
             .commit();
@@ -86,18 +86,18 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
       }
 
     } else {
-      if (pItemId>=0) {
+      if (itemId>=0) {
         // In single-pane mode, simply start the detail activity
         // for the selected item ID.
-        Intent detailIntent = getDetailIntent(pRow, pItemId);
+        Intent detailIntent = getDetailIntent(row, itemId);
         startActivity(detailIntent);
       }
     }
   }
 
-  protected abstract Fragment createDetailFragment(int pRow, long pItemId);
+  protected abstract Fragment createDetailFragment(int row, long itemId);
 
-  protected abstract Intent getDetailIntent(int pRow, long pItemId);
+  protected abstract Intent getDetailIntent(int row, long itemId);
 
   protected abstract MasterListFragment createListFragment();
 

@@ -56,42 +56,42 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     private LayoutInflater mInflater;
     private int mSummaryColIdx;
 
-    private TaskCursorAdapter(Context pContext, Cursor pC) {
-      super(pContext, pC, 0);
-      mInflater = LayoutInflater.from(pContext);
-      updateColIdxs(pC);
+    private TaskCursorAdapter(Context context, Cursor c) {
+      super(context, c, 0);
+      mInflater = LayoutInflater.from(context);
+      updateColIdxs(c);
     }
 
-    private void updateColIdxs(Cursor pC) {
-      if (pC==null) {
+    private void updateColIdxs(Cursor c) {
+      if (c==null) {
         mSummaryColIdx = -1;
       } else {
-        mSummaryColIdx = pC.getColumnIndex(Tasks.COLUMN_SUMMARY);
+        mSummaryColIdx = c.getColumnIndex(Tasks.COLUMN_SUMMARY);
       }
     }
 
     @Override
-    public void changeCursor(Cursor pCursor) {
-      super.changeCursor(pCursor);
+    public void changeCursor(Cursor cursor) {
+      super.changeCursor(cursor);
     }
 
     @Override
-    public Cursor swapCursor(Cursor pNewCursor) {
-      final Cursor result = super.swapCursor(pNewCursor);
-      updateColIdxs(pNewCursor);
+    public Cursor swapCursor(Cursor newCursor) {
+      final Cursor result = super.swapCursor(newCursor);
+      updateColIdxs(newCursor);
       return result;
     }
 
     @Override
-    public View newView(Context pContext, Cursor pCursor, ViewGroup pParent) {
-      return mInflater.inflate(R.layout.tasklist_item, pParent, false);
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+      return mInflater.inflate(R.layout.tasklist_item, parent, false);
     }
 
     @Override
-    public void bindView(View pView, Context pContext, Cursor pCursor) {
-      TextView tvSummary = (TextView) pView.findViewById(R.id.model_name);
-      if (pCursor!=null && mSummaryColIdx>=0) {
-        final String summary = pCursor.getString(mSummaryColIdx);
+    public void bindView(View view, Context context, Cursor cursor) {
+      TextView tvSummary = (TextView) view.findViewById(R.id.model_name);
+      if (cursor!=null && mSummaryColIdx>=0) {
+        final String summary = cursor.getString(mSummaryColIdx);
         tvSummary.setText(summary!=null ? summary : "<Unnamed>");
       } else {
         tvSummary.setText("<Unnamed>");
@@ -161,37 +161,37 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
 
   @Override
-  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-    pInflater.inflate(R.menu.tasklist_menu, pMenu);
-    super.onCreateOptionsMenu(pMenu, pInflater);
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.tasklist_menu, menu);
+    super.onCreateOptionsMenu(menu, inflater);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem pItem) {
-    switch (pItem.getItemId()) {
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
       case R.id.ac_sync: {
         MainActivity.requestSyncTaskList(getActivity(), true);
         return true;
       }
     }
-    return super.onOptionsItemSelected(pItem);
+    return super.onOptionsItemSelected(item);
   }
 
   @Override
-  public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
+  public Loader<Cursor> onCreateLoader(int id, Bundle args) {
     return new CursorLoader(getActivity(), TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY}, Tasks.COLUMN_STATE+"!='Complete'", null, null);
   }
 
   @Override
-  public void onLoadFinished(Loader<Cursor> pLoader, Cursor pData) {
+  public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-    if (pData!=null) {
-      mAdapter.changeCursor(pData);
+    if (data!=null) {
+      mAdapter.changeCursor(data);
     }
   }
 
   @Override
-  public void onLoaderReset(Loader<Cursor> pLoader) {
+  public void onLoaderReset(Loader<Cursor> loader) {
     mAdapter.changeCursor(null);
   }
 }

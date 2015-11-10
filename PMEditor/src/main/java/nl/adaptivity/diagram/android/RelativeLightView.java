@@ -21,9 +21,9 @@ public class RelativeLightView implements LightView {
 
   private final LightView aView;
 
-  public RelativeLightView(LightView pView, int pRelativePos) {
-    aView = pView;
-    aRelativePos = pRelativePos;
+  public RelativeLightView(LightView view, int relativePos) {
+    aView = view;
+    aRelativePos = relativePos;
   }
 
   public int getRelativePos() {
@@ -31,8 +31,8 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setFocussed(boolean pFocussed) {
-    aView.setFocussed(pFocussed);
+  public void setFocussed(boolean focussed) {
+    aView.setFocussed(focussed);
   }
 
   @Override
@@ -41,8 +41,8 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setSelected(boolean pSelected) {
-    aView.setSelected(pSelected);
+  public void setSelected(boolean selected) {
+    aView.setSelected(selected);
   }
 
   @Override
@@ -51,8 +51,8 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setTouched(boolean pB) {
-    aView.setTouched(pB);
+  public void setTouched(boolean b) {
+    aView.setTouched(b);
   }
 
   @Override
@@ -61,8 +61,8 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void setActive(boolean pActive) {
-    aView.setActive(pActive);
+  public void setActive(boolean active) {
+    aView.setActive(active);
   }
 
   @Override
@@ -71,23 +71,23 @@ public class RelativeLightView implements LightView {
   }
 
   @Override
-  public void getBounds(RectF pTarget) {
-    aView.getBounds(pTarget);
+  public void getBounds(RectF target) {
+    aView.getBounds(target);
   }
 
   @Override
-  public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
-    aView.draw(pCanvas, pTheme, pScale);
+  public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+    aView.draw(canvas, theme, scale);
   }
 
   @Override
-  public void move(float pX, float pY) {
-    aView.move(pX, pY);
+  public void move(float x, float y) {
+    aView.move(x, y);
   }
 
   @Override
-  public void setPos(float pLeft, float pTop) {
-    aView.setPos(pLeft, pTop);
+  public void setPos(float left, float top) {
+    aView.setPos(left, top);
   }
 
 }

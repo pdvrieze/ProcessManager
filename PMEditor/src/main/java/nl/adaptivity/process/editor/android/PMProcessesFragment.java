@@ -1,22 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-
-import nl.adaptivity.android.compat.Compat;
-import nl.adaptivity.android.graphics.AndroidTextMeasurer;
-import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.svg.SVGCanvas;
-
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlSerializer;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
@@ -32,6 +15,16 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
+import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.android.graphics.AndroidTextMeasurer;
+import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.svg.SVGCanvas;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.*;
 
 
 public class PMProcessesFragment extends Fragment {
@@ -56,16 +49,16 @@ public class PMProcessesFragment extends Fragment {
     private String mMimeType;
     private int mRequestCode;
 
-    public FileStoreListener(String pMimeType, int pRequestCode) {
-      mMimeType = pMimeType;
-      mRequestCode = pRequestCode;
+    public FileStoreListener(String mimeType, int requestCode) {
+      mMimeType = mimeType;
+      mRequestCode = requestCode;
     }
 
-    void afterSave(File pResult) {
-      mTmpFile = pResult;
+    void afterSave(File result) {
+      mTmpFile = result;
       Intent shareIntent = new Intent(Intent.ACTION_SEND);
       shareIntent.setType(mMimeType);
-      shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(pResult));
+      shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(result));
       startActivityForResult(shareIntent, mRequestCode);
     }
 
@@ -82,14 +75,14 @@ public class PMProcessesFragment extends Fragment {
       this(type, postSave, null);
     }
 
-    public FileStoreTask(int type, FileStoreListener postSave, File pFile) {
+    public FileStoreTask(int type, FileStoreListener postSave, File file) {
       mType = type;
       mPostSave = postSave;
-      mFile = pFile;
+      mFile = file;
     }
 
     @Override
-    protected File doInBackground(ClientProcessModel<?>... pParams) {
+    protected File doInBackground(ClientProcessModel<?>... params) {
       if (mFile == null) {
         try {
           mFile = File.createTempFile("tmp_", ".pm", getActivity().getExternalCacheDir());
@@ -101,9 +94,9 @@ public class PMProcessesFragment extends Fragment {
         FileOutputStream out = new FileOutputStream(mFile);
         try {
           if (mType==TYPE_SVG) {
-            doExportSVG(out, DrawableProcessModel.get(pParams[0]));
+            doExportSVG(out, DrawableProcessModel.get(params[0]));
           } else {
-            doSaveFile(out, pParams[0]);
+            doSaveFile(out, params[0]);
           }
         } finally {
           out.close();
@@ -114,12 +107,12 @@ public class PMProcessesFragment extends Fragment {
       return mFile;
     }
     @Override
-    protected void onPostExecute(File pResult) {
-      mPostSave.afterSave(pResult);
+    protected void onPostExecute(File result) {
+      mPostSave.afterSave(result);
     }
 
     @Override
-    protected void onCancelled(File pResult) {
+    protected void onCancelled(File result) {
       if (mFile!=null) {
         mFile.delete();
       }
@@ -135,14 +128,14 @@ public class PMProcessesFragment extends Fragment {
   private PMProvider mProvider;
 
   @Override
-  public void onCreate(Bundle pSavedInstanceState) {
-    super.onCreate(pSavedInstanceState);
-    if (pSavedInstanceState!=null) {
-      final PMParcelable parcelable = pSavedInstanceState.<PMParcelable>getParcelable(KEY_PROCESSMODEL);
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    if (savedInstanceState!=null) {
+      final PMParcelable parcelable = savedInstanceState.<PMParcelable>getParcelable(KEY_PROCESSMODEL);
       mProcessModel = parcelable==null ? null : parcelable.getProcessModel();
-      String s = pSavedInstanceState.getString(KEY_FILE);
+      String s = savedInstanceState.getString(KEY_FILE);
       mTmpFile = s==null ? null : new File(s);
-      mMenu = pSavedInstanceState.getBoolean(ARG_MENU, true);
+      mMenu = savedInstanceState.getBoolean(ARG_MENU, true);
     } else if (getArguments()!=null){
       mMenu = getArguments().getBoolean(ARG_MENU, true);
     } else {
@@ -156,15 +149,15 @@ public class PMProcessesFragment extends Fragment {
 
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
     Fragment parent = getParentFragment();
     if (this instanceof PMProvider) {
       mProvider = (PMProvider) this;
     } else if (parent!=null && (parent instanceof PMProvider)) {
       mProvider = (PMProvider) parent;
-    } else if (pActivity instanceof PMProvider){
-      mProvider = (PMProvider) pActivity;
+    } else if (activity instanceof PMProvider){
+      mProvider = (PMProvider) activity;
     }
     if (mMenu) {
       setHasOptionsMenu(mProvider!=null);
@@ -184,9 +177,9 @@ public class PMProcessesFragment extends Fragment {
 
 
 
-  public void doShareFile(ClientProcessModel<?> pProcessModel) {
+  public void doShareFile(ClientProcessModel<?> processModel) {
     FileStoreTask task = new FileStoreTask(TYPE_FILE,new FileStoreListener("*/*", REQUEST_SHARE_FILE));
-    task.execute(pProcessModel);
+    task.execute(processModel);
   }
 
   public void doSaveFile(ClientProcessModel<?> processModel) {
@@ -194,13 +187,13 @@ public class PMProcessesFragment extends Fragment {
     requestSaveFile("*/*", REQUEST_SAVE_FILE);
   }
 
-  private OutputStream getOutputStreamFromSave(Intent pData) throws FileNotFoundException {
-    return getActivity().getContentResolver().openOutputStream(pData.getData());
+  private OutputStream getOutputStreamFromSave(Intent data) throws FileNotFoundException {
+    return getActivity().getContentResolver().openOutputStream(data.getData());
   }
 
-  public void doSaveFile(Intent pData, ClientProcessModel<?> processModel) {
+  public void doSaveFile(Intent data, ClientProcessModel<?> processModel) {
     try {
-      OutputStream out = getOutputStreamFromSave(pData);
+      OutputStream out = getOutputStreamFromSave(data);
       try {
         doSaveFile(out, processModel);
       } finally {
@@ -227,9 +220,9 @@ public class PMProcessesFragment extends Fragment {
     }
   }
 
-  public void doShareSVG(ClientProcessModel<?> pProcessModel) {
+  public void doShareSVG(ClientProcessModel<?> processModel) {
     FileStoreTask task = new FileStoreTask(TYPE_SVG,new FileStoreListener("image/svg", REQUEST_SHARE_SVG));
-    task.execute(pProcessModel);
+    task.execute(processModel);
   }
 
   public void doExportSVG(ClientProcessModel<?> processModel) {
@@ -237,9 +230,9 @@ public class PMProcessesFragment extends Fragment {
     requestSaveFile("image/svg", REQUEST_EXPORT_SVG);
   }
 
-  public void doExportSVG(Intent pData, DrawableProcessModel processModel) {
+  public void doExportSVG(Intent data, DrawableProcessModel processModel) {
     try {
-      OutputStream out = getOutputStreamFromSave(pData);
+      OutputStream out = getOutputStreamFromSave(data);
       try {
         doExportSVG(out, processModel);
       } finally {
@@ -306,8 +299,8 @@ public class PMProcessesFragment extends Fragment {
     }
   }
 
-  private boolean supportsIntent(Intent pIntent) {
-    return ! getActivity().getPackageManager().queryIntentActivities(pIntent, 0).isEmpty();
+  private boolean supportsIntent(Intent intent) {
+    return ! getActivity().getPackageManager().queryIntentActivities(intent, 0).isEmpty();
   }
 
   @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -326,15 +319,15 @@ public class PMProcessesFragment extends Fragment {
   }
 
   @Override
-  public void onActivityResult(int pRequestCode, int pResultCode, Intent pData) {
-    if (pRequestCode==REQUEST_SHARE_FILE ||pRequestCode==REQUEST_SHARE_SVG) {
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode==REQUEST_SHARE_FILE ||requestCode==REQUEST_SHARE_SVG) {
       mTmpFile.delete();
     }
-    if (pResultCode==Activity.RESULT_OK) {
-      if (pRequestCode==REQUEST_SAVE_FILE) {
-        doSaveFile(pData, mProcessModel);
-      } else if (pRequestCode == REQUEST_EXPORT_SVG) {
-        doExportSVG(pData, DrawableProcessModel.get(mProcessModel));
+    if (resultCode==Activity.RESULT_OK) {
+      if (requestCode==REQUEST_SAVE_FILE) {
+        doSaveFile(data, mProcessModel);
+      } else if (requestCode == REQUEST_EXPORT_SVG) {
+        doExportSVG(data, DrawableProcessModel.get(mProcessModel));
       }
     }
   }
@@ -342,19 +335,19 @@ public class PMProcessesFragment extends Fragment {
 
 
   @Override
-  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-    pInflater.inflate(R.menu.pm_menu, pMenu);
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.pm_menu, menu);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem pItem) {
+  public boolean onOptionsItemSelected(MenuItem item) {
     ClientProcessModel<?> pm = null;
-    if ((pItem.getItemId()==R.id.ac_export||pItem.getItemId()==R.id.ac_export_svg||pItem.getItemId()==R.id.ac_share_pm||pItem.getItemId()==R.id.ac_share_pm_svg)&&
+    if ((item.getItemId()==R.id.ac_export||item.getItemId()==R.id.ac_export_svg||item.getItemId()==R.id.ac_share_pm||item.getItemId()==R.id.ac_share_pm_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
       Toast.makeText(getActivity(), "No process model available", Toast.LENGTH_LONG).show();
       return true;
     }
-    switch (pItem.getItemId()) {
+    switch (item.getItemId()) {
       case R.id.ac_export:
         doSaveFile(pm);
         return true;
@@ -368,14 +361,14 @@ public class PMProcessesFragment extends Fragment {
         doShareSVG(pm);
         return true;
       default:
-        return super.onOptionsItemSelected(pItem);
+        return super.onOptionsItemSelected(item);
     }
   }
 
   @Override
-  public void onSaveInstanceState(Bundle pOutState) {
-    if (mProcessModel!=null) pOutState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mProcessModel));
-    if (mTmpFile!=null)  pOutState.putString(KEY_FILE, mTmpFile.toString());
+  public void onSaveInstanceState(Bundle outState) {
+    if (mProcessModel!=null) outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mProcessModel));
+    if (mTmpFile!=null)  outState.putString(KEY_FILE, mTmpFile.toString());
   }
 
 }

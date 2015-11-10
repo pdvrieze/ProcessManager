@@ -15,27 +15,27 @@ public abstract class LabeledItem extends TaskItem {
   private String aValue;
   private boolean aDirty = false;
 
-  public LabeledItem(String pName, String pLabel, String pValue) {
-    super(pName);
-    aValue = pValue;
-    setLabel(pLabel);
+  public LabeledItem(String name, String label, String value) {
+    super(name);
+    aValue = value;
+    setLabel(label);
   }
 
   public String getLabel() {
     return aLabel;
   }
 
-  public void setLabel(String pLabel) {
-    aLabel = pLabel;
+  public void setLabel(String label) {
+    aLabel = label;
   }
 
-  public void setValue(String pValue) {
+  public void setValue(String value) {
     if (aValue==null) {
-      if (pValue!=null) { aDirty = true; }
-    } else if (! aValue.equals(pValue)) {
+      if (value!=null) { aDirty = true; }
+    } else if (! aValue.equals(value)) {
       aDirty = true;
     }
-    aValue = pValue;
+    aValue = value;
   }
 
   public final String getValue() {
@@ -52,18 +52,18 @@ public abstract class LabeledItem extends TaskItem {
   }
 
   @Override
-  public View createView(LayoutInflater pInflater, ViewGroup pParent) {
-    View view = pInflater.inflate(R.layout.taskitem_labeled, pParent, false);
+  public View createView(LayoutInflater inflater, ViewGroup parent) {
+    View view = inflater.inflate(R.layout.taskitem_labeled, parent, false);
     TextView labelView = (TextView) view.findViewById(R.id.taskitem_labeled_label);
     labelView.setText(aLabel);
     FrameLayout detailContainer = (FrameLayout) view.findViewById(R.id.taskitem_labeled_detail);
-    View detail = createDetailView(pInflater, detailContainer);
+    View detail = createDetailView(inflater, detailContainer);
     detailContainer.removeAllViews();
     detailContainer.addView(detail);
     return view;
   }
 
-  protected abstract View createDetailView(LayoutInflater pInflater, FrameLayout pParent);
+  protected abstract View createDetailView(LayoutInflater inflater, FrameLayout parent);
 
   @Override
   public void updateView(View view) {
@@ -74,6 +74,6 @@ public abstract class LabeledItem extends TaskItem {
     updateDetailView(detail);
   }
 
-  protected abstract void updateDetailView(View pDetail);
+  protected abstract void updateDetailView(View detail);
 
 }

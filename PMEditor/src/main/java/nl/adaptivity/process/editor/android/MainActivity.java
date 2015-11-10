@@ -64,8 +64,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     };
 
     @Override
-    public TitleFragment getItem(int pPosition) {
-      return mItems[pPosition];
+    public TitleFragment getItem(int position) {
+      return mItems[position];
     }
 
     @Override
@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
     @Override
-    public long getItemId(int pPosition) {
-      return pPosition;
+    public long getItemId(int position) {
+      return position;
     }
 
     @Override
@@ -84,15 +84,15 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
     @Override
-    public View getView(int pPosition, View pConvertView, ViewGroup pParent) {
+    public View getView(int position, View convertView, ViewGroup parent) {
       final TextView result;
-      if (pConvertView==null) {
-        if (mInflater == null) { mInflater = LayoutInflater.from(pParent.getContext()); }
-        result = (TextView) mInflater.inflate(R.layout.drawer_list_item, pParent, false);
+      if (convertView==null) {
+        if (mInflater == null) { mInflater = LayoutInflater.from(parent.getContext()); }
+        result = (TextView) mInflater.inflate(R.layout.drawer_list_item, parent, false);
       } else {
-        result = (TextView) pConvertView;
+        result = (TextView) convertView;
       }
-      result.setText(getItem(pPosition).getTitle(pParent.getContext()));
+      result.setText(getItem(position).getTitle(parent.getContext()));
       return result;
     }
 
@@ -104,23 +104,23 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     private Context mContext;
     private String mAuthority;
 
-    public SyncTask(Context pContext, String pAuthority, boolean pExpedited) {
-      mContext = pContext;
-      mAuthority = pAuthority;
-      mExpedited = pExpedited;
+    public SyncTask(Context context, String authority, boolean expedited) {
+      mContext = context;
+      mAuthority = authority;
+      mExpedited = expedited;
     }
 
     @Override
-    protected Account doInBackground(String... pParams) {
-      Account account = AuthenticatedWebClient.ensureAccount(mContext, pParams[0]);
+    protected Account doInBackground(String... params) {
+      Account account = AuthenticatedWebClient.ensureAccount(mContext, params[0]);
       ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
       AccountManager accountManager = AccountManager.get(mContext);
       AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
 
         @Override
-        public void run(AccountManagerFuture<Bundle> pFuture) {
+        public void run(AccountManagerFuture<Bundle> future) {
           try {
-            pFuture.getResult();
+            future.getResult();
           } catch (OperationCanceledException | AuthenticatorException | IOException e) {
             Log.e(TAG, "Failure to get auth token", e);
           }
@@ -214,13 +214,13 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
       AsyncTask<String, Void, Account> task = new AsyncTask<String, Void, Account> () {
 
         @Override
-        protected Account doInBackground(String... pParams) {
-          return AuthenticatedWebClient.ensureAccount(MainActivity.this, pParams[0]);
+        protected Account doInBackground(String... params) {
+          return AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0]);
         }
 
         @Override
-        protected void onPostExecute(Account pResult) {
-          mAccount = pResult;
+        protected void onPostExecute(Account result) {
+          mAccount = result;
           for(String authority: mPendingSyncs) {
             requestSync(mAccount, authority, true);
           }
@@ -279,119 +279,119 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
   // Handles the drawer click
   @Override
-  public void onItemClick(AdapterView<?> pParent, View pView, int pPosition, long pId) {
+  public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //    int oldPos = mDrawerList.getCheckedItemPosition();
 //    if (oldPos!=ListView.INVALID_POSITION) {
 //      mDrawerList.setItemChecked(oldPos, false);
 //    }
 
     // TODO, ignore staying on same item
-    showDrawerItem(pPosition);
+    showDrawerItem(position);
     mDrawerLayout.closeDrawer(mDrawerList);
   }
 
   @Override
-  public void onInstantiateModel(long pModelId, String pSuggestedName) {
-    mModelIdToInstantiate = pModelId;
-    GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, pSuggestedName);
+  public void onInstantiateModel(long modelId, String suggestedName) {
+    mModelIdToInstantiate = modelId;
+    GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, suggestedName);
   }
 
   @Override
-  public void onProcessModelSelected(long pProcessModelId) {
+  public void onProcessModelSelected(long processModelId) {
     for(int i=0; i<mDrawerAdapter.getCount();++i) {
       if (mDrawerAdapter.getItem(i) instanceof ProcessModelListOuterFragment) {
         showDrawerItem(i);
         ProcessModelListOuterFragment fragment = (ProcessModelListOuterFragment) mDrawerAdapter.getItem(i);
-        fragment.onProcessModelSelected(pProcessModelId);
+        fragment.onProcessModelSelected(processModelId);
         break;
       }
     }
   }
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pName) {
+  public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String name) {
     try {
-      ProcessModelProvider.instantiate(this, mModelIdToInstantiate, pName);
+      ProcessModelProvider.instantiate(this, mModelIdToInstantiate, name);
     } catch (RemoteException e) {
       Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
     }
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
+  public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
     mModelIdToInstantiate=-1L;
   }
 
-  protected void showDrawerItem(int pPosition) {
-    TitleFragment newFragment = mDrawerAdapter.getItem(pPosition);
+  protected void showDrawerItem(int position) {
+    TitleFragment newFragment = mDrawerAdapter.getItem(position);
     getSupportFragmentManager()
         .beginTransaction()
         .replace(R.id.fragment_main_content, newFragment)
         .commit();
-    mDrawerList.setItemChecked(pPosition, true);
+    mDrawerList.setItemChecked(position, true);
   }
 
   @Override
-  public void requestSyncTaskList(boolean pExpedited) {
-    requestSync(TaskProvider.AUTHORITY, pExpedited);
+  public void requestSyncTaskList(boolean expedited) {
+    requestSync(TaskProvider.AUTHORITY, expedited);
   }
 
   @Override
-  public void requestSyncProcessModelList(boolean pExpedited) {
-    requestSync(ProcessModelProvider.AUTHORITY, pExpedited);
+  public void requestSyncProcessModelList(boolean expedited) {
+    requestSync(ProcessModelProvider.AUTHORITY, expedited);
   }
 
-  public void requestSync(final String authority, boolean pExpedited) {
+  public void requestSync(final String authority, boolean expedited) {
     if (mAccount!=null) {
-      requestSync(mAccount, authority, pExpedited);
-    } else if (pExpedited){
+      requestSync(mAccount, authority, expedited);
+    } else if (expedited){
       mPendingSyncs.add(authority);
     }
   }
 
-  public static void requestSyncProcessModelList(Account account, boolean pExpedited) {
-    requestSync(account, ProcessModelProvider.AUTHORITY, pExpedited);
+  public static void requestSyncProcessModelList(Account account, boolean expedited) {
+    requestSync(account, ProcessModelProvider.AUTHORITY, expedited);
   }
 
-  public static void requestSyncTaskList(Account account, boolean pExpedited) {
-    requestSync(account, TaskProvider.AUTHORITY, pExpedited);
+  public static void requestSyncTaskList(Account account, boolean expedited) {
+    requestSync(account, TaskProvider.AUTHORITY, expedited);
   }
 
-  private static void requestSync(Account account, final String authority, boolean pExpedited) {
+  private static void requestSync(Account account, final String authority, boolean expedited) {
     if (account!=null) {
       Bundle extras = new Bundle(1);
       extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-      extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, pExpedited);
+      extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, expedited);
       ContentResolver.requestSync(account, authority, extras );
     }
   }
 
-  public static void requestSyncProcessModelList(Context pContext, boolean pExpedited) {
-    requestSync(pContext, ProcessModelProvider.AUTHORITY, pExpedited);
+  public static void requestSyncProcessModelList(Context context, boolean expedited) {
+    requestSync(context, ProcessModelProvider.AUTHORITY, expedited);
   }
 
-  public static void requestSyncTaskList(Context pContext, boolean pExpedited) {
-    requestSync(pContext, TaskProvider.AUTHORITY, pExpedited);
+  public static void requestSyncTaskList(Context context, boolean expedited) {
+    requestSync(context, TaskProvider.AUTHORITY, expedited);
   }
 
-  private static void requestSync(Context pContext, final String pAuthority, boolean pExpedited) {
-    if (pContext instanceof MainActivity) {
-      ((MainActivity) pContext).requestSync(pAuthority, pExpedited);
+  private static void requestSync(Context context, final String authority, boolean expedited) {
+    if (context instanceof MainActivity) {
+      ((MainActivity) context).requestSync(authority, expedited);
     }
-    String authbase = getAuthBase(pContext);
+    String authbase = getAuthBase(context);
     if (authbase!=null) {
-      (new SyncTask(pContext, pAuthority, pExpedited)).execute(authbase);
+      (new SyncTask(context, authority, expedited)).execute(authbase);
     }
   }
 
-  private static String getSyncSource(Context pContext) {
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(pContext);
+  private static String getSyncSource(Context context) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
     return source;
   }
 
-  private static String getAuthBase(Context pContext) {
-    final String source = getSyncSource(pContext);
+  private static String getAuthBase(Context context) {
+    final String source = getSyncSource(context);
     return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
   }
 

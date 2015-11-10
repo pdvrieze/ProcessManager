@@ -17,30 +17,30 @@ public interface DiagramAdapter<T extends LightView, V> {
 
   int getCount();
 
-  V getItem(int pPosition);
+  V getItem(int position);
 
-  T getView(int pPosition);
+  T getView(int position);
 
-  List<? extends RelativeLightView> getRelativeDecorations(int pPosition, double pScale, boolean pSelected);
+  List<? extends RelativeLightView> getRelativeDecorations(int position, double scale, boolean selected);
 
   LightView getBackground();
 
   LightView getOverlay();
 
-  void getBounds(RectF pDiagramBounds);
+  void getBounds(RectF diagramBounds);
 
   Theme<AndroidStrategy, AndroidPen, AndroidPath> getTheme();
 
-  void onDecorationClick(DiagramView pView, int pPosition, LightView pDecoration);
+  void onDecorationClick(DiagramView view, int position, LightView decoration);
 
-  void onDecorationMove(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY);
+  void onDecorationMove(DiagramView view, int position, RelativeLightView decoration, float x, float y);
 
-  void onDecorationUp(DiagramView pView, int pPosition, RelativeLightView pDecoration, float pX, float pY);
+  void onDecorationUp(DiagramView view, int position, RelativeLightView decoration, float x, float y);
 
   /** Called by a view to allow it to handle an event before any listeners.
    * @return <code>true</code> to stop propagation. <code>false</code> for unhandled events.
    */
-  boolean onNodeClickOverride(DiagramView pDiagramView, int pTouchedElement, MotionEvent pE);
+  boolean onNodeClickOverride(DiagramView diagramView, int touchedElement, MotionEvent e);
 
   double getGravityX(int pos);
 

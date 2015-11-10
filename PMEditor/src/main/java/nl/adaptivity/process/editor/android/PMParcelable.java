@@ -19,30 +19,30 @@ public class PMParcelable implements Parcelable {
   public static final Parcelable.Creator<PMParcelable> CREATOR = new Creator<PMParcelable>() {
 
     @Override
-    public PMParcelable[] newArray(int pSize) {
-      return new PMParcelable[pSize];
+    public PMParcelable[] newArray(int size) {
+      return new PMParcelable[size];
     }
 
     @Override
-    public PMParcelable createFromParcel(Parcel pSource) {
-      return new PMParcelable(pSource);
+    public PMParcelable createFromParcel(Parcel source) {
+      return new PMParcelable(source);
     }
   };
   private ClientProcessModel<?> mProcessModel;
 
-  public PMParcelable(Parcel pSource) {
-    this(PMParser.parseProcessModel(readInputStream(pSource), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
+  public PMParcelable(Parcel source) {
+    this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
-  public PMParcelable(ClientProcessModel<?> pProcessModel) {
-    mProcessModel = pProcessModel;
+  public PMParcelable(ClientProcessModel<?> processModel) {
+    mProcessModel = processModel;
   }
 
-  private static InputStream readInputStream(Parcel pSource) {
-    int len = pSource.readInt();
+  private static InputStream readInputStream(Parcel source) {
+    int len = source.readInt();
     if (len>0) {
       byte buf[] = new byte[len];
-      pSource.readByteArray(buf);
+      source.readByteArray(buf);
       return new ByteArrayInputStream(buf);
     } else {
       return null;
@@ -55,21 +55,21 @@ public class PMParcelable implements Parcelable {
   }
 
   @Override
-  public void writeToParcel(Parcel pDest, int pFlags) {
+  public void writeToParcel(Parcel dest, int flags) {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     try {
       if (mProcessModel!=null) {
         PMParser.serializeProcessModel(out, mProcessModel);
       } else {
-        pDest.writeInt(0);
+        dest.writeInt(0);
       }
     } catch (XmlPullParserException | IOException e) {
-      pDest.writeInt(0);
+      dest.writeInt(0);
       throw new RuntimeException(e);
     }
-    pDest.writeInt(out.size());
+    dest.writeInt(out.size());
     if (out.size()>0) {
-      pDest.writeByteArray(out.toByteArray());
+      dest.writeByteArray(out.toByteArray());
     }
   }
 

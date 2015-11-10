@@ -21,8 +21,8 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setFocussed(boolean pFocussed) {
-    setState(Drawable.STATE_FOCUSSED, pFocussed);
+  public void setFocussed(boolean focussed) {
+    setState(Drawable.STATE_FOCUSSED, focussed);
     aState |= Drawable.STATE_FOCUSSED;
   }
 
@@ -36,8 +36,8 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setSelected(boolean pSelected) {
-    setState(Drawable.STATE_SELECTED, pSelected);
+  public void setSelected(boolean selected) {
+    setState(Drawable.STATE_SELECTED, selected);
     aState |= Drawable.STATE_SELECTED;
   }
 
@@ -47,8 +47,8 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setTouched(boolean pTouched) {
-    setState(Drawable.STATE_TOUCHED, pTouched);
+  public void setTouched(boolean touched) {
+    setState(Drawable.STATE_TOUCHED, touched);
     aState |= Drawable.STATE_TOUCHED;
   }
 
@@ -58,8 +58,8 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setActive(boolean pActive) {
-    setState(Drawable.STATE_ACTIVE, pActive);
+  public void setActive(boolean active) {
+    setState(Drawable.STATE_ACTIVE, active);
     aState |= Drawable.STATE_ACTIVE;
   }
 

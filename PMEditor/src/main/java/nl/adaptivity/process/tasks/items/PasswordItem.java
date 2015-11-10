@@ -12,8 +12,8 @@ public class PasswordItem extends TextLabeledItem {
 
   private String mValue;
 
-  public PasswordItem(String pName, String pLabel, String pValue) {
-    super(pName, pLabel, pValue);
+  public PasswordItem(String name, String label, String value) {
+    super(name, label, value);
   }
 
   @Override
@@ -22,15 +22,15 @@ public class PasswordItem extends TextLabeledItem {
   }
 
   @Override
-  protected View createDetailView(LayoutInflater pInflater, FrameLayout pParent) {
-    View view = pInflater.inflate(R.layout.taskitem_detail_password, pParent, false);
+  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
+    View view = inflater.inflate(R.layout.taskitem_detail_password, parent, false);
     updateDetailView(view);
     return view;
   }
 
   @Override
-  protected void updateDetailView(View pDetail) {
-    TextView textview = (TextView) pDetail;
+  protected void updateDetailView(View detail) {
+    TextView textview = (TextView) detail;
     textview.setText(mValue);
     Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {

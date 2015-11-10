@@ -9,14 +9,14 @@ public final class AndroidPath implements DiagramPath<AndroidPath> {
   private Path aPath = new Path();
 
   @Override
-  public AndroidPath moveTo(double pX, double pY) {
-    aPath.moveTo((float)pX, (float) pY);
+  public AndroidPath moveTo(double x, double y) {
+    aPath.moveTo((float)x, (float) y);
     return this;
   }
 
   @Override
-  public AndroidPath lineTo(double pX, double pY) {
-    aPath.lineTo((float)pX, (float) pY);
+  public AndroidPath lineTo(double x, double y) {
+    aPath.lineTo((float)x, (float) y);
     return this;
   }
 

@@ -1,25 +1,19 @@
 package nl.adaptivity.sync;
 
 
-import java.io.IOException;
-import java.util.List;
-
+import android.accounts.Account;
+import android.content.*;
+import android.os.Bundle;
+import android.os.RemoteException;
+import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.accounts.Account;
-import android.content.AbstractThreadedSyncAdapter;
-import android.content.ContentProviderClient;
-import android.content.Context;
-import android.content.OperationApplicationException;
-import android.content.SyncResult;
-import android.os.Bundle;
-import android.os.RemoteException;
-import android.util.Log;
+import java.io.IOException;
+import java.util.List;
 
 public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter implements RemoteXmlSyncAdapterDelegate.DelegatingResources {
 
@@ -27,19 +21,19 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
     UPDATE_LIST_FROM_SERVER {
 
       @Override
-      public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, XmlPullParserException, IOException, OperationApplicationException {
-        pDelegate.updateListFromServer(pDelegator, pProvider, pSyncResult);
+      public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlPullParserException, IOException, OperationApplicationException {
+        delegate.updateListFromServer(delegator, provider, syncResult);
       }},
 
     UPDATE_ITEM_DETAILS_FROM_SERVER {
 
       @Override
-      public void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult)
+      public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult)
           throws XmlPullParserException, IOException, RemoteException, OperationApplicationException {
-        pDelegate.updateItemDetails(pDelegator, pProvider, pSyncResult);
+        delegate.updateItemDetails(delegator, provider, syncResult);
       }};
 
-    public abstract void execute(DelegatingResources pDelegator, ISyncAdapterDelegate pDelegate, ContentProviderClient pProvider, SyncResult pSyncResult) throws XmlPullParserException, IOException, RemoteException, OperationApplicationException;
+    public abstract void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws XmlPullParserException, IOException, RemoteException, OperationApplicationException;
   }
 
   private static final String TAG = DelegatingRemoteXmlSyncAdapter.class.getSimpleName();
@@ -48,42 +42,42 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
   private AuthenticatedWebClient mHttpClient;
   private List<? extends ISyncAdapterDelegate> mDelegates;
 
-  public DelegatingRemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, List<? extends ISyncAdapterDelegate> pDelegates) {
-    super(pContext, pAutoInitialize);
-    mDelegates = pDelegates;
+  public DelegatingRemoteXmlSyncAdapter(Context context, boolean autoInitialize, List<? extends ISyncAdapterDelegate> delegates) {
+    super(context, autoInitialize);
+    mDelegates = delegates;
   }
 
-  public DelegatingRemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, boolean pAllowParallelSyncs, List<? extends ISyncAdapterDelegate> pDelegates) {
-    super(pContext, pAutoInitialize, pAllowParallelSyncs);
-    mDelegates = pDelegates;
+  public DelegatingRemoteXmlSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs, List<? extends ISyncAdapterDelegate> delegates) {
+    super(context, autoInitialize, allowParallelSyncs);
+    mDelegates = delegates;
   }
 
-  protected void setDelegates(List<? extends ISyncAdapterDelegate> pDelegates) {
-    mDelegates = pDelegates;
+  protected void setDelegates(List<? extends ISyncAdapterDelegate> delegates) {
+    mDelegates = delegates;
   }
 
   @Override
-  public final void onPerformSync(Account pAccount, Bundle pExtras, String pAuthority, ContentProviderClient pProvider, SyncResult pSyncResult) {
+  public final void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
     String mBase = getSyncSource();
     if (! mBase.endsWith("/")) {
       mBase = mBase +'/'; }
 
     {
       String authbase = AuthenticatedWebClient.getAuthBase(mBase);
-      mHttpClient = new AuthenticatedWebClient(getContext(), pAccount, authbase);
+      mHttpClient = new AuthenticatedWebClient(getContext(), account, authbase);
     }
     for(ISyncAdapterDelegate delegate: mDelegates) {
       for(Phases phase:Phases.values()) {
         try {
-          phase.execute(this, delegate, pProvider, pSyncResult);
+          phase.execute(this, delegate, provider, syncResult);
         } catch (IllegalStateException|XmlPullParserException e) {
-          pSyncResult.stats.numParseExceptions++;
+          syncResult.stats.numParseExceptions++;
           Log.e(TAG, "Error parsing list", e);
         } catch (IOException e) {
-          pSyncResult.stats.numIoExceptions++;
+          syncResult.stats.numIoExceptions++;
           Log.e(TAG, "Error contacting server", e);
         } catch (RemoteException|OperationApplicationException e) {
-          pSyncResult.databaseError=true;
+          syncResult.databaseError=true;
           Log.e(TAG, "Error updating database", e);
         }
       }

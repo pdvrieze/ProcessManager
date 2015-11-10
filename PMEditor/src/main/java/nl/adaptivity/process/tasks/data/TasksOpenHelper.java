@@ -35,39 +35,39 @@ public class TasksOpenHelper extends SQLiteOpenHelper {
       Options.COLUMN_ITEMID +" INTEGER," +
       Options.COLUMN_VALUE + " TEXT )";
 
-  public TasksOpenHelper(Context pContext) {
-    super(pContext, DB_NAME, null, DB_VERSION);
+  public TasksOpenHelper(Context context) {
+    super(context, DB_NAME, null, DB_VERSION);
   }
 
   @Override
-  public void onCreate(SQLiteDatabase pDb) {
-    pDb.execSQL(SQL_CREATE_OPTIONS_TABLE);
-    pDb.execSQL(SQL_CREATE_ITEMS_TABLE);
-    pDb.execSQL(SQL_CREATE_TASKS_TABLE);
+  public void onCreate(SQLiteDatabase db) {
+    db.execSQL(SQL_CREATE_OPTIONS_TABLE);
+    db.execSQL(SQL_CREATE_ITEMS_TABLE);
+    db.execSQL(SQL_CREATE_TASKS_TABLE);
   }
 
   @Override
-  public void onUpgrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
-    pDb.beginTransaction();
+  public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    db.beginTransaction();
     try {
-      if (pOldVersion==1 && pNewVersion==2) {
-        pDb.execSQL("ALTER TABLE "+TABLE_NAME_ITEMS+ " ADD COLUMN "+Items.COLUMN_LABEL+ " TEXT");
+      if (oldVersion==1 && newVersion==2) {
+        db.execSQL("ALTER TABLE "+TABLE_NAME_ITEMS+ " ADD COLUMN "+Items.COLUMN_LABEL+ " TEXT");
       } else {
-        pDb.execSQL("DROP TABLE "+TABLE_NAME_TASKS);
-        pDb.execSQL("DROP TABLE "+TABLE_NAME_ITEMS);
-        pDb.execSQL("DROP TABLE "+TABLE_NAME_OPTIONS);
-        onCreate(pDb);
+        db.execSQL("DROP TABLE "+TABLE_NAME_TASKS);
+        db.execSQL("DROP TABLE "+TABLE_NAME_ITEMS);
+        db.execSQL("DROP TABLE "+TABLE_NAME_OPTIONS);
+        onCreate(db);
       }
 
-      pDb.setTransactionSuccessful();
+      db.setTransactionSuccessful();
     } finally {
-      pDb.endTransaction();
+      db.endTransaction();
     }
   }
 
   @Override
-  public void onDowngrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
-    onUpgrade(pDb, pOldVersion, pNewVersion);
+  public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    onUpgrade(db, oldVersion, newVersion);
   }
 
 

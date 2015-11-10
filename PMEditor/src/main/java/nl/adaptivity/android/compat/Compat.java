@@ -1,23 +1,19 @@
 package nl.adaptivity.android.compat;
 
-import java.io.File;
-import java.io.IOException;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.annotation.TargetApi;
 import android.app.Fragment;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.ParcelFileDescriptor;
+import android.os.*;
 import android.support.v4.view.ViewCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.io.File;
+import java.io.IOException;
 
 
 public class Compat {
@@ -25,9 +21,9 @@ public class Compat {
   @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
   private static class Compat14 {
 
-    public static AccountManagerFuture<Bundle> getAuthToken(AccountManager pAccountManager, Account pAccount, String pAccountTokenType, Bundle pOptions,
-                                    boolean pNotifyAuthFailure, AccountManagerCallback<Bundle> pCallback, Handler pHandler) {
-      return pAccountManager.getAuthToken(pAccount, pAccountTokenType, pOptions, pNotifyAuthFailure, pCallback, pHandler);
+    public static AccountManagerFuture<Bundle> getAuthToken(AccountManager accountManager, Account account, String accountTokenType, Bundle options,
+                                    boolean notifyAuthFailure, AccountManagerCallback<Bundle> callback, Handler handler) {
+      return accountManager.getAuthToken(account, accountTokenType, options, notifyAuthFailure, callback, handler);
     }
 
   }
@@ -35,8 +31,8 @@ public class Compat {
   @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
   private static class Compat17 {
 
-    public static Fragment getParentFragment(Fragment pFragment) {
-      return pFragment.getParentFragment();
+    public static Fragment getParentFragment(Fragment fragment) {
+      return fragment.getParentFragment();
     }
 
   }
@@ -62,9 +58,9 @@ public class Compat {
     ViewCompat.postInvalidateOnAnimation(view);
   }
 
-  public static boolean isZoomIn(MotionEvent pEvent) {
+  public static boolean isZoomIn(MotionEvent event) {
     if (Build.VERSION.SDK_INT>=12) {
-      return Compat12.isZoomIn(pEvent);
+      return Compat12.isZoomIn(event);
     }
     return false;
   }
@@ -82,9 +78,9 @@ public class Compat {
     }
   }
 
-  public static Fragment getParentFragment(Fragment pFragment) {
+  public static Fragment getParentFragment(Fragment fragment) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.JELLY_BEAN_MR1) {
-      return Compat17.getParentFragment(pFragment);
+      return Compat17.getParentFragment(fragment);
     } else {
       return null;
     }
@@ -99,11 +95,11 @@ public class Compat {
   }
 
   @SuppressWarnings("deprecation")
-  public static AccountManagerFuture<Bundle> getAuthToken(AccountManager pAccountManager, Account pAccount, String pAccountTokenType, Bundle pOptions, boolean pNotifyAuthFailure, AccountManagerCallback<Bundle> pCallback, Handler pHandler) {
+  public static AccountManagerFuture<Bundle> getAuthToken(AccountManager accountManager, Account account, String accountTokenType, Bundle options, boolean notifyAuthFailure, AccountManagerCallback<Bundle> callback, Handler handler) {
     if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-      return Compat14.getAuthToken(pAccountManager, pAccount, pAccountTokenType, pOptions, pNotifyAuthFailure, pCallback, pHandler);
+      return Compat14.getAuthToken(accountManager, account, accountTokenType, options, notifyAuthFailure, callback, handler);
     } else {
-      return pAccountManager.getAuthToken(pAccount, pAccountTokenType, pNotifyAuthFailure, pCallback, pHandler);
+      return accountManager.getAuthToken(account, accountTokenType, notifyAuthFailure, callback, handler);
     }
   }
 

@@ -49,15 +49,15 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
 
   private Context mContext;
 
-  public ProcessModelsOpenHelper(Context pContext) {
-    super(pContext, DB_NAME, null, DB_VERSION);
-    mContext = pContext;
+  public ProcessModelsOpenHelper(Context context) {
+    super(context, DB_NAME, null, DB_VERSION);
+    mContext = context;
   }
 
   @Override
-  public void onCreate(SQLiteDatabase pDb) {
-    pDb.execSQL(SQL_CREATE_TABLE);
-    pDb.execSQL(SQL_CREATE_TABLE_INSTANCES);
+  public void onCreate(SQLiteDatabase db) {
+    db.execSQL(SQL_CREATE_TABLE);
+    db.execSQL(SQL_CREATE_TABLE_INSTANCES);
     if (CREATE_DEFAULT_MODEL) {
       final String modelName = mContext.getString(R.string.example_1_name);
       ContentValues cv = new ContentValues();
@@ -82,34 +82,34 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
       UUID uuid = model.getUuid();
       if (uuid==null) { uuid = UUID.randomUUID(); }
       cv.put(ProcessModels.COLUMN_UUID, uuid.toString());
-      pDb.insert(TABLE_NAME, ProcessModels.COLUMN_MODEL, cv);
+      db.insert(TABLE_NAME, ProcessModels.COLUMN_MODEL, cv);
     }
   }
 
   @Override
-  public void onUpgrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
-    pDb.beginTransaction();
+  public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    db.beginTransaction();
     try {
-      if (pNewVersion==5 && pOldVersion==3) {
-        pDb.execSQL(SQL_CREATE_TABLE_INSTANCES);
-      } else if (pNewVersion==5 && pOldVersion==4) {
-        pDb.execSQL("ALTER TABLE "+TABLE_INSTANCES_NAME+" ADD COLUMN "+ProcessInstances.COLUMN_UUID+" TEXT");
-        pDb.delete(TABLE_INSTANCES_NAME, XmlBaseColumns.COLUMN_SYNCSTATE+"="+RemoteXmlSyncAdapter.SYNC_UPTODATE,null);
+      if (newVersion==5 && oldVersion==3) {
+        db.execSQL(SQL_CREATE_TABLE_INSTANCES);
+      } else if (newVersion==5 && oldVersion==4) {
+        db.execSQL("ALTER TABLE "+TABLE_INSTANCES_NAME+" ADD COLUMN "+ProcessInstances.COLUMN_UUID+" TEXT");
+        db.delete(TABLE_INSTANCES_NAME, XmlBaseColumns.COLUMN_SYNCSTATE+"="+RemoteXmlSyncAdapter.SYNC_UPTODATE,null);
       } else {
-        pDb.execSQL("DROP TABLE IF EXISTS "+TABLE_NAME);
-        pDb.execSQL("DROP TABLE IF EXISTS "+TABLE_INSTANCES_NAME);
-        onCreate(pDb);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS "+TABLE_INSTANCES_NAME);
+        onCreate(db);
       }
 
-      pDb.setTransactionSuccessful();
+      db.setTransactionSuccessful();
     } finally {
-      pDb.endTransaction();
+      db.endTransaction();
     }
   }
 
   @Override
-  public void onDowngrade(SQLiteDatabase pDb, int pOldVersion, int pNewVersion) {
-    onUpgrade(pDb, pOldVersion, pNewVersion);
+  public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    onUpgrade(db, oldVersion, newVersion);
   }
 
 

@@ -121,10 +121,10 @@ public class SettingsActivity extends PreferenceActivity {
   }
 
   @Override
-  protected boolean isValidFragment(String pFragmentName) {
-    return pFragmentName.equals(GeneralPreferenceFragment.class.getName()) ||
-        pFragmentName.equals(NotificationPreferenceFragment.class.getName()) ||
-        pFragmentName.equals(DataSyncPreferenceFragment.class.getName());
+  protected boolean isValidFragment(String fragmentName) {
+    return fragmentName.equals(GeneralPreferenceFragment.class.getName()) ||
+        fragmentName.equals(NotificationPreferenceFragment.class.getName()) ||
+        fragmentName.equals(DataSyncPreferenceFragment.class.getName());
   }
 
   /** {@inheritDoc} */

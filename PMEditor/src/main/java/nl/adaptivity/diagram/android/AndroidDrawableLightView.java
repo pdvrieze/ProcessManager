@@ -13,16 +13,16 @@ public class AndroidDrawableLightView implements LightView {
   private float aLeft = 0;
   private float aTop = 0;
 
-  public AndroidDrawableLightView(Drawable pDrawable, double pScale) {
-    aDrawable = pDrawable;
+  public AndroidDrawableLightView(Drawable drawable, double scale) {
+    aDrawable = drawable;
     // Initialise bounds
     aDrawable.setBounds(0, 0, aDrawable.getIntrinsicWidth(), aDrawable.getIntrinsicHeight());
-    aScale = pScale;
+    aScale = scale;
   }
 
   @Override
-  public void setFocussed(boolean pFocussed) {
-    setState(android.R.attr.state_focused, pFocussed);
+  public void setFocussed(boolean focussed) {
+    setState(android.R.attr.state_focused, focussed);
   }
 
   @Override
@@ -31,8 +31,8 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setSelected(boolean pSelected) {
-    setState(android.R.attr.state_selected, pSelected);
+  public void setSelected(boolean selected) {
+    setState(android.R.attr.state_selected, selected);
   }
 
   @Override
@@ -41,8 +41,8 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setTouched(boolean pTouched) {
-    setState(android.R.attr.state_pressed, pTouched);
+  public void setTouched(boolean touched) {
+    setState(android.R.attr.state_pressed, touched);
   }
 
   @Override
@@ -51,8 +51,8 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   @Override
-  public void setActive(boolean pActive) {
-    setState(android.R.attr.state_active, pActive);
+  public void setActive(boolean active) {
+    setState(android.R.attr.state_active, active);
   }
 
   @Override
@@ -60,14 +60,14 @@ public class AndroidDrawableLightView implements LightView {
     return hasState(android.R.attr.state_active);
   }
 
-  private void setState(final int pStateResource, boolean pDesiredState) {
+  private void setState(final int stateResource, boolean desiredState) {
     final int[] oldState = aDrawable.getState();
-    final int statePos = getStatePos(oldState, pStateResource);
-    if (pDesiredState) {
+    final int statePos = getStatePos(oldState, stateResource);
+    if (desiredState) {
       if (statePos<0) {
         int newState[] = new int[oldState.length+1];
         System.arraycopy(oldState, 0, newState, 0, oldState.length);
-        newState[oldState.length]=pStateResource;
+        newState[oldState.length]=stateResource;
         aDrawable.setState(newState);
       }
     } else {
@@ -80,44 +80,44 @@ public class AndroidDrawableLightView implements LightView {
     }
   }
 
-  private static int getStatePos(final int[] pStates, final int pStateResource) {
-    final int len = pStates.length;
+  private static int getStatePos(final int[] states, final int stateResource) {
+    final int len = states.length;
     for(int pos=0; pos<len; ++pos) {
-      if (pStates[pos]== pStateResource) {
+      if (states[pos]== stateResource) {
         return pos;
       }
     }
     return -1;
   }
 
-  private boolean hasState(final int pStateResource) {
-    return getStatePos(aDrawable.getState(), pStateResource)>=0;
+  private boolean hasState(final int stateResource) {
+    return getStatePos(aDrawable.getState(), stateResource)>=0;
   }
 
   @Override
-  public void getBounds(RectF pTarget) {
-    pTarget.top = aTop;
-    pTarget.left = aLeft;
-    pTarget.right = aLeft+ (float) (aDrawable.getIntrinsicWidth()/aScale);
-    pTarget.bottom = aTop+ (float) (aDrawable.getIntrinsicHeight()/aScale);
+  public void getBounds(RectF target) {
+    target.top = aTop;
+    target.left = aLeft;
+    target.right = aLeft+ (float) (aDrawable.getIntrinsicWidth()/aScale);
+    target.bottom = aTop+ (float) (aDrawable.getIntrinsicHeight()/aScale);
   }
 
   @Override
-  public void setPos(float pLeft, float pTop) {
-    aLeft = pLeft;
-    aTop = pTop;
+  public void setPos(float left, float top) {
+    aLeft = left;
+    aTop = top;
   }
 
   @Override
-  public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
-    aScale = pScale;
-    aDrawable.draw(pCanvas);
+  public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+    aScale = scale;
+    aDrawable.draw(canvas);
   }
 
   @Override
-  public void move(float pX, float pY) {
-    aTop = aTop+pY;
-    aLeft = aLeft+pX;
+  public void move(float x, float y) {
+    aTop = aTop+y;
+    aLeft = aLeft+x;
   }
 
 }

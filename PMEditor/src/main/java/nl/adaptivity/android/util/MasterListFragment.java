@@ -16,7 +16,7 @@ public class MasterListFragment extends ListFragment {
   }
 
   public interface Callbacks {
-    public void onItemSelected(int pRow, long pId);
+    public void onItemSelected(int row, long id);
     public boolean isTwoPane();
   }
 
@@ -26,7 +26,7 @@ public class MasterListFragment extends ListFragment {
    */
   public static Callbacks sDummyCallbacks = new Callbacks() {
     @Override
-    public void onItemSelected(int pRow, long pId) {/*dummy*/}
+    public void onItemSelected(int row, long id) {/*dummy*/}
 
     @Override
     public boolean isTwoPane() {
@@ -41,8 +41,8 @@ public class MasterListFragment extends ListFragment {
   private Callbacks mCallbacks = sDummyCallbacks;
 
   @Override
-  public void onActivityCreated(Bundle pSavedInstanceState) {
-    super.onActivityCreated(pSavedInstanceState);
+  public void onActivityCreated(Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
     getCallbacks();
     if (mCallbacks.isTwoPane()) {
       getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
@@ -50,8 +50,8 @@ public class MasterListFragment extends ListFragment {
   }
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
     if (mCallbacks==sDummyCallbacks) {
       if (getActivity() instanceof Callbacks) {
         mCallbacks = (Callbacks) getActivity();

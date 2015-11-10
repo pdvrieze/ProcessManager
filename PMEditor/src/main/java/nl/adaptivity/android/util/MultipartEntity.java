@@ -64,21 +64,21 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public void setContentType(Header pContentType) {
-    setContentType(pContentType.getValue());
+  public void setContentType(Header contentType) {
+    setContentType(contentType.getValue());
   }
 
   @Override
-  public void setContentType(String pContentType) {
-    if (pContentType.startsWith(MIMETYPE_BASE)) {
-      int i = pContentType.indexOf(';', MIMETYPE_BASE.length())+1;
+  public void setContentType(String contentType) {
+    if (contentType.startsWith(MIMETYPE_BASE)) {
+      int i = contentType.indexOf(';', MIMETYPE_BASE.length())+1;
       while (i>=0) {
-        int j = pContentType.indexOf(';', i);
+        int j = contentType.indexOf(';', i);
         String param;
         if (j>=0) {
-          param = pContentType.substring(i).trim();
+          param = contentType.substring(i).trim();
         } else {
-          param = pContentType.substring(i, j).trim();
+          param = contentType.substring(i, j).trim();
         }
         int e = param.indexOf('=');
         if (e>=0) {
@@ -112,32 +112,32 @@ public class MultipartEntity extends AbstractHttpEntity {
     return result;
   }
 
-  private long getContentLength(String name, HttpEntity pEntity) {
-    final long el = pEntity.getContentLength();
+  private long getContentLength(String name, HttpEntity entity) {
+    final long el = entity.getContentLength();
     if (el>=0) {
-      return getBoundary(name, pEntity).length()+el;
+      return getBoundary(name, entity).length()+el;
     } else {
       return el;
     }
   }
 
-  private String getBoundary(String name, HttpEntity pEntity) {
+  private String getBoundary(String name, HttpEntity entity) {
     StringBuilder result = new StringBuilder();
     result.append(CRLF).append(mBoundary).append(CRLF);
     result.append(CONTENT_DISPOSITION).append(name).append(CRLF);
     {
-      Header ct = pEntity.getContentType();
+      Header ct = entity.getContentType();
       if (ct!=null) {
         result.append(ct.getName()).append(": ").append(ct.getValue()).append(CRLF);
       }
     }
     {
-      Header ce = pEntity.getContentEncoding();
+      Header ce = entity.getContentEncoding();
       if (ce!=null) {
         result.append(ce.getName()).append(": ").append(ce.getValue()).append(CRLF);
       }
     }
-    long cl = pEntity.getContentLength();
+    long cl = entity.getContentLength();
     if (cl>=0) {
       result.append("Content-Length: ").append(cl).append(CRLF);
     }
@@ -166,7 +166,7 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public void writeTo(OutputStream pOutstream) throws IOException {
+  public void writeTo(OutputStream outstream) throws IOException {
     ensureBoundary();
     Charset cs = Charset.forName("UTF8");
     int skip = 2;
@@ -176,17 +176,17 @@ public class MultipartEntity extends AbstractHttpEntity {
       if (pos>0) {
         boundary.flip();
       }
-      pOutstream.write(boundary.array(), boundary.arrayOffset()+skip, boundary.limit()-skip);
-      elem.second.writeTo(pOutstream);
+      outstream.write(boundary.array(), boundary.arrayOffset()+skip, boundary.limit()-skip);
+      elem.second.writeTo(outstream);
       skip = 0;
     }
     final ByteBuffer boundary = cs.encode(CRLF+mBoundary+"--"+CRLF);
-    pOutstream.write(boundary.array(), boundary.arrayOffset(), boundary.limit());
-    pOutstream.flush();
+    outstream.write(boundary.array(), boundary.arrayOffset(), boundary.limit());
+    outstream.flush();
   }
 
-  public void add(String pName, HttpEntity pChildEntity) {
-    aContent.add(new Pair<>(pName, pChildEntity));
+  public void add(String name, HttpEntity childEntity) {
+    aContent.add(new Pair<>(name, childEntity));
   }
 
 }

@@ -29,7 +29,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
 
   public interface TaskListCallbacks {
 
-    void requestSyncTaskList(boolean pImmediate);
+    void requestSyncTaskList(boolean immediate);
 
   }
 
@@ -52,32 +52,32 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  protected TaskDetailFragment createDetailFragment(int pRow, long pItemId) {
+  protected TaskDetailFragment createDetailFragment(int row, long itemId) {
     TaskDetailFragment fragment = new TaskDetailFragment();
     Bundle arguments = new Bundle();
-    arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, pItemId);
+    arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, itemId);
     fragment.setArguments(arguments);
     return fragment;
   }
 
   @Override
-  protected Intent getDetailIntent(int pRow, long pItemId) {
+  protected Intent getDetailIntent(int row, long itemId) {
     Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
-    intent.putExtra(TaskDetailFragment.ARG_ITEM_ID, pItemId);
+    intent.putExtra(TaskDetailFragment.ARG_ITEM_ID, itemId);
     return intent;
   }
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
-    if (pActivity instanceof TaskListCallbacks) {
-      mCallbacks = (TaskListCallbacks) pActivity;
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    if (activity instanceof TaskListCallbacks) {
+      mCallbacks = (TaskListCallbacks) activity;
       mCallbacks.requestSyncTaskList(true); // request immediate sync
     }
   }
 
   @Override
-  public CharSequence getTitle(Context pContext) {
-    return pContext.getString(R.string.title_tasklist);
+  public CharSequence getTitle(Context context) {
+    return context.getString(R.string.title_tasklist);
   }
 }

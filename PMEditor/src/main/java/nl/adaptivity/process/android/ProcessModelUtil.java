@@ -12,16 +12,16 @@ import android.provider.BaseColumns;
 public final class ProcessModelUtil {
   private ProcessModelUtil() {}
 
-  public static String suggestNewName(final Context pContext, CharSequence pPreviousName) {
+  public static String suggestNewName(final Context context, CharSequence previousName) {
 
 
-    return Util.suggestNewName(pPreviousName, new NameChecker() {
+    return Util.suggestNewName(previousName, new NameChecker() {
 
-      ContentResolver resolver = pContext.getContentResolver();
+      ContentResolver resolver = context.getContentResolver();
 
       @Override
-      public boolean isAvailable(String pString) {
-        Cursor result = resolver.query(ProcessModels.CONTENT_ID_URI_BASE, new String[] { BaseColumns._ID }, "name = ?", new String[] { pString} , null);
+      public boolean isAvailable(String string) {
+        Cursor result = resolver.query(ProcessModels.CONTENT_ID_URI_BASE, new String[] { BaseColumns._ID }, "name = ?", new String[] { string} , null);
         try {
           if (result.moveToFirst()) {
             return false;

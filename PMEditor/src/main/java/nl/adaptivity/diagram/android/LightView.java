@@ -7,27 +7,27 @@ import android.graphics.RectF;
 /** An interface for a lightweight view. */
 public interface LightView {
 
-  public void setFocussed(boolean pFocussed);
+  public void setFocussed(boolean focussed);
 
   public boolean isFocussed();
 
-  public void setSelected(boolean pSelected);
+  public void setSelected(boolean selected);
 
   public boolean isSelected();
 
-  public void setTouched(boolean pTouched);
+  public void setTouched(boolean touched);
 
   public boolean isTouched();
 
-  public void getBounds(RectF pTarget);
+  public void getBounds(RectF target);
 
-  public void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale);
+  public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale);
 
-  public void move(float pX, float pY);
+  public void move(float x, float y);
 
-  public void setPos(float pLeft, float pTop);
+  public void setPos(float left, float top);
 
-  public void setActive(boolean pActive);
+  public void setActive(boolean active);
 
   public boolean isActive();
 

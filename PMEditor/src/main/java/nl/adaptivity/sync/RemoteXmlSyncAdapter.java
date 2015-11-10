@@ -22,8 +22,8 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
 
     private final ContentValues mContentValues;
 
-    public SimpleContentValuesProvider(ContentValues pContentValues) {
-      mContentValues = pContentValues;
+    public SimpleContentValuesProvider(ContentValues contentValues) {
+      mContentValues = contentValues;
     }
 
     @Override
@@ -37,14 +37,14 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
     public final ContentValuesProvider mCV;
     public final long mId;
 
-    public CVPair(long pId, ContentValuesProvider pCV) {
-      mCV = pCV;
-      mId = pId;
+    public CVPair(long id, ContentValuesProvider cV) {
+      mCV = cV;
+      mId = id;
     }
 
     @Override
-    public int compareTo(CVPair pAnother) {
-      long rhs = pAnother.mId;
+    public int compareTo(CVPair another) {
+      long rhs = another.mId;
       return mId < rhs ? -1 : (mId == rhs ? 0 : 1);
     }
 
@@ -61,20 +61,20 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
 
   RemoteXmlSyncAdapterDelegate mCoordinator;
 
-  public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, Uri pListContentUri) {
-    super(pContext, pAutoInitialize, null);
-    init(pListContentUri);
+  public RemoteXmlSyncAdapter(Context context, boolean autoInitialize, Uri listContentUri) {
+    super(context, autoInitialize, null);
+    init(listContentUri);
   }
 
-  private void init(Uri pListContentUri) {
-    pListContentUri.buildUpon().encodedFragment("nonetnotify").build();
-    mCoordinator = new RemoteXmlSyncAdapterDelegate(pListContentUri, this);
+  private void init(Uri listContentUri) {
+    listContentUri.buildUpon().encodedFragment("nonetnotify").build();
+    mCoordinator = new RemoteXmlSyncAdapterDelegate(listContentUri, this);
     setDelegates(Arrays.asList(mCoordinator));
   }
 
-  public RemoteXmlSyncAdapter(Context pContext, boolean pAutoInitialize, boolean pAllowParallelSyncs, Uri pListContentUri) {
-    super(pContext, pAutoInitialize, pAllowParallelSyncs, null);
-    init(pListContentUri);
+  public RemoteXmlSyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs, Uri listContentUri) {
+    super(context, autoInitialize, allowParallelSyncs, null);
+    init(listContentUri);
   }
 
   @Override

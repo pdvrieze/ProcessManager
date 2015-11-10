@@ -13,26 +13,27 @@ import android.support.v4.content.AsyncTaskLoader;
 public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
 
   public static class ProcessModelHolder {
-    public ProcessModelHolder(ProcessModel<?> pModel, Long pHandle) {
-      model = pModel;
-      handle = pHandle;
-    }
     public final ProcessModel<?> model;
     public final Long handle;
+
+    public ProcessModelHolder(ProcessModel<?> model, Long handle) {
+      this.model = model;
+      this.handle = handle;
+    }
   }
 
   private Uri mUri=null;
   private long mHandle=-1L;
 
-  public ProcessModelLoader(Context pContext, long pHandle) {
-    super(pContext);
-    mHandle = pHandle;
+  public ProcessModelLoader(Context context, long handle) {
+    super(context);
+    mHandle = handle;
     onContentChanged();
   }
 
-  public ProcessModelLoader(Context pContext, Uri pUri) {
-    super(pContext);
-    mUri = pUri;
+  public ProcessModelLoader(Context context, Uri uri) {
+    super(context);
+    mUri = uri;
     onContentChanged();
   }
 

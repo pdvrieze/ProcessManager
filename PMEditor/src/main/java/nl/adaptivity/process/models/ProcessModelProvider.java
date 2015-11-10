@@ -159,23 +159,23 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static String[] appendArg(String[] pArgs, String pArg) {
-    if (pArgs==null || pArgs.length==0) { return new String[] { pArg }; }
-    final String[] result = new String[pArgs.length+1];
-    System.arraycopy(pArgs, 0, result, 0, pArgs.length);
-    result[pArgs.length] = pArg;
+  private static String[] appendArg(String[] args, String arg) {
+    if (args==null || args.length==0) { return new String[] { arg }; }
+    final String[] result = new String[args.length+1];
+    System.arraycopy(args, 0, result, 0, args.length);
+    result[args.length] = arg;
     return result;
   }
 
-  private static boolean mimetypeMatches(String pMimetype, String pMimeTypeFilter) {
-    if (pMimeTypeFilter==null) { return true; }
-    int splitIndex = pMimetype.indexOf('/');
-    String typeLeft = pMimetype.substring(0, splitIndex);
-    String typeRight = pMimetype.substring(splitIndex+1);
+  private static boolean mimetypeMatches(String mimetype, String mimeTypeFilter) {
+    if (mimeTypeFilter==null) { return true; }
+    int splitIndex = mimetype.indexOf('/');
+    String typeLeft = mimetype.substring(0, splitIndex);
+    String typeRight = mimetype.substring(splitIndex+1);
 
-    splitIndex = pMimeTypeFilter.indexOf('/');
-    String filterLeft = pMimeTypeFilter.substring(0, splitIndex);
-    String filterRight = pMimeTypeFilter.substring(splitIndex+1);
+    splitIndex = mimeTypeFilter.indexOf('/');
+    String filterLeft = mimeTypeFilter.substring(0, splitIndex);
+    String filterRight = mimeTypeFilter.substring(splitIndex+1);
 
     if (! (filterLeft.equals(typeLeft)||"*".equals(filterLeft))) {
       return false;
@@ -203,8 +203,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public String getType(Uri pUri) {
-    UriHelper helper = UriHelper.parseUri(pUri);
+  public String getType(Uri uri) {
+    UriHelper helper = UriHelper.parseUri(uri);
     switch (helper.mTarget) {
     case PROCESSMODEL:
       return "vnd.android.cursor.item/vnd.nl.adaptivity.process.processmodel";
@@ -221,8 +221,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public String[] getStreamTypes(Uri pUri, String pMimeTypeFilter) {
-    UriHelper helper = UriHelper.parseUri(pUri);
+  public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
+    UriHelper helper = UriHelper.parseUri(uri);
     String mimetype;
     switch (helper.mTarget) {
       case PROCESSMODEL:
@@ -238,7 +238,7 @@ public class ProcessModelProvider extends ContentProvider {
       default:
         return null;
     }
-    if (mimetypeMatches(mimetype, pMimeTypeFilter)) {
+    if (mimetypeMatches(mimetype, mimeTypeFilter)) {
       return new String[] { mimetype };
     } else {
       return null;
@@ -246,71 +246,71 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public ParcelFileDescriptor openFile(Uri pUri, String pMode) throws FileNotFoundException {
-    UriHelper helper = UriHelper.parseUri(pUri);
+  public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+    UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
-    return ContentProviderHelper.createPipe(this, mDbHelper, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, pMode);
+    return ContentProviderHelper.createPipe(this, mDbHelper, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode);
   }
 
   @Override
-  public Cursor query(Uri pUri, String[] pProjection, String pSelection, String[] pSelectionArgs, String pSortOrder) {
-    UriHelper helper = UriHelper.parseUri(pUri);
+  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mId>=0) {
-      if (pSelection==null || pSelection.length()==0) {
-        pSelection = BaseColumns._ID+" = ?";
+      if (selection==null || selection.length()==0) {
+        selection = BaseColumns._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+BaseColumns._ID+" = ? )";
+        selection = "( "+selection+" ) AND ( "+BaseColumns._ID+" = ? )";
       }
-      pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
+      selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
 
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    final Cursor result = db.query(helper.mTable, pProjection, pSelection, pSelectionArgs, null, null, pSortOrder);
-    result.setNotificationUri(getContext().getContentResolver(), pUri);
+    final Cursor result = db.query(helper.mTable, projection, selection, selectionArgs, null, null, sortOrder);
+    result.setNotificationUri(getContext().getContentResolver(), uri);
     return result;
   }
 
   @Override
-  public Uri insert(Uri pUri, ContentValues pValues) {
-    if (! pValues.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
-      pValues.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
+  public Uri insert(Uri uri, ContentValues values) {
+    if (! values.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
+      values.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
     }
-    UriHelper helper = UriHelper.parseUri(pUri);
+    UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mId>=0) {
-      pValues.put(BaseColumns._ID, Long.valueOf(helper.mId));
+      values.put(BaseColumns._ID, Long.valueOf(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, pValues);
+    long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
     return notify(helper, id);
   }
 
-  private Uri notify(UriHelper pHelper, long pId) {
+  private Uri notify(UriHelper helper, long id) {
     ContentResolver cr = getContext().getContentResolver();
-    Uri baseUri = pHelper.mTarget.baseUri;
+    Uri baseUri = helper.mTarget.baseUri;
     cr.notifyChange(baseUri, null, false);
-    if (pId>=0) {
-      Uri result = ContentUris.withAppendedId(baseUri, pId);
-      cr.notifyChange(result, null, pHelper.mNetNotify);
+    if (id>=0) {
+      Uri result = ContentUris.withAppendedId(baseUri, id);
+      cr.notifyChange(result, null, helper.mNetNotify);
       return result;
     }
     return baseUri;
   }
 
   @Override
-  public int delete(Uri pUri, String pSelection, String[] pSelectionArgs) {
-    UriHelper helper = UriHelper.parseUri(pUri);
+  public int delete(Uri uri, String selection, String[] selectionArgs) {
+    UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mId>=0) {
-      if (pSelection==null || pSelection.length()==0) {
-        pSelection = BaseColumns._ID+" = ?";
+      if (selection==null || selection.length()==0) {
+        selection = BaseColumns._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+BaseColumns._ID+" = ? )";
+        selection = "( "+selection+" ) AND ( "+BaseColumns._ID+" = ? )";
       }
-      pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
+      selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.delete(helper.mTable, pSelection, pSelectionArgs);
+    final int result = db.delete(helper.mTable, selection, selectionArgs);
     if (result>0) {
       notify(helper, helper.mId);
     }
@@ -318,20 +318,20 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public int update(Uri pUri, ContentValues pValues, String pSelection, String[] pSelectionArgs) {
-    UriHelper helper = UriHelper.parseUri(pUri);
+  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mId>=0) {
-      if (pSelection==null || pSelection.length()==0) {
-        pSelection = BaseColumns._ID+" = ?";
+      if (selection==null || selection.length()==0) {
+        selection = BaseColumns._ID+" = ?";
       } else {
-        pSelection = "( "+pSelection+" ) AND ( "+BaseColumns._ID+" = ? )";
+        selection = "( "+selection+" ) AND ( "+BaseColumns._ID+" = ? )";
       }
-      pSelectionArgs = appendArg(pSelectionArgs, Long.toString(helper.mId));
+      selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    final int result = db.update(helper.mTable, pValues, pSelection, pSelectionArgs);
+    final int result = db.update(helper.mTable, values, selection, selectionArgs);
     if (result>0) {
-      getContext().getContentResolver().notifyChange(pUri, null, helper.mNetNotify);
+      getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify);
     }
     return result;
   }
@@ -340,11 +340,11 @@ public class ProcessModelProvider extends ContentProvider {
    * This implementation of applyBatch wraps the operations into a database transaction that fails on exceptions.
    */
   @Override
-  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> pOperations) throws OperationApplicationException {
+  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.beginTransaction();
     try {
-      ContentProviderResult[] result = super.applyBatch(pOperations);
+      ContentProviderResult[] result = super.applyBatch(operations);
       db.setTransactionSuccessful();
       return result;
     } finally {
@@ -352,10 +352,10 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static ProcessModel<?> getProcessModelForHandle(Context pContext, long pHandle) {
+  public static ProcessModel<?> getProcessModelForHandle(Context context, long handle) {
     try {
-      final ContentResolver contentResolver = pContext.getContentResolver();
-      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(pHandle)} , null);
+      final ContentResolver contentResolver = context.getContentResolver();
+      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
       try {
         if (! idresult.moveToFirst()) { return null; }
         long id = idresult.getLong(1); // only one column
@@ -374,21 +374,21 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static ProcessModel<?> getProcessModelForId(Context pContext, long pId) {
-    Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pId);
-    return getProcessModel(pContext, uri);
+  public static ProcessModel<?> getProcessModelForId(Context context, long id) {
+    Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
+    return getProcessModel(context, uri);
   }
 
-  public static ProcessModel<?> getProcessModel(Context pContext, Uri pUri) {
+  public static ProcessModel<?> getProcessModel(Context context, Uri uri) {
     try {
       InputStream in;
-      if (ContentResolver.SCHEME_CONTENT.equals(pUri.getScheme())||
-          ContentResolver.SCHEME_ANDROID_RESOURCE.equals(pUri.getScheme())||
-          ContentResolver.SCHEME_FILE.equals(pUri.getScheme())) {
-        final ContentResolver contentResolver = pContext.getContentResolver();
-        in = contentResolver.openInputStream(pUri);
+      if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())||
+          ContentResolver.SCHEME_ANDROID_RESOURCE.equals(uri.getScheme())||
+          ContentResolver.SCHEME_FILE.equals(uri.getScheme())) {
+        final ContentResolver contentResolver = context.getContentResolver();
+        in = contentResolver.openInputStream(uri);
       } else {
-        in = URI.create(pUri.toString()).toURL().openStream();
+        in = URI.create(uri.toString()).toURL().openStream();
       }
       try {
         return getProcessModel(new BufferedInputStream(in));
@@ -405,19 +405,19 @@ public class ProcessModelProvider extends ContentProvider {
     return PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
   }
 
-  public static Uri newProcessModel(Context context, ClientProcessModel<?> pProcessModel) throws IOException {
+  public static Uri newProcessModel(Context context, ClientProcessModel<?> processModel) throws IOException {
     CharArrayWriter out = new CharArrayWriter();
     try {
-      PMParser.serializeProcessModel(out, pProcessModel);
+      PMParser.serializeProcessModel(out, processModel);
     } catch (XmlPullParserException e) {
       throw new IOException(e);
     }
     ContentProviderClient client = context.getContentResolver().acquireContentProviderClient(ProcessModels.CONTENT_ID_URI_BASE);
     try {
       ContentValues values = new ContentValues();
-      values.put(ProcessModels.COLUMN_NAME, pProcessModel.getName());
+      values.put(ProcessModels.COLUMN_NAME, processModel.getName());
       values.put(ProcessModels.COLUMN_MODEL, out.toString());
-      values.put(ProcessModels.COLUMN_UUID, pProcessModel.getUuid().toString());
+      values.put(ProcessModels.COLUMN_UUID, processModel.getUuid().toString());
       try {
         return client.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
       } catch (RemoteException e) {
@@ -428,15 +428,15 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static Uri instantiate(Context context, long pModelId, String pName) throws RemoteException {
+  public static Uri instantiate(Context context, long modelId, String name) throws RemoteException {
 
     final ContentResolver contentResolver = context.getContentResolver();
     ContentProviderClient client = contentResolver.acquireContentProviderClient(ProcessInstances.CONTENT_ID_URI_BASE);
     try {
-      final Uri modelUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, pModelId);
+      final Uri modelUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, modelId);
       Cursor r = client.query(modelUri, new String[]{ProcessModels.COLUMN_HANDLE}, null, null, null);
       try {
-        if (!r.moveToFirst()) { throw new RuntimeException("Model with id "+pModelId+" not found"); }
+        if (!r.moveToFirst()) { throw new RuntimeException("Model with id "+modelId+" not found"); }
         long pmhandle = r.getLong(0);
         ArrayList<ContentProviderOperation> batch = new ArrayList<>(2);
         batch.add(ContentProviderOperation
@@ -447,7 +447,7 @@ public class ProcessModelProvider extends ContentProvider {
 
         batch.add(ContentProviderOperation
                 .newInsert(ProcessInstances.CONTENT_ID_URI_BASE)
-                .withValue(ProcessInstances.COLUMN_NAME, pName)
+                .withValue(ProcessInstances.COLUMN_NAME, name)
                 .withValue(ProcessInstances.COLUMN_PMHANDLE, Long.valueOf(pmhandle))
                 .withValue(ProcessInstances.COLUMN_UUID, UUID.randomUUID().toString())
                 .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))

@@ -43,16 +43,16 @@ import android.widget.TextView;
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
 
   public interface Callbacks {
-    void onProcessModelSelected(long pProcessModelId);
+    void onProcessModelSelected(long processModelId);
 
-    void onInstantiateModel(long pModelId, String pSuggestedName);
+    void onInstantiateModel(long modelId, String suggestedName);
   }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
 
     @Override
-    public void onLayoutChange(View pV, int pLeft, int pTop, int pRight, int pBottom, int pOldLeft, int pOldTop, int pOldRight, int pOldBottom) {
-      if (mItem!=null && ((pOldRight-pOldLeft!=pRight-pLeft)||(pOldBottom-pOldTop!=pBottom-pTop))) {
+    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+      if (mItem!=null && ((oldRight-oldLeft!=right-left)||(oldBottom-oldTop!=bottom-top))) {
         updateDiagramScale();
       }
     }
@@ -99,10 +99,10 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   public ProcessModelDetailFragment() {}
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
-    if (pActivity instanceof Callbacks) {
-      mCallbacks = (Callbacks) pActivity;
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    if (activity instanceof Callbacks) {
+      mCallbacks = (Callbacks) activity;
     }
   }
 
@@ -159,22 +159,22 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public Loader<ProcessModelHolder> onCreateLoader(int pId, Bundle pArgs) {
-    mProcessModelId = pArgs.getLong(ARG_ITEM_ID);
+  public Loader<ProcessModelHolder> onCreateLoader(int id, Bundle args) {
+    mProcessModelId = args.getLong(ARG_ITEM_ID);
     Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,mProcessModelId);
     return new ProcessModelLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<ProcessModelHolder> pLoader, ProcessModelHolder pData) {
+  public void onLoadFinished(Loader<ProcessModelHolder> loader, ProcessModelHolder data) {
     mSpinner.setVisibility(View.GONE);
     mTVName.setVisibility(View.VISIBLE);
     mModelView.setVisibility(View.VISIBLE);
     mModelView.getParent().requestLayout(); // Do a layout
-    mTVName.setText(pData.model.getName());
-    mItem = new BaseProcessAdapter(DrawableProcessModel.get(pData.model));
-    mModelHandle = pData.handle;
-    if (pData.handle!=null) {
+    mTVName.setText(data.model.getName());
+    mItem = new BaseProcessAdapter(DrawableProcessModel.get(data.model));
+    mModelHandle = data.handle;
+    if (data.handle!=null) {
       mBtnPublish.setVisibility(View.GONE);
       mBtnExec.setVisibility(View.VISIBLE);
     } else {
@@ -186,7 +186,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public void onLoaderReset(Loader<ProcessModelHolder> pLoader) {
+  public void onLoaderReset(Loader<ProcessModelHolder> loader) {
     mTVName.setText(null);
     mItem = null;
     mModelView.setAdapter(null);
@@ -195,8 +195,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public void onClick(View pV) {
-    switch (pV.getId()) {
+  public void onClick(View v) {
+    switch (v.getId()) {
       case R.id.btn_pm_edit:
         btnPmEditClicked(); return;
       case R.id.btn_pm_clone:
@@ -227,23 +227,23 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
 
       @Override
-      public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pString) {
-        cloneWithName(pString);
+      public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string) {
+        cloneWithName(string);
       }
 
       @Override
-      public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
+      public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
         // ignore
       }
     }, suggestedNewName);
     // Don't do anything yet
   }
 
-  protected void cloneWithName(String pNewName) {
+  protected void cloneWithName(String newName) {
     // TODO Auto-generated method stub
     DrawableProcessModel currentModel = ((BaseProcessAdapter) mModelView.getAdapter()).getDiagram();
     DrawableProcessModel newModel = currentModel.clone();
-    newModel.setName(pNewName);
+    newModel.setName(newName);
     newModel.setUuid(UUID.randomUUID());
 
     Uri uri;
@@ -268,18 +268,18 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-    pInflater.inflate(R.menu.pm_detail_menu, pMenu);
-    super.onCreateOptionsMenu(pMenu, pInflater);
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.pm_detail_menu, menu);
+    super.onCreateOptionsMenu(menu, inflater);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem pItem) {
-    if (pItem.getItemId()==R.id.ac_delete) {
+  public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId()==R.id.ac_delete) {
       onDeleteItem();
       return true;
     }
-    return super.onOptionsItemSelected(pItem);
+    return super.onOptionsItemSelected(item);
   }
 
   private boolean onDeleteItem() {

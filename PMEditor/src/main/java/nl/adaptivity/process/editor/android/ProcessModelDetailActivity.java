@@ -74,32 +74,32 @@ public class ProcessModelDetailActivity extends AppCompatActivity implements Pro
   }
 
   @Override
-  public void onProcessModelSelected(long pProcessModelRowId) {
-    if (pProcessModelRowId>=0) {
+  public void onProcessModelSelected(long processModelRowId) {
+    if (processModelRowId>=0) {
       Intent intent = new Intent(this, ProcessModelDetailActivity.class);
-      intent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, pProcessModelRowId);
+      intent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, processModelRowId);
       startActivity(intent);
     }
     finish();
   }
 
   @Override
-  public void onInstantiateModel(long pModelHandle, String pSuggestedName) {
-    mModelHandleToInstantiate = pModelHandle;
-    GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, pSuggestedName);
+  public void onInstantiateModel(long modelHandle, String suggestedName) {
+    mModelHandleToInstantiate = modelHandle;
+    GetNameDialogFragment.show(getSupportFragmentManager(), DLG_MODEL_INSTANCE_NAME, "Instance name", "Provide a name for the process instance", this, suggestedName);
   }
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pName) {
+  public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String name) {
     try {
-      ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, pName);
+      ProcessModelProvider.instantiate(this, mModelHandleToInstantiate, name);
     } catch (RemoteException e) {
       Toast.makeText(this, "Unfortunately the process could not be instantiated: "+e.getMessage(), Toast.LENGTH_SHORT).show();;
     }
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
+  public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
     mModelHandleToInstantiate=-1L;
   }
 }

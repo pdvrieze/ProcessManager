@@ -75,42 +75,42 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     private LayoutInflater mInflater;
     private int mNameColumn;
 
-    private PMCursorAdapter(Context pContext, Cursor pC) {
-      super(pContext, pC, 0);
-      mInflater = LayoutInflater.from(pContext);
-      updateNameColumn(pC);
+    private PMCursorAdapter(Context context, Cursor c) {
+      super(context, c, 0);
+      mInflater = LayoutInflater.from(context);
+      updateNameColumn(c);
     }
 
-    private void updateNameColumn(Cursor pC) {
-      if (pC==null) {
+    private void updateNameColumn(Cursor c) {
+      if (c==null) {
         mNameColumn = -1;
       } else {
-        mNameColumn = pC.getColumnIndex(ProcessModels.COLUMN_NAME);
+        mNameColumn = c.getColumnIndex(ProcessModels.COLUMN_NAME);
       }
     }
 
     @Override
-    public void changeCursor(Cursor pCursor) {
-      super.changeCursor(pCursor);
+    public void changeCursor(Cursor cursor) {
+      super.changeCursor(cursor);
     }
 
     @Override
-    public Cursor swapCursor(Cursor pNewCursor) {
-      final Cursor result = super.swapCursor(pNewCursor);
-      updateNameColumn(pNewCursor);
+    public Cursor swapCursor(Cursor newCursor) {
+      final Cursor result = super.swapCursor(newCursor);
+      updateNameColumn(newCursor);
       return result;
     }
 
     @Override
-    public View newView(Context pContext, Cursor pCursor, ViewGroup pParent) {
-      return mInflater.inflate(R.layout.modellist_item, pParent, false);
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+      return mInflater.inflate(R.layout.modellist_item, parent, false);
     }
 
     @Override
-    public void bindView(View pView, Context pContext, Cursor pCursor) {
-      TextView modelName = (TextView) pView.findViewById(R.id.model_name);
-      if (pCursor!=null && mNameColumn>=0) {
-        final String name = pCursor.getString(mNameColumn);
+    public void bindView(View view, Context context, Cursor cursor) {
+      TextView modelName = (TextView) view.findViewById(R.id.model_name);
+      if (cursor!=null && mNameColumn>=0) {
+        final String name = cursor.getString(mNameColumn);
         modelName.setText(name!=null ? name : "<Unnamed>");
       } else {
         modelName.setText("<Unnamed>");
@@ -180,13 +180,13 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
 
   @Override
-  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
-    pInflater.inflate(R.menu.pmlist_menu, pMenu);
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    inflater.inflate(R.menu.pmlist_menu, menu);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem pItem) {
-    switch (pItem.getItemId()) {
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
       case R.id.menu_add_pm:
         createNewPM();
         return true;
@@ -206,17 +206,17 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         return true;
       }
     }
-    return super.onOptionsItemSelected(pItem);
+    return super.onOptionsItemSelected(item);
   }
 
 
 
   @Override
-  public void onActivityResult(int pRequestCode, int pResultCode, Intent pData) {
-    if (pResultCode==Activity.RESULT_OK) {
-      if (pRequestCode==REQUEST_IMPORT) {
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (resultCode==Activity.RESULT_OK) {
+      if (requestCode==REQUEST_IMPORT) {
         try {
-          InputStream in = getActivity().getContentResolver().openInputStream(pData.getData());
+          InputStream in = getActivity().getContentResolver().openInputStream(data.getData());
           try {
             DrawableProcessModel pm = PMParser.parseProcessModel(in, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), new LayoutAlgorithm<DrawableProcessNode>());
             Uri uri = ProcessModelProvider.newProcessModel(getActivity(), pm);
@@ -237,12 +237,12 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment pDialog, int pId, String pString) {
-    createNewPM(pString);
+  public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string) {
+    createNewPM(string);
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment pDialog, int pId) {
+  public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
     // ignore
   }
 
@@ -261,20 +261,20 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   @Override
-  public Loader<Cursor> onCreateLoader(int pId, Bundle pArgs) {
+  public Loader<Cursor> onCreateLoader(int id, Bundle args) {
     return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, XmlBaseColumns.COLUMN_SYNCSTATE+" IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING+ " )", null, null);
   }
 
   @Override
-  public void onLoadFinished(Loader<Cursor> pLoader, Cursor pData) {
+  public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
-    if (pData!=null) {
-      mAdapter.changeCursor(pData);
+    if (data!=null) {
+      mAdapter.changeCursor(data);
     }
   }
 
   @Override
-  public void onLoaderReset(Loader<Cursor> pLoader) {
+  public void onLoaderReset(Loader<Cursor> loader) {
     mAdapter.changeCursor(null);
   }
 }

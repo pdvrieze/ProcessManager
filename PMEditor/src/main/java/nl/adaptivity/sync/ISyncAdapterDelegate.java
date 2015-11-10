@@ -14,10 +14,10 @@ import android.os.RemoteException;
 
 public interface ISyncAdapterDelegate {
 
-  public void updateItemDetails(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, IOException,
+  public void updateItemDetails(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, IOException,
       OperationApplicationException;
 
-  public void updateListFromServer(DelegatingResources pDelegator, ContentProviderClient pProvider, SyncResult pSyncResult) throws RemoteException, XmlPullParserException,
+  public void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlPullParserException,
       IOException, OperationApplicationException;
 
 }

@@ -1,16 +1,5 @@
 package nl.adaptivity.android.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-
-import nl.adaptivity.android.compat.Compat;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,6 +7,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.util.Log;
+import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+
+import java.io.*;
 
 
 public class ContentProviderHelper {
@@ -32,20 +26,20 @@ public class ContentProviderHelper {
     protected long mId;
     protected ParcelFileDescriptor mFileDescriptor;
 
-    public ProcessModelThread(SQLiteOpenHelper pDbHelper, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
-      mDbHelper = pDbHelper;
-      mTable = pTable;
-      mColumn = pColumn;
-      mId = pId;
-      mFileDescriptor = pParcelFileDescriptor;
+    public ProcessModelThread(SQLiteOpenHelper dbHelper, String table, String column, long id, ParcelFileDescriptor parcelFileDescriptor) {
+      mDbHelper = dbHelper;
+      mTable = table;
+      mColumn = column;
+      mId = id;
+      mFileDescriptor = parcelFileDescriptor;
     }
 
   }
 
   private static class ProcessModelWriteThread extends ProcessModelThread {
 
-    public ProcessModelWriteThread(SQLiteOpenHelper pDbHelper, String pTable, String pColumn, long pId, ParcelFileDescriptor pParcelFileDescriptor) {
-      super(pDbHelper, pTable, pColumn, pId, pParcelFileDescriptor);
+    public ProcessModelWriteThread(SQLiteOpenHelper dbHelper, String table, String column, long id, ParcelFileDescriptor parcelFileDescriptor) {
+      super(dbHelper, table, column, id, parcelFileDescriptor);
     }
 
     @Override
@@ -86,9 +80,9 @@ public class ContentProviderHelper {
 
     private final String mSyncStateColumn;
 
-    public ProcessModelReadThread(SQLiteOpenHelper pDbHelper, String pTable, String pColumn, long pId, String pSyncStateColumn, ParcelFileDescriptor pParcelFileDescriptor) {
-      super(pDbHelper, pTable, pColumn, pId, pParcelFileDescriptor);
-      mSyncStateColumn = pSyncStateColumn;
+    public ProcessModelReadThread(SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, ParcelFileDescriptor parcelFileDescriptor) {
+      super(dbHelper, table, column, id, parcelFileDescriptor);
+      mSyncStateColumn = syncStateColumn;
     }
 
     @Override
@@ -136,7 +130,7 @@ public class ContentProviderHelper {
 
   }
 
-  public static ParcelFileDescriptor createPipe(ProcessModelProvider pProcessModelProvider, SQLiteOpenHelper dbHelper, String table, String column, long id, String pSyncStateColumn, String mode) {
+  public static ParcelFileDescriptor createPipe(ProcessModelProvider processModelProvider, SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, String mode) {
     final boolean readMode;
     switch  (mode) {
       case "r":
@@ -170,7 +164,7 @@ public class ContentProviderHelper {
       th = new ProcessModelWriteThread(dbHelper, table, column, id, pair[1]);
       th.run();
     } else {
-      th = new ProcessModelReadThread(dbHelper, table, column, id, pSyncStateColumn, pair[0]);
+      th = new ProcessModelReadThread(dbHelper, table, column, id, syncStateColumn, pair[0]);
       th.start();
     }
 

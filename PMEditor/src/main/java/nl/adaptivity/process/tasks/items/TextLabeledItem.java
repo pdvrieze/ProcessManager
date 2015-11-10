@@ -7,19 +7,19 @@ import android.text.TextWatcher;
 
 public abstract class TextLabeledItem extends LabeledItem implements TextWatcher {
 
-  public TextLabeledItem(String pName, String pLabel, String pValue) {
-    super(pName, pLabel, pValue);
+  public TextLabeledItem(String name, String label, String value) {
+    super(name, label, value);
   }
 
   @Override
-  public void beforeTextChanged(CharSequence pS, int pStart, int pCount, int pAfter) { /*do nothing*/ }
+  public void beforeTextChanged(CharSequence s, int start, int count, int after) { /*do nothing*/ }
 
   @Override
-  public void onTextChanged(CharSequence pS, int pStart, int pBefore, int pCount) {
-    setValue(pS.toString());
+  public void onTextChanged(CharSequence s, int start, int before, int count) {
+    setValue(s.toString());
   }
 
   @Override
-  public void afterTextChanged(Editable pS) { /*do nothing*/ }
+  public void afterTextChanged(Editable s) { /*do nothing*/ }
 
 }

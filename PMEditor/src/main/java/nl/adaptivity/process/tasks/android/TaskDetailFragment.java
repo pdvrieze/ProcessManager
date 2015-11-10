@@ -88,10 +88,10 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public void onAttach(Activity pActivity) {
-    super.onAttach(pActivity);
-    if (pActivity instanceof TaskDetailCallbacks) {
-      mCallbacks = (TaskDetailCallbacks) pActivity;
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    if (activity instanceof TaskDetailCallbacks) {
+      mCallbacks = (TaskDetailCallbacks) activity;
     } else {
       mCallbacks = null;
     }
@@ -137,37 +137,37 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public Loader<UserTask> onCreateLoader(int pId, Bundle pArgs) {
-    mTaskId = pArgs.getLong(ARG_ITEM_ID);
+  public Loader<UserTask> onCreateLoader(int id, Bundle args) {
+    mTaskId = args.getLong(ARG_ITEM_ID);
     Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE, mTaskId);
     return new TaskLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<UserTask> pLoader, UserTask pData) {
-    if (pData==null) { onLoaderReset(pLoader); return;}
+  public void onLoadFinished(Loader<UserTask> loader, UserTask data) {
+    if (data==null) { onLoaderReset(loader); return;}
     mSpinner.setVisibility(View.GONE);
     mDetailView.setVisibility(View.VISIBLE);
-    mTVSummary.setText(pData.getSummary());
-    mTVState.setText(pData.getState());
+    mTVSummary.setText(data.getSummary());
+    mTVState.setText(data.getState());
     int viewPos = mTaskItemFirstIndex;
     if (mTaskItemLastIndex>mTaskItemFirstIndex) {
       mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
     }
     LayoutInflater inflater = LayoutInflater.from(getActivity());
-    for(TaskItem item: pData.getItems()) {
+    for(TaskItem item: data.getItems()) {
       View taskView = item.createView(inflater, mTaskItemContainer);
 
       LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0f);
       mTaskItemContainer.addView(taskView, viewPos, params);
       ++viewPos;
     }
-    mTaskItemLastIndex = mTaskItemFirstIndex+pData.getItems().size();
-    mUserTask = pData;
+    mTaskItemLastIndex = mTaskItemFirstIndex+data.getItems().size();
+    mUserTask = data;
   }
 
   @Override
-  public void onLoaderReset(Loader<UserTask> pLoader) {
+  public void onLoaderReset(Loader<UserTask> loader) {
     mTVSummary.setText(null);
     mTVState.setText(null);
     if (mTaskItemLastIndex>mTaskItemFirstIndex) {
@@ -179,8 +179,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public void onClick(View pV) {
-    switch (pV.getId()) {
+  public void onClick(View v) {
+    switch (v.getId()) {
       case R.id.btn_task_complete:
         onCompleteTaskClicked();
     }
@@ -194,14 +194,14 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public void onCreateOptionsMenu(Menu pMenu, MenuInflater pInflater) {
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 //    pInflater.inflate(R.menu.pm_detail_menu, pMenu);
-    super.onCreateOptionsMenu(pMenu, pInflater);
+    super.onCreateOptionsMenu(menu, inflater);
   }
 
   @Override
-  public boolean onOptionsItemSelected(MenuItem pItem) {
-    return super.onOptionsItemSelected(pItem);
+  public boolean onOptionsItemSelected(MenuItem item) {
+    return super.onOptionsItemSelected(item);
   }
 
   public UserTask getUserTask() {

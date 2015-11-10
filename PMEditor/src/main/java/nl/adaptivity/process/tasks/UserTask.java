@@ -1,15 +1,14 @@
 package nl.adaptivity.process.tasks;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
+import android.util.Log;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import android.util.Log;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class UserTask {
@@ -25,12 +24,12 @@ public class UserTask {
   private String mState;
   private List<TaskItem> mItems;
 
-  public UserTask(String pSummary, long pHandle, String pOwner, String pState, List<TaskItem> pItems) {
-    mSummary = pSummary;
-    mHandle = pHandle;
-    mOwner = pOwner;
-    mState = pState;
-    mItems = pItems;
+  public UserTask(String summary, long handle, String owner, String state, List<TaskItem> items) {
+    mSummary = summary;
+    mHandle = handle;
+    mOwner = owner;
+    mState = state;
+    mItems = items;
   }
 
 
@@ -39,8 +38,8 @@ public class UserTask {
   }
 
 
-  public void setSummary(String pSummary) {
-    mSummary = pSummary;
+  public void setSummary(String summary) {
+    mSummary = summary;
   }
 
 
@@ -49,8 +48,8 @@ public class UserTask {
   }
 
 
-  public void setHandle(long pHandle) {
-    mHandle = pHandle;
+  public void setHandle(long handle) {
+    mHandle = handle;
   }
 
 
@@ -59,8 +58,8 @@ public class UserTask {
   }
 
 
-  public void setOwner(String pOwner) {
-    mOwner = pOwner;
+  public void setOwner(String owner) {
+    mOwner = owner;
   }
 
 
@@ -69,8 +68,8 @@ public class UserTask {
   }
 
 
-  public void setState(String pState) {
-    mState = pState;
+  public void setState(String state) {
+    mState = state;
   }
 
 
@@ -79,17 +78,17 @@ public class UserTask {
   }
 
 
-  public void setItems(List<TaskItem> pItems) {
-    mItems = pItems;
+  public void setItems(List<TaskItem> items) {
+    mItems = items;
   }
 
-  public static List<UserTask> parseTasks(InputStream pIn) throws XmlPullParserException, IOException {
-    XmlPullParser in;
+  public static List<UserTask> parseTasks(InputStream in) throws XmlPullParserException, IOException {
+    XmlPullParser parser;
     try {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
-      in = factory.newPullParser();
-      in.setInput(pIn, "utf-8");
+      parser = factory.newPullParser();
+      parser.setInput(in, "utf-8");
     } catch (Exception e){
       Log.e(UserTask.class.getName(), e.getMessage(), e);
       return null;
@@ -97,30 +96,30 @@ public class UserTask {
     return parseTasks(in);
   }
 
-  public static List<UserTask> parseTasks(XmlPullParser pIn) throws XmlPullParserException, IOException {
-    if(pIn.getEventType()==XmlPullParser.START_DOCUMENT) {
-      pIn.nextTag();
+  public static List<UserTask> parseTasks(XmlPullParser in) throws XmlPullParserException, IOException {
+    if(in.getEventType()==XmlPullParser.START_DOCUMENT) {
+      in.nextTag();
     }
-    pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASKS);
+    in.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASKS);
     ArrayList<UserTask> result = new ArrayList<>();
-    while ((pIn.nextTag())==XmlPullParser.START_TAG) {
-      result.add(parseTask(pIn));
+    while ((in.nextTag())==XmlPullParser.START_TAG) {
+      result.add(parseTask(in));
     }
-    pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASKS);
+    in.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASKS);
     return result;
   }
 
-  public static UserTask parseTask(XmlPullParser pIn) throws XmlPullParserException, IOException {
-    pIn.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
-    String summary = pIn.getAttributeValue(null, "summary");
-    long handle = Long.parseLong(pIn.getAttributeValue(null, "handle"));
-    String owner = pIn.getAttributeValue(null, "owner");
-    String state = pIn.getAttributeValue(null, "state");
+  public static UserTask parseTask(XmlPullParser in) throws XmlPullParserException, IOException {
+    in.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
+    String summary = in.getAttributeValue(null, "summary");
+    long handle = Long.parseLong(in.getAttributeValue(null, "handle"));
+    String owner = in.getAttributeValue(null, "owner");
+    String state = in.getAttributeValue(null, "state");
     List<TaskItem> items = new ArrayList<>();
-    while ((pIn.nextTag())==XmlPullParser.START_TAG) {
-      items.add(TaskItem.parseTaskItem(pIn));
+    while ((in.nextTag())==XmlPullParser.START_TAG) {
+      items.add(TaskItem.parseTaskItem(in));
     }
-    pIn.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASK);
+    in.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASK);
     return new UserTask(summary, handle, owner, state, items);
   }
 

@@ -17,25 +17,25 @@ public class TextItem extends TextLabeledItem {
   private List<String> mSuggestions;
   private ArrayAdapter<String> mSuggestionAdapter;
 
-  public TextItem(String pName, String pLabel, String pValue, List<String> pSuggestions) {
-    super(pName, pLabel, pValue);
-    mSuggestions = pSuggestions;
+  public TextItem(String name, String label, String value, List<String> suggestions) {
+    super(name, label, value);
+    mSuggestions = suggestions;
   }
 
   @Override
-  protected View createDetailView(LayoutInflater pInflater, FrameLayout pParent) {
-    View view = pInflater.inflate(R.layout.taskitem_detail_text, pParent, false);
+  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
+    View view = inflater.inflate(R.layout.taskitem_detail_text, parent, false);
     updateDetailView(view);
     return view;
   }
 
   @Override
-  protected void updateDetailView(View pDetail) {
-    AutoCompleteTextView textview = (AutoCompleteTextView) pDetail;
+  protected void updateDetailView(View detail) {
+    AutoCompleteTextView textview = (AutoCompleteTextView) detail;
     textview.setText(getValue());
     if (mSuggestions!=null && mSuggestions.size()>0) {
       if (mSuggestionAdapter == null) {
-        mSuggestionAdapter = new ArrayAdapter<String>(pDetail.getContext(), android.R.layout.simple_dropdown_item_1line, mSuggestions);
+        mSuggestionAdapter = new ArrayAdapter<String>(detail.getContext(), android.R.layout.simple_dropdown_item_1line, mSuggestions);
       }
       textview.setAdapter(mSuggestionAdapter);
     }

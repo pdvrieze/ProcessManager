@@ -1,22 +1,17 @@
 package nl.adaptivity.process.tasks;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import nl.adaptivity.process.tasks.items.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
-import nl.adaptivity.process.tasks.items.GenericItem;
-import nl.adaptivity.process.tasks.items.LabelItem;
-import nl.adaptivity.process.tasks.items.ListItem;
-import nl.adaptivity.process.tasks.items.PasswordItem;
-import nl.adaptivity.process.tasks.items.TextItem;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class TaskItem {
 
@@ -24,39 +19,39 @@ public abstract class TaskItem {
     LABEL("label") {
 
       @Override
-      public TaskItem create(String pName, String pLabel, String pValue, List<String> pOptions) {
-        return new LabelItem(pName,pValue==null ? pLabel : pValue);
+      public TaskItem create(String name, String label, String value, List<String> options) {
+        return new LabelItem(name,value==null ? label : value);
       }
     },
 
     GENERIC("generic") {
 
       @Override
-      public TaskItem create(String pName, String pLabel, String pValue, List<String> pOptions) {
-        return new GenericItem(pName, pLabel, "generic", pValue, pOptions);
+      public TaskItem create(String name, String label, String value, List<String> options) {
+        return new GenericItem(name, label, "generic", value, options);
       }
     },
     TEXT("text") {
 
       @Override
-      public TaskItem create(String pName, String pLabel, String pValue, List<String> pOptions) {
-        return new TextItem(pName, pLabel, pValue, pOptions);
+      public TaskItem create(String name, String label, String value, List<String> options) {
+        return new TextItem(name, label, value, options);
       }
 
     },
     LIST("list") {
 
       @Override
-      public TaskItem create(String pName, String pLabel, String pValue, List<String> pOptions) {
-        return new ListItem(pName, pLabel, pValue, pOptions);
+      public TaskItem create(String name, String label, String value, List<String> options) {
+        return new ListItem(name, label, value, options);
       }
 
     },
     PASSWORD("password") {
 
       @Override
-      public TaskItem create(String pName, String pLabel, String pValue, List<String> pOptions) {
-        return new PasswordItem(pName, pLabel, pValue);
+      public TaskItem create(String name, String label, String value, List<String> options) {
+        return new PasswordItem(name, label, value);
       }
 
     }
@@ -64,11 +59,11 @@ public abstract class TaskItem {
     ;
     private String mStr;
 
-    Type(String pStr) {
-      mStr = pStr;
+    Type(String str) {
+      mStr = str;
     }
 
-    public abstract TaskItem create(String pName, String pLabel, String pValue, List<String> pOptions);
+    public abstract TaskItem create(String name, String label, String value, List<String> options);
 
     @Override
     public String toString() {
@@ -86,26 +81,26 @@ public abstract class TaskItem {
   }
 
   public interface Factory<T extends TaskItem> {
-    T create(String pName, String pLabel, String pType, String pValue, List<String> pOptions);
+    T create(String name, String label, String type, String value, List<String> options);
   }
 
   private enum Factories implements Factory<TaskItem>{
     DEFAULT_FACTORY {
       @Override
-      public TaskItem create(String pName, String pLabel, String pType, String pValue, List<String> pOptions) {
-        Type type = Type.from(pType);
+      public TaskItem create(String name, String label, String typeName, String value, List<String> options) {
+        Type type = Type.from(typeName);
         if (type==null) {
-          return new GenericItem(pName, pLabel, pType, pValue, pOptions);
+          return new GenericItem(name, label, typeName, value, options);
         } else {
-          return type.create(pName, pLabel, pValue, pOptions);
+          return type.create(name, label, value, options);
         }
 
       }
     },
     GENERIC_FACTORY {
       @Override
-      public GenericItem create(String pName, String pLabel, String pType, String pValue, List<String> pOptions) {
-        return new GenericItem(pName, pLabel, pType, pValue, pOptions);
+      public GenericItem create(String name, String label, String type, String value, List<String> options) {
+        return new GenericItem(name, label, type, value, options);
       }
     },
 
@@ -113,16 +108,16 @@ public abstract class TaskItem {
 
   private String mName;
 
-  protected TaskItem(String pName) {
-    mName = pName;
+  protected TaskItem(String name) {
+    mName = name;
   }
 
   public String getName() {
     return mName;
   }
 
-  public void setName(String pName) {
-    mName = pName;
+  public void setName(String name) {
+    mName = name;
   }
 
   public abstract Type getType();
@@ -135,8 +130,8 @@ public abstract class TaskItem {
     return getType().toString();
   }
 
-  public static TaskItem create(String pName, String pLabel, String pType, String pValue, List<String> pOptions) {
-    return defaultFactory().create(pName, pLabel, pType, pValue, pOptions);
+  public static TaskItem create(String name, String label, String type, String value, List<String> options) {
+    return defaultFactory().create(name, label, type, value, options);
   }
 
   public static Factory<TaskItem> defaultFactory() {
@@ -148,9 +143,9 @@ public abstract class TaskItem {
     return (Factory<GenericItem>) (Factory)Factories.GENERIC_FACTORY;
   }
 
-  public abstract View createView(LayoutInflater pInflater, ViewGroup pParent);
+  public abstract View createView(LayoutInflater inflater, ViewGroup parent);
 
-  public abstract void updateView(View pV);
+  public abstract void updateView(View v);
 
   public abstract boolean isReadOnly();
 
@@ -159,46 +154,46 @@ public abstract class TaskItem {
     return Collections.emptyList();
   }
 
-  public void serialize(XmlSerializer pSerializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
-    pSerializer.startTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
-    if (getName()!=null) { pSerializer.attribute(null, "name", getName()); }
-    if (getValue()!=null) { pSerializer.attribute(null, "label", getValue()); }
-    if (getDBType()!=null) { pSerializer.attribute(null, "type", getDBType()); }
-    if (getValue()!=null) { pSerializer.attribute(null, "value", getValue()); }
+  public void serialize(XmlSerializer serializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
+    serializer.startTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    if (getName()!=null) { serializer.attribute(null, "name", getName()); }
+    if (getValue()!=null) { serializer.attribute(null, "label", getValue()); }
+    if (getDBType()!=null) { serializer.attribute(null, "type", getDBType()); }
+    if (getValue()!=null) { serializer.attribute(null, "value", getValue()); }
     if (serializeOptions) {
       for(String option: getOptions()) {
-        pSerializer.startTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
-        pSerializer.text(option);
-        pSerializer.endTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
+        serializer.startTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
+        serializer.text(option);
+        serializer.endTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
 
       }
     }
-    pSerializer.endTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    serializer.endTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
   }
 
-  public static GenericItem parseTaskGenericItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
-    return parseTaskItemHelper(pIn, genericFactory());
+  public static GenericItem parseTaskGenericItem(XmlPullParser in) throws XmlPullParserException, IOException {
+    return parseTaskItemHelper(in, genericFactory());
   }
 
-  private static <T extends TaskItem> T parseTaskItemHelper(XmlPullParser pIn, TaskItem.Factory<T> pFactory) throws XmlPullParserException, IOException {
-    pIn.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
-    String name = pIn.getAttributeValue(null, "name");
-    String label = pIn.getAttributeValue(null, "label");
-    String type = pIn.getAttributeValue(null, "type");
-    String value = pIn.getAttributeValue(null, "value");
+  private static <T extends TaskItem> T parseTaskItemHelper(XmlPullParser in, TaskItem.Factory<T> factory) throws XmlPullParserException, IOException {
+    in.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    String name = in.getAttributeValue(null, "name");
+    String label = in.getAttributeValue(null, "label");
+    String type = in.getAttributeValue(null, "type");
+    String value = in.getAttributeValue(null, "value");
     List<String> options = new ArrayList<>();
-    while ((pIn.nextTag())==XmlPullParser.START_TAG) {
-      pIn.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
-      options.add(pIn.nextText());
-      pIn.nextTag();
-      pIn.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
+    while ((in.nextTag())==XmlPullParser.START_TAG) {
+      in.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
+      options.add(in.nextText());
+      in.nextTag();
+      in.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
     }
-    pIn.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
-    return pFactory.create(name, label, type, value, options);
+    in.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    return factory.create(name, label, type, value, options);
   }
 
-  public static TaskItem parseTaskItem(XmlPullParser pIn) throws XmlPullParserException, IOException {
-    return TaskItem.parseTaskItemHelper(pIn, defaultFactory());
+  public static TaskItem parseTaskItem(XmlPullParser in) throws XmlPullParserException, IOException {
+    return TaskItem.parseTaskItemHelper(in, defaultFactory());
   }
 
 }

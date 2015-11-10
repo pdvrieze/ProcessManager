@@ -18,17 +18,17 @@ public class TaskLoader extends AsyncTaskLoader<UserTask> {
   private long mHandle=-1L;
   private Loader<UserTask>.ForceLoadContentObserver mObserver;
 
-  public TaskLoader(Context pContext, long pHandle) {
-    super(pContext);
+  public TaskLoader(Context context, long handle) {
+    super(context);
     mObserver = new ForceLoadContentObserver();
-    mHandle = pHandle;
+    mHandle = handle;
     onContentChanged();
   }
 
-  public TaskLoader(Context pContext, Uri pUri) {
-    super(pContext);
+  public TaskLoader(Context context, Uri uri) {
+    super(context);
     mObserver = new ForceLoadContentObserver();
-    mUri = pUri;
+    mUri = uri;
     onContentChanged();
   }
 

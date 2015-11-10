@@ -17,9 +17,9 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
 
   private List<String> mOptions;
 
-  public ListItem(String pName, String pLabel, String pValue, List<String> pOptions) {
-    super(pName, pLabel, pValue);
-    mOptions = pOptions;
+  public ListItem(String name, String label, String value, List<String> options) {
+    super(name, label, value);
+    mOptions = options;
   }
 
   @Override
@@ -28,15 +28,15 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
   }
 
   @Override
-  protected View createDetailView(LayoutInflater pInflater, FrameLayout pParent) {
-    View view = pInflater.inflate(R.layout.taskitem_detail_list, pParent, false);
+  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
+    View view = inflater.inflate(R.layout.taskitem_detail_list, parent, false);
     updateDetailView(view);
     return view;
   }
 
   @Override
-  protected void updateDetailView(View pDetail) {
-    Spinner view = (Spinner) pDetail;
+  protected void updateDetailView(View detail) {
+    Spinner view = (Spinner) detail;
     String value = getValue();
     int index = AdapterView.INVALID_POSITION;
     if (value!=null) {
@@ -52,19 +52,19 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
         }
       }
     }
-    view.setAdapter(mOptions==null ? null : new ArrayAdapter<>(pDetail.getContext(), android.R.layout.simple_dropdown_item_1line, mOptions));
+    view.setAdapter(mOptions==null ? null : new ArrayAdapter<>(detail.getContext(), android.R.layout.simple_dropdown_item_1line, mOptions));
     view.setSelection(index, false);
 
     view.setOnItemSelectedListener(this);
   }
 
   @Override
-  public void onItemSelected(AdapterView<?> pParent, View pView, int pPosition, long pId) {
-    setValue(mOptions.get(pPosition));
+  public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    setValue(mOptions.get(position));
   }
 
   @Override
-  public void onNothingSelected(AdapterView<?> pParent) {
+  public void onNothingSelected(AdapterView<?> parent) {
     setValue(null);
   }
 

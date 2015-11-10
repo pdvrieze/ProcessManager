@@ -13,13 +13,13 @@ public class LWDrawableView implements LightView{
   /** Cached canvas */
   private AndroidCanvas aAndroidCanvas;
 
-  public LWDrawableView(Drawable pItem) {
-    aItem = pItem;
+  public LWDrawableView(Drawable item) {
+    aItem = item;
   }
 
   @Override
-  public void setFocussed(boolean pFocussed) {
-    if (pFocussed) {
+  public void setFocussed(boolean focussed) {
+    if (focussed) {
       aItem.setState(aItem.getState()|Drawable.STATE_FOCUSSED);
     } else {
       aItem.setState(aItem.getState()& ~Drawable.STATE_FOCUSSED);
@@ -32,8 +32,8 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void setSelected(boolean pSelected) {
-    if (pSelected) {
+  public void setSelected(boolean selected) {
+    if (selected) {
       aItem.setState(aItem.getState()|Drawable.STATE_SELECTED);
     } else {
       aItem.setState(aItem.getState()& ~Drawable.STATE_SELECTED);
@@ -46,8 +46,8 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void setTouched(boolean pTouched) {
-    if (pTouched) {
+  public void setTouched(boolean touched) {
+    if (touched) {
       aItem.setState(aItem.getState()|Drawable.STATE_TOUCHED);
     } else {
       aItem.setState(aItem.getState()& ~Drawable.STATE_TOUCHED);
@@ -60,8 +60,8 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void setActive(boolean pActive) {
-    if (pActive) {
+  public void setActive(boolean active) {
+    if (active) {
       aItem.setState(aItem.getState()|Drawable.STATE_ACTIVE);
     } else {
       aItem.setState(aItem.getState()& ~Drawable.STATE_ACTIVE);
@@ -74,9 +74,9 @@ public class LWDrawableView implements LightView{
   }
 
   @Override
-  public void getBounds(RectF pRect) {
+  public void getBounds(RectF rect) {
     Rectangle bounds = aItem.getBounds();
-    pRect.set(bounds.leftf(), bounds.topf(), bounds.rightf(), bounds.bottomf());
+    rect.set(bounds.leftf(), bounds.topf(), bounds.rightf(), bounds.bottomf());
   }
 
 
@@ -85,23 +85,23 @@ public class LWDrawableView implements LightView{
    * preapplied so the top left of the drawing is 0,0.
    */
   @Override
-  public  void draw(Canvas pCanvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> pTheme, double pScale) {
+  public  void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
     if (aAndroidCanvas==null) {
-      aAndroidCanvas=new AndroidCanvas(pCanvas, pTheme);
+      aAndroidCanvas=new AndroidCanvas(canvas, theme);
     } else {
-      aAndroidCanvas.setCanvas(pCanvas);
+      aAndroidCanvas.setCanvas(canvas);
     }
-    aItem.draw(aAndroidCanvas.scale(pScale), null);
+    aItem.draw(aAndroidCanvas.scale(scale), null);
   }
 
   @Override
-  public void move(float pX, float pY) {
-    aItem.move(pX, pY);
+  public void move(float x, float y) {
+    aItem.move(x, y);
   }
 
   @Override
-  public void setPos(float pLeft, float pTop) {
-    aItem.setPos(pLeft, pTop);
+  public void setPos(float left, float top) {
+    aItem.setPos(left, top);
   }
 
 }

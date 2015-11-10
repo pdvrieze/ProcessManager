@@ -21,8 +21,8 @@ public class AndroidPen implements Pen<AndroidPen> {
   private FontMetrics aFontMetrics;
 
 
-  public AndroidPen(Paint pPaint) {
-    aPaint = pPaint;
+  public AndroidPen(Paint paint) {
+    aPaint = paint;
     aPaint.setStyle(Style.STROKE);
   }
 
@@ -31,21 +31,21 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public AndroidPen setColor(int pRed, int pGreen, int pBlue) {
-    aPaint.setARGB(255, pRed, pGreen, pBlue);
+  public AndroidPen setColor(int red, int green, int blue) {
+    aPaint.setARGB(255, red, green, blue);
     return this;
   }
 
   @Override
-  public AndroidPen setColor(int pRed, int pGreen, int pBlue, int pAlpha) {
-    aPaint.setARGB(pAlpha, pRed, pGreen, pBlue);
+  public AndroidPen setColor(int red, int green, int blue, int alpha) {
+    aPaint.setARGB(alpha, red, green, blue);
     return this;
   }
 
   @Override
-  public AndroidPen setStrokeWidth(double pStrokeWidth) {
-    aStrokeWidth = pStrokeWidth;
-    aPaint.setStrokeWidth((float) pStrokeWidth);
+  public AndroidPen setStrokeWidth(double strokeWidth) {
+    aStrokeWidth = strokeWidth;
+    aPaint.setStrokeWidth((float) strokeWidth);
     return this;
   }
   
@@ -62,13 +62,13 @@ public class AndroidPen implements Pen<AndroidPen> {
     aPaint.setShadowLayer(radius, aShadowDx, aShadowDy, color);
   }
 
-  public AndroidPen scale(double pScale) {
-    aPaint.setStrokeWidth((float) (aStrokeWidth*pScale));
+  public AndroidPen scale(double scale) {
+    aPaint.setStrokeWidth((float) (aStrokeWidth*scale));
     if (aShadowRadius>0f) {
-      aPaint.setShadowLayer((float) (aShadowRadius*pScale), (float) (aShadowDx*pScale), (float) (aShadowDy*pScale), aShadowColor);
+      aPaint.setShadowLayer((float) (aShadowRadius*scale), (float) (aShadowDx*scale), (float) (aShadowDy*scale), aShadowColor);
     }
     if (!Double.isNaN(aFontSize)) {
-      aPaint.setTextSize((float) (aFontSize*pScale));
+      aPaint.setTextSize((float) (aFontSize*scale));
     }
     return this;
   }
@@ -87,10 +87,10 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public double measureTextWidth(String pText, double pFoldWidth) {
+  public double measureTextWidth(String text, double foldWidth) {
     float ts = aPaint.getTextSize();
     aPaint.setTextSize(((float) aFontSize)*FONT_MEASURE_FACTOR);
-    final float result = aPaint.measureText(pText)/FONT_MEASURE_FACTOR;
+    final float result = aPaint.measureText(text)/FONT_MEASURE_FACTOR;
     aPaint.setTextSize(ts);
     return result;
   }
@@ -138,13 +138,13 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public void setTextItalics(boolean pItalics) {
+  public void setTextItalics(boolean italics) {
     final Typeface oldTypeface = aPaint.getTypeface();
     final int style;
     if (oldTypeface==null) {
-      style = pItalics ? Typeface.ITALIC : Typeface.NORMAL;
+      style = italics ? Typeface.ITALIC : Typeface.NORMAL;
     } else {
-      style = (oldTypeface.getStyle() & ~ Typeface.ITALIC) | (pItalics ? Typeface.ITALIC : Typeface.NORMAL);
+      style = (oldTypeface.getStyle() & ~ Typeface.ITALIC) | (italics ? Typeface.ITALIC : Typeface.NORMAL);
     }
     aPaint.setTypeface(Typeface.create(oldTypeface,style));
   }
