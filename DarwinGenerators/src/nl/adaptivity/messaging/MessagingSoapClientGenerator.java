@@ -1,18 +1,17 @@
 package nl.adaptivity.messaging;
 
-import java.io.BufferedWriter;
-import java.io.CharArrayWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import net.devrieze.util.Annotations;
+import nl.adaptivity.rest.annotations.RestParam;
+import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import nl.adaptivity.ws.soap.SoapSeeAlso;
+
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.xml.namespace.QName;
+
+import java.io.*;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
-import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.WildcardType;
+import java.lang.reflect.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -20,23 +19,7 @@ import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.namespace.QName;
-
-import net.devrieze.util.Annotations;
-import nl.adaptivity.rest.annotations.RestParam;
-import nl.adaptivity.rest.annotations.RestParam.ParamType;
-import nl.adaptivity.ws.soap.SoapSeeAlso;
+import java.util.*;
 
 
 /**
@@ -49,13 +32,13 @@ public class MessagingSoapClientGenerator {
 
   private static final class ParamInfo {
 
-    public final String name;
+    public final String mName;
 
-    public final Type type;
+    public final Type mType;
 
-    public ParamInfo(final Type pType, final String pName) {
-      type = pType;
-      name = pName;
+    public ParamInfo(final Type type, final String name) {
+      mType = type;
+      mName = name;
     }
 
   }
@@ -232,12 +215,12 @@ public class MessagingSoapClientGenerator {
   }
 
   @SuppressWarnings("resource")
-  private static URL[] getUrls(final String pClassPath) {
+  private static URL[] getUrls(final String classPath) {
     final FileSystem fs = FileSystems.getDefault();
     final List<URL> result = new ArrayList<>();
 
     try {
-      for (final String element : pClassPath.split(":")) {
+      for (final String element : classPath.split(":")) {
         if (element.length()>0) {
           URL url;
           try {
@@ -268,14 +251,14 @@ public class MessagingSoapClientGenerator {
     System.out.println("  <inputclass>       : The Endpoint that needs a client");
   }
 
-  private static void generateJava(final Path pOutfile, final Class<?> pEndpointClass, final String pPkgname, final String pOutClass) throws IOException {
-    try (final Writer out = new BufferedWriter(new FileWriter(pOutfile.toFile()))) {
-      generateJava(out, pEndpointClass, pPkgname, pOutClass);
+  private static void generateJava(final Path outfile, final Class<?> endpointClass, final String pkgname, final String outClass) throws IOException {
+    try (final Writer out = new BufferedWriter(new FileWriter(outfile.toFile()))) {
+      generateJava(out, endpointClass, pkgname, outClass);
     }
   }
 
-  private static void generateJava(final Writer pOut, final Class<?> pEndpointClass, final String pPkgname, final String pOutClass) throws IOException {
-    writeHead(pOut, pEndpointClass, pPkgname);
+  private static void generateJava(final Writer out, final Class<?> endpointClass, final String pkgname, final String outClass) throws IOException {
+    writeHead(out, endpointClass, pkgname);
 
     CharArrayWriter buffer = new CharArrayWriter(0x2000);
 
@@ -296,7 +279,7 @@ public class MessagingSoapClientGenerator {
     imports.put("SendableSoapSource", "nl.adaptivity.messaging.SendableSoapSource");
     imports.put("SoapHelper", "nl.adaptivity.ws.soap.SoapHelper");
 
-    writeClassBody(buffer, pEndpointClass, pOutClass, imports);
+    writeClassBody(buffer, endpointClass, outClass, imports);
 
     List<String> finalStrings = new ArrayList<>(imports.values());
     Collections.sort(finalStrings);
@@ -304,50 +287,50 @@ public class MessagingSoapClientGenerator {
     for(String str: finalStrings) {
       String prefix = str.indexOf('.')<0 ? "" : str.substring(0, str.indexOf('.'));
       if (oldPrefix!=null && (! oldPrefix.equals(prefix))) {
-        pOut.write('\n');
+        out.write('\n');
       }
-      pOut.append("import ").append(str).append(";\n");
+      out.append("import ").append(str).append(";\n");
       oldPrefix = prefix;
     }
-    pOut.write('\n');
+    out.write('\n');
 
-    buffer.writeTo(pOut);
+    buffer.writeTo(out);
   }
 
-  private static void writeHead(final Writer pOut, final Class<?> pEndpointClass, final String pPkgname) throws IOException {
-    pOut.write(  "/*\n");
-    pOut.write(  " * Generated by MessagingSoapClientGenerator.\n");
-    pOut.write(  " * Source class: ");
-    pOut.write(    pEndpointClass.getCanonicalName());
-    pOut.write("\n */\n\n");
+  private static void writeHead(final Writer out, final Class<?> endpointClass, final String pkgname) throws IOException {
+    out.write(  "/*\n");
+    out.write(  " * Generated by MessagingSoapClientGenerator.\n");
+    out.write(  " * Source class: ");
+    out.write(    endpointClass.getCanonicalName());
+    out.write("\n */\n\n");
 
-    pOut.write("package ");
-    pOut.write(pPkgname);
-    pOut.write(";\n\n");
+    out.write("package ");
+    out.write(pkgname);
+    out.write(";\n\n");
   }
 
-  private static void writeClassBody(final Writer pOut, final Class<?> pEndpointClass, final String pOutClass, Map<String, String> pImports) throws IOException {
-    pOut.write("@SuppressWarnings(\"all\")\n");
-    pOut.write("public class ");
-    pOut.write(pOutClass);
-    pOut.write(" {\n\n");
+  private static void writeClassBody(final Writer out, final Class<?> endpointClass, final String outClass, Map<String, String> imports) throws IOException {
+    out.write("@SuppressWarnings(\"all\")\n");
+    out.write("public class ");
+    out.write(outClass);
+    out.write(" {\n\n");
 
     // Write service location constants / variables.
     boolean finalService = false;
     try {
       final EndpointDescriptor instance;
-      if(pEndpointClass.isAnnotationPresent(Descriptor.class)) {
-        instance = pEndpointClass.getAnnotation(Descriptor.class).value().newInstance();
+      if(endpointClass.isAnnotationPresent(Descriptor.class)) {
+        instance = endpointClass.getAnnotation(Descriptor.class).value().newInstance();
       } else {
-        instance = (EndpointDescriptor) pEndpointClass.newInstance();
+        instance = (EndpointDescriptor) endpointClass.newInstance();
       }
 
-      pOut.write("  private static final QName SERVICE = " + qnamestring(instance.getServiceName()) + ";\n");
-      pOut.write(appendString(new StringBuilder("  private static final String ENDPOINT = "), instance.getEndpointName()).append(";\n").toString());
+      out.write("  private static final QName SERVICE = " + qnamestring(instance.getServiceName()) + ";\n");
+      out.write(appendString(new StringBuilder("  private static final String ENDPOINT = "), instance.getEndpointName()).append(";\n").toString());
       if (instance.getEndpointLocation() != null) {
-        pOut.write(appendString(new StringBuilder("  private static final URI LOCATION = URI.create("), instance.getEndpointLocation().toString()).append(");\n\n").toString());
+        out.write(appendString(new StringBuilder("  private static final URI LOCATION = URI.create("), instance.getEndpointLocation().toString()).append(");\n\n").toString());
       } else {
-        pOut.write("  private static final URI LOCATION = null;\n\n");
+        out.write("  private static final URI LOCATION = null;\n\n");
       }
       finalService = true;
     } catch (final ClassCastException | InstantiationException | IllegalAccessException e ) { /*
@@ -357,65 +340,65 @@ public class MessagingSoapClientGenerator {
       e.printStackTrace();
     }
     if (!finalService) {
-      pOut.write("  private static QName SERVICE = null;\n");
-      pOut.write("  private static String ENDPOINT = null;\n");
-      pOut.write("  private static URI LOCATION = null;\n\n");
+      out.write("  private static QName SERVICE = null;\n");
+      out.write("  private static String ENDPOINT = null;\n");
+      out.write("  private static URI LOCATION = null;\n\n");
     }
 
     // Constructor
-    pOut.write("  private ");
-    pOut.write(pOutClass);
-    pOut.write("() { }\n\n");
+    out.write("  private ");
+    out.write(outClass);
+    out.write("() { }\n\n");
 
-    writeMethods(pOut, pEndpointClass, pImports);
+    writeMethods(out, endpointClass, imports);
 
 
     // Initializer in case we can't figure out the locations
     if (!finalService) {
-      pOut.write("  private static void init(QName service, String endpoint, URI location) {\n");
-      pOut.write("    SERVICE=service;\n");
-      pOut.write("    ENDPOINT=endpoint;\n");
-      pOut.write("    LOCATION=location;\n");
-      pOut.write("  }\n\n");
+      out.write("  private static void init(QName service, String endpoint, URI location) {\n");
+      out.write("    SERVICE=service;\n");
+      out.write("    ENDPOINT=endpoint;\n");
+      out.write("    LOCATION=location;\n");
+      out.write("  }\n\n");
     }
 
-    pOut.write("}\n");
+    out.write("}\n");
   }
 
-  private static void writeMethods(final Writer pOut, final Class<?> pEndpointClass, Map<String, String> pImports) throws IOException {
-    final Method[] methods = pEndpointClass.getMethods();
+  private static void writeMethods(final Writer out, final Class<?> endpointClass, Map<String, String> imports) throws IOException {
+    final Method[] methods = endpointClass.getMethods();
     Arrays.sort(methods, METHODSORT);
     for (final Method method : methods) {
       final WebMethod annotation = method.getAnnotation(WebMethod.class);
       if (annotation != null) {
-        writeMethod(pOut, method, annotation, pImports);
+        writeMethod(out, method, annotation, imports);
       }
     }
   }
 
-  private static void writeMethod(final Writer pOut, final Method pMethod, final WebMethod pAnnotation, Map<String, String> pImports) throws IOException {
-    String methodName = pAnnotation.operationName();
+  private static void writeMethod(final Writer out, final Method method, final WebMethod webMethod, Map<String, String> imports) throws IOException {
+    String methodName = webMethod.operationName();
     String principalName = null;
     if ((methodName == null) || (methodName.length() == 0)) {
-      methodName = pMethod.getName();
+      methodName = method.getName();
     }
-    pOut.write("  public static");
-    writeTypeParams(pOut, pMethod.getTypeParameters(), pImports);
-    pOut.write(" Future<");
-    writeType(pOut, pMethod.getGenericReturnType(), false, false, pImports);
-    pOut.write("> ");
-    pOut.write(methodName);
-    pOut.write("(");
+    out.write("  public static");
+    writeTypeParams(out, method.getTypeParameters(), imports);
+    out.write(" Future<");
+    writeType(out, method.getGenericReturnType(), false, false, imports);
+    out.write("> ");
+    out.write(methodName);
+    out.write("(");
     boolean firstParam = true;
     final List<ParamInfo> params = new ArrayList<>();
     {
       int paramNo = 0;
-      final Type[] parameterTypes = pMethod.getGenericParameterTypes();
+      final Type[] parameterTypes = method.getGenericParameterTypes();
       for (int i=0; i<parameterTypes.length; ++i) {
         final Type paramType = parameterTypes[i];
         String name = null;
         boolean isPrincipal = false;
-        for (final Annotation annotation : pMethod.getParameterAnnotations()[paramNo]) {
+        for (final Annotation annotation : method.getParameterAnnotations()[paramNo]) {
           if (annotation instanceof WebParam) {
             final WebParam webparam = (WebParam) annotation;
             if (webparam.name() != null) {
@@ -447,115 +430,115 @@ public class MessagingSoapClientGenerator {
         if (firstParam) {
           firstParam = false;
         } else {
-          pOut.write(", ");
+          out.write(", ");
         }
-        writeType(pOut, paramType, true, pMethod.isVarArgs() && i==parameterTypes.length-1, pImports);
-        pOut.write(' ');
-        pOut.write(name);
+        writeType(out, paramType, true, method.isVarArgs() && i==parameterTypes.length-1, imports);
+        out.write(' ');
+        out.write(name);
 
         ++paramNo;
       }
     }
-    SoapSeeAlso seeAlso = Annotations.getAnnotation(pMethod.getAnnotations(),SoapSeeAlso.class);
+    SoapSeeAlso seeAlso = Annotations.getAnnotation(method.getAnnotations(),SoapSeeAlso.class);
     if (seeAlso == null) {
-      pOut.write(", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {\n");
+      out.write(", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {\n");
     } else {
-      pOut.write(", CompletionListener completionListener) throws JAXBException {\n");
+      out.write(", CompletionListener completionListener) throws JAXBException {\n");
     }
     {
       int paramNo = 0;
       for (final ParamInfo param : params) {
-        pOut.write("    final Tripple<String, Class<");
-        Class<?> rawtype = getRawType(param.type);
-        writeType(pOut, rawtype, false, false, pImports);
-        pOut.write(">, ");
-        writeType(pOut, param.type, false, false, pImports);
-        pOut.write("> param" + paramNo + " = Tripple.<String, Class<");
-        writeType(pOut, rawtype, false, false, pImports);
-        pOut.write(">, ");
-        writeType(pOut, param.type, false, false, pImports);
-        pOut.write(">tripple(");
-        pOut.write(appendString(new StringBuilder(), param.name).append(", ").toString());
+        out.write("    final Tripple<String, Class<");
+        Class<?> rawtype = getRawType(param.mType);
+        writeType(out, rawtype, false, false, imports);
+        out.write(">, ");
+        writeType(out, param.mType, false, false, imports);
+        out.write("> param" + paramNo + " = Tripple.<String, Class<");
+        writeType(out, rawtype, false, false, imports);
+        out.write(">, ");
+        writeType(out, param.mType, false, false, imports);
+        out.write(">tripple(");
+        out.write(appendString(new StringBuilder(), param.mName).append(", ").toString());
         if (rawtype.isArray()) {
-          pOut.write("Array.class, ");
+          out.write("Array.class, ");
         } else {
-          writeType(pOut, rawtype, true, false, pImports);
-          pOut.write(".class, ");
+          writeType(out, rawtype, true, false, imports);
+          out.write(".class, ");
         }
-        pOut.write(param.name);
-        pOut.write(");\n");
+        out.write(param.mName);
+        out.write(");\n");
 
         ++paramNo;
       }
     }
-    pOut.write("\n");
-    pOut.write("    Source message = SoapHelper.createMessage(new QName(");
-    if (pAnnotation.operationName() != null) {
-      pOut.write(appendString(new StringBuilder(), pAnnotation.operationName()).append("), ").toString());
+    out.write("\n");
+    out.write("    Source message = SoapHelper.createMessage(new QName(");
+    if (webMethod.operationName() != null) {
+      out.write(appendString(new StringBuilder(), webMethod.operationName()).append("), ").toString());
     } else {
-      pOut.write(appendString(new StringBuilder(), pMethod.getName()).append("), ").toString());
+      out.write(appendString(new StringBuilder(), method.getName()).append("), ").toString());
     }
     if (principalName != null) {
-      pOut.write("Arrays.asList(new JAXBElement<String>(new QName(\"http://adaptivity.nl/ProcessEngine/\",\"principal\"), String.class, "
+      out.write("Arrays.asList(new JAXBElement<String>(new QName(\"http://adaptivity.nl/ProcessEngine/\",\"principal\"), String.class, "
           + principalName + ".getName())), ");
     }
-    pOut.write("Arrays.asList(");
+    out.write("Arrays.asList(");
     for (int i = 0; i < params.size(); ++i) {
       if (i > 0) {
-        pOut.write(", ");
+        out.write(", ");
       }
-      pOut.write("param" + i);
+      out.write("param" + i);
     }
-    pOut.write("));\n\n");
+    out.write("));\n\n");
 
-    pOut.write("    EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);\n\n");
+    out.write("    EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);\n\n");
 
-    pOut.write("    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ");
-    writeType(pOut, getRawType(pMethod.getGenericReturnType()), true, false, pImports);
+    out.write("    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ");
+    writeType(out, getRawType(method.getGenericReturnType()), true, false, imports);
 
-    pOut.write(".class, ");
+    out.write(".class, ");
 
     if (seeAlso==null) {
-      pOut.write("jaxbcontext");
+      out.write("jaxbcontext");
     } else {
-      writeClassArray(pOut, seeAlso.value(), pImports);
+      writeClassArray(out, seeAlso.value(), imports);
     }
 
-    pOut.write(");\n");
+    out.write(");\n");
 
-    pOut.write("  }\n\n");
+    out.write("  }\n\n");
 
   }
 
-  private static void writeClassArray(Writer pOut, Class<?>[] pValue, Map<String, String> pImports) throws IOException {
-    if (pValue.length==0) {
-      pOut.write("new Class<?>[0]");
+  private static void writeClassArray(Writer out, Class<?>[] value, Map<String, String> imports) throws IOException {
+    if (value.length==0) {
+      out.write("new Class<?>[0]");
       return;
     }
-    pOut.write("new Class<?>[] {");
-    writeType(pOut, pValue[0], false, false, pImports);
-    for(int i=1; i<pValue.length; ++i) {
-      pOut.write(", ");
-      writeType(pOut, pValue[i], false, false, pImports);
+    out.write("new Class<?>[] {");
+    writeType(out, value[0], false, false, imports);
+    for(int i=1; i<value.length; ++i) {
+      out.write(", ");
+      writeType(out, value[i], false, false, imports);
     }
-    pOut.write('}');
+    out.write('}');
   }
 
-  private static Class<?> getRawType(Type pType) {
-    if (pType instanceof Class) {
-      return (Class<?>) pType;
-    } else if (pType instanceof ParameterizedType) {
-      return getRawType(((ParameterizedType) pType).getRawType());
-    } else if (pType instanceof GenericArrayType) {
-      final Class<?> componentType = getRawType(((GenericArrayType) pType).getGenericComponentType());
+  private static Class<?> getRawType(Type type) {
+    if (type instanceof Class) {
+      return (Class<?>) type;
+    } else if (type instanceof ParameterizedType) {
+      return getRawType(((ParameterizedType) type).getRawType());
+    } else if (type instanceof GenericArrayType) {
+      final Class<?> componentType = getRawType(((GenericArrayType) type).getGenericComponentType());
       return Array.newInstance(componentType, 0).getClass();
-    } else if (pType instanceof TypeVariable<?>) {
-      for(Type bound:((TypeVariable<?>)pType).getBounds()) {
+    } else if (type instanceof TypeVariable<?>) {
+      for(Type bound:((TypeVariable<?>)type).getBounds()) {
         return getRawType(bound);
       }
       return Object.class;
-    } else if (pType instanceof WildcardType) {
-      for(Type bound:((WildcardType)pType).getUpperBounds()) {
+    } else if (type instanceof WildcardType) {
+      for(Type bound:((WildcardType)type).getUpperBounds()) {
         return getRawType(bound);
       }
       return Object.class;
@@ -564,93 +547,93 @@ public class MessagingSoapClientGenerator {
     return null;
   }
 
-  private static void writeType(Writer pOut, Type pType, boolean allowPrimitive, boolean varArgs, Map<String, String> pImports) throws IOException {
-    if (pType instanceof ParameterizedType) {
-      ParameterizedType type = (ParameterizedType) pType;
-      writeType(pOut, type.getRawType(), allowPrimitive, varArgs, pImports);
-      writeTypes(pOut, type.getActualTypeArguments(), pImports);
-    } else if (pType instanceof GenericArrayType) {
-      GenericArrayType type = (GenericArrayType) pType;
-      writeType(pOut,type.getGenericComponentType(), true, false, pImports);
+  private static void writeType(Writer out, Type type, boolean allowPrimitive, boolean varArgs, Map<String, String> imports) throws IOException {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      writeType(out, parameterizedType.getRawType(), allowPrimitive, varArgs, imports);
+      writeTypes(out, parameterizedType.getActualTypeArguments(), imports);
+    } else if (type instanceof GenericArrayType) {
+      GenericArrayType genericArrayType = (GenericArrayType) type;
+      writeType(out,genericArrayType.getGenericComponentType(), true, false, imports);
       if (varArgs) {
-        pOut.write("...");
+        out.write("...");
       } else {
-        pOut.write("[]");
+        out.write("[]");
       }
-    } else if (pType instanceof TypeVariable<?>) {
-      TypeVariable<?> type = (TypeVariable<?>) pType;
-      pOut.write(type.getName());
-    } else if (pType instanceof WildcardType) {
-      WildcardType type = (WildcardType) pType;
-      pOut.write('?');
+    } else if (type instanceof TypeVariable<?>) {
+      TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+      out.write(typeVariable.getName());
+    } else if (type instanceof WildcardType) {
+      WildcardType wildcardType = (WildcardType) type;
+      out.write('?');
       {
-        Type[] lower = type.getLowerBounds();
+        Type[] lower = wildcardType.getLowerBounds();
         if (lower.length>0) {
-          pOut.write(" super ");
+          out.write(" super ");
           boolean first = true;
           for(Type b:lower) {
-            if (first) { first = false; } else { pOut.write(" & "); }
-            writeType(pOut, b, false, varArgs, pImports);
+            if (first) { first = false; } else { out.write(" & "); }
+            writeType(out, b, false, varArgs, imports);
           }
         }
       }
       {
-        Type[] upper = type.getUpperBounds();
+        Type[] upper = wildcardType.getUpperBounds();
         if (!(upper.length==0 || (upper.length==1 && Object.class.equals(upper[0])))) {
-          pOut.write(" extends ");
+          out.write(" extends ");
           boolean first = true;
           for(Type b:upper) {
-            if (first) { first = false; } else { pOut.write(" & "); }
-            writeType(pOut, b, false, varArgs, pImports);
+            if (first) { first = false; } else { out.write(" & "); }
+            writeType(out, b, false, varArgs, imports);
           }
 
         }
       }
-    } else if (pType instanceof Class) {
-      final Class<?> type = (Class<?>)pType;
-      if (allowPrimitive || (! type.isPrimitive())) {
-        final String canonname = type.getCanonicalName();
+    } else if (type instanceof Class) {
+      final Class<?> clazz = (Class<?>)type;
+      if (allowPrimitive || (! clazz.isPrimitive())) {
+        final String canonname = clazz.getCanonicalName();
         final String pkg = getPackage(canonname);
         final String cls = getName(canonname);
-        if ("java.lang".equals(pkg) || type.isPrimitive()) {
-          pOut.write(cls);
+        if ("java.lang".equals(pkg) || clazz.isPrimitive()) {
+          out.write(cls);
         } else {
-          String imp = pImports.get(cls);
+          String imp = imports.get(cls);
           if (imp==null) {
-            pImports.put(cls, canonname);
-            pOut.write(cls);
+            imports.put(cls, canonname);
+            out.write(cls);
           } else if (imp.equals(canonname)) {
-            pOut.write(cls);
+            out.write(cls);
           } else { // duplicate, use full name
-            pOut.write(canonname);
+            out.write(canonname);
           }
         }
       } else {
-        pOut.write(toBox(type.getSimpleName()));
+        out.write(toBox(clazz.getSimpleName()));
       }
     } else {
-      throw new IllegalArgumentException("Type parameter of type "+pType.getClass().getCanonicalName()+" not supported");
+      throw new IllegalArgumentException("Type parameter of type "+type.getClass().getCanonicalName()+" not supported");
     }
   }
 
-  private static String getPackage(String pName) {
-    int i=pName.lastIndexOf('.');
+  private static String getPackage(String name) {
+    int i=name.lastIndexOf('.');
     if (i>=0) {
-      return pName.substring(0, i);
+      return name.substring(0, i);
     }
-    return pName;
+    return name;
   }
 
-  private static String getName(String pName) {
-    int i=pName.lastIndexOf('.');
+  private static String getName(String name) {
+    int i=name.lastIndexOf('.');
     if (i>=0) {
-      return pName.substring(i+1);
+      return name.substring(i+1);
     }
-    return pName;
+    return name;
   }
 
-  private static String toBox(String pSimpleName) {
-    switch (pSimpleName) {
+  private static String toBox(String simpleName) {
+    switch (simpleName) {
       case "byte": return "Byte";
       case "short": return "Short";
       case "int": return "Integer";
@@ -663,84 +646,84 @@ public class MessagingSoapClientGenerator {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
-  private static void writeTypes(Writer pOut, Type[] pTypes, Map<String, String> pImports) throws IOException {
-    if (pTypes.length>0) {
-      pOut.write('<');
-      writeType(pOut, pTypes[0], false, false, pImports);
-      for(int i=1; i< pTypes.length;++i) {
-        pOut.write(',');
-        writeType(pOut, pTypes[i], false, false, pImports);
+  private static void writeTypes(Writer out, Type[] types, Map<String, String> imports) throws IOException {
+    if (types.length>0) {
+      out.write('<');
+      writeType(out, types[0], false, false, imports);
+      for(int i=1; i< types.length;++i) {
+        out.write(',');
+        writeType(out, types[i], false, false, imports);
       }
-      pOut.write('>');
+      out.write('>');
     }
 
   }
 
-  private static void writeTypeParams(Writer pOut, TypeVariable<Method>[] pParams, Map<String, String> pImports) throws IOException {
-    if (pParams.length>0) {
-      pOut.write('<');
+  private static void writeTypeParams(Writer out, TypeVariable<Method>[] params, Map<String, String> imports) throws IOException {
+    if (params.length>0) {
+      out.write('<');
       boolean first = true;
-      for(TypeVariable<Method> param: pParams) {
-        if (first) { first = false; } else { pOut.write(", "); }
-        pOut.write(param.getName());
+      for(TypeVariable<Method> param: params) {
+        if (first) { first = false; } else { out.write(", "); }
+        out.write(param.getName());
         if (param.getBounds().length>0 &&
             (! (param.getBounds().length==1 && Object.class.equals(param.getBounds()[0])))) {
-          pOut.write(" extends ");
+          out.write(" extends ");
           boolean boundFirst =true;
           for(Type bound: param.getBounds()) {
-            if (boundFirst) { boundFirst = false; } else { pOut.write(" & "); }
-            writeType(pOut, bound, false, false, pImports);
+            if (boundFirst) { boundFirst = false; } else { out.write(" & "); }
+            writeType(out, bound, false, false, imports);
           }
         }
       }
-      pOut.write('>');
+      out.write('>');
     }
 
   }
 
-  private static String qnamestring(final QName pQName) {
+  private static String qnamestring(final QName qName) {
     final StringBuilder result = new StringBuilder();
 
     result.append("new QName(");
-    appendString(result, pQName.getNamespaceURI()).append(", ");
-    appendString(result, pQName.getLocalPart());
-    if (pQName.getPrefix() != null) {
-      appendString(result.append(", "), pQName.getPrefix());
+    appendString(result, qName.getNamespaceURI()).append(", ");
+    appendString(result, qName.getLocalPart());
+    if (qName.getPrefix() != null) {
+      appendString(result.append(", "), qName.getPrefix());
     }
     result.append(')');
     return result.toString();
   }
 
-  private static StringBuilder appendString(final StringBuilder pResult, final String pString) {
-    if (pString == null) {
-      pResult.append("null");
+  private static StringBuilder appendString(final StringBuilder result, final String string) {
+    if (string == null) {
+      result.append("null");
     } else {
-      pResult.append('"');
-      for (int i = 0; i < pString.length(); ++i) {
-        final char c = pString.charAt(i);
+      result.append('"');
+      for (int i = 0; i < string.length(); ++i) {
+        final char c = string.charAt(i);
         switch (c) {
           case '\\':
-            pResult.append("\\\\");
+            result.append("\\\\");
             break;
           case '"':
-            pResult.append('\\').append(c);
+            result.append('\\').append(c);
             break;
           case '\t':
-            pResult.append("\\t");
+            result.append("\\t");
             break;
           case '\n':
-            pResult.append("\\n");
+            result.append("\\n");
             break;
           case '\r':
-            pResult.append("\\r");
+            result.append("\\r");
             break;
           default:
-            pResult.append(c);
+            result.append(c);
         }
       }
-      pResult.append('"');
+      result.append('"');
     }
-    return pResult;
+    return result;
   }
 
 }
