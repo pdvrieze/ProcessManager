@@ -12,29 +12,29 @@ import java.util.Collection;
 public class ActionDescriptorGroup {
 
   @XmlAttribute(name = "title")
-  String aTitle;
+  String mTitle;
 
   @XmlElement(name = ActionDescriptor.ELEMENTNAME)
-  Collection<ActionDescriptor> aActions;
+  Collection<ActionDescriptor> mActions;
 
 
   public String getTitle() {
-    return aTitle;
+    return mTitle;
   }
 
 
   public void setTitle(final String title) {
-    aTitle = title;
+    mTitle = title;
   }
 
 
   public Collection<ActionDescriptor> getActions() {
-    return aActions;
+    return mActions;
   }
 
 
   public void setActions(final Collection<ActionDescriptor> actions) {
-    aActions = actions;
+    mActions = actions;
   }
 
 

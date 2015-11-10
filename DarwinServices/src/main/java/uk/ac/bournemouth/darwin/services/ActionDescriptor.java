@@ -15,53 +15,53 @@ public class ActionDescriptor {
 
   static final String ELEMENTNAME = "action";
 
-  private String aTitle;
+  private String mTitle;
 
-  private String aDescription;
+  private String mDescription;
 
-  private URI aIcon;
+  private URI mIcon;
 
-  private URI aLocation;
+  private URI mLocation;
 
   @XmlAttribute(name = "title")
   public String getTitle() {
-    return aTitle;
+    return mTitle;
   }
 
   public void setTitle(final String title) {
-    aTitle = title;
+    mTitle = title;
   }
 
   @XmlValue
   public String getDescription() {
-    return aDescription;
+    return mDescription;
   }
 
   public void setDescription(final String description) {
-    aDescription = description;
+    mDescription = description;
   }
 
   @XmlAttribute(name = "icon")
   @XmlJavaTypeAdapter(type = URI.class, value = JaxbUriAdapter.class)
   public URI getIcon() {
-    return aIcon;
+    return mIcon;
   }
 
 
   public void setIcon(final URI icon) {
-    aIcon = icon;
+    mIcon = icon;
   }
 
 
   @XmlAttribute(name = "href")
   @XmlJavaTypeAdapter(type = URI.class, value = JaxbUriAdapter.class)
   public URI getLocation() {
-    return aLocation;
+    return mLocation;
   }
 
 
   public void setLocation(final URI location) {
-    aLocation = location;
+    mLocation = location;
   }
 
 

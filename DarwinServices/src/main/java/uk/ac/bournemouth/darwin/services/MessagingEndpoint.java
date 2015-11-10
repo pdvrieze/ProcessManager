@@ -25,18 +25,18 @@ public class MessagingEndpoint implements GenericEndpoint {
   private static class XmlEndpointDescriptor {
 
     @XmlAttribute(name="service")
-    private QName aService;
+    private QName mService;
     @XmlAttribute(name="endpoint")
-    private String aEndpoint;
+    private String mEndpoint;
     @XmlAttribute(name="url")
-    private URI aLocation;
+    private URI mLocation;
 
     public XmlEndpointDescriptor() {}
 
     public XmlEndpointDescriptor(EndpointDescriptor endpoint) {
-      aService = endpoint.getServiceName();
-      aEndpoint = endpoint.getEndpointName();
-      aLocation = endpoint.getEndpointLocation();
+      mService = endpoint.getServiceName();
+      mEndpoint = endpoint.getEndpointName();
+      mLocation = endpoint.getEndpointLocation();
     }
 
   }
@@ -45,9 +45,9 @@ public class MessagingEndpoint implements GenericEndpoint {
 
   public static final QName SERVICENAME = new QName(Constants.DARWIN_NS, "messaging");
 
-  private URI aURI;
+  private URI mURI;
 
-  private EndpointDescriptor aEndpointDescriptor;
+  private EndpointDescriptor mEndpointDescriptor;
 
   public MessagingEndpoint() {
   }
@@ -64,7 +64,7 @@ public class MessagingEndpoint implements GenericEndpoint {
 
   @Override
   public URI getEndpointLocation() {
-    return aURI;
+    return mURI;
   }
 
   @Override
@@ -73,9 +73,9 @@ public class MessagingEndpoint implements GenericEndpoint {
     if (messenger!=null) {
       final StringBuilder path = new StringBuilder(config.getServletContext().getContextPath());
       path.append("/endpoints");
-      aEndpointDescriptor = messenger.registerEndpoint(SERVICENAME, ENDPOINT, URI.create(path.toString()));
+      mEndpointDescriptor = messenger.registerEndpoint(SERVICENAME, ENDPOINT, URI.create(path.toString()));
     } else {
-      aEndpointDescriptor = null;
+      mEndpointDescriptor = null;
     }
   }
 
@@ -93,12 +93,12 @@ public class MessagingEndpoint implements GenericEndpoint {
 
   @Override
   public void destroy() {
-    if (aEndpointDescriptor!=null) {
+    if (mEndpointDescriptor!=null) {
       final IMessenger messenger = MessagingRegistry.getMessenger();
       if (messenger!=null) {
-        messenger.unregisterEndpoint(aEndpointDescriptor);
+        messenger.unregisterEndpoint(mEndpointDescriptor);
       }
-      aEndpointDescriptor = null;
+      mEndpointDescriptor = null;
     }
 
   }
