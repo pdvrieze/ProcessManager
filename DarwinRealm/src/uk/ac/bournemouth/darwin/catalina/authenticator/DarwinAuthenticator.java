@@ -51,57 +51,57 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   private static final String LOGGERNAME = "DarwinRealm";
 
-  private boolean aStarted = false;
+  private boolean mStarted = false;
 
   /**
    * The lifecycle event support for this component.
    */
   @NotNull
-  protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
+  protected LifecycleSupport mLifecycle = new LifecycleSupport(this);
 
   @Nullable
-  private Context aContext;
+  private Context mContext;
 
-  private String aLoginPage = "/accounts/login";
+  private String mLoginPage = "/accounts/login";
 
 
   @Override
   public void addLifecycleListener(final LifecycleListener listener) {
-    aLifecycle.addLifecycleListener(listener);
+    mLifecycle.addLifecycleListener(listener);
   }
 
   @Override
   public void setContainer(final Container container) {
     super.setContainer(container);
     if (container instanceof Context) {
-      aContext = (Context) container;
+      mContext = (Context) container;
     }
   }
 
   @Override
   public LifecycleListener[] findLifecycleListeners() {
-    return aLifecycle.findLifecycleListeners();
+    return mLifecycle.findLifecycleListeners();
   }
 
   @Override
   public void removeLifecycleListener(final LifecycleListener listener) {
-    aLifecycle.removeLifecycleListener(listener);
+    mLifecycle.removeLifecycleListener(listener);
   }
 
   @Override
   public void start() throws LifecycleException {
-    if (aStarted) {
+    if (mStarted) {
       throw new LifecycleException("Already started");
     }
-    aLifecycle.fireLifecycleEvent(START_EVENT, null);
-    aStarted = true;
+    mLifecycle.fireLifecycleEvent(START_EVENT, null);
+    mStarted = true;
     setLoginPage(null); // Default is not specified.
   }
 
   @Override
   public void stop() throws LifecycleException {
-    aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
-    aStarted = false;
+    mLifecycle.fireLifecycleEvent(STOP_EVENT, null);
+    mStarted = false;
   }
 
   @Override
@@ -109,7 +109,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
     final AuthResult authresult = authenticate(request);
 
-    final Context context = this.aContext;
+    final Context context = this.mContext;
     final Realm realm = context == null ? null : context.getRealm();
     if (realm != null) {
       logFine("This context has an authentication realm, enforce the constraints");
@@ -152,7 +152,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
             final LoginConfig loginConfig = context == null ? null : context.getLoginConfig();
             String loginpage = loginConfig != null ? loginConfig.getLoginPage() : null;
             if (loginpage == null) {
-              loginpage = aLoginPage;
+              loginpage = mLoginPage;
             }
             if (loginpage != null) {
               final StringBuilder incommingPath = new StringBuilder();
@@ -178,11 +178,11 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   public String getLoginPage() {
-    return aLoginPage;
+    return mLoginPage;
   }
 
   public void setLoginPage(final String loginPage) {
-    aLoginPage = loginPage;
+    mLoginPage = loginPage;
   }
 
   public static DarwinPrincipal getPrincipal(final String user) {

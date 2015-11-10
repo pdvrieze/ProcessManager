@@ -33,64 +33,64 @@ public class DarwinRealm implements Realm, Lifecycle {
 
   private static final String RESOURCE = DarwinAuthenticator.DBRESOURCE;
 
-  private boolean aStarted = false;
+  private boolean mStarted = false;
 
   /**
    * The lifecycle event support for this component.
    */
-  protected LifecycleSupport aLifecycle = new LifecycleSupport(this);
+  protected LifecycleSupport mLifecycle = new LifecycleSupport(this);
 
-  private Container aContainer;
+  private Container mContainer;
 
   PropertyChangeSupport propChangeSupport = new PropertyChangeSupport(this);
 
 
   @Override
   public void start() throws LifecycleException {
-    if (aStarted) {
+    if (mStarted) {
       throw new LifecycleException("Already started");
     }
-    aLifecycle.fireLifecycleEvent(START_EVENT, null);
-    aStarted = true;
+    mLifecycle.fireLifecycleEvent(START_EVENT, null);
+    mStarted = true;
   }
 
 
   @Override
   public void stop() throws LifecycleException {
-    aLifecycle.fireLifecycleEvent(STOP_EVENT, null);
-    aStarted = false;
+    mLifecycle.fireLifecycleEvent(STOP_EVENT, null);
+    mStarted = false;
   }
 
 
   @Override
   public void addLifecycleListener(final LifecycleListener listener) {
-    aLifecycle.addLifecycleListener(listener);
+    mLifecycle.addLifecycleListener(listener);
   }
 
 
   @Override
   public LifecycleListener[] findLifecycleListeners() {
-    return aLifecycle.findLifecycleListeners();
+    return mLifecycle.findLifecycleListeners();
   }
 
 
   @Override
   public void removeLifecycleListener(final LifecycleListener listener) {
-    aLifecycle.removeLifecycleListener(listener);
+    mLifecycle.removeLifecycleListener(listener);
   }
 
 
   @Override
   public Container getContainer() {
-    return aContainer;
+    return mContainer;
   }
 
 
   @Override
   public void setContainer(final Container container) {
-    final Container oldContainer = aContainer;
-    aContainer = container;
-    propChangeSupport.firePropertyChange("container", oldContainer, aContainer);
+    final Container oldContainer = mContainer;
+    mContainer = container;
+    propChangeSupport.firePropertyChange("container", oldContainer, mContainer);
   }
 
 

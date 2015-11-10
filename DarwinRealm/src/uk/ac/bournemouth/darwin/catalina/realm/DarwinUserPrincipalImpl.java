@@ -21,16 +21,16 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   private static final String DOMAIN = "bournemouth.ac.uk";
 
-  private final DataSource aDataSource;
+  private final DataSource mDataSource;
 
   public DarwinUserPrincipalImpl(final DataSource dataSource, final Realm realm, final String name) {
     super(realm, name);
-    aDataSource = dataSource;
+    mDataSource = dataSource;
   }
 
   @SuppressWarnings("null")
   @NotNull
-  private Set<String> aRoles = Collections.emptySet();
+  private Set<String> mRoles = Collections.emptySet();
 
   /**
    * Get a set of all the roles in the principal. Note that this will create a
@@ -41,7 +41,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   @NotNull
   public synchronized Set<? extends String> getRolesSet() {
     refreshIfNeeded();
-    return Collections.unmodifiableSet(new HashSet<>(aRoles));
+    return Collections.unmodifiableSet(new HashSet<>(mRoles));
   }
 
   @SuppressWarnings("null")
@@ -51,7 +51,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     Set<? extends String> lroles;
     synchronized (this) {
       refreshIfNeeded();
-      lroles = aRoles;
+      lroles = mRoles;
       if (roles == null) {
         roles = lroles.toArray(new String[lroles.size()]);
         Arrays.sort(roles);
@@ -61,15 +61,15 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   }
 
   private synchronized void refreshIfNeeded() {
-    if ((!(aRoles instanceof HashSet)) || needsRefresh()) {
-      aRoles = new HashSet<>();
+    if ((!(mRoles instanceof HashSet)) || needsRefresh()) {
+      mRoles = new HashSet<>();
       roles = null;
-      try(final DBConnection db = DBConnection.newInstance(aDataSource)) {
+      try(final DBConnection db = DBConnection.newInstance(mDataSource)) {
         try(final DBQuery query = db.makeQuery("SELECT role FROM user_roles WHERE user=?")) {
           query.addParam(1, getName());
           try (final StringAdapter queryResult = new StringAdapter(query, query.execQuery(), true)){
             for (final String role : queryResult.all()) {
-              aRoles.add(role);
+              mRoles.add(role);
             }
           }
         }
@@ -86,7 +86,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
       return false;
     }
     refreshIfNeeded();
-    return aRoles.contains(role);
+    return mRoles.contains(role);
   }
 
 
@@ -103,7 +103,7 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
     result.append("DarwinUserPrincipal[").append(getName());
     refreshIfNeeded();
     char sep = '(';
-    for (final String role : aRoles) {
+    for (final String role : mRoles) {
       result.append(sep).append(role);
       sep = ',';
     }
@@ -137,10 +137,10 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
     // Instead of resetting the roles holder, just update the set to prevent database
     // roundtrips.
-    final Set<String> tmpRoles = aRoles;
-    aRoles = new HashSet<>();
+    final Set<String> tmpRoles = mRoles;
+    mRoles = new HashSet<>();
     for (final String role : tmpRoles) {
-      aRoles.add(stringCache.lookup(role));
+      mRoles.add(stringCache.lookup(role));
     }
     roles = null; // Just remove cache. This doesn't need database roundtrip
     return this;
