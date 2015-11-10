@@ -3,8 +3,8 @@ package net.devrieze.util.db;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import net.devrieze.annotations.NotNull;
-import net.devrieze.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import net.devrieze.util.db.DBConnection.DBStatement;
 
 
@@ -13,19 +13,19 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
   public class StringAdapterIterator extends SingletonAdapterIterator<String> {
 
-    public StringAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet) {
-      super(pStatement, pResultSet);
+    public StringAdapterIterator(final DBStatement statement, final ResultSet resultSet) {
+      super(statement, resultSet);
     }
 
-    public StringAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet, final boolean pAutoClose) {
-      super(pStatement, pResultSet, pAutoClose);
+    public StringAdapterIterator(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
+      super(statement, resultSet, autoClose);
     }
 
     @Override
     @Nullable
-    protected String doCreateElem(final ResultSet pResultSet) throws SQLException {
-      final String result = getStringCache().lookup(pResultSet.getString(1));
-      DBConnection.logWarnings("Reading string out of resultset", pResultSet);
+    protected String doCreateElem(final ResultSet resultSet) throws SQLException {
+      final String result = getStringCache().lookup(resultSet.getString(1));
+      DBConnection.logWarnings("Reading string out of resultset", resultSet);
       return result;
     }
 
@@ -33,13 +33,13 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
   private final boolean aAutoClose;
 
-  public StringAdapter(final DBStatement pStatement, final ResultSet pResultSet) {
-    this(pStatement, pResultSet, false);
+  public StringAdapter(final DBStatement statement, final ResultSet resultSet) {
+    this(statement, resultSet, false);
   }
 
-  public StringAdapter(final DBStatement pStatement, final ResultSet pResultSet, final boolean pAutoClose) {
-    super(pStatement, pResultSet);
-    aAutoClose = pAutoClose;
+  public StringAdapter(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
+    super(statement, resultSet);
+    aAutoClose = autoClose;
   }
 
   @Override

@@ -1,12 +1,11 @@
 package net.devrieze.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Objects;
-
-import net.devrieze.annotations.NotNull;
-
 
 public class CompoundException extends RuntimeException {
 
@@ -17,18 +16,18 @@ public class CompoundException extends RuntimeException {
 
   private int replayPos = 0;
 
-  public CompoundException(@NotNull final List<? extends Exception> pCauses) {
+  public CompoundException(@NotNull final List<? extends Exception> causes) {
     super("Multiple exceptions occurred");
-    aCauses = pCauses;
+    aCauses = causes;
   }
 
-  public <T extends Throwable> void replayNext(@NotNull final Class<T> pClass) throws T {
+  public <T extends Throwable> void replayNext(@NotNull final Class<T> clazz) throws T {
     final int pos = replayPos;
     replayPos++;
     if (pos < aCauses.size()) {
       final Throwable e = aCauses.get(pos);
-      if (pClass.isInstance(e)) {
-        throw pClass.cast(e);
+      if (clazz.isInstance(e)) {
+        throw clazz.cast(e);
       }
       throw new RuntimeException(e);
     }
@@ -70,8 +69,7 @@ public class CompoundException extends RuntimeException {
     }
   }
 
-  private static void printStackTraceAsCause(@NotNull final PrintStream s, final int i, @NotNull final Throwable pCause) {
-    final Throwable cause = pCause;
+  private static void printStackTraceAsCause(@NotNull final PrintStream s, final int i, @NotNull final Throwable cause) {
     s.print("Cause ");
     s.print(i);
     s.print(": ");
@@ -113,8 +111,7 @@ public class CompoundException extends RuntimeException {
     }
   }
 
-  private static void printStackTraceAsCause(final PrintWriter s, final int i, final Throwable pCause) {
-    final Throwable cause = pCause;
+  private static void printStackTraceAsCause(final PrintWriter s, final int i, final Throwable cause) {
     s.print("Cause ");
     s.print(i);
     s.print(": ");

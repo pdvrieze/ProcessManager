@@ -4,9 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import static net.devrieze.util.Annotations.*;
-
-import net.devrieze.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
 
 
 public abstract class JSONObject {
@@ -17,8 +15,8 @@ public abstract class JSONObject {
     @NotNull
     private final CharSequence aString;
 
-    public JSONString(@NotNull final CharSequence pString) {
-      aString = pString;
+    public JSONString(@NotNull final CharSequence string) {
+      aString = string;
     }
 
     @Override
@@ -29,39 +27,39 @@ public abstract class JSONObject {
 
     @Override
     @NotNull
-    public StringBuilder appendTo(@NotNull final StringBuilder pStringBuilder) {
+    public StringBuilder appendTo(@NotNull final StringBuilder stringBuilder) {
       final int len = aString.length();
-      pStringBuilder.append('"');
+      stringBuilder.append('"');
       for (int i = 0; i < len; ++i) {
         final char c = aString.charAt(i);
         switch (c) {
           case '"':
-            pStringBuilder.append("\\\"");
+            stringBuilder.append("\\\"");
             break;
           case '\\':
-            pStringBuilder.append("\\\\");
+            stringBuilder.append("\\\\");
             break;
           case '\b':
-            pStringBuilder.append("\\b");
+            stringBuilder.append("\\b");
             break;
           case '\f':
-            pStringBuilder.append("\\f");
+            stringBuilder.append("\\f");
             break;
           case '\n':
-            pStringBuilder.append("\\n");
+            stringBuilder.append("\\n");
             break;
           case '\r':
-            pStringBuilder.append("\\r");
+            stringBuilder.append("\\r");
             break;
           case '\t':
-            pStringBuilder.append("\\t");
+            stringBuilder.append("\\t");
             break;
           default:
-            pStringBuilder.append(c);
+            stringBuilder.append(c);
         }
       }
-      pStringBuilder.append('"');
-      return pStringBuilder;
+      stringBuilder.append('"');
+      return stringBuilder;
     }
 
   }
@@ -71,8 +69,8 @@ public abstract class JSONObject {
     @NotNull
     private final List<JSONObject> aItems;
 
-    private JSONArray(@NotNull final List<JSONObject> pItems) {
-      aItems = pItems;
+    private JSONArray(@NotNull final List<JSONObject> items) {
+      aItems = items;
     }
 
     @Override
@@ -102,11 +100,11 @@ public abstract class JSONObject {
   }
 
   public static JSONArray jsonArray(final JSONObject... items) {
-    return jsonArray(notNull(Arrays.asList(items)));
+    return jsonArray(Arrays.asList(items));
   }
 
-  public static JSONString jsonString(@NotNull final CharSequence pString) {
-    return new JSONString(pString);
+  public static JSONString jsonString(@NotNull final CharSequence string) {
+    return new JSONString(string);
   }
 
   public abstract Object getValue();

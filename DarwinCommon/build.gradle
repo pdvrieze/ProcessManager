@@ -28,6 +28,7 @@ sourceSets {
 dependencies {
     providedCompile project(':DarwinJavaApi')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+    providedCompile "com.intellij:annotations:12.0"
 }
 
 

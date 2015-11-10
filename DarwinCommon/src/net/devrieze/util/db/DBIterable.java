@@ -1,9 +1,9 @@
 package net.devrieze.util.db;
 
-import java.sql.SQLException;
-
-import net.devrieze.annotations.NotNull;
 import net.devrieze.util.AutoCloseableIterator;
+import org.jetbrains.annotations.NotNull;
+
+import java.sql.SQLException;
 
 
 public interface DBIterable<T> extends AutoCloseable {

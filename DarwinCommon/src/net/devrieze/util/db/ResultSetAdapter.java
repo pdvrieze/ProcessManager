@@ -1,17 +1,16 @@
 package net.devrieze.util.db;
 
+import net.devrieze.util.AutoCloseableIterator;
+import net.devrieze.util.StringCache;
+import net.devrieze.util.db.DBConnection.DBStatement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Iterator;
-
-import static net.devrieze.util.Annotations.*;
-import net.devrieze.annotations.NotNull;
-import net.devrieze.annotations.Nullable;
-import net.devrieze.util.AutoCloseableIterator;
-import net.devrieze.util.StringCache;
-import net.devrieze.util.db.DBConnection.DBStatement;
 
 
 public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T>*/ {
@@ -34,15 +33,15 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     @NotNull
     private StringCache aStringCache;
 
-    public ResultSetAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet) {
-      this(pStatement, pResultSet, false);
+    public ResultSetAdapterIterator(final DBStatement statement, final ResultSet resultSet) {
+      this(statement, resultSet, false);
     }
 
-    public ResultSetAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet, final boolean pAutoClose) {
-      aResultSet = pResultSet;
-      aStatement = pStatement;
-      aAutoClose = pAutoClose;
-      aStringCache = pStatement.getStringCache();
+    public ResultSetAdapterIterator(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
+      aResultSet = resultSet;
+      aStatement = statement;
+      aAutoClose = autoClose;
+      aStringCache = statement.getStringCache();
     }
 
     private void init() {
@@ -53,7 +52,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
           final ResultSetMetaData metadata = aResultSet.getMetaData();
           DBConnection.logWarnings("Getting resultset metadata for AdapterIterator", aResultSet);
           for (int i = 1; i <= metadata.getColumnCount(); ++i) {
-            doRegisterColumn(i, notNull(metadata.getColumnName(i)));
+            doRegisterColumn(i, metadata.getColumnName(i));
           }
           aInitialized = true;
         } catch (final SQLException e) {
@@ -64,9 +63,9 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
     }
 
-    protected abstract void doRegisterColumn(int pI, @NotNull String pColumnName);
+    protected abstract void doRegisterColumn(int i, @NotNull String columnName);
 
-    abstract protected T doCreateElem(@NotNull ResultSet pResultSet) throws SQLException;
+    abstract protected T doCreateElem(@NotNull ResultSet resultSet) throws SQLException;
 
     @Override
     public final boolean hasNext() {
@@ -178,17 +177,17 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
   public abstract static class SingletonAdapterIterator<T> extends ResultSetAdapterIterator<T> {
 
-    public SingletonAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet) {
-      super(pStatement, pResultSet);
+    public SingletonAdapterIterator(final DBStatement statement, final ResultSet resultSet) {
+      super(statement, resultSet);
     }
 
-    public SingletonAdapterIterator(final DBStatement pStatement, final ResultSet pResultSet, final boolean pAutoClose) {
-      super(pStatement, pResultSet, pAutoClose);
+    public SingletonAdapterIterator(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
+      super(statement, resultSet, autoClose);
     }
 
     @Override
-    protected void doRegisterColumn(final int pIndex, @NotNull final String pColumnName) {
-      if (pIndex != 1) {
+    protected void doRegisterColumn(final int index, @NotNull final String columnName) {
+      if (index != 1) {
         throw new IllegalArgumentException("Singleton adapters can not be created for result sets with more than one columns");
       }
     }
@@ -233,9 +232,9 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   @Nullable
   protected DBStatement aStatement;
 
-  protected ResultSetAdapter(final DBStatement pStatement, final ResultSet pResultSet) {
-    aResultSet = pResultSet;
-    aStatement = pStatement;
+  protected ResultSetAdapter(final DBStatement statement, final ResultSet resultSet) {
+    aResultSet = resultSet;
+    aStatement = statement;
   }
 
   @Override
