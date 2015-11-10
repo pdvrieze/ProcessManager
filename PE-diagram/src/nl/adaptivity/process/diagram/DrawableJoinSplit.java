@@ -36,13 +36,13 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
     super();
   }
 
-  public DrawableJoinSplit(String pId) {
-    super(pId);
+  public DrawableJoinSplit(String id) {
+    super(id);
   }
 
-  public DrawableJoinSplit(DrawableJoinSplit pOrig) {
-    super(pOrig);
-    aState = pOrig.aState;
+  public DrawableJoinSplit(DrawableJoinSplit orig) {
+    super(orig);
+    aState = orig.aState;
   }
 
   @Override
@@ -54,22 +54,22 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   }
 
   @Override
-  public void move(double pX, double pY) {
-    setX(getX()+pX);
-    setY(getY()+pY);
+  public void move(double x, double y) {
+    setX(getX()+x);
+    setY(getY()+y);
   }
 
   @Override
-  public void setPos(double pLeft, double pTop) {
-    setX(pLeft+REFERENCE_OFFSET_X);
-    setY(pLeft+REFERENCE_OFFSET_Y);
+  public void setPos(double left, double top) {
+    setX(left+REFERENCE_OFFSET_X);
+    setY(left+REFERENCE_OFFSET_Y);
   }
 
   @Override
-  public Drawable getItemAt(double pX, double pY) {
+  public Drawable getItemAt(double x, double y) {
     final double realradiusX=(JOINWIDTH+STROKEEXTEND)/2;
     final double realradiusY=(JOINHEIGHT+STROKEEXTEND)/2;
-    return ((Math.abs(pX-getX())<=realradiusX) && (Math.abs(pY-getY())<=realradiusY)) ? this : null;
+    return ((Math.abs(x-getX())<=realradiusX) && (Math.abs(y-getY())<=realradiusY)) ? this : null;
   }
 
   @Override
@@ -78,13 +78,13 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   }
 
   @Override
-  public void setState(int pState) {
-    aState = pState;
+  public void setState(int state) {
+    aState = state;
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
-    final S strategy = pCanvas.getStrategy();
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
+    final S strategy = canvas.getStrategy();
     PATH_T path = aItems.getPath(strategy, 0);
     final double dx = JOINWIDTH/2;
     final double hse = STROKEEXTEND/2;
@@ -99,20 +99,20 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       aItems.setPath(strategy, 0, path);
     }
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
-      PEN_T bgPen = pCanvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
+      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
 
       if ((aState&STATE_TOUCHED)!=0) {
-        PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
-        pCanvas.drawPath(path, touchedPen, null);
+        PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
+        canvas.drawPath(path, touchedPen, null);
       }
-      pCanvas.drawPath(path, linePen, bgPen);
+      canvas.drawPath(path, linePen, bgPen);
 
       if (getOwner()!=null || getMin()>=0 || getMax()>=0) {
-        PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
+        PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
         String s = getMinMaxText();
 
-        pCanvas.drawText(TextPos.DESCENT, hse+dx, -hse, s, Double.MAX_VALUE, textPen);
+        canvas.drawText(TextPos.DESCENT, hse+dx, -hse, s, Double.MAX_VALUE, textPen);
       }
     }
   }

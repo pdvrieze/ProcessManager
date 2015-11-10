@@ -19,12 +19,12 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
     super();
   }
 
-  public ClientEndNode(String pId) {
-    super(pId);
+  public ClientEndNode(String id) {
+    super(id);
   }
 
-  protected ClientEndNode(ClientEndNode<T> pOrig) {
-    super(pOrig);
+  protected ClientEndNode(ClientEndNode<T> orig) {
+    super(orig);
   }
 
   @Override
@@ -38,8 +38,8 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public void setDefines(Collection<? extends IXmlDefineType> pDefines) {
-    super.setDefines(pDefines);
+  public void setDefines(Collection<? extends IXmlDefineType> defines) {
+    super.setDefines(defines);
   }
 
   @Override
@@ -58,16 +58,16 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "end", true);
-    serializeCommonAttrs(pOut);
-    serializeCommonChildren(pOut);
-    pOut.endTag(NS_PM, "end", true);
+  public void serialize(SerializerAdapter out) {
+    out.startTag(NS_PM, "end", true);
+    serializeCommonAttrs(out);
+    serializeCommonChildren(out);
+    out.endTag(NS_PM, "end", true);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitEndNode(this);
+  public <R> R visit(ProcessNode.Visitor<R> visitor) {
+    return visitor.visitEndNode(this);
   }
 
 }

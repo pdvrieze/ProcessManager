@@ -31,12 +31,12 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     super();
   }
 
-  public DrawableJoin(String pId) {
-    super(pId);
+  public DrawableJoin(String id) {
+    super(id);
   }
 
-  public DrawableJoin(DrawableJoin pOrig) {
-    super(pOrig);
+  public DrawableJoin(DrawableJoin orig) {
+    super(orig);
   }
 
   @Override
@@ -52,18 +52,18 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     return Integer.MAX_VALUE;
   }
 
-  public static DrawableJoin from(Join<?> pElem) {
+  public static DrawableJoin from(Join<?> elem) {
     DrawableJoin result = new DrawableJoin();
-    copyProcessNodeAttrs(pElem, result);
-    result.setMin(pElem.getMin());
-    result.setMax(pElem.getMax());
+    copyProcessNodeAttrs(elem, result);
+    result.setMin(elem.getMin());
+    result.setMax(elem.getMax());
     return result;
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
-    super.draw(pCanvas, pClipBounds);
-    final S strategy = pCanvas.getStrategy();
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
+    super.draw(canvas, clipBounds);
+    final S strategy = canvas.getStrategy();
     PATH_T path = aItems.getPath(strategy, 1);
     if (path==null) {
       path = strategy.newPath();
@@ -89,24 +89,24 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState());
-      pCanvas.drawPath(path, linePen, null);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState());
+      canvas.drawPath(path, linePen, null);
     }
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
-    DrawableUtil.defaultDrawLabel(this, pCanvas, pClipBounds, left, top);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
+    DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
   @Override
-  public void serialize(SerializerAdapter pOut) {
-    serializeJoin(pOut);
+  public void serialize(SerializerAdapter out) {
+    serializeJoin(out);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitJoin(this);
+  public <R> R visit(ProcessNode.Visitor<R> visitor) {
+    return visitor.visitJoin(this);
   }
 
 }

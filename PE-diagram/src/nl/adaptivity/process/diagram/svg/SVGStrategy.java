@@ -8,8 +8,8 @@ public class SVGStrategy<M extends MeasureInfo> implements DrawingStrategy<SVGSt
 
   private TextMeasurer<M> aTextMeasurer;
 
-  public SVGStrategy(TextMeasurer<M> pTextMeasurer) {
-    aTextMeasurer = pTextMeasurer;
+  public SVGStrategy(TextMeasurer<M> textMeasurer) {
+    aTextMeasurer = textMeasurer;
   }
 
   @Override

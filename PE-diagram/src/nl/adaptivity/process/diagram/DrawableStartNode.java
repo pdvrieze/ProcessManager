@@ -24,13 +24,13 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     super();
   }
 
-  public DrawableStartNode(String pId) {
-    super(pId);
+  public DrawableStartNode(String id) {
+    super(id);
   }
 
-  public DrawableStartNode(DrawableStartNode pOrig) {
-    super(pOrig);
-    aState = pOrig.aState;
+  public DrawableStartNode(DrawableStartNode orig) {
+    super(orig);
+    aState = orig.aState;
   }
 
   @Override
@@ -47,21 +47,21 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   }
 
   @Override
-  public void move(double pX, double pY) {
-    setX(getX()+pX);
-    setY(getY()+pY);
+  public void move(double x, double y) {
+    setX(getX()+x);
+    setY(getY()+y);
   }
 
   @Override
-  public void setPos(double pLeft, double pTop) {
-    setX(pLeft+REFERENCE_OFFSET_X);
-    setY(pLeft+REFERENCE_OFFSET_Y);
+  public void setPos(double left, double top) {
+    setX(left+REFERENCE_OFFSET_X);
+    setY(left+REFERENCE_OFFSET_Y);
   }
 
   @Override
-  public Drawable getItemAt(double pX, double pY) {
+  public Drawable getItemAt(double x, double y) {
     final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
-    return ((Math.abs(pX-getX())<=realradius) && (Math.abs(pY-getY())<=realradius)) ? this : null;
+    return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius)) ? this : null;
   }
 
   @Override
@@ -70,34 +70,34 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   }
 
   @Override
-  public void setState(int pState) {
-    aState = pState;
+  public void setState(int state) {
+    aState = state;
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
       final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
-      PEN_T fillPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
+      PEN_T fillPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
 
       if ((aState&STATE_TOUCHED)!=0) {
-        PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
-        pCanvas.drawCircle(realradius, realradius, STARTNODERADIUS, touchedPen);
+        PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
+        canvas.drawCircle(realradius, realradius, STARTNODERADIUS, touchedPen);
       }
 
-      pCanvas.drawFilledCircle(realradius, realradius, realradius, fillPen);
+      canvas.drawFilledCircle(realradius, realradius, realradius, fillPen);
     }
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
-    DrawableUtil.defaultDrawLabel(this, pCanvas, pClipBounds, left, top);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
+    DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
-  public static DrawableStartNode from(StartNode<?> pN) {
+  public static DrawableStartNode from(StartNode<?> n) {
     DrawableStartNode result = new DrawableStartNode();
-    copyProcessNodeAttrs(pN, result);
-    result.setDefines(pN.getDefines());
+    copyProcessNodeAttrs(n, result);
+    result.setDefines(n.getDefines());
     return result;
   }
 

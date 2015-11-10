@@ -1,12 +1,12 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
-
-import java.util.List;
-
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+
+import java.util.List;
+
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
@@ -14,12 +14,12 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     super();
   }
 
-  public ClientStartNode(final String pId) {
-    super(pId);
+  public ClientStartNode(final String id) {
+    super(id);
   }
 
-  protected ClientStartNode(final ClientStartNode<T> pOrig) {
-    super(pOrig);
+  protected ClientStartNode(final ClientStartNode<T> orig) {
+    super(orig);
   }
 
   @Override
@@ -34,16 +34,16 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "start", true);
-    serializeCommonAttrs(pOut);
-    serializeCommonChildren(pOut);
-    pOut.endTag(NS_PM, "start", true);
+  public void serialize(SerializerAdapter out) {
+    out.startTag(NS_PM, "start", true);
+    serializeCommonAttrs(out);
+    serializeCommonChildren(out);
+    out.endTag(NS_PM, "start", true);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitStartNode(this);
+  public <R> R visit(ProcessNode.Visitor<R> visitor) {
+    return visitor.visitStartNode(this);
   }
 
 }

@@ -13,18 +13,18 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
   private TextMeasurer<M> aTextMeasurer;
   private M aTextMeasureInfo;
 
-  public SVGPen(TextMeasurer<M> pTextMeasurer) {
-    aTextMeasurer = pTextMeasurer;
+  public SVGPen(TextMeasurer<M> textMeasurer) {
+    aTextMeasurer = textMeasurer;
   }
 
   @Override
-  public SVGPen<M> setColor(int pRed, int pGreen, int pBlue) {
-    return setColor(pRed, pGreen, pBlue, 0xff);
+  public SVGPen<M> setColor(int red, int green, int blue) {
+    return setColor(red, green, blue, 0xff);
   }
 
   @Override
-  public SVGPen<M> setColor(int pRed, int pGreen, int pBlue, int pAlpha) {
-    aColor = (pAlpha&0xff) << 24 | (pRed&0xff)<<16 | (pGreen&0xff)<<8 | (pBlue&0xff);
+  public SVGPen<M> setColor(int red, int green, int blue, int alpha) {
+    aColor = (alpha&0xff) << 24 | (red&0xff)<<16 | (green&0xff)<<8 | (blue&0xff);
     return this;
   }
 
@@ -33,8 +33,8 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
   }
 
   @Override
-  public SVGPen<M> setStrokeWidth(double pStrokeWidth) {
-    aStrokeWidth = pStrokeWidth;
+  public SVGPen<M> setStrokeWidth(double strokeWidth) {
+    aStrokeWidth = strokeWidth;
     return this;
   }
 
@@ -43,9 +43,9 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
   }
 
   @Override
-  public SVGPen<M> setFontSize(double pFontSize) {
-    aFontSize = pFontSize;
-    if (aTextMeasureInfo!=null) { aTextMeasureInfo.setFontSize(pFontSize); }
+  public SVGPen<M> setFontSize(double fontSize) {
+    aFontSize = fontSize;
+    if (aTextMeasureInfo!=null) { aTextMeasureInfo.setFontSize(fontSize); }
     return this;
   }
 
@@ -56,11 +56,11 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
 
 
   @Override
-  public double measureTextWidth(String pText, double pFoldWidth) {
+  public double measureTextWidth(String text, double foldWidth) {
     if (aTextMeasureInfo==null) {
       aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.measureTextWidth(aTextMeasureInfo, pText, pFoldWidth);
+    return aTextMeasurer.measureTextWidth(aTextMeasureInfo, text, foldWidth);
   }
 
   @Override
@@ -104,8 +104,8 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
   }
 
   @Override
-  public void setTextItalics(boolean pItalics) {
-    aItalics = pItalics;
+  public void setTextItalics(boolean italics) {
+    aItalics = italics;
   }
 
   public boolean isTextItalics() {

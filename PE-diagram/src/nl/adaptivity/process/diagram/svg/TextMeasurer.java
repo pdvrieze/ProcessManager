@@ -1,30 +1,30 @@
 package nl.adaptivity.process.diagram.svg;
 
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
-
+import org.jetbrains.annotations.NotNull;
 
 
 public interface TextMeasurer <M extends MeasureInfo> {
 
 
-  public interface MeasureInfo {
+  interface MeasureInfo {
 
-    void setFontSize(double pFontSize);
+    void setFontSize(double fontSize);
 
   }
 
-  M getTextMeasureInfo(SVGPen<M> pSvgPen);
+  @NotNull M getTextMeasureInfo(@NotNull SVGPen<M> svgPen);
 
-  double measureTextWidth(M pTextMeasureInfo, String pText, double pFoldWidth);
+  double measureTextWidth(@NotNull M textMeasureInfo, String text, double foldWidth);
 
-  double getTextMaxAscent(M pTextMeasureInfo);
+  double getTextMaxAscent(@NotNull M textMeasureInfo);
 
-  double getTextAscent(M pTextMeasureInfo);
+  double getTextAscent(@NotNull M textMeasureInfo);
 
-  double getTextMaxDescent(M pTextMeasureInfo);
+  double getTextMaxDescent(@NotNull M textMeasureInfo);
 
-  double getTextDescent(M pTextMeasureInfo);
+  double getTextDescent(@NotNull M textMeasureInfo);
 
-  double getTextLeading(M pTextMeasureInfo);
+  double getTextLeading(@NotNull M textMeasureInfo);
 
 }

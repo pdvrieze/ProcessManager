@@ -1,9 +1,10 @@
 package nl.adaptivity.process.clientProcessModel;
 
 
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 import nl.adaptivity.process.processModel.JoinSplit;
 import nl.adaptivity.process.util.Identifiable;
+
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
 public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements JoinSplit<T>{
@@ -15,19 +16,19 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
     super();
   }
 
-  public ClientJoinSplit(String pId) {
-    super(pId);
+  public ClientJoinSplit(String id) {
+    super(id);
   }
 
-  public ClientJoinSplit(ClientJoinSplit<T> pOrig) {
-    super(pOrig);
-    aMin = pOrig.aMin;
-    aMax = pOrig.aMax;
+  public ClientJoinSplit(ClientJoinSplit<T> orig) {
+    super(orig);
+    aMin = orig.aMin;
+    aMax = orig.aMax;
   }
 
   @Override
-  public void setMax(int pMax) {
-    aMax = pMax;
+  public void setMax(int max) {
+    aMax = max;
   }
 
   @Override
@@ -36,8 +37,8 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   }
 
   @Override
-  public void setMin(int pMin) {
-    aMin = pMin;
+  public void setMin(int min) {
+    aMin = min;
   }
 
   @Override
@@ -46,29 +47,29 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   }
 
   @Override
-  public void serializeCommonAttrs(SerializerAdapter pOut) {
-    super.serializeCommonAttrs(pOut);
-    if (aMin>=0) { pOut.addAttribute(null, "min", Integer.toString(aMin)); }
-    if (aMax>=0) { pOut.addAttribute(null, "max", Integer.toString(aMax)); }
+  public void serializeCommonAttrs(SerializerAdapter out) {
+    super.serializeCommonAttrs(out);
+    if (aMin>=0) { out.addAttribute(null, "min", Integer.toString(aMin)); }
+    if (aMax>=0) { out.addAttribute(null, "max", Integer.toString(aMax)); }
   }
 
-  protected void serializeSplit(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "split", true);
-    serializeCommonAttrs(pOut);
-    serializeCommonChildren(pOut);
-    pOut.endTag(NS_PM, "split", true);
+  protected void serializeSplit(SerializerAdapter out) {
+    out.startTag(NS_PM, "split", true);
+    serializeCommonAttrs(out);
+    serializeCommonChildren(out);
+    out.endTag(NS_PM, "split", true);
   }
 
-  protected void serializeJoin(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "join", true);
-    serializeCommonAttrs(pOut);
-    serializeCommonChildren(pOut);
+  protected void serializeJoin(SerializerAdapter out) {
+    out.startTag(NS_PM, "join", true);
+    serializeCommonAttrs(out);
+    serializeCommonChildren(out);
     for(Identifiable predecessor: getPredecessors()) {
-      pOut.startTag(NS_PM, "predecessor", false);
-      pOut.text(predecessor.getId());
-      pOut.endTag(NS_PM, "predecessor", true);
+      out.startTag(NS_PM, "predecessor", false);
+      out.text(predecessor.getId());
+      out.endTag(NS_PM, "predecessor", true);
     }
-    pOut.endTag(NS_PM, "join", true);
+    out.endTag(NS_PM, "join", true);
   }
 
 }

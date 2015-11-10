@@ -8,7 +8,7 @@ import nl.adaptivity.diagram.*;
 public class DrawableUtil {
     private DrawableUtil(){}
 
-    public static <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void defaultDrawLabel(DrawableProcessNode drawable, Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
+    public static <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void defaultDrawLabel(DrawableProcessNode drawable, Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
         // Not yet
     }
 }

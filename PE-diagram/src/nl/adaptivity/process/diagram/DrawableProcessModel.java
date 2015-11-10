@@ -1,30 +1,11 @@
 package nl.adaptivity.process.diagram;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.Diagram;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.ItemCache;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
-import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.util.Identifiable;
+
+import java.util.*;
 
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode> implements Diagram {
@@ -51,12 +32,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private int aState = STATE_DEFAULT;
   private int idSeq=0;
 
-  public DrawableProcessModel(ProcessModel<?> pOriginal) {
-    this(pOriginal, null);
+  public DrawableProcessModel(ProcessModel<?> original) {
+    this(original, null);
   }
 
-  public DrawableProcessModel(ProcessModel<?> pOriginal, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pOriginal.getUuid(), pOriginal.getName(), cloneNodes(pOriginal), pLayoutAlgorithm);
+  public DrawableProcessModel(ProcessModel<?> original, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+    super(original.getUuid(), original.getName(), cloneNodes(original), layoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -65,14 +46,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?>> pOriginal) {
-    Map<String,DrawableProcessNode> cache = new HashMap<>(pOriginal.getModelNodes().size());
-    return cloneNodes(pOriginal, cache, pOriginal.getModelNodes());
+  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?>> original) {
+    Map<String,DrawableProcessNode> cache = new HashMap<>(original.getModelNodes().size());
+    return cloneNodes(original, cache, original.getModelNodes());
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<?> source, Map<String, DrawableProcessNode> cache, Collection<? extends Identifiable> pNodes) {
-    List<DrawableProcessNode> result = new ArrayList<>(pNodes.size());
-    for(Identifiable origId: pNodes) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<?> source, Map<String, DrawableProcessNode> cache, Collection<? extends Identifiable> nodes) {
+    List<DrawableProcessNode> result = new ArrayList<>(nodes.size());
+    for(Identifiable origId: nodes) {
       DrawableProcessNode val = cache.get(origId.getId());
       if (val==null) {
         ProcessNode orig = source.getNode(origId);
@@ -89,12 +70,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return result;
   }
 
-  public DrawableProcessModel(UUID pUuid, String pName, Collection<? extends DrawableProcessNode> pNodes) {
-    this(pUuid, pName, pNodes, null);
+  public DrawableProcessModel(UUID uuid, String name, Collection<? extends DrawableProcessNode> nodes) {
+    this(uuid, name, nodes, null);
   }
 
-  public DrawableProcessModel(UUID pUuid, String pName, Collection<? extends DrawableProcessNode> pNodes, LayoutAlgorithm<DrawableProcessNode> pLayoutAlgorithm) {
-    super(pUuid, pName, pNodes, pLayoutAlgorithm);
+  public DrawableProcessModel(UUID uuid, String name, Collection<? extends DrawableProcessNode> nodes, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+    super(uuid, name, nodes, layoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
     setHorizSeparation(DEFAULT_HORIZ_SEPARATION);
@@ -103,9 +84,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  public static DrawableProcessModel get(ProcessModel<?> pSrc) {
-    if (pSrc instanceof DrawableProcessModel) { return (DrawableProcessModel) pSrc; }
-    return pSrc==null ? null : new DrawableProcessModel(pSrc);
+  public static DrawableProcessModel get(ProcessModel<?> src) {
+    if (src instanceof DrawableProcessModel) { return (DrawableProcessModel) src; }
+    return src==null ? null : new DrawableProcessModel(src);
   }
 
   @Override
@@ -113,32 +94,32 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 	return new DrawableProcessModel(this);
   }
 
-  private static DrawableProcessNode toDrawableNode(ProcessNode<?> pElem) {
-    return pElem.visit(new Visitor<DrawableProcessNode>() {
+  private static DrawableProcessNode toDrawableNode(ProcessNode<?> elem) {
+    return elem.visit(new Visitor<DrawableProcessNode>() {
 
       @Override
-      public DrawableProcessNode visitStartNode(StartNode<?> pStartNode) {
-        return DrawableStartNode.from(pStartNode);
+      public DrawableProcessNode visitStartNode(StartNode<?> startNode) {
+        return DrawableStartNode.from(startNode);
       }
 
       @Override
-      public DrawableProcessNode visitActivity(Activity<?> pActivity) {
-        return DrawableActivity.from(pActivity);
+      public DrawableProcessNode visitActivity(Activity<?> activity) {
+        return DrawableActivity.from(activity);
       }
 
       @Override
-      public DrawableProcessNode visitSplit(Split<?> pSplit) {
-        return DrawableSplit.from(pSplit);
+      public DrawableProcessNode visitSplit(Split<?> split) {
+        return DrawableSplit.from(split);
       }
 
       @Override
-      public DrawableProcessNode visitJoin(Join<?> pJoin) {
-        return DrawableJoin.from(pJoin);
+      public DrawableProcessNode visitJoin(Join<?> join) {
+        return DrawableJoin.from(join);
       }
 
       @Override
-      public DrawableProcessNode visitEndNode(EndNode<?> pEndNode) {
-        return DrawableEndNode.from(pEndNode);
+      public DrawableProcessNode visitEndNode(EndNode<?> endNode) {
+        return DrawableEndNode.from(endNode);
       }
 
     });
@@ -159,21 +140,21 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void move(double pX, double pY) {
+  public void move(double x, double y) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
   }
 
   @Override
-  public void setPos(double pLeft, double pTop) {
+  public void setPos(double left, double top) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
   }
 
   @Override
-  public void addNode(DrawableProcessNode pNode) {
-    ensureId(pNode);
-    super.addNode(ensureId(pNode));
+  public void addNode(DrawableProcessNode node) {
+    ensureId(node);
+    super.addNode(ensureId(node));
   }
 
   private void ensureIds() {
@@ -182,24 +163,24 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
   }
 
-  private <T extends DrawableProcessNode> T ensureId(T pNode) {
-    if (pNode.getId()==null) {
+  private <T extends DrawableProcessNode> T ensureId(T node) {
+    if (node.getId()==null) {
       String newId = "id"+idSeq++;
       while (getNode(newId)!=null) {
         newId = "id"+idSeq++;
       }
-      pNode.setId(newId);
+      node.setId(newId);
     }
-    return pNode;
+    return node;
   }
 
   @Override
-  public Drawable getItemAt(double pX, double pY) {
+  public Drawable getItemAt(double x, double y) {
     if (getModelNodes().size()==0) {
-      return getBounds().contains(pX, pY) ? this : null;
+      return getBounds().contains(x, y) ? this : null;
     }
     for(Drawable candidate: getChildElements()) {
-      Drawable result = candidate.getItemAt(pX, pY);
+      Drawable result = candidate.getItemAt(x, y);
       if (result!=null) {
         return result;
       }
@@ -213,15 +194,15 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void setState(int pState) {
-    aState = pState;
+  public void setState(int state) {
+    aState = state;
   }
 
   @Override
-  public void setNodes(Collection<? extends DrawableProcessNode> pNodes) {
+  public void setNodes(Collection<? extends DrawableProcessNode> nodes) {
     // Null check here as setNodes is called during construction of the parent
     if (aBounds!=null) { aBounds.left = Double.NaN; }
-    super.setNodes(pNodes);
+    super.setNodes(nodes);
   }
 
   @Override
@@ -232,10 +213,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void nodeChanged(DrawableProcessNode pNode) {
+  public void nodeChanged(DrawableProcessNode node) {
     invalidateConnectors();
     // TODO this is not correct as it will only expand the bounds.
-    Rectangle nodeBounds = pNode.getBounds();
+    Rectangle nodeBounds = node.getBounds();
     if (aBounds==null) {
       aBounds = nodeBounds.clone();
       return;
@@ -274,12 +255,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
 //    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
-    Canvas<S, PEN_T, PATH_T> canvas = pCanvas.childCanvas(NULLRECTANGLE, 1d);
-    final S strategy = pCanvas.getStrategy();
+    Canvas<S, PEN_T, PATH_T> childCanvas = canvas.childCanvas(NULLRECTANGLE, 1d);
+    final S strategy = canvas.getStrategy();
 
-    PEN_T arcPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState);
+    PEN_T arcPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, aState);
 
     List<PATH_T> connectors  = aItems.getPathList(strategy, 0);
     if (connectors == null) {
@@ -301,11 +282,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     for(PATH_T path: connectors) {
-      canvas.drawPath(path, arcPen, null);
+      childCanvas.drawPath(path, arcPen, null);
     }
 
     for(DrawableProcessNode node:getModelNodes()) {
-      node.draw(canvas.childCanvas(node.getBounds(), 1 ), null);
+      node.draw(childCanvas.childCanvas(node.getBounds(), 1 ), null);
     }
   }
 
@@ -314,10 +295,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return getModelNodes();
   }
 
-  static void copyProcessNodeAttrs(ProcessNode<?> pFrom, DrawableProcessNode pTo) {
-    pTo.setId(pFrom.getId());
-    pTo.setX(pFrom.getX());
-    pTo.setY(pFrom.getY());
+  static void copyProcessNodeAttrs(ProcessNode<?> from, DrawableProcessNode to) {
+    to.setId(from.getId());
+    to.setX(from.getX());
+    to.setY(from.getY());
   }
 
 }

@@ -10,12 +10,12 @@ public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoin
     super();
   }
 
-  public ClientSplitNode(String pId) {
-    super(pId);
+  public ClientSplitNode(String id) {
+    super(id);
   }
 
-  protected ClientSplitNode(ClientJoinSplit<T> pOrig) {
-    super(pOrig);
+  protected ClientSplitNode(ClientJoinSplit<T> orig) {
+    super(orig);
   }
 
   @Override
@@ -24,13 +24,13 @@ public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoin
   }
 
   @Override
-  public void serialize(SerializerAdapter pOut) {
-    serializeSplit(pOut);
+  public void serialize(SerializerAdapter out) {
+    serializeSplit(out);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitSplit(this);
+  public <R> R visit(ProcessNode.Visitor<R> visitor) {
+    return visitor.visitSplit(this);
   }
 
 }

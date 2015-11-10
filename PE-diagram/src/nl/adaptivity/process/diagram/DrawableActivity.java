@@ -28,13 +28,13 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     super();
   }
 
-  public DrawableActivity(String pId) {
-    super(pId);
+  public DrawableActivity(String id) {
+    super(id);
   }
 
-  public DrawableActivity(DrawableActivity pDrawableActivity) {
-    super(pDrawableActivity);
-    aState = pDrawableActivity.aState;
+  public DrawableActivity(DrawableActivity drawableActivity) {
+    super(drawableActivity);
+    aState = drawableActivity.aState;
   }
 
   @Override
@@ -52,22 +52,22 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   }
 
   @Override
-  public void move(double pX, double pY) {
-    setX(getX()+pX);
-    setY(getY()+pY);
+  public void move(double x, double y) {
+    setX(getX()+x);
+    setY(getY()+y);
   }
 
   @Override
-  public void setPos(double pLeft, double pTop) {
-    setX(pLeft+REFERENCE_OFFSET_X);
-    setY(pLeft+REFERENCE_OFFSET_Y);
+  public void setPos(double left, double top) {
+    setX(left+REFERENCE_OFFSET_X);
+    setY(left+REFERENCE_OFFSET_Y);
   }
 
   @Override
-  public Drawable getItemAt(double pX, double pY) {
+  public Drawable getItemAt(double x, double y) {
     double hwidth = (ACTIVITYWIDTH+STROKEWIDTH)/2;
     double hheight = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
-    return ((Math.abs(pX-getX())<=hwidth) && (Math.abs(pY-getY())<=hheight)) ? this : null;
+    return ((Math.abs(x-getX())<=hwidth) && (Math.abs(y-getY())<=hheight)) ? this : null;
   }
 
   @Override
@@ -76,35 +76,35 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   }
 
   @Override
-  public void setState(int pState) {
-    if (pState==aState) { return ; }
-    aState = pState;
+  public void setState(int state) {
+    if (state==aState) { return ; }
+    aState = state;
     if (getOwner()!=null) {
       getOwner().nodeChanged(this);
     }
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
-      PEN_T bgPen = pCanvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
+      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
 
       if (_bounds==null) { _bounds = new Rectangle(STROKEWIDTH/2,STROKEWIDTH/2, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
 
       if ((aState&STATE_TOUCHED)!=0) {
-        PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
-        pCanvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, touchedPen);
+        PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
+        canvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, touchedPen);
       }
-      pCanvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen);
-      pCanvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen);
+      canvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen);
+      canvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen);
 
     }
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
-    PEN_T textPen = pCanvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
+    PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
     String label = getLabel();
     if (label==null) { label = getName(); }
     if (label==null && getOwner()!=null) {
@@ -115,19 +115,19 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     }
     if (label!=null) {
       double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()/2;
-      pCanvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
+      canvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
     }
   }
 
-  public static DrawableActivity from(Activity<?> pElem) {
+  public static DrawableActivity from(Activity<?> elem) {
     DrawableActivity result = new DrawableActivity();
-    copyProcessNodeAttrs(pElem, result);
-    result.setName(pElem.getName());
-    result.setLabel(pElem.getLabel());
-    result.setCondition(pElem.getCondition());
-    result.setDefines(pElem.getDefines());
-    result.setResults(pElem.getResults());
-    result.setMessage(pElem.getMessage());
+    copyProcessNodeAttrs(elem, result);
+    result.setName(elem.getName());
+    result.setLabel(elem.getLabel());
+    result.setCondition(elem.getCondition());
+    result.setDefines(elem.getDefines());
+    result.setResults(elem.getResults());
+    result.setMessage(elem.getMessage());
     return result;
   }
 

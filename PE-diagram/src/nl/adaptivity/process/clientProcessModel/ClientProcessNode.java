@@ -1,13 +1,16 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import java.util.*;
-
 import net.devrieze.util.CollectionUtil;
 import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.util.Identifiable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 
 public abstract class ClientProcessNode<T extends IClientProcessNode<T>> implements IClientProcessNode<T>{
@@ -34,8 +37,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     this((String) null);
   }
 
-  protected ClientProcessNode(final String pId) {
-    aId = pId;
+  protected ClientProcessNode(final String id) {
+    aId = id;
     aOwner = null;
     switch (getMaxPredecessorCount()) {
       case 0: aPredecessors = ProcessNodeSet.empty(); break;
@@ -49,17 +52,17 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     }
   }
 
-  protected ClientProcessNode(final ClientProcessNode<T> pOrig) {
-    this(pOrig.aId);
+  protected ClientProcessNode(final ClientProcessNode<T> orig) {
+    this(orig.aId);
     aOwner = null;
-    aX = pOrig.aX;
-    aY = pOrig.aY;
-    aResults = CollectionUtil.copy(pOrig.aResults);
-    aDefines = CollectionUtil.copy(pOrig.aDefines);
-    aLabel = pOrig.aLabel;
+    aX = orig.aX;
+    aY = orig.aY;
+    aResults = CollectionUtil.copy(orig.aResults);
+    aDefines = CollectionUtil.copy(orig.aDefines);
+    aLabel = orig.aLabel;
 
-    aPredecessors.addAll(pOrig.aPredecessors);
-    aSuccessors.addAll(pOrig.aSuccessors);
+    aPredecessors.addAll(orig.aPredecessors);
+    aSuccessors.addAll(orig.aSuccessors);
   }
 
   @Override
@@ -67,8 +70,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return aId;
   }
 
-  public void setId(String pId) {
-    aId = pId;
+  public void setId(String id) {
+    aId = id;
   }
 
   @Override
@@ -76,20 +79,20 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return aLabel;
   }
 
-  public void setLabel(String pLabel) {
-    aLabel = pLabel;
+  public void setLabel(String label) {
+    aLabel = label;
   }
 
   @Override
-  public final void setPredecessors(Collection<? extends Identifiable> pPredecessors) {
-    if (pPredecessors.size()>getMaxPredecessorCount()) {
+  public final void setPredecessors(Collection<? extends Identifiable> predecessors) {
+    if (predecessors.size()>getMaxPredecessorCount()) {
       throw new IllegalArgumentException();
     }
     List<Identifiable> toRemove = new ArrayList<>(aPredecessors.size());
     for(Iterator<Identifiable> it = aPredecessors.iterator(); it.hasNext(); ) {
       Identifiable item = it.next();
-      if (pPredecessors.contains(item)) {
-        pPredecessors.remove(item);
+      if (predecessors.contains(item)) {
+        predecessors.remove(item);
       } else {
         toRemove.add(item);
         it.remove();
@@ -98,21 +101,21 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     for(Identifiable oldPred: toRemove) {
       removePredecessor(oldPred);
     }
-    for(Identifiable pred: pPredecessors) {
+    for(Identifiable pred: predecessors) {
       addPredecessor(pred);
     }
   }
 
   @Override
-  public final void setSuccessors(Collection<? extends T> pSuccessors) {
-    if (pSuccessors.size()>getMaxSuccessorCount()) {
+  public final void setSuccessors(Collection<? extends T> successors) {
+    if (successors.size()>getMaxSuccessorCount()) {
       throw new IllegalArgumentException();
     }
     List<T> toRemove = new ArrayList<>(aSuccessors.size());
     for(Iterator<T> it = aSuccessors.iterator();it.hasNext(); ) {
       T item = it.next();
-      if (pSuccessors.contains(item)) {
-        pSuccessors.remove(item);
+      if (successors.contains(item)) {
+        successors.remove(item);
       } else {
         toRemove.add(item);
         it.remove();
@@ -121,7 +124,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     for(T oldSuc: toRemove) {
       removeSuccessor(oldSuc);
     }
-    for(T suc: pSuccessors) {
+    for(T suc: successors) {
       addSuccessor(suc);
     }
   }
@@ -144,27 +147,27 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final void addSuccessor(T pNode) {
-    if (aSuccessors.contains(pNode)) { return; }
+  public final void addSuccessor(T node) {
+    if (aSuccessors.contains(node)) { return; }
     if (aSuccessors.size()+1>getMaxSuccessorCount()) {
       throw new IllegalProcessModelException("Can not add more successors");
     }
 
-    aSuccessors.add(pNode);
-    if (!pNode.getPredecessors().contains(this)) {
-      pNode.addPredecessor(this.asT());
+    aSuccessors.add(node);
+    if (!node.getPredecessors().contains(this)) {
+      node.addPredecessor(this.asT());
     }
     if (aOwner!=null) {
-      aOwner.addNode(pNode);
+      aOwner.addNode(node);
     }
 
 
 
-    if (aSuccessors.add(pNode)) {
+    if (aSuccessors.add(node)) {
       @SuppressWarnings("unchecked")
       final T pred = (T) this;
-      if (!pNode.getPredecessors().contains(pred)) {
-        pNode.addPredecessor(pred);
+      if (!node.getPredecessors().contains(pred)) {
+        node.addPredecessor(pred);
       }
     }
   }
@@ -180,16 +183,16 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final void removePredecessor(Identifiable pNode) {
-    if (aPredecessors.remove(pNode)) {
-      getOwner().getNode(pNode).removeSuccessor(this.asT());
+  public final void removePredecessor(Identifiable node) {
+    if (aPredecessors.remove(node)) {
+      getOwner().getNode(node).removeSuccessor(this.asT());
     }
   }
 
   @Override
-  public final void removeSuccessor(T pNode) {
-    if (aSuccessors.remove(pNode)) {
-      pNode.removePredecessor(this.asT());
+  public final void removeSuccessor(T node) {
+    if (aSuccessors.remove(node)) {
+      node.removePredecessor(this.asT());
     }
   }
 
@@ -209,8 +212,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public final boolean isPredecessorOf(T pNode) {
-    return aSuccessors.contains(pNode);
+  public final boolean isPredecessorOf(T node) {
+    return aSuccessors.contains(node);
   }
 
   @Override
@@ -228,8 +231,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return aResults;
   }
 
-  protected void setResults(Collection<? extends IXmlResultType> pExports) {
-    aResults = CollectionUtil.copy(pExports);
+  protected void setResults(Collection<? extends IXmlResultType> exports) {
+    aResults = CollectionUtil.copy(exports);
   }
 
   @Override
@@ -237,8 +240,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return aDefines;
   }
 
-  protected void setDefines(Collection<? extends IXmlDefineType> pImports) {
-    aDefines = CollectionUtil.copy(pImports);
+  protected void setDefines(Collection<? extends IXmlDefineType> imports) {
+    aDefines = CollectionUtil.copy(imports);
   }
 
   public void unsetPos() {
@@ -261,20 +264,20 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public void setX(double pX) {
-    aX = pX;
+  public void setX(double x) {
+    aX = x;
     if (aOwner!=null) aOwner.nodeChanged(this.asT());
   }
 
   @Override
-  public void setY(double pY) {
-    aY = pY;
+  public void setY(double y) {
+    aY = y;
     if (aOwner!=null) aOwner.nodeChanged(this.asT());
   }
 
-  public void offset(final int pOffsetX, final int pOffsetY) {
-    aX += pOffsetX;
-    aY += pOffsetY;
+  public void offset(final int offsetX, final int offsetY) {
+    aX += offsetX;
+    aY += offsetY;
     if (aOwner!=null) aOwner.nodeChanged(this.asT());
   }
 
@@ -294,8 +297,8 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   }
 
   @Override
-  public void setOwner(ClientProcessModel<T> pOwner) {
-    aOwner = pOwner;
+  public void setOwner(ClientProcessModel<T> owner) {
+    aOwner = owner;
   }
 
   @Override
@@ -303,17 +306,17 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return aOwner;
   }
 
-  public void serializeCommonAttrs(SerializerAdapter pOut) {
-    pOut.addAttribute(null, "id", aId);
-    if (aLabel!=null) { pOut.addAttribute(null, "label", aLabel); }
-    if (!Double.isNaN(aX)) { pOut.addAttribute(null, "x", Double.toString(aX)); }
-    if (!Double.isNaN(aY)) { pOut.addAttribute(null, "y", Double.toString(aY)); }
+  public void serializeCommonAttrs(SerializerAdapter out) {
+    out.addAttribute(null, "id", aId);
+    if (aLabel!=null) { out.addAttribute(null, "label", aLabel); }
+    if (!Double.isNaN(aX)) { out.addAttribute(null, "x", Double.toString(aX)); }
+    if (!Double.isNaN(aY)) { out.addAttribute(null, "y", Double.toString(aY)); }
     if (getMaxPredecessorCount()==1 && aPredecessors.size()==1) {
-      pOut.addAttribute(null, "predecessor", aPredecessors.get(0).getId());
+      out.addAttribute(null, "predecessor", aPredecessors.get(0).getId());
     }
   }
 
-  public void serializeCommonChildren(SerializerAdapter pOut) {
+  public void serializeCommonChildren(SerializerAdapter out) {
     // TODO handle imports and exports.
   }
 }

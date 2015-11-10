@@ -26,26 +26,26 @@ public class DiagramNode<T extends Positioned> implements Positioned {
 
   private List<DiagramNode<T>> aRight;
 
-  public DiagramNode(T pTarget, double pLeftExtend, double pRightExtend, double pTopExtend, double pBottomExtend) {
-    aTarget = pTarget;
+  public DiagramNode(T target, double leftExtend, double rightExtend, double topExtend, double bottomExtend) {
+    aTarget = target;
     aLeft = new ArrayList<>();
     aRight = new ArrayList<>();
-    aX = pTarget.getX();
-    aY = pTarget.getY();
-    aLeftExtend = pLeftExtend;
-    aRightExtend = pRightExtend;
-    aTopExtend = pTopExtend;
-    aBottomExtend = pBottomExtend;
+    aX = target.getX();
+    aY = target.getY();
+    aLeftExtend = leftExtend;
+    aRightExtend = rightExtend;
+    aTopExtend = topExtend;
+    aBottomExtend = bottomExtend;
   }
 
-  private DiagramNode(DiagramNode<T> pDiagramNode, double pX, double pY) {
-    aTarget = pDiagramNode.aTarget;
-    aX = pX;
-    aY = pY;
-    aLeftExtend = pDiagramNode.aLeftExtend;
-    aRightExtend = pDiagramNode.aRightExtend;
-    aTopExtend = pDiagramNode.aTopExtend;
-    aBottomExtend = pDiagramNode.aBottomExtend;
+  private DiagramNode(DiagramNode<T> diagramNode, double x, double y) {
+    aTarget = diagramNode.aTarget;
+    aX = x;
+    aY = y;
+    aLeftExtend = diagramNode.aLeftExtend;
+    aRightExtend = diagramNode.aRightExtend;
+    aTopExtend = diagramNode.aTopExtend;
+    aBottomExtend = diagramNode.aBottomExtend;
   }
 
   public T getTarget() {
@@ -72,20 +72,20 @@ public class DiagramNode<T extends Positioned> implements Positioned {
     return aBottomExtend;
   }
 
-  public DiagramNode<T> withX(double pX) {
-    return new DiagramNode<>(this, pX, aY);
+  public DiagramNode<T> withX(double x) {
+    return new DiagramNode<>(this, x, aY);
   }
 
-  public DiagramNode<T> withY(double pY) {
-    return new DiagramNode<>(this, aX, pY);
+  public DiagramNode<T> withY(double y) {
+    return new DiagramNode<>(this, aX, y);
   }
 
-  public void setX(double pX) {
-    aX = pX;
+  public void setX(double x) {
+    aX = x;
   }
 
-  public void setY(double pY) {
-    aY = pY;
+  public void setY(double y) {
+    aY = y;
   }
 
   @Override
@@ -115,31 +115,31 @@ public class DiagramNode<T extends Positioned> implements Positioned {
   }
 
   /** Determine whether the region overlaps this node and is not positioned to its right. */
-  public boolean leftOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
-    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
-           pRegion.getX()<getX();
+  public boolean leftOverlaps(DiagramNode<?> region, double xSep, double ySep) {
+    return overlaps(region, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+           region.getX()<getX();
   }
 
-  public boolean rightOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
-    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
-        pRegion.getX()>getX();
+  public boolean rightOverlaps(DiagramNode<?> region, double xSep, double ySep) {
+    return overlaps(region, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+        region.getX()>getX();
   }
 
-  public boolean upOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
-    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
-        pRegion.getY()<getY();
+  public boolean upOverlaps(DiagramNode<?> region, double xSep, double ySep) {
+    return overlaps(region, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+        region.getY()<getY();
   }
 
-  public boolean downOverlaps(DiagramNode<?> pRegion, double xSep, double ySep) {
-    return overlaps(pRegion, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
-        pRegion.getY()>getY();
+  public boolean downOverlaps(DiagramNode<?> region, double xSep, double ySep) {
+    return overlaps(region, getLeft()-xSep, getTop()-ySep, getRight()+xSep, getBottom()+ySep) &&
+        region.getY()>getY();
   }
 
-  private static boolean overlaps(DiagramNode<?> pRegion, double left, double top, double right, double bottom) {
-    return (pRegion.getRight()>left) &&
-           (pRegion.getLeft()<right) &&
-           (pRegion.getTop()<bottom) &&
-           (pRegion.getBottom()>top);
+  private static boolean overlaps(DiagramNode<?> region, double left, double top, double right, double bottom) {
+    return (region.getRight()>left) &&
+           (region.getLeft()<right) &&
+           (region.getTop()<bottom) &&
+           (region.getBottom()>top);
   }
 
   public List<DiagramNode<T>> getLeftNodes() {

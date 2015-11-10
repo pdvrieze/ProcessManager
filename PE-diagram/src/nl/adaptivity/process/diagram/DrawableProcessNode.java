@@ -11,11 +11,11 @@ import nl.adaptivity.process.clientProcessModel.IClientProcessNode;
 
 public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessNode>, Drawable {
 
-  void setId(String pId);
+  void setId(String id);
 
-  void setLabel(String pLabel);
+  void setLabel(String label);
 
-  <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top);
+  <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top);
 
 
 

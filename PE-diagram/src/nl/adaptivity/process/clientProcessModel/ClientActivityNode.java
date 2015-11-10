@@ -1,17 +1,12 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
+import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.util.Identifiable;
 
 import java.util.Collection;
 import java.util.List;
 
-import nl.adaptivity.process.processModel.Activity;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlMessage;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
-import nl.adaptivity.process.util.Identifiable;
+import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
@@ -27,15 +22,15 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
 
-  public ClientActivityNode(String pId) {
-    super(pId);
+  public ClientActivityNode(String id) {
+    super(id);
   }
 
-  protected ClientActivityNode(ClientActivityNode<T> pOrig) {
-    super(pOrig);
-    aName = pOrig.aName;
-    aCondition = pOrig.aCondition;
-    aMessage = pOrig.aMessage;
+  protected ClientActivityNode(ClientActivityNode<T> orig) {
+    super(orig);
+    aName = orig.aName;
+    aCondition = orig.aCondition;
+    aMessage = orig.aMessage;
   }
 
   @Override
@@ -44,8 +39,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setName(String pName) {
-    aName = pName;
+  public void setName(String name) {
+    aName = name;
   }
 
   @Override
@@ -54,8 +49,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setCondition(String pCondition) {
-    aCondition = pCondition;
+  public void setCondition(String condition) {
+    aCondition = condition;
   }
 
   @Override
@@ -69,12 +64,12 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setPredecessor(Identifiable pPredecessor) {
+  public void setPredecessor(Identifiable predecessor) {
     Identifiable previous = getPredecessor();
     if (previous==null) {
       removePredecessor(previous);
     }
-    addPredecessor(pPredecessor);
+    addPredecessor(predecessor);
   }
 
 
@@ -84,8 +79,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setMessage(IXmlMessage pMessage) {
-    aMessage = ClientMessage.from(pMessage);
+  public void setMessage(IXmlMessage message) {
+    aMessage = ClientMessage.from(message);
   }
 
 
@@ -95,8 +90,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setDefines(Collection<? extends IXmlDefineType> pImports) {
-    super.setDefines(pImports);
+  public void setDefines(Collection<? extends IXmlDefineType> imports) {
+    super.setDefines(imports);
   }
 
   @Override
@@ -105,25 +100,25 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public void setResults(Collection<? extends IXmlResultType> pExports) {
-    super.setResults(pExports);
+  public void setResults(Collection<? extends IXmlResultType> exports) {
+    super.setResults(exports);
   }
 
 
   @Override
-  public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "activity", true);
-    serializeCommonAttrs(pOut);
-    if (aName!=null) { pOut.addAttribute(null, "name", aName); }
-    if (aCondition!=null) { pOut.addAttribute(null, "condition", aCondition); }
-    serializeCommonChildren(pOut);
-    if (aMessage!=null) { aMessage.serialize(pOut); }
-    pOut.endTag(NS_PM, "activity", true);
+  public void serialize(SerializerAdapter out) {
+    out.startTag(NS_PM, "activity", true);
+    serializeCommonAttrs(out);
+    if (aName!=null) { out.addAttribute(null, "name", aName); }
+    if (aCondition!=null) { out.addAttribute(null, "condition", aCondition); }
+    serializeCommonChildren(out);
+    if (aMessage!=null) { aMessage.serialize(out); }
+    out.endTag(NS_PM, "activity", true);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitActivity(this);
+  public <R> R visit(ProcessNode.Visitor<R> visitor) {
+    return visitor.visitActivity(this);
   }
 
 }

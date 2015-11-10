@@ -21,22 +21,22 @@ public class ClientMessage extends BaseMessage {
     super();
   }
 
-  public ClientMessage(QName pService, String pEndpoint, String pOperation, String pUrl, String pMethod, String pContentType,
-                       Node pMessageBody) throws XMLStreamException {
-    super(pService, pEndpoint, pOperation, pUrl, pMethod, pContentType, pMessageBody);
+  public ClientMessage(QName service, String endpoint, String operation, String url, String method, String contentType,
+                       Node messageBody) throws XMLStreamException {
+    super(service, endpoint, operation, url, method, contentType, messageBody);
   }
 
-  public ClientMessage(IXmlMessage pMessage) throws XMLStreamException {
-    super(pMessage);
+  public ClientMessage(IXmlMessage message) throws XMLStreamException {
+    super(message);
   }
 
-  public static ClientMessage from(IXmlMessage pMessage) {
-    if (pMessage==null) { return null; }
-    if (pMessage instanceof ClientMessage) { return (ClientMessage) pMessage; }
+  public static ClientMessage from(IXmlMessage message) {
+    if (message==null) { return null; }
+    if (message instanceof ClientMessage) { return (ClientMessage) message; }
     try {
-      return new ClientMessage(pMessage);
-    } catch (XMLStreamException pE) {
-      throw new RuntimeException(pE);
+      return new ClientMessage(message);
+    } catch (XMLStreamException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -46,8 +46,8 @@ public class ClientMessage extends BaseMessage {
   }
 
   @Override
-  protected void serializeStartElement(final XMLStreamWriter pOut) throws XMLStreamException {
-    XmlUtil.writeStartElement(pOut, getElementName());
+  protected void serializeStartElement(final XMLStreamWriter out) throws XMLStreamException {
+    XmlUtil.writeStartElement(out, getElementName());
   }
 
   @Override
@@ -55,54 +55,54 @@ public class ClientMessage extends BaseMessage {
     return ELEMENTNAME;
   }
 
-  public void serialize(SerializerAdapter pOut) {
-    pOut.startTag(NS_PM, "message", false);
-    if (getServiceNS()!=null) { pOut.addAttribute(null, "serviceNS", getServiceNS()); }
-    if (getServiceName()!=null) { pOut.addAttribute(null, "serviceName", getServiceName()); }
-    if (getEndpoint()!=null) { pOut.addAttribute(null, "endpoint", getEndpoint()); }
-    if (getOperation()!=null) { pOut.addAttribute(null, "operation", getOperation()); }
-    if (getUrl()!=null) { pOut.addAttribute(null, "url", getUrl()); }
-    if (getContentType()!=null) { pOut.addAttribute(null, "type", getContentType()); }
-    if (getMethod()!=null) { pOut.addAttribute(null, "method", getMethod()); }
+  public void serialize(SerializerAdapter out) {
+    out.startTag(NS_PM, "message", false);
+    if (getServiceNS()!=null) { out.addAttribute(null, "serviceNS", getServiceNS()); }
+    if (getServiceName()!=null) { out.addAttribute(null, "serviceName", getServiceName()); }
+    if (getEndpoint()!=null) { out.addAttribute(null, "endpoint", getEndpoint()); }
+    if (getOperation()!=null) { out.addAttribute(null, "operation", getOperation()); }
+    if (getUrl()!=null) { out.addAttribute(null, "url", getUrl()); }
+    if (getContentType()!=null) { out.addAttribute(null, "type", getContentType()); }
+    if (getMethod()!=null) { out.addAttribute(null, "method", getMethod()); }
 
     // TODO don't do this through DOM
-    serialize(pOut, getMessageBodyNode());
+    serialize(out, getMessageBodyNode());
 
-    pOut.endTag(NS_PM, "message", true);
+    out.endTag(NS_PM, "message", true);
   }
 
-  private void serialize(SerializerAdapter pOut, Node pNode) {
-    switch (pNode.getNodeType()) {
+  private void serialize(SerializerAdapter out, Node node) {
+    switch (node.getNodeType()) {
     case Node.ELEMENT_NODE:
-      serializeElement(pOut, (Element)pNode);
+      serializeElement(out, (Element)node);
       break;
     case Node.CDATA_SECTION_NODE:
-      pOut.cdata(((CDATASection)pNode).getData());
+      out.cdata(((CDATASection)node).getData());
       break;
     case Node.COMMENT_NODE:
-      pOut.comment(((Comment)pNode).getData());
+      out.comment(((Comment)node).getData());
       break;
     case Node.ENTITY_REFERENCE_NODE:
-      pOut.entityReference(((EntityReference)pNode).getLocalName());
+      out.entityReference(((EntityReference)node).getLocalName());
       break;
     case Node.TEXT_NODE:
-      pOut.text(((Text)pNode).getData());
+      out.text(((Text)node).getData());
     }
 
   }
 
-  private void serializeElement(SerializerAdapter pOut, Element pNode) {
-    pOut.addNamespace(pNode.getPrefix(), pNode.getNamespaceURI());
-    pOut.startTag(pNode.getNamespaceURI(), pNode.getLocalName(), false);
-    NamedNodeMap attrs = pNode.getAttributes();
+  private void serializeElement(SerializerAdapter out, Element node) {
+    out.addNamespace(node.getPrefix(), node.getNamespaceURI());
+    out.startTag(node.getNamespaceURI(), node.getLocalName(), false);
+    NamedNodeMap attrs = node.getAttributes();
     for(int i=0; i<attrs.getLength(); ++i) {
       Attr attr = (Attr) attrs.item(i);
-      pOut.addAttribute(attr.getNamespaceURI(), attr.getLocalName(), attr.getValue());
+      out.addAttribute(attr.getNamespaceURI(), attr.getLocalName(), attr.getValue());
     }
-    for(Node node = pNode.getFirstChild(); node!=null; node = node.getNextSibling()) {
-      serialize(pOut, node);
+    for(Node child = node.getFirstChild(); child!=null; child = child.getNextSibling()) {
+      serialize(out, node);
     }
-    pOut.endTag(pNode.getNamespaceURI(), pNode.getLocalName(), false);
+    out.endTag(node.getNamespaceURI(), node.getLocalName(), false);
   }
 
 }

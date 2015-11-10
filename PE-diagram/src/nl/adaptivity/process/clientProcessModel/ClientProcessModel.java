@@ -1,27 +1,18 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import javax.xml.XMLConstants;
-
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.IXmlResultType;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNodeSet;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
+
+import javax.xml.XMLConstants;
+
+import java.security.Principal;
+import java.util.*;
 
 
 public class ClientProcessModel<T extends IClientProcessNode<T>> implements ProcessModel<T>{
@@ -57,15 +48,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   private Collection<IXmlDefineType> aExports;
 
-  public ClientProcessModel(UUID pUuid, final String pName, final Collection<? extends T> pNodes) {
-    this(pUuid, pName, pNodes, new LayoutAlgorithm<T>());
+  public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes) {
+    this(uuid, name, nodes, new LayoutAlgorithm<T>());
   }
 
-  public ClientProcessModel(UUID pUuid, final String pName, final Collection<? extends T> pNodes, LayoutAlgorithm<T> pLayoutAlgorithm) {
-    aName = pName;
-    aLayoutAlgorithm = pLayoutAlgorithm == null ? new LayoutAlgorithm<T>() : pLayoutAlgorithm;
-    setNodes(pNodes);
-    aUuid = pUuid==null ? UUID.randomUUID() : pUuid;
+  public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes, LayoutAlgorithm<T> layoutAlgorithm) {
+    aName = name;
+    aLayoutAlgorithm = layoutAlgorithm == null ? new LayoutAlgorithm<T>() : layoutAlgorithm;
+    setNodes(nodes);
+    aUuid = uuid==null ? UUID.randomUUID() : uuid;
   }
 
   public void setNodes(final Collection<? extends T> nodes) {
@@ -80,8 +71,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return aLayoutAlgorithm;
   }
 
-  public void setLayoutAlgorithm(LayoutAlgorithm<T> pLayoutAlgorithm) {
-    aLayoutAlgorithm = pLayoutAlgorithm;
+  public void setLayoutAlgorithm(LayoutAlgorithm<T> layoutAlgorithm) {
+    aLayoutAlgorithm = layoutAlgorithm;
   }
 
   public double getVertSeparation() {
@@ -89,11 +80,11 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setVertSeparation(double pVertSeparation) {
-    if (aLayoutAlgorithm.getVertSeparation()!=pVertSeparation) {
+  public void setVertSeparation(double vertSeparation) {
+    if (aLayoutAlgorithm.getVertSeparation()!=vertSeparation) {
       invalidate();
     }
-    aLayoutAlgorithm.setVertSeparation(pVertSeparation);
+    aLayoutAlgorithm.setVertSeparation(vertSeparation);
   }
 
 
@@ -102,11 +93,11 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setHorizSeparation(double pHorizSeparation) {
-    if (aLayoutAlgorithm.getHorizSeparation()!=pHorizSeparation) {
+  public void setHorizSeparation(double horizSeparation) {
+    if (aLayoutAlgorithm.getHorizSeparation()!=horizSeparation) {
       invalidate();
     }
-    aLayoutAlgorithm.setHorizSeparation(pHorizSeparation);
+    aLayoutAlgorithm.setHorizSeparation(horizSeparation);
   }
 
   public double getDefaultNodeWidth() {
@@ -114,11 +105,11 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setDefaultNodeWidth(double pDefaultNodeWidth) {
-    if (aLayoutAlgorithm.getDefaultNodeWidth()!=pDefaultNodeWidth) {
+  public void setDefaultNodeWidth(double defaultNodeWidth) {
+    if (aLayoutAlgorithm.getDefaultNodeWidth()!=defaultNodeWidth) {
       invalidate();
     }
-    aLayoutAlgorithm.setDefaultNodeWidth(pDefaultNodeWidth);
+    aLayoutAlgorithm.setDefaultNodeWidth(defaultNodeWidth);
   }
 
 
@@ -127,11 +118,11 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setDefaultNodeHeight(double pDefaultNodeHeight) {
-    if (aLayoutAlgorithm.getDefaultNodeHeight()!=pDefaultNodeHeight) {
+  public void setDefaultNodeHeight(double defaultNodeHeight) {
+    if (aLayoutAlgorithm.getDefaultNodeHeight()!=defaultNodeHeight) {
       invalidate();
     }
-    aLayoutAlgorithm.setDefaultNodeHeight(pDefaultNodeHeight);
+    aLayoutAlgorithm.setDefaultNodeHeight(defaultNodeHeight);
   }
 
 
@@ -140,12 +131,12 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setTopPadding(double pTopPadding) {
-    double offset = pTopPadding-aTopPadding;
+  public void setTopPadding(double topPadding) {
+    double offset = topPadding-aTopPadding;
     for(T n:aNodes) {
       n.setY(n.getY()+offset);
     }
-    aTopPadding = pTopPadding;
+    aTopPadding = topPadding;
   }
 
 
@@ -154,12 +145,12 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setLeftPadding(double pLeftPadding) {
-    double offset = pLeftPadding-aLeftPadding;
+  public void setLeftPadding(double leftPadding) {
+    double offset = leftPadding-aLeftPadding;
     for(T n:aNodes) {
       n.setX(n.getX()+offset);
     }
-    aLeftPadding = pLeftPadding;
+    aLeftPadding = leftPadding;
   }
 
 
@@ -168,8 +159,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setBottomPadding(double pBottomPadding) {
-    aBottomPadding = pBottomPadding;
+  public void setBottomPadding(double bottomPadding) {
+    aBottomPadding = bottomPadding;
   }
 
 
@@ -178,8 +169,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
 
-  public void setRightPadding(double pRightPadding) {
-    aRightPadding = pRightPadding;
+  public void setRightPadding(double rightPadding) {
+    aRightPadding = rightPadding;
   }
 
 
@@ -200,9 +191,9 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   /**
-   * @param pNode The node that has changed.
+   * @param node The node that has changed.
    */
-  public void nodeChanged(T pNode) {
+  public void nodeChanged(T node) {
     // no implementation here
   }
 
@@ -211,8 +202,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return aUuid;
   }
 
-  public void setUuid(UUID pUuid) {
-    aUuid = pUuid;
+  public void setUuid(UUID uuid) {
+    aUuid = uuid;
   }
 
   @Override
@@ -230,18 +221,18 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   @Override
-  public T getNode(Identifiable pNodeId) {
+  public T getNode(Identifiable nodeId) {
     for(T n: getModelNodes()) {
-      if (pNodeId.getId().equals(n.getId())) {
+      if (nodeId.getId().equals(n.getId())) {
         return n;
       }
     }
     return null;
   }
 
-  public T getNode(String pNodeId) {
+  public T getNode(String nodeId) {
     for(T n: getModelNodes()) {
-      if (pNodeId.equals(n.getId())) {
+      if (nodeId.equals(n.getId())) {
         return n;
       }
     }
@@ -261,16 +252,16 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return aName;
   }
 
-  public void setName(String pName) {
-    aName = pName;
+  public void setName(String name) {
+    aName = name;
   }
 
-  public void setOwner(String pOwner) {
-    aOwner = new SimplePrincipal(pOwner);
+  public void setOwner(String owner) {
+    aOwner = new SimplePrincipal(owner);
   }
 
-  public void setOwner(Principal pOwner) {
-    aOwner = pOwner;
+  public void setOwner(Principal owner) {
+    aOwner = owner;
   }
 
   @Override
@@ -304,15 +295,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return result;
   }
 
-  public void addNode(T pNode) {
-    aNodes.add(pNode);
-    pNode.setOwner(this);
+  public void addNode(T node) {
+    aNodes.add(node);
+    node.setOwner(this);
     // Make sure that children can know of the change.
-    nodeChanged(pNode);
+    nodeChanged(node);
   }
 
-  public void removeNode(int pNodePos) {
-    T node = aNodes.remove(pNodePos);
+  public void removeNode(int nodePos) {
+    T node = aNodes.remove(nodePos);
     disconnectNode(node);
   }
 
@@ -342,28 +333,28 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     }
   }
 
-  public void serialize(SerializerAdapter pOut) {
-    pOut.addNamespace(XMLConstants.NULL_NS_URI, NS_PM);
-    pOut.addNamespace("umh", NS_UMH);
-    pOut.addNamespace("jbi", NS_JBI);
+  public void serialize(SerializerAdapter out) {
+    out.addNamespace(XMLConstants.NULL_NS_URI, NS_PM);
+    out.addNamespace("umh", NS_UMH);
+    out.addNamespace("jbi", NS_JBI);
 
-    pOut.startTag(NS_PM, "processModel", true);
+    out.startTag(NS_PM, "processModel", true);
     if (aName!=null) {
-      pOut.addAttribute(null, "name", aName);
+      out.addAttribute(null, "name", aName);
     }
     if (aUuid!=null) {
-      pOut.addAttribute(null, "uuid", aUuid.toString());
+      out.addAttribute(null, "uuid", aUuid.toString());
     }
     for(T node:aNodes) {
-      node.serialize(pOut);
+      node.serialize(out);
     }
-    pOut.endTag(NS_PM, "processModel", true);
+    out.endTag(NS_PM, "processModel", true);
   }
 
-  private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> pModelNodes) {
+  private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> modelNodes) {
     HashMap<T,DiagramNode<T>> map = new HashMap<>();
     List<DiagramNode<T>> result = new ArrayList<>();
-    for(T node:pModelNodes) {
+    for(T node:modelNodes) {
       final double leftExtend;
       final double rightExtend;
       final double topExtend;

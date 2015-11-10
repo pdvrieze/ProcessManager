@@ -9,15 +9,15 @@ public class SVGTheme<M extends MeasureInfo> implements Theme<SVGStrategy<M>, SV
 
   private SVGStrategy<M> aStrategy;
 
-  public SVGTheme(SVGStrategy<M> pStrategy) {
-    aStrategy = pStrategy;
+  public SVGTheme(SVGStrategy<M> strategy) {
+    aStrategy = strategy;
   }
 
   @Override
-  public SVGPen<M> getPen(ThemeItem pItem, int pState) {
-    int itemState = pItem.getEffectiveState(pState);
+  public SVGPen<M> getPen(ThemeItem item, int state) {
+    int itemState = item.getEffectiveState(state);
 
-    return pItem.createPen(aStrategy, itemState);
+    return item.createPen(aStrategy, itemState);
   }
 
 }

@@ -30,12 +30,12 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     super();
   }
 
-  public DrawableSplit(String pId) {
-    super(pId);
+  public DrawableSplit(String id) {
+    super(id);
   }
 
-  public DrawableSplit(DrawableJoinSplit pOrig) {
-    super(pOrig);
+  public DrawableSplit(DrawableJoinSplit orig) {
+    super(orig);
   }
 
   @Override
@@ -46,11 +46,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
-  public static DrawableSplit from(Split<?> pElem) {
+  public static DrawableSplit from(Split<?> elem) {
     DrawableSplit result = new DrawableSplit();
-    copyProcessNodeAttrs(pElem, result);
-    result.setMin(pElem.getMin());
-    result.setMax(pElem.getMax());
+    copyProcessNodeAttrs(elem, result);
+    result.setMin(elem.getMin());
+    result.setMax(elem.getMax());
     return result;
   }
 
@@ -60,9 +60,9 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
-    super.draw(pCanvas, pClipBounds);
-    final S strategy = pCanvas.getStrategy();
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
+    super.draw(canvas, clipBounds);
+    final S strategy = canvas.getStrategy();
     PATH_T path = aItems.getPath(strategy, 1);
     if (path==null) {
       path = strategy.newPath();
@@ -90,24 +90,24 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
       aItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
-      PEN_T linePen = pCanvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState() & ~STATE_TOUCHED);
-      pCanvas.drawPath(path, linePen, null);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState() & ~STATE_TOUCHED);
+      canvas.drawPath(path, linePen, null);
     }
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
-    DrawableUtil.defaultDrawLabel(this, pCanvas, pClipBounds, left, top);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
+    DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
   @Override
-  public void serialize(SerializerAdapter pOut) {
-    serializeSplit(pOut);
+  public void serialize(SerializerAdapter out) {
+    serializeSplit(out);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> pVisitor) {
-    return pVisitor.visitSplit(this);
+  public <R> R visit(ProcessNode.Visitor<R> visitor) {
+    return visitor.visitSplit(this);
   }
 
 }

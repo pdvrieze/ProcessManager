@@ -36,6 +36,7 @@
     <orderEntry type="library" exported="" name="stax2-api-3.1.4" level="project" />
     <orderEntry type="library" exported="" name="woodstox-core-5.0.1" level="project" />
     <orderEntry type="library" exported="" name="asm-tree-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="annotations-12.0" level="project" />
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
     <orderEntry type="library" exported="" name="PE-diagram.PE-diagram-1.0.0" level="project" />
   </component>

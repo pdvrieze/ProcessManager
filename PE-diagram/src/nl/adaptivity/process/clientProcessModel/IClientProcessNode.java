@@ -13,17 +13,17 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
    * Set the X coordinate of the reference point of the element. This is
    * normally the center.
    *
-   * @param pX The x coordinate
+   * @param x The x coordinate
    */
-  void setX(double pX);
+  void setX(double x);
 
   /**
    * Set the Y coordinate of the reference point of the element. This is
    * normally the center of the symbol (excluding text).
    *
-   * @param pY
+   * @param y
    */
-  void setY(double pY);
+  void setY(double y);
 
   @Override
   public Set<? extends Identifiable> getPredecessors();
@@ -31,11 +31,11 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   @Override
   public ProcessNodeSet<? extends T> getSuccessors();
 
-  void setOwner(ClientProcessModel<T> pOwner);
+  void setOwner(ClientProcessModel<T> owner);
 
   ClientProcessModel<T> getOwner();
   
   void disconnect();
   
-  void serialize(SerializerAdapter pOut);
+  void serialize(SerializerAdapter out);
 }

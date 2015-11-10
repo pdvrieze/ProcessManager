@@ -25,13 +25,13 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     super();
   }
 
-  public DrawableEndNode(String pId) {
-    super(pId);
+  public DrawableEndNode(String id) {
+    super(id);
   }
 
-  public DrawableEndNode(DrawableEndNode pOrig) {
-    super(pOrig);
-    aState = pOrig.aState;
+  public DrawableEndNode(DrawableEndNode orig) {
+    super(orig);
+    aState = orig.aState;
   }
 
   @Override
@@ -48,21 +48,21 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   }
 
   @Override
-  public void setPos(double pLeft, double pTop) {
-    setX(pLeft+REFERENCE_OFFSET_X);
-    setY(pLeft+REFERENCE_OFFSET_Y);
+  public void setPos(double left, double top) {
+    setX(left+REFERENCE_OFFSET_X);
+    setY(left+REFERENCE_OFFSET_Y);
   }
 
   @Override
-  public void move(double pX, double pY) {
-    setX(getX()+pX);
-    setY(getY()+pY);
+  public void move(double x, double y) {
+    setX(getX()+x);
+    setY(getY()+y);
   }
 
   @Override
-  public Drawable getItemAt(double pX, double pY) {
+  public Drawable getItemAt(double x, double y) {
     final double realradius=ENDNODEOUTERRADIUS+(ENDNODEOUTERSTROKEWIDTH/2);
-    return ((Math.abs(pX-getX())<=realradius) && (Math.abs(pY-getY())<=realradius)) ? this : null;
+    return ((Math.abs(x-getX())<=realradius) && (Math.abs(y-getY())<=realradius)) ? this : null;
   }
 
   @Override
@@ -71,36 +71,36 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   }
 
   @Override
-  public void setState(int pState) {
-    aState = pState;
+  public void setState(int state) {
+    aState = state;
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
-      PEN_T outerLinePen = pCanvas.getTheme().getPen(ProcessThemeItems.ENDNODEOUTERLINE, aState & ~STATE_TOUCHED);
-      PEN_T innerPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
+      PEN_T outerLinePen = canvas.getTheme().getPen(ProcessThemeItems.ENDNODEOUTERLINE, aState & ~STATE_TOUCHED);
+      PEN_T innerPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
 
       double hsw = ENDNODEOUTERSTROKEWIDTH/2;
 
       if ((aState&STATE_TOUCHED)!=0) {
-        PEN_T touchedPen = pCanvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
-        pCanvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, touchedPen);
-        pCanvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, touchedPen);
+        PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
+        canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, touchedPen);
+        canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, touchedPen);
       }
-      pCanvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, outerLinePen);
-      pCanvas.drawFilledCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, innerPen);
+      canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, outerLinePen);
+      canvas.drawFilledCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, innerPen);
     }
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> pCanvas, Rectangle pClipBounds, double left, double top) {
-    DrawableUtil.defaultDrawLabel(this, pCanvas, pClipBounds, left, top);
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
+    DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
-  public static  DrawableEndNode from(EndNode<?> pElem) {
+  public static  DrawableEndNode from(EndNode<?> elem) {
     DrawableEndNode result = new DrawableEndNode();
-    copyProcessNodeAttrs(pElem, result);
+    copyProcessNodeAttrs(elem, result);
     return result;
   }
 

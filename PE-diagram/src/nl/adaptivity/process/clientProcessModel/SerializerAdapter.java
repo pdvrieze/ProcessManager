@@ -3,22 +3,22 @@ package nl.adaptivity.process.clientProcessModel;
 
 public interface SerializerAdapter {
 
-  void addNamespace(String pPrefix, String pNamespace);
+  void addNamespace(String prefix, String namespace);
 
-  void startTag(String pNamespace, String pName, boolean pAddWs);
+  void startTag(String namespace, String name, boolean addWs);
 
-  void endTag(String pNamespace, String pName, boolean pAddWs);
+  void endTag(String namespace, String name, boolean addWs);
 
-  void addAttribute(String pNamespace, String pName, String pValue);
+  void addAttribute(String namespace, String name, String value);
 
-  void text(String pString);
+  void text(String string);
 
-  void ignorableWhitespace(String pString);
+  void ignorableWhitespace(String string);
 
-  void cdata(String pData);
+  void cdata(String data);
 
-  void comment(String pData);
+  void comment(String data);
 
-  void entityReference(String pLocalName);
+  void entityReference(String localName);
 
 }
