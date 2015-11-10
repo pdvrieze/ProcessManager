@@ -1,11 +1,11 @@
 package net.devrieze.util.db;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
+import net.devrieze.util.db.DBConnection.DBStatement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import net.devrieze.util.db.DBConnection.DBStatement;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 
 public class StringAdapter extends ResultSetAdapter<String> {
@@ -23,7 +23,7 @@ public class StringAdapter extends ResultSetAdapter<String> {
 
     @Override
     @Nullable
-    protected String doCreateElem(final ResultSet resultSet) throws SQLException {
+    protected String doCreateElem(@NotNull final ResultSet resultSet) throws SQLException {
       final String result = getStringCache().lookup(resultSet.getString(1));
       DBConnection.logWarnings("Reading string out of resultset", resultSet);
       return result;

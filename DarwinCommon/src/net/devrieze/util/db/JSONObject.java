@@ -1,10 +1,10 @@
 package net.devrieze.util.db;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
-import org.jetbrains.annotations.NotNull;
 
 
 public abstract class JSONObject {
@@ -13,25 +13,25 @@ public abstract class JSONObject {
   public static class JSONString extends JSONObject {
 
     @NotNull
-    private final CharSequence mString;
+    private final CharSequence mValue;
 
-    public JSONString(@NotNull final CharSequence string) {
-      mString = string;
+    public JSONString(@NotNull final CharSequence value) {
+      mValue = value;
     }
 
     @Override
     @NotNull
     public CharSequence getValue() {
-      return mString;
+      return mValue;
     }
 
     @Override
     @NotNull
     public StringBuilder appendTo(@NotNull final StringBuilder stringBuilder) {
-      final int len = mString.length();
+      final int len = mValue.length();
       stringBuilder.append('"');
       for (int i = 0; i < len; ++i) {
-        final char c = mString.charAt(i);
+        final char c = mValue.charAt(i);
         switch (c) {
           case '"':
             stringBuilder.append("\\\"");
@@ -99,12 +99,12 @@ public abstract class JSONObject {
     return new JSONArray(items);
   }
 
-  public static JSONArray jsonArray(final JSONObject... items) {
+  public static JSONArray jsonArray(@NotNull final JSONObject... items) {
     return jsonArray(Arrays.asList(items));
   }
 
-  public static JSONString jsonString(@NotNull final CharSequence string) {
-    return new JSONString(string);
+  public static JSONString jsonString(@NotNull final CharSequence value) {
+    return new JSONString(value);
   }
 
   public abstract Object getValue();

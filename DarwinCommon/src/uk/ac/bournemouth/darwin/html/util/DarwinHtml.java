@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 
-public class DarwinHtml {
+public final class DarwinHtml {
 
   public static void writeError(@NotNull final HttpServletResponse response, final int status, @NotNull final String title, final Throwable error) {
     response.setStatus(status);

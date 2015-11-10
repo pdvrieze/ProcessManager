@@ -22,23 +22,21 @@ public class DBConnection implements AutoCloseable {
   public static class DBHelper {
 
     @NotNull
-    private DataSource mDataSource;
+    private final DataSource mDataSource;
     private StringCache mStringCache;
 
     // Object Initialization
-    public DBHelper(@NotNull DataSource dataSource) {
+    public DBHelper(@NotNull final DataSource dataSource) {
       mDataSource = dataSource;
     }
 
     @NotNull
     public static DBHelper getDbHelper(final String resourceName) throws SQLException {
-      DataSource dataSource;
-      if (true) {
-        try {
-          dataSource = getDataSource(resourceName);
-        } catch (final NamingException e) {
-          throw new SQLException("Failure to link to database", e);
-        }
+      final DataSource dataSource;
+      try {
+        dataSource = getDataSource(resourceName);
+      } catch (final NamingException e) {
+        throw new SQLException("Failure to link to database", e);
       }
       if (DBConnection.getLogger()
                       .isLoggable(DBConnection.DETAIL_LOG_LEVEL)) { // Do this only when we log this is going to be output
@@ -65,12 +63,12 @@ public class DBConnection implements AutoCloseable {
       final DBConnection dbConnection = new DBConnection(mDataSource);
       final StringCache mStringCache2 = mStringCache;
       if (mStringCache2 != null) {
-        dbConnection.setStringCache(mStringCache2);
+        DBConnection.setStringCache(mStringCache2);
       }
       return dbConnection;
     }
 
-    public void setStringCache(StringCache stringCache) {
+    public void setStringCache(final StringCache stringCache) {
       mStringCache = stringCache;
     }
 // Property acccessors end
@@ -88,6 +86,13 @@ public class DBConnection implements AutoCloseable {
       mDataSource = dataSource;
     }
 // Object Initialization end
+  }
+
+  private interface Warnable {
+
+    boolean isClosed() throws SQLException;
+
+    SQLWarning getWarnings() throws SQLException;
   }
 
   public interface DBStatement extends AutoCloseable {
@@ -120,6 +125,13 @@ public class DBConnection implements AutoCloseable {
 
     boolean execQueryEmpty();
 
+    /**
+     * Add a parameter to the query.
+     * @param column The column number to add the parameter
+     * @param value The value
+     * @return the value of <code>this</code>
+     */
+    @NotNull
     @Override
     DBQuery addParam(int column, String value);
 
@@ -134,10 +146,12 @@ public class DBConnection implements AutoCloseable {
     /** Execute the query and return the long value */
     Long longQuery();
 
+    @NotNull
     @Override
     DBQuery addParam(int column, int value);
 
 
+    @NotNull
     @Override
     DBQuery addParam(int column, long value);
 
@@ -146,6 +160,7 @@ public class DBConnection implements AutoCloseable {
 
   public interface DBInsert extends DBStatement {
 
+    @NotNull
     @Override
     DBInsert addParam(int column, String value);
 
@@ -168,8 +183,6 @@ public class DBConnection implements AutoCloseable {
       }
       try {
         mSQLStatement = connection.prepareStatement(sQL);
-      } catch (final SQLException e) {
-        throw e;
       } finally {
         logWarnings("Preparing statement", connection);
       }
@@ -281,7 +294,7 @@ public class DBConnection implements AutoCloseable {
     @Override
     @NotNull
     public StringCache getStringCache() {
-      return mStringCache;
+      return _stringCache;
     }
 
     @Override
@@ -289,7 +302,7 @@ public class DBConnection implements AutoCloseable {
       if (mSQLStatement != null) {
         try {
           mSQLStatement.close();
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
           logException("Error closing statement", e);
           mSQLStatement = null;
           throw new RuntimeException(e);
@@ -323,6 +336,7 @@ public class DBConnection implements AutoCloseable {
     @Override
     @NotNull
     public DBQuery addParam(final int column, final String value) {
+      //noinspection resource
       super.addParam(column, value);
       return this;
     }
@@ -377,6 +391,7 @@ public class DBConnection implements AutoCloseable {
       return null;
     }
 
+    @SuppressWarnings("UnnecessaryBoxing")
     @Override
     @Nullable
     public Integer intQuery() {
@@ -392,6 +407,7 @@ public class DBConnection implements AutoCloseable {
       }
     }
 
+    @SuppressWarnings("UnnecessaryBoxing")
     @Override
     @Nullable
     public Long longQuery() {
@@ -418,7 +434,7 @@ public class DBConnection implements AutoCloseable {
         logWarning("The query " + mSQLStatement + " does not return 1 element");
         try {
           rs.close();
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
           logException("Failure closing resultset", e);
         }
         return null;
@@ -428,7 +444,7 @@ public class DBConnection implements AutoCloseable {
         logWarnings("getSingleHelper resultset", rs);
         try {
           rs.close();
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
           logException("Failure closing resultset", e);
         }
         return null; // No result, that is allowed, no warning
@@ -438,7 +454,7 @@ public class DBConnection implements AutoCloseable {
         logWarnings("getSingleHelper resultset", rs);
         try {
           rs.close();
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
           logException("Failure closing resultset", e);
         }
         return null;
@@ -446,9 +462,12 @@ public class DBConnection implements AutoCloseable {
       logWarnings("getSingleHelper resultset", rs);
       mResultSets.add(rs);
       return rs;
-    }    @Override
+    }
+
+    @Override
     @NotNull
     public DBQuery addParam(final int column, final int value) {
+      //noinspection resource
       super.addParam(column, value);
       return this;
     }
@@ -459,6 +478,7 @@ public class DBConnection implements AutoCloseable {
     @Override
     @NotNull
     public DBQuery addParam(final int column, final long value) {
+      //noinspection resource
       super.addParam(column, value);
       return this;
     }
@@ -467,10 +487,10 @@ public class DBConnection implements AutoCloseable {
     @Override
     public void close() {
       if (mResultSets != null) {
-        for (ResultSet rs : mResultSets) {
+        for (final ResultSet rs : mResultSets) {
           try {
             rs.close();
-          } catch (SQLException e) {
+          } catch (final SQLException e) {
             logException("Failure closing down resultsets", e);
           }
         }
@@ -501,7 +521,7 @@ public class DBConnection implements AutoCloseable {
   private static final Level DETAIL_LOG_LEVEL = Level.FINE;
   private static final String LOGGER_NAME = "DBHelper";
   @NotNull
-  private static StringCache mStringCache;
+  private static StringCache _stringCache = StringCache.NOPCACHE;
   @Nullable
   public String mErrorMsg;
   @Nullable
@@ -514,14 +534,13 @@ public class DBConnection implements AutoCloseable {
     mConnection = dataSource.getConnection();
     mConnection.setAutoCommit(false);
     mStatements = new ArrayList<>();
-    mStringCache = StringCache.NOPCACHE;
   }
 
   /**
    * @deprecated Use {@link #newInstance(DataSource)}
    */
   @Deprecated
-  public static DBConnection getDbHelper(String dbresource, Object key) {
+  public static DBConnection getDbHelper(final String dbresource) {
     return newInstance(dbresource);
   }
 
@@ -529,10 +548,10 @@ public class DBConnection implements AutoCloseable {
    * @deprecated Use {@link #newInstance(DataSource)}
    */
   @Deprecated
-  public static DBConnection newInstance(String dbresource) {
+  public static DBConnection newInstance(final String dbresource) {
     try {
       return newInstance(getDataSource(dbresource));
-    } catch (NamingException e) {
+    } catch (final NamingException e) {
       logException("Failure to get data source: " + dbresource, e);
       return null;
     }
@@ -553,10 +572,10 @@ public class DBConnection implements AutoCloseable {
    * @param stringCache The string cache.
    */
   public static void setStringCache(@NotNull final StringCache stringCache) {
-    mStringCache = stringCache;
+    _stringCache = stringCache;
   }
 
-  public static DataSource getDataSource(String dbresource) throws NamingException {
+  public static DataSource getDataSource(final String dbresource) throws NamingException {
     final InitialContext initialContext = new InitialContext();
     return (DataSource) Objects.requireNonNull(initialContext.lookup(dbresource));
   }
@@ -582,7 +601,7 @@ public class DBConnection implements AutoCloseable {
   }
 
   @NotNull
-  private <T extends DBStatement> T recordStatement(@NotNull T statement) {
+  private <T extends DBStatement> T recordStatement(@NotNull final T statement) {
     mStatements.add(statement);
     return statement;
   }
@@ -616,28 +635,6 @@ public class DBConnection implements AutoCloseable {
     }
   }
 
-  static void logWarnings(@Nullable final String string, @Nullable final Connection connection) {
-    if (connection != null) {
-      try {
-        if (connection.isClosed()) {
-          getLogger().log(Level.INFO, "Logging warnings on closed connection");
-        } else {
-          try {
-            SQLWarning warning = connection.getWarnings();
-            while (warning != null) {
-              getLogger().log(Level.WARNING, string, connection);
-              warning = warning.getNextWarning();
-            }
-          } catch (SQLException e) {
-            getLogger().log(Level.WARNING, "Error processing warnings", e);
-          }
-        }
-      } catch (SQLException e) {
-        getLogger().log(Level.WARNING, "Error processing warnings", e);
-      }
-    }
-  }
-
   public void rollback() throws SQLException {
     final Connection connection = this.mConnection;
     if (connection == null) {
@@ -664,35 +661,34 @@ public class DBConnection implements AutoCloseable {
     getLogger().log(Level.WARNING, msg);
   }
 
-  static void logWarnings(@Nullable final String string, @Nullable final Statement statement) {
-    if (statement != null) {
+  public static void logWarnings(@NotNull final String message, @Nullable final Connection connection) {
+    logWarnings(message, "connection", warnable(connection));
+  }
+
+  public static void logWarnings(@NotNull final String message, @Nullable final Statement statement) {
+    logWarnings(message, "statement", warnable(statement));
+  }
+
+  public static void logWarnings(@NotNull final String message, @Nullable final ResultSet resultSet) {
+    logWarnings(message, "resultSet", warnable(resultSet));
+  }
+
+  private static void logWarnings(@NotNull final String message, final String typeName, @Nullable final Warnable warnable) {
+    if (warnable != null) {
       try {
-        if (statement.isClosed()) {
-          getLogger().log(Level.INFO, "Logging warnings on closed statement");
+        if (warnable.isClosed()) {
+          getLogger().log(Level.INFO, "Logging warnings on closed "+typeName);
         } else {
           try {
-            SQLWarning warning = statement.getWarnings();
+            @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+            SQLWarning warning = warnable.getWarnings();
             while (warning != null) {
-              getLogger().log(Level.WARNING, string, statement);
+              getLogger().log(Level.WARNING, message, warnable);
               warning = warning.getNextWarning();
             }
           } catch (SQLException e) {
             getLogger().log(Level.WARNING, "Error processing warnings", e);
           }
-        }
-      } catch (SQLException e) {
-        getLogger().log(Level.WARNING, "Error processing warnings", e);
-      }
-    }
-  }
-
-  static void logWarnings(@Nullable final String string, @Nullable final ResultSet resultSet) {
-    if (resultSet != null) {
-      try {
-        SQLWarning warning = resultSet.getWarnings();
-        while (warning != null) {
-          getLogger().log(Level.WARNING, string, resultSet);
-          warning = warning.getNextWarning();
         }
       } catch (SQLException e) {
         getLogger().log(Level.WARNING, "Error processing warnings", e);
@@ -712,7 +708,7 @@ public class DBConnection implements AutoCloseable {
     }
     Exception error = null;
     getLogger().log(DETAIL_LOG_LEVEL, "Closing connection");
-    for (DBStatement statement : mStatements) {
+    for (final DBStatement statement : mStatements) {
       try {
         statement.close();
       } catch (RuntimeException e) {
@@ -744,6 +740,48 @@ public class DBConnection implements AutoCloseable {
         throw new RuntimeException(error);
       }
     }
+  }
+
+  private static Warnable warnable(final Connection connection) {
+    return new Warnable() {
+      @Override
+      public boolean isClosed() throws SQLException {
+        return connection.isClosed();
+      }
+
+      @Override
+      public SQLWarning getWarnings() throws SQLException {
+        return connection.getWarnings();
+      }
+    };
+  }
+
+  private static Warnable warnable(final Statement statement) {
+    return new Warnable() {
+      @Override
+      public boolean isClosed() throws SQLException {
+        return statement.isClosed();
+      }
+
+      @Override
+      public SQLWarning getWarnings() throws SQLException {
+        return statement.getWarnings();
+      }
+    };
+  }
+
+  private static Warnable warnable(final ResultSet resultSet) {
+    return new Warnable() {
+      @Override
+      public boolean isClosed() throws SQLException {
+        return resultSet.isClosed();
+      }
+
+      @Override
+      public SQLWarning getWarnings() throws SQLException {
+        return resultSet.getWarnings();
+      }
+    };
   }
 
 

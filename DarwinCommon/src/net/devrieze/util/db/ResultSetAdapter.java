@@ -11,6 +11,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 
 public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T>*/ {
@@ -31,13 +32,13 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
     private boolean mInitialized = false;
 
     @NotNull
-    private StringCache mStringCache;
+    private final StringCache mStringCache;
 
-    public ResultSetAdapterIterator(final DBStatement statement, final ResultSet resultSet) {
+    public ResultSetAdapterIterator(@NotNull final DBStatement statement, @NotNull final ResultSet resultSet) {
       this(statement, resultSet, false);
     }
 
-    public ResultSetAdapterIterator(final DBStatement statement, final ResultSet resultSet, final boolean autoClose) {
+    public ResultSetAdapterIterator(@NotNull final DBStatement statement, @NotNull final ResultSet resultSet, final boolean autoClose) {
       mResultSet = resultSet;
       mStatement = statement;
       mAutoClose = autoClose;
@@ -63,7 +64,13 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
     }
 
-    protected abstract void doRegisterColumn(int i, @NotNull String columnName);
+    /**
+     * Register the given column at the given location. Implementations override this method to be able to store this
+     * column information for later object creation.
+     * @param i The index of the column.
+     * @param columnName The name of that column.
+     */
+    protected abstract void doRegisterColumn(int i, @SuppressWarnings("UnusedParameters") @NotNull String columnName);
 
     abstract protected T doCreateElem(@NotNull ResultSet resultSet) throws SQLException;
 
@@ -90,9 +97,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
       }
     }
 
+    @SuppressWarnings("IteratorNextCanNotThrowNoSuchElementException")
     @Override
     @Nullable
-    public final T next() {
+    public final T next() throws NoSuchElementException {
       final ResultSet resultSet = this.mResultSet;
       if (resultSet == null) {
         throw new IllegalStateException("Trying to access a null resultset");
@@ -105,7 +113,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
           if (!resultSet.next()) {
             closeStatement();
             DBConnection.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
-            throw new IllegalStateException("Trying to go beyond the last element");
+            throw new NoSuchElementException("Trying to go beyond the last element");
           }
           DBConnection.logWarnings("Getting the next resultset in ResultSetAdapter", resultSet);
         }
@@ -151,6 +159,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
     public void closeStatement() {
       final ResultSet resultSet = this.mResultSet;
+      //noinspection Duplicates
       if (resultSet != null) {
         try {
           try {
@@ -201,6 +210,7 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
   public void closeStatement() {
     final ResultSet resultSet = this.mResultSet;
+    //noinspection Duplicates
     if (resultSet != null) {
       try {
         try {
@@ -232,7 +242,8 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
   @Nullable
   protected DBStatement mStatement;
 
-  protected ResultSetAdapter(final DBStatement statement, final ResultSet resultSet) {
+  @SuppressWarnings("NullableProblems")
+  protected ResultSetAdapter(@NotNull final DBStatement statement, final ResultSet resultSet) {
     mResultSet = resultSet;
     mStatement = statement;
   }
