@@ -1,5 +1,27 @@
 package uk.ac.bournemouth.darwin.catalina.authenticator;
 
+import net.devrieze.util.db.DBConnection;
+import net.devrieze.util.db.DBConnection.DBQuery;
+import net.devrieze.util.db.StringAdapter;
+import org.apache.catalina.*;
+import org.apache.catalina.connector.Request;
+import org.apache.catalina.connector.Response;
+import org.apache.catalina.deploy.LoginConfig;
+import org.apache.catalina.deploy.SecurityConstraint;
+import org.apache.catalina.util.LifecycleSupport;
+import org.apache.catalina.valves.ValveBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
+import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
+import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
+
+import javax.naming.NamingException;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.security.Principal;
@@ -8,36 +30,6 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.naming.NamingException;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
-
-import net.devrieze.annotations.NotNull;
-import net.devrieze.annotations.Nullable;
-import net.devrieze.util.db.DBConnection.DBQuery;
-import net.devrieze.util.db.DBConnection;
-import net.devrieze.util.db.StringAdapter;
-
-import org.apache.catalina.Authenticator;
-import org.apache.catalina.Container;
-import org.apache.catalina.Context;
-import org.apache.catalina.Lifecycle;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.LifecycleListener;
-import org.apache.catalina.Realm;
-import org.apache.catalina.connector.Request;
-import org.apache.catalina.connector.Response;
-import org.apache.catalina.deploy.LoginConfig;
-import org.apache.catalina.deploy.SecurityConstraint;
-import org.apache.catalina.util.LifecycleSupport;
-import org.apache.catalina.valves.ValveBase;
-
-import uk.ac.bournemouth.darwin.catalina.realm.DarwinPrincipal;
-import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipal;
-import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl;
 
 
 public class DarwinAuthenticator extends ValveBase implements Authenticator, Lifecycle {
@@ -74,15 +66,15 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
 
   @Override
-  public void addLifecycleListener(final LifecycleListener pListener) {
-    aLifecycle.addLifecycleListener(pListener);
+  public void addLifecycleListener(final LifecycleListener listener) {
+    aLifecycle.addLifecycleListener(listener);
   }
 
   @Override
-  public void setContainer(final Container pContainer) {
-    super.setContainer(pContainer);
-    if (pContainer instanceof Context) {
-      aContext = (Context) pContainer;
+  public void setContainer(final Container container) {
+    super.setContainer(container);
+    if (container instanceof Context) {
+      aContext = (Context) container;
     }
   }
 
@@ -92,8 +84,8 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   @Override
-  public void removeLifecycleListener(final LifecycleListener pListener) {
-    aLifecycle.removeLifecycleListener(pListener);
+  public void removeLifecycleListener(final LifecycleListener listener) {
+    aLifecycle.removeLifecycleListener(listener);
   }
 
   @Override
@@ -113,25 +105,25 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   @Override
-  public void invoke(final Request pRequest, final Response pResponse) throws IOException, ServletException {
+  public void invoke(final Request request, final Response response) throws IOException, ServletException {
 
-    final AuthResult authresult = authenticate(pRequest);
+    final AuthResult authresult = authenticate(request);
 
     final Context context = this.aContext;
     final Realm realm = context == null ? null : context.getRealm();
     if (realm != null) {
       logFine("This context has an authentication realm, enforce the constraints");
-      final SecurityConstraint[] constraints = realm.findSecurityConstraints(pRequest, context);
+      final SecurityConstraint[] constraints = realm.findSecurityConstraints(request, context);
       if (constraints == null) {
         logFine("Realm has no constraints, calling next in chain");
         // Unconstrained
-        getNext().invoke(pRequest, pResponse);
+        getNext().invoke(request, response);
         return;
       }
       // Need security, set cache control
-      pResponse.setHeader("Cache-Control", "private");
-      if (!realm.hasUserDataPermission(pRequest, pResponse, constraints)) {
-        denyPermission(pResponse);
+      response.setHeader("Cache-Control", "private");
+      if (!realm.hasUserDataPermission(request, response, constraints)) {
+        denyPermission(response);
         return;
       }
 
@@ -148,11 +140,11 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       }
 
       if (authRequired) {
-        if ((authresult == AuthResult.AUTHENTICATED) && realm.hasResourcePermission(pRequest, pResponse, constraints, context)) {
-          getNext().invoke(pRequest, pResponse);
+        if ((authresult == AuthResult.AUTHENTICATED) && realm.hasResourcePermission(request, response, constraints, context)) {
+          getNext().invoke(request, response);
           return;
         } else if (authresult == AuthResult.AUTHENTICATED) { // We are authenticated, but the wrong user.
-          pResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "User " + pRequest.getUserPrincipal() + " does not have permission for "
+          response.sendError(HttpServletResponse.SC_FORBIDDEN, "User " + request.getUserPrincipal() + " does not have permission for "
               + realm.getInfo() + " class:" + realm.getClass().getName());
         } else {
           if (authresult != AuthResult.ERROR) {
@@ -164,10 +156,10 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
             }
             if (loginpage != null) {
               final StringBuilder incommingPath = new StringBuilder();
-              incommingPath.append(pRequest.getPathInfo());
-              pResponse.sendRedirect(loginpage + "?redirect=" + URLEncoder.encode(incommingPath.toString(), "utf-8"));
+              incommingPath.append(request.getPathInfo());
+              response.sendRedirect(loginpage + "?redirect=" + URLEncoder.encode(incommingPath.toString(), "utf-8"));
             } else {
-              pResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You need to log in for this page, but no login page is configured");
+              response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You need to log in for this page, but no login page is configured");
             }
           }
           return;
@@ -175,13 +167,13 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
 
       } else {
-        getNext().invoke(pRequest, pResponse);
+        getNext().invoke(request, response);
         return;
       }
 
     } else {
       // No realm, no authentication required.
-      getNext().invoke(pRequest, pResponse);
+      getNext().invoke(request, response);
     }
   }
 
@@ -193,42 +185,42 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     aLoginPage = loginPage;
   }
 
-  public static DarwinPrincipal getPrincipal(final String pUser) {
+  public static DarwinPrincipal getPrincipal(final String user) {
     try {
-      return getDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), null, pUser);
+      return getDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), null, user);
     } catch (NamingException e) {
       getLogger().log(Level.WARNING, "Failure to connect to database", e);
       return null;
     }
   }
 
-  public static DarwinPrincipal asDarwinPrincipal(final Principal pUser) {
+  public static DarwinPrincipal asDarwinPrincipal(final Principal user) {
     try {
       final Realm realm = null;
 
-      return toDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), realm, pUser);
+      return toDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), realm, user);
     } catch (NamingException e) {
       getLogger().log(Level.WARNING, "Failure to connect to database", e);
       return null;
     }
   }
 
-  private static DarwinUserPrincipal getDarwinPrincipal(final DataSource pDataSource, final Realm pRealm, final String pUserName) {
-    return new DarwinUserPrincipalImpl(pDataSource, pRealm, pUserName);
+  private static DarwinUserPrincipal getDarwinPrincipal(final DataSource dataSource, final Realm realm, final String userName) {
+    return new DarwinUserPrincipalImpl(dataSource, realm, userName);
   }
 
-  private static DarwinUserPrincipal toDarwinPrincipal(final DataSource pDataSource, final Realm pRealm, final Principal pPrincipal) {
-    if (pPrincipal == null) {
+  private static DarwinUserPrincipal toDarwinPrincipal(final DataSource dataSource, final Realm realm, final Principal principal) {
+    if (principal == null) {
       return null;
     }
-    if (pPrincipal instanceof DarwinUserPrincipal) {
-      return (DarwinUserPrincipal) pPrincipal;
+    if (principal instanceof DarwinUserPrincipal) {
+      return (DarwinUserPrincipal) principal;
     }
-    return new DarwinUserPrincipalImpl(pDataSource, pRealm, pPrincipal.getName());
+    return new DarwinUserPrincipalImpl(dataSource, realm, principal.getName());
   }
 
   @NotNull
-  private static AuthResult authenticate(final Request pRequest) {
+  private static AuthResult authenticate(final Request request) {
     DarwinUserPrincipal principal;
     final DataSource dataSource;
     try {
@@ -237,21 +229,21 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       getLogger().log(Level.WARNING, "Failure to connect to database", e);
       return AuthResult.ERROR;
     }
-    principal = toDarwinPrincipal(dataSource, pRequest.getContext().getRealm(), pRequest.getUserPrincipal());
+    principal = toDarwinPrincipal(dataSource, request.getContext().getRealm(), request.getUserPrincipal());
     if (principal != null) {
       logFine("Found preexisting principal, converted to darwinprincipal: " + principal.getName());
-      pRequest.setAuthType(AUTHTYPE);
-      pRequest.setUserPrincipal(principal);
+      request.setAuthType(AUTHTYPE);
+      request.setUserPrincipal(principal);
       return AuthResult.AUTHENTICATED;
     }
 
 
     String user = null;
-    final Cookie[] cookies = pRequest.getCookies();
+    final Cookie[] cookies = request.getCookies();
     if (cookies != null) {
       for (final Cookie cookie : cookies) {
         if ("DWNID".equals(cookie.getName())) {
-          final String requestIp = pRequest.getRemoteAddr();
+          final String requestIp = request.getRemoteAddr();
           logFiner("Found DWNID cookie with value: '" + cookie.getValue() + "' and request ip:" + requestIp);
           try (final DBConnection db = DBConnection.newInstance(dataSource)){
             try (final DBQuery query = db.makeQuery(QUERY_USER_FROM_DWNID)){
@@ -282,32 +274,32 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     }
     if (user != null) {
       logFine("Authenticated user " + user);
-      pRequest.setAuthType(AUTHTYPE);
-      principal = getDarwinPrincipal(dataSource, pRequest.getContext().getRealm(), user);
-      pRequest.setUserPrincipal(principal);
+      request.setAuthType(AUTHTYPE);
+      principal = getDarwinPrincipal(dataSource, request.getContext().getRealm(), user);
+      request.setUserPrincipal(principal);
       return AuthResult.AUTHENTICATED;
     }
     return AuthResult.LOGIN_NEEDED;
   }
 
-  private static void denyPermission(final Response pResponse) throws IOException {
-    pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+  private static void denyPermission(final Response response) throws IOException {
+    response.sendError(HttpServletResponse.SC_FORBIDDEN);
   }
 
   private static Logger getLogger() {
     return Logger.getLogger(LOGGERNAME);
   }
 
-  private static void logFiner(final String pString) {
-    getLogger().finer(pString);
+  private static void logFiner(final String string) {
+    getLogger().finer(string);
   }
 
-  private static void logFine(final String pString) {
-    getLogger().fine(pString);
+  private static void logFine(final String string) {
+    getLogger().fine(string);
   }
 
-  private static void logInfo(final String pMessage) {
-    getLogger().info(pMessage);
+  private static void logInfo(final String message) {
+    getLogger().info(message);
   }
 
 }

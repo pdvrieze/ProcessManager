@@ -26,11 +26,11 @@ public abstract class DarwinBasePrincipal extends GenericPrincipal implements Da
 
   /**
    * Create a new {@link DarwinBasePrincipal}
-   * @param pRealm The realm the principal is recorded against.
-   * @param pName The name of the principal.
+   * @param realm The realm the principal is recorded against.
+   * @param name The name of the principal.
    */
-  public DarwinBasePrincipal(final Realm pRealm, final String pName) {
-    super(pRealm, pName, null);
+  public DarwinBasePrincipal(final Realm realm, final String name) {
+    super(realm, name, null);
   }
 
   /**

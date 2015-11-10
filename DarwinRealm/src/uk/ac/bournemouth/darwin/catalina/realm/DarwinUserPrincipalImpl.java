@@ -1,21 +1,20 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
+import net.devrieze.util.StringCache;
+import net.devrieze.util.db.DBConnection;
+import net.devrieze.util.db.DBConnection.DBQuery;
+import net.devrieze.util.db.StringAdapter;
+import org.apache.catalina.Realm;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.sql.DataSource;
+
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import javax.sql.DataSource;
-
-import net.devrieze.annotations.NotNull;
-import net.devrieze.annotations.Nullable;
-import net.devrieze.util.StringCache;
-import net.devrieze.util.db.DBConnection;
-import net.devrieze.util.db.DBConnection.DBQuery;
-import net.devrieze.util.db.StringAdapter;
-
-import org.apache.catalina.Realm;
 
 
 public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements DarwinUserPrincipal {
@@ -24,9 +23,9 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   private final DataSource aDataSource;
 
-  public DarwinUserPrincipalImpl(final DataSource pDataSource, final Realm pRealm, final String pName) {
-    super(pRealm, pName);
-    aDataSource = pDataSource;
+  public DarwinUserPrincipalImpl(final DataSource dataSource, final Realm realm, final String name) {
+    super(realm, name);
+    aDataSource = dataSource;
   }
 
   @SuppressWarnings("null")
@@ -79,15 +78,15 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
   }
 
   @Override
-  public boolean hasRole(@Nullable final String pRole) {
-    if ("*".equals(pRole)) {
+  public boolean hasRole(@Nullable final String role) {
+    if ("*".equals(role)) {
       return true;
     }
-    if (pRole == null) {
+    if (role == null) {
       return false;
     }
     refreshIfNeeded();
-    return aRoles.contains(pRole);
+    return aRoles.contains(role);
   }
 
 
@@ -132,16 +131,16 @@ public class DarwinUserPrincipalImpl extends DarwinBasePrincipal implements Darw
 
   @NotNull
   @Override
-  public synchronized Principal cacheStrings(final StringCache pStringCache) {
-    name = pStringCache.lookup(this.name);
-    DBConnection.setStringCache(pStringCache);
+  public synchronized Principal cacheStrings(final StringCache stringCache) {
+    name = stringCache.lookup(this.name);
+    DBConnection.setStringCache(stringCache);
 
     // Instead of resetting the roles holder, just update the set to prevent database
     // roundtrips.
     final Set<String> tmpRoles = aRoles;
     aRoles = new HashSet<>();
     for (final String role : tmpRoles) {
-      aRoles.add(pStringCache.lookup(role));
+      aRoles.add(stringCache.lookup(role));
     }
     roles = null; // Just remove cache. This doesn't need database roundtrip
     return this;

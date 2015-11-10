@@ -1,25 +1,8 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.IOException;
-import java.security.Principal;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-
-import javax.naming.NamingException;
-import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
-
 import net.devrieze.util.db.DBConnection;
-
-import org.apache.catalina.Container;
-import org.apache.catalina.Context;
-import org.apache.catalina.Lifecycle;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.LifecycleListener;
-import org.apache.catalina.Realm;
+import org.apache.catalina.*;
 import org.apache.catalina.connector.CoyotePrincipal;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -27,8 +10,18 @@ import org.apache.catalina.deploy.SecurityCollection;
 import org.apache.catalina.deploy.SecurityConstraint;
 import org.apache.catalina.realm.GenericPrincipal;
 import org.apache.catalina.util.LifecycleSupport;
-
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
+
+import javax.naming.NamingException;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.IOException;
+import java.security.Principal;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 
 
 public class DarwinRealm implements Realm, Lifecycle {
@@ -70,8 +63,8 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public void addLifecycleListener(final LifecycleListener pListener) {
-    aLifecycle.addLifecycleListener(pListener);
+  public void addLifecycleListener(final LifecycleListener listener) {
+    aLifecycle.addLifecycleListener(listener);
   }
 
 
@@ -82,8 +75,8 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public void removeLifecycleListener(final LifecycleListener pListener) {
-    aLifecycle.removeLifecycleListener(pListener);
+  public void removeLifecycleListener(final LifecycleListener listener) {
+    aLifecycle.removeLifecycleListener(listener);
   }
 
 
@@ -94,39 +87,39 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public void setContainer(final Container pContainer) {
+  public void setContainer(final Container container) {
     final Container oldContainer = aContainer;
-    aContainer = pContainer;
+    aContainer = container;
     propChangeSupport.firePropertyChange("container", oldContainer, aContainer);
   }
 
 
   @Override
-  public void addPropertyChangeListener(final PropertyChangeListener pListener) {
-    propChangeSupport.addPropertyChangeListener(pListener);
+  public void addPropertyChangeListener(final PropertyChangeListener listener) {
+    propChangeSupport.addPropertyChangeListener(listener);
   }
 
 
   @Override
-  public Principal authenticate(final String pUsername, final String pCredentials) {
+  public Principal authenticate(final String username, final String credentials) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
 
   @Override
-  public Principal authenticate(final String pUsername, final byte[] pCredentials) {
+  public Principal authenticate(final String username, final byte[] credentials) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
 
   @Override
-  public Principal authenticate(final String pUsername, final String pDigest, final String pNonce, final String pNc, final String pCnonce, final String pQop, final String pRealm, final String pMd5a2) {
+  public Principal authenticate(final String username, final String digest, final String nonce, final String nc, final String cnonce, final String qop, final String realm, final String md5a2) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
 
   @Override
-  public Principal authenticate(final X509Certificate[] pCerts) {
+  public Principal authenticate(final X509Certificate[] certs) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
@@ -138,16 +131,16 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public SecurityConstraint[] findSecurityConstraints(final Request pRequest, final Context pContext) {
+  public SecurityConstraint[] findSecurityConstraints(final Request request, final Context context) {
     ArrayList<SecurityConstraint> result;
 
-    final SecurityConstraint[] constraints = pContext.findConstraints();
+    final SecurityConstraint[] constraints = context.findConstraints();
     if ((constraints == null) || (constraints.length == 0)) {
       return null;
     }
 
     // Check each defined security constraint
-    String uri = pRequest.getRequestPathMB().toString();
+    String uri = request.getRequestPathMB().toString();
     // Bug47080 - in rare cases this may be null
     // Mapper treats as '/' do the same to prevent NPE
     if (uri == null) {
@@ -156,7 +149,7 @@ public class DarwinRealm implements Realm, Lifecycle {
 
     // First try simple matches
     result = new ArrayList<>();
-    final String method = pRequest.getMethod();
+    final String method = request.getMethod();
 
     {
       boolean found = false;
@@ -303,21 +296,21 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public boolean hasResourcePermission(final Request pRequest, final Response pResponse, final SecurityConstraint[] pConstraints, final Context pContext) throws IOException {
-    if ((pConstraints == null) || (pConstraints.length == 0)) {
+  public boolean hasResourcePermission(final Request request, final Response response, final SecurityConstraint[] constraints, final Context context) throws IOException {
+    if ((constraints == null) || (constraints.length == 0)) {
       return (true);
     }
 
 
     // Which user principal have we already authenticated?
-    final Principal principal = pRequest.getPrincipal();
+    final Principal principal = request.getPrincipal();
     boolean status = false;
-    for (final SecurityConstraint constraint : pConstraints) {
+    for (final SecurityConstraint constraint : constraints) {
 
       String roles[];
       if (constraint.getAllRoles()) {
         // * means all roles defined in web.xml
-        roles = pRequest.getContext().findSecurityRoles();
+        roles = request.getContext().findSecurityRoles();
       } else {
         roles = constraint.findAuthRoles();
       }
@@ -347,54 +340,54 @@ public class DarwinRealm implements Realm, Lifecycle {
 
     // Return a "Forbidden" message denying access to this resource
     if (!status) {
-      pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+      response.sendError(HttpServletResponse.SC_FORBIDDEN);
     }
     return status;
   }
 
 
   @Override
-  public boolean hasUserDataPermission(final Request pRequest, final Response pResponse, final SecurityConstraint[] pConstraints) throws IOException {
-    if ((pConstraints == null) || (pConstraints.length == 0)) {
+  public boolean hasUserDataPermission(final Request request, final Response response, final SecurityConstraint[] constraints) throws IOException {
+    if ((constraints == null) || (constraints.length == 0)) {
       return true;
     }
 
-    for (final SecurityConstraint constraint : pConstraints) {
+    for (final SecurityConstraint constraint : constraints) {
       final String userConstraint = constraint.getUserConstraint();
       if ((userConstraint == null) || "NONE".equals(userConstraint)) {
         return true;
       }
     }
 
-    if (pRequest.isSecure()) {
+    if (request.isSecure()) {
       return true;
     }
 
-    final int redirectPort = pRequest.getConnector().getRedirectPort();
+    final int redirectPort = request.getConnector().getRedirectPort();
 
     if (redirectPort <= 0) {
-      pResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+      response.sendError(HttpServletResponse.SC_FORBIDDEN);
       return false;
     }
 
     final StringBuilder newUrl = new StringBuilder();
-    newUrl.append("https://").append(pRequest.getServerName());
+    newUrl.append("https://").append(request.getServerName());
     if (redirectPort != 433) {
       newUrl.append(':').append(redirectPort);
     }
-    newUrl.append(pRequest.getRequestURI());
-    final String queryString = pRequest.getQueryString();
+    newUrl.append(request.getRequestURI());
+    final String queryString = request.getQueryString();
     if ((queryString != null) && (queryString.length() > 0)) {
       newUrl.append('?').append(queryString);
     }
-    pResponse.sendRedirect(newUrl.toString());
+    response.sendRedirect(newUrl.toString());
     return false;
   }
 
 
   @Override
-  public void removePropertyChangeListener(final PropertyChangeListener pListener) {
-    propChangeSupport.removePropertyChangeListener(pListener);
+  public void removePropertyChangeListener(final PropertyChangeListener listener) {
+    propChangeSupport.removePropertyChangeListener(listener);
   }
 
 
@@ -405,23 +398,23 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public boolean hasRole(Principal pPrincipal, final String role) {
-    final Principal principal;
-    if (pPrincipal instanceof GenericPrincipal) {
-      principal = ((GenericPrincipal) pPrincipal).getUserPrincipal();
-      if (principal instanceof GenericPrincipal) {
-        return ((GenericPrincipal) principal).hasRole(role);
+  public boolean hasRole(Principal principal, final String role) {
+    final Principal usedPrincipal;
+    if (principal instanceof GenericPrincipal) {
+      usedPrincipal = ((GenericPrincipal) principal).getUserPrincipal();
+      if (usedPrincipal instanceof GenericPrincipal) {
+        return ((GenericPrincipal) usedPrincipal).hasRole(role);
       }
     } else {
-      principal = pPrincipal;
+      usedPrincipal = principal;
     }
 
-    if (principal instanceof CoyotePrincipal) {
+    if (usedPrincipal instanceof CoyotePrincipal) {
       // Look up this user in the UserDatabaseRealm.  The new
       // principal will contain UserDatabaseRealm role info.
       final DarwinUserPrincipalImpl p;
       try {
-        p = getDarwinPrincipal(principal.getName());
+        p = getDarwinPrincipal(usedPrincipal.getName());
       } catch (NamingException e) {
         return false;
       }
@@ -433,8 +426,8 @@ public class DarwinRealm implements Realm, Lifecycle {
   }
 
 
-  private DarwinUserPrincipalImpl getDarwinPrincipal(final String pName) throws NamingException {
-    return new DarwinUserPrincipalImpl(getDataSource(), this, pName);
+  private DarwinUserPrincipalImpl getDarwinPrincipal(final String name) throws NamingException {
+    return new DarwinUserPrincipalImpl(getDataSource(), this, name);
   }
 
   private static DataSource getDataSource() throws NamingException {
