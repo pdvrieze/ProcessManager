@@ -24,13 +24,13 @@ public final class HProcessInstance implements Handle<ProcessInstance>, Serializ
     setHandle(-1);
   }
 
-  public HProcessInstance(final long pHandle) {
-    setHandle(pHandle);
+  public HProcessInstance(final long handle) {
+    setHandle(handle);
   }
 
   @Override
-  public boolean equals(final Object pObj) {
-    return (pObj == this) || ((pObj instanceof HProcessInstance) && (getHandle() == ((HProcessInstance) pObj).getHandle()));
+  public boolean equals(final Object obj) {
+    return (obj == this) || ((obj instanceof HProcessInstance) && (getHandle() == ((HProcessInstance) obj).getHandle()));
   }
 
   @Override

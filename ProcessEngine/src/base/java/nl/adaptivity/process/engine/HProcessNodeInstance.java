@@ -25,13 +25,13 @@ public final class HProcessNodeInstance implements Handle<ProcessNodeInstance>, 
     setHandle(-1);
   }
 
-  public HProcessNodeInstance(final long pHandle) {
-    setHandle(pHandle);
+  public HProcessNodeInstance(final long handle) {
+    setHandle(handle);
   }
 
   @Override
-  public boolean equals(final Object pObj) {
-    return (pObj == this) || ((pObj instanceof HProcessNodeInstance) && (getHandle() == ((HProcessNodeInstance) pObj).getHandle()));
+  public boolean equals(final Object obj) {
+    return (obj == this) || ((obj instanceof HProcessNodeInstance) && (getHandle() == ((HProcessNodeInstance) obj).getHandle()));
   }
 
   @Override

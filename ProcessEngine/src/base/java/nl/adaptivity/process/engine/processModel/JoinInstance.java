@@ -14,10 +14,10 @@ import nl.adaptivity.process.processModel.engine.JoinImpl;
 
 public class JoinInstance extends ProcessNodeInstance {
 
-  public JoinInstance(Transaction pTransaction, final JoinImpl pNode, final Collection<? extends Handle<? extends ProcessNodeInstance>> pPredecessors, final ProcessInstance pProcessInstance) throws SQLException {
-    super(pNode, pPredecessors, pProcessInstance);
-    for (final Handle<? extends ProcessNodeInstance> hpredecessor : pPredecessors) {
-      ProcessNodeInstance predecessor = pProcessInstance.getEngine().getNodeInstance(pTransaction, hpredecessor, SecurityProvider.SYSTEMPRINCIPAL);
+  public JoinInstance(Transaction transaction, final JoinImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance>> predecessors, final ProcessInstance processInstance) throws SQLException {
+    super(node, predecessors, processInstance);
+    for (final Handle<? extends ProcessNodeInstance> hpredecessor : predecessors) {
+      ProcessNodeInstance predecessor = processInstance.getEngine().getNodeInstance(transaction, hpredecessor, SecurityProvider.SYSTEMPRINCIPAL);
       if (predecessor.getState() == TaskState.Complete) {
         aComplete += 1;
       } else {
@@ -28,11 +28,11 @@ public class JoinInstance extends ProcessNodeInstance {
 
   /**
    * Constructor for ProcessNodeInstanceMap.
-   * @param pNode
-   * @param pProcessInstance
+   * @param node
+   * @param processInstance
    */
-  JoinInstance(JoinImpl pNode, ProcessInstance pProcessInstance, TaskState pState) {
-    super(pNode, pProcessInstance, pState);
+  JoinInstance(JoinImpl node, ProcessInstance processInstance, TaskState state) {
+    super(node, processInstance, state);
   }
 
   private int aComplete = 0;
@@ -60,10 +60,10 @@ public class JoinInstance extends ProcessNodeInstance {
     return (JoinImpl) super.getNode();
   }
 
-  public boolean addPredecessor(Transaction pTransaction, final ProcessNodeInstance pPredecessor) throws SQLException {
-    if (canAddNode(pTransaction)) {
-      getDirectPredecessors().add(pPredecessor);
-      if (pPredecessor.getState() == TaskState.Complete) {
+  public boolean addPredecessor(Transaction transaction, final ProcessNodeInstance predecessor) throws SQLException {
+    if (canAddNode(transaction)) {
+      getDirectPredecessors().add(predecessor);
+      if (predecessor.getState() == TaskState.Complete) {
         aComplete += 1;
       } else {
         aSkipped += 1;
@@ -78,9 +78,9 @@ public class JoinInstance extends ProcessNodeInstance {
   }
 
   @Override
-  public <T> boolean startTask(Transaction pTransaction, final IMessageService<T, ProcessNodeInstance> pMessageService) {
+  public <T> boolean startTask(Transaction transaction, final IMessageService<T, ProcessNodeInstance> messageService) {
     final JoinImpl join = getNode();
-    if (join.startTask(pMessageService, this)) {
+    if (join.startTask(messageService, this)) {
       if (getTotal() == join.getPredecessors().size()) {
         return true;
       }
@@ -89,7 +89,7 @@ public class JoinInstance extends ProcessNodeInstance {
           return true;
         }
         try {
-          return getProcessInstance().getActivePredecessorsFor(pTransaction, join).size() == 0;
+          return getProcessInstance().getActivePredecessorsFor(transaction, join).size() == 0;
         } catch (SQLException e) {
           throw new RuntimeException(e);
         }
@@ -100,14 +100,14 @@ public class JoinInstance extends ProcessNodeInstance {
   }
 
   @Override
-  public <T> boolean provideTask(Transaction pTransaction, final IMessageService<T, ProcessNodeInstance> pMessageService) throws SQLException {
+  public <T> boolean provideTask(Transaction transaction, final IMessageService<T, ProcessNodeInstance> messageService) throws SQLException {
     if (!isFinished()) {
-      return getNode().provideTask(pTransaction, pMessageService, this);
+      return getNode().provideTask(transaction, messageService, this);
     }
-    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(pTransaction, this);
+    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(transaction, this);
     boolean canAdd = false;
     for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
-      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(pTransaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
+      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
       if ((directSuccessor.getState() == TaskState.Started) || (directSuccessor.getState() == TaskState.Complete)) {
         canAdd = false;
         break;
@@ -117,14 +117,14 @@ public class JoinInstance extends ProcessNodeInstance {
     return canAdd;
   }
 
-  private boolean canAddNode(Transaction pTransaction) throws SQLException {
+  private boolean canAddNode(Transaction transaction) throws SQLException {
     if (!isFinished()) {
       return true;
     }
-    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(pTransaction, this);
+    final Collection<? extends Handle<? extends ProcessNodeInstance>> directSuccessors = getProcessInstance().getDirectSuccessors(transaction, this);
     boolean canAdd = false;
     for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
-      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(pTransaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
+      ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
       if ((directSuccessor.getState() == TaskState.Started) || (directSuccessor.getState() == TaskState.Complete)) {
         canAdd = false;
         break;

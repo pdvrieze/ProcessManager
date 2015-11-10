@@ -66,8 +66,8 @@ public class TestProcessEngine {
     private List<Handle<? extends ProcessNodeInstance>> mMessageNodes = new ArrayList<>();
 
     @Override
-    public IXmlMessage createMessage(final IXmlMessage pMessage) {
-      return pMessage;
+    public IXmlMessage createMessage(final IXmlMessage message) {
+      return message;
     }
 
     public void clear() {
@@ -81,16 +81,16 @@ public class TestProcessEngine {
     }
 
     @Override
-    public boolean sendMessage(final Transaction pTransaction, final IXmlMessage protoMessage, final ProcessNodeInstance pInstance) throws
+    public boolean sendMessage(final Transaction transaction, final IXmlMessage protoMessage, final ProcessNodeInstance instance) throws
             SQLException {
       try {
-        CompactFragment instantiatedContent = pInstance.instantiateXmlPlaceholders(pTransaction, protoMessage.getBodySource(), false);
+        CompactFragment instantiatedContent = instance.instantiateXmlPlaceholders(transaction, protoMessage.getBodySource(), false);
         Source contentSource = new StAXSource(XMLFragmentStreamReader.from(instantiatedContent));
         XmlMessage processedMessage = new XmlMessage(protoMessage.getService(), protoMessage.getEndpoint(), protoMessage.getOperation(), protoMessage.getUrl(), protoMessage.getMethod(), protoMessage.getContentType(), contentSource);
 
         ((XmlMessage) processedMessage).setContent(instantiatedContent.getNamespaces(), instantiatedContent.getContent());
         mMessages.add(processedMessage);
-        mMessageNodes.add(new HProcessNodeInstance(pInstance.getHandle()));
+        mMessageNodes.add(new HProcessNodeInstance(instance.getHandle()));
         return true;
       } catch (XMLStreamException e) {
         throw new RuntimeException(e);
@@ -112,8 +112,8 @@ public class TestProcessEngine {
     }
 
     @Override
-    public <T> T commit(final T pValue) throws SQLException {
-      return pValue;
+    public <T> T commit(final T value) throws SQLException {
+      return value;
     }
   }
 
@@ -133,79 +133,79 @@ public class TestProcessEngine {
     }
 
     @Override
-    public boolean isValidTransaction(final StubTransaction pTransaction) {
-      return mTransaction==pTransaction;
+    public boolean isValidTransaction(final StubTransaction transaction) {
+      return mTransaction==transaction;
     }
   }
 
   private class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T,StubTransaction> {
 
     @Override
-    public long put(final StubTransaction pTransaction, final T pValue) throws SQLException {
-      return put(pValue);
+    public long put(final StubTransaction transaction, final T value) throws SQLException {
+      return put(value);
     }
 
     @Override
-    public T get(final StubTransaction pTransaction, final long pHandle) throws SQLException {
-      return get(pHandle);
+    public T get(final StubTransaction transaction, final long handle) throws SQLException {
+      return get(handle);
     }
 
     @Override
-    public T get(final StubTransaction pTransaction, final Handle<? extends T> pHandle) throws SQLException {
-      return get(pHandle);
+    public T get(final StubTransaction transaction, final Handle<? extends T> handle) throws SQLException {
+      return get(handle);
     }
 
     @Override
-    public T castOrGet(final StubTransaction pTransaction, final Handle<? extends T> pHandle) throws SQLException {
-      return get(pHandle);
+    public T castOrGet(final StubTransaction transaction, final Handle<? extends T> handle) throws SQLException {
+      return get(handle);
     }
 
     @Override
-    public T set(final StubTransaction pTransaction, final long pHandle, final T pValue) throws SQLException {
-      return set(pHandle, pValue);
+    public T set(final StubTransaction transaction, final long handle, final T value) throws SQLException {
+      return set(handle, value);
     }
 
     @Override
-    public T set(final StubTransaction pTransaction, final Handle<? extends T> pHandle, final T pValue) throws
+    public T set(final StubTransaction transaction, final Handle<? extends T> handle, final T value) throws
             SQLException {
-      return set(pHandle, pValue);
+      return set(handle, value);
     }
 
     @Override
-    public Iterable<T> iterable(final StubTransaction pTransaction) {
+    public Iterable<T> iterable(final StubTransaction transaction) {
       return this;
     }
 
     @Override
-    public boolean contains(final StubTransaction pTransaction, final Object pO) throws SQLException {
-      return contains(pO);
+    public boolean contains(final StubTransaction transaction, final Object o) throws SQLException {
+      return contains(o);
     }
 
     @Override
-    public boolean contains(final StubTransaction pTransaction, final Handle<? extends T> pHandle) throws SQLException {
-      return contains(pHandle);
+    public boolean contains(final StubTransaction transaction, final Handle<? extends T> handle) throws SQLException {
+      return contains(handle);
     }
 
     @Override
-    public boolean contains(final StubTransaction pTransaction, final long pHandle) throws SQLException {
-      return contains(pHandle);
+    public boolean contains(final StubTransaction transaction, final long handle) throws SQLException {
+      return contains(handle);
     }
 
     @Override
-    public boolean remove(final StubTransaction pTransaction, final Handle<? extends T> pObject) throws SQLException {
-      return remove(pObject);
+    public boolean remove(final StubTransaction transaction, final Handle<? extends T> object) throws SQLException {
+      return remove(object);
     }
 
     @Override
-    public boolean remove(final StubTransaction pTransaction, final long pHandle) throws SQLException {
-      return remove(pHandle);
+    public boolean remove(final StubTransaction transaction, final long handle) throws SQLException {
+      return remove(handle);
     }
 
     @Override
-    public void invalidateCache(final Handle<? extends T> pHandle) { /* No-op */ }
+    public void invalidateCache(final Handle<? extends T> handle) { /* No-op */ }
 
     @Override
-    public void clear(final StubTransaction pTransaction) throws SQLException {
+    public void clear(final StubTransaction transaction) throws SQLException {
       clear();
     }
   }
@@ -263,17 +263,17 @@ public class TestProcessEngine {
     mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemTransactionedHandleMap<ProcessModelImpl>(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
   }
 
-  private char[] serializeToXmlCharArray(final Object pObject) throws XMLStreamException {
+  private char[] serializeToXmlCharArray(final Object object) throws XMLStreamException {
     char[] receivedChars;
     {
       CharArrayWriter caw = new CharArrayWriter();
-      if (pObject instanceof XmlSerializable) {
+      if (object instanceof XmlSerializable) {
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
         XMLStreamWriter xsw = xmlOutputFactory.createXMLStreamWriter(caw);
-        ((XmlSerializable) pObject).serialize(xsw);
+        ((XmlSerializable) object).serialize(xsw);
         xsw.close();
       } else {
-        JAXB.marshal(pObject, caw);
+        JAXB.marshal(object, caw);
       }
       receivedChars = caw.toCharArray();
     }
@@ -377,17 +377,17 @@ public class TestProcessEngine {
 
   }
 
-  private static void assertXMLSimilar(final Document pExpected, final Document pActual) {
-    Diff diff = XMLUnit.compareXML(pExpected, pActual);
+  private static void assertXMLSimilar(final Document expected, final Document actual) {
+    Diff diff = XMLUnit.compareXML(expected, actual);
     DetailedDiff detailedDiff = new DetailedDiff(diff);
     if(! detailedDiff.similar()) {
       fail(detailedDiff.toString());
     }
   }
 
-  private static Document toDocument(final Node pNode) throws TransformerException {
+  private static Document toDocument(final Node node) throws TransformerException {
     Document result = getDocumentBuilder().newDocument();
-    Sources.writeToResult(new DOMSource(pNode), new DOMResult(result));
+    Sources.writeToResult(new DOMSource(node), new DOMResult(result));
     return result;
   }
 

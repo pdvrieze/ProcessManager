@@ -47,8 +47,8 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     private int aColNoHandle;
     private final StringCache aStringCache;
 
-    ProcessModelFactory(StringCache pStringCache) {
-      aStringCache = pStringCache;
+    ProcessModelFactory(StringCache stringCache) {
+      aStringCache = stringCache;
     }
 
     @Override
@@ -68,16 +68,16 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public int setFilterParams(PreparedStatement pStatement, int pOffset) {
+    public int setFilterParams(PreparedStatement statement, int offset) {
       // No where clauses are used.
       return 0;
     }
 
     @Override
-    public void initResultSet(ResultSetMetaData pMetaData) throws SQLException {
-      final int columnCount = pMetaData.getColumnCount();
+    public void initResultSet(ResultSetMetaData metaData) throws SQLException {
+      final int columnCount = metaData.getColumnCount();
       for (int i=1; i<=columnCount;++i) {
-        String colName = pMetaData.getColumnName(i);
+        String colName = metaData.getColumnName(i);
         if (COL_HANDLE.equals(colName)) {
           aColNoHandle = i;
         } else if (COL_OWNER.equals(colName)) {
@@ -89,10 +89,10 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public ProcessModelImpl create(DBTransaction pConnection, ResultSet pRow) throws SQLException {
-      Principal owner = new SimplePrincipal(aStringCache.lookup(pRow.getString(aColNoOwner)));
-      try(Reader modelReader = pRow.getCharacterStream(aColNoModel)) {
-        long handle = pRow.getLong(aColNoHandle);
+    public ProcessModelImpl create(DBTransaction connection, ResultSet row) throws SQLException {
+      Principal owner = new SimplePrincipal(aStringCache.lookup(row.getString(aColNoOwner)));
+      try(Reader modelReader = row.getCharacterStream(aColNoModel)) {
+        long handle = row.getLong(aColNoHandle);
 
         XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
         ProcessModelImpl result = xmlModel.toProcessModel();
@@ -109,19 +109,19 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(ProcessModelImpl pObject) {
-      return getHandleCondition(pObject.getHandle());
+    public CharSequence getPrimaryKeyCondition(ProcessModelImpl object) {
+      return getHandleCondition(object.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement pStatement, ProcessModelImpl pElement, int pOffset) throws SQLException {
-      return setHandleParams(pStatement, pElement.getHandle(), pOffset);
+    public int setPrimaryKeyParams(PreparedStatement statement, ProcessModelImpl element, int offset) throws SQLException {
+      return setHandleParams(statement, element.getHandle(), offset);
     }
 
     @Override
-    public ProcessModelImpl asInstance(Object pObject) {
-      if (pObject instanceof ProcessModelImpl) {
-        return (ProcessModelImpl) pObject;
+    public ProcessModelImpl asInstance(Object object) {
+      if (object instanceof ProcessModelImpl) {
+        return (ProcessModelImpl) object;
       } else {
         return null;
       }
@@ -143,49 +143,49 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public int setStoreParams(PreparedStatement pStatement, ProcessModelImpl pElement, int pOffset) throws SQLException {
-      pStatement.setString(pOffset, pElement.getOwner().getName());
+    public int setStoreParams(PreparedStatement statement, ProcessModelImpl element, int offset) throws SQLException {
+      statement.setString(offset, element.getOwner().getName());
 
       JAXBSource jbs;
       try {
         JAXBContext jbc = JAXBContext.newInstance(XmlProcessModel.class);
-        XmlProcessModel xmlModel = new XmlProcessModel(pElement);
+        XmlProcessModel xmlModel = new XmlProcessModel(element);
         jbs = new JAXBSource(jbc, xmlModel);
       } catch (JAXBException e) {
         throw new RuntimeException(e);
       }
       if (_supports_set_character_stream) {
         try {
-          pStatement.setCharacterStream(pOffset + 1, Sources.toReader(jbs));
+          statement.setCharacterStream(offset + 1, Sources.toReader(jbs));
           return 2;
         } catch (AbstractMethodError|UnsupportedOperationException e) {
           _supports_set_character_stream =false;
         }
       }
-      pStatement.setString(pOffset + 1, Sources.toString(jbs));
+      statement.setString(offset + 1, Sources.toString(jbs));
       return 2;
     }
 
     @Override
-    public CharSequence getHandleCondition(long pHandle) {
+    public CharSequence getHandleCondition(long handle) {
       return COL_HANDLE + " = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement pStatement, long pHandle, int pOffset) throws SQLException {
-      pStatement.setLong(pOffset, pHandle);
+    public int setHandleParams(PreparedStatement statement, long handle, int offset) throws SQLException {
+      statement.setLong(offset, handle);
       return 1;
     }
 
     @Override
-    public void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException {
+    public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
       // Ignore. Don't even use the default implementation
     }
 
   }
 
-  public ProcessModelMap(TransactionFactory<?> pTransactionFactory, StringCache pStringCache) {
-    super(pTransactionFactory, new ProcessModelFactory(pStringCache));
+  public ProcessModelMap(TransactionFactory<?> transactionFactory, StringCache stringCache) {
+    super(transactionFactory, new ProcessModelFactory(stringCache));
   }
 
 }

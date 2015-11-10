@@ -1,28 +1,7 @@
 package nl.adaptivity.process.engine;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.security.Principal;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.activation.DataSource;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import net.devrieze.util.*;
 import net.devrieze.util.HandleMap.Handle;
-import net.devrieze.util.db.DBHandleMap;
+import net.devrieze.util.*;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissiveProvider;
@@ -36,18 +15,34 @@ import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.processModel.ProcessModel;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.SecureProcessModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import javax.activation.DataSource;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.security.Principal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -96,8 +91,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     }
 
     @Override
-    public boolean isValidTransaction(final DBTransaction pTransaction) {
-      return pTransaction.providerEquals(mDBResource);
+    public boolean isValidTransaction(final DBTransaction transaction) {
+      return transaction.providerEquals(mDBResource);
     }
   }
 
@@ -133,16 +128,16 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   /**
    * Create a new process engine.
    *
-   * @param pMessageService The service to use for actual sending of messages by
+   * @param messageService The service to use for actual sending of messages by
    *          activities.
    */
-  protected ProcessEngine(final IMessageService<?, ProcessNodeInstance> pMessageService, TransactionFactory<T> pTransactionFactory) {
-    mMessageService = pMessageService;
-    mTransactionFactory = pTransactionFactory;
+  protected ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService, TransactionFactory<T> transactionFactory) {
+    mMessageService = messageService;
+    mTransactionFactory = transactionFactory;
   }
 
-  public static ProcessEngine<DBTransaction> newInstance(final IMessageService<?, ProcessNodeInstance> pMessageService) {
-    ProcessEngine<DBTransaction> pe = new ProcessEngine<DBTransaction>(pMessageService, new MyDBTransactionFactory());
+  public static ProcessEngine<DBTransaction> newInstance(final IMessageService<?, ProcessNodeInstance> messageService) {
+    ProcessEngine<DBTransaction> pe = new ProcessEngine<DBTransaction>(messageService, new MyDBTransactionFactory());
     pe.mInstanceMap = new ProcessInstanceMap(pe.mTransactionFactory, pe);
     pe.mNodeInstanceMap = new ProcessNodeInstanceMap(pe.mTransactionFactory, pe, pe.mStringCache);
     pe.mProcessModels = new ProcessModelMap(pe.mTransactionFactory, pe.mStringCache);
@@ -151,41 +146,41 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   /**
    * Testing constructor that does not need database access
-   * @param pMessageService
-   * @param pProcessModels
-   * @param pProcessInstances
-   * @param pProcessNodeInstances
+   * @param messageService
+   * @param processModels
+   * @param processInstances
+   * @param processNodeInstances
    */
-  private ProcessEngine(final IMessageService<?, ProcessNodeInstance> pMessageService,
-                        TransactionFactory<T> pTransactionFactory,
-                        TransactionedHandleMap<ProcessModelImpl, T> pProcessModels,
-                        TransactionedHandleMap<ProcessInstance, T> pProcessInstances,
-                        TransactionedHandleMap<ProcessNodeInstance, T> pProcessNodeInstances) {
-    mMessageService = pMessageService;
-    mProcessModels = pProcessModels;
-    mTransactionFactory = pTransactionFactory;
-    mInstanceMap = pProcessInstances;
-    mNodeInstanceMap = pProcessNodeInstances;
+  private ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService,
+                        TransactionFactory<T> transactionFactory,
+                        TransactionedHandleMap<ProcessModelImpl, T> processModels,
+                        TransactionedHandleMap<ProcessInstance, T> processInstances,
+                        TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
+    mMessageService = messageService;
+    mProcessModels = processModels;
+    mTransactionFactory = transactionFactory;
+    mInstanceMap = processInstances;
+    mNodeInstanceMap = processNodeInstances;
   }
 
-  public void invalidateModelCache(final Handle<? extends ProcessModelImpl> pHandle) {
-    mProcessModels.invalidateCache(pHandle);
+  public void invalidateModelCache(final Handle<? extends ProcessModelImpl> handle) {
+    mProcessModels.invalidateCache(handle);
   }
 
-  public void invalidateInstanceCache(final Handle<? extends ProcessInstance> pHandle) {
-    mInstanceMap.invalidateCache(pHandle);
+  public void invalidateInstanceCache(final Handle<? extends ProcessInstance> handle) {
+    mInstanceMap.invalidateCache(handle);
   }
 
-  public void invalidateNodeCache(final Handle<? extends ProcessNodeInstance> pHandle) {
-    mNodeInstanceMap.invalidateCache(pHandle);
+  public void invalidateNodeCache(final Handle<? extends ProcessNodeInstance> handle) {
+    mNodeInstanceMap.invalidateCache(handle);
   }
 
-  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, ProcessNodeInstance> pMessageService,
-                                                                   TransactionFactory<T> pTransactionFactory,
-                                                                   TransactionedHandleMap<ProcessModelImpl, T> pProcessModels,
-                                                                   TransactionedHandleMap<ProcessInstance, T> pProcessInstances,
-                                                                   TransactionedHandleMap<ProcessNodeInstance, T> pProcessNodeInstances) {
-    return new ProcessEngine<T>(pMessageService, pTransactionFactory, pProcessModels, pProcessInstances, pProcessNodeInstances);
+  static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, ProcessNodeInstance> messageService,
+                                                                   TransactionFactory<T> transactionFactory,
+                                                                   TransactionedHandleMap<ProcessModelImpl, T> processModels,
+                                                                   TransactionedHandleMap<ProcessInstance, T> processInstances,
+                                                                   TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
+    return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
 
   /**
@@ -193,45 +188,45 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    *
    * @return The list of process models.
    */
-  public Iterable<? extends ProcessModelImpl> getProcessModels(T pTransaction) {
-    return getProcessModels().iterable(pTransaction);
+  public Iterable<? extends ProcessModelImpl> getProcessModels(T transaction) {
+    return getProcessModels().iterable(transaction);
   }
 
   /**
    * Add a process model to the engine.
    *
-   * @param pPm The process model to add.
+   * @param pm The process model to add.
    * @return The processModel to add.
    * @throws SQLException
    */
-  public IProcessModelRef<ProcessNodeImpl> addProcessModel(T pTransaction, final ProcessModelImpl pPm, final Principal pUser) throws SQLException {
-    mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, pUser);
+  public IProcessModelRef<ProcessNodeImpl> addProcessModel(T transaction, final ProcessModelImpl pm, final Principal user) throws SQLException {
+    mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user);
 
-    if (pPm.getOwner() == null) {
-      pPm.setOwner(pUser);
-    } else if (!pUser.getName().equals(pPm.getOwner().getName())) {
-      mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, pUser, pPm.getOwner());
+    if (pm.getOwner() == null) {
+      pm.setOwner(user);
+    } else if (!user.getName().equals(pm.getOwner().getName())) {
+      mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, pm.getOwner());
     }
 
-    pPm.cacheStrings(mStringCache);
-    UUID uuid = pPm.getUuid();
-    if (uuid==null) { uuid = UUID.randomUUID(); pPm.setUuid(uuid); }
-    return new ProcessModelRef(pPm.getName(), getProcessModels().put(pTransaction, pPm), uuid);
+    pm.cacheStrings(mStringCache);
+    UUID uuid = pm.getUuid();
+    if (uuid==null) { uuid = UUID.randomUUID(); pm.setUuid(uuid); }
+    return new ProcessModelRef(pm.getName(), getProcessModels().put(transaction, pm), uuid);
   }
 
   /**
    * Get the process model with the given handle.
    *
-   * @param pHandle The handle to the process model.
+   * @param handle The handle to the process model.
    * @return The processModel.
    * @throws SQLException
    */
-  public ProcessModelImpl getProcessModel(T pTransaction, final Handle<ProcessModelImpl> pHandle, final Principal pUser) throws SQLException {
-    final ProcessModelImpl result = getProcessModels().get(pTransaction, pHandle);
+  public ProcessModelImpl getProcessModel(T transaction, final Handle<ProcessModelImpl> handle, final Principal user) throws SQLException {
+    final ProcessModelImpl result = getProcessModels().get(transaction, handle);
     if (result != null) {
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+      mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, result);
       if (result.getUuid()==null) { result.setUuid(UUID.randomUUID());
-        getProcessModels().set(pTransaction, pHandle, result); }
+        getProcessModels().set(transaction, handle, result); }
     }
     return result;
   }
@@ -239,65 +234,65 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   /**
    * Rename the process model with the given handle.
    *
-   * @param pHandle The handle to use.
-   * @param pName The process model
+   * @param handle The handle to use.
+   * @param name The process model
    */
-  public void renameProcessModel(final Principal pUser, final Handle<? extends ProcessModelImpl> pHandle, final String pName) {
+  public void renameProcessModel(final Principal user, final Handle<? extends ProcessModelImpl> handle, final String name) {
     try (T transaction= startTransaction()) {
-      final ProcessModelImpl pm = getProcessModels().get(transaction, pHandle);
-      mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, pUser, pm);
-      pm.setName(pName);
-      getProcessModels().set(transaction, pHandle, pm); // set it to ensure update on the database
+      final ProcessModelImpl pm = getProcessModels().get(transaction, handle);
+      mSecurityProvider.ensurePermission(SecureObject.Permissions.RENAME, user, pm);
+      pm.setName(name);
+      getProcessModels().set(transaction, handle, pm); // set it to ensure update on the database
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public ProcessModelRef updateProcessModel(T pTransaction, Handle<? extends ProcessModelImpl> pHandle, ProcessModelImpl pProcessModel, Principal pUser) throws FileNotFoundException, SQLException {
-    ProcessModelImpl oldModel = getProcessModels().get(pTransaction, pHandle);
-    mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, oldModel);
-    mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, pUser, oldModel);
+  public ProcessModelRef updateProcessModel(T transaction, Handle<? extends ProcessModelImpl> handle, ProcessModelImpl processModel, Principal user) throws FileNotFoundException, SQLException {
+    ProcessModelImpl oldModel = getProcessModels().get(transaction, handle);
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel);
+    mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel);
 
-    if (pProcessModel.getOwner()==null) { // If no owner was set, use the old one.
-      pProcessModel.setOwner(oldModel.getOwner());
-    } else if (!oldModel.getOwner().getName().equals(pProcessModel.getOwner().getName())) {
-      mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, pUser, oldModel);
+    if (processModel.getOwner()==null) { // If no owner was set, use the old one.
+      processModel.setOwner(oldModel.getOwner());
+    } else if (!oldModel.getOwner().getName().equals(processModel.getOwner().getName())) {
+      mSecurityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel);
     }
-    if(! (pHandle!=null && getProcessModels().contains(pTransaction, pHandle))) {
-      throw new FileNotFoundException("The process model with handle "+pHandle+" could not be found");
+    if(! (handle!=null && getProcessModels().contains(transaction, handle))) {
+      throw new FileNotFoundException("The process model with handle "+handle+" could not be found");
     }
-    getProcessModels().set(pTransaction, pHandle, pProcessModel);
-    return ProcessModelRef.get(pProcessModel.getRef());
+    getProcessModels().set(transaction, handle, processModel);
+    return ProcessModelRef.get(processModel.getRef());
   }
 
-  public boolean removeProcessModel(T transaction, Handle<? extends ProcessModelImpl> pHandle, Principal pUser) throws SQLException {
-    ProcessModelImpl oldModel = getProcessModels().get(transaction, pHandle);
-    mSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, pUser, oldModel);
+  public boolean removeProcessModel(T transaction, Handle<? extends ProcessModelImpl> handle, Principal user) throws SQLException {
+    ProcessModelImpl oldModel = getProcessModels().get(transaction, handle);
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.DELETE, user, oldModel);
 
-    if (getProcessModels().remove(transaction, pHandle)) {
+    if (getProcessModels().remove(transaction, handle)) {
       transaction.commit();
       return true;
     }
     return false;
   }
 
-  public void setmSecurityProvider(final SecurityProvider pMSecurityProvider) {
-    mSecurityProvider = pMSecurityProvider;
+  public void setSecurityProvider(final SecurityProvider securityProvider) {
+    mSecurityProvider = securityProvider;
   }
 
   /**
    * Get all process instances owned by the user.
    *
-   * @param pUser The current user in relation to whom we need to find the
+   * @param user The current user in relation to whom we need to find the
    *          instances.
    * @return All instances.
    */
-  public Iterable<ProcessInstance> getOwnedProcessInstances(T pTransaction, final Principal pUser) {
-    mSecurityProvider.ensurePermission(Permissions.LIST_INSTANCES, pUser);
+  public Iterable<ProcessInstance> getOwnedProcessInstances(T transaction, final Principal user) {
+    mSecurityProvider.ensurePermission(Permissions.LIST_INSTANCES, user);
     // If security allows this, return an empty list.
     final List<ProcessInstance> result = new ArrayList<>();
-    for (final ProcessInstance instance : getInstances().iterable(pTransaction)) {
-      if ((pUser==null && instance.getOwner()==null) || (pUser!=null && instance.getOwner().getName().equals(pUser.getName()))) {
+    for (final ProcessInstance instance : getInstances().iterable(transaction)) {
+      if ((user==null && instance.getOwner()==null) || (user!=null && instance.getOwner().getName().equals(user.getName()))) {
         result.add(instance);
       }
     }
@@ -325,81 +320,81 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }/**
    * Get all process instances visible to the user.
    *
-   * @param pUser The current user in relation to whom we need to find the
+   * @param user The current user in relation to whom we need to find the
    *          instances.
    * @return All instances.
    */
-  public Iterable<ProcessInstance> getVisibleProcessInstances(T pTransaction, final Principal pUser) {
+  public Iterable<ProcessInstance> getVisibleProcessInstances(T transaction, final Principal user) {
     final List<ProcessInstance> result = new ArrayList<>();
-    for (final ProcessInstance instance : getInstances().iterable(pTransaction)) {
-      if (mSecurityProvider.hasPermission(SecureObject.Permissions.READ, pUser, instance)) {
+    for (final ProcessInstance instance : getInstances().iterable(transaction)) {
+      if (mSecurityProvider.hasPermission(SecureObject.Permissions.READ, user, instance)) {
         result.add(instance);
       }
     }
     return result;
   }
 
-  public ProcessInstance getProcessInstance(T pTransaction, Handle<? extends ProcessInstance> pHandle, Principal pUser) throws SQLException {
-    ProcessInstance instance = getInstances().get(pTransaction, pHandle);
-    mSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, pUser, instance);
+  public ProcessInstance getProcessInstance(T transaction, Handle<? extends ProcessInstance> handle, Principal user) throws SQLException {
+    ProcessInstance instance = getInstances().get(transaction, handle);
+    mSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, user, instance);
     return instance;
   }
 
-  public boolean tickleInstance(long pHandle) {
-    return tickleInstance(new HProcessInstance(pHandle));
+  public boolean tickleInstance(long handle) {
+    return tickleInstance(new HProcessInstance(handle));
   }
 
-  public boolean tickleInstance(Handle<? extends ProcessInstance> pHandle) {
+  public boolean tickleInstance(Handle<? extends ProcessInstance> handle) {
     try (T transaction=startTransaction()) {
-      return tickleInstance(transaction, pHandle);
+      return tickleInstance(transaction, handle);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public boolean tickleInstance(final T pTransaction, final Handle<? extends ProcessInstance> pHandle) throws
+  public boolean tickleInstance(final T transaction, final Handle<? extends ProcessInstance> handle) throws
           SQLException {
-    getInstances().invalidateCache(pHandle);
-    ProcessInstance instance = getInstances().get(pTransaction, pHandle);
+    getInstances().invalidateCache(handle);
+    ProcessInstance instance = getInstances().get(transaction, handle);
     if (instance==null) { return false; }
-    instance.tickle(pTransaction, mMessageService);
+    instance.tickle(transaction, mMessageService);
     return true;
   }
 
 
-  public void tickleNode(final T pTransaction, final Handle<? extends ProcessNodeInstance> pHandle) throws SQLException {
-    getNodeInstances().invalidateCache(pHandle);
-    ProcessNodeInstance nodeInstance = getNodeInstances().get(pTransaction, pHandle);
+  public void tickleNode(final T transaction, final Handle<? extends ProcessNodeInstance> handle) throws SQLException {
+    getNodeInstances().invalidateCache(handle);
+    ProcessNodeInstance nodeInstance = getNodeInstances().get(transaction, handle);
     for(Handle<? extends ProcessNodeInstance> hpredecessor: nodeInstance.getDirectPredecessors()) {
-      tickleNode(pTransaction, hpredecessor);
+      tickleNode(transaction, hpredecessor);
     }
-    nodeInstance.tickle(pTransaction, mMessageService);
-    getNodeInstances().invalidateCache(pHandle);
+    nodeInstance.tickle(transaction, mMessageService);
+    getNodeInstances().invalidateCache(handle);
   }
 
   /**
    * Create a new process instance started by this process.
    *
    *
-   * @param pTransaction
-   * @param pModel The model to create and start an instance of.
-   * @param pName The name of the new instance.
-   * @param pPayload The payload representing the parameters for the process.
+   * @param transaction
+   * @param model The model to create and start an instance of.
+   * @param name The name of the new instance.
+   * @param payload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException When database operations fail.
    */
-  public HProcessInstance startProcess(T pTransaction, final Principal pUser, final ProcessModelImpl pModel, final String pName, final UUID pUuid, final Node pPayload) throws SQLException {
-    if (pUser == null) {
+  public HProcessInstance startProcess(T transaction, final Principal user, final ProcessModelImpl model, final String name, final UUID uuid, final Node payload) throws SQLException {
+    if (user == null) {
       throw new HttpResponseException(HttpURLConnection.HTTP_FORBIDDEN, "Annonymous users are not allowed to start processes");
     }
-    mSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, pUser);
-    final ProcessInstance instance = new ProcessInstance(pUser, pModel, pName, pUuid, State.NEW, this);
+    mSecurityProvider.ensurePermission(ProcessModelImpl.Permissions.INSTANTIATE, user);
+    final ProcessInstance instance = new ProcessInstance(user, model, name, uuid, State.NEW, this);
 
-    final HProcessInstance result = new HProcessInstance(getInstances().put(pTransaction, instance));
-    instance.initialize(pTransaction);
-    pTransaction.commit();
+    final HProcessInstance result = new HProcessInstance(getInstances().put(transaction, instance));
+    instance.initialize(transaction);
+    transaction.commit();
     try {
-      instance.start(pTransaction, mMessageService, pPayload);
+      instance.start(transaction, mMessageService, payload);
     } catch (Exception e) {
       Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error starting instance (it is already stored)", e);
     }
@@ -409,31 +404,31 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   /**
    * Convenience method to start a process based upon a process model handle.
    *
-   * @param pHandle The process model to start a new instance for.
-   * @param pName The name of the new instance.
-   * @param pUuid The UUID for the instances. Helps with synchronization errors not exploding into mass instantiation.
-   * @param pPayload The payload representing the parameters for the process.
+   * @param handle The process model to start a new instance for.
+   * @param name The name of the new instance.
+   * @param uuid The UUID for the instances. Helps with synchronization errors not exploding into mass instantiation.
+   * @param payload The payload representing the parameters for the process.
    * @return A Handle to the {@link ProcessInstance}.
    * @throws SQLException
    */
-  public HProcessInstance startProcess(T pTransaction, final Principal pUser, final Handle<? extends ProcessModelImpl> pHandle, final String pName, UUID pUuid, final Node pPayload) throws SQLException {
-    ProcessModelImpl processModel = getProcessModels().get(pTransaction, pHandle);
-    return startProcess(pTransaction, pUser, processModel, pName, pUuid, pPayload);
+  public HProcessInstance startProcess(T transaction, final Principal user, final Handle<? extends ProcessModelImpl> handle, final String name, UUID uuid, final Node payload) throws SQLException {
+    ProcessModelImpl processModel = getProcessModels().get(transaction, handle);
+    return startProcess(transaction, user, processModel, name, uuid, payload);
   }
 
   /**
    * Get the task with the given handle.
    *
    *
-   * @param pTransaction
-   * @param pHandle The handle of the task.
+   * @param transaction
+   * @param handle The handle of the task.
    * @return The handle
    * @throws SQLException
    * @todo change the parameter to a handle object.
    */
-  public ProcessNodeInstance getNodeInstance(T pTransaction, final Handle<? extends ProcessNodeInstance> pHandle, final Principal pUser) throws SQLException {
-    final ProcessNodeInstance result = getNodeInstances().get(pTransaction, pHandle);
-    mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, pUser, result);
+  public ProcessNodeInstance getNodeInstance(T transaction, final Handle<? extends ProcessNodeInstance> handle, final Principal user) throws SQLException {
+    final ProcessNodeInstance result = getNodeInstances().get(transaction, handle);
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, result);
     return result;
   }
 
@@ -441,28 +436,28 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * Finish the process instance.
    *
    *
-   * @param pTransaction
-   * @param pProcessInstance The process instance to finish.
+   * @param transaction
+   * @param processInstance The process instance to finish.
    * @throws SQLException
    * @todo evaluate whether this should not retain some results
    */
-  public void finishInstance(T pTransaction, final ProcessInstance pProcessInstance) throws SQLException {
+  public void finishInstance(T transaction, final ProcessInstance processInstance) throws SQLException {
     // TODO evict these nodes from the cache (not too bad to keep them though)
 //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
 //      getNodeInstances().invalidateModelCache(childNode);
 //    }
     // TODO retain instance
     TransactionedHandleMap<ProcessInstance, T> instances = getInstances();
-    instances.remove(pTransaction, pProcessInstance);
+    instances.remove(transaction, processInstance);
   }
 
-  public ProcessInstance cancelInstance(T pTransaction, Handle<? extends ProcessInstance> pHandle, Principal pUser) throws SQLException {
-    ProcessInstance result = getInstances().get(pTransaction, pHandle);
-    mSecurityProvider.ensurePermission(Permissions.CANCEL, pUser, result);
+  public ProcessInstance cancelInstance(T transaction, Handle<? extends ProcessInstance> handle, Principal user) throws SQLException {
+    ProcessInstance result = getInstances().get(transaction, handle);
+    mSecurityProvider.ensurePermission(Permissions.CANCEL, user, result);
     try {
       // Should be removed internally to the map.
 //      getNodeInstances().removeAll(pTransaction, ProcessNodeInstanceMap.COL_HPROCESSINSTANCE+" = ?",Long.valueOf(pHandle.getHandle()));
-      if(getInstances().remove(pTransaction, result)) {
+      if(getInstances().remove(transaction, result)) {
         return result;
       }
       throw new ProcessException("The instance could not be cancelled");
@@ -475,59 +470,59 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * Cancel all process instances and tasks in the engine.
    * @throws SQLException
    */
-  public void cancelAll(T pTransaction, final Principal pUser) throws SQLException {
-    mSecurityProvider.ensurePermission(Permissions.CANCEL_ALL, pUser);
-    getNodeInstances().clear(pTransaction);
-    getInstances().clear(pTransaction);
+  public void cancelAll(T transaction, final Principal user) throws SQLException {
+    mSecurityProvider.ensurePermission(Permissions.CANCEL_ALL, user);
+    getNodeInstances().clear(transaction);
+    getInstances().clear(transaction);
   }
 
 
   /**
    * Update the state of the given task
    *
-   * @param pHandle Handle to the process instance.
-   * @param pNewState The new state
+   * @param handle Handle to the process instance.
+   * @param newState The new state
    * @return
    * @throws SQLException
    */
-  public TaskState updateTaskState(T pTransaction, final Handle<ProcessNodeInstance> pHandle, final TaskState pNewState, final Principal pUser) throws SQLException {
-    final ProcessNodeInstance task = getNodeInstances().get(pTransaction, pHandle);
-    mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
+  public TaskState updateTaskState(T transaction, final Handle<ProcessNodeInstance> handle, final TaskState newState, final Principal user) throws SQLException {
+    final ProcessNodeInstance task = getNodeInstances().get(transaction, handle);
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance pi = task.getProcessInstance();
     synchronized (pi) {
-      switch (pNewState) {
+      switch (newState) {
         case Sent:
           throw new IllegalArgumentException("Updating task state to initial state not possible");
         case Acknowledged:
-          task.setState(pTransaction, pNewState); // Record the state, do nothing else.
+          task.setState(transaction, newState); // Record the state, do nothing else.
           break;
         case Taken:
-          pi.takeTask(pTransaction, mMessageService, task);
+          pi.takeTask(transaction, mMessageService, task);
           break;
         case Started:
-          pi.startTask(pTransaction, mMessageService, task);
+          pi.startTask(transaction, mMessageService, task);
           break;
         case Complete:
           throw new IllegalArgumentException("Finishing a task must be done by a separate method");
         case Failed:
-          pi.failTask(pTransaction, mMessageService, task, null);
+          pi.failTask(transaction, mMessageService, task, null);
           break;
         case Cancelled:
-          pi.cancelTask(pTransaction, mMessageService, task);
+          pi.cancelTask(transaction, mMessageService, task);
           break;
         default:
-          throw new IllegalArgumentException("Unsupported state :"+pNewState);
+          throw new IllegalArgumentException("Unsupported state :"+newState);
       }
       return task.getState();
     }
   }
 
-  public TaskState finishTask(T pTransaction, final Handle<ProcessNodeInstance> pHandle, final Node pPayload, final Principal pUser) throws SQLException {
-    final ProcessNodeInstance task = getNodeInstances().get(pHandle);
-    mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
+  public TaskState finishTask(T transaction, final Handle<ProcessNodeInstance> handle, final Node payload, final Principal user) throws SQLException {
+    final ProcessNodeInstance task = getNodeInstances().get(handle);
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance pi = task.getProcessInstance();
     synchronized (pi) {
-      pi.finishTask(pTransaction, mMessageService, task, pPayload);
+      pi.finishTask(transaction, mMessageService, task, payload);
       return task.getState();
     }
   }
@@ -537,14 +532,14 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * {@link #finishTask(Transaction, Handle, Node, Principal)}.
    *
    *
-   * @param pHandle The handle to finish.
-   * @param pResult The source that is parsed into DOM nodes and then passed on
+   * @param handle The handle to finish.
+   * @param resultSource The source that is parsed into DOM nodes and then passed on
    *          to {@link #finishTask(Transaction, Handle, Node, Principal)}
    */
-  public void finishedTask(T pTransaction, final Handle<ProcessNodeInstance> pHandle, final DataSource pResult, final Principal pUser) {
+  public void finishedTask(T transaction, final Handle<ProcessNodeInstance> handle, final DataSource resultSource, final Principal user) {
     InputSource result;
     try {
-      result = pResult==null ? null : new InputSource(pResult.getInputStream());
+      result = resultSource==null ? null : new InputSource(resultSource.getInputStream());
     } catch (final IOException e) {
       throw new MessagingException(e);
     }
@@ -552,7 +547,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     try {
       final DocumentBuilder db = dbf.newDocumentBuilder();
       final Document xml = db.parse(result);
-      finishTask(pTransaction, pHandle, xml, pUser);
+      finishTask(transaction, handle, xml, user);
 
     } catch (final ParserConfigurationException e) {
       throw new MessagingException(e);
@@ -562,7 +557,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
       throw new MessagingException(e);
     } catch (SQLException e) {
       try {
-        pTransaction.rollback();
+        transaction.rollback();
       } catch (SQLException e1) {
         MessagingException ex = new MessagingException(e1);
         ex.addSuppressed(e);;
@@ -573,42 +568,42 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
   }
 
-  public long registerNodeInstance(final T pTransaction, final ProcessNodeInstance pInstance) throws SQLException {
-    if (pInstance.getHandle() >= 0) {
+  public long registerNodeInstance(final T transaction, final ProcessNodeInstance instance) throws SQLException {
+    if (instance.getHandle() >= 0) {
       throw new IllegalArgumentException("Process node already registered");
     }
-    return getNodeInstances().put(pTransaction, pInstance);
+    return getNodeInstances().put(transaction, instance);
   }
 
   /**
    * Handle the fact that this task has been cancelled.
    *
-   * @param pHandle
+   * @param handle
    * @throws SQLException
    */
-  public void cancelledTask(T pTransaction, final Handle<ProcessNodeInstance> pHandle, final Principal pUser) throws SQLException {
-    updateTaskState(pTransaction, pHandle, TaskState.Cancelled, pUser);
+  public void cancelledTask(T transaction, final Handle<ProcessNodeInstance> handle, final Principal user) throws SQLException {
+    updateTaskState(transaction, handle, TaskState.Cancelled, user);
   }
 
-  public void errorTask(T pTransaction, final Handle<ProcessNodeInstance> pHandle, final Throwable pCause, final Principal pUser) throws SQLException {
-    final ProcessNodeInstance task = getNodeInstances().get(pTransaction, pHandle);
-    mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, pUser, task);
+  public void errorTask(T transaction, final Handle<ProcessNodeInstance> handle, final Throwable cause, final Principal user) throws SQLException {
+    final ProcessNodeInstance task = getNodeInstances().get(transaction, handle);
+    mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance pi = task.getProcessInstance();
-    pi.failTask(pTransaction, mMessageService, task, pCause);
+    pi.failTask(transaction, mMessageService, task, cause);
   }
 
-  public void updateStorage(T pTransaction, ProcessNodeInstance pProcessNodeInstance) throws SQLException {
-    if (pProcessNodeInstance.getHandle()<0) {
+  public void updateStorage(T transaction, ProcessNodeInstance processNodeInstance) throws SQLException {
+    if (processNodeInstance.getHandle()<0) {
       throw new IllegalArgumentException("You can't update storage state of an unregistered node");
     }
-    getNodeInstances().set(pTransaction, pProcessNodeInstance, pProcessNodeInstance);
+    getNodeInstances().set(transaction, processNodeInstance, processNodeInstance);
   }
 
-  public void updateStorage(T pTransaction, ProcessInstance pProcessInstance) throws SQLException {
-    if (pProcessInstance.getHandle()<0) {
+  public void updateStorage(T transaction, ProcessInstance processInstance) throws SQLException {
+    if (processInstance.getHandle()<0) {
       throw new IllegalArgumentException("You can't update storage state of an unregistered node");
     }
-    getInstances().set(pTransaction, pProcessInstance, pProcessInstance);
+    getInstances().set(transaction, processInstance, processInstance);
   }
 
   public T startTransaction() {

@@ -12,8 +12,8 @@ public class PELifeCycle implements ComponentLifeCycle {
 
   private final JBIProcessEngine aProcessEngine;
 
-  public PELifeCycle(JBIProcessEngine pProcessEngine) {
-    aProcessEngine = pProcessEngine;
+  public PELifeCycle(JBIProcessEngine processEngine) {
+    aProcessEngine = processEngine;
   }
 
   @Override
@@ -22,9 +22,9 @@ public class PELifeCycle implements ComponentLifeCycle {
   }
 
   @Override
-  public void init(ComponentContext pContext) throws JBIException {
-    aProcessEngine.setContext(pContext);
-    Logger logger = pContext.getLogger(null, null);
+  public void init(ComponentContext context) throws JBIException {
+    aProcessEngine.setContext(context);
+    Logger logger = context.getLogger(null, null);
     logger.info("ProcessEngine initialized");
   }
 

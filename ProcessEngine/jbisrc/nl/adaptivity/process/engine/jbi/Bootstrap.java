@@ -17,7 +17,7 @@ public class Bootstrap implements javax.jbi.component.Bootstrap{
   }
 
   @Override
-  public void init(InstallationContext pArg0) throws JBIException {
+  public void init(InstallationContext arg0) throws JBIException {
   }
 
   @Override

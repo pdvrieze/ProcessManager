@@ -24,45 +24,45 @@ public class ProcessNodeInstanceContext extends AbstractDataContext {
   private List<ProcessData> mDefines;
   private boolean mProvideResults;
 
-  public ProcessNodeInstanceContext(ProcessNodeInstance pProcessNodeInstance, List<ProcessData> pDefines, boolean pProvideResults) {
-    mProcessNodeInstance = pProcessNodeInstance;
-    mDefines = pDefines;
-    mProvideResults = pProvideResults;
+  public ProcessNodeInstanceContext(ProcessNodeInstance processNodeInstance, List<ProcessData> defines, boolean provideResults) {
+    mProcessNodeInstance = processNodeInstance;
+    mDefines = defines;
+    mProvideResults = provideResults;
   }
 
   @Override
-  protected ProcessData getData(String pValueName) {
-    switch (pValueName) {
-      case "handle": return new ProcessData(pValueName, new CompactFragment(Long.toString(mProcessNodeInstance.getHandle())));
-      case "instancehandle": return new ProcessData(pValueName, new CompactFragment(Long.toString(mProcessNodeInstance.getProcessInstance().getHandle())));
-      case "endpoint": return new ProcessData(pValueName, createEndpoint());
-      case "owner": return new ProcessData(pValueName, new CompactFragment(mProcessNodeInstance.getProcessInstance().getOwner().getName()));
+  protected ProcessData getData(String valueName) {
+    switch (valueName) {
+      case "handle": return new ProcessData(valueName, new CompactFragment(Long.toString(mProcessNodeInstance.getHandle())));
+      case "instancehandle": return new ProcessData(valueName, new CompactFragment(Long.toString(mProcessNodeInstance.getProcessInstance().getHandle())));
+      case "endpoint": return new ProcessData(valueName, createEndpoint());
+      case "owner": return new ProcessData(valueName, new CompactFragment(mProcessNodeInstance.getProcessInstance().getOwner().getName()));
     }
 
     for(ProcessData define: mDefines) {
-      if (pValueName.equals(define.getName())) {
+      if (valueName.equals(define.getName())) {
         return define;
       }
     }
 
     if (mProvideResults) {
       for(ProcessData result: mProcessNodeInstance.getResults()) {
-        if (pValueName.equals(result.getName())) {
+        if (valueName.equals(result.getName())) {
           return result;
         }
       }
     }
     // allow for missing values in the database. If they were "defined" treat is as an empty value.
     for(XmlDefineType resultDef: mProcessNodeInstance.getNode().getDefines()) {
-      if (pValueName.equals(resultDef.getName())) {
-        return new ProcessData(pValueName, EMPTY_FRAGMENT);
+      if (valueName.equals(resultDef.getName())) {
+        return new ProcessData(valueName, EMPTY_FRAGMENT);
       }
     }
     if (mProvideResults) {
       // allow for missing values in the database. If they were "defined" treat is as an empty value.
       for(IXmlResultType resultDef: mProcessNodeInstance.getNode().getResults()) {
-        if (pValueName.equals(resultDef.getName())) {
-          return new ProcessData(pValueName, EMPTY_FRAGMENT);
+        if (valueName.equals(resultDef.getName())) {
+          return new ProcessData(valueName, EMPTY_FRAGMENT);
         }
       }
     }
@@ -84,7 +84,7 @@ public class ProcessNodeInstanceContext extends AbstractDataContext {
   }
 
   @Override
-  public List<XMLEvent> resolveDefaultValue(XMLEventFactory pXef) throws XMLStreamException {
+  public List<XMLEvent> resolveDefaultValue(XMLEventFactory xef) throws XMLStreamException {
     throw new UnsupportedOperationException("There is no default in this context");
   }
 

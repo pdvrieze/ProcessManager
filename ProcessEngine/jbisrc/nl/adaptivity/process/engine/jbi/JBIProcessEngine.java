@@ -93,11 +93,11 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     private final QName aOperation;
     private Source aBody;
 
-    public JBIMessage(QName pService, String pEndpoint, QName pOperation, Source pBody) {
-      aRemoteService = pService;
-      aRemoteEndpoint = pEndpoint;
-      aOperation = pOperation;
-      aBody = pBody;
+    public JBIMessage(QName service, String endpoint, QName operation, Source body) {
+      aRemoteService = service;
+      aRemoteEndpoint = endpoint;
+      aOperation = operation;
+      aBody = body;
     }
 
 
@@ -121,7 +121,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     }
 
 
-    public void setHandle(long pHandle) throws MessagingException {
+    public void setHandle(long handle) throws MessagingException {
       try {
         XMLInputFactory xif = XMLInputFactory.newInstance();
         if (aBody ==null) { throw new NullPointerException(); }
@@ -147,9 +147,9 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
             if (MODIFY_NS.toString().equals(eName.getNamespaceURI())) {
               @SuppressWarnings("unchecked") Iterator<Attribute> attributes = se.getAttributes();
               if (eName.getLocalPart().equals("attribute")) {
-                writeAttribute(xer, attributes, xew, pHandle);
+                writeAttribute(xer, attributes, xew, handle);
               } else if (eName.getLocalPart().equals("element")) {
-                writeElement(xer, attributes, xew, pHandle);
+                writeElement(xer, attributes, xew, handle);
               } else {
                 throw new MessagingException("Unsupported activity modifier");
               }
@@ -191,11 +191,11 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       }
     }
 
-    private void writeElement(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws MessagingException, XMLStreamException {
+    private void writeElement(XMLEventReader in, Iterator<Attribute> attributes, XMLEventWriter out, long handle) throws MessagingException, XMLStreamException {
       String valueName = null;
       {
-        while(pAttributes.hasNext()) {
-          Attribute attr = pAttributes.next();
+        while(attributes.hasNext()) {
+          Attribute attr = attributes.next();
           String attrName = attr.getName().getLocalPart();
           if ("value".equals(attrName)) {
             valueName = attr.getValue();
@@ -220,7 +220,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
         XMLEventFactory xef = XMLEventFactory.newInstance();
 
         if ("handle".equals(valueName)) {
-          out.add(xef.createCharacters(Long.toString(pHandle)));
+          out.add(xef.createCharacters(Long.toString(handle)));
         } else if ("endpoint".equals(valueName)) {
 
           QName qname1 = new QName(EndPointDescriptor.MY_JBI_NS, "endpointDescriptor", "");
@@ -241,12 +241,12 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
     }
 
-    private void writeAttribute(XMLEventReader in, Iterator<Attribute> pAttributes, XMLEventWriter out, long pHandle) throws XMLStreamException, MessagingException {
+    private void writeAttribute(XMLEventReader in, Iterator<Attribute> attributes, XMLEventWriter out, long handle) throws XMLStreamException, MessagingException {
       String valueName = null;
       String paramName = null;
       {
-        while(pAttributes.hasNext()) {
-          Attribute attr = pAttributes.next();
+        while(attributes.hasNext()) {
+          Attribute attr = attributes.next();
           String attrName = attr.getName().getLocalPart();
           if ("value".equals(attrName)) {
             valueName = attr.getValue();
@@ -279,9 +279,9 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
         if ("handle".equals(valueName)) {
           Attribute attr;
           if (paramName !=null) {
-            attr = xef.createAttribute(paramName, Long.toString(pHandle));
+            attr = xef.createAttribute(paramName, Long.toString(handle));
           } else {
-            attr = xef.createAttribute("handle", Long.toString(pHandle));
+            attr = xef.createAttribute("handle", Long.toString(handle));
           }
           out.add(attr);
         }
@@ -316,7 +316,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @Override
-  public Document getServiceDescription(ServiceEndpoint pEndpoint) {
+  public Document getServiceDescription(ServiceEndpoint endpoint) {
     logEntry();
     DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
     builderFactory.setNamespaceAware(true);
@@ -334,15 +334,15 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     return null;
   }
 
-  private void logError(Throwable pE) {
+  private void logError(Throwable e) {
     Logger logger = getLogger();
     if (logger==null) {
-      pE.printStackTrace();
+      e.printStackTrace();
       return;
     }
 
 
-    StackTraceElement[] stackTrace = pE.getStackTrace();
+    StackTraceElement[] stackTrace = e.getStackTrace();
 
     String className = null;
     String methodName = null;
@@ -350,22 +350,22 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       className=stackTrace[0].getClassName();
       methodName=stackTrace[0].getMethodName();
     }
-    logger.throwing(className, methodName, pE);
+    logger.throwing(className, methodName, e);
 
     CharArrayWriter writer = new CharArrayWriter();
-    pE.printStackTrace(new PrintWriter(writer));
+    e.printStackTrace(new PrintWriter(writer));
     logger.warning(writer.toString());
 
   }
 
-  private void logError(String pMessage) {
+  private void logError(String message) {
     Logger logger = getLogger();
     if (logger==null) {
-      System.err.print(pMessage);
+      System.err.print(message);
       return;
     }
 
-    logger.log(Level.WARNING, pMessage);
+    logger.log(Level.WARNING, message);
   }
 
   private void logEntry() {
@@ -404,17 +404,17 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @Override
-  public boolean isExchangeWithConsumerOkay(ServiceEndpoint pEndpoint, MessageExchange pExchange) {
+  public boolean isExchangeWithConsumerOkay(ServiceEndpoint endpoint, MessageExchange exchange) {
     logEntry();
-    if (pEndpoint.getEndpointName()=="endpoint" && pEndpoint.getServiceName().equals(SERVICE_QNAME)) {
-      final String operationName = pExchange.getOperation().getLocalPart();
+    if (endpoint.getEndpointName()=="endpoint" && endpoint.getServiceName().equals(SERVICE_QNAME)) {
+      final String operationName = exchange.getOperation().getLocalPart();
       return OP_START_PROCESS.equals(operationName) ||
              OP_POST_MESSAGE.equals(operationName) ||
              "GET".equals(operationName) ||
              "POST".equals(operationName) ||
              "PUT".equals(operationName) ||
              "DELETE".equals(operationName) ||
-             pExchange.getOperation().getNamespaceURI().equals(PROCESS_ENGINE_NS);
+             exchange.getOperation().getNamespaceURI().equals(PROCESS_ENGINE_NS);
 
     } else {
       return false;
@@ -422,20 +422,20 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @Override
-  public boolean isExchangeWithProviderOkay(ServiceEndpoint pEndpoint, MessageExchange pExchange) {
+  public boolean isExchangeWithProviderOkay(ServiceEndpoint endpoint, MessageExchange exchange) {
     logEntry();
     // TODO Auto-generated method stub
     return true;
   }
 
   @Override
-  public ServiceEndpoint resolveEndpointReference(DocumentFragment pEpr) {
+  public ServiceEndpoint resolveEndpointReference(DocumentFragment epr) {
     logError("resolveEndpointReference");
     return null;
   }
 
-  public void setContext(ComponentContext pContext) {
-    aContext = pContext;
+  public void setContext(ComponentContext context) {
+    aContext = context;
   }
 
   ComponentContext getContext() {
@@ -480,16 +480,16 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     }
   }
 
-  private void processMessage(DeliveryChannel pDeliveryChannel, MessageExchange ex) throws MessagingException {
+  private void processMessage(DeliveryChannel deliveryChannel, MessageExchange ex) throws MessagingException {
     logEntry();
     try {
       if (ex.getStatus()==ExchangeStatus.ACTIVE) {
-        processRestSoap(pDeliveryChannel, ex);
+        processRestSoap(deliveryChannel, ex);
       }
     } catch (Exception e) {
       logError(e);
       ex.setError(e);
-      pDeliveryChannel.send(ex);
+      deliveryChannel.send(ex);
     }
   }
 
@@ -507,29 +507,29 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
     return aSoapMessageHandler;
   }
 
-  private void processRestSoap(DeliveryChannel pDeliveryChannel, MessageExchange pEx) throws MessagingException{
-    NormalizedMessage inMessage = pEx.getMessage("in");
-    NormalizedMessage reply = pEx.createMessage();
-    if (pEx.getOperation().getNamespaceURI().equals(Constants.WEBMETHOD_NS.toString())) {
-      HttpMethod operation = HttpMethod.valueOf(pEx.getOperation().getLocalPart());
+  private void processRestSoap(DeliveryChannel deliveryChannel, MessageExchange ex) throws MessagingException{
+    NormalizedMessage inMessage = ex.getMessage("in");
+    NormalizedMessage reply = ex.createMessage();
+    if (ex.getOperation().getNamespaceURI().equals(Constants.WEBMETHOD_NS.toString())) {
+      HttpMethod operation = HttpMethod.valueOf(ex.getOperation().getLocalPart());
       if (getRestMessageHandler().processRequest(operation, inMessage, reply, this)) {
-        pEx.setMessage(reply, "out");
-        pDeliveryChannel.send(pEx);
+        ex.setMessage(reply, "out");
+        deliveryChannel.send(ex);
       } else {
-        pEx.setError(new FileNotFoundException());
-        pDeliveryChannel.send(pEx);
+        ex.setError(new FileNotFoundException());
+        deliveryChannel.send(ex);
       }
     } else {
-      if (getSoapMessageHandler().processRequest(pEx.getOperation(), inMessage, reply, this)) {
-        if (pEx.getPattern().equals(Constants.WSDL_MEP_IN_ONLY)|| pEx.getPattern().equals(Constants.WSDL_MEP_ROBUST_IN_ONLY)) {
-          pEx.setStatus(ExchangeStatus.DONE);
+      if (getSoapMessageHandler().processRequest(ex.getOperation(), inMessage, reply, this)) {
+        if (ex.getPattern().equals(Constants.WSDL_MEP_IN_ONLY)|| ex.getPattern().equals(Constants.WSDL_MEP_ROBUST_IN_ONLY)) {
+          ex.setStatus(ExchangeStatus.DONE);
         } else {
-          pEx.setMessage(reply, "out");
+          ex.setMessage(reply, "out");
         }
       } else {
-        pEx.setError(new FileNotFoundException());
+        ex.setError(new FileNotFoundException());
       }
-      pDeliveryChannel.send(pEx);
+      deliveryChannel.send(ex);
     }
   }
 
@@ -571,34 +571,34 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", query={"op=newInstance"})
-  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
-    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(pHandle), pName, null);
+  public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long handle, @RestParam(name="name", type=ParamType.QUERY) String name) {
+    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(handle), name, null);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", post={"name"})
-  public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long pHandle, @RestParam(name="name", type=ParamType.QUERY) String pName) {
-    aProcessEngine.renameProcess(HandleMap.<ProcessModel>handle(pHandle), pName);
+  public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long handle, @RestParam(name="name", type=ParamType.QUERY) String name) {
+    aProcessEngine.renameProcess(HandleMap.<ProcessModel>handle(handle), name);
   }
 
   @WebMethod(operationName="updateTaskState")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
-  public TaskState updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
-                              @WebParam(name="state", mode=Mode.IN) @RestParam(name="state", type=ParamType.QUERY) TaskState pNewState) {
-    return aProcessEngine.updateTaskState(pHandle, pNewState);
+  public TaskState updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long handle,
+                              @WebParam(name="state", mode=Mode.IN) @RestParam(name="state", type=ParamType.QUERY) TaskState newState) {
+    return aProcessEngine.updateTaskState(handle, newState);
   }
 
   @WebMethod(operationName="finishTask")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state=Complete"})
-  public TaskState finishTask(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long pHandle,
-                              @WebParam(name="payload", mode=Mode.IN) @RestParam(name="payload", type=ParamType.QUERY) Node pPayload) {
-    return aProcessEngine.finishTask(pHandle, pPayload);
+  public TaskState finishTask(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long handle,
+                              @WebParam(name="payload", mode=Mode.IN) @RestParam(name="payload", type=ParamType.QUERY) Node payload) {
+    return aProcessEngine.finishTask(handle, payload);
   }
 
 
   @RestMethod(method=HttpMethod.GET, path="/processModels/${handle}")
-  public XmlProcessModel getProcessModel(@RestParam(name="handle",type=ParamType.VAR) long pHandle) throws FileNotFoundException {
+  public XmlProcessModel getProcessModel(@RestParam(name="handle",type=ParamType.VAR) long handle) throws FileNotFoundException {
     try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(pHandle));
+      return new XmlProcessModel(aProcessEngine.getProcessModel(handle));
     } catch (NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }
@@ -620,25 +620,25 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   @Override
-  public JBIMessage createMessage(XmlMessage pMessage) {
-    return new JBIMessage(pMessage.getService(), pMessage.getEndpoint(), pMessage.getOperation(), pMessage.getBodySource());
+  public JBIMessage createMessage(XmlMessage message) {
+    return new JBIMessage(message.getService(), message.getEndpoint(), message.getOperation(), message.getBodySource());
   }
 
   @Override
-  public boolean sendMessage(JBIMessage pMessage, ProcessNodeInstance pInstance) {
+  public boolean sendMessage(JBIMessage message, ProcessNodeInstance instance) {
     try {
       DeliveryChannel deliveryChannel = aContext.getDeliveryChannel();
-      ServiceEndpoint se = aContext.getEndpoint(pMessage.getService(), pMessage.getEndpoint());
+      ServiceEndpoint se = aContext.getEndpoint(message.getService(), message.getEndpoint());
       MessageExchangeFactory exchangeFactory = deliveryChannel.createExchangeFactory(se);
       RobustInOnly ex = exchangeFactory.createRobustInOnlyExchange();
-      ex.setOperation(pMessage.getOperation());
+      ex.setOperation(message.getOperation());
       NormalizedMessage msg = ex.createMessage();
 
 
-      long handle = aProcessEngine.registerMessage(pInstance);
-      pMessage.setHandle(handle);
+      long handle = aProcessEngine.registerMessage(instance);
+      message.setHandle(handle);
 
-      msg.setContent(pMessage.getContent());
+      msg.setContent(message.getContent());
       ex.setInMessage(msg);
       deliveryChannel.send(ex);
       return true;
