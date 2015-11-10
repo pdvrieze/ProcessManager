@@ -5,7 +5,7 @@ import java.util.concurrent.Future;
 
 /**
  * Interface for classes that can receive completion messages from the
- * {@link AsyncMessenger}. This happens in a separate thread.
+ * {@link IMessenger}. This happens in a separate thread.
  *
  * @author Paul de Vrieze
  */
@@ -19,6 +19,6 @@ public interface CompletionListener<T> {
    *
    * @param future The future that is complete.
    */
-  void onMessageCompletion(Future<? extends T> future);
+  void onMessageCompletion(@SuppressWarnings("UnusedParameters") Future<? extends T> future);
 
 }

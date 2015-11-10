@@ -1,8 +1,8 @@
 package nl.adaptivity.messaging;
 
-import java.net.URI;
-
 import javax.xml.namespace.QName;
+
+import java.net.URI;
 
 /**
  * Interface describing service endpoints.
@@ -21,7 +21,7 @@ public interface EndpointDescriptor {
 
   /**
    * The actual endpoint in the service provided.
-   * @return
+   * @return The name of the endpoint
    */
   String getEndpointName();
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="build">
+<!--suppress XmlUnboundNsPrefix -->
+<project xmlns="antlib:org.apache.tools.ant" default="build">
   <property name="classpath" value="../../JavaCommonApi/trunk/bin" />
     
  	<target name="javadoc">

@@ -16,12 +16,12 @@ public class HttpResponseException extends MessagingException {
     mCode = code;
   }
 
-  public HttpResponseException(int code, Throwable cause) {
+  public HttpResponseException(final int code, final Throwable cause) {
     super(cause);
     mCode = code;
   }
 
-  public HttpResponseException(int code, String message, Throwable cause) {
+  public HttpResponseException(final int code, final String message, final Throwable cause) {
     super(message, cause);
     mCode = code;
   }

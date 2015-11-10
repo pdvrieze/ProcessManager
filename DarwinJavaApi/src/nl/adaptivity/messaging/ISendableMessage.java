@@ -19,21 +19,21 @@ public interface ISendableMessage {
    *
    * @author Paul de Vrieze
    */
-  public interface IHeader {
+  interface IHeader {
 
     /**
      * Get the name of the header.
      *
      * @return The header name
      */
-    public String getName();
+    String getName();
 
     /**
      * Get the value of the header.
      *
      * @return The header value
      */
-    public String getValue();
+    String getValue();
 
   }
 
