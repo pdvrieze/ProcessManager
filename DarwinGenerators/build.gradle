@@ -31,7 +31,6 @@ jar {
 }
 
 dependencies {
-    compile project(':JavaCommonApi')
     compile project(':PE-common')
     compile project(path: ':PE-common', configuration:'providedCompile')
     compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'

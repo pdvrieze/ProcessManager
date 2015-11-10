@@ -27,7 +27,8 @@ import java.util.*;
  *
  * @author Paul de Vrieze
  */
-public class MessagingSoapClientGenerator {
+@SuppressWarnings("StringConcatenationMissingWhitespace")
+public final class MessagingSoapClientGenerator {
 
 
   private static final class ParamInfo {
@@ -46,19 +47,19 @@ public class MessagingSoapClientGenerator {
   private static final Comparator<Method> METHODSORT = new Comparator<Method>() {
 
     @Override
-    public int compare(Method m1, Method m2) {
+    public int compare(final Method m1, final Method m2) {
       // First sort on name
       int result = m1.getName().compareTo(m2.getName());
       if (result!=0) { return result; }
 
-      Class<?>[] p1 = m1.getParameterTypes();
-      Class<?>[] p2 = m2.getParameterTypes();
+      final Class<?>[] param1 = m1.getParameterTypes();
+      final Class<?>[] param2 = m2.getParameterTypes();
       // Next on parameter list length
-      if (p1.length!=p2.length) { return p1.length-p2.length; }
+      if (param1.length!=param2.length) { return param1.length>param2.length ? 1 : 0; }
 
       // Next on the parameter types
-      for(int i=0; i<p1.length; ++i) {
-        result = p1[i].getSimpleName().compareTo(p2[i].getSimpleName());
+      for(int i=0; i<param1.length; ++i) {
+        result = param1[i].getSimpleName().compareTo(param2[i].getSimpleName());
         if (result!=0) { return result; }
       }
       // This should not happen as methods can not be the same but for return type in Java (but in jvm can)
@@ -67,10 +68,12 @@ public class MessagingSoapClientGenerator {
 
   };
 
-  private static int errorCount=0;
+  private static int _errorCount =0;
+
+  private MessagingSoapClientGenerator() { /** No object instances expected.*/}
 
   /**
-   * @param args
+   * @param args Standard arguments to the generator
    */
   public static void main(final String[] args) {
     /*
@@ -142,14 +145,13 @@ public class MessagingSoapClientGenerator {
     try {
       generateClientJava(pkg, outClass, inClasses, cp, dstdir);
     } catch (Exception e) {
-      ++errorCount;
-    } finally {
-      System.exit(errorCount);
+      ++_errorCount;
+      System.exit(_errorCount);
     }
-
+    System.exit(0);
   }
 
-  private static void generateClientJava(String destPkg, String outClass, List<String> inClasses, String cp, String dstdir) {
+  private static void generateClientJava(final String destPkg, String outClass, final List<String> inClasses, final String cp, final String dstdir) {
     if ((inClasses.size() == 0) || (destPkg == null)) {
       System.err.println("Not all three of inclass, outclass and package have been provided");
       showHelp();
@@ -191,17 +193,17 @@ public class MessagingSoapClientGenerator {
     }
   }
 
-  private static String getDefaultOutClassName(String inClass) {
+  private static String getDefaultOutClassName(final String inClass) {
     return inClass.substring(inClass.lastIndexOf('.') + 1) + "Client";
   }
 
   private static void writeOutFile(final String inClass, final String pkg, final String outClass, final FileSystem fs, final Path outfile, final URLClassLoader classloader) {
-    Class<?> endpointClass;
+    final Class<?> endpointClass;
     try {
       endpointClass = classloader.loadClass(inClass);
     } catch (final ClassNotFoundException e) {
       e.printStackTrace();
-      ++errorCount;
+      ++_errorCount;
       return;
     }
     final String pkgname = pkg.replaceAll(fs.getSeparator(), ".");
@@ -209,8 +211,7 @@ public class MessagingSoapClientGenerator {
       generateJava(outfile, endpointClass, pkgname, outClass);
     } catch (final IOException e) {
       e.printStackTrace();
-      ++errorCount;
-      return;
+      ++_errorCount;
     }
   }
 
@@ -260,9 +261,9 @@ public class MessagingSoapClientGenerator {
   private static void generateJava(final Writer out, final Class<?> endpointClass, final String pkgname, final String outClass) throws IOException {
     writeHead(out, endpointClass, pkgname);
 
-    CharArrayWriter buffer = new CharArrayWriter(0x2000);
+    final CharArrayWriter buffer = new CharArrayWriter(0x2000);
 
-    Map<String, String> imports = new HashMap<>();
+    final Map<String, String> imports = new HashMap<>();
     imports.put("URI","java.net.URI");
     imports.put("Future", "java.util.concurrent.Future");
     imports.put("Arrays", "java.util.Arrays");
@@ -281,14 +282,15 @@ public class MessagingSoapClientGenerator {
 
     writeClassBody(buffer, endpointClass, outClass, imports);
 
-    List<String> finalStrings = new ArrayList<>(imports.values());
+    final List<String> finalStrings = new ArrayList<>(imports.values());
     Collections.sort(finalStrings);
     String oldPrefix=null;
-    for(String str: finalStrings) {
-      String prefix = str.indexOf('.')<0 ? "" : str.substring(0, str.indexOf('.'));
+    for(final String str: finalStrings) {
+      final String prefix = str.indexOf('.')<0 ? "" : str.substring(0, str.indexOf('.'));
       if (oldPrefix!=null && (! oldPrefix.equals(prefix))) {
         out.write('\n');
       }
+      //noinspection resource
       out.append("import ").append(str).append(";\n");
       oldPrefix = prefix;
     }
@@ -309,7 +311,7 @@ public class MessagingSoapClientGenerator {
     out.write(";\n\n");
   }
 
-  private static void writeClassBody(final Writer out, final Class<?> endpointClass, final String outClass, Map<String, String> imports) throws IOException {
+  private static void writeClassBody(final Writer out, final Class<?> endpointClass, final String outClass, final Map<String, String> imports) throws IOException {
     out.write("@SuppressWarnings(\"all\")\n");
     out.write("public class ");
     out.write(outClass);
@@ -365,7 +367,7 @@ public class MessagingSoapClientGenerator {
     out.write("}\n");
   }
 
-  private static void writeMethods(final Writer out, final Class<?> endpointClass, Map<String, String> imports) throws IOException {
+  private static void writeMethods(final Writer out, final Class<?> endpointClass, final Map<String, String> imports) throws IOException {
     final Method[] methods = endpointClass.getMethods();
     Arrays.sort(methods, METHODSORT);
     for (final Method method : methods) {
@@ -376,7 +378,7 @@ public class MessagingSoapClientGenerator {
     }
   }
 
-  private static void writeMethod(final Writer out, final Method method, final WebMethod webMethod, Map<String, String> imports) throws IOException {
+  private static void writeMethod(final Writer out, final Method method, final WebMethod webMethod, final Map<String, String> imports) throws IOException {
     String methodName = webMethod.operationName();
     String principalName = null;
     if ((methodName == null) || (methodName.length() == 0)) {
@@ -413,6 +415,7 @@ public class MessagingSoapClientGenerator {
               if ((name == null) || (name.length() == 0)) {
                 name = restParam.name();
               }
+              //noinspection ConstantConditions
               if ((name == null) || (name.length() == 0)) {
                 name = "principal";
               }
@@ -439,7 +442,7 @@ public class MessagingSoapClientGenerator {
         ++paramNo;
       }
     }
-    SoapSeeAlso seeAlso = Annotations.getAnnotation(method.getAnnotations(),SoapSeeAlso.class);
+    final SoapSeeAlso seeAlso = Annotations.getAnnotation(method.getAnnotations(), SoapSeeAlso.class);
     if (seeAlso == null) {
       out.write(", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {\n");
     } else {
@@ -449,11 +452,11 @@ public class MessagingSoapClientGenerator {
       int paramNo = 0;
       for (final ParamInfo param : params) {
         out.write("    final Tripple<String, Class<");
-        Class<?> rawtype = getRawType(param.mType);
+        final Class<?> rawtype = getRawType(param.mType);
         writeType(out, rawtype, false, false, imports);
         out.write(">, ");
         writeType(out, param.mType, false, false, imports);
-        out.write("> param" + paramNo + " = Tripple.<String, Class<");
+        out.write("> param"); out.write(Integer.toString(paramNo)); out.write(" = Tripple.<String, Class<");
         writeType(out, rawtype, false, false, imports);
         out.write(">, ");
         writeType(out, param.mType, false, false, imports);
@@ -510,7 +513,7 @@ public class MessagingSoapClientGenerator {
 
   }
 
-  private static void writeClassArray(Writer out, Class<?>[] value, Map<String, String> imports) throws IOException {
+  private static void writeClassArray(final Writer out, final Class<?>[] value, final Map<String, String> imports) throws IOException {
     if (value.length==0) {
       out.write("new Class<?>[0]");
       return;
@@ -524,7 +527,8 @@ public class MessagingSoapClientGenerator {
     out.write('}');
   }
 
-  private static Class<?> getRawType(Type type) {
+  @SuppressWarnings("LoopStatementThatDoesntLoop")
+  private static Class<?> getRawType(final Type type) {
     if (type instanceof Class) {
       return (Class<?>) type;
     } else if (type instanceof ParameterizedType) {
@@ -533,12 +537,12 @@ public class MessagingSoapClientGenerator {
       final Class<?> componentType = getRawType(((GenericArrayType) type).getGenericComponentType());
       return Array.newInstance(componentType, 0).getClass();
     } else if (type instanceof TypeVariable<?>) {
-      for(Type bound:((TypeVariable<?>)type).getBounds()) {
+      for(final Type bound:((TypeVariable<?>)type).getBounds()) {
         return getRawType(bound);
       }
       return Object.class;
     } else if (type instanceof WildcardType) {
-      for(Type bound:((WildcardType)type).getUpperBounds()) {
+      for(final Type bound:((WildcardType)type).getUpperBounds()) {
         return getRawType(bound);
       }
       return Object.class;
@@ -547,13 +551,13 @@ public class MessagingSoapClientGenerator {
     return null;
   }
 
-  private static void writeType(Writer out, Type type, boolean allowPrimitive, boolean varArgs, Map<String, String> imports) throws IOException {
+  private static void writeType(final Writer out, final Type type, final boolean allowPrimitive, final boolean varArgs, final Map<String, String> imports) throws IOException {
     if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
+      final ParameterizedType parameterizedType = (ParameterizedType) type;
       writeType(out, parameterizedType.getRawType(), allowPrimitive, varArgs, imports);
       writeTypes(out, parameterizedType.getActualTypeArguments(), imports);
     } else if (type instanceof GenericArrayType) {
-      GenericArrayType genericArrayType = (GenericArrayType) type;
+      final GenericArrayType genericArrayType = (GenericArrayType) type;
       writeType(out,genericArrayType.getGenericComponentType(), true, false, imports);
       if (varArgs) {
         out.write("...");
@@ -561,30 +565,32 @@ public class MessagingSoapClientGenerator {
         out.write("[]");
       }
     } else if (type instanceof TypeVariable<?>) {
-      TypeVariable<?> typeVariable = (TypeVariable<?>) type;
+      final TypeVariable<?> typeVariable = (TypeVariable<?>) type;
       out.write(typeVariable.getName());
     } else if (type instanceof WildcardType) {
-      WildcardType wildcardType = (WildcardType) type;
+      final WildcardType wildcardType = (WildcardType) type;
       out.write('?');
       {
-        Type[] lower = wildcardType.getLowerBounds();
+        final Type[] lower = wildcardType.getLowerBounds();
         if (lower.length>0) {
           out.write(" super ");
           boolean first = true;
-          for(Type b:lower) {
+          //noinspection Duplicates
+          for(final Type bound:lower) {
             if (first) { first = false; } else { out.write(" & "); }
-            writeType(out, b, false, varArgs, imports);
+            writeType(out, bound, false, varArgs, imports);
           }
         }
       }
       {
-        Type[] upper = wildcardType.getUpperBounds();
+        final Type[] upper = wildcardType.getUpperBounds();
         if (!(upper.length==0 || (upper.length==1 && Object.class.equals(upper[0])))) {
           out.write(" extends ");
           boolean first = true;
-          for(Type b:upper) {
+          //noinspection Duplicates
+          for(final Type bound:upper) {
             if (first) { first = false; } else { out.write(" & "); }
-            writeType(out, b, false, varArgs, imports);
+            writeType(out, bound, false, varArgs, imports);
           }
 
         }
@@ -598,7 +604,7 @@ public class MessagingSoapClientGenerator {
         if ("java.lang".equals(pkg) || clazz.isPrimitive()) {
           out.write(cls);
         } else {
-          String imp = imports.get(cls);
+          final String imp = imports.get(cls);
           if (imp==null) {
             imports.put(cls, canonname);
             out.write(cls);
@@ -616,23 +622,23 @@ public class MessagingSoapClientGenerator {
     }
   }
 
-  private static String getPackage(String name) {
-    int i=name.lastIndexOf('.');
+  private static String getPackage(final String name) {
+    final int i=name.lastIndexOf('.');
     if (i>=0) {
       return name.substring(0, i);
     }
     return name;
   }
 
-  private static String getName(String name) {
-    int i=name.lastIndexOf('.');
+  private static String getName(final String name) {
+    final int i=name.lastIndexOf('.');
     if (i>=0) {
       return name.substring(i+1);
     }
     return name;
   }
 
-  private static String toBox(String simpleName) {
+  private static String toBox(final String simpleName) {
     switch (simpleName) {
       case "byte": return "Byte";
       case "short": return "Short";
@@ -646,7 +652,7 @@ public class MessagingSoapClientGenerator {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
-  private static void writeTypes(Writer out, Type[] types, Map<String, String> imports) throws IOException {
+  private static void writeTypes(final Writer out, final Type[] types, final Map<String, String> imports) throws IOException {
     if (types.length>0) {
       out.write('<');
       writeType(out, types[0], false, false, imports);
@@ -659,18 +665,18 @@ public class MessagingSoapClientGenerator {
 
   }
 
-  private static void writeTypeParams(Writer out, TypeVariable<Method>[] params, Map<String, String> imports) throws IOException {
+  private static void writeTypeParams(final Writer out, final TypeVariable<Method>[] params, final Map<String, String> imports) throws IOException {
     if (params.length>0) {
       out.write('<');
       boolean first = true;
-      for(TypeVariable<Method> param: params) {
+      for(final TypeVariable<Method> param: params) {
         if (first) { first = false; } else { out.write(", "); }
         out.write(param.getName());
         if (param.getBounds().length>0 &&
             (! (param.getBounds().length==1 && Object.class.equals(param.getBounds()[0])))) {
           out.write(" extends ");
           boolean boundFirst =true;
-          for(Type bound: param.getBounds()) {
+          for(final Type bound: param.getBounds()) {
             if (boundFirst) { boundFirst = false; } else { out.write(" & "); }
             writeType(out, bound, false, false, imports);
           }
@@ -694,13 +700,13 @@ public class MessagingSoapClientGenerator {
     return result.toString();
   }
 
-  private static StringBuilder appendString(final StringBuilder result, final String string) {
-    if (string == null) {
+  private static StringBuilder appendString(final StringBuilder result, final String unescapedStr) {
+    if (unescapedStr == null) {
       result.append("null");
     } else {
       result.append('"');
-      for (int i = 0; i < string.length(); ++i) {
-        final char c = string.charAt(i);
+      for (int i = 0; i < unescapedStr.length(); ++i) {
+        final char c = unescapedStr.charAt(i);
         switch (c) {
           case '\\':
             result.append("\\\\");
