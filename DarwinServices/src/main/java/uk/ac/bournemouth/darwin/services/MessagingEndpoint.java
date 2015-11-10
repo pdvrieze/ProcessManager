@@ -33,10 +33,10 @@ public class MessagingEndpoint implements GenericEndpoint {
 
     public XmlEndpointDescriptor() {}
 
-    public XmlEndpointDescriptor(EndpointDescriptor pEndpoint) {
-      aService = pEndpoint.getServiceName();
-      aEndpoint = pEndpoint.getEndpointName();
-      aLocation = pEndpoint.getEndpointLocation();
+    public XmlEndpointDescriptor(EndpointDescriptor endpoint) {
+      aService = endpoint.getServiceName();
+      aEndpoint = endpoint.getEndpointName();
+      aLocation = endpoint.getEndpointLocation();
     }
 
   }
@@ -68,10 +68,10 @@ public class MessagingEndpoint implements GenericEndpoint {
   }
 
   @Override
-  public void initEndpoint(final ServletConfig pConfig) {
+  public void initEndpoint(final ServletConfig config) {
     IMessenger messenger = MessagingRegistry.getMessenger();
     if (messenger!=null) {
-      final StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
+      final StringBuilder path = new StringBuilder(config.getServletContext().getContextPath());
       path.append("/endpoints");
       aEndpointDescriptor = messenger.registerEndpoint(SERVICENAME, ENDPOINT, URI.create(path.toString()));
     } else {

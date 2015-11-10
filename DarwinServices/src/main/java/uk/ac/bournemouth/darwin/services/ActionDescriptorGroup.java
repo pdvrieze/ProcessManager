@@ -1,10 +1,10 @@
 package uk.ac.bournemouth.darwin.services;
 
-import java.util.Collection;
+import nl.adaptivity.process.util.Constants;
 
 import javax.xml.bind.annotation.*;
 
-import nl.adaptivity.process.util.Constants;
+import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -23,8 +23,8 @@ public class ActionDescriptorGroup {
   }
 
 
-  public void setTitle(final String pTitle) {
-    aTitle = pTitle;
+  public void setTitle(final String title) {
+    aTitle = title;
   }
 
 
@@ -33,8 +33,8 @@ public class ActionDescriptorGroup {
   }
 
 
-  public void setActions(final Collection<ActionDescriptor> pActions) {
-    aActions = pActions;
+  public void setActions(final Collection<ActionDescriptor> actions) {
+    aActions = actions;
   }
 
 

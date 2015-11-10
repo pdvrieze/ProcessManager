@@ -17,7 +17,7 @@ public class ServicesEndpoint {
 
   @XmlElementWrapper(name = "actionsGroups", namespace = Constants.DARWIN_NS)
   @RestMethod(method = HttpMethod.GET, path = "/actions")
-  public Collection<ActionDescriptorGroup> getAvailableActions(@RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
+  public Collection<ActionDescriptorGroup> getAvailableActions(@RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     final ArrayList<ActionDescriptorGroup> result = new ArrayList<>();
 
     // TODO actually get some actions out of the database and process model database.

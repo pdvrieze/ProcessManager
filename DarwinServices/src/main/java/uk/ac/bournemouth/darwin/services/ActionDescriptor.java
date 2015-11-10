@@ -1,12 +1,12 @@
 package uk.ac.bournemouth.darwin.services;
 
-import java.net.URI;
+import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.JaxbUriAdapter;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.JaxbUriAdapter;
+import java.net.URI;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -28,8 +28,8 @@ public class ActionDescriptor {
     return aTitle;
   }
 
-  public void setTitle(final String pTitle) {
-    aTitle = pTitle;
+  public void setTitle(final String title) {
+    aTitle = title;
   }
 
   @XmlValue
@@ -37,8 +37,8 @@ public class ActionDescriptor {
     return aDescription;
   }
 
-  public void setDescription(final String pDescription) {
-    aDescription = pDescription;
+  public void setDescription(final String description) {
+    aDescription = description;
   }
 
   @XmlAttribute(name = "icon")
@@ -48,8 +48,8 @@ public class ActionDescriptor {
   }
 
 
-  public void setIcon(final URI pIcon) {
-    aIcon = pIcon;
+  public void setIcon(final URI icon) {
+    aIcon = icon;
   }
 
 
@@ -60,8 +60,8 @@ public class ActionDescriptor {
   }
 
 
-  public void setLocation(final URI pLocation) {
-    aLocation = pLocation;
+  public void setLocation(final URI location) {
+    aLocation = location;
   }
 
 
