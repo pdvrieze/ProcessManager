@@ -29,140 +29,140 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
     @Override
     public void onSubmitComplete(final SubmitCompleteEvent event) {
-      aStatusLabel.setText("File submit complete!!");
+      mStatusLabel.setText("File submit complete!!");
       final com.google.gwt.dom.client.Document results = event.getResults();
       if (results != null) {
-        aProcessListBox.update(results);
+        mProcessListBox.update(results);
       } else {
-        aProcessListBox.update();
+        mProcessListBox.update();
       }
     }
   }
 
   private static final String PROCESSLISTURL = PEUserMessageHandler.BASEURL + "/ProcessEngine/processModels";
 
-  private Button aStartProcessButton;
+  private Button mStartProcessButton;
 
-  private RemoteListBox aProcessListBox;
+  private RemoteListBox mProcessListBox;
 
-  private MyFormPanel aProcessFileForm;
+  private MyFormPanel mProcessFileForm;
 
-  private Button aProcessFileSubmitButton;
+  private Button mProcessFileSubmitButton;
 
-  private MyFileUpload aProcessUpload;
+  private MyFileUpload mProcessUpload;
 
-  private final Label aStatusLabel;
+  private final Label mStatusLabel;
 
-  private VerticalPanel aFormPanel;
+  private VerticalPanel mFormPanel;
 
-  private Button aRenameProcessButton;
+  private Button mRenameProcessButton;
 
-  private VerticalPanel aLowerPanel;
+  private VerticalPanel mLowerPanel;
 
-  private final SplittedFillLeftPanel<Widget> aRoot;
+  private final SplittedFillLeftPanel<Widget> mRoot;
 
-  private Button aEditProcessButton;
+  private Button mEditProcessButton;
 
-  private ProcessEditPanel aProcessEditPanel;
+  private ProcessEditPanel mProcessEditPanel;
 
-  private Button aNewProcessButton;
+  private Button mNewProcessButton;
 
-  private Button aDeleteProcessButton;
+  private Button mDeleteProcessButton;
 
   public ProcessesPanel(final Label statusLabel) {
-    aRoot = new SplittedFillLeftPanel<Widget>();
-    aRoot.setTopLeftWidget(new HTML("Top Left"));
-    aRoot.setRightWidget(new HTML("Right"));
+    mRoot = new SplittedFillLeftPanel<Widget>();
+    mRoot.setTopLeftWidget(new HTML("Top Left"));
+    mRoot.setRightWidget(new HTML("Right"));
 
     //    HorizontalSplitPanel mainPanel = new HorizontalSplitPanel();
 
-    aStatusLabel = statusLabel;
+    mStatusLabel = statusLabel;
 
     initListBox();
 
     initLowerPanel();
 
-    aProcessEditPanel = new ProcessEditPanel(false);
-    aProcessEditPanel.setInstance(false);
-    aRoot.setRightWidget(aProcessEditPanel);
+    mProcessEditPanel = new ProcessEditPanel(false);
+    mProcessEditPanel.setInstance(false);
+    mRoot.setRightWidget(mProcessEditPanel);
 
-    initWidget(aRoot);
+    initWidget(mRoot);
   }
 
 
   private void initListBox() {
-    aProcessListBox = new RemoteListBox(PROCESSLISTURL);
-    aProcessListBox.setRootElement("processModels");
-    aProcessListBox.setListElement("processModel");
-    aProcessListBox.setValueElement("@handle");
-    aProcessListBox.setTextElement("=@{handle}: @{name}");
-    aRoot.setTopLeftWidget(aProcessListBox);
+    mProcessListBox = new RemoteListBox(PROCESSLISTURL);
+    mProcessListBox.setRootElement("processModels");
+    mProcessListBox.setListElement("processModel");
+    mProcessListBox.setValueElement("@handle");
+    mProcessListBox.setTextElement("=@{handle}: @{name}");
+    mRoot.setTopLeftWidget(mProcessListBox);
 
-    aProcessListBox.addStyleName("mhList");
-    aProcessListBox.addStyleName("tabContent");
+    mProcessListBox.addStyleName("mhList");
+    mProcessListBox.addStyleName("tabContent");
   }
 
 
   private void initLowerPanel() {
-    aLowerPanel = new VerticalPanel();
-    aLowerPanel.addStyleName("tabContent");
-    aRoot.setBottomLeftWidget(aLowerPanel);
+    mLowerPanel = new VerticalPanel();
+    mLowerPanel.addStyleName("tabContent");
+    mRoot.setBottomLeftWidget(mLowerPanel);
 
-    aStartProcessButton = createLeftButton("Start process", true);
-    aNewProcessButton = createLeftButton("New process", false);
-    aEditProcessButton = createLeftButton("View process", true);
-    aRenameProcessButton = createLeftButton("Rename process", true);
-    aDeleteProcessButton = createLeftButton("Delete process", true);
+    mStartProcessButton = createLeftButton("Start process", true);
+    mNewProcessButton = createLeftButton("New process", false);
+    mEditProcessButton = createLeftButton("View process", true);
+    mRenameProcessButton = createLeftButton("Rename process", true);
+    mDeleteProcessButton = createLeftButton("Delete process", true);
 
     initUploadPanel();
 
-    aLowerPanel.add(aProcessFileForm);
+    mLowerPanel.add(mProcessFileForm);
 
-    aProcessUpload.setWidth("100%");
-    aProcessFileForm.setWidth("100%");
-    aFormPanel.setWidth("100%");
+    mProcessUpload.setWidth("100%");
+    mProcessFileForm.setWidth("100%");
+    mFormPanel.setWidth("100%");
   }
 
 
   private Button createLeftButton(final String caption, final boolean controlled) {
     final Button result = new Button(caption);
     if (controlled) {
-      aProcessListBox.addControlledWidget(result);
+      mProcessListBox.addControlledWidget(result);
     }
     result.addStyleName("inTabButton");
     result.addClickHandler(this);
-    aLowerPanel.add(result);
+    mLowerPanel.add(result);
     return result;
   }
 
 
   private void initUploadPanel() {
-    aProcessFileForm = new MyFormPanel();
-    aProcessFileForm.setAction(PROCESSLISTURL);
-    aProcessFileForm.setEncoding(FormPanel.ENCODING_MULTIPART);
-    aProcessFileForm.setMethod(FormPanel.METHOD_POST);
-    aProcessFileForm.addStyleName("fileForm");
+    mProcessFileForm = new MyFormPanel();
+    mProcessFileForm.setAction(PROCESSLISTURL);
+    mProcessFileForm.setEncoding(FormPanel.ENCODING_MULTIPART);
+    mProcessFileForm.setMethod(FormPanel.METHOD_POST);
+    mProcessFileForm.addStyleName("fileForm");
 
-    aFormPanel = new VerticalPanel();
-    aProcessFileForm.setWidget(aFormPanel);
+    mFormPanel = new VerticalPanel();
+    mProcessFileForm.setWidget(mFormPanel);
 
     final Label label = new Label();
     label.setText("Upload new model");
-    aFormPanel.add(label);
+    mFormPanel.add(label);
 
-    aProcessUpload = new MyFileUpload();
-    aProcessUpload.setName("processUpload");
-    aProcessUpload.registerChangeHandler(this);
-    aFormPanel.add(aProcessUpload);
+    mProcessUpload = new MyFileUpload();
+    mProcessUpload.setName("processUpload");
+    mProcessUpload.registerChangeHandler(this);
+    mFormPanel.add(mProcessUpload);
 
-    aProcessFileSubmitButton = new Button("Submit");
-    aProcessFileSubmitButton.addClickHandler(this);
-    aProcessUpload.addControlledWidget(aProcessFileSubmitButton);
-    aFormPanel.add(aProcessFileSubmitButton);
+    mProcessFileSubmitButton = new Button("Submit");
+    mProcessFileSubmitButton.addClickHandler(this);
+    mProcessUpload.addControlledWidget(mProcessFileSubmitButton);
+    mFormPanel.add(mProcessFileSubmitButton);
   }
 
   private void startProcess() {
-    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    final String handle = mProcessListBox.getValue(mProcessListBox.getSelectedIndex());
     final TextInputPopup namePopup = new TextInputPopup("Enter name of the process instance", "Ok");
     namePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
@@ -183,7 +183,7 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    * @category action
    */
   private void submitStartProcess(final String handle, final String name) {
-    aStatusLabel.setText("startProcess");
+    mStatusLabel.setText("startProcess");
     final String url = PROCESSLISTURL + "/" + handle;
     final RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, url);
     rb.setHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -194,19 +194,19 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
         @Override
         public void onError(final Request request, final Throwable exception) {
-          aStatusLabel.setText("Error (" + exception.getMessage() + ")");
+          mStatusLabel.setText("Error (" + exception.getMessage() + ")");
         }
 
         @Override
         public void onResponseReceived(final Request request, final Response response) {
-          aStatusLabel.setText("Process instantiated");
+          mStatusLabel.setText("Process instantiated");
           // TODO perhaps do something with this, but the instances are not visible from the tab
-          //          aInstanceListBox.update();
+          //          mInstanceListBox.update();
         }
 
       });
     } catch (final RequestException e) {
-      aStatusLabel.setText("Error (" + e.getMessage() + ")");
+      mStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
 
   }
@@ -215,10 +215,10 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    * @category action
    */
   private void submitProcessFile() {
-    aProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
-    aProcessFileForm.submit();
+    mProcessFileForm.addSubmitCompleteHandler(new FileSubmitHandler());
+    mProcessFileForm.submit();
 
-    aProcessFileForm.reset();
+    mProcessFileForm.reset();
   }
 
   /**
@@ -226,7 +226,7 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    */
   @Override
   public void onChange(final ChangeEvent event) {
-    if (event.getSource() == aProcessUpload) {
+    if (event.getSource() == mProcessUpload) {
       changeProcessUpload();
     }
   }
@@ -236,17 +236,17 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    */
   @Override
   public void onClick(final ClickEvent event) {
-    if (event.getSource() == aStartProcessButton) {
+    if (event.getSource() == mStartProcessButton) {
       startProcess();
-    } else if (event.getSource() == aRenameProcessButton) {
+    } else if (event.getSource() == mRenameProcessButton) {
       renameProcess();
-    } else if (event.getSource() == aProcessFileSubmitButton) {
+    } else if (event.getSource() == mProcessFileSubmitButton) {
       submitProcessFile();
-    } else if (event.getSource() == aEditProcessButton) {
+    } else if (event.getSource() == mEditProcessButton) {
       viewProcess();
-    } else if (event.getSource() == aDeleteProcessButton) {
+    } else if (event.getSource() == mDeleteProcessButton) {
       deleteProcess();
-    } else if (event.getSource() == aNewProcessButton) {
+    } else if (event.getSource() == mNewProcessButton) {
       newProcess();
     }
   }
@@ -269,28 +269,28 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
 
   protected void newProcess(final String name) {
-    if (!aProcessEditPanel.isEditable()) {
-      aProcessEditPanel = new ProcessEditPanel(true);
-      aRoot.setRightWidget(aProcessEditPanel);
+    if (!mProcessEditPanel.isEditable()) {
+      mProcessEditPanel = new ProcessEditPanel(true);
+      mRoot.setRightWidget(mProcessEditPanel);
     }
-    aProcessEditPanel.reset();
+    mProcessEditPanel.reset();
 
-    aProcessListBox.setSelectedIndex(-1);
+    mProcessListBox.setSelectedIndex(-1);
     final ArrayList<ProcessNode> list = new ArrayList<ProcessNode>();
     list.add(new StartNode("start"));
     final ProcessModel model = new ProcessModel(name, list);
-    aProcessEditPanel.init(model);
+    mProcessEditPanel.init(model);
   }
 
 
   private void viewProcess() {
-    if (aProcessEditPanel.isEditable()) {
-      aProcessEditPanel = new ProcessEditPanel(false);
-      aRoot.setRightWidget(aProcessEditPanel);
+    if (mProcessEditPanel.isEditable()) {
+      mProcessEditPanel = new ProcessEditPanel(false);
+      mRoot.setRightWidget(mProcessEditPanel);
     }
-    aProcessEditPanel.reset();
-    aStatusLabel.setText("startProcess");
-    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    mProcessEditPanel.reset();
+    mStatusLabel.setText("startProcess");
+    final String handle = mProcessListBox.getValue(mProcessListBox.getSelectedIndex());
     final String URL = PROCESSLISTURL + "/" + handle;
     final RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, URL);
 
@@ -299,24 +299,24 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
         @Override
         public void onError(final Request request, final Throwable exception) {
-          aStatusLabel.setText("Error (" + exception.getMessage() + ")");
+          mStatusLabel.setText("Error (" + exception.getMessage() + ")");
         }
 
         @Override
         public void onResponseReceived(final Request request, final Response response) {
-          aStatusLabel.setText("Process received, loading...");
-          aProcessEditPanel.init(response);
+          mStatusLabel.setText("Process received, loading...");
+          mProcessEditPanel.init(response);
         }
 
       });
     } catch (final RequestException e) {
-      aStatusLabel.setText("Error (" + e.getMessage() + ")");
+      mStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
 
   }
 
   private void deleteProcess() {
-    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    final String handle = mProcessListBox.getValue(mProcessListBox.getSelectedIndex());
     final String url = PROCESSLISTURL + "/" + handle;
     RequestBuilder rb = new RequestBuilder(RequestBuilder.DELETE, url);
     try {
@@ -324,32 +324,32 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
         @Override
         public void onError(final Request request, final Throwable exception) {
-          aStatusLabel.setText("Error (" + exception.getMessage() + ")");
+          mStatusLabel.setText("Error (" + exception.getMessage() + ")");
           GWT.log("Error deleting process", exception);
         }
 
         @Override
         public void onResponseReceived(final Request request, final Response response) {
-          aStatusLabel.setText("Process deleted");
-          aProcessListBox.update();
+          mStatusLabel.setText("Process deleted");
+          mProcessListBox.update();
         }
 
       });
     } catch (final RequestException e) {
       GWT.log(e.getMessage(), e);
-      aStatusLabel.setText("Error (" + e.getMessage() + ")");
+      mStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
   }
 
   private void renameProcess() {
-    final String handle = aProcessListBox.getValue(aProcessListBox.getSelectedIndex());
+    final String handle = mProcessListBox.getValue(mProcessListBox.getSelectedIndex());
     final TextInputPopup renamePopup = new TextInputPopup("Enter new name of the process", "Rename");
     renamePopup.addInputCompleteHandler(new InputCompleteHandler() {
 
       @Override
       public void onComplete(final InputCompleteEvent completeEvent) {
         if (completeEvent.isSuccess()) {
-          aStatusLabel.setText("Rename process " + handle + " to " + completeEvent.getNewValue());
+          mStatusLabel.setText("Rename process " + handle + " to " + completeEvent.getNewValue());
           submitRenameProcess(handle, completeEvent.getNewValue());
         }
       }
@@ -371,19 +371,19 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
 
         @Override
         public void onError(final Request request, final Throwable exception) {
-          aStatusLabel.setText("Error (" + exception.getMessage() + ")");
+          mStatusLabel.setText("Error (" + exception.getMessage() + ")");
         }
 
         @Override
         public void onResponseReceived(final Request request, final Response response) {
-          aStatusLabel.setText("Process renamed");
-          aProcessListBox.update();
+          mStatusLabel.setText("Process renamed");
+          mProcessListBox.update();
         }
 
       });
     } catch (final RequestException e) {
       GWT.log(e.getMessage(), e);
-      aStatusLabel.setText("Error (" + e.getMessage() + ")");
+      mStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
   }
 
@@ -391,26 +391,26 @@ public class ProcessesPanel extends ResizeComposite implements ClickHandler, Cha
    * @category event handler
    */
   private void changeProcessUpload() {
-    aProcessFileSubmitButton.setEnabled(aProcessUpload.getFilename().length() > 0);
-    aStatusLabel.setText("upload file changed");
+    mProcessFileSubmitButton.setEnabled(mProcessUpload.getFilename().length() > 0);
+    mStatusLabel.setText("upload file changed");
   }
 
   public void setHeight(final int height) {
-    aRoot.setHeight(height);
+    mRoot.setHeight(height);
   }
 
   public void start() {
-    aProcessListBox.start();
+    mProcessListBox.start();
   }
 
 
   public void update() {
-    aProcessListBox.update();
+    mProcessListBox.update();
   }
 
 
   public void stop() {
-    aProcessListBox.stop();
+    mProcessListBox.stop();
   }
 
 

@@ -31,10 +31,10 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
 
   public class TaskUpdateCompletionListener implements CompletionListener<TaskState> {
 
-    XmlTask aTask;
+    XmlTask mTask;
 
     public TaskUpdateCompletionListener(final XmlTask task) {
-      aTask = task;
+      mTask = task;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
       if (!future.isCancelled()) {
         try {
           final TaskState result = (TaskState) future.get();
-          aTask.aState = result;
+          mTask.mState = result;
         } catch (final InterruptedException e) {
           Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
         } catch (final ExecutionException e) {
@@ -53,12 +53,12 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
 
   }
 
-  private final UserMessageService aService;
+  private final UserMessageService mService;
 
-  private URI aURI;
+  private URI mURI;
 
   public InternalEndpointImpl() {
-    aService = UserMessageService.getInstance();
+    mService = UserMessageService.getInstance();
   }
 
   @Override
@@ -70,7 +70,7 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
   @Override
   public URI getEndpointLocation() {
     // TODO Do this better
-    return aURI;
+    return mURI;
   }
 
   @Override
@@ -78,7 +78,7 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
     final StringBuilder path = new StringBuilder(config.getServletContext().getContextPath());
     path.append("/internal");
     try {
-      aURI = new URI(null, null, path.toString(), null);
+      mURI = new URI(null, null, path.toString(), null);
     } catch (final URISyntaxException e) {
       throw new RuntimeException(e); // Should never happen
     }
@@ -89,7 +89,7 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
   public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl endPoint, @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask.class) final UserTask<?> task) {
     try {
       task.setEndpoint(endPoint);
-      final boolean result = aService.postTask(XmlTask.get(task));
+      final boolean result = mService.postTask(XmlTask.get(task));
       task.setState(TaskState.Acknowledged, task.getOwner()); // Only now mark as acknowledged
       return ActivityResponse.create(TaskState.Acknowledged, Boolean.class, Boolean.valueOf(result));
     } catch (Exception e) {
@@ -100,7 +100,7 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
 
   @Override
   public void destroy() {
-    aService.destroy();
+    mService.destroy();
     MessagingRegistry.getMessenger().unregisterEndpoint(this);
   }
 }

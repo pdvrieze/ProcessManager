@@ -15,54 +15,54 @@ public class TasksPanel extends Composite implements ClickHandler {
 
   private static final String TASKLISTURL = PEUserMessageHandler.BASEURL + "/PEUserMessageHandler/UserMessageService/pendingTasks";
 
-  private final Button aStartTaskButton;
+  private final Button mStartTaskButton;
 
-  private final Button aTakeTaskButton;
+  private final Button mTakeTaskButton;
 
-  private final Button aCompleteTaskButton;
+  private final Button mCompleteTaskButton;
 
-  private final Label aStatusLabel;
+  private final Label mStatusLabel;
 
-  private final RemoteListBox aTaskListBox;
+  private final RemoteListBox mTaskListBox;
 
   public TasksPanel(final Label statusLabel) {
-    aStatusLabel = statusLabel;
+    mStatusLabel = statusLabel;
     final SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
     //    root.addStyleName("tabPanel");
 
-    aTaskListBox = new RemoteListBox(TASKLISTURL);
-    aTaskListBox.addStyleName("mhList");
-    aTaskListBox.addStyleName("tabContent");
-    aTaskListBox.setRootElement("tasks");
-    aTaskListBox.setTextElement("=@summary (@{state})");
-    aTaskListBox.setValueElement("@handle");
-    aTaskListBox.setListElement("task");
+    mTaskListBox = new RemoteListBox(TASKLISTURL);
+    mTaskListBox.addStyleName("mhList");
+    mTaskListBox.addStyleName("tabContent");
+    mTaskListBox.setRootElement("tasks");
+    mTaskListBox.setTextElement("=@summary (@{state})");
+    mTaskListBox.setValueElement("@handle");
+    mTaskListBox.setListElement("task");
 
-    root.setTopLeftWidget(aTaskListBox);
-    //    aTaskListBox.addChangeHandler(this);
+    root.setTopLeftWidget(mTaskListBox);
+    //    mTaskListBox.addChangeHandler(this);
 
     final VerticalPanel vp1 = new VerticalPanel();
     root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
 
-    aTakeTaskButton = new Button("Take task");
-    aTaskListBox.addControlledWidget(aTakeTaskButton);
-    aTakeTaskButton.addStyleName("inTabButton");
-    vp1.add(aTakeTaskButton);
-    aTakeTaskButton.addClickHandler(this);
+    mTakeTaskButton = new Button("Take task");
+    mTaskListBox.addControlledWidget(mTakeTaskButton);
+    mTakeTaskButton.addStyleName("inTabButton");
+    vp1.add(mTakeTaskButton);
+    mTakeTaskButton.addClickHandler(this);
 
-    aStartTaskButton = new Button("Start task");
-    aTaskListBox.addControlledWidget(aStartTaskButton);
-    aStartTaskButton.addStyleName("inTabButton");
-    vp1.add(aStartTaskButton);
-    aStartTaskButton.addClickHandler(this);
+    mStartTaskButton = new Button("Start task");
+    mTaskListBox.addControlledWidget(mStartTaskButton);
+    mStartTaskButton.addStyleName("inTabButton");
+    vp1.add(mStartTaskButton);
+    mStartTaskButton.addClickHandler(this);
 
-    aCompleteTaskButton = new Button("Complete task");
-    aTaskListBox.addControlledWidget(aCompleteTaskButton);
-    aCompleteTaskButton.addStyleName("inTabButton");
-    vp1.add(aCompleteTaskButton);
-    aCompleteTaskButton.addClickHandler(this);
+    mCompleteTaskButton = new Button("Complete task");
+    mTaskListBox.addControlledWidget(mCompleteTaskButton);
+    mCompleteTaskButton.addStyleName("inTabButton");
+    vp1.add(mCompleteTaskButton);
+    mCompleteTaskButton.addClickHandler(this);
 
     initWidget(root);
   }
@@ -72,11 +72,11 @@ public class TasksPanel extends Composite implements ClickHandler {
    */
   @Override
   public void onClick(final ClickEvent event) {
-    if (event.getSource() == aStartTaskButton) {
+    if (event.getSource() == mStartTaskButton) {
       startTask();
-    } else if (event.getSource() == aTakeTaskButton) {
+    } else if (event.getSource() == mTakeTaskButton) {
       takeTask();
-    } else if (event.getSource() == aCompleteTaskButton) {
+    } else if (event.getSource() == mCompleteTaskButton) {
       completeTask();
     }
   }
@@ -85,27 +85,27 @@ public class TasksPanel extends Composite implements ClickHandler {
    * @category action
    */
   private void startTask() {
-    aStatusLabel.setText("startTask");
+    mStatusLabel.setText("startTask");
     final String newState = "Started";
-    updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
+    updateTaskState(newState, mTaskListBox.getValue(mTaskListBox.getSelectedIndex()));
   }
 
   /**
    * @category action
    */
   private void takeTask() {
-    aStatusLabel.setText("takeTask");
+    mStatusLabel.setText("takeTask");
     final String newState = "Taken";
-    updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
+    updateTaskState(newState, mTaskListBox.getValue(mTaskListBox.getSelectedIndex()));
   }
 
   /**
    * @category action
    */
   private void completeTask() {
-    aStatusLabel.setText("completeTask");
+    mStatusLabel.setText("completeTask");
     final String newState = "Finished";
-    updateTaskState(newState, aTaskListBox.getValue(aTaskListBox.getSelectedIndex()));
+    updateTaskState(newState, mTaskListBox.getValue(mTaskListBox.getSelectedIndex()));
   }
 
   /**
@@ -122,33 +122,33 @@ public class TasksPanel extends Composite implements ClickHandler {
 
         @Override
         public void onError(final Request request, final Throwable exception) {
-          aStatusLabel.setText("Error (" + exception.getMessage() + ")");
+          mStatusLabel.setText("Error (" + exception.getMessage() + ")");
         }
 
         @Override
         public void onResponseReceived(final Request request, final Response response) {
-          aTaskListBox.update();
+          mTaskListBox.update();
         }
 
       });
     } catch (final RequestException e) {
-      aStatusLabel.setText("Error (" + e.getMessage() + ")");
+      mStatusLabel.setText("Error (" + e.getMessage() + ")");
     }
   }
 
 
   public void start() {
-    aTaskListBox.start();
+    mTaskListBox.start();
   }
 
 
   public void update() {
-    aTaskListBox.update();
+    mTaskListBox.update();
   }
 
 
   public void stop() {
-    aTaskListBox.stop();
+    mTaskListBox.stop();
   }
 
 

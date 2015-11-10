@@ -12,32 +12,32 @@ import java.util.*;
 
 public class ActivityNode extends ProcessNode {
 
-  private final String aName;
+  private final String mName;
 
-  private String aPredecessorId;
+  private String mPredecessorId;
 
-  private String aOperation;
+  private String mOperation;
 
-  private String aServiceNS;
+  private String mServiceNS;
 
-  private String aServiceName;
+  private String mServiceName;
 
-  private String aEndpoint;
+  private String mEndpoint;
 
-  private List<Element> aImports;
+  private List<Element> mImports;
 
-  private List<Element> aExports;
+  private List<Element> mExports;
 
-  private String aCondition;
+  private String mCondition;
 
-  private ProcessNode aPredecessor;
+  private ProcessNode mPredecessor;
 
-  private Set<ProcessNode> aSuccessors;
+  private Set<ProcessNode> mSuccessors;
 
   public ActivityNode(final String id, final String name, final String predecessor) {
     super(id);
-    aName = name;
-    aPredecessorId = predecessor;
+    mName = name;
+    mPredecessorId = predecessor;
   }
 
   public static ActivityNode fromXml(final Element node) {
@@ -129,62 +129,62 @@ public class ActivityNode extends ProcessNode {
   }
 
   private void setExports(final List<Element> exports) {
-    aExports = exports;
+    mExports = exports;
   }
 
   private void setImports(final List<Element> imports) {
-    aImports = imports;
+    mImports = imports;
   }
 
   private void setCondition(final String condition) {
-    aCondition = condition;
+    mCondition = condition;
   }
 
   private void setOperation(final String value) {
-    aOperation = value;
+    mOperation = value;
   }
 
   private void setEndpoint(final String value) {
-    aEndpoint = value;
+    mEndpoint = value;
   }
 
   private void setServiceName(final String value) {
-    aServiceName = value;
+    mServiceName = value;
   }
 
   private void setServiceNS(final String value) {
-    aServiceNS = value;
+    mServiceNS = value;
   }
 
   @Override
   public void resolvePredecessors(final Map<String, ProcessNode> map) {
-    final ProcessNode predecessor = map.get(aPredecessorId);
+    final ProcessNode predecessor = map.get(mPredecessorId);
     if (predecessor != null) {
-      aPredecessorId = predecessor.getId();
-      aPredecessor = predecessor;
-      aPredecessor.ensureSuccessor(this);
+      mPredecessorId = predecessor.getId();
+      mPredecessor = predecessor;
+      mPredecessor.ensureSuccessor(this);
     }
   }
 
   @Override
   public void ensureSuccessor(final ProcessNode node) {
-    if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+    if (mSuccessors == null) {
+      mSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    aSuccessors.add(node);
+    mSuccessors.add(node);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+    if (mSuccessors == null) {
+      mSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    return aSuccessors;
+    return mSuccessors;
   }
 
 
   @Override
   public Collection<ProcessNode> getPredecessors() {
-    return Collections.singletonList(aPredecessor);
+    return Collections.singletonList(mPredecessor);
   }
 }

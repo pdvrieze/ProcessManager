@@ -53,20 +53,20 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
   private static class Slot {
 
-    private final long aHSlot;
-    private final String aDescription;
+    private final long mHSlot;
+    private final String mDescription;
 
     public Slot(long hSlot, String description) {
-      aHSlot = hSlot;
-      aDescription = description;
+      mHSlot = hSlot;
+      mDescription = description;
     }
 
     public long getHSlot() {
-      return aHSlot;
+      return mHSlot;
     }
 
     public String getDescription() {
-      return aDescription;
+      return mDescription;
     }
 
   }
@@ -86,20 +86,20 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
   private static class Candidate {
 
-    private final String aUsername;
-    private final String aFullname;
+    private final String mUsername;
+    private final String mFullname;
 
     public Candidate(String username, String fullname) {
-      aUsername = username;
-      aFullname = fullname;
+      mUsername = username;
+      mFullname = fullname;
     }
 
     public String getUsername() {
-      return aUsername;
+      return mUsername;
     }
 
     public String getFullname() {
-      return aFullname;
+      return mFullname;
     }
 
   }
@@ -112,20 +112,20 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
   @UiField
   HTMLPanel contentHolder;
-  private ArrayList<Candidate> aCandidates;
-  private CellList<Candidate> aCandidateList;
-  private Button aInviteButton;
-  private Label aFeedbackLabel;
-  private MultiSelectionModel<Candidate> aCandidateSelectionModel;
-  private String aUsername;
-  private long aGroupHandle;
-  private String aSlotDesc;
-  private long aSlotHandle;
-  private String aSlotDate;
-  private TextBox aTopicEditBox;
-  private ScrollPanel aSlotChoiceContainer;
-  private HandlerRegistration aUpdateSlotHandlerRegistration;
-  private SingleSelectionModel<Slot> aSlotSelectionModel;
+  private ArrayList<Candidate> mCandidates;
+  private CellList<Candidate> mCandidateList;
+  private Button mInviteButton;
+  private Label mFeedbackLabel;
+  private MultiSelectionModel<Candidate> mCandidateSelectionModel;
+  private String mUsername;
+  private long mGroupHandle;
+  private String mSlotDesc;
+  private long mSlotHandle;
+  private String mSlotDate;
+  private TextBox mTopicEditBox;
+  private ScrollPanel mSlotChoiceContainer;
+  private HandlerRegistration mUpdateSlotHandlerRegistration;
+  private SingleSelectionModel<Slot> mSlotSelectionModel;
   public PresentationGroupPanel() {
     initWidget(uiBinder.createAndBindUi(this));
     RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, PRESENTATION_GROUP_LOCATION);
@@ -137,7 +137,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   }
 
   public void setActiveUserName(String username) {
-    aUsername = username;
+    mUsername = username;
   }
 
   @Override
@@ -149,8 +149,8 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     } else if ("group".equals(XMLUtil.localName(root.getNodeName()))) {
       addGroupPanel(root);
     } else if ("error".equals(XMLUtil.localName(root.getNodeName()))) {
-      if (aFeedbackLabel!=null) {
-        aFeedbackLabel.setText("Error setting group: "+XMLUtil.getTextChildren(root));
+      if (mFeedbackLabel!=null) {
+        mFeedbackLabel.setText("Error setting group: "+XMLUtil.getTextChildren(root));
       }
     } else {
       contentHolder.clear();
@@ -162,43 +162,43 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     contentHolder.clear();
     contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>\n<div style=\"margin-bottom: 1ex\">Please use the control key to select all group members (you have already been selected)</div>\n");
 
-    aCandidates = new ArrayList<Candidate>();
+    mCandidates = new ArrayList<Candidate>();
     for(Node candidate=candidates.getFirstChild(); candidate!=null; candidate = candidate.getNextSibling()) {
       if (XMLUtil.isLocalPart("candidate", candidate)) {
         Element elem = (Element) candidate;
         String username = XMLUtil.getAttributeValue(elem, "user");
         String fullname = XMLUtil.getTextChildren(elem);
-        aCandidates.add(new Candidate(username, fullname));
+        mCandidates.add(new Candidate(username, fullname));
       }
     }
-    aCandidateList = new CellList<Candidate>(new CandidateCell());
-    aCandidateList.setRowCount(aCandidates.size(), true); // We are exact
-    aCandidateList.setRowData(aCandidates);
-    aCandidateList.setTitle("Select a presentation group mate");
-    aCandidateSelectionModel = new MultiSelectionModel<Candidate>();
-    aCandidateList.setSelectionModel(aCandidateSelectionModel);
-    for(Candidate c:aCandidates) {
-      if (c.getUsername().equals(aUsername)) {
-        aCandidateSelectionModel.setSelected(c, true);
+    mCandidateList = new CellList<Candidate>(new CandidateCell());
+    mCandidateList.setRowCount(mCandidates.size(), true); // We are exact
+    mCandidateList.setRowData(mCandidates);
+    mCandidateList.setTitle("Select a presentation group mate");
+    mCandidateSelectionModel = new MultiSelectionModel<Candidate>();
+    mCandidateList.setSelectionModel(mCandidateSelectionModel);
+    for(Candidate c:mCandidates) {
+      if (c.getUsername().equals(mUsername)) {
+        mCandidateSelectionModel.setSelected(c, true);
       }
     }
 
-    ScrollPanel scrollPanel = new ScrollPanel(aCandidateList);
+    ScrollPanel scrollPanel = new ScrollPanel(mCandidateList);
     scrollPanel.setStylePrimaryName("userchoicescrollcontainer");
 
     contentHolder.add(scrollPanel);
 
-    if (aFeedbackLabel==null) {
-      aFeedbackLabel = new Label();
+    if (mFeedbackLabel==null) {
+      mFeedbackLabel = new Label();
     }
-    contentHolder.add(aFeedbackLabel);
+    contentHolder.add(mFeedbackLabel);
 
 
     FlowPanel buttonPanel = new FlowPanel();
-    aInviteButton = new Button("Form group");
-    buttonPanel.add(aInviteButton);
+    mInviteButton = new Button("Form group");
+    buttonPanel.add(mInviteButton);
     contentHolder.add(buttonPanel);
-    aInviteButton.addClickHandler(new ClickHandler() {
+    mInviteButton.addClickHandler(new ClickHandler() {
 
       @Override
       public void onClick(ClickEvent event) {
@@ -210,13 +210,13 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   }
 
   protected void inviteClicked(ClickEvent event) {
-    if (aCandidateSelectionModel.getSelectedSet().size()==0) {
-      aFeedbackLabel.setText("Please select your group");
+    if (mCandidateSelectionModel.getSelectedSet().size()==0) {
+      mFeedbackLabel.setText("Please select your group");
       return;
     }
     SafeHtmlBuilder group = new SafeHtmlBuilder();
     group.appendHtmlConstant("<group>\n");
-    for(Candidate c:aCandidateSelectionModel.getSelectedSet()) {
+    for(Candidate c:mCandidateSelectionModel.getSelectedSet()) {
       group.appendHtmlConstant("<member>");
       group.appendEscaped(c.getUsername());
       group.appendHtmlConstant("</member>\n");
@@ -229,19 +229,19 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     try {
       rb.sendRequest(group.toSafeHtml().asString(), this);
     } catch (RequestException e) {
-      aFeedbackLabel.setText("Failure to submit group change!");
+      mFeedbackLabel.setText("Failure to submit group change!");
       GWT.log("Failure to submit group change", e);
     }
   }
 
   private void addGroupPanel(Element group) {
-    aCandidates = new ArrayList<Candidate>();
+    mCandidates = new ArrayList<Candidate>();
 
-    aGroupHandle = XMLUtil.getLongAttr(group, "handle", -1);
-    aSlotHandle = XMLUtil.getLongAttr(group, "slot", -1);
-    if (aSlotHandle>=0) {
-      aSlotDesc = group.getAttribute("slotdesc");
-      aSlotDate = group.getAttribute("slotdate");
+    mGroupHandle = XMLUtil.getLongAttr(group, "handle", -1);
+    mSlotHandle = XMLUtil.getLongAttr(group, "slot", -1);
+    if (mSlotHandle>=0) {
+      mSlotDesc = group.getAttribute("slotdesc");
+      mSlotDate = group.getAttribute("slotdate");
     }
     String topic = XMLUtil.getAttributeValue(group, "topic");
 
@@ -278,15 +278,15 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
 
     Label topicLabel = new Label("Presentation topic: ");
     topicLabel.setStyleName("gwttextboxlabel");
-    aTopicEditBox = new TextBox();
-    aTopicEditBox.setWidth("40em");
+    mTopicEditBox = new TextBox();
+    mTopicEditBox.setWidth("40em");
     if (topic!=null) {
-      aTopicEditBox.setText(topic);
+      mTopicEditBox.setText(topic);
     }
     {
       HorizontalPanel hpanel = new HorizontalPanel();
       hpanel.add(topicLabel);
-      hpanel.add(aTopicEditBox);
+      hpanel.add(mTopicEditBox);
       vpanel.add(hpanel);
     }
 
@@ -294,10 +294,10 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     slotChoiceLabel.setStyleName("groupeditpanelhead");
     vpanel.add(slotChoiceLabel);
 
-    aSlotChoiceContainer = new ScrollPanel();
-    aSlotChoiceContainer.setWidget(new WaitWidget());
-    aSlotChoiceContainer.setStylePrimaryName("slotchoicescrollcontainer");
-    vpanel.add(aSlotChoiceContainer);
+    mSlotChoiceContainer = new ScrollPanel();
+    mSlotChoiceContainer.setWidget(new WaitWidget());
+    mSlotChoiceContainer.setStylePrimaryName("slotchoicescrollcontainer");
+    vpanel.add(mSlotChoiceContainer);
 
     RequestBuilder rb = new RequestBuilder(RequestBuilder.GET, SLOT_LOCATION);
 
@@ -312,32 +312,32 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
         @Override
         public void onError(Request request, Throwable exception) {
           GWT.log("Error getting available slots", exception);
-          aSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
+          mSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
         }
       });
     } catch (RequestException e) {
       GWT.log("Error getting available slots", e);
-      aSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
+      mSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
     }
 
     Button updateButton = new Button("Update");
-    aUpdateSlotHandlerRegistration = updateButton.addClickHandler(new SlotUpdateHandler());
+    mUpdateSlotHandlerRegistration = updateButton.addClickHandler(new SlotUpdateHandler());
 
     vpanel.add(updateButton);
 
-    if (aFeedbackLabel==null) {
-      aFeedbackLabel = new Label();
+    if (mFeedbackLabel==null) {
+      mFeedbackLabel = new Label();
     } else {
-      aFeedbackLabel.removeFromParent();
+      mFeedbackLabel.removeFromParent();
     }
-    vpanel.add(aFeedbackLabel);
+    vpanel.add(mFeedbackLabel);
 
     contentHolder.add(vpanel);
   }
 
   protected void handleSlotResponse(Response response) {
     if (response.getStatusCode()<200 || response.getStatusCode()>=300) {
-      aSlotChoiceContainer.setWidget(new Label("Failure to get available slots ("+response.getStatusCode()+": "+response.getStatusText()+")"));
+      mSlotChoiceContainer.setWidget(new Label("Failure to get available slots ("+response.getStatusCode()+": "+response.getStatusText()+")"));
       return;
     }
     Document xmlResponse = XMLParser.parse(response.getText());
@@ -352,7 +352,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
         long hSlot = XMLUtil.getLongAttr(elem, "handle", -1);
         String description = XMLUtil.getAttributeValue(elem, "description");
         Slot slot = new Slot(hSlot, description);
-        if (hSlot==aSlotHandle) {
+        if (hSlot==mSlotHandle) {
           currentSlot = slot;
         }
         slots.add(slot);
@@ -360,19 +360,19 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
 
     CellList<Slot> slotChoiceList = new CellList<PresentationGroupPanel.Slot>(new SlotCell());
-    aSlotSelectionModel = new SingleSelectionModel<Slot>();
-    slotChoiceList.setSelectionModel(aSlotSelectionModel);
+    mSlotSelectionModel = new SingleSelectionModel<Slot>();
+    slotChoiceList.setSelectionModel(mSlotSelectionModel);
     slotChoiceList.setRowData(slots);
-    if (currentSlot!=null) { aSlotSelectionModel.setSelected(currentSlot, true); }
+    if (currentSlot!=null) { mSlotSelectionModel.setSelected(currentSlot, true); }
 
 
 
-    aSlotChoiceContainer.setWidget(slotChoiceList);
+    mSlotChoiceContainer.setWidget(slotChoiceList);
 
   }
 
   public void updateSlotClicked() {
-    Slot selected = aSlotSelectionModel.getSelectedObject();
+    Slot selected = mSlotSelectionModel.getSelectedObject();
 
     SafeHtmlBuilder data = new SafeHtmlBuilder();
     if (selected==null) {
@@ -380,7 +380,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     } else {
       data.appendHtmlConstant("<slot handle=\""+selected.getHSlot()+"\">");
     }
-    data.appendEscaped(aTopicEditBox.getText())
+    data.appendEscaped(mTopicEditBox.getText())
         .appendHtmlConstant("</slot>");
 
     RequestBuilder rb = new RequestBuilder(RequestBuilder.POST, SLOT_LOCATION);
@@ -393,22 +393,22 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
           Document xmlResponse = XMLParser.parse(response.getText());
           Element root = xmlResponse.getDocumentElement();
           if (XMLUtil.isLocalPart("error", root)) {
-            aFeedbackLabel.setText("Error: "+XMLUtil.getTextChildren(root));
+            mFeedbackLabel.setText("Error: "+XMLUtil.getTextChildren(root));
           } else if (XMLUtil.isLocalPart("group", root)) {
-            aTopicEditBox.setText(XMLUtil.getAttributeValue(root, "topic"));
-            aSlotHandle = XMLUtil.getLongAttr(root, "slot", -1);
-            aFeedbackLabel.setText("Information updated");
+            mTopicEditBox.setText(XMLUtil.getAttributeValue(root, "topic"));
+            mSlotHandle = XMLUtil.getLongAttr(root, "slot", -1);
+            mFeedbackLabel.setText("Information updated");
           }
        }
 
         @Override
         public void onError(Request request, Throwable exception) {
-          aFeedbackLabel.setText("Error requesting update: "+exception.getMessage());
+          mFeedbackLabel.setText("Error requesting update: "+exception.getMessage());
           GWT.log("Error requesting update", exception);
         }
       });
     } catch (RequestException e) {
-      aFeedbackLabel.setText("Error requesting update: "+e.getMessage());
+      mFeedbackLabel.setText("Error requesting update: "+e.getMessage());
       GWT.log("Error requesting update", e);
     }
   }

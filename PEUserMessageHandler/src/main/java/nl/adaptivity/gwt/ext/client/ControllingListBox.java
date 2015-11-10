@@ -18,18 +18,18 @@ import java.util.Collection;
  */
 public class ControllingListBox extends ListBox implements ChangeHandler, IWidgetController {
 
-  private final Collection<FocusWidget> aWidgetsToEnable;
+  private final Collection<FocusWidget> mWidgetsToEnable;
 
   public ControllingListBox() {
     setVisibleItemCount(10);
     addChangeHandler(this);
-    aWidgetsToEnable = new ArrayList<FocusWidget>();
+    mWidgetsToEnable = new ArrayList<FocusWidget>();
   }
 
   @Override
   public void onChange(final ChangeEvent event) {
     final boolean enabled = getSelectedIndex() >= 0;
-    for (final FocusWidget widget : aWidgetsToEnable) {
+    for (final FocusWidget widget : mWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }
@@ -43,7 +43,7 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
   @Override
   public void addControlledWidget(final FocusWidget widget) {
     widget.setEnabled(getSelectedIndex() >= 0);
-    aWidgetsToEnable.add(widget);
+    mWidgetsToEnable.add(widget);
   }
 
   /*
@@ -54,14 +54,14 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
    */
   @Override
   public boolean removeControlledWidget(final FocusWidget widget) {
-    return aWidgetsToEnable.remove(widget);
+    return mWidgetsToEnable.remove(widget);
   }
 
   @Override
   public void setSelectedIndex(final int index) {
     super.setSelectedIndex(index);
     final boolean enabled = index >= 0;
-    for (final FocusWidget widget : aWidgetsToEnable) {
+    for (final FocusWidget widget : mWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }

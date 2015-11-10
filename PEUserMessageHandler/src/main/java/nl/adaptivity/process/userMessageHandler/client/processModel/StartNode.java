@@ -12,7 +12,7 @@ import com.google.gwt.xml.client.NamedNodeMap;
 
 public class StartNode extends ProcessNode {
 
-  private Set<ProcessNode> aSuccessors;
+  private Set<ProcessNode> mSuccessors;
 
   public StartNode(final String id) {
     super(id);
@@ -42,18 +42,18 @@ public class StartNode extends ProcessNode {
 
   @Override
   public void ensureSuccessor(final ProcessNode node) {
-    if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+    if (mSuccessors == null) {
+      mSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    aSuccessors.add(node);
+    mSuccessors.add(node);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+    if (mSuccessors == null) {
+      mSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    return aSuccessors;
+    return mSuccessors;
   }
 
   @Override

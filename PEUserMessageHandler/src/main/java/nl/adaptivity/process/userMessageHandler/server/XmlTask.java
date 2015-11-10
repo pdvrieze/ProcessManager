@@ -27,49 +27,49 @@ import java.util.logging.Logger;
 @XmlAccessorType(XmlAccessType.NONE)
 public class XmlTask implements UserTask<XmlTask> {
 
-  private long aHandle = -1L;
+  private long mHandle = -1L;
 
-  private long aRemoteHandle = -1L;
+  private long mRemoteHandle = -1L;
 
-  private long aInstanceHandle = -1L;
+  private long mInstanceHandle = -1L;
 
-  TaskState aState = TaskState.Sent;
+  TaskState mState = TaskState.Sent;
 
-  private String aSummary;
+  private String mSummary;
 
-  private EndpointDescriptorImpl aEndPoint = null;
+  private EndpointDescriptorImpl mEndPoint = null;
 
-  private Principal aOwner;
+  private Principal mOwner;
 
-  private List<XmlItem> aItems;
+  private List<XmlItem> mItems;
 
   public XmlTask() {
     // no special operations here
   }
 
   public XmlTask(final long handle) {
-    aHandle = handle;
+    mHandle = handle;
   }
 
   public XmlTask(UserTask<?> task) {
-    this.aHandle = task.getHandle();
-    this.aRemoteHandle = task.getRemoteHandle();
-    this.aInstanceHandle = task.getInstanceHandle();
-    this.aState = task.getState();
-    this.aSummary = task.getSummary();
-    this.aEndPoint = null;
-    this.aOwner = task.getOwner();
-    this.aItems = new ArrayList<>(XmlItem.get(task.getItems()));
+    this.mHandle = task.getHandle();
+    this.mRemoteHandle = task.getRemoteHandle();
+    this.mInstanceHandle = task.getInstanceHandle();
+    this.mState = task.getState();
+    this.mSummary = task.getSummary();
+    this.mEndPoint = null;
+    this.mOwner = task.getOwner();
+    this.mItems = new ArrayList<>(XmlItem.get(task.getItems()));
   }
 
   @XmlAttribute
   @Override
   public TaskState getState() {
-    return aState;
+    return mState;
   }
 
   void setState(TaskState state) {
-    aState = state;
+    mState = state;
   }
 
   @Override
@@ -84,7 +84,7 @@ public class XmlTask implements UserTask<XmlTask> {
       } else {
         verifiedNewState = updateRemoteTaskState(newState, user).get();
       }
-      aState = verifiedNewState;
+      mState = verifiedNewState;
     } catch (final JAXBException | MessagingException e) {
       Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
     } catch (final InterruptedException e) {
@@ -95,11 +95,11 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   private Future<TaskState> updateRemoteTaskState(final TaskState state, final Principal user) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.updateTaskState(aRemoteHandle, state, user, null);
+    return ServletProcessEngineClient.updateTaskState(mRemoteHandle, state, user, null);
   }
 
   private Future<TaskState> finishRemoteTask(final Principal user) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.finishTask(aRemoteHandle, createResult(), user, null); // Ignore completion???
+    return ServletProcessEngineClient.finishTask(mRemoteHandle, createResult(), user, null); // Ignore completion???
   }
 
   private Node createResult() {
@@ -130,80 +130,80 @@ public class XmlTask implements UserTask<XmlTask> {
   @XmlAttribute(name = "handle")
   @Override
   public void setHandle(final long handle) {
-    aHandle = handle;
+    mHandle = handle;
   }
 
   @Override
   public long getHandle() {
-    return aHandle;
+    return mHandle;
   }
 
   @XmlAttribute(name = "remotehandle")
   public void setRemoteHandle(final long handle) {
-    aRemoteHandle = handle;
+    mRemoteHandle = handle;
   }
 
   @Override
   public long getRemoteHandle() {
-    return aRemoteHandle;
+    return mRemoteHandle;
   }
 
   @XmlAttribute(name = "instancehandle")
   public void setInstanceHandle(final long handle) {
-    aInstanceHandle = handle;
+    mInstanceHandle = handle;
   }
 
   @Override
   public long getInstanceHandle() {
-    return aInstanceHandle;
+    return mInstanceHandle;
   }
 
   @Override
   @XmlAttribute(name = "summary")
   public String getSummary() {
-    return aSummary;
+    return mSummary;
   }
 
   public void setSummary(final String summary) {
-    aSummary = summary;
+    mSummary = summary;
   }
 
   /** Set the endpoint that is used for updating the task state */
   @Override
   public void setEndpoint(final EndpointDescriptorImpl endPoint) {
-    aEndPoint = endPoint;
+    mEndPoint = endPoint;
   }
 
   @Override
   public Principal getOwner() {
-    return aOwner;
+    return mOwner;
   }
 
   public void setOwner(final Principal owner) {
-    aOwner = owner;
+    mOwner = owner;
   }
 
   @XmlAttribute(name = "owner")
   String getOwnerString() {
-    return aOwner==null ? null : aOwner.getName();
+    return mOwner==null ? null : mOwner.getName();
   }
 
   void setOwnerString(final String owner) {
-    aOwner = owner==null ? null : new SimplePrincipal(owner);
+    mOwner = owner==null ? null : new SimplePrincipal(owner);
   }
 
   @XmlElement(name ="item", namespace=Constants.USER_MESSAGE_HANDLER_NS)
   @Override
   public List<XmlItem> getItems() {
-    if (aItems==null) { aItems = new ArrayList<>(); }
-    return aItems;
+    if (mItems==null) { mItems = new ArrayList<>(); }
+    return mItems;
   }
 
   @Override
   public void setItems(List<? extends TaskItem> items) {
-    aItems = new ArrayList<>(items.size());
+    mItems = new ArrayList<>(items.size());
     for(TaskItem item: items) {
-      aItems.add((XmlItem) item);
+      mItems.add((XmlItem) item);
     }
   }
 
@@ -211,13 +211,13 @@ public class XmlTask implements UserTask<XmlTask> {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((aEndPoint == null) ? 0 : aEndPoint.hashCode());
-    result = prime * result + (int) (aHandle ^ (aHandle >>> 32));
-    result = prime * result + ((aItems == null||aItems.isEmpty()) ? 0 : aItems.hashCode());
-    result = prime * result + ((aOwner == null) ? 0 : aOwner.hashCode());
-    result = prime * result + (int) (aRemoteHandle ^ (aRemoteHandle >>> 32));
-    result = prime * result + ((aState == null) ? 0 : aState.hashCode());
-    result = prime * result + ((aSummary == null) ? 0 : aSummary.hashCode());
+    result = prime * result + ((mEndPoint == null) ? 0 : mEndPoint.hashCode());
+    result = prime * result + (int) (mHandle ^ (mHandle >>> 32));
+    result = prime * result + ((mItems == null||mItems.isEmpty()) ? 0 : mItems.hashCode());
+    result = prime * result + ((mOwner == null) ? 0 : mOwner.hashCode());
+    result = prime * result + (int) (mRemoteHandle ^ (mRemoteHandle >>> 32));
+    result = prime * result + ((mState == null) ? 0 : mState.hashCode());
+    result = prime * result + ((mSummary == null) ? 0 : mSummary.hashCode());
     return result;
   }
 
@@ -230,31 +230,31 @@ public class XmlTask implements UserTask<XmlTask> {
     if (getClass() != obj.getClass())
       return false;
     XmlTask other = (XmlTask) obj;
-    if (aEndPoint == null) {
-      if (other.aEndPoint != null)
+    if (mEndPoint == null) {
+      if (other.mEndPoint != null)
         return false;
-    } else if (!aEndPoint.equals(other.aEndPoint))
+    } else if (!mEndPoint.equals(other.mEndPoint))
       return false;
-    if (aHandle != other.aHandle)
+    if (mHandle != other.mHandle)
       return false;
-    if (aItems == null || aItems.isEmpty()) {
-      if (other.aItems != null && ! aItems.isEmpty())
+    if (mItems == null || mItems.isEmpty()) {
+      if (other.mItems != null && ! mItems.isEmpty())
         return false;
-    } else if (!aItems.equals(other.aItems))
+    } else if (!mItems.equals(other.mItems))
       return false;
-    if (aOwner == null) {
-      if (other.aOwner != null)
+    if (mOwner == null) {
+      if (other.mOwner != null)
         return false;
-    } else if (!aOwner.equals(other.aOwner))
+    } else if (!mOwner.equals(other.mOwner))
       return false;
-    if (aRemoteHandle != other.aRemoteHandle)
+    if (mRemoteHandle != other.mRemoteHandle)
       return false;
-    if (aState != other.aState)
+    if (mState != other.mState)
       return false;
-    if (aSummary == null) {
-      if (other.aSummary != null)
+    if (mSummary == null) {
+      if (other.mSummary != null)
         return false;
-    } else if (!aSummary.equals(other.aSummary))
+    } else if (!mSummary.equals(other.mSummary))
       return false;
     return true;
   }

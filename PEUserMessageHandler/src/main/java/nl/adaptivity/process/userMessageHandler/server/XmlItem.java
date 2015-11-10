@@ -17,82 +17,82 @@ import nl.adaptivity.process.util.Constants;
 @XmlRootElement(name="item")
 @XmlAccessorType(XmlAccessType.NONE)
 public class XmlItem implements TaskItem{
-  private String aName;
-  private String aLabel;
-  private String aType;
-  private String aValue;
-  private String aParams;
-  private List<String> aOptions;
+  private String mName;
+  private String mLabel;
+  private String mType;
+  private String mValue;
+  private String mParams;
+  private List<String> mOptions;
 
   @Override
   @XmlAttribute(name="name")
   public String getName() {
-    return aName;
+    return mName;
   }
 
   public void setName(String name) {
-    aName = name;
+    mName = name;
   }
 
   @Override
   @XmlAttribute(name="label")
   public String getLabel() {
-    return aLabel;
+    return mLabel;
   }
 
   public void setLabel(String label) {
-    aLabel = label;
+    mLabel = label;
   }
 
   @Override
   @XmlAttribute(name="params")
   public String getParams() {
-    return aParams;
+    return mParams;
   }
 
   public void setParams(String params) {
-    aParams = params;
+    mParams = params;
   }
 
   @Override
   @XmlAttribute(name="type")
   public String getType() {
-    return aType;
+    return mType;
   }
 
   public void setType(String type) {
-    aType = type;
+    mType = type;
   }
 
   @Override
   @XmlAttribute(name="value")
   public String getValue() {
-    return aValue;
+    return mValue;
   }
 
   public void setValue(String value) {
-    aValue = value;
+    mValue = value;
   }
 
   @Override
   public List<String> getOptions() {
-    if (aOptions==null) { aOptions = new ArrayList<>(); }
-    return aOptions;
+    if (mOptions==null) { mOptions = new ArrayList<>(); }
+    return mOptions;
   }
 
   @XmlElement(name="option", namespace=Constants.USER_MESSAGE_HANDLER_NS)
   public void setOptions(List<String> options) {
-    aOptions = options;
+    mOptions = options;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((aName == null) ? 0 : aName.hashCode());
-    result = prime * result + ((aOptions == null || aOptions.isEmpty()) ? 0 : aOptions.hashCode());
-    result = prime * result + ((aType == null) ? 0 : aType.hashCode());
-    result = prime * result + ((aValue == null) ? 0 : aValue.hashCode());
+    result = prime * result + ((mName == null) ? 0 : mName.hashCode());
+    result = prime * result + ((mOptions == null || mOptions.isEmpty()) ? 0 : mOptions.hashCode());
+    result = prime * result + ((mType == null) ? 0 : mType.hashCode());
+    result = prime * result + ((mValue == null) ? 0 : mValue.hashCode());
     return result;
   }
 
@@ -105,25 +105,25 @@ public class XmlItem implements TaskItem{
     if (getClass() != obj.getClass())
       return false;
     XmlItem other = (XmlItem) obj;
-    if (aName == null) {
-      if (other.aName != null)
+    if (mName == null) {
+      if (other.mName != null)
         return false;
-    } else if (!aName.equals(other.aName))
+    } else if (!mName.equals(other.mName))
       return false;
-    if (aOptions==null || aOptions.isEmpty()) {
-      if (other.aOptions!=null && ! aOptions.isEmpty())
+    if (mOptions==null || mOptions.isEmpty()) {
+      if (other.mOptions!=null && ! mOptions.isEmpty())
         return false;
-    } else if (!aOptions.equals(other.aOptions))
+    } else if (!mOptions.equals(other.mOptions))
       return false;
-    if (aType == null) {
-      if (other.aType != null)
+    if (mType == null) {
+      if (other.mType != null)
         return false;
-    } else if (!aType.equals(other.aType))
+    } else if (!mType.equals(other.mType))
       return false;
-    if (aValue == null) {
-      if (other.aValue != null)
+    if (mValue == null) {
+      if (other.mValue != null)
         return false;
-    } else if (!aValue.equals(other.aValue))
+    } else if (!mValue.equals(other.mValue))
       return false;
     return true;
   }
@@ -146,12 +146,12 @@ public class XmlItem implements TaskItem{
     if (orig instanceof XmlItem) { return (XmlItem) orig; }
     if (orig == null) { return null; }
     XmlItem result = new XmlItem();
-    result.aName = orig.getName();
-    result.aLabel = orig.getLabel();
-    result.aType = orig.getType();
-    result.aValue = orig.getValue();
-    result.aParams = orig.getParams();
-    result.aOptions = new ArrayList<>(orig.getOptions());
+    result.mName = orig.getName();
+    result.mLabel = orig.getLabel();
+    result.mType = orig.getType();
+    result.mValue = orig.getValue();
+    result.mParams = orig.getParams();
+    result.mOptions = new ArrayList<>(orig.getOptions());
     return result;
   }
 }

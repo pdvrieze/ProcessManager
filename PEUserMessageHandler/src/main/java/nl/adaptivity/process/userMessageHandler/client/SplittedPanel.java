@@ -8,31 +8,31 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class SplittedPanel extends Composite {
 
-  private final HorizontalSplitPanel aMainPanel;
+  private final HorizontalSplitPanel mMainPanel;
 
   public SplittedPanel() {
-    aMainPanel = new HorizontalSplitPanel();
+    mMainPanel = new HorizontalSplitPanel();
 
     int pos = (2 * Math.max(Window.getClientWidth(), 400)) / 9;
     pos = Math.max(pos, 100);
-    aMainPanel.setSplitPosition(pos + "px");
+    mMainPanel.setSplitPosition(pos + "px");
 
-    initWidget(aMainPanel);
+    initWidget(mMainPanel);
   }
 
   protected void setLeftWidget(final Widget widget) {
-    aMainPanel.setLeftWidget(widget);
+    mMainPanel.setLeftWidget(widget);
   }
 
   protected void setRightWidget(final Widget widget) {
-    aMainPanel.setRightWidget(widget);
+    mMainPanel.setRightWidget(widget);
   }
 
   public Widget getLeftWidget() {
-    return aMainPanel.getLeftWidget();
+    return mMainPanel.getLeftWidget();
   }
 
   public Widget getRightWidget() {
-    return aMainPanel.getRightWidget();
+    return mMainPanel.getRightWidget();
   }
 }

@@ -7,15 +7,15 @@ public class RemoteListException extends RequestException {
 
   private static final long serialVersionUID = -4607613016180815639L;
 
-  private final int aStatusCode;
+  private final int mStatusCode;
 
   public RemoteListException(final int statusCode, final String statusText) {
     super("Error (" + statusCode + "): " + statusText);
-    aStatusCode = statusCode;
+    mStatusCode = statusCode;
   }
 
   public int getStatusCode() {
-    return aStatusCode;
+    return mStatusCode;
   }
 
 }

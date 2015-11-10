@@ -34,10 +34,10 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
 
     private static Type<UpdateEventHandler> TYPE;
 
-    private final Throwable aException;
+    private final Throwable mException;
 
     public UpdateEvent(final Throwable exception) {
-      aException = exception;
+      mException = exception;
     }
 
     public static Type<UpdateEventHandler> getType() {
@@ -58,11 +58,11 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
 
     public boolean isException() {
-      return aException != null;
+      return mException != null;
     }
 
     public Throwable getException() {
-      return aException;
+      return mException;
     }
 
   }
@@ -73,46 +73,46 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
 
   }
 
-  private Method aMethod = RequestBuilder.GET;
+  private Method mMethod = RequestBuilder.GET;
 
-  private String aUrl;
+  private String mUrl;
 
-  private String aRootElement;
+  private String mRootElement;
 
-  private String aListElement;
+  private String mListElement;
 
-  private String aTextElement;
+  private String mTextElement;
 
-  private String aValueElement;
+  private String mValueElement;
 
-  private String aNameSpace;
+  private String mNameSpace;
 
-  private boolean aStarted = false;
+  private boolean mStarted = false;
 
   public RemoteListBox(final String url) {
-    aUrl = url;
+    mUrl = url;
   }
 
   public void start() {
-    if ((aRootElement == null) || (aListElement == null) || (aTextElement == null) || (aValueElement == null)) {
+    if ((mRootElement == null) || (mListElement == null) || (mTextElement == null) || (mValueElement == null)) {
       throw new IllegalStateException("Can not start updating from a remote system when the proper properties for parsing the result are not set");
     }
     requestUpdate();
-    aStarted = true;
+    mStarted = true;
   }
 
   public void update() {
-    if (aStarted) {
+    if (mStarted) {
       requestUpdate();
     }
   }
 
   public void stop() {
-    aStarted = false;
+    mStarted = false;
   }
 
   private void requestUpdate() {
-    final RequestBuilder rBuilder = new RequestBuilder(aMethod, getUrl());
+    final RequestBuilder rBuilder = new RequestBuilder(mMethod, getUrl());
 
     try {
       rBuilder.sendRequest(null, this);
@@ -127,59 +127,59 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   }
 
   public void setMethod(final Method method) {
-    aMethod = method;
+    mMethod = method;
   }
 
   public Method getMethod() {
-    return aMethod;
+    return mMethod;
   }
 
   public void setUrl(final String url) {
-    aUrl = url;
+    mUrl = url;
   }
 
   public String getUrl() {
-    return aUrl;
+    return mUrl;
   }
 
   public String getRootElement() {
-    return aRootElement;
+    return mRootElement;
   }
 
   public void setRootElement(final String rootElement) {
-    aRootElement = rootElement;
+    mRootElement = rootElement;
   }
 
   public String getListElement() {
-    return aListElement;
+    return mListElement;
   }
 
   public void setListElement(final String listElement) {
-    aListElement = listElement;
+    mListElement = listElement;
   }
 
   public String getTextElement() {
-    return aTextElement;
+    return mTextElement;
   }
 
   public void setTextElement(final String textElement) {
-    aTextElement = textElement;
+    mTextElement = textElement;
   }
 
   public String getValueElement() {
-    return aValueElement;
+    return mValueElement;
   }
 
   public void setValueElement(final String valueElement) {
-    aValueElement = valueElement;
+    mValueElement = valueElement;
   }
 
   public void setNameSpace(final String nameSpace) {
-    aNameSpace = nameSpace;
+    mNameSpace = nameSpace;
   }
 
   public String getNameSpace() {
-    return aNameSpace;
+    return mNameSpace;
   }
 
   public HandlerRegistration addUpdateEventHandler(final UpdateEventHandler handler) {
@@ -229,12 +229,12 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     final ArrayList<ListElement> result = new ArrayList<ListElement>();
 
     final com.google.gwt.dom.client.Node root = myResponse.getFirstChild();
-    if (localName(root.getNodeName()).equals(aRootElement)) {
+    if (localName(root.getNodeName()).equals(mRootElement)) {
       com.google.gwt.dom.client.Node child = root.getFirstChild();
       while (child != null) {
-        if (aListElement.equals(localName(child.getNodeName()))) {
-          final String text = XMLUtil.getParamText(child, aTextElement);
-          final String value = XMLUtil.getParamText(child, aValueElement);
+        if (mListElement.equals(localName(child.getNodeName()))) {
+          final String text = XMLUtil.getParamText(child, mTextElement);
+          final String value = XMLUtil.getParamText(child, mValueElement);
 
           if ((text != null) && (value != null)) {
             result.add(new ListElement(value, text));
@@ -264,12 +264,12 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     final ArrayList<ListElement> result = new ArrayList<ListElement>();
 
     final Node root = myResponse.getFirstChild();
-    if (localName(root.getNodeName()).equals(aRootElement)) {
+    if (localName(root.getNodeName()).equals(mRootElement)) {
       Node child = root.getFirstChild();
       while (child != null) {
-        if (aListElement.equals(localName(child.getNodeName()))) {
-          final String textElemContent = XMLUtil.getParamText(child, aTextElement);
-          final String valueElemContent = XMLUtil.getParamText(child, aValueElement);
+        if (mListElement.equals(localName(child.getNodeName()))) {
+          final String textElemContent = XMLUtil.getParamText(child, mTextElement);
+          final String valueElemContent = XMLUtil.getParamText(child, mValueElement);
 
           if ((textElemContent != null) && (valueElemContent != null)) {
             result.add(new ListElement(valueElemContent, textElemContent));

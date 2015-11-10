@@ -19,12 +19,12 @@ public class ProcessModel {
 
   static final String PROCESSMODEL_NS = "http://adaptivity.nl/ProcessEngine/";
 
-  private final String aName;
+  private final String mName;
 
-  private List<ProcessNode> aNodes;
+  private List<ProcessNode> mNodes;
 
   public ProcessModel(final String name, final List<ProcessNode> nodes) {
-    aName = name;
+    mName = name;
     setNodes(nodes);
   }
 
@@ -88,22 +88,22 @@ public class ProcessModel {
   }
 
   public void setNodes(final List<ProcessNode> nodes) {
-    aNodes = nodes;
+    mNodes = nodes;
   }
 
   public List<ProcessNode> getNodes() {
-    if (aNodes == null) {
-      aNodes = new ArrayList<ProcessNode>(0);
+    if (mNodes == null) {
+      mNodes = new ArrayList<ProcessNode>(0);
     }
-    return aNodes;
+    return mNodes;
   }
 
   public void layout() {
-    for (final ProcessNode node : aNodes) {
+    for (final ProcessNode node : mNodes) {
       node.unsetPos();
     }
     int lowestY = 30;
-    for (final ProcessNode node : aNodes) {
+    for (final ProcessNode node : mNodes) {
       if (!node.hasPos()) {
         lowestY = node.layout(30, lowestY, null, true);
         lowestY += 45;
@@ -111,14 +111,14 @@ public class ProcessModel {
     }
     int minX = Integer.MAX_VALUE;
     int minY = Integer.MAX_VALUE;
-    for (final ProcessNode node : aNodes) {
+    for (final ProcessNode node : mNodes) {
       minX = Math.min(node.getX(), minX);
       minY = Math.min(node.getY(), minY);
     }
     final int offsetX = 30 - minX;
     final int offsetY = 30 - minY;
 
-    for (final ProcessNode node : aNodes) {
+    for (final ProcessNode node : mNodes) {
       node.offset(offsetX, offsetY);
     }
   }

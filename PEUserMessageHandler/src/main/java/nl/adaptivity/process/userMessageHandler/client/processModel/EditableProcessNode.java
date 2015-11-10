@@ -28,20 +28,20 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
   }
 
 
-  private final ProcessNode aNode;
+  private final ProcessNode mNode;
 
-  private Widget aWidget;
+  private Widget mWidget;
 
-  private ProcessShape aShape;
+  private ProcessShape mShape;
 
   public EditableProcessNode(final ProcessNode node) {
-    aNode = node;
+    mNode = node;
     String extraStyle = null;
     if (node instanceof StartNode) {
-      aWidget = new Image("images/startNode.png");
+      mWidget = new Image("images/startNode.png");
       extraStyle = "StartNode";
     } else if (node instanceof EndNode) {
-      aWidget = new Image("images/endNode.png");
+      mWidget = new Image("images/endNode.png");
       extraStyle = "EndNode";
     } else {
       if (node instanceof JoinNode) {
@@ -49,9 +49,9 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
       } else if (node instanceof ActivityNode) {
         extraStyle = "ActivityNode";
       }
-      aWidget = new BoxWidget(node.getId());
+      mWidget = new BoxWidget(node.getId());
     }
-    initWidget(aWidget);
+    initWidget(mWidget);
     setStyleName("EditableProcessNode");
     if (extraStyle != null) {
       addStyleName(extraStyle);
@@ -65,35 +65,35 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
   }
 
   public int getX() {
-    return aNode.getX();
+    return mNode.getX();
   }
 
   public int getY() {
-    return aNode.getY();
+    return mNode.getY();
   }
 
   public void setShape(final ProcessShape shape) {
 
     // TODO evaluate the necessity of this, for now ignore
-    aShape = shape;
+    mShape = shape;
   }
 
   public ProcessNode getNode() {
-    return aNode;
+    return mNode;
   }
 
   public ProcessShape getShape() {
-    return aShape;
+    return mShape;
   }
 
   public Widget getDragHandle() {
-    if (aWidget instanceof Image) {
-      final Image img = (Image) aWidget;
+    if (mWidget instanceof Image) {
+      final Image img = (Image) mWidget;
       return wrapMouseEventSource(new Image(img.getUrl()));
-    } else if (aWidget instanceof BoxWidget) {
-      if (aNode instanceof JoinNode) {
+    } else if (mWidget instanceof BoxWidget) {
+      if (mNode instanceof JoinNode) {
         return wrapMouseEventSource(new BoxWidget("join"));
-      } else if (aNode instanceof ActivityNode) {
+      } else if (mNode instanceof ActivityNode) {
         return wrapMouseEventSource(new BoxWidget("activity"));
       }
     }
@@ -109,10 +109,10 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
   }
 
   public int getVerticalOffset() {
-    if (aWidget instanceof BoxWidget) {
-      return ((BoxWidget) aWidget).getBox().getOffsetHeight() / 2;
+    if (mWidget instanceof BoxWidget) {
+      return ((BoxWidget) mWidget).getBox().getOffsetHeight() / 2;
     } else {
-      return aWidget.getOffsetHeight() / 2;
+      return mWidget.getOffsetHeight() / 2;
     }
   }
 

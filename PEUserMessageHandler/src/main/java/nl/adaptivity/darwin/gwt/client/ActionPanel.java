@@ -17,11 +17,11 @@ public class ActionPanel {
   @UiTemplate("ActionPanelGroup.ui.xml")
   interface ActionPanelUiBinder extends UiBinder<Element, ActionPanel> { /**/}
 
-  DivElement aDivElement;
+  DivElement mDivElement;
 
   public ActionPanel() {
-    //    aDivElement = Document.get().createDivElement();
-    //    setElement(aDivElement);
+    //    mDivElement = Document.get().createDivElement();
+    //    setElement(mDivElement);
   }
 
   public static void load(final CompletionListener completionListener) {

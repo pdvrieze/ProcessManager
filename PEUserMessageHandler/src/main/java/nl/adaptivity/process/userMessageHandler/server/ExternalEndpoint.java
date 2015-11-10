@@ -33,12 +33,12 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
 
-  UserMessageService aService;
+  UserMessageService mService;
 
-  private URI aURI;
+  private URI mURI;
 
   public ExternalEndpoint() {
-    aService = UserMessageService.getInstance();
+    mService = UserMessageService.getInstance();
   }
 
   @Override
@@ -53,7 +53,7 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   @Override
   public URI getEndpointLocation() {
-    return aURI;
+    return mURI;
   }
 
   @Override
@@ -61,7 +61,7 @@ public class ExternalEndpoint implements GenericEndpoint {
     final StringBuilder path = new StringBuilder(config.getServletContext().getContextPath());
     path.append("/UserMessageService");
     try {
-      aURI = new URI(null, null, path.toString(), null);
+      mURI = new URI(null, null, path.toString(), null);
     } catch (final URISyntaxException e) {
       throw new RuntimeException(e); // Should never happen
     }
@@ -71,8 +71,8 @@ public class ExternalEndpoint implements GenericEndpoint {
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
   public Collection<XmlTask> getPendingTasks() throws SQLException {
-    try (DBTransaction transaction = aService.newTransaction()) {
-      return transaction.commit(aService.getPendingTasks(transaction));
+    try (DBTransaction transaction = mService.newTransaction()) {
+      return transaction.commit(mService.getPendingTasks(transaction));
     } catch (Exception e) {
       Logger.getAnonymousLogger().log(Level.WARNING, "Error retrieving tasks", e);
       throw e;
@@ -85,8 +85,8 @@ public class ExternalEndpoint implements GenericEndpoint {
       @RestParam(type=ParamType.BODY) final XmlTask partialNewTask,
       @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException, FileNotFoundException
   {
-    try (DBTransaction transaction = aService.newTransaction()) {
-      final XmlTask result = aService.updateTask(transaction, Long.parseLong(handle), partialNewTask, user);
+    try (DBTransaction transaction = mService.newTransaction()) {
+      final XmlTask result = mService.updateTask(transaction, Long.parseLong(handle), partialNewTask, user);
       if (result==null) { throw new FileNotFoundException(); }
       transaction.commit();
       return result;
@@ -98,27 +98,27 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
   public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return aService.getPendingTask(Long.parseLong(handle), user);
+    return mService.getPendingTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
   public IProcessNodeInstance.TaskState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return aService.startTask(Long.parseLong(handle), user);
+    return mService.startTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
   public IProcessNodeInstance.TaskState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return aService.takeTask(Long.parseLong(handle), user);
+    return mService.takeTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
   public IProcessNodeInstance.TaskState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    return aService.finishTask(Long.parseLong(handle), user);
+    return mService.finishTask(Long.parseLong(handle), user);
   }
 
   @Override
   public void destroy() {
-    aService.destroy();
+    mService.destroy();
     MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 

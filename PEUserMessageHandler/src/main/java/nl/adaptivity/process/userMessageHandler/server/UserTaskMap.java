@@ -53,8 +53,8 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
     private static final int TASK_LOOKUP_TIMEOUT_MILIS = 1;
     private static final String QUERY_GET_DATA_FOR_TASK = "SELECT "+COL_NAME+", "+COL_DATA+" FROM "+TABLEDATA+" WHERE "+COL_HANDLE+" = ?";
-    private int aColNoHandle;
-    private int aColNoRemoteHandle;
+    private int mColNoHandle;
+    private int mColNoRemoteHandle;
 
     @Override
     public void initResultSet(ResultSetMetaData metaData) throws SQLException {
@@ -62,9 +62,9 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
       for (int i=1; i<=columnCount;++i) {
         String colName = metaData.getColumnName(i);
         if (COL_HANDLE.equals(colName)) {
-          aColNoHandle = i;
+          mColNoHandle = i;
         } else if (COL_REMOTEHANDLE.equals(colName)) {
-          aColNoRemoteHandle = i;
+          mColNoRemoteHandle = i;
         } // ignore other columns
       }
     }
@@ -81,8 +81,8 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
     @Override
     public XmlTask create(DBTransaction connection, ResultSet resultSet) throws SQLException {
-      long handle = resultSet.getLong(aColNoHandle);
-      long remoteHandle = resultSet.getLong(aColNoRemoteHandle);
+      long handle = resultSet.getLong(mColNoHandle);
+      long remoteHandle = resultSet.getLong(mColNoRemoteHandle);
 
       XmlProcessNodeInstance instance;
       try {
@@ -254,7 +254,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
     @Override
     public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, elementSource.getLong(aColNoHandle));
+      preRemove(connection, elementSource.getLong(mColNoHandle));
     }
 
   }

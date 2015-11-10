@@ -10,20 +10,20 @@ public abstract class ProcessNode {
 
   private static final int VERTSEP = 60;
 
-  private final String aId;
+  private final String mId;
 
-  private boolean aPosSet = false;
+  private boolean mPosSet = false;
 
-  private int aX;
+  private int mX;
 
-  private int aY;
+  private int mY;
 
   protected ProcessNode(final String id) {
-    aId = id;
+    mId = id;
   }
 
   public String getId() {
-    return aId;
+    return mId;
   }
 
   public abstract void resolvePredecessors(Map<String, ProcessNode> map);
@@ -35,37 +35,37 @@ public abstract class ProcessNode {
   public abstract Collection<ProcessNode> getPredecessors();
 
   public void unsetPos() {
-    aPosSet = false;
+    mPosSet = false;
   }
 
   public boolean hasPos() {
-    return aPosSet;
+    return mPosSet;
   }
 
   public int layout(final int x, final int y, final ProcessNode source, final boolean forward) {
-    if (aPosSet) {
+    if (mPosSet) {
       boolean dx = false;
       boolean dy = false;
-      if (x != aX) {
+      if (x != mX) {
         if (forward) {
-          if (x > aX) {
-            aX = x;
+          if (x > mX) {
+            mX = x;
             dx = true;
-          } else { // pX < aX
-            aX -= (aX - x) / 2; // center
+          } else { // pX < mX
+            mX -= (mX - x) / 2; // center
           }
         } else {
-          if (x < aX) {
-            aX = x;
+          if (x < mX) {
+            mX = x;
             dx = true;
-          } else { // pX > aX
-            aX += (x - aX) / 2; // center
+          } else { // pX > mX
+            mX += (x - mX) / 2; // center
           }
         }
       }
-      if (y != aY) {
-        if (y > aY) {
-          aY = y;
+      if (y != mY) {
+        if (y > mY) {
+          mY = y;
           dy = true;
         } else {
 
@@ -73,16 +73,16 @@ public abstract class ProcessNode {
       }
       if (dx || dy) {
         if (forward) {
-          return Math.max(aY, layoutSuccessors(this));
+          return Math.max(mY, layoutSuccessors(this));
         } else {
-          return Math.max(layoutPredecessors(this), aY);
+          return Math.max(layoutPredecessors(this), mY);
         }
       }
-      return aY;
+      return mY;
 
     } else {
-      aPosSet = true;
-      aX = x;
+      mPosSet = true;
+      mX = x;
       if (forward) {
         final int cnt = getPredecessors().size();
         int index = -1;
@@ -95,12 +95,12 @@ public abstract class ProcessNode {
           ++i;
         }
         if (index >= 0) {
-          aY = (y - ((index * VERTSEP))) + (((cnt - 1) * VERTSEP) / 2);
+          mY = (y - ((index * VERTSEP))) + (((cnt - 1) * VERTSEP) / 2);
         } else {
-          aY = y;
+          mY = y;
         }
       } else {
-        aY = y;
+        mY = y;
       }
       return Math.max(layoutPredecessors(source), layoutSuccessors(source));
     }
@@ -108,8 +108,8 @@ public abstract class ProcessNode {
 
   private int layoutSuccessors(final ProcessNode source) {
     final Collection<ProcessNode> successors = getSuccessors();
-    int posY = aY - (((successors.size() - 1) * VERTSEP) / 2);
-    final int posX = aX + HORIZSEP;
+    int posY = mY - (((successors.size() - 1) * VERTSEP) / 2);
+    final int posX = mX + HORIZSEP;
 
     for (final ProcessNode successor : successors) {
       if (successor != source) {
@@ -117,13 +117,13 @@ public abstract class ProcessNode {
       }
       posY += VERTSEP;
     }
-    return Math.min(aY, posY - VERTSEP);
+    return Math.min(mY, posY - VERTSEP);
   }
 
   private int layoutPredecessors(final ProcessNode source) {
     final Collection<ProcessNode> predecessors = getPredecessors();
-    int posY = aY - (((predecessors.size() - 1) * VERTSEP) / 2);
-    final int posX = aX - HORIZSEP;
+    int posY = mY - (((predecessors.size() - 1) * VERTSEP) / 2);
+    final int posX = mX - HORIZSEP;
 
     for (final ProcessNode predecessor : predecessors) {
       if (predecessor != source) {
@@ -131,20 +131,20 @@ public abstract class ProcessNode {
       }
       posY += VERTSEP;
     }
-    return Math.min(aY, posY - VERTSEP);
+    return Math.min(mY, posY - VERTSEP);
   }
 
   public int getX() {
-    return aX;
+    return mX;
   }
 
   public int getY() {
-    return aY;
+    return mY;
   }
 
   public void offset(final int offsetX, final int offsetY) {
-    aX += offsetX;
-    aY += offsetY;
+    mX += offsetX;
+    mY += offsetY;
   }
 
 }

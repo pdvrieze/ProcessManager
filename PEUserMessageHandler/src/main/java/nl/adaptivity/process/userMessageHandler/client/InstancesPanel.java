@@ -16,37 +16,37 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
 
   private static final String PROCESSINSTANCELISTURL = PEUserMessageHandler.BASEURL + "/ProcessEngine/processInstances";
 
-  private final RemoteListBox aInstanceListBox;
+  private final RemoteListBox mInstanceListBox;
 
-  private final Button aShowInstanceStatusButton;
+  private final Button mShowInstanceStatusButton;
 
-  private final Label aStatusLabel;
+  private final Label mStatusLabel;
 
-  private Button aCancelInstanceButton;
+  private Button mCancelInstanceButton;
 
   public InstancesPanel(final Label statusLabel) {
-    aStatusLabel = statusLabel;
+    mStatusLabel = statusLabel;
     final SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
     //    hp1.addStyleName("tabPanel");
 
-    aInstanceListBox = new RemoteListBox(PROCESSINSTANCELISTURL);
-    aInstanceListBox.setRootElement("processInstances");
-    aInstanceListBox.setListElement("processInstance");
-    aInstanceListBox.setValueElement("@handle");
-    aInstanceListBox.setTextElement("=@{handle}: Instance \"@{name}\" of model (@{processModel})");
+    mInstanceListBox = new RemoteListBox(PROCESSINSTANCELISTURL);
+    mInstanceListBox.setRootElement("processInstances");
+    mInstanceListBox.setListElement("processInstance");
+    mInstanceListBox.setValueElement("@handle");
+    mInstanceListBox.setTextElement("=@{handle}: Instance \"@{name}\" of model (@{processModel})");
 
 
-    root.setTopLeftWidget(aInstanceListBox);
-    aInstanceListBox.addStyleName("mhList");
-    aInstanceListBox.addStyleName("tabContent");
+    root.setTopLeftWidget(mInstanceListBox);
+    mInstanceListBox.addStyleName("mhList");
+    mInstanceListBox.addStyleName("tabContent");
 
     final VerticalPanel vp1 = new VerticalPanel();
     root.setBottomLeftWidget(vp1);
     vp1.addStyleName("tabContent");
 
-    aShowInstanceStatusButton = addButtonToPanel(aInstanceListBox, vp1, "Show status");
+    mShowInstanceStatusButton = addButtonToPanel(mInstanceListBox, vp1, "Show status");
 
-    aCancelInstanceButton = addButtonToPanel(aInstanceListBox, vp1, "Cancel instance");
+    mCancelInstanceButton = addButtonToPanel(mInstanceListBox, vp1, "Cancel instance");
 
     initWidget(root);
   }
@@ -65,9 +65,9 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
    */
   @Override
   public void onClick(final ClickEvent event) {
-    if (event.getSource() == aShowInstanceStatusButton) {
+    if (event.getSource() == mShowInstanceStatusButton) {
       showInstance();
-    } else if (event.getSource() == aCancelInstanceButton) {
+    } else if (event.getSource() == mCancelInstanceButton) {
       cancelInstance();
     }
   }
@@ -83,21 +83,21 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
    * @category action
    */
   private void showInstance() {
-    aStatusLabel.setText("showInstance");
+    mStatusLabel.setText("showInstance");
   }
 
   public void start() {
-    aInstanceListBox.start();
+    mInstanceListBox.start();
   }
 
 
   public void update() {
-    aInstanceListBox.update();
+    mInstanceListBox.update();
   }
 
 
   public void stop() {
-    aInstanceListBox.stop();
+    mInstanceListBox.stop();
   }
 
 

@@ -14,43 +14,43 @@ public class ProcessShape {
 
   private static final int CP_MARGIN = 13;
 
-  private final EditableProcessNode aNode;
+  private final EditableProcessNode mNode;
 
   /*
-   * private ConnectionPoint aWestConnectionPoint; private ConnectionPoint
-   * aNorthConnectionPoint; private ConnectionPoint aSouthConnectionPoint;
-   * private ConnectionPoint aEastConnectionPoint;
+   * private ConnectionPoint mWestConnectionPoint; private ConnectionPoint
+   * mNorthConnectionPoint; private ConnectionPoint mSouthConnectionPoint;
+   * private ConnectionPoint mEastConnectionPoint;
    */
 
   public ProcessShape(final EditableProcessNode w) {
-    aNode = w;
-    aNode.getElement().setDraggable(Element.DRAGGABLE_TRUE);
+    mNode = w;
+    mNode.getElement().setDraggable(Element.DRAGGABLE_TRUE);
   }
 
   public EditableProcessNode getWidget() {
-    return aNode;
+    return mNode;
   }
 
   /*
    * protected void createConnectionPoints(AbsolutePanel pConnectionPointsPanel,
-   * Diagram pDiagram) { aWestConnectionPoint = new
-   * ConnectionPoint(ConnectionDirection.LEFT); aNorthConnectionPoint = new
-   * ConnectionPoint(ConnectionDirection.UP); aSouthConnectionPoint = new
-   * ConnectionPoint(ConnectionDirection.DOWN); aEastConnectionPoint = new
+   * Diagram pDiagram) { mWestConnectionPoint = new
+   * ConnectionPoint(ConnectionDirection.LEFT); mNorthConnectionPoint = new
+   * ConnectionPoint(ConnectionDirection.UP); mSouthConnectionPoint = new
+   * ConnectionPoint(ConnectionDirection.DOWN); mEastConnectionPoint = new
    * ConnectionPoint(ConnectionDirection.RIGHT);
-   * aWestConnectionPoint.showOnDiagram(pDiagram);
-   * aNorthConnectionPoint.showOnDiagram(pDiagram);
-   * aSouthConnectionPoint.showOnDiagram(pDiagram);
-   * aEastConnectionPoint.showOnDiagram(pDiagram); int cpPanelHeight =
+   * mWestConnectionPoint.showOnDiagram(pDiagram);
+   * mNorthConnectionPoint.showOnDiagram(pDiagram);
+   * mSouthConnectionPoint.showOnDiagram(pDiagram);
+   * mEastConnectionPoint.showOnDiagram(pDiagram); int cpPanelHeight =
    * pConnectionPointsPanel.getOffsetHeight(); int cpPanelWidth =
    * pConnectionPointsPanel.getOffsetWidth(); int yOffset =
    * getContainedWidget().getVerticalOffset();
-   * pConnectionPointsPanel.add(aWestConnectionPoint, 0, (yOffset) + (CP_MARGIN
-   * / 2)); pConnectionPointsPanel.add(aNorthConnectionPoint,
+   * pConnectionPointsPanel.add(mWestConnectionPoint, 0, (yOffset) + (CP_MARGIN
+   * / 2)); pConnectionPointsPanel.add(mNorthConnectionPoint,
    * (cpPanelWidth-CP_MARGIN) / 2, 0);
-   * pConnectionPointsPanel.add(aEastConnectionPoint, cpPanelWidth-CP_MARGIN,
+   * pConnectionPointsPanel.add(mEastConnectionPoint, cpPanelWidth-CP_MARGIN,
    * (yOffset) + (CP_MARGIN / 2));
-   * pConnectionPointsPanel.add(aSouthConnectionPoint, (cpPanelWidth-CP_MARGIN)
+   * pConnectionPointsPanel.add(mSouthConnectionPoint, (cpPanelWidth-CP_MARGIN)
    * / 2, cpPanelHeight-CP_MARGIN); }
    */
 
@@ -58,14 +58,14 @@ public class ProcessShape {
 
   /*
    * @Override public List<ConnectionPoint> getConnectionPoints() { return
-   * Arrays.asList(aNorthConnectionPoint, aWestConnectionPoint,
-   * aSouthConnectionPoint, aEastConnectionPoint); }
+   * Arrays.asList(mNorthConnectionPoint, mWestConnectionPoint,
+   * mSouthConnectionPoint, mEastConnectionPoint); }
    */
   /*
    * public ConnectionPoint getWestConnectionPoint() { return
-   * aWestConnectionPoint; } public ConnectionPoint getNorthConnectionPoint() {
-   * return aNorthConnectionPoint; } public ConnectionPoint
-   * getSouthConnectionPoint() { return aSouthConnectionPoint; } public
-   * ConnectionPoint getEastConnectionPoint() { return aEastConnectionPoint; }
+   * mWestConnectionPoint; } public ConnectionPoint getNorthConnectionPoint() {
+   * return mNorthConnectionPoint; } public ConnectionPoint
+   * getSouthConnectionPoint() { return mSouthConnectionPoint; } public
+   * ConnectionPoint getEastConnectionPoint() { return mEastConnectionPoint; }
    */
 }

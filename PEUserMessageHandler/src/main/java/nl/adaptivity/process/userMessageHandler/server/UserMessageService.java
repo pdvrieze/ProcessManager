@@ -78,17 +78,17 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
 
   }
 
-  private UserTaskMap aTasks;
+  private UserTaskMap mTasks;
   private TransactionFactory<DBTransaction> mTransactionFactory = new MyDBTransactionFactory();
 
   public UserMessageService() {
   }
 
   private UserTaskMap getTasks() {
-    if (aTasks==null) {
-      aTasks = new UserTaskMap(mTransactionFactory);
+    if (mTasks==null) {
+      mTasks = new UserTaskMap(mTransactionFactory);
     }
-    return aTasks;
+    return mTasks;
   }
 
   public boolean postTask(final XmlTask task) {

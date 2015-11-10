@@ -13,15 +13,15 @@ import com.google.gwt.xml.client.Node;
 
 public class EndNode extends ProcessNode {
 
-  private String aPredecessorId;
+  private String mPredecessorId;
 
-  private List<Element> aExports;
+  private List<Element> mExports;
 
-  private ProcessNode aPredecessor;
+  private ProcessNode mPredecessor;
 
   public EndNode(final String id, final String predecessorName) {
     super(id);
-    aPredecessorId = predecessorName;
+    mPredecessorId = predecessorName;
   }
 
   public static EndNode fromXml(final Element node) {
@@ -66,7 +66,7 @@ public class EndNode extends ProcessNode {
   }
 
   private void setExports(final List<Element> exports) {
-    aExports = exports;
+    mExports = exports;
   }
 
   private static Element exportFromXml(final Element child) {
@@ -75,11 +75,11 @@ public class EndNode extends ProcessNode {
 
   @Override
   public void resolvePredecessors(final Map<String, ProcessNode> map) {
-    final ProcessNode predecessor = map.get(aPredecessorId);
+    final ProcessNode predecessor = map.get(mPredecessorId);
     if (predecessor != null) {
-      aPredecessorId = predecessor.getId();
-      aPredecessor = predecessor;
-      aPredecessor.ensureSuccessor(this);
+      mPredecessorId = predecessor.getId();
+      mPredecessor = predecessor;
+      mPredecessor.ensureSuccessor(this);
     }
   }
 
@@ -95,7 +95,7 @@ public class EndNode extends ProcessNode {
 
   @Override
   public Collection<ProcessNode> getPredecessors() {
-    return Collections.singletonList(aPredecessor);
+    return Collections.singletonList(mPredecessor);
   }
 
 }

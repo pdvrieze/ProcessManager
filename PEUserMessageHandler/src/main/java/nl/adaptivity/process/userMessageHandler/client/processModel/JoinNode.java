@@ -12,17 +12,17 @@ import java.util.*;
 
 public class JoinNode extends ProcessNode {
 
-  private final Collection<String> aPredecessorNames;
-  private final String aMin;
-  private final String aMax;
-  private Set<ProcessNode> aPredecessors;
-  private Set<ProcessNode> aSuccessors;
+  private final Collection<String> mPredecessorNames;
+  private final String mMin;
+  private final String mMax;
+  private Set<ProcessNode> mPredecessors;
+  private Set<ProcessNode> mSuccessors;
 
   public JoinNode(final String id, final Collection<String> predecessorNames, final String min, final String max) {
     super(id);
-    aPredecessorNames = predecessorNames;
-    aMin = min;
-    aMax = max;
+    mPredecessorNames = predecessorNames;
+    mMin = min;
+    mMax = max;
   }
 
   public static JoinNode fromXml(final Element node) {
@@ -70,16 +70,16 @@ public class JoinNode extends ProcessNode {
 
   @Override
   public void resolvePredecessors(final Map<String, ProcessNode> map) {
-    if (aPredecessors == null) {
-      aPredecessors = new LinkedHashSet<ProcessNode>();
+    if (mPredecessors == null) {
+      mPredecessors = new LinkedHashSet<ProcessNode>();
     } else {
-      aPredecessors.clear();
+      mPredecessors.clear();
     }
-    for (final String predecessorId : aPredecessorNames) {
+    for (final String predecessorId : mPredecessorNames) {
 
       final ProcessNode predecessor = map.get(predecessorId);
       if (predecessor != null) {
-        aPredecessors.add(predecessor);
+        mPredecessors.add(predecessor);
         predecessor.ensureSuccessor(this);
       }
     }
@@ -87,31 +87,31 @@ public class JoinNode extends ProcessNode {
 
   @Override
   public void ensureSuccessor(final ProcessNode node) {
-    if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+    if (mSuccessors == null) {
+      mSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    aSuccessors.add(node);
+    mSuccessors.add(node);
   }
 
   @Override
   public Collection<ProcessNode> getSuccessors() {
-    if (aSuccessors == null) {
-      aSuccessors = new LinkedHashSet<ProcessNode>();
+    if (mSuccessors == null) {
+      mSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    return aSuccessors;
+    return mSuccessors;
   }
 
   @Override
   public Collection<ProcessNode> getPredecessors() {
-    return aPredecessors;
+    return mPredecessors;
   }
 
   public String getMin() {
-    return aMin;
+    return mMin;
   }
 
   public String getMax() {
-    return aMax;
+    return mMax;
   }
 
 }

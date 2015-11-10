@@ -28,26 +28,26 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
 
   private static final Boolean DEFAULT_REFRESH = false;
 
-  private Label aStatusLabel;
+  private Label mStatusLabel;
 
-  private CheckBox aRefreshCheckbox;
+  private CheckBox mRefreshCheckbox;
 
-  private TabLayoutPanel aTabPanel;
+  private TabLayoutPanel mTabPanel;
 
   @SuppressWarnings("unused")
-  private HandlerRegistration aHistoryHandler;
+  private HandlerRegistration mHistoryHandler;
 
-  private ProcessesPanel aProcessesPanel;
+  private ProcessesPanel mProcessesPanel;
 
-  private InstancesPanel aInstancesPanel;
+  private InstancesPanel mInstancesPanel;
 
-  private TasksPanel aTasksPanel;
+  private TasksPanel mTasksPanel;
 
-  private RootLayoutPanel aRootPanel;
+  private RootLayoutPanel mRootPanel;
 
-  private DockLayoutPanel aDockPanel;
+  private DockLayoutPanel mDockPanel;
 
-  private FlowPanel aStatusPanel;
+  private FlowPanel mStatusPanel;
 
   @UiField
   InlineLabel nStatusLabel;
@@ -68,58 +68,58 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     }
 
     final Widget w = MyUiBinder.INSTANCE.createAndBindUi(this);
-    aRootPanel = RootLayoutPanel.get();
-    aRootPanel.add(w);
+    mRootPanel = RootLayoutPanel.get();
+    mRootPanel.add(w);
 
-    aDockPanel = new DockLayoutPanel(Unit.PX);
-    aDockPanel.addNorth(new HTML("<h1 class=\"title\">Process Engine Interface</h1>"), 25);
-    //    aDockPanel.addStyleName("dockPanel");
-    aRootPanel.add(aDockPanel);
+    mDockPanel = new DockLayoutPanel(Unit.PX);
+    mDockPanel.addNorth(new HTML("<h1 class=\"title\">Process Engine Interface</h1>"), 25);
+    //    mDockPanel.addStyleName("dockPanel");
+    mRootPanel.add(mDockPanel);
 
-    aTabPanel = new TabLayoutPanel(22, Unit.PX);
-    aTabPanel.addStyleName("tabPanel");
-    //    aDockPanel.setCellHeight(aTabPanel, "100%");
+    mTabPanel = new TabLayoutPanel(22, Unit.PX);
+    mTabPanel.addStyleName("tabPanel");
+    //    mDockPanel.setCellHeight(mTabPanel, "100%");
 
-    aStatusLabel = new Label();
-    aStatusLabel.setText("Initializing...");
-    aStatusLabel.addStyleName("statusPanel-left");
+    mStatusLabel = new Label();
+    mStatusLabel.setText("Initializing...");
+    mStatusLabel.addStyleName("statusPanel-left");
 
 
-    aProcessesPanel = createProcessesPanel();
+    mProcessesPanel = createProcessesPanel();
 
-    aInstancesPanel = createInstancesPanel();
+    mInstancesPanel = createInstancesPanel();
 
-    aTasksPanel = createTaskPanel();
-    aTabPanel.add(aProcessesPanel, "Processes");
-    aTabPanel.add(aInstancesPanel, "Instances");
-    aTabPanel.add(aTasksPanel, "Tasks");
-    aTabPanel.selectTab(0);
+    mTasksPanel = createTaskPanel();
+    mTabPanel.add(mProcessesPanel, "Processes");
+    mTabPanel.add(mInstancesPanel, "Instances");
+    mTabPanel.add(mTasksPanel, "Tasks");
+    mTabPanel.selectTab(0);
 
-    aTabPanel.addSelectionHandler(this);
+    mTabPanel.addSelectionHandler(this);
 
-    aStatusPanel = new FlowPanel();
-    aStatusPanel.add(aStatusLabel);
-    aStatusPanel.addStyleName("statusPanel");
+    mStatusPanel = new FlowPanel();
+    mStatusPanel.add(mStatusLabel);
+    mStatusPanel.addStyleName("statusPanel");
 
-    aRefreshCheckbox = new CheckBox("refresh");
-    aRefreshCheckbox.setValue(DEFAULT_REFRESH);
-    aRefreshCheckbox.addStyleName("statusPanel-right");
-    aStatusPanel.add(aRefreshCheckbox);
+    mRefreshCheckbox = new CheckBox("refresh");
+    mRefreshCheckbox.setValue(DEFAULT_REFRESH);
+    mRefreshCheckbox.addStyleName("statusPanel-right");
+    mStatusPanel.add(mRefreshCheckbox);
 
     if (!GWT.isScript()) {
       final Label label = new Label("Hosted mode");
       label.addStyleName("span");
-      aStatusPanel.add(label);
+      mStatusPanel.add(label);
     } else {
-      aStatusPanel.add(new HTML("Compiled mode"));
+      mStatusPanel.add(new HTML("Compiled mode"));
     }
 
-    //    aDockPanel.addSouth(new HTML("South"), 20);
-    aDockPanel.addSouth(aStatusPanel, 20d);
-    //    aDockPanel.setCellHeight(aTabPanel, "100%");
+    //    mDockPanel.addSouth(new HTML("South"), 20);
+    mDockPanel.addSouth(mStatusPanel, 20d);
+    //    mDockPanel.setCellHeight(mTabPanel, "100%");
 
-    aDockPanel.add(aTabPanel);
-    //    aDockPanel.add(new HTML("Center"));
+    mDockPanel.add(mTabPanel);
+    //    mDockPanel.add(new HTML("Center"));
 
     //    Window.addResizeHandler(this);
     //    onResize(null);
@@ -133,9 +133,9 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
     };
     refreshTimer.scheduleRepeating(REFRESH_INTERVAL);
 
-    aProcessesPanel.start();
+    mProcessesPanel.start();
 
-    aHistoryHandler = History.addValueChangeHandler(this);
+    mHistoryHandler = History.addValueChangeHandler(this);
 
     History.fireCurrentHistoryState();
   }
@@ -144,21 +144,21 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    * @category UI
    */
   private ProcessesPanel createProcessesPanel() {
-    return new ProcessesPanel(aStatusLabel);
+    return new ProcessesPanel(mStatusLabel);
   }
 
   /**
    * @category UI
    */
   private InstancesPanel createInstancesPanel() {
-    return new InstancesPanel(aStatusLabel);
+    return new InstancesPanel(mStatusLabel);
   }
 
   /**
    * @category UI
    */
   private TasksPanel createTaskPanel() {
-    return new TasksPanel(aStatusLabel);
+    return new TasksPanel(mStatusLabel);
   }
 
   /**
@@ -166,10 +166,10 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    */
   protected void refreshState() {
 
-    if (aRefreshCheckbox.getValue()) {
-      aProcessesPanel.update();
-      aTasksPanel.update();
-      aInstancesPanel.update();
+    if (mRefreshCheckbox.getValue()) {
+      mProcessesPanel.update();
+      mTasksPanel.update();
+      mInstancesPanel.update();
     }
   }
 
@@ -182,10 +182,10 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
   public void onValueChange(final ValueChangeEvent<String> event) {
     final String value = event.getValue();
 
-    final int c = aTabPanel.getWidgetCount();
+    final int c = mTabPanel.getWidgetCount();
     for (int i = 0; i < c; ++i) {
-      if (value.equals(aTabPanel.getTabWidget(i).getElement().getInnerText())) {
-        aTabPanel.selectTab(i);
+      if (value.equals(mTabPanel.getTabWidget(i).getElement().getInnerText())) {
+        mTabPanel.selectTab(i);
         break;
       }
     }
@@ -197,7 +197,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    */
   @Override
   public void onSelection(final SelectionEvent<Integer> event) {
-    if (event.getSource() == aTabPanel) {
+    if (event.getSource() == mTabPanel) {
       handleTabSelection(event);
     }
   }
@@ -206,40 +206,40 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    * @category action
    */
   private void handleTabSelection(final SelectionEvent<Integer> event) {
-    final String tabText = aTabPanel.getTabWidget(event.getSelectedItem()).getElement().getInnerText();
+    final String tabText = mTabPanel.getTabWidget(event.getSelectedItem()).getElement().getInnerText();
     History.newItem(tabText, false);
     if ("Processes".equals(tabText)) {
-      aProcessesPanel.start();
+      mProcessesPanel.start();
     } else {
-      aProcessesPanel.stop();
+      mProcessesPanel.stop();
     }
     if ("Instances".equals(tabText)) {
-      aInstancesPanel.start();
+      mInstancesPanel.start();
     } else {
-      aInstancesPanel.stop();
+      mInstancesPanel.stop();
     }
     if ("Tasks".equals(tabText)) {
-      aTasksPanel.start();
+      mTasksPanel.start();
     } else {
-      aTasksPanel.stop();
+      mTasksPanel.stop();
     }
   }
 
   @Override
   public void onResize(final ResizeEvent event) {
     //    int height = Window.getClientHeight();
-    //    aRootPanel.setHeight((height-10)+"px");
+    //    mRootPanel.setHeight((height-10)+"px");
     //    height -= 14; // margin
-    //    height -= aStatusPanel.getOffsetHeight();
-    //    aDockPanel.setHeight(height+"px");
-    //    height -= aTabPanel.getTabBar().getOffsetHeight();
+    //    height -= mStatusPanel.getOffsetHeight();
+    //    mDockPanel.setHeight(height+"px");
+    //    height -= mTabPanel.getTabBar().getOffsetHeight();
     //
     //    height -= 11; // arbitrary missing margin adjustment
-    //    aTabPanel.getDeckPanel().setHeight(height+"px");
+    //    mTabPanel.getDeckPanel().setHeight(height+"px");
     //
-    //    aProcessesPanel.setHeight(height);
-    //    aInstancesPanel.setHeight(height+"px");
-    //    aTasksPanel.setHeight(height+"px");
+    //    mProcessesPanel.setHeight(height);
+    //    mInstancesPanel.setHeight(height+"px");
+    //    mTasksPanel.setHeight(height+"px");
   }
 
 }

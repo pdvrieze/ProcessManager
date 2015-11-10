@@ -7,27 +7,27 @@ import java.util.List;
 
 public class EditableProcessModel {
 
-  private final ProcessModel aProcessModel;
+  private final ProcessModel mProcessModel;
 
-  List<EditableProcessNode> aNodes;
+  List<EditableProcessNode> mNodes;
 
   public EditableProcessModel(final ProcessModel processModel) {
-    aProcessModel = processModel;
+    mProcessModel = processModel;
   }
 
   public Collection<EditableProcessNode> getNodes() {
-    if (aNodes == null) {
-      final List<ProcessNode> nodes = aProcessModel.getNodes();
-      aNodes = new ArrayList<EditableProcessNode>(nodes.size());
+    if (mNodes == null) {
+      final List<ProcessNode> nodes = mProcessModel.getNodes();
+      mNodes = new ArrayList<EditableProcessNode>(nodes.size());
       for (final ProcessNode node : nodes) {
-        aNodes.add(EditableProcessNode.create(node));
+        mNodes.add(EditableProcessNode.create(node));
       }
     }
-    return aNodes;
+    return mNodes;
   }
 
   public void layout() {
-    aProcessModel.layout();
+    mProcessModel.layout();
     // TODO layout nodes
   }
 

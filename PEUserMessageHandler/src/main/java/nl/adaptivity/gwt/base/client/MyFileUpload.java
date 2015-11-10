@@ -23,11 +23,11 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class MyFileUpload extends FileUpload implements IWidgetController, ChangeHandler, ResetHandler {
 
-  private Collection<FocusWidget> aWidgetsToEnable;
+  private Collection<FocusWidget> mWidgetsToEnable;
 
-  private HandlerRegistration aResetHandler;
+  private HandlerRegistration mResetHandler;
 
-  private HandlerRegistration aChangeHandler;
+  private HandlerRegistration mChangeHandler;
 
   public MyFileUpload() {
     super();
@@ -62,23 +62,23 @@ public class MyFileUpload extends FileUpload implements IWidgetController, Chang
 
   @Override
   public void addControlledWidget(final FocusWidget widget) {
-    if (aWidgetsToEnable == null) {
-      aWidgetsToEnable = new ArrayList<FocusWidget>();
-      aChangeHandler = registerChangeHandler(this);
-      aResetHandler = registerResetHandler();
+    if (mWidgetsToEnable == null) {
+      mWidgetsToEnable = new ArrayList<FocusWidget>();
+      mChangeHandler = registerChangeHandler(this);
+      mResetHandler = registerResetHandler();
     }
-    aWidgetsToEnable.add(widget);
+    mWidgetsToEnable.add(widget);
     widget.setEnabled(getFilename().length() > 0);
   }
 
   @Override
   public boolean removeControlledWidget(final FocusWidget widget) {
-    final boolean result = aWidgetsToEnable.remove(widget);
+    final boolean result = mWidgetsToEnable.remove(widget);
     if (result) {
-      if (aWidgetsToEnable.size() == 0) {
-        aWidgetsToEnable = null;
-        aResetHandler.removeHandler();
-        aChangeHandler.removeHandler();
+      if (mWidgetsToEnable.size() == 0) {
+        mWidgetsToEnable = null;
+        mResetHandler.removeHandler();
+        mChangeHandler.removeHandler();
       }
     }
     return result;
@@ -97,7 +97,7 @@ public class MyFileUpload extends FileUpload implements IWidgetController, Chang
 
   private void refreshEnablement() {
     final boolean enabled = getFilename().length() > 0;
-    for (final FocusWidget widget : aWidgetsToEnable) {
+    for (final FocusWidget widget : mWidgetsToEnable) {
       widget.setEnabled(enabled);
     }
   }

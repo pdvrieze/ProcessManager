@@ -34,7 +34,7 @@ public class TestXmlTask {
   @Before
   public void before() {
     mSampleTask = new XmlTask();
-    mSampleTask.aState= TaskState.Failed;
+    mSampleTask.mState= TaskState.Failed;
     mSampleTask.setOwnerString("pdvrieze");
     mSampleTask.setRemoteHandle(-1L);
   }
