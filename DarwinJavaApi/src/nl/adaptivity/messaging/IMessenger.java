@@ -1,11 +1,11 @@
 package nl.adaptivity.messaging;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.namespace.QName;
+
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.Future;
-
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.namespace.QName;
 
 
 /**
@@ -20,37 +20,37 @@ public interface IMessenger {
   /**
    * Register an endpoint.
    *
-   * @param pService The service to register.
+   * @param service The service to register.
    * @param endPoint The endpoint within the service.
-   * @param pTarget The url for that service.
+   * @param target The url for that service.
    * @return An EndpointDescriptor that can be used to unregister the endpoint.
    */
-  public EndpointDescriptor registerEndpoint(QName pService, String endPoint, URI pTarget);
+  public EndpointDescriptor registerEndpoint(QName service, String endPoint, URI target);
 
   /**
    * Register an endpoint. This endpoint can be interpreted by the actual
    * messenger to provide a shortcut
    *
-   * @param pEndpoint
+   * @param endpoint
    */
-  public void registerEndpoint(EndpointDescriptor pEndpoint);
+  public void registerEndpoint(EndpointDescriptor endpoint);
 
   /**
    * Send a message using the messenger. Sending is an asynchronous process and
    * a return from this method does not imply completion of the delivery (or
    * success).
    *
-   * @param pMessage The message to be sent.
-   * @param pCompletionListener The completionListener to use when the message
+   * @param message The message to be sent.
+   * @param completionListener The completionListener to use when the message
    *          response is ready.
-   * @param pReturnType The type of the return value of the sending.
-   * @param pReturnTypeContext The jaxb context to be used when marshaling and
+   * @param returnType The type of the return value of the sending.
+   * @param returnTypeContext The jaxb context to be used when marshaling and
    *          umarshaling the return value. Basically this uses
    *          {@link XmlSeeAlso}.
    * @return A future that can be used to retrieve the result of the sending.
    *         This result will also be passed along to the completionListener.
    */
-  public <T> Future<T> sendMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType, Class<?>[] pReturnTypeContext);
+  public <T> Future<T> sendMessage(ISendableMessage message, CompletionListener completionListener, Class<T> returnType, Class<?>[] returnTypeContext);
 
   /**
    * Get a list of all the registered enpoints.
@@ -63,10 +63,10 @@ public interface IMessenger {
 
   /**
    * Unregister the given endpoint
-   * @param pEndpoint The endpoint to unregister
+   * @param endpoint The endpoint to unregister
    * @return <code>true</code> on success, false when the endpoint was not registered.
    */
-  public boolean unregisterEndpoint(EndpointDescriptor pEndpoint);
+  public boolean unregisterEndpoint(EndpointDescriptor endpoint);
 
   /**
    * Invoked when the messenger needs to release it's resources. After this has

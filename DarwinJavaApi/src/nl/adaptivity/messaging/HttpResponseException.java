@@ -11,19 +11,19 @@ public class HttpResponseException extends MessagingException {
 
   private final int aCode;
 
-  public HttpResponseException(final int pCode, final String pMessage) {
-    super(pMessage);
-    aCode = pCode;
+  public HttpResponseException(final int code, final String message) {
+    super(message);
+    aCode = code;
   }
 
-  public HttpResponseException(int pCode, Throwable pCause) {
-    super(pCause);
-    aCode = pCode;
+  public HttpResponseException(int code, Throwable cause) {
+    super(cause);
+    aCode = code;
   }
 
-  public HttpResponseException(int pCode, String pMessage, Throwable pCause) {
-    super(pMessage, pCause);
-    aCode = pCode;
+  public HttpResponseException(int code, String message, Throwable cause) {
+    super(message, cause);
+    aCode = code;
   }
 
   public int getResponseCode() {

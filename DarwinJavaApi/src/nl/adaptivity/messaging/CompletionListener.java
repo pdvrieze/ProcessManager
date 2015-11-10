@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
  *
  * @author Paul de Vrieze
  */
-public interface CompletionListener {
+public interface CompletionListener<T> {
 
   /**
    * Signify the completion of the task corresponding to the given future. Note
@@ -17,8 +17,8 @@ public interface CompletionListener {
    * future is complete when this method is called. There should not be a wait
    * when invoking {@link Future#get()} on the future.
    *
-   * @param pFuture The future that is complete.
+   * @param future The future that is complete.
    */
-  void onMessageCompletion(Future<?> pFuture);
+  void onMessageCompletion(Future<? extends T> future);
 
 }

@@ -1,18 +1,14 @@
 package nl.adaptivity.messaging;
 
+import javax.xml.namespace.QName;
+
 import java.net.URI;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
-
-import javax.xml.namespace.QName;
 
 
 /**
@@ -41,10 +37,10 @@ public final class MessagingRegistry {
     private final String aEndpointName;
     private final URI aEndpointLocation;
 
-    public SimpleEndpointDescriptor(QName pServiceName, String pEndpointName, URI pEndpointLocation) {
-      aServiceName = pServiceName;
-      aEndpointName = pEndpointName;
-      aEndpointLocation = pEndpointLocation;
+    public SimpleEndpointDescriptor(QName serviceName, String endpointName, URI endpointLocation) {
+      aServiceName = serviceName;
+      aEndpointName = endpointName;
+      aEndpointLocation = endpointLocation;
     }
 
     @Override
@@ -72,7 +68,7 @@ public final class MessagingRegistry {
    * @author Paul de Vrieze
    * @param <T> The return value of the future.
    */
-  private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener {
+  private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener<T> {
 
     private final ISendableMessage aMessage;
 
@@ -86,22 +82,22 @@ public final class MessagingRegistry {
 
     private Class<?>[] aReturnTypeContext;
 
-    public WrappingFuture(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, final Class<?>[] pReturnTypeContext) {
-      aMessage = pMessage;
-      aCompletionListener = pCompletionListener;
-      aReturnType = pReturnType;
-      aReturnTypeContext = pReturnTypeContext;
+    public WrappingFuture(final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType, final Class<?>[] returnTypeContext) {
+      aMessage = message;
+      aCompletionListener = completionListener;
+      aReturnType = returnType;
+      aReturnTypeContext = returnTypeContext;
     }
 
     @Override
-    public synchronized boolean cancel(final boolean pMayInterruptIfRunning) {
+    public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
       if (aOrigin == null) {
         aCancelled = true;
         if (aCompletionListener != null) {
           aCompletionListener.onMessageCompletion(this);
         }
       } else {
-        aCancelled = aOrigin.cancel(pMayInterruptIfRunning);
+        aCancelled = aOrigin.cancel(mayInterruptIfRunning);
       }
       return aCancelled;
     }
@@ -134,20 +130,20 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public synchronized T get(final long pTimeout, final TimeUnit pUnit) throws InterruptedException, ExecutionException, TimeoutException {
+    public synchronized T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
       if (aOrigin == null) {
         final long startTime = System.currentTimeMillis();
         try {
-          if (pUnit == TimeUnit.NANOSECONDS) {
-            wait(pUnit.toMillis(pTimeout), (int) (pUnit.toNanos(pTimeout) % 1000000));
+          if (unit == TimeUnit.NANOSECONDS) {
+            wait(unit.toMillis(timeout), (int) (unit.toNanos(timeout) % 1000000));
           } else {
-            wait(pUnit.toMillis(pTimeout));
+            wait(unit.toMillis(timeout));
           }
         } catch (final InterruptedException e) {
           if (aOrigin != null) {
             // Assume we are woken up because of the change not another interruption.
             final long currentTime = System.currentTimeMillis();
-            final long millisLeft = pUnit.toMillis(pTimeout) - (currentTime - startTime);
+            final long millisLeft = unit.toMillis(timeout) - (currentTime - startTime);
             if (millisLeft > 0) {
               return aOrigin.get(millisLeft, TimeUnit.MILLISECONDS);
             } else {
@@ -166,15 +162,15 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public synchronized void execute(final IMessenger pMessenger) {
+    public synchronized void execute(final IMessenger messenger) {
       if (!aCancelled) {
-        aOrigin = pMessenger.sendMessage(aMessage, this, aReturnType, aReturnTypeContext);
+        aOrigin = messenger.sendMessage(aMessage, this, aReturnType, aReturnTypeContext);
       }
       notifyAll(); // Wake up all waiters (should be only one)
     }
 
     @Override
-    public void onMessageCompletion(final Future<?> pFuture) {
+    public void onMessageCompletion(final Future<? extends T> future) {
       if (aCompletionListener != null) {
         aCompletionListener.onMessageCompletion(this);
       }
@@ -193,10 +189,10 @@ public final class MessagingRegistry {
     /**
      * Execute the command
      *
-     * @param pMessenger The messenger to use. (this should be a real messenger,
+     * @param messenger The messenger to use. (this should be a real messenger,
      *          not a stub).
      */
-    void execute(IMessenger pMessenger);
+    void execute(IMessenger messenger);
   }
 
   /**
@@ -216,21 +212,21 @@ public final class MessagingRegistry {
 
       private final URI mTarget;
 
-      private RegisterEndpointCommand(String pEndPoint, QName pService, URI pTarget) {
-        mEndPoint = pEndPoint;
-        mService = pService;
-        mTarget = pTarget;
+      private RegisterEndpointCommand(String endPoint, QName service, URI target) {
+        mEndPoint = endPoint;
+        mService = service;
+        mTarget = target;
       }
 
-      public RegisterEndpointCommand(EndpointDescriptor pEndpoint) {
-        mEndPoint = pEndpoint.getEndpointName();
-        mService = pEndpoint.getServiceName();
-        mTarget = pEndpoint.getEndpointLocation();
+      public RegisterEndpointCommand(EndpointDescriptor endpoint) {
+        mEndPoint = endpoint.getEndpointName();
+        mService = endpoint.getServiceName();
+        mTarget = endpoint.getEndpointLocation();
       }
 
       @Override
-      public void execute(final IMessenger pMessenger) {
-        pMessenger.registerEndpoint(mService, mEndPoint, mTarget);
+      public void execute(final IMessenger messenger) {
+        messenger.registerEndpoint(mService, mEndPoint, mTarget);
       }
     }
 
@@ -238,17 +234,17 @@ public final class MessagingRegistry {
 
     Queue<MessengerCommand> aCommandQueue;
 
-    StubMessenger(IMessenger pOldMessenger) {
+    StubMessenger(IMessenger oldMessenger) {
       aCommandQueue = new ArrayDeque<>();
-      if (pOldMessenger!=null) {
-        for(EndpointDescriptor endpoint: pOldMessenger.getRegisteredEndpoints()) {
+      if (oldMessenger!=null) {
+        for(EndpointDescriptor endpoint: oldMessenger.getRegisteredEndpoints()) {
           aCommandQueue.add(new RegisterEndpointCommand(endpoint));
         }
       }
     }
 
-    public synchronized void flushTo(final IMessenger pMessenger) {
-      aRealMessenger = pMessenger;
+    public synchronized void flushTo(final IMessenger messenger) {
+      aRealMessenger = messenger;
       for (final MessengerCommand command : aCommandQueue) {
         command.execute(aRealMessenger);
       }
@@ -256,44 +252,44 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public EndpointDescriptor registerEndpoint(final QName pService, final String pEndPoint, final URI pTarget) {
+    public EndpointDescriptor registerEndpoint(final QName service, final String endPoint, final URI target) {
       synchronized (this) {
         if (aRealMessenger == null) {
-          aCommandQueue.add(new RegisterEndpointCommand(pEndPoint, pService, pTarget));
-          return new SimpleEndpointDescriptor(pService, pEndPoint, pTarget);
+          aCommandQueue.add(new RegisterEndpointCommand(endPoint, service, target));
+          return new SimpleEndpointDescriptor(service, endPoint, target);
         }
       }
-      return aRealMessenger.registerEndpoint(pService, pEndPoint, pTarget);
+      return aRealMessenger.registerEndpoint(service, endPoint, target);
     }
 
     @Override
-    public void registerEndpoint(final EndpointDescriptor pEndpoint) {
+    public void registerEndpoint(final EndpointDescriptor endpoint) {
       synchronized (this) {
         if (aRealMessenger == null) {
           aCommandQueue.add(new MessengerCommand() {
 
             @Override
-            public void execute(final IMessenger pMessenger) {
-              pMessenger.registerEndpoint(pEndpoint);
+            public void execute(final IMessenger messenger) {
+              messenger.registerEndpoint(endpoint);
             }
 
           });
           return;
         }
       }
-      aRealMessenger.registerEndpoint(pEndpoint);
+      aRealMessenger.registerEndpoint(endpoint);
     }
 
     @Override
-    public <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, Class<?>[] pReturnTypeContext) {
+    public <T> Future<T> sendMessage(final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType, Class<?>[] returnTypeContext) {
       synchronized (this) {
         if (aRealMessenger == null) {
-          final WrappingFuture<T> future = new WrappingFuture<>(pMessage, pCompletionListener, pReturnType, pReturnTypeContext);
+          final WrappingFuture<T> future = new WrappingFuture<>(message, completionListener, returnType, returnTypeContext);
           aCommandQueue.add(future);
           return future;
         }
       }
-      return aRealMessenger.sendMessage(pMessage, pCompletionListener, pReturnType, pReturnTypeContext);
+      return aRealMessenger.sendMessage(message, completionListener, returnType, returnTypeContext);
     }
 
     @Override
@@ -312,21 +308,21 @@ public final class MessagingRegistry {
     }
 
     @Override
-    public boolean unregisterEndpoint(final EndpointDescriptor pEndpoint) {
+    public boolean unregisterEndpoint(final EndpointDescriptor endpoint) {
       synchronized (this) {
         if (aRealMessenger == null) {
           aCommandQueue.add(new MessengerCommand() {
 
             @Override
-            public void execute(final IMessenger pMessenger) {
-              pMessenger.unregisterEndpoint(pEndpoint);
+            public void execute(final IMessenger messenger) {
+              messenger.unregisterEndpoint(endpoint);
             }
 
           });
           return true;
         }
       }
-      return aRealMessenger.unregisterEndpoint(pEndpoint);
+      return aRealMessenger.unregisterEndpoint(endpoint);
     }
 
   }
@@ -339,23 +335,23 @@ public final class MessagingRegistry {
    * replaced the only valid option is to first invoke the method with
    * <code>null</code> to unregister the messenger, and then register a new one.
    *
-   * @param pMessenger Pass <code>null</code> to unregister the current
+   * @param messenger Pass <code>null</code> to unregister the current
    *          messenger, otherwhise pass a messenger.
    */
-  public static synchronized void registerMessenger(final IMessenger pMessenger) {
-    if (pMessenger == null) {
+  public static synchronized void registerMessenger(final IMessenger messenger) {
+    if (messenger == null) {
       if (! (aMessenger instanceof StubMessenger)) {
         aMessenger = new StubMessenger(aMessenger);
       }
       return;
     } else if (aMessenger instanceof StubMessenger) {
-      ((StubMessenger) aMessenger).flushTo(pMessenger);
-      aMessenger = pMessenger;
+      ((StubMessenger) aMessenger).flushTo(messenger);
+      aMessenger = messenger;
     } else if (aMessenger != null) {
 
       throw new IllegalStateException("It is not allowed to register multiple messengers");
     }
-    aMessenger = pMessenger;
+    aMessenger = messenger;
     if (aMessenger != null) {
       Logger.getAnonymousLogger().info("New messenger registered: " + aMessenger.getClass().getName());
     }
@@ -378,20 +374,20 @@ public final class MessagingRegistry {
 
   /**
    * Convenience method to send messages. This is equivalent to and invokes
-   * {@link IMessenger#sendMessage(ISendableMessage, CompletionListener, Class)}
+   * {@link IMessenger#sendMessage(ISendableMessage, CompletionListener, Class, Class[])}
    * .
    *
-   * @param pMessage The message to be sent.
-   * @param pCompletionListener The completionListener to use when the message
+   * @param message The message to be sent.
+   * @param completionListener The completionListener to use when the message
    *          response is ready.
-   * @param pReturnType The type of the return value of the sending.
-   * @param pReturnTypeContext
+   * @param returnType The type of the return value of the sending.
+   * @param returnTypeContext
    * @return A future that can be used to retrieve the result of the sending.
    *         This result will also be passed along to the completionListener.
-   * @see IMessenger#sendMessage(ISendableMessage, CompletionListener, Class)
+   * @see IMessenger#sendMessage(ISendableMessage, CompletionListener, Class, Class[])
    */
-  public static <T> Future<T> sendMessage(final ISendableMessage pMessage, final CompletionListener pCompletionListener, final Class<T> pReturnType, Class<?>[] pReturnTypeContext) {
-    return getMessenger().sendMessage(pMessage, pCompletionListener, pReturnType, pReturnTypeContext);
+  public static <T> Future<T> sendMessage(final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType, Class<?>[] returnTypeContext) {
+    return getMessenger().sendMessage(message, completionListener, returnType, returnTypeContext);
   }
 
 }

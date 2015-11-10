@@ -15,9 +15,9 @@ public interface DirectEndpoint extends Endpoint {
   /**
    * Direct delivery of the given message.
    *
-   * @param pMessage The message to deliver
-   * @param pCompletionListener The completion Listener to notify of completion.
+   * @param message The message to deliver
+   * @param completionListener The completion Listener to notify of completion.
    */
-  public <T> Future<T> deliverMessage(ISendableMessage pMessage, CompletionListener pCompletionListener, Class<T> pReturnType);
+  public <T> Future<T> deliverMessage(ISendableMessage message, CompletionListener completionListener, Class<T> returnType);
 
 }

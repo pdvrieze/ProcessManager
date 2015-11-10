@@ -1,9 +1,9 @@
 package uk.ac.bournemouth.darwin.catalina.realm;
 
+import net.devrieze.util.StringCache;
+
 import java.security.Principal;
 import java.util.Set;
-
-import net.devrieze.util.StringCache;
 
 
 /**
@@ -25,11 +25,11 @@ public interface DarwinPrincipal extends Principal {
    * implementation some caching can occur and therefore the answer might not
    * reflect very recent changes in the database.
    *
-   * @param pRoleName The role to verify.
+   * @param roleName The role to verify.
    * @return <code>true</code> if the user has the role, <code>false</code> if
    *         not.
    */
-  boolean hasRole(String pRoleName);
+  boolean hasRole(String roleName);
 
   /**
    * Get the email address of the user.
@@ -51,11 +51,11 @@ public interface DarwinPrincipal extends Principal {
    * Create a copy principal that uses the given stringcache to reuse strings.
    * This should save memory as well as make comparison faster.
    *
-   * @param pStringCache The stringcache to use for reusing strings.
+   * @param stringCache The stringcache to use for reusing strings.
    * @return A principal using the de-duped strings. Note that this may, but
    *         does not ahve to return the original princpal.
    */
-  Principal cacheStrings(StringCache pStringCache);
+  Principal cacheStrings(StringCache stringCache);
 
 
 }
