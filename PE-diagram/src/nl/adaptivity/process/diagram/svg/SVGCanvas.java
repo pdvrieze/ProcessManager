@@ -38,19 +38,19 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   private static abstract class BaseRect<M extends MeasureInfo> extends PaintedElem<M> {
-    final Rectangle aBounds;
+    final Rectangle mBounds;
 
     BaseRect(Rectangle bounds, SVGPen<M> color) {
       super(color);
-      aBounds = bounds;
+      mBounds = bounds;
     }
 
     void serializeRect(SerializerAdapter out) {
       out.startTag(SVG_NAMESPACE, "rect", true);
-      out.addAttribute(null, "x", Double.toString(aBounds.left));
-      out.addAttribute(null, "y", Double.toString(aBounds.top));
-      out.addAttribute(null, "width", Double.toString(aBounds.width));
-      out.addAttribute(null, "height", Double.toString(aBounds.height));
+      out.addAttribute(null, "x", Double.toString(mBounds.left));
+      out.addAttribute(null, "y", Double.toString(mBounds.top));
+      out.addAttribute(null, "width", Double.toString(mBounds.width));
+      out.addAttribute(null, "height", Double.toString(mBounds.height));
     }
   }
 
@@ -85,19 +85,19 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   private static abstract class BaseRoundRect<M extends MeasureInfo> extends BaseRect<M> {
-    final double aRx;
-    final double aRy;
+    final double mRx;
+    final double mRy;
 
     BaseRoundRect(Rectangle bounds, double rx, double ry, SVGPen<M> color) {
       super(bounds, color);
-      aRx = rx;
-      aRy = ry;
+      mRx = rx;
+      mRy = ry;
     }
 
     void serializeRoundRect(SerializerAdapter out) {
       serializeRect(out);
-      out.addAttribute(null, "rx", Double.toString(aRx));
-      out.addAttribute(null, "ry", Double.toString(aRy));
+      out.addAttribute(null, "rx", Double.toString(mRx));
+      out.addAttribute(null, "ry", Double.toString(mRy));
     }
   }
 
@@ -242,26 +242,26 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class SubCanvas<M extends MeasureInfo> extends SVGCanvas<M> implements IPaintedElem {
 
-    final double aScale;
-    final double aX;
-    final double aY;
+    final double mScale;
+    final double mX;
+    final double mY;
 
     SubCanvas(SVGStrategy<M> strategy, Rectangle area, double scale) {
       super(strategy);
-      aX = area.left;
-      aY = area.top;
-      aScale = scale;
+      mX = area.left;
+      mY = area.top;
+      mScale = scale;
     }
 
     @Override
     public void serialize(SerializerAdapter out) {
       out.startTag(SVG_NAMESPACE, "g", true);
-      if (aX==0 && aY==0) {
-        out.addAttribute(null, "transform", "scale("+aScale+")");
+      if (mX==0 && mY==0) {
+        out.addAttribute(null, "transform", "scale("+mScale+")");
       } else {
-        out.addAttribute(null, "transform", "matrix("+aScale+",0,0,"+aScale+","+aX*aScale+","+aY*aScale+")");
+        out.addAttribute(null, "transform", "matrix("+mScale+",0,0,"+mScale+","+mX*mScale+","+mY*mScale+")");
       }
-      for (IPaintedElem element:this.aPath) {
+      for (IPaintedElem element:this.mPath) {
         element.serialize(out);
       }
       out.endTag(SVG_NAMESPACE, "g", true);
@@ -271,29 +271,29 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static final String SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-  private SVGStrategy<M> aStrategy;
+  private SVGStrategy<M> mStrategy;
   
   private static boolean sUseBaselineAlign = false;
 
-  List<IPaintedElem> aPath = new ArrayList<>();
+  List<IPaintedElem> mPath = new ArrayList<>();
 
-  private Rectangle aBounds;
+  private Rectangle mBounds;
 
 // Only for debug purposes
-//  private SVGPen<M> aRedPen;
-//  private SVGPen<M> aGreenPen;
+//  private SVGPen<M> mRedPen;
+//  private SVGPen<M> mGreenPen;
 
   public SVGCanvas(TextMeasurer<M> textMeasurer) {
     this(new SVGStrategy<>(textMeasurer));
   }
 
   public SVGCanvas(SVGStrategy<M> strategy) {
-    aStrategy = strategy;
+    mStrategy = strategy;
 // Only for debug purposes
-//    aRedPen = aStrategy.newPen();
-//    aRedPen.setColor(0xff, 0, 0);
-//    aGreenPen = aStrategy.newPen();
-//    aGreenPen.setColor(0, 0xff, 0);
+//    mRedPen = mStrategy.newPen();
+//    mRedPen.setColor(0xff, 0, 0);
+//    mGreenPen = mStrategy.newPen();
+//    mGreenPen.setColor(0, 0xff, 0);
   }
 
   public static void serializeStyle(SerializerAdapter out, SVGPen<?> stroke, SVGPen<?> fill, TextPos textPos) {
@@ -403,50 +403,50 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   public void setBounds(Rectangle bounds) {
-    aBounds = bounds;
+    mBounds = bounds;
   }
 
   @Override
   public SVGStrategy<M> getStrategy() {
-    return aStrategy;
+    return mStrategy;
   }
 
   @Override
   public Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> childCanvas(Rectangle area, double scale) {
-    final SubCanvas<M> result = new SubCanvas<>(aStrategy, area, scale);
-    aPath.add(result);
+    final SubCanvas<M> result = new SubCanvas<>(mStrategy, area, scale);
+    mPath.add(result);
     return result;
   }
 
   @Override
   public void drawFilledCircle(double x, double y, double radius, SVGPen<M> color) {
-    aPath.add(new FilledCircle<>(x, y, radius, color.clone()));
+    mPath.add(new FilledCircle<>(x, y, radius, color.clone()));
   }
 
   @Override
   public void drawRect(Rectangle rect, SVGPen<M> color) {
-    aPath.add(new Rect<>(rect, color));
+    mPath.add(new Rect<>(rect, color));
   }
 
   @Override
   public void drawFilledRect(Rectangle rect, SVGPen<M> color) {
-    aPath.add(new FilledRect<>(rect, color));
+    mPath.add(new FilledRect<>(rect, color));
   }
 
   @Override
   public void drawCircle(double x, double y, double radius, SVGPen<M> color) {
-    aPath.add(new Circle<>(x, y, radius, color));
+    mPath.add(new Circle<>(x, y, radius, color));
   }
 
   @Override
   public void drawRoundRect(Rectangle rect, double rx, double ry, SVGPen<M> color) {
-    aPath.add(new RoundRect<>(rect, rx, ry, color));
+    mPath.add(new RoundRect<>(rect, rx, ry, color));
 
   }
 
   @Override
   public void drawFilledRoundRect(Rectangle rect, double rx, double ry, SVGPen<M> color) {
-    aPath.add(new FilledRoundRect<>(rect, rx, ry, color));
+    mPath.add(new FilledRoundRect<>(rect, rx, ry, color));
   }
 
   @Override
@@ -476,12 +476,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   @Override
   public void drawPath(SVGPath path, SVGPen<M> stroke, SVGPen<M> fill) {
-    aPath.add(new PaintedPath<>(path, stroke, fill));
+    mPath.add(new PaintedPath<>(path, stroke, fill));
   }
 
   @Override
   public Theme<SVGStrategy<M>, SVGPen<M>, SVGPath> getTheme() {
-    return new SVGTheme<>(aStrategy);
+    return new SVGTheme<>(mStrategy);
   }
 
   @Override
@@ -493,10 +493,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     } else {
       adjustedY = adjustToBaseline(textPos, y, pen);
     }
-    aPath.add(new DrawText<>(textPos, x, adjustedY, text, foldWidth, pen.clone()));
+    mPath.add(new DrawText<>(textPos, x, adjustedY, text, foldWidth, pen.clone()));
 // Only for debug purposes
-//    aPath.add(new FilledCircle<>(pX, pY, 1d, aGreenPen));
-//    aPath.add(new FilledCircle<>(pX, y, 1d, aRedPen));
+//    mPath.add(new FilledCircle<>(pX, pY, 1d, mGreenPen));
+//    mPath.add(new FilledCircle<>(pX, y, 1d, mRedPen));
   }
 
   private double adjustToBaseline(nl.adaptivity.diagram.Canvas.TextPos textPos, double y, SVGPen<M> pen) {
@@ -533,10 +533,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     out.addNamespace(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
     out.startTag(SVG_NAMESPACE, "svg", true);
     out.addAttribute(null, "version", "1.1");
-    out.addAttribute(null, "width", Double.toString(aBounds.width+aBounds.left*2));
-    out.addAttribute(null, "height", Double.toString(aBounds.height+aBounds.top*2));
+    out.addAttribute(null, "width", Double.toString(mBounds.width+mBounds.left*2));
+    out.addAttribute(null, "height", Double.toString(mBounds.height+mBounds.top*2));
 
-    for (IPaintedElem element:aPath) {
+    for (IPaintedElem element:mPath) {
       element.serialize(out);
     }
 

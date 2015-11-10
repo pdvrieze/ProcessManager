@@ -7,17 +7,17 @@ import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 public class SVGTheme<M extends MeasureInfo> implements Theme<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
-  private SVGStrategy<M> aStrategy;
+  private SVGStrategy<M> mStrategy;
 
   public SVGTheme(SVGStrategy<M> strategy) {
-    aStrategy = strategy;
+    mStrategy = strategy;
   }
 
   @Override
   public SVGPen<M> getPen(ThemeItem item, int state) {
     int itemState = item.getEffectiveState(state);
 
-    return item.createPen(aStrategy, itemState);
+    return item.createPen(mStrategy, itemState);
   }
 
 }

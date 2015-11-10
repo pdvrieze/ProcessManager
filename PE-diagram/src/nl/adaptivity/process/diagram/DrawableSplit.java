@@ -63,7 +63,7 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     super.draw(canvas, clipBounds);
     final S strategy = canvas.getStrategy();
-    PATH_T path = aItems.getPath(strategy, 1);
+    PATH_T path = mItems.getPath(strategy, 1);
     if (path==null) {
       path = strategy.newPath();
       if (CURVED_ARROWS) {
@@ -87,7 +87,7 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
           .lineTo(CENTERX+ARROWHEADDX,CENTERY+ARROWHEADDY)
           .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR,CENTERY+ARROWHEADDY-ARROWDFAR);
 
-      aItems.setPath(strategy, 1, path);
+      mItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
       PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState() & ~STATE_TOUCHED);

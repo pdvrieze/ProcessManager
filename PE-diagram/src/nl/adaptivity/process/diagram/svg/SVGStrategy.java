@@ -6,15 +6,15 @@ import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 public class SVGStrategy<M extends MeasureInfo> implements DrawingStrategy<SVGStrategy<M>, SVGPen<M>, SVGPath> {
 
-  private TextMeasurer<M> aTextMeasurer;
+  private TextMeasurer<M> mTextMeasurer;
 
   public SVGStrategy(TextMeasurer<M> textMeasurer) {
-    aTextMeasurer = textMeasurer;
+    mTextMeasurer = textMeasurer;
   }
 
   @Override
   public SVGPen<M> newPen() {
-    return new SVGPen<>(aTextMeasurer);
+    return new SVGPen<>(mTextMeasurer);
   }
 
   @Override

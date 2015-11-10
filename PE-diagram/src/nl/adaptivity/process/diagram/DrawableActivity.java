@@ -21,7 +21,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
   private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
-  private int aState = STATE_DEFAULT;
+  private int mState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
   public DrawableActivity() {
@@ -34,7 +34,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   public DrawableActivity(DrawableActivity drawableActivity) {
     super(drawableActivity);
-    aState = drawableActivity.aState;
+    mState = drawableActivity.mState;
   }
 
   @Override
@@ -72,13 +72,13 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public int getState() {
-    return aState;
+    return mState;
   }
 
   @Override
   public void setState(int state) {
-    if (state==aState) { return ; }
-    aState = state;
+    if (state==mState) { return ; }
+    mState = state;
     if (getOwner()!=null) {
       getOwner().nodeChanged(this);
     }
@@ -87,12 +87,12 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
-      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
-      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState & ~STATE_TOUCHED);
+      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, mState);
 
       if (_bounds==null) { _bounds = new Rectangle(STROKEWIDTH/2,STROKEWIDTH/2, ACTIVITYWIDTH, ACTIVITYHEIGHT); }
 
-      if ((aState&STATE_TOUCHED)!=0) {
+      if ((mState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
         canvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, touchedPen);
       }
@@ -104,7 +104,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
-    PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, aState);
+    PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, mState);
     String label = getLabel();
     if (label==null) { label = getName(); }
     if (label==null && getOwner()!=null) {

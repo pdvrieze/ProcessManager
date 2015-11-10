@@ -25,152 +25,152 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   static final String PROCESSMODEL_NS = NS_PM;
 
-  private String aName;
+  private String mName;
 
-  private ProcessNodeSet<T> aNodes;
+  private ProcessNodeSet<T> mNodes;
 
-  private double aTopPadding = 5d;
-  private double aLeftPadding = 5d;
-  private double aBottomPadding = 5d;
-  private double aRightPadding = 5d;
+  private double mTopPadding = 5d;
+  private double mLeftPadding = 5d;
+  private double mBottomPadding = 5d;
+  private double mRightPadding = 5d;
 
-  LayoutAlgorithm<T> aLayoutAlgorithm;
+  LayoutAlgorithm<T> mLayoutAlgorithm;
 
   private boolean mNeedsLayout = false;
 
-  private UUID aUuid;
+  private UUID mUuid;
 
-  private Principal aOwner;
+  private Principal mOwner;
 
-  private Set<String> aRoles;
+  private Set<String> mRoles;
 
-  private Collection<IXmlResultType> aImports;
+  private Collection<IXmlResultType> mImports;
 
-  private Collection<IXmlDefineType> aExports;
+  private Collection<IXmlDefineType> mExports;
 
   public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes) {
     this(uuid, name, nodes, new LayoutAlgorithm<T>());
   }
 
   public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes, LayoutAlgorithm<T> layoutAlgorithm) {
-    aName = name;
-    aLayoutAlgorithm = layoutAlgorithm == null ? new LayoutAlgorithm<T>() : layoutAlgorithm;
+    mName = name;
+    mLayoutAlgorithm = layoutAlgorithm == null ? new LayoutAlgorithm<T>() : layoutAlgorithm;
     setNodes(nodes);
-    aUuid = uuid==null ? UUID.randomUUID() : uuid;
+    mUuid = uuid==null ? UUID.randomUUID() : uuid;
   }
 
   public void setNodes(final Collection<? extends T> nodes) {
-    aNodes = ProcessNodeSet.processNodeSet(nodes);
-    for(T node: aNodes) {
+    mNodes = ProcessNodeSet.processNodeSet(nodes);
+    for(T node: mNodes) {
       node.setOwner(this);
     }
     invalidate();
   }
 
   public LayoutAlgorithm<T> getLayoutAlgorithm() {
-    return aLayoutAlgorithm;
+    return mLayoutAlgorithm;
   }
 
   public void setLayoutAlgorithm(LayoutAlgorithm<T> layoutAlgorithm) {
-    aLayoutAlgorithm = layoutAlgorithm;
+    mLayoutAlgorithm = layoutAlgorithm;
   }
 
   public double getVertSeparation() {
-    return aLayoutAlgorithm.getVertSeparation();
+    return mLayoutAlgorithm.getVertSeparation();
   }
 
 
   public void setVertSeparation(double vertSeparation) {
-    if (aLayoutAlgorithm.getVertSeparation()!=vertSeparation) {
+    if (mLayoutAlgorithm.getVertSeparation()!=vertSeparation) {
       invalidate();
     }
-    aLayoutAlgorithm.setVertSeparation(vertSeparation);
+    mLayoutAlgorithm.setVertSeparation(vertSeparation);
   }
 
 
   public double getHorizSeparation() {
-    return aLayoutAlgorithm.getHorizSeparation();
+    return mLayoutAlgorithm.getHorizSeparation();
   }
 
 
   public void setHorizSeparation(double horizSeparation) {
-    if (aLayoutAlgorithm.getHorizSeparation()!=horizSeparation) {
+    if (mLayoutAlgorithm.getHorizSeparation()!=horizSeparation) {
       invalidate();
     }
-    aLayoutAlgorithm.setHorizSeparation(horizSeparation);
+    mLayoutAlgorithm.setHorizSeparation(horizSeparation);
   }
 
   public double getDefaultNodeWidth() {
-    return aLayoutAlgorithm.getDefaultNodeWidth();
+    return mLayoutAlgorithm.getDefaultNodeWidth();
   }
 
 
   public void setDefaultNodeWidth(double defaultNodeWidth) {
-    if (aLayoutAlgorithm.getDefaultNodeWidth()!=defaultNodeWidth) {
+    if (mLayoutAlgorithm.getDefaultNodeWidth()!=defaultNodeWidth) {
       invalidate();
     }
-    aLayoutAlgorithm.setDefaultNodeWidth(defaultNodeWidth);
+    mLayoutAlgorithm.setDefaultNodeWidth(defaultNodeWidth);
   }
 
 
   public double getDefaultNodeHeight() {
-    return aLayoutAlgorithm.getDefaultNodeHeight();
+    return mLayoutAlgorithm.getDefaultNodeHeight();
   }
 
 
   public void setDefaultNodeHeight(double defaultNodeHeight) {
-    if (aLayoutAlgorithm.getDefaultNodeHeight()!=defaultNodeHeight) {
+    if (mLayoutAlgorithm.getDefaultNodeHeight()!=defaultNodeHeight) {
       invalidate();
     }
-    aLayoutAlgorithm.setDefaultNodeHeight(defaultNodeHeight);
+    mLayoutAlgorithm.setDefaultNodeHeight(defaultNodeHeight);
   }
 
 
   public double getTopPadding() {
-    return aTopPadding;
+    return mTopPadding;
   }
 
 
   public void setTopPadding(double topPadding) {
-    double offset = topPadding-aTopPadding;
-    for(T n:aNodes) {
+    double offset = topPadding-mTopPadding;
+    for(T n:mNodes) {
       n.setY(n.getY()+offset);
     }
-    aTopPadding = topPadding;
+    mTopPadding = topPadding;
   }
 
 
   public double getLeftPadding() {
-    return aLeftPadding;
+    return mLeftPadding;
   }
 
 
   public void setLeftPadding(double leftPadding) {
-    double offset = leftPadding-aLeftPadding;
-    for(T n:aNodes) {
+    double offset = leftPadding-mLeftPadding;
+    for(T n:mNodes) {
       n.setX(n.getX()+offset);
     }
-    aLeftPadding = leftPadding;
+    mLeftPadding = leftPadding;
   }
 
 
   public double getBottomPadding() {
-    return aBottomPadding;
+    return mBottomPadding;
   }
 
 
   public void setBottomPadding(double bottomPadding) {
-    aBottomPadding = bottomPadding;
+    mBottomPadding = bottomPadding;
   }
 
 
   public double getRightPadding() {
-    return aRightPadding;
+    return mRightPadding;
   }
 
 
   public void setRightPadding(double rightPadding) {
-    aRightPadding = rightPadding;
+    mRightPadding = rightPadding;
   }
 
 
@@ -179,7 +179,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   public void resetLayout() {
-    for (T n:aNodes) {
+    for (T n:mNodes) {
       n.setX(Double.NaN);
       n.setY(Double.NaN);
     }
@@ -199,11 +199,11 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   @Override
   public UUID getUuid() {
-    return aUuid;
+    return mUuid;
   }
 
   public void setUuid(UUID uuid) {
-    aUuid = uuid;
+    mUuid = uuid;
   }
 
   @Override
@@ -241,47 +241,47 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   @Override
   public List<? extends T> getModelNodes() {
-    if (aNodes == null) {
-      aNodes = ProcessNodeSet.processNodeSet();
+    if (mNodes == null) {
+      mNodes = ProcessNodeSet.processNodeSet();
     }
-    return aNodes;
+    return mNodes;
   }
 
   @Override
   public String getName() {
-    return aName;
+    return mName;
   }
 
   public void setName(String name) {
-    aName = name;
+    mName = name;
   }
 
   public void setOwner(String owner) {
-    aOwner = new SimplePrincipal(owner);
+    mOwner = new SimplePrincipal(owner);
   }
 
   public void setOwner(Principal owner) {
-    aOwner = owner;
+    mOwner = owner;
   }
 
   @Override
   public Principal getOwner() {
-    return aOwner;
+    return mOwner;
   }
 
   @Override
   public Collection<IXmlResultType> getImports() {
-    return aImports;
+    return mImports;
   }
 
   @Override
   public Collection<IXmlDefineType> getExports() {
-    return aExports;
+    return mExports;
   }
 
   @Override
   public Set<String> getRoles() {
-    return aRoles;
+    return mRoles;
   }
 
   @Override
@@ -296,20 +296,20 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   public void addNode(T node) {
-    aNodes.add(node);
+    mNodes.add(node);
     node.setOwner(this);
     // Make sure that children can know of the change.
     nodeChanged(node);
   }
 
   public void removeNode(int nodePos) {
-    T node = aNodes.remove(nodePos);
+    T node = mNodes.remove(nodePos);
     disconnectNode(node);
   }
 
   void removeNode(T node) {
     if (node==null) { return; }
-    if (aNodes.remove(node)) {
+    if (mNodes.remove(node)) {
       disconnectNode(node);
     }
   }
@@ -321,7 +321,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
 
   public void layout() {
     final List<DiagramNode<T>> diagramNodes = toDiagramNodes(getModelNodes());
-    if(aLayoutAlgorithm.layout(diagramNodes)) {
+    if(mLayoutAlgorithm.layout(diagramNodes)) {
       double maxX = Double.MIN_VALUE;
       double maxY = Double.MIN_VALUE;
       for(DiagramNode<T> n:diagramNodes) {
@@ -339,13 +339,13 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     out.addNamespace("jbi", NS_JBI);
 
     out.startTag(NS_PM, "processModel", true);
-    if (aName!=null) {
-      out.addAttribute(null, "name", aName);
+    if (mName!=null) {
+      out.addAttribute(null, "name", mName);
     }
-    if (aUuid!=null) {
-      out.addAttribute(null, "uuid", aUuid.toString());
+    if (mUuid!=null) {
+      out.addAttribute(null, "uuid", mUuid.toString());
     }
-    for(T node:aNodes) {
+    for(T node:mNodes) {
       node.serialize(out);
     }
     out.endTag(NS_PM, "processModel", true);
@@ -378,8 +378,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
           node.setY(tmpY);
         }
       } else {
-        leftExtend = rightExtend = aLayoutAlgorithm.getDefaultNodeWidth()/2;
-        topExtend = bottomExtend = aLayoutAlgorithm.getDefaultNodeHeight()/2;
+        leftExtend = rightExtend = mLayoutAlgorithm.getDefaultNodeWidth()/2;
+        topExtend = bottomExtend = mLayoutAlgorithm.getDefaultNodeHeight()/2;
       }
       DiagramNode<T> dn = new DiagramNode<>(node, leftExtend, rightExtend, topExtend, bottomExtend);
       if (node.getId()!=null) {

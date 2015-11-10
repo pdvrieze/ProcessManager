@@ -15,12 +15,12 @@ public class SVGPath implements DiagramPath<SVGPath>{
   }
 
   private static abstract class OperTo implements IPathElem {
-    final double aX;
-    final double aY;
+    final double mX;
+    final double mY;
 
     public OperTo(double x, double y) {
-      aX = x;
-      aY = y;
+      mX = x;
+      mY = y;
     }
 
   }
@@ -32,7 +32,7 @@ public class SVGPath implements DiagramPath<SVGPath>{
 
     @Override
     public void appendPathSpecTo(StringBuilder builder) {
-      builder.append("M").append(aX).append(' ').append(aY).append(' ');
+      builder.append("M").append(mX).append(' ').append(mY).append(' ');
     }
   }
 
@@ -43,29 +43,29 @@ public class SVGPath implements DiagramPath<SVGPath>{
 
     @Override
     public void appendPathSpecTo(StringBuilder builder) {
-      builder.append("L").append(aX).append(' ').append(aY).append(' ');
+      builder.append("L").append(mX).append(' ').append(mY).append(' ');
     }
   }
 
   private static class CubicTo extends OperTo {
-    private final double aCX1;
-    private final double aCY1;
-    private final double aCX2;
-    private final double aCY2;
+    private final double mCX1;
+    private final double mCY1;
+    private final double mCX2;
+    private final double mCY2;
 
     public CubicTo(double cX1, double cY1, double cX2, double cY2, double x, double y) {
       super(x, y);
-      aCX1 = cX1;
-      aCY1 = cY1;
-      aCX2 = cX2;
-      aCY2 = cY2;
+      mCX1 = cX1;
+      mCY1 = cY1;
+      mCX2 = cX2;
+      mCY2 = cY2;
     }
 
     @Override
     public void appendPathSpecTo(StringBuilder builder) {
-      builder.append("C").append(aCX1).append(' ').append(aCY1).append(' ')
-                          .append(aCX2).append(' ').append(aCY2).append(' ')
-                          .append(aX).append(' ').append(aY).append(' ');
+      builder.append("C").append(mCX1).append(' ').append(mCY1).append(' ')
+                          .append(mCX2).append(' ').append(mCY2).append(' ')
+                          .append(mX).append(' ').append(mY).append(' ');
     }
   }
 
@@ -78,35 +78,35 @@ public class SVGPath implements DiagramPath<SVGPath>{
 
   }
 
-  private List<IPathElem> aPath = new ArrayList<>();
+  private List<IPathElem> mPath = new ArrayList<>();
 
   @Override
   public SVGPath moveTo(double x, double y) {
-    aPath.add(new MoveTo(x, y));
+    mPath.add(new MoveTo(x, y));
     return this;
   }
 
   @Override
   public SVGPath lineTo(double x, double y) {
-    aPath.add(new LineTo(x, y));
+    mPath.add(new LineTo(x, y));
     return this;
   }
 
   @Override
   public SVGPath cubicTo(double x1, double y1, double x2, double y2, double x3, double y3) {
-    aPath.add(new CubicTo(x1, y1, x2, y2, x3, y3));
+    mPath.add(new CubicTo(x1, y1, x2, y2, x3, y3));
     return this;
   }
 
   @Override
   public SVGPath close() {
-    aPath.add(new Close());
+    mPath.add(new Close());
     return this;
   }
 
   public String toPathData() {
     StringBuilder result = new StringBuilder();
-    for(IPathElem elem: aPath) {
+    for(IPathElem elem: mPath) {
       elem.appendPathSpecTo(result);
     }
     return result.toString();

@@ -9,8 +9,8 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements JoinSplit<T>{
 
-  private int aMin=-1;
-  private int aMax=-1;
+  private int mMin=-1;
+  private int mMax=-1;
 
   public ClientJoinSplit() {
     super();
@@ -22,35 +22,35 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
 
   public ClientJoinSplit(ClientJoinSplit<T> orig) {
     super(orig);
-    aMin = orig.aMin;
-    aMax = orig.aMax;
+    mMin = orig.mMin;
+    mMax = orig.mMax;
   }
 
   @Override
   public void setMax(int max) {
-    aMax = max;
+    mMax = max;
   }
 
   @Override
   public int getMax() {
-    return aMax;
+    return mMax;
   }
 
   @Override
   public void setMin(int min) {
-    aMin = min;
+    mMin = min;
   }
 
   @Override
   public int getMin() {
-    return aMin;
+    return mMin;
   }
 
   @Override
   public void serializeCommonAttrs(SerializerAdapter out) {
     super.serializeCommonAttrs(out);
-    if (aMin>=0) { out.addAttribute(null, "min", Integer.toString(aMin)); }
-    if (aMax>=0) { out.addAttribute(null, "max", Integer.toString(aMax)); }
+    if (mMin>=0) { out.addAttribute(null, "min", Integer.toString(mMin)); }
+    if (mMax>=0) { out.addAttribute(null, "max", Integer.toString(mMax)); }
   }
 
   protected void serializeSplit(SerializerAdapter out) {

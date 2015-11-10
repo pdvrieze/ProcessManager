@@ -27,9 +27,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DIAGRAMTEXT_SIZE = JOINHEIGHT/2.4d; // 10dp
   public static final double DIAGRAMLABEL_SIZE = DIAGRAMTEXT_SIZE*1.1; // 11dp
 
-  private ItemCache aItems = new ItemCache();
-  private Rectangle aBounds = new Rectangle(0, 0, 0, 0);
-  private int aState = STATE_DEFAULT;
+  private ItemCache mItems = new ItemCache();
+  private Rectangle mBounds = new Rectangle(0, 0, 0, 0);
+  private int mState = STATE_DEFAULT;
   private int idSeq=0;
 
   public DrawableProcessModel(ProcessModel<?> original) {
@@ -133,10 +133,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public Rectangle getBounds() {
-    if (Double.isNaN(aBounds.left) && getModelNodes().size()>0) {
+    if (Double.isNaN(mBounds.left) && getModelNodes().size()>0) {
       updateBounds();
     }
-    return aBounds;
+    return mBounds;
   }
 
   @Override
@@ -190,18 +190,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
   @Override
   public int getState() {
-    return aState ;
+    return mState ;
   }
 
   @Override
   public void setState(int state) {
-    aState = state;
+    mState = state;
   }
 
   @Override
   public void setNodes(Collection<? extends DrawableProcessNode> nodes) {
     // Null check here as setNodes is called during construction of the parent
-    if (aBounds!=null) { aBounds.left = Double.NaN; }
+    if (mBounds!=null) { mBounds.left = Double.NaN; }
     super.setNodes(nodes);
   }
 
@@ -209,7 +209,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public void layout() {
     super.layout();
     updateBounds();
-    aItems.clearPath(0);
+    mItems.clearPath(0);
   }
 
   @Override
@@ -217,29 +217,29 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     invalidateConnectors();
     // TODO this is not correct as it will only expand the bounds.
     Rectangle nodeBounds = node.getBounds();
-    if (aBounds==null) {
-      aBounds = nodeBounds.clone();
+    if (mBounds==null) {
+      mBounds = nodeBounds.clone();
       return;
     }
-    double right = Math.max(nodeBounds.right(), aBounds.right());
-    double bottom = Math.max(nodeBounds.bottom(), aBounds.bottom());
-    if (nodeBounds.left<aBounds.left) {
-      aBounds.left = nodeBounds.left;
+    double right = Math.max(nodeBounds.right(), mBounds.right());
+    double bottom = Math.max(nodeBounds.bottom(), mBounds.bottom());
+    if (nodeBounds.left<mBounds.left) {
+      mBounds.left = nodeBounds.left;
     }
-    if (nodeBounds.top<aBounds.top) {
-      aBounds.top = nodeBounds.top;
+    if (nodeBounds.top<mBounds.top) {
+      mBounds.top = nodeBounds.top;
     }
-    aBounds.width = right - aBounds.left;
-    aBounds.height = bottom - aBounds.top;
+    mBounds.width = right - mBounds.left;
+    mBounds.height = bottom - mBounds.top;
   }
 
   private void updateBounds() {
     Collection<? extends DrawableProcessNode> modelNodes = getModelNodes();
-    if (modelNodes.isEmpty()) { aBounds.set(0,0,0,0); return; }
+    if (modelNodes.isEmpty()) { mBounds.set(0,0,0,0); return; }
     DrawableProcessNode firstNode = modelNodes.iterator().next();
-    aBounds.set(firstNode.getBounds());
+    mBounds.set(firstNode.getBounds());
     for(DrawableProcessNode node: getModelNodes()) {
-      aBounds.extendBounds(node.getBounds());
+      mBounds.extendBounds(node.getBounds());
     }
   }
 
@@ -247,11 +247,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public void invalidate() {
     super.invalidate();
     invalidateConnectors();
-    if (aBounds!=null) { aBounds.left=Double.NaN; }
+    if (mBounds!=null) { mBounds.left=Double.NaN; }
   }
 
   private void invalidateConnectors() {
-    if (aItems!=null) { aItems.clearPath(0); }
+    if (mItems!=null) { mItems.clearPath(0); }
   }
 
   @Override
@@ -260,9 +260,9 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     Canvas<S, PEN_T, PATH_T> childCanvas = canvas.childCanvas(NULLRECTANGLE, 1d);
     final S strategy = canvas.getStrategy();
 
-    PEN_T arcPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, aState);
+    PEN_T arcPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState);
 
-    List<PATH_T> connectors  = aItems.getPathList(strategy, 0);
+    List<PATH_T> connectors  = mItems.getPathList(strategy, 0);
     if (connectors == null) {
       connectors = new ArrayList<>();
       for(DrawableProcessNode start:getModelNodes()) {
@@ -278,7 +278,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
           }
         }
       }
-      aItems.setPathList(strategy, 0, connectors);
+      mItems.setPathList(strategy, 0, connectors);
     }
 
     for(PATH_T path: connectors) {

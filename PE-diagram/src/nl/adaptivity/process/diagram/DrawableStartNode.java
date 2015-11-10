@@ -17,7 +17,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   private static final double REFERENCE_OFFSET_X = STARTNODERADIUS+(STROKEWIDTH/2);
   private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS+(STROKEWIDTH/2);
-  private int aState = STATE_DEFAULT;
+  private int mState = STATE_DEFAULT;
 
 
   public DrawableStartNode() {
@@ -30,7 +30,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   public DrawableStartNode(DrawableStartNode orig) {
     super(orig);
-    aState = orig.aState;
+    mState = orig.mState;
   }
 
   @Override
@@ -66,21 +66,21 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   @Override
   public int getState() {
-    return aState ;
+    return mState ;
   }
 
   @Override
   public void setState(int state) {
-    aState = state;
+    mState = state;
   }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
       final double realradius=STARTNODERADIUS+(STROKEWIDTH/2);
-      PEN_T fillPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
+      PEN_T fillPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, mState & ~STATE_TOUCHED);
 
-      if ((aState&STATE_TOUCHED)!=0) {
+      if ((mState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
         canvas.drawCircle(realradius, realradius, STARTNODERADIUS, touchedPen);
       }

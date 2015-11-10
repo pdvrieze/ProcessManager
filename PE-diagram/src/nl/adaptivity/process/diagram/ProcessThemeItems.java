@@ -38,39 +38,39 @@ public enum ProcessThemeItems implements ThemeItem {
   DIAGRAMLABEL(DrawableProcessModel.STROKEWIDTH, DrawableProcessModel.DIAGRAMLABEL_SIZE, state(STATE_DEFAULT, 0, 0, 0)),
   ;
 
-  private StateSpecifier[] aSpecifiers;
-  private boolean aFill;
-  private ProcessThemeItems aParent;
-  private double aStroke;
-  private double aFontSize=Double.NaN;
+  private StateSpecifier[] mSpecifiers;
+  private boolean mFill;
+  private ProcessThemeItems mParent;
+  private double mStroke;
+  private double mFontSize=Double.NaN;
 
   private ProcessThemeItems(double stroke, ProcessThemeItems parent) {
-    aFill = false;
-    aStroke = stroke;
-    aParent = parent;
+    mFill = false;
+    mStroke = stroke;
+    mParent = parent;
   }
 
   private ProcessThemeItems(ProcessThemeItems parent) {
-    aFill = true;
-    aParent = parent;
+    mFill = true;
+    mParent = parent;
   }
 
   private ProcessThemeItems(double stroke, StateSpecifier... specifiers) {
-    aSpecifiers = specifiers;
-    aFill = false;
-    aStroke = stroke;
+    mSpecifiers = specifiers;
+    mFill = false;
+    mStroke = stroke;
   }
 
   private ProcessThemeItems(double stroke, double fontSize, StateSpecifier... specifiers) {
-    aSpecifiers = specifiers;
-    aFill = true;
-    aStroke = stroke;
-    aFontSize = fontSize;
+    mSpecifiers = specifiers;
+    mFill = true;
+    mStroke = stroke;
+    mFontSize = fontSize;
   }
 
   private ProcessThemeItems(StateSpecifier... specifiers) {
-    aSpecifiers = specifiers;
-    aFill = true;
+    mSpecifiers = specifiers;
+    mFill = true;
   }
 
   private static StateSpecifier stateStroke(int state, int r, int g, int b, int a, double strokeMultiplier) {
@@ -93,7 +93,7 @@ public enum ProcessThemeItems implements ThemeItem {
 
   @Override
   public int getEffectiveState(int state) {
-    if (aParent!=null) { return aParent.getEffectiveState(state); }
+    if (mParent!=null) { return mParent.getEffectiveState(state); }
     final int result = effectiveStateHelper(state);
     return result>=0 ? result : state;
   }
@@ -110,31 +110,31 @@ public enum ProcessThemeItems implements ThemeItem {
   public <PEN_T extends Pen<PEN_T>> PEN_T createPen(DrawingStrategy<?, PEN_T, ?> strategy, int state) {
     StateSpecifier specifier = getSpecifier(state);
     PEN_T result;
-    result = strategy.newPen().setColor(specifier.aRed, specifier.aGreen, specifier.aBlue, specifier.aAlpha);
-    if (! aFill) {
-      if (aParent!=null) {
-        result.setStrokeWidth((aStroke<=0d ? aParent.aStroke : aStroke) * specifier.getStrokeMultiplier());
+    result = strategy.newPen().setColor(specifier.mRed, specifier.mGreen, specifier.mBlue, specifier.mAlpha);
+    if (! mFill) {
+      if (mParent!=null) {
+        result.setStrokeWidth((mStroke<=0d ? mParent.mStroke : mStroke) * specifier.getStrokeMultiplier());
       } else {
-        result.setStrokeWidth(aStroke * specifier.getStrokeMultiplier());
+        result.setStrokeWidth(mStroke * specifier.getStrokeMultiplier());
       }
     }
-    if (! Double.isNaN(aFontSize)) {
-      result.setFontSize(aFontSize);
+    if (! Double.isNaN(mFontSize)) {
+      result.setFontSize(mFontSize);
     }
     return result;
   }
 
 
   private StateSpecifier getSpecifier(int state) {
-    if (aParent!=null) { return aParent.getSpecifier(state); }
-    for(StateSpecifier candidate: aSpecifiers) {
-      if (candidate.aState==state) {
+    if (mParent!=null) { return mParent.getSpecifier(state); }
+    for(StateSpecifier candidate: mSpecifiers) {
+      if (candidate.mState==state) {
         return candidate;
       }
     }
-    StateSpecifier bestCandidate = aSpecifiers[0];
-    for(StateSpecifier candidate: aSpecifiers) {
-      if ((candidate.aState&state)==candidate.aState && candidate.aState>bestCandidate.aState) {
+    StateSpecifier bestCandidate = mSpecifiers[0];
+    for(StateSpecifier candidate: mSpecifiers) {
+      if ((candidate.mState&state)==candidate.mState && candidate.mState>bestCandidate.mState) {
         bestCandidate = candidate;
       }
     }
@@ -144,18 +144,18 @@ public enum ProcessThemeItems implements ThemeItem {
 
   private static class StateSpecifier {
 
-    private int aState;
-    private int aRed;
-    private int aGreen;
-    private int aBlue;
-    private int aAlpha;
+    private int mState;
+    private int mRed;
+    private int mGreen;
+    private int mBlue;
+    private int mAlpha;
 
     public StateSpecifier(int state, int r, int g, int b, int a) {
-      aState = state;
-      aRed = r;
-      aGreen = g;
-      aBlue = b;
-      aAlpha = a;
+      mState = state;
+      mRed = r;
+      mGreen = g;
+      mBlue = b;
+      mAlpha = a;
     }
 
     public double getStrokeMultiplier() {
@@ -166,16 +166,16 @@ public enum ProcessThemeItems implements ThemeItem {
 
   private static class StrokeStateSpecifier extends StateSpecifier {
 
-    private final double aStrokeMultiplier;
+    private final double mStrokeMultiplier;
 
     public StrokeStateSpecifier(int state, int r, int g, int b, int a, double strokeMultiplier) {
       super(state, r, g, b, a);
-      aStrokeMultiplier = strokeMultiplier;
+      mStrokeMultiplier = strokeMultiplier;
     }
 
     @Override
     public double getStrokeMultiplier() {
-      return aStrokeMultiplier;
+      return mStrokeMultiplier;
     }
 
   }

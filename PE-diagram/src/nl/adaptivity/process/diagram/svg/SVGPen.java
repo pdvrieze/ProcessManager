@@ -6,15 +6,15 @@ import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable {
 
-  private int aColor = 0xff000000;
-  private double aStrokeWidth;
-  private double aFontSize;
-  private boolean aItalics;
-  private TextMeasurer<M> aTextMeasurer;
-  private M aTextMeasureInfo;
+  private int mColor = 0xff000000;
+  private double mStrokeWidth;
+  private double mFontSize;
+  private boolean mItalics;
+  private TextMeasurer<M> mTextMeasurer;
+  private M mTextMeasureInfo;
 
   public SVGPen(TextMeasurer<M> textMeasurer) {
-    aTextMeasurer = textMeasurer;
+    mTextMeasurer = textMeasurer;
   }
 
   @Override
@@ -24,92 +24,92 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
 
   @Override
   public SVGPen<M> setColor(int red, int green, int blue, int alpha) {
-    aColor = (alpha&0xff) << 24 | (red&0xff)<<16 | (green&0xff)<<8 | (blue&0xff);
+    mColor = (alpha&0xff) << 24 | (red&0xff)<<16 | (green&0xff)<<8 | (blue&0xff);
     return this;
   }
 
   public int getColor() {
-    return aColor;
+    return mColor;
   }
 
   @Override
   public SVGPen<M> setStrokeWidth(double strokeWidth) {
-    aStrokeWidth = strokeWidth;
+    mStrokeWidth = strokeWidth;
     return this;
   }
 
   public double getStrokeWidth() {
-    return aStrokeWidth;
+    return mStrokeWidth;
   }
 
   @Override
   public SVGPen<M> setFontSize(double fontSize) {
-    aFontSize = fontSize;
-    if (aTextMeasureInfo!=null) { aTextMeasureInfo.setFontSize(fontSize); }
+    mFontSize = fontSize;
+    if (mTextMeasureInfo!=null) { mTextMeasureInfo.setFontSize(fontSize); }
     return this;
   }
 
   @Override
   public double getFontSize() {
-    return aFontSize;
+    return mFontSize;
   }
 
 
   @Override
   public double measureTextWidth(String text, double foldWidth) {
-    if (aTextMeasureInfo==null) {
-      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.measureTextWidth(aTextMeasureInfo, text, foldWidth);
+    return mTextMeasurer.measureTextWidth(mTextMeasureInfo, text, foldWidth);
   }
 
   @Override
   public double getTextMaxAscent() {
-    if (aTextMeasureInfo==null) {
-      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.getTextMaxAscent(aTextMeasureInfo);
+    return mTextMeasurer.getTextMaxAscent(mTextMeasureInfo);
   }
 
   @Override
   public double getTextAscent() {
-    if (aTextMeasureInfo==null) {
-      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.getTextAscent(aTextMeasureInfo);
+    return mTextMeasurer.getTextAscent(mTextMeasureInfo);
   }
 
   @Override
   public double getTextDescent() {
-    if (aTextMeasureInfo==null) {
-      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.getTextDescent(aTextMeasureInfo);
+    return mTextMeasurer.getTextDescent(mTextMeasureInfo);
   }
 
   @Override
   public double getTextMaxDescent() {
-    if (aTextMeasureInfo==null) {
-      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.getTextMaxDescent(aTextMeasureInfo);
+    return mTextMeasurer.getTextMaxDescent(mTextMeasureInfo);
   }
 
   @Override
   public double getTextLeading() {
-    if (aTextMeasureInfo==null) {
-      aTextMeasureInfo = aTextMeasurer.getTextMeasureInfo(this);
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
-    return aTextMeasurer.getTextLeading(aTextMeasureInfo);
+    return mTextMeasurer.getTextLeading(mTextMeasureInfo);
   }
 
   @Override
   public void setTextItalics(boolean italics) {
-    aItalics = italics;
+    mItalics = italics;
   }
 
   public boolean isTextItalics() {
-    return aItalics;
+    return mItalics;
   }
 
   @SuppressWarnings("unchecked")

@@ -18,7 +18,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   private static final double REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS;
   private static final double REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS;
-  private int aState = STATE_DEFAULT;
+  private int mState = STATE_DEFAULT;
 
 
   public DrawableEndNode() {
@@ -31,7 +31,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   public DrawableEndNode(DrawableEndNode orig) {
     super(orig);
-    aState = orig.aState;
+    mState = orig.mState;
   }
 
   @Override
@@ -67,23 +67,23 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   @Override
   public int getState() {
-    return aState ;
+    return mState ;
   }
 
   @Override
   public void setState(int state) {
-    aState = state;
+    mState = state;
   }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
-      PEN_T outerLinePen = canvas.getTheme().getPen(ProcessThemeItems.ENDNODEOUTERLINE, aState & ~STATE_TOUCHED);
-      PEN_T innerPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, aState & ~STATE_TOUCHED);
+      PEN_T outerLinePen = canvas.getTheme().getPen(ProcessThemeItems.ENDNODEOUTERLINE, mState & ~STATE_TOUCHED);
+      PEN_T innerPen = canvas.getTheme().getPen(ProcessThemeItems.LINEBG, mState & ~STATE_TOUCHED);
 
       double hsw = ENDNODEOUTERSTROKEWIDTH/2;
 
-      if ((aState&STATE_TOUCHED)!=0) {
+      if ((mState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
         canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS, touchedPen);
         canvas.drawCircle(ENDNODEOUTERRADIUS+hsw, ENDNODEOUTERRADIUS+hsw, ENDNODEINNERRRADIUS, touchedPen);

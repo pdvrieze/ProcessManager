@@ -29,8 +29,8 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   protected static final double ARROWHEADANGLE = (35*Math.PI)/180;
   protected static final double ARROWLEN = JOINWIDTH*0.15;
   protected static final double ARROWCONTROLRATIO=0.85;
-  protected final ItemCache aItems = new ItemCache();
-  private int aState = STATE_DEFAULT;
+  protected final ItemCache mItems = new ItemCache();
+  private int mState = STATE_DEFAULT;
 
   public DrawableJoinSplit() {
     super();
@@ -42,7 +42,7 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
 
   public DrawableJoinSplit(DrawableJoinSplit orig) {
     super(orig);
-    aState = orig.aState;
+    mState = orig.mState;
   }
 
   @Override
@@ -74,18 +74,18 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
 
   @Override
   public int getState() {
-    return aState ;
+    return mState ;
   }
 
   @Override
   public void setState(int state) {
-    aState = state;
+    mState = state;
   }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     final S strategy = canvas.getStrategy();
-    PATH_T path = aItems.getPath(strategy, 0);
+    PATH_T path = mItems.getPath(strategy, 0);
     final double dx = JOINWIDTH/2;
     final double hse = STROKEEXTEND/2;
     if (path==null) {
@@ -96,20 +96,20 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
           .lineTo(JOINWIDTH+hse, dy+hse)
           .lineTo(dx+hse, JOINHEIGHT+hse)
           .close();
-      aItems.setPath(strategy, 0, path);
+      mItems.setPath(strategy, 0, path);
     }
     if (hasPos()) {
-      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, aState & ~STATE_TOUCHED);
-      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, aState);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState & ~STATE_TOUCHED);
+      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, mState);
 
-      if ((aState&STATE_TOUCHED)!=0) {
+      if ((mState&STATE_TOUCHED)!=0) {
         PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, STATE_TOUCHED);
         canvas.drawPath(path, touchedPen, null);
       }
       canvas.drawPath(path, linePen, bgPen);
 
       if (getOwner()!=null || getMin()>=0 || getMax()>=0) {
-        PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, aState);
+        PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, mState);
         String s = getMinMaxText();
 
         canvas.drawText(TextPos.DESCENT, hse+dx, -hse, s, Double.MAX_VALUE, textPen);

@@ -11,11 +11,11 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
 
-  private String aName;
+  private String mName;
 
-  private String aCondition;
+  private String mCondition;
 
-  private ClientMessage aMessage;
+  private ClientMessage mMessage;
 
   public ClientActivityNode() {
     super();
@@ -28,29 +28,29 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   protected ClientActivityNode(ClientActivityNode<T> orig) {
     super(orig);
-    aName = orig.aName;
-    aCondition = orig.aCondition;
-    aMessage = orig.aMessage;
+    mName = orig.mName;
+    mCondition = orig.mCondition;
+    mMessage = orig.mMessage;
   }
 
   @Override
   public String getName() {
-    return aName;
+    return mName;
   }
 
   @Override
   public void setName(String name) {
-    aName = name;
+    mName = name;
   }
 
   @Override
   public String getCondition() {
-    return aCondition;
+    return mCondition;
   }
 
   @Override
   public void setCondition(String condition) {
-    aCondition = condition;
+    mCondition = condition;
   }
 
   @Override
@@ -75,12 +75,12 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   @Override
   public IXmlMessage getMessage() {
-    return aMessage;
+    return mMessage;
   }
 
   @Override
   public void setMessage(IXmlMessage message) {
-    aMessage = ClientMessage.from(message);
+    mMessage = ClientMessage.from(message);
   }
 
 
@@ -109,10 +109,10 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   public void serialize(SerializerAdapter out) {
     out.startTag(NS_PM, "activity", true);
     serializeCommonAttrs(out);
-    if (aName!=null) { out.addAttribute(null, "name", aName); }
-    if (aCondition!=null) { out.addAttribute(null, "condition", aCondition); }
+    if (mName!=null) { out.addAttribute(null, "name", mName); }
+    if (mCondition!=null) { out.addAttribute(null, "condition", mCondition); }
     serializeCommonChildren(out);
-    if (aMessage!=null) { aMessage.serialize(out); }
+    if (mMessage!=null) { mMessage.serialize(out); }
     out.endTag(NS_PM, "activity", true);
   }
 

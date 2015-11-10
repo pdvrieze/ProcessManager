@@ -8,110 +8,110 @@ import nl.adaptivity.diagram.Positioned;
 
 public class DiagramNode<T extends Positioned> implements Positioned {
 
-  private T aTarget;
+  private T mTarget;
 
-  private double aX;
+  private double mX;
 
-  private double aY;
+  private double mY;
 
-  private final double aLeftExtend;
+  private final double mLeftExtend;
 
-  private final double aRightExtend;
+  private final double mRightExtend;
 
-  private final double aTopExtend;
+  private final double mTopExtend;
 
-  private final double aBottomExtend;
+  private final double mBottomExtend;
 
-  private List<DiagramNode<T>> aLeft;
+  private List<DiagramNode<T>> mLeft;
 
-  private List<DiagramNode<T>> aRight;
+  private List<DiagramNode<T>> mRight;
 
   public DiagramNode(T target, double leftExtend, double rightExtend, double topExtend, double bottomExtend) {
-    aTarget = target;
-    aLeft = new ArrayList<>();
-    aRight = new ArrayList<>();
-    aX = target.getX();
-    aY = target.getY();
-    aLeftExtend = leftExtend;
-    aRightExtend = rightExtend;
-    aTopExtend = topExtend;
-    aBottomExtend = bottomExtend;
+    mTarget = target;
+    mLeft = new ArrayList<>();
+    mRight = new ArrayList<>();
+    mX = target.getX();
+    mY = target.getY();
+    mLeftExtend = leftExtend;
+    mRightExtend = rightExtend;
+    mTopExtend = topExtend;
+    mBottomExtend = bottomExtend;
   }
 
   private DiagramNode(DiagramNode<T> diagramNode, double x, double y) {
-    aTarget = diagramNode.aTarget;
-    aX = x;
-    aY = y;
-    aLeftExtend = diagramNode.aLeftExtend;
-    aRightExtend = diagramNode.aRightExtend;
-    aTopExtend = diagramNode.aTopExtend;
-    aBottomExtend = diagramNode.aBottomExtend;
+    mTarget = diagramNode.mTarget;
+    mX = x;
+    mY = y;
+    mLeftExtend = diagramNode.mLeftExtend;
+    mRightExtend = diagramNode.mRightExtend;
+    mTopExtend = diagramNode.mTopExtend;
+    mBottomExtend = diagramNode.mBottomExtend;
   }
 
   public T getTarget() {
-    return aTarget;
+    return mTarget;
   }
 
   /** Get the size to the left of the gravity point. */
   public double getLeftExtend() {
-    return aLeftExtend;
+    return mLeftExtend;
   }
 
   /** Get the size to the right of the gravity point. */
   public double getRightExtend() {
-    return aRightExtend;
+    return mRightExtend;
   }
 
   /** Get the size to the top of the gravity point. */
   public double getTopExtend() {
-    return aTopExtend;
+    return mTopExtend;
   }
 
   /** Get the size to the bottom of the gravity point. */
   public double getBottomExtend() {
-    return aBottomExtend;
+    return mBottomExtend;
   }
 
   public DiagramNode<T> withX(double x) {
-    return new DiagramNode<>(this, x, aY);
+    return new DiagramNode<>(this, x, mY);
   }
 
   public DiagramNode<T> withY(double y) {
-    return new DiagramNode<>(this, aX, y);
+    return new DiagramNode<>(this, mX, y);
   }
 
   public void setX(double x) {
-    aX = x;
+    mX = x;
   }
 
   public void setY(double y) {
-    aY = y;
+    mY = y;
   }
 
   @Override
   public double getX() {
-    return aX;
+    return mX;
   }
 
   @Override
   public double getY() {
-    return aY;
+    return mY;
   }
 
   public double getLeft() {
-    return aX - aLeftExtend;
+    return mX - mLeftExtend;
   }
 
   public double getRight() {
-    return aX + aRightExtend;
+    return mX + mRightExtend;
   }
 
   public double getTop() {
-    return aY - aTopExtend;
+    return mY - mTopExtend;
   }
 
   public double getBottom() {
-    return aY + aBottomExtend;
+    return mY + mBottomExtend;
   }
 
   /** Determine whether the region overlaps this node and is not positioned to its right. */
@@ -143,42 +143,42 @@ public class DiagramNode<T extends Positioned> implements Positioned {
   }
 
   public List<DiagramNode<T>> getLeftNodes() {
-    return aLeft;
+    return mLeft;
   }
 
   public List<DiagramNode<T>> getRightNodes() {
-    return aRight;
+    return mRight;
   }
 
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
-    if (aTarget!=null) {
-      builder.append(aTarget.toString()).append(' ');
+    if (mTarget!=null) {
+      builder.append(mTarget.toString()).append(' ');
     }
-    if (! Double.isNaN(aX)) {
+    if (! Double.isNaN(mX)) {
       builder.append("x=");
-      builder.append(aX);
+      builder.append(mX);
       builder.append(", ");
     }
-    if (! Double.isNaN(aY)) {
+    if (! Double.isNaN(mY)) {
       builder.append("y=");
-      builder.append(aY);
+      builder.append(mY);
       builder.append(" - ");
     } else {
-      if (!Double.isNaN(aX)) {
+      if (!Double.isNaN(mX)) {
         builder.append(" - ");
       }
     }
     builder.append("((");
-    builder.append((Double.isNaN(aX) ? 0 : aX) - aLeftExtend);
+    builder.append((Double.isNaN(mX) ? 0 : mX) - mLeftExtend);
     builder.append(", ");
-    builder.append((Double.isNaN(aY) ? 0 : aY) - aTopExtend);
+    builder.append((Double.isNaN(mY) ? 0 : mY) - mTopExtend);
     builder.append("),(");
-    builder.append((Double.isNaN(aX) ? 0 : aX) + aRightExtend);
+    builder.append((Double.isNaN(mX) ? 0 : mX) + mRightExtend);
     builder.append(", ");
-    builder.append((Double.isNaN(aY) ? 0 : aY) + aBottomExtend);
+    builder.append((Double.isNaN(mY) ? 0 : mY) + mBottomExtend);
     builder.append("))");
     return builder.toString();
   }
