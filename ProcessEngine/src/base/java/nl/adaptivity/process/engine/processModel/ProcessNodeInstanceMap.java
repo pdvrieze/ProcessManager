@@ -48,17 +48,17 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     private static final String QUERY_DATA = "SELECT `"+COL_NAME+"`, `"+COL_DATA+"` FROM `"+TABLE_NODEDATA+"` WHERE `"+COL_HANDLE+"` = ?;";
     private static final String QUERY_PREDECESSOR = "SELECT `"+COL_PREDECESSOR+"` FROM `"+TABLE_PREDECESSORS+"` WHERE `"+COL_HANDLE+"` = ?;";
-    private int aColNoHandle;
-    private int aColNoHProcessInstance;
-    private int aColNoNodeId;
-    private int aColNoState;
+    private int mColNoHandle;
+    private int mColNoHProcessInstance;
+    private int mColNoNodeId;
+    private int mColNoState;
 
-    private final StringCache aStringCache;
-    private final ProcessEngine aProcessEngine;
+    private final StringCache mStringCache;
+    private final ProcessEngine mProcessEngine;
 
     public ProcessNodeInstanceFactory(ProcessEngine processEngine, StringCache stringCache) {
-      aProcessEngine = processEngine;
-      aStringCache = stringCache;
+      mProcessEngine = processEngine;
+      mStringCache = stringCache;
     }
 
     @Override
@@ -67,13 +67,13 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       for (int i=1; i<=columnCount;++i) {
         String colName = metaData.getColumnName(i);
         if (COL_HANDLE.equals(colName)) {
-          aColNoHandle = i;
+          mColNoHandle = i;
         } else if (COL_NODEID.equals(colName)) {
-          aColNoNodeId = i;
+          mColNoNodeId = i;
         } else if (COL_STATE.equals(colName)) {
-          aColNoState = i;
+          mColNoState = i;
         } else if (COL_HPROCESSINSTANCE.equals(colName)) {
-          aColNoHProcessInstance = i;
+          mColNoHProcessInstance = i;
         } // ignore other columns
       }
     }
@@ -101,15 +101,15 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public ProcessNodeInstance create(DBTransaction connection, ResultSet row) throws SQLException {
-      HProcessInstance hProcessInstance = new HProcessInstance(row.getLong(aColNoHProcessInstance));
-      ProcessInstance processInstance = aProcessEngine.getProcessInstance(connection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
+      HProcessInstance hProcessInstance = new HProcessInstance(row.getLong(mColNoHProcessInstance));
+      ProcessInstance processInstance = mProcessEngine.getProcessInstance(connection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
 
-      String nodeId = aStringCache.lookup(row.getString(aColNoNodeId));
+      String nodeId = mStringCache.lookup(row.getString(mColNoNodeId));
       ProcessNodeImpl node = processInstance.getProcessModel().getNode(nodeId);
 
-      long handle = row.getLong(aColNoHandle);
+      long handle = row.getLong(mColNoHandle);
 
-      final String sState = row.getString(aColNoState);
+      final String sState = row.getString(mColNoState);
       TaskState state = sState==null ? null : TaskState.valueOf(sState);
 
       ProcessNodeInstance result;
@@ -231,7 +231,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
     @Override
     public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, elementSource.getLong(aColNoHandle));
+      preRemove(connection, elementSource.getLong(mColNoHandle));
     }
 
     @Override

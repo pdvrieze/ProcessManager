@@ -19,9 +19,9 @@ public class JoinInstance extends ProcessNodeInstance {
     for (final Handle<? extends ProcessNodeInstance> hpredecessor : predecessors) {
       ProcessNodeInstance predecessor = processInstance.getEngine().getNodeInstance(transaction, hpredecessor, SecurityProvider.SYSTEMPRINCIPAL);
       if (predecessor.getState() == TaskState.Complete) {
-        aComplete += 1;
+        mComplete += 1;
       } else {
-        aSkipped += 1;
+        mSkipped += 1;
       }
     }
   }
@@ -35,24 +35,24 @@ public class JoinInstance extends ProcessNodeInstance {
     super(node, processInstance, state);
   }
 
-  private int aComplete = 0;
+  private int mComplete = 0;
 
-  private int aSkipped = 0;
+  private int mSkipped = 0;
 
   public void incComplete() {
-    aComplete++;
+    mComplete++;
   }
 
   public int getTotal() {
-    return aComplete + aSkipped;
+    return mComplete + mSkipped;
   }
 
   public int getComplete() {
-    return aComplete;
+    return mComplete;
   }
 
   public void incSkipped() {
-    aSkipped++;
+    mSkipped++;
   }
 
   @Override
@@ -64,9 +64,9 @@ public class JoinInstance extends ProcessNodeInstance {
     if (canAddNode(transaction)) {
       getDirectPredecessors().add(predecessor);
       if (predecessor.getState() == TaskState.Complete) {
-        aComplete += 1;
+        mComplete += 1;
       } else {
-        aSkipped += 1;
+        mSkipped += 1;
       }
       return true;
     }
@@ -84,8 +84,8 @@ public class JoinInstance extends ProcessNodeInstance {
       if (getTotal() == join.getPredecessors().size()) {
         return true;
       }
-      if (aComplete >= join.getMin()) {
-        if (aComplete >= join.getMax()) {
+      if (mComplete >= join.getMin()) {
+        if (mComplete >= join.getMax()) {
           return true;
         }
         try {

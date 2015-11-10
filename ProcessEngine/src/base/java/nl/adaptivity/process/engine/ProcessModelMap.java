@@ -42,13 +42,13 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
   static class ProcessModelFactory extends AbstractElementFactory<ProcessModelImpl> {
 
     private static boolean _supports_set_character_stream = true;
-    private int aColNoOwner;
-    private int aColNoModel;
-    private int aColNoHandle;
-    private final StringCache aStringCache;
+    private int mColNoOwner;
+    private int mColNoModel;
+    private int mColNoHandle;
+    private final StringCache mStringCache;
 
     ProcessModelFactory(StringCache stringCache) {
-      aStringCache = stringCache;
+      mStringCache = stringCache;
     }
 
     @Override
@@ -60,7 +60,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     public String getFilterExpression() {
       // TODO implement more carefully
       return null;
-//      if (aFilterUser==null) {
+//      if (mFilterUser==null) {
 //        return null;
 //      } else {
 //
@@ -79,26 +79,26 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
       for (int i=1; i<=columnCount;++i) {
         String colName = metaData.getColumnName(i);
         if (COL_HANDLE.equals(colName)) {
-          aColNoHandle = i;
+          mColNoHandle = i;
         } else if (COL_OWNER.equals(colName)) {
-          aColNoOwner = i;
+          mColNoOwner = i;
         } else if (COL_MODEL.equals(colName)) {
-          aColNoModel = i;
+          mColNoModel = i;
         } // ignore other columns
       }
     }
 
     @Override
     public ProcessModelImpl create(DBTransaction connection, ResultSet row) throws SQLException {
-      Principal owner = new SimplePrincipal(aStringCache.lookup(row.getString(aColNoOwner)));
-      try(Reader modelReader = row.getCharacterStream(aColNoModel)) {
-        long handle = row.getLong(aColNoHandle);
+      Principal owner = new SimplePrincipal(mStringCache.lookup(row.getString(mColNoOwner)));
+      try(Reader modelReader = row.getCharacterStream(mColNoModel)) {
+        long handle = row.getLong(mColNoHandle);
 
         XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
         ProcessModelImpl result = xmlModel.toProcessModel();
 
         result.setHandle(handle);
-        result.cacheStrings(aStringCache);
+        result.cacheStrings(mStringCache);
         if (result.getOwner()==null) {
           result.setOwner(owner);
         }

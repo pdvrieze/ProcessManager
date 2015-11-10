@@ -10,10 +10,10 @@ import javax.management.ObjectName;
 
 public class PELifeCycle implements ComponentLifeCycle {
 
-  private final JBIProcessEngine aProcessEngine;
+  private final JBIProcessEngine mProcessEngine;
 
   public PELifeCycle(JBIProcessEngine processEngine) {
-    aProcessEngine = processEngine;
+    mProcessEngine = processEngine;
   }
 
   @Override
@@ -23,7 +23,7 @@ public class PELifeCycle implements ComponentLifeCycle {
 
   @Override
   public void init(ComponentContext context) throws JBIException {
-    aProcessEngine.setContext(context);
+    mProcessEngine.setContext(context);
     Logger logger = context.getLogger(null, null);
     logger.info("ProcessEngine initialized");
   }
@@ -35,15 +35,15 @@ public class PELifeCycle implements ComponentLifeCycle {
 
   @Override
   public void start() throws JBIException {
-    aProcessEngine.getLogger().info("ProcessEngine starting");
-    aProcessEngine.startEngine();
-    aProcessEngine.startEndPoint();
+    mProcessEngine.getLogger().info("ProcessEngine starting");
+    mProcessEngine.startEngine();
+    mProcessEngine.startEndPoint();
   }
 
   @Override
   public void stop() throws JBIException {
-    aProcessEngine.getLogger().info("ProcessEngine stopping");
-    aProcessEngine.stop();
+    mProcessEngine.getLogger().info("ProcessEngine stopping");
+    mProcessEngine.stop();
   }
 
 }

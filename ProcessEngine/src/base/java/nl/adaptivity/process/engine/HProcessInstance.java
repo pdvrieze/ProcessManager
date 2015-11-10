@@ -18,7 +18,7 @@ public final class HProcessInstance implements Handle<ProcessInstance>, Serializ
   private static final long serialVersionUID = 8151525146116141232L;
 
   @XmlValue
-  private long aHandle;
+  private long mHandle;
 
   public HProcessInstance() {
     setHandle(-1);
@@ -40,11 +40,11 @@ public final class HProcessInstance implements Handle<ProcessInstance>, Serializ
 
   @Override
   public long getHandle() {
-    return aHandle;
+    return mHandle;
   }
 
   public void setHandle(final long handle) {
-    aHandle = handle;
+    mHandle = handle;
   }
 
 }

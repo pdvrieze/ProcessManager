@@ -84,16 +84,16 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     public static final List<CharSequence> STORE_PARAMS = Arrays.<CharSequence>asList("?", "?", "?", "?", "?");
     //    AND "+
 //    ProcessNodeInstanceMap.COL_HANDLE+" NOT IN ( SELECT "+ProcessNodeInstanceMap.COL_PREDECESSOR+" FROM "+ProcessNodeInstanceMap.TABLE_PREDECESSORS+" );";
-    private int aColNoHandle;
-    private int aColNoOwner;
-    private int aColNoHProcessModel;
-    private int aColNoName;
-    private final ProcessEngine aProcessEngine;
-    private int aColNoState;
-    private int aColNoUuid;
+    private int mColNoHandle;
+    private int mColNoOwner;
+    private int mColNoHProcessModel;
+    private int mColNoName;
+    private final ProcessEngine mProcessEngine;
+    private int mColNoState;
+    private int mColNoUuid;
 
     public ProcessInstanceElementFactory(ProcessEngine processEngine) {
-      aProcessEngine = processEngine;
+      mProcessEngine = processEngine;
     }
 
     @Override
@@ -102,17 +102,17 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
       for (int i=1; i<=columnCount;++i) {
         String colName = metaData.getColumnName(i);
         if (COL_HANDLE.equals(colName)) {
-          aColNoHandle = i;
+          mColNoHandle = i;
         } else if (COL_OWNER.equals(colName)) {
-          aColNoOwner = i;
+          mColNoOwner = i;
         } else if (COL_HPROCESSMODEL.equals(colName)) {
-          aColNoHProcessModel = i;
+          mColNoHProcessModel = i;
         } else if (COL_NAME.equals(colName)) {
-          aColNoName = i;
+          mColNoName = i;
         } else if (COL_STATE.equals(colName)) {
-          aColNoState = i;
+          mColNoState = i;
         } else if (COL_UUID.equals(colName)) {
-          aColNoUuid = i;
+          mColNoUuid = i;
         } // ignore other columns
       }
     }
@@ -140,15 +140,15 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public ProcessInstance create(DBTransaction connection, ResultSet row) throws SQLException {
-      Principal owner = new SimplePrincipal(row.getString(aColNoOwner));
-      Handle<ProcessModel> hProcessModel = Handles.handle(row.getLong(aColNoHProcessModel));
-      ProcessModelImpl processModel = aProcessEngine.getProcessModel(connection, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
-      String instancename = row.getString(aColNoName);
-      long piHandle = row.getLong(aColNoHandle);
-      ProcessInstance.State state = toState(row.getString(aColNoState));
-      UUID uuid = toUUID(row.getString(aColNoUuid));
+      Principal owner = new SimplePrincipal(row.getString(mColNoOwner));
+      Handle<ProcessModel> hProcessModel = Handles.handle(row.getLong(mColNoHProcessModel));
+      ProcessModelImpl processModel = mProcessEngine.getProcessModel(connection, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
+      String instancename = row.getString(mColNoName);
+      long piHandle = row.getLong(mColNoHandle);
+      ProcessInstance.State state = toState(row.getString(mColNoState));
+      UUID uuid = toUUID(row.getString(mColNoUuid));
 
-      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, uuid, state, aProcessEngine);
+      final ProcessInstance result = new ProcessInstance(piHandle, owner, processModel, instancename, uuid, state, mProcessEngine);
       return result;
     }
 
@@ -239,7 +239,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
     @Override
     public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
-      preRemove(connection, elementSource.getLong(aColNoHandle));
+      preRemove(connection, elementSource.getLong(mColNoHandle));
     }
 
     @Override

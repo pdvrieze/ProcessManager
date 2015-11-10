@@ -88,45 +88,45 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
   class JBIMessage {
 
-    private final QName aRemoteService;
-    private final String aRemoteEndpoint;
-    private final QName aOperation;
-    private Source aBody;
+    private final QName mRemoteService;
+    private final String mRemoteEndpoint;
+    private final QName mOperation;
+    private Source mBody;
 
     public JBIMessage(QName service, String endpoint, QName operation, Source body) {
-      aRemoteService = service;
-      aRemoteEndpoint = endpoint;
-      aOperation = operation;
-      aBody = body;
+      mRemoteService = service;
+      mRemoteEndpoint = endpoint;
+      mOperation = operation;
+      mBody = body;
     }
 
 
     public QName getService() {
-      return aRemoteService;
+      return mRemoteService;
     }
 
 
     public String getEndpoint() {
-      return aRemoteEndpoint;
+      return mRemoteEndpoint;
     }
 
 
     public QName getOperation() {
-      return aOperation;
+      return mOperation;
     }
 
 
     public Source getContent() {
-      return aBody;
+      return mBody;
     }
 
 
     public void setHandle(long handle) throws MessagingException {
       try {
         XMLInputFactory xif = XMLInputFactory.newInstance();
-        if (aBody ==null) { throw new NullPointerException(); }
+        if (mBody ==null) { throw new NullPointerException(); }
         
-        XMLEventReader xer = xif.createXMLEventReader(aBody);
+        XMLEventReader xer = xif.createXMLEventReader(mBody);
         XMLOutputFactory xof = XMLOutputFactory.newInstance();
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
@@ -182,7 +182,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
             }
           }
         }
-        aBody = new DOMSource(result.getNode());
+        mBody = new DOMSource(result.getNode());
 
       } catch (FactoryConfigurationError e) {
         throw new MessagingException(e);
@@ -228,9 +228,9 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {
-            out.add(xef.createAttribute("serviceNS", aEndPoint.getServiceName().getNamespaceURI()));
-            out.add(xef.createAttribute("serviceLocalName", aEndPoint.getServiceName().getLocalPart()));
-            out.add(xef.createAttribute("endpointName", aEndPoint.getEndpointName()));
+            out.add(xef.createAttribute("serviceNS", mEndPoint.getServiceName().getNamespaceURI()));
+            out.add(xef.createAttribute("serviceLocalName", mEndPoint.getServiceName().getLocalPart()));
+            out.add(xef.createAttribute("endpointName", mEndPoint.getEndpointName()));
           }
 
           out.add(xef.createEndElement(qname1, namespaces.iterator()));
@@ -301,14 +301,14 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   public static final String PROCESS_ENGINE_NS = "http://adaptivity.nl/ProcessEngine/";
   public static final QName SERVICE_QNAME = new QName(PROCESS_ENGINE_NS,"ProcessEngine");
   private static final String LOGSUFFIX = null;
-  private ComponentContext aContext;
-  private ServiceEndpoint aEndPoint;
-  private Thread aThread;
-  private boolean aKeepRunning = true;
-  private Logger aLogger;
-  private ProcessEngine aProcessEngine;
-  private RestMessageHandler aRestMessageHandler;
-  private SoapMessageHandler aSoapMessageHandler;
+  private ComponentContext mContext;
+  private ServiceEndpoint mEndPoint;
+  private Thread mThread;
+  private boolean mKeepRunning = true;
+  private Logger mLogger;
+  private ProcessEngine mProcessEngine;
+  private RestMessageHandler mRestMessageHandler;
+  private SoapMessageHandler mSoapMessageHandler;
 
   @Override
   public ComponentLifeCycle getLifeCycle() {
@@ -382,13 +382,13 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   Logger getLogger() {
-    if (aLogger != null) {
-      return aLogger;
+    if (mLogger != null) {
+      return mLogger;
     }
     try {
-      aLogger = aContext.getLogger(LOGSUFFIX, null);
-      aLogger.setLevel(Level.ALL);
-      return aLogger;
+      mLogger = mContext.getLogger(LOGSUFFIX, null);
+      mLogger.setLevel(Level.ALL);
+      return mLogger;
     } catch (MissingResourceException e1) {
       e1.printStackTrace();
     } catch (JBIException e) {
@@ -435,17 +435,17 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   public void setContext(ComponentContext context) {
-    aContext = context;
+    mContext = context;
   }
 
   ComponentContext getContext() {
-    return aContext;
+    return mContext;
   }
 
   void startEndPoint() throws JBIException {
-    aThread = new Thread(this);
-    aThread.start();
-    aEndPoint = aContext.activateEndpoint(SERVICE_QNAME, "endpoint");
+    mThread = new Thread(this);
+    mThread.start();
+    mEndPoint = mContext.activateEndpoint(SERVICE_QNAME, "endpoint");
   }
 
   void activateEndPoint() {
@@ -457,13 +457,13 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
     DeliveryChannel deliveryChannel;
     try {
-      deliveryChannel = aContext.getDeliveryChannel();
+      deliveryChannel = mContext.getDeliveryChannel();
     } catch (MessagingException e) {
       logger.throwing(JBIProcessEngine.class.getCanonicalName(), "run", e);
       return;
     }
 
-    while (aKeepRunning) {
+    while (mKeepRunning) {
 
       try {
         MessageExchange ex = deliveryChannel.accept(1000);
@@ -494,17 +494,17 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   }
 
   private RestMessageHandler getRestMessageHandler() {
-    if (aRestMessageHandler == null) {
-      aRestMessageHandler = RestMessageHandler.newInstance();
+    if (mRestMessageHandler == null) {
+      mRestMessageHandler = RestMessageHandler.newInstance();
     }
-    return aRestMessageHandler;
+    return mRestMessageHandler;
   }
 
   private SoapMessageHandler getSoapMessageHandler() {
-    if (aSoapMessageHandler == null) {
-      aSoapMessageHandler = SoapMessageHandler.newInstance();
+    if (mSoapMessageHandler == null) {
+      mSoapMessageHandler = SoapMessageHandler.newInstance();
     }
-    return aSoapMessageHandler;
+    return mSoapMessageHandler;
   }
 
   private void processRestSoap(DeliveryChannel deliveryChannel, MessageExchange ex) throws MessagingException{
@@ -535,7 +535,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
   @RestMethod(method=HttpMethod.GET, path="/processModels")
   public ProcessModelRefs getProcesModelRefs() {
-    Iterable<ProcessModel> processModels = aProcessEngine.getProcessModels();
+    Iterable<ProcessModel> processModels = mProcessEngine.getProcessModels();
     ProcessModelRefs list = new ProcessModelRefs();
     for (ProcessModel pm: processModels) {
       list.add(pm.getRef());
@@ -546,7 +546,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   @RestMethod(method=HttpMethod.GET, path="/processInstances")
   @XmlElementWrapper(name="processInstances", namespace=PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs() {
-    Iterable<ProcessInstance> processInstances = aProcessEngine.getInstances();
+    Iterable<ProcessInstance> processInstances = mProcessEngine.getInstances();
     Collection<ProcessInstanceRef> list = new ArrayList<ProcessInstanceRef>();
     for (ProcessInstance pi: processInstances) {
       list.add(pi.getRef());
@@ -564,7 +564,7 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
       throw e;
     }
     if (pm!=null) {
-      aProcessEngine.addProcessModel(pm.toProcessModel());
+      mProcessEngine.addProcessModel(pm.toProcessModel());
     }
 
     return getProcesModelRefs();
@@ -572,33 +572,33 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", query={"op=newInstance"})
   public HProcessInstance startProcess(@RestParam(name="handle", type=ParamType.VAR) long handle, @RestParam(name="name", type=ParamType.QUERY) String name) {
-    return aProcessEngine.startProcess(HandleMap.<ProcessModel>handle(handle), name, null);
+    return mProcessEngine.startProcess(HandleMap.<ProcessModel>handle(handle), name, null);
   }
 
   @RestMethod(method=HttpMethod.POST, path="/processModels/${handle}", post={"name"})
   public void renameProcess(@RestParam(name="handle", type=ParamType.VAR) long handle, @RestParam(name="name", type=ParamType.QUERY) String name) {
-    aProcessEngine.renameProcess(HandleMap.<ProcessModel>handle(handle), name);
+    mProcessEngine.renameProcess(HandleMap.<ProcessModel>handle(handle), name);
   }
 
   @WebMethod(operationName="updateTaskState")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state"})
   public TaskState updateTaskState(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long handle,
                               @WebParam(name="state", mode=Mode.IN) @RestParam(name="state", type=ParamType.QUERY) TaskState newState) {
-    return aProcessEngine.updateTaskState(handle, newState);
+    return mProcessEngine.updateTaskState(handle, newState);
   }
 
   @WebMethod(operationName="finishTask")
   @RestMethod(method=HttpMethod.POST, path="/tasks/${handle}", query={"state=Complete"})
   public TaskState finishTask(@WebParam(name="handle",mode=Mode.IN) @RestParam(name="handle",type=ParamType.VAR) long handle,
                               @WebParam(name="payload", mode=Mode.IN) @RestParam(name="payload", type=ParamType.QUERY) Node payload) {
-    return aProcessEngine.finishTask(handle, payload);
+    return mProcessEngine.finishTask(handle, payload);
   }
 
 
   @RestMethod(method=HttpMethod.GET, path="/processModels/${handle}")
   public XmlProcessModel getProcessModel(@RestParam(name="handle",type=ParamType.VAR) long handle) throws FileNotFoundException {
     try {
-      return new XmlProcessModel(aProcessEngine.getProcessModel(handle));
+      return new XmlProcessModel(mProcessEngine.getProcessModel(handle));
     } catch (NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     }
@@ -606,17 +606,17 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
 
 
   public void stop() throws JBIException {
-    aKeepRunning = false;
-    aContext.deactivateEndpoint(aEndPoint);
-    aThread.interrupt();
+    mKeepRunning = false;
+    mContext.deactivateEndpoint(mEndPoint);
+    mThread.interrupt();
   }
 
   public void startEngine() {
-    aProcessEngine = new ProcessEngine(this);
+    mProcessEngine = new ProcessEngine(this);
   }
 
   public ProcessEngine getProcessEngine() {
-    return aProcessEngine;
+    return mProcessEngine;
   }
 
   @Override
@@ -627,15 +627,15 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   @Override
   public boolean sendMessage(JBIMessage message, ProcessNodeInstance instance) {
     try {
-      DeliveryChannel deliveryChannel = aContext.getDeliveryChannel();
-      ServiceEndpoint se = aContext.getEndpoint(message.getService(), message.getEndpoint());
+      DeliveryChannel deliveryChannel = mContext.getDeliveryChannel();
+      ServiceEndpoint se = mContext.getEndpoint(message.getService(), message.getEndpoint());
       MessageExchangeFactory exchangeFactory = deliveryChannel.createExchangeFactory(se);
       RobustInOnly ex = exchangeFactory.createRobustInOnlyExchange();
       ex.setOperation(message.getOperation());
       NormalizedMessage msg = ex.createMessage();
 
 
-      long handle = aProcessEngine.registerMessage(instance);
+      long handle = mProcessEngine.registerMessage(instance);
       message.setHandle(handle);
 
       msg.setContent(message.getContent());

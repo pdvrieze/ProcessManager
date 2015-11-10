@@ -51,13 +51,13 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   @XmlAccessorType(XmlAccessType.NONE)
   public static class ProcessInstanceRef implements Handle<ProcessInstance> {
 
-    private long aHandle;
+    private long mHandle;
 
-    private long aProcessModel;
+    private long mProcessModel;
 
-    private String aName;
+    private String mName;
 
-    private String aUUID;
+    private String mUUID;
 
     public ProcessInstanceRef() {
       // empty constructor;
@@ -65,118 +65,118 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
     public ProcessInstanceRef(final ProcessInstance processInstance) {
       setHandle(processInstance.getHandle());
-      setProcessModel(processInstance.aProcessModel.getHandle());
-      aName = processInstance.getName();
-      if ((aName == null) || (aName.trim().length() == 0)) {
-        aName = processInstance.aProcessModel.getName() + " instance " + aHandle;
+      setProcessModel(processInstance.mProcessModel.getHandle());
+      mName = processInstance.getName();
+      if ((mName == null) || (mName.trim().length() == 0)) {
+        mName = processInstance.mProcessModel.getName() + " instance " + mHandle;
       }
-      aUUID = processInstance.getUUID()==null ? null : processInstance.getUUID().toString();
+      mUUID = processInstance.getUUID()==null ? null : processInstance.getUUID().toString();
     }
 
     public void setHandle(final long handle) {
-      aHandle = handle;
+      mHandle = handle;
     }
 
     @Override
     @XmlAttribute(name = "handle")
     public long getHandle() {
-      return aHandle;
+      return mHandle;
     }
 
     public void setProcessModel(final long processModel) {
-      aProcessModel = processModel;
+      mProcessModel = processModel;
     }
 
     @XmlAttribute(name = "processModel")
     public long getProcessModel() {
-      return aProcessModel;
+      return mProcessModel;
     }
 
     @XmlAttribute(name = "name")
     public String getName() {
-      return aName;
+      return mName;
     }
 
     public void setName(final String name) {
-      aName = name;
+      mName = name;
     }
 
     @XmlAttribute(name="uuid")
     public String getUUID() {
-      return aUUID;
+      return mUUID;
     }
 
     public void setUUID(String uUID) {
-      aUUID = uUID;
+      mUUID = uUID;
     }
 
   }
 
   private static final long serialVersionUID = 1145452195455018306L;
 
-  private final ProcessModelImpl aProcessModel;
+  private final ProcessModelImpl mProcessModel;
 
-  private final Collection<Handle<? extends ProcessNodeInstance>> aThreads;
+  private final Collection<Handle<? extends ProcessNodeInstance>> mThreads;
 
-  private final Collection<Handle<? extends ProcessNodeInstance>> aFinishedNodes;
+  private final Collection<Handle<? extends ProcessNodeInstance>> mFinishedNodes;
 
-  private final Collection<Handle<? extends ProcessNodeInstance>> aEndResults;
+  private final Collection<Handle<? extends ProcessNodeInstance>> mEndResults;
 
-  private HashMap<JoinImpl, JoinInstance> aJoins;
+  private HashMap<JoinImpl, JoinInstance> mJoins;
 
-  private long aHandle;
+  private long mHandle;
 
-  private final ProcessEngine aEngine;
+  private final ProcessEngine mEngine;
 
-  private List<ProcessData> aInputs = new ArrayList<>();
+  private List<ProcessData> mInputs = new ArrayList<>();
 
-  private List<ProcessData> aOutputs = new ArrayList<>();
+  private List<ProcessData> mOutputs = new ArrayList<>();
 
-  private final String aName;
+  private final String mName;
 
-  private final Principal aOwner;
+  private final Principal mOwner;
 
-  private State aState;
+  private State mState;
 
-  private final UUID aUUid;
+  private final UUID mUUid;
 
   ProcessInstance(final long handle, final Principal owner, final ProcessModelImpl processModel, final String name, final UUID uUid, final State state, final ProcessEngine engine) {
-    aHandle = handle;
-    aProcessModel = processModel;
-    aOwner = owner;
-    aUUid = uUid;
-    aEngine = engine;
-    aName =name;
-    aState = state==null ? State.NEW : state;
-    aThreads = new LinkedList<>();
-    aJoins = new HashMap<>();
-    aEndResults = new ArrayList<>();
-    aFinishedNodes = new ArrayList<>();
+    mHandle = handle;
+    mProcessModel = processModel;
+    mOwner = owner;
+    mUUid = uUid;
+    mEngine = engine;
+    mName =name;
+    mState = state==null ? State.NEW : state;
+    mThreads = new LinkedList<>();
+    mJoins = new HashMap<>();
+    mEndResults = new ArrayList<>();
+    mFinishedNodes = new ArrayList<>();
   }
 
   public ProcessInstance(final Principal owner, final ProcessModelImpl processModel, final String name, final UUID uUid, final State state, final ProcessEngine engine) {
-    aProcessModel = processModel;
-    aName = name;
-    aUUid = uUid;
-    aEngine = engine;
-    aThreads = new LinkedList<>();
-    aOwner = owner;
-    aJoins = new HashMap<>();
-    aEndResults = new ArrayList<>();
-    aFinishedNodes = new ArrayList<>();
-    aState = state == null ? State.NEW : state;
+    mProcessModel = processModel;
+    mName = name;
+    mUUid = uUid;
+    mEngine = engine;
+    mThreads = new LinkedList<>();
+    mOwner = owner;
+    mJoins = new HashMap<>();
+    mEndResults = new ArrayList<>();
+    mFinishedNodes = new ArrayList<>();
+    mState = state == null ? State.NEW : state;
   }
 
   void setChildren(Transaction transaction, final Collection<? extends Handle<? extends ProcessNodeInstance>> children) throws SQLException {
-    aThreads.clear();
-    aFinishedNodes.clear();
-    aEndResults.clear();
+    mThreads.clear();
+    mFinishedNodes.clear();
+    mEndResults.clear();
 
     List<ProcessNodeInstance> nodes = new ArrayList<>();
     TreeMap<ComparableHandle<? extends ProcessNodeInstance>,ProcessNodeInstance> threads = new TreeMap<>();
 
     for(Handle<? extends ProcessNodeInstance> handle: children) {
-      final ProcessNodeInstance inst = aEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
+      final ProcessNodeInstance inst = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
       nodes.add(inst);
       threads.put(Handles.handle(handle), inst);
     }
@@ -184,7 +184,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     for(ProcessNodeInstance instance: nodes) {
 
       if (instance.getNode() instanceof EndNode<?>) {
-        aEndResults.add(instance);
+        mEndResults.add(instance);
         threads.remove(Handles.handle(instance));
       }
 
@@ -193,57 +193,57 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
         for(Handle<? extends ProcessNodeInstance> pred:preds) {
           ComparableHandle<? extends ProcessNodeInstance> handle = Handles.handle(pred);
           if (threads.containsKey(handle)) {
-            aFinishedNodes.add(threads.get(handle));
+            mFinishedNodes.add(threads.get(handle));
             threads.remove(handle);
           }
         }
       }
 
     }
-    aThreads.addAll(threads.values());
+    mThreads.addAll(threads.values());
   }
 
   void setThreads(Transaction transaction, final Collection<? extends Handle<? extends ProcessNodeInstance>> threads) throws SQLException {
     for(Handle<? extends ProcessNodeInstance> threadHeadHandle:threads) {
-      aThreads.add(aEngine.getNodeInstance(transaction, threadHeadHandle, SecurityProvider.SYSTEMPRINCIPAL));
+      mThreads.add(mEngine.getNodeInstance(transaction, threadHeadHandle, SecurityProvider.SYSTEMPRINCIPAL));
     }
   }
 
   public void initialize(Transaction transaction) throws SQLException {
-    if (aState!=State.NEW || aThreads.size()>0) {
+    if (mState!=State.NEW || mThreads.size()>0) {
       throw new IllegalStateException("The instance already appears to be initialised");
     }
-    for (final StartNodeImpl node : aProcessModel.getStartNodes()) {
+    for (final StartNodeImpl node : mProcessModel.getStartNodes()) {
       final ProcessNodeInstance instance = new ProcessNodeInstance(node, null, this);
-      aEngine.registerNodeInstance(transaction, instance);
-      aThreads.add(instance);
+      mEngine.registerNodeInstance(transaction, instance);
+      mThreads.add(instance);
     }
-    aState = State.INITIALIZED;
-    aEngine.updateStorage(transaction, this);
+    mState = State.INITIALIZED;
+    mEngine.updateStorage(transaction, this);
   }
 
   public synchronized void finish(Transaction transaction) throws SQLException {
-    int aFinished = getFinishedCount();
-    if (aFinished >= aProcessModel.getEndNodeCount()) {
+    int mFinished = getFinishedCount();
+    if (mFinished >= mProcessModel.getEndNodeCount()) {
       // TODO mark and store results
-      aState=State.FINISHED;
-      aEngine.updateStorage(transaction, this);
+      mState=State.FINISHED;
+      mEngine.updateStorage(transaction, this);
       transaction.commit();
-      aEngine.finishInstance(transaction, this);
+      mEngine.finishInstance(transaction, this);
     }
   }
 
   private int getFinishedCount() {
-    return aEndResults.size();
+    return mEndResults.size();
   }
 
   public synchronized JoinInstance getJoinInstance(Transaction transaction, final JoinImpl join, final ProcessNodeInstance predecessor) throws SQLException {
-    JoinInstance result = aJoins.get(join);
+    JoinInstance result = mJoins.get(join);
     if (result == null) {
       final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(join.getPredecessors().size());
       predecessors.add(predecessor);
       result = new JoinInstance(transaction, join, predecessors, this);
-      aJoins.put(join, result);
+      mJoins.put(join, result);
     } else {
       result.addPredecessor(transaction, predecessor);
     }
@@ -251,34 +251,34 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public synchronized void removeJoin(final JoinInstance j) {
-    aJoins.remove(j.getNode());
+    mJoins.remove(j.getNode());
   }
 
   @Override
   public long getHandle() {
-    return aHandle;
+    return mHandle;
   }
 
   @Override
   public void setHandle(final long handle) {
 
-    aHandle = handle;
+    mHandle = handle;
   }
 
   public String getName() {
-    return aName;
+    return mName;
   }
 
   public Principal getOwner() {
-    return aOwner;
+    return mOwner;
   }
 
   public UUID getUUID() {
-    return aUUid;
+    return mUUid;
   }
 
   public ProcessEngine getEngine() {
-    return aEngine;
+    return mEngine;
   }
 
   public ProcessInstanceRef getRef() {
@@ -286,7 +286,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public ProcessModelImpl getProcessModel() {
-    return aProcessModel;
+    return mProcessModel;
   }
 
   /**
@@ -294,27 +294,27 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
    * @return The process initial payload.
    */
   public List<ProcessData> getInputs() {
-    return aInputs;
+    return mInputs;
   }
 
   public synchronized State getState() {
-    return aState;
+    return mState;
   }
 
   public synchronized void start(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final Node payload) throws SQLException {
-    if (aState==null) {
+    if (mState==null) {
       initialize(transaction);
     }
-    if (aThreads.size() == 0) {
+    if (mThreads.size() == 0) {
       throw new IllegalStateException("No starting nodes in process");
     }
-    aInputs = aProcessModel.toInputs(payload);
-    for (final Handle<? extends ProcessNodeInstance> hnode : aThreads) {
+    mInputs = mProcessModel.toInputs(payload);
+    for (final Handle<? extends ProcessNodeInstance> hnode : mThreads) {
       ProcessNodeInstance node = getEngine().getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
       provideTask(transaction, messageService, node);
     }
-    aState = State.STARTED;
-    aEngine.updateStorage(transaction, this);
+    mState = State.STARTED;
+    mEngine.updateStorage(transaction, this);
   }
 
   /** Method called when the instance is loaded from the server. This should reinitialise the instance. */
@@ -351,8 +351,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
     try {
       if (node.getNode() instanceof EndNode) {
-        aEndResults.add(node);
-        aThreads.remove(node);
+        mEndResults.add(node);
+        mThreads.remove(node);
         finish(transaction);
       } else {
         startSuccessors(transaction, messageService, node);
@@ -365,20 +365,20 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   private void startSuccessors(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance predecessor) throws SQLException {
-    if (! aFinishedNodes.contains(predecessor)) {
-      aFinishedNodes.add(predecessor);
+    if (! mFinishedNodes.contains(predecessor)) {
+      mFinishedNodes.add(predecessor);
     }
-    aThreads.remove(predecessor);
+    mThreads.remove(predecessor);
 
     final List<ProcessNodeInstance> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
     for (final ProcessNodeImpl successorNode : predecessor.getNode().getSuccessors()) {
       final ProcessNodeInstance instance = getProcessNodeInstance(transaction, predecessor, successorNode);
-      if (instance instanceof JoinInstance && aThreads.contains(instance)) {
+      if (instance instanceof JoinInstance && mThreads.contains(instance)) {
         continue;
       } else {
-        aThreads.add(instance);
+        mThreads.add(instance);
         startedTasks.add(instance);
-        aEngine.registerNodeInstance(transaction, instance);
+        mEngine.registerNodeInstance(transaction, instance);
       }
     }
     // Commit the registration of the follow up nodes before starting them.
@@ -391,16 +391,16 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   private ProcessNodeInstance getProcessNodeInstance(Transaction transaction, final ProcessNodeInstance predecessor, final ProcessNodeImpl node) throws SQLException {
     if (node instanceof JoinImpl) {
       final JoinImpl join = (JoinImpl) node;
-      if (aJoins == null) {
-        aJoins = new HashMap<>();
+      if (mJoins == null) {
+        mJoins = new HashMap<>();
       }
-      JoinInstance instance = aJoins.get(join);
+      JoinInstance instance = mJoins.get(join);
       if (instance == null) {
 
         final Collection<Handle<? extends ProcessNodeInstance>> predecessors = new ArrayList<>(node.getPredecessors().size());
         predecessors.add(predecessor);
         instance = new JoinInstance(transaction, join, predecessors, this);
-        aJoins.put(join, instance);
+        mJoins.put(join, instance);
       } else {
         instance.addPredecessor(transaction, predecessor);
       }
@@ -421,8 +421,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public synchronized Collection<ProcessNodeInstance> getActivePredecessorsFor(Transaction transaction, final JoinImpl join) throws
           SQLException {
-    final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<>(Math.min(join.getPredecessors().size(), aThreads.size()));
-    for (final Handle<? extends ProcessNodeInstance> hnode : aThreads) {
+    final ArrayList<ProcessNodeInstance> activePredecesors = new ArrayList<>(Math.min(join.getPredecessors().size(), mThreads.size()));
+    for (final Handle<? extends ProcessNodeInstance> hnode : mThreads) {
       ProcessNodeInstance node = getEngine().getNodeInstance(transaction, hnode, SecurityProvider.SYSTEMPRINCIPAL);
       if (node.getNode().isPredecessorOf(join)) {
         activePredecesors.add(node);
@@ -433,7 +433,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   public synchronized Collection<? extends Handle<? extends ProcessNodeInstance>> getDirectSuccessors(Transaction transaction, final ProcessNodeInstance predecessor) throws SQLException {
     final ArrayList<Handle<? extends ProcessNodeInstance>> result = new ArrayList<>(predecessor.getNode().getSuccessors().size());
-    for (final Handle<? extends ProcessNodeInstance> hcandidate : aThreads) {
+    for (final Handle<? extends ProcessNodeInstance> hcandidate : mThreads) {
       ProcessNodeInstance candidate = getEngine().getNodeInstance(transaction, hcandidate, SecurityProvider.SYSTEMPRINCIPAL);
       addDirectSuccessor(transaction, result, candidate, predecessor);
     }
@@ -456,15 +456,15 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   public Collection<? extends Handle<? extends ProcessNodeInstance>> getActive() {
-    return aThreads;
+    return mThreads;
   }
 
   public Collection<? extends Handle<? extends ProcessNodeInstance>> getFinished() {
-    return aFinishedNodes;
+    return mFinishedNodes;
   }
 
   public Collection<? extends Handle<? extends ProcessNodeInstance>> getResults() {
-    return aEndResults;
+    return mEndResults;
   }
 
   @Override
@@ -475,15 +475,15 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
     out.writeStartElement(Constants.PROCESS_ENGINE_NS, "processInstance");
     try {
-      out.writeAttribute("handle", Long.toString(aHandle));
-      out.writeAttribute("name", aName);
+      out.writeAttribute("handle", Long.toString(mHandle));
+      out.writeAttribute("name", mName);
       out.writeAttribute("processModel", Long.toString(getProcessModel().getHandle()));
-      out.writeAttribute("owner", aOwner.getName());
-      out.writeAttribute("state", aState.name());
+      out.writeAttribute("owner", mOwner.getName());
+      out.writeAttribute("state", mState.name());
 
       out.writeStartElement(Constants.PROCESS_ENGINE_NS, "inputs");
       try {
-        for(ProcessData input:aInputs) {
+        for(ProcessData input:mInputs) {
           input.serialize(out);
         }
       } finally {
@@ -492,7 +492,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
       out.writeStartElement(Constants.PROCESS_ENGINE_NS, "outputs");
       try {
-        for(ProcessData output:aOutputs) {
+        for(ProcessData output:mOutputs) {
           output.serialize(out);
         }
       } finally {
@@ -501,30 +501,30 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
       try(Transaction transaction = getEngine().startTransaction()) {
 
-        if (aThreads.size() > 0) {
+        if (mThreads.size() > 0) {
           try {
             out.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
-            for (Handle<? extends ProcessNodeInstance> active : aThreads) {
+            for (Handle<? extends ProcessNodeInstance> active : mThreads) {
               writeActiveNodeRef(transaction, out, active);
             }
           } finally {
             out.writeEndElement();
           }
         }
-        if (aFinishedNodes.size() > 0) {
+        if (mFinishedNodes.size() > 0) {
           try {
             out.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
-            for (Handle<? extends ProcessNodeInstance> finished : aFinishedNodes) {
+            for (Handle<? extends ProcessNodeInstance> finished : mFinishedNodes) {
               writeActiveNodeRef(transaction, out, finished);
             }
           } finally {
             out.writeEndElement();
           }
         }
-        if (aEndResults.size() > 0) {
+        if (mEndResults.size() > 0) {
           try {
             out.writeStartElement(Constants.PROCESS_ENGINE_NS, "endresults");
-            for (Handle<? extends ProcessNodeInstance> result : aEndResults) {
+            for (Handle<? extends ProcessNodeInstance> result : mEndResults) {
               writeResultNodeRef(transaction, out, result);
             }
           } finally {
@@ -584,13 +584,13 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   void setInputs(List<ProcessData> inputs) {
-    aInputs.clear();
-    aInputs.addAll(inputs);
+    mInputs.clear();
+    mInputs.addAll(inputs);
   }
 
   public void setOutputs(List<ProcessData> outputs) {
-    aOutputs.clear();
-    aOutputs.addAll(outputs);
+    mOutputs.clear();
+    mOutputs.addAll(outputs);
   }
 
   /**
@@ -599,14 +599,14 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
    * @param messageService The message service to use for messenging.
    */
   public void tickle(Transaction transaction, IMessageService<?, ProcessNodeInstance> messageService) {
-    for(Handle<? extends ProcessNodeInstance> handle: aThreads) {
+    for(Handle<? extends ProcessNodeInstance> handle: mThreads) {
       try {
         getEngine().tickleNode(transaction, handle);
       } catch (SQLException e) {
         Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error when tickling process instance", e);
       }
     }
-    if (aThreads.isEmpty()) {
+    if (mThreads.isEmpty()) {
       try {
         finish(transaction);
       } catch (SQLException e) {

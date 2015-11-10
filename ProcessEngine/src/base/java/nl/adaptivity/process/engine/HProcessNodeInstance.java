@@ -19,7 +19,7 @@ public final class HProcessNodeInstance implements Handle<ProcessNodeInstance>, 
   private static final long serialVersionUID = 8151525146116141232L;
 
   @XmlValue
-  private long aHandle;
+  private long mHandle;
 
   public HProcessNodeInstance() {
     setHandle(-1);
@@ -41,11 +41,11 @@ public final class HProcessNodeInstance implements Handle<ProcessNodeInstance>, 
 
   @Override
   public long getHandle() {
-    return aHandle;
+    return mHandle;
   }
 
   public void setHandle(final long handle) {
-    aHandle = handle;
+    mHandle = handle;
   }
 
 }
