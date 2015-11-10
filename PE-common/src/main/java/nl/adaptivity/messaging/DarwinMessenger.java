@@ -143,7 +143,7 @@ public class DarwinMessenger implements IMessenger {
      * @param future The future to notify completion of.
      */
     private void notififyCompletion(@NotNull final MessageTask<T> future) {
-      future.aCompletionListener.onMessageCompletion(future);
+      future.mCompletionListener.onMessageCompletion(future);
     }
 
 
@@ -159,31 +159,31 @@ public class DarwinMessenger implements IMessenger {
   private class MessageTask<T> implements RunnableFuture<T> {
 
     /** The uri to use for sending the message. */
-    private URI aDestURL;
+    private URI mDestURL;
 
     /** The message to send. */
-    private ISendableMessage aMessage;
+    private ISendableMessage mMessage;
 
     /** The listener to notify of completion. */
-    private CompletionListener<T> aCompletionListener;
+    private CompletionListener<T> mCompletionListener;
 
     /** The result value. */
-    @Nullable private T aResult = null;
+    @Nullable private T mResult = null;
 
     /** The cancellation state. */
-    private boolean aCancelled = false;
+    private boolean mCancelled = false;
 
     /** The response code given by the response. */
-    private int aResponseCode;
+    private int mResponseCode;
 
     /** The exception in this future. */
-    @Nullable private Exception aError = null;
+    @Nullable private Exception mError = null;
 
     /** Set when the message sending is actually active. The processing of the future has started. */
-    private boolean aStarted = false;
+    private boolean mStarted = false;
 
     /** The return type of the future. */
-    @Nullable private final Class<T> aReturnType;
+    @Nullable private final Class<T> mReturnType;
 
     /**
      * Create a new task.
@@ -193,10 +193,10 @@ public class DarwinMessenger implements IMessenger {
      * @param returnType The return type of the message. Needed for unmarshalling.
      */
     public MessageTask(final URI destURL, final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType) {
-      aDestURL = destURL;
-      aMessage = message;
-      aCompletionListener = completionListener;
-      aReturnType = returnType;
+      mDestURL = destURL;
+      mMessage = message;
+      mCompletionListener = completionListener;
+      mReturnType = returnType;
     }
 
     /**
@@ -205,8 +205,8 @@ public class DarwinMessenger implements IMessenger {
      * @param e The exception to encapsulate.
      */
     public MessageTask(final Exception e) {
-      aError = e;
-      aReturnType = null;
+      mError = e;
+      mReturnType = null;
     }
 
     /**
@@ -219,19 +219,19 @@ public class DarwinMessenger implements IMessenger {
     @SuppressWarnings("unchecked")
     public MessageTask(@Nullable final T result) {
       if (result == null) {
-        aResult = (T) NULL;
+        mResult = (T) NULL;
       } else {
-        aResult = result;
+        mResult = result;
       }
-      aReturnType = null;
+      mReturnType = null;
     }
 
     @Override
     public void run() {
       final boolean cancelled;
       synchronized (this) {
-        aStarted = true;
-        cancelled = aCancelled;
+        mStarted = true;
+        cancelled = mCancelled;
       }
       try {
         if (!cancelled) {
@@ -241,9 +241,9 @@ public class DarwinMessenger implements IMessenger {
               // Use separate value to allow for suppressing of warning.
               @SuppressWarnings("unchecked")
               final T v = (T) NULL;
-              aResult = v;
+              mResult = v;
             } else {
-              aResult = result;
+              mResult = result;
             }
           }
         }
@@ -253,7 +253,7 @@ public class DarwinMessenger implements IMessenger {
       } catch (@NotNull final Exception e) {
         Logger.getLogger(DarwinMessenger.class.getName()).log(Level.WARNING, "Error sending message", e);
         synchronized (this) {
-          aError = e;
+          mError = e;
         }
       } finally {
         notifyCompletionListener(this);
@@ -270,7 +270,7 @@ public class DarwinMessenger implements IMessenger {
       final URL destination;
 
       try {
-        destination = aDestURL.toURL();
+        destination = mDestURL.toURL();
       } catch (@NotNull final MalformedURLException e) {
         throw new MessagingException(e);
       }
@@ -278,21 +278,21 @@ public class DarwinMessenger implements IMessenger {
       final URLConnection connection = destination.openConnection();
       if (connection instanceof HttpURLConnection) {
         final HttpURLConnection httpConnection = (HttpURLConnection) connection;
-        final boolean hasPayload = aMessage.getBodySource() != null;
+        final boolean hasPayload = mMessage.getBodySource() != null;
         connection.setDoOutput(hasPayload);
-        String method = aMessage.getMethod();
+        String method = mMessage.getMethod();
         if (method == null) {
           method = hasPayload ? "POST" : "GET";
         }
         httpConnection.setRequestMethod(method);
 
         boolean contenttypeset = false;
-        for (final IHeader header : aMessage.getHeaders()) {
+        for (final IHeader header : mMessage.getHeaders()) {
           httpConnection.addRequestProperty(header.getName(), header.getValue());
           contenttypeset |= "Content-Type".equals(header.getName());
         }
         if (hasPayload && (!contenttypeset)) { // Set the content type from the source if not yet set.
-          final String contentType = aMessage.getBodySource().getContentType();
+          final String contentType = mMessage.getBodySource().getContentType();
           if ((contentType != null) && (contentType.length() > 0)) {
             httpConnection.addRequestProperty("Content-Type", contentType);
           }
@@ -305,24 +305,24 @@ public class DarwinMessenger implements IMessenger {
         try {
           if (hasPayload) {
             try(final OutputStream out = httpConnection.getOutputStream()) {
-              InputStreamOutputStream.writeToOutputStream(aMessage.getBodySource().getInputStream(), out);
+              InputStreamOutputStream.writeToOutputStream(mMessage.getBodySource().getInputStream(), out);
             }
           }
-          aResponseCode = httpConnection.getResponseCode();
-          if ((aResponseCode < 200) || (aResponseCode >= 400)) {
+          mResponseCode = httpConnection.getResponseCode();
+          if ((mResponseCode < 200) || (mResponseCode >= 400)) {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             InputStreamOutputStream.writeToOutputStream(httpConnection.getErrorStream(), baos);
-            final String errorMessage = "Error in sending message with " + method + " to (" + destination + ") [" + aResponseCode + "]:\n"
+            final String errorMessage = "Error in sending message with " + method + " to (" + destination + ") [" + mResponseCode + "]:\n"
                 + new String(baos.toByteArray());
             Logger.getLogger(DarwinMessenger.class.getName()).info(errorMessage);
             throw new HttpResponseException(httpConnection.getResponseCode(), errorMessage);
           }
-          if (aReturnType.isAssignableFrom(SourceDataSource.class)) {
+          if (mReturnType.isAssignableFrom(SourceDataSource.class)) {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             InputStreamOutputStream.writeToOutputStream(httpConnection.getInputStream(), baos);
-            return aReturnType.cast(new SourceDataSource(httpConnection.getContentType(), new StreamSource(new ByteArrayInputStream(baos.toByteArray()))));
+            return mReturnType.cast(new SourceDataSource(httpConnection.getContentType(), new StreamSource(new ByteArrayInputStream(baos.toByteArray()))));
           } else {
-            return JAXB.unmarshal(httpConnection.getInputStream(), aReturnType);
+            return JAXB.unmarshal(httpConnection.getInputStream(), mReturnType);
           }
 
         } finally {
@@ -340,11 +340,11 @@ public class DarwinMessenger implements IMessenger {
      */
     @Override
     public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
-      if (aCancelled) {
+      if (mCancelled) {
         return true;
       }
-      if (!aStarted) {
-        aCancelled = true;
+      if (!mStarted) {
+        mCancelled = true;
         return true;
       }
       // TODO support interrupt running process
@@ -353,33 +353,33 @@ public class DarwinMessenger implements IMessenger {
 
     @Override
     public synchronized boolean isCancelled() {
-      return aCancelled;
+      return mCancelled;
     }
 
     @Override
     public synchronized boolean isDone() {
-      return aCancelled || (aResult != null) || (aError != null);
+      return mCancelled || (mResult != null) || (mError != null);
     }
 
     @Nullable
     @Override
     public synchronized T get() throws InterruptedException, ExecutionException {
-      if (aCancelled) {
+      if (mCancelled) {
         throw new CancellationException();
       }
-      if (aError != null) {
-        throw new ExecutionException(aError);
+      if (mError != null) {
+        throw new ExecutionException(mError);
       }
-      if (aResult == NULL) {
+      if (mResult == NULL) {
         return null;
       }
-      if (aResult != null)
+      if (mResult != null)
       {
-        return aResult;
+        return mResult;
       }
       wait();
       // wait for the result
-      return aResult;
+      return mResult;
     }
 
     /**
@@ -390,17 +390,17 @@ public class DarwinMessenger implements IMessenger {
     @Nullable
     @Override
     public synchronized T get(final long timeout, @NotNull final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-      if (aCancelled) {
+      if (mCancelled) {
         throw new CancellationException();
       }
-      if (aError != null) {
-        throw new ExecutionException(aError);
+      if (mError != null) {
+        throw new ExecutionException(mError);
       }
-      if (aResult == NULL) {
+      if (mResult == NULL) {
         return null;
       }
-      if (aResult != null) {
-        return aResult;
+      if (mResult != null) {
+        return mResult;
       }
       if (timeout == 0) {
         throw new TimeoutException();

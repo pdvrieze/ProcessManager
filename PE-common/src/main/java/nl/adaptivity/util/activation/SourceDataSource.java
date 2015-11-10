@@ -13,23 +13,23 @@ import javax.xml.transform.Source;
 
 public class SourceDataSource implements DataSource {
 
-  private final String aContentType;
+  private final String mContentType;
 
-  private final Source aContent;
+  private final Source mContent;
 
   public SourceDataSource(final String contentType, final Source content) {
-    aContentType = contentType;
-    aContent = content;
+    mContentType = contentType;
+    mContent = content;
   }
 
   @Override
   public String getContentType() {
-    return aContentType;
+    return mContentType;
   }
 
   @Override
   public InputStream getInputStream() throws IOException {
-    return Sources.toInputStream(aContent);
+    return Sources.toInputStream(mContent);
   }
 
   @Nullable

@@ -22,25 +22,25 @@ import org.w3.soapEnvelope.Envelope;
 
 public class SendableSoapSource implements ISendableMessage, DataSource {
 
-  private final EndpointDescriptor aDestination;
+  private final EndpointDescriptor mDestination;
 
-  private final Source aMessage;
+  private final Source mMessage;
 
-  private final Map<String, DataSource> aAttachments;
+  private final Map<String, DataSource> mAttachments;
 
   public SendableSoapSource(final EndpointDescriptor destination, final Source message) {
     this(destination, message, Collections.<String,DataSource>emptyMap());
   }
 
   public SendableSoapSource(final EndpointDescriptor destination, final Source message, final Map<String, DataSource> attachments) {
-    aDestination = destination;
-    aMessage = message;
-    aAttachments = attachments;
+    mDestination = destination;
+    mMessage = message;
+    mAttachments = attachments;
   }
 
   @Override
   public EndpointDescriptor getDestination() {
-    return aDestination;
+    return mDestination;
   }
 
   @Nullable
@@ -71,7 +71,7 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
   public InputStream getInputStream() throws IOException {
     final ByteArrayOutputStream boas = new ByteArrayOutputStream();
     try {
-      Sources.writeToStream(aMessage, boas);
+      Sources.writeToStream(mMessage, boas);
     } catch (@NotNull final TransformerException e) {
       throw new IOException(e);
     }
@@ -92,7 +92,7 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
 
   @Override
   public Map<String, DataSource> getAttachments() {
-    return aAttachments;
+    return mAttachments;
   }
 
 }

@@ -8,19 +8,19 @@ import org.jetbrains.annotations.Nullable;
  */
 public class Identifier implements Identifiable {
 
-  private String aID;
+  private String mID;
 
   public Identifier(final String iD) {
-    aID = iD;
+    mID = iD;
   }
 
   @Override
   public String getId() {
-    return aID;
+    return mID;
   }
 
   public void setID(final String iD) {
-    aID = iD;
+    mID = iD;
   }
 
   @Override
@@ -30,17 +30,17 @@ public class Identifier implements Identifiable {
 
     final Identifier that = (Identifier) o;
 
-    return aID.equals(that.aID);
+    return mID.equals(that.mID);
 
   }
 
   @Override
   public int hashCode() {
-    return aID.hashCode();
+    return mID.hashCode();
   }
 
   @Override
   public String toString() {
-    return aID;
+    return mID;
   }
 }

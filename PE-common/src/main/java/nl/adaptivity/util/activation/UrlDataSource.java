@@ -18,13 +18,13 @@ public class UrlDataSource implements DataSource {
 
   private static MimetypesFileTypeMap _mimeMap;
 
-  private final String aContentType;
+  private final String mContentType;
 
-  @NotNull private final URL aURL;
+  @NotNull private final URL mURL;
 
-  private final InputStream aInputStream;
+  private final InputStream mInputStream;
 
-  private final Map<String, List<String>> aHeaders;
+  private final Map<String, List<String>> mHeaders;
 
   public UrlDataSource(@NotNull final URL finalUrl) throws IOException {
     final URLConnection connection;
@@ -35,29 +35,29 @@ public class UrlDataSource implements DataSource {
       if ("content/unknown".equals(contentType)) {
         contentType = getMimeTypeForFileName(finalUrl.getFile());
       }
-      aContentType = contentType;
+      mContentType = contentType;
     }
 
-    aInputStream = connection.getInputStream();
+    mInputStream = connection.getInputStream();
 
-    aHeaders = connection.getHeaderFields();
+    mHeaders = connection.getHeaderFields();
 
-    aURL = finalUrl;
+    mURL = finalUrl;
   }
 
   @Override
   public String getContentType() {
-    return aContentType;
+    return mContentType;
   }
 
   @Override
   public InputStream getInputStream() throws IOException {
-    return aInputStream;
+    return mInputStream;
   }
 
   @Override
   public String getName() {
-    return aURL.getPath();
+    return mURL.getPath();
   }
 
   @NotNull
@@ -76,7 +76,7 @@ public class UrlDataSource implements DataSource {
   }
 
   public Map<String, List<String>> getHeaders() {
-    return aHeaders;
+    return mHeaders;
   }
 
 }

@@ -21,8 +21,8 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
 
   private static final long serialVersionUID = -4343040873373817308L;
 
-  private int aMin;
-  private int aMax;
+  private int mMin;
+  private int mMax;
 
   public JoinSplitImpl(final ProcessModelImpl ownerModel) {
     super(ownerModel);
@@ -30,8 +30,8 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
 
   public JoinSplitImpl(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors);
-    aMin = min;
-    aMax = max;
+    mMin = min;
+    mMax = max;
   }
 
   @Override
@@ -46,24 +46,24 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
 
   @Override
   public void setMax(final int max) {
-    aMax = max;
+    mMax = max;
   }
 
   @Override
   @XmlAttribute(required = true)
   public int getMax() {
-    return aMax;
+    return mMax;
   }
 
   @Override
   public void setMin(final int min) {
-    aMin = min;
+    mMin = min;
   }
 
   @Override
   @XmlAttribute(required = true)
   public int getMin() {
-    return aMin;
+    return mMin;
   }
 
 }

@@ -82,7 +82,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
   /**
    * Set the state of the task.
    *
-   * @param aNewState The new state of the task.
+   * @param mNewState The new state of the task.
    * @param transaction
    * @param newState
    */

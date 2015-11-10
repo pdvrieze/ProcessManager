@@ -13,28 +13,28 @@ import java.util.Map;
  */
 public class GatheringNamespaceContext implements NamespaceContext {
 
-  private final NamespaceContext aParentContext;
-  private final Map<String, String> aResultMap;
+  private final NamespaceContext mParentContext;
+  private final Map<String, String> mResultMap;
 
   public GatheringNamespaceContext(final NamespaceContext parentContext, final Map<String, String> resultMap) {
-    aParentContext = parentContext;
-    aResultMap = resultMap;
+    mParentContext = parentContext;
+    mResultMap = resultMap;
   }
 
   @Override
   public String getNamespaceURI(final String prefix) {
-    final String namespaceURI = aParentContext.getNamespaceURI(prefix);
+    final String namespaceURI = mParentContext.getNamespaceURI(prefix);
     if (namespaceURI != null && !(XMLConstants.XMLNS_ATTRIBUTE.equals(prefix))) {
-      aResultMap.put(prefix, namespaceURI);
+      mResultMap.put(prefix, namespaceURI);
     }
     return namespaceURI;
   }
 
   @Override
   public String getPrefix(final String namespaceURI) {
-    final String prefix = aParentContext.getNamespaceURI(namespaceURI);
+    final String prefix = mParentContext.getNamespaceURI(namespaceURI);
     if (prefix != null && !(XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI))) {
-      aResultMap.put(prefix, namespaceURI);
+      mResultMap.put(prefix, namespaceURI);
     }
     return prefix;
   }
@@ -43,10 +43,10 @@ public class GatheringNamespaceContext implements NamespaceContext {
   @Override
   public Iterator<String> getPrefixes(final String namespaceURI) {
     if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespaceURI) || XMLConstants.XML_NS_URI.equals(namespaceURI)) {
-      for (final Iterator<String> it = aParentContext.getPrefixes(namespaceURI); it.hasNext(); ) {
-        aResultMap.put(it.next(), namespaceURI);
+      for (final Iterator<String> it = mParentContext.getPrefixes(namespaceURI); it.hasNext(); ) {
+        mResultMap.put(it.next(), namespaceURI);
       }
     }
-    return aParentContext.getPrefixes(namespaceURI);
+    return mParentContext.getPrefixes(namespaceURI);
   }
 }

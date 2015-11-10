@@ -37,17 +37,17 @@ public class SoapMethodWrapper {
 
   public static final URI SOAP_ENCODING = URI.create(ProcessConsts.Soap.SOAP_ENCODING_NS);
 
-  private final Object aOwner;
+  private final Object mOwner;
 
-  private final Method aMethod;
+  private final Method mMethod;
 
-  private Object[] aParams;
+  private Object[] mParams;
 
-  private Object aResult;
+  private Object mResult;
 
   public SoapMethodWrapper(final Object owner, final Method method) {
-    aOwner = owner;
-    aMethod = method;
+    mOwner = owner;
+    mMethod = method;
   }
 
   public void unmarshalParams(@NotNull final Source source, final Map<String, DataSource> attachments) {
@@ -57,7 +57,7 @@ public class SoapMethodWrapper {
   }
 
   public void unmarshalParams(@NotNull final Envelope envelope, final Map<String, DataSource> attachments) {
-    if (aParams != null) {
+    if (mParams != null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
 
@@ -95,17 +95,17 @@ public class SoapMethodWrapper {
     final LinkedHashMap<String, Node> params = SoapHelper.getParamMap(root);
     final Map<String, Node> headers = SoapHelper.getHeaderMap(envelope.getHeader());
 
-    final Class<?>[] parameterTypes = aMethod.getParameterTypes();
-    final Annotation[][] parameterAnnotations = aMethod.getParameterAnnotations();
+    final Class<?>[] parameterTypes = mMethod.getParameterTypes();
+    final Annotation[][] parameterAnnotations = mMethod.getParameterAnnotations();
 
-    aParams = new Object[parameterTypes.length];
+    mParams = new Object[parameterTypes.length];
 
     for (int i = 0; i < parameterTypes.length; ++i) {
       final WebParam annotation = Annotations.getAnnotation(parameterAnnotations[i], WebParam.class);
       final String name;
       if (annotation == null) {
         if (params.isEmpty()) {
-          throw new MessagingFormatException("Missing parameter "+(i+1)+" of type "+parameterTypes[i]+" for method "+aMethod);
+          throw new MessagingFormatException("Missing parameter "+(i+1)+" of type "+parameterTypes[i]+" for method "+mMethod);
         }
         name = params.keySet().iterator().next();
       } else {
@@ -123,7 +123,7 @@ public class SoapMethodWrapper {
       }
 
       final SoapSeeAlso seeAlso = Annotations.getAnnotation(parameterAnnotations[i], SoapSeeAlso.class);
-      aParams[i] = SoapHelper.unMarshalNode(aMethod, parameterTypes[i], seeAlso==null ? new Class<?>[0] : seeAlso.value(), value);
+      mParams[i] = SoapHelper.unMarshalNode(mMethod, parameterTypes[i], seeAlso==null ? new Class<?>[0] : seeAlso.value(), value);
 
     }
     if (params.size() > 0) {
@@ -132,9 +132,9 @@ public class SoapMethodWrapper {
   }
 
   private void assertRootNode(@NotNull final Node root) {
-    final WebMethod wm = aMethod.getAnnotation(WebMethod.class);
+    final WebMethod wm = mMethod.getAnnotation(WebMethod.class);
     if ((wm == null) || wm.operationName().equals("")) {
-      if (!root.getLocalName().equals(aMethod.getName())) {
+      if (!root.getLocalName().equals(mMethod.getName())) {
         throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     } else {
@@ -142,7 +142,7 @@ public class SoapMethodWrapper {
         throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     }
-    final WebService ws = aMethod.getDeclaringClass().getAnnotation(WebService.class);
+    final WebService ws = mMethod.getDeclaringClass().getAnnotation(WebService.class);
     if (!((ws == null) || ws.targetNamespace().equals(""))) {
       if (!ws.targetNamespace().equals(root.getNamespaceURI())) {
         throw new MessagingFormatException("Root node does not correspond to operation namespace");
@@ -151,11 +151,11 @@ public class SoapMethodWrapper {
   }
 
   public void exec() {
-    if (aParams == null) {
+    if (mParams == null) {
       throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
     }
     try {
-      aResult = aMethod.invoke(aOwner, aParams);
+      mResult = mMethod.invoke(mOwner, mParams);
     } catch (@NotNull final IllegalArgumentException e) {
       throw new MessagingException(e);
     } catch (@NotNull final IllegalAccessException e) {
@@ -179,23 +179,23 @@ public class SoapMethodWrapper {
 
   @NotNull
   public Source getResultSource() {
-    if (aResult instanceof Source) {
-      return (Source) aResult;
+    if (mResult instanceof Source) {
+      return (Source) mResult;
     }
 
     final List<Tripple<String, ? extends Class<?>, ?>> params;
     final List<Object> headers;
-    if (aResult == null && aMethod.getReturnType()==Void.class) {
+    if (mResult == null && mMethod.getReturnType()==Void.class) {
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                              Tripple.tripple("result", Void.class, null));
       headers = Collections.emptyList();
 
-    } else if (aResult instanceof ActivityResponse) {
-      final ActivityResponse<?> activityResponse = (ActivityResponse<?>) aResult;
+    } else if (mResult instanceof ActivityResponse) {
+      final ActivityResponse<?> activityResponse = (ActivityResponse<?>) mResult;
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", activityResponse.getReturnType(), activityResponse.getReturnValue()) );
-      headers = Collections.<Object> singletonList(aResult);
-    } else if (aResult!=null && "nl.adaptivity.process.messaging.ActivityResponse".equals(aResult.getClass().getName())) {
+      headers = Collections.<Object> singletonList(mResult);
+    } else if (mResult!=null && "nl.adaptivity.process.messaging.ActivityResponse".equals(mResult.getClass().getName())) {
       /*
        * If the ActivityResponse was created by a different classloader like
        * when we directly invoke the endpoint through DarwinMessenger shortcut
@@ -206,8 +206,8 @@ public class SoapMethodWrapper {
       final Class<?> returnType;
       final Object returnValue;
       try {
-        returnType = (Class<?>) aResult.getClass().getMethod("getReturnType").invoke(aResult);
-        returnValue = aResult.getClass().getMethod("getReturnValue").invoke(aResult);
+        returnType = (Class<?>) mResult.getClass().getMethod("getReturnType").invoke(mResult);
+        returnValue = mResult.getClass().getMethod("getReturnValue").invoke(mResult);
       } catch (@NotNull final IllegalArgumentException e) {
         throw new MessagingException(e);
       } catch (@NotNull final SecurityException e) {
@@ -221,23 +221,23 @@ public class SoapMethodWrapper {
       }
       params = Arrays.asList( Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
                               Tripple.tripple("result", returnType, returnValue) );
-      headers = Collections.<Object> singletonList(aResult);
+      headers = Collections.<Object> singletonList(mResult);
 
     } else {
 
       params = Arrays.asList(Tripple.tripple(SoapHelper.RESULT, String.class, "result"),
-                              Tripple.tripple("result", aMethod.getReturnType(), aResult));
+                              Tripple.tripple("result", mMethod.getReturnType(), mResult));
       headers = Collections.emptyList();
     }
     try {
-      return SoapHelper.createMessage(new QName(aMethod.getName() + "Response"), headers, params);
+      return SoapHelper.createMessage(new QName(mMethod.getName() + "Response"), headers, params);
     } catch (@NotNull final JAXBException e) {
       throw new MessagingException(e);
     }
   }
 
   public Object getResult() {
-    return aResult;
+    return mResult;
   }
 
 }

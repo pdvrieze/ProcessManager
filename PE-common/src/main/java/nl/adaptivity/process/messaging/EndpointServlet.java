@@ -32,11 +32,11 @@ public class EndpointServlet extends HttpServlet {
 
   private static final long serialVersionUID = 5882346515807438320L;
 
-  private GenericEndpoint aEndpoint;
+  private GenericEndpoint mEndpoint;
 
-  private volatile SoapMessageHandler aSoapMessageHandler;
+  private volatile SoapMessageHandler mSoapMessageHandler;
 
-  private volatile RestMessageHandler aRestMessageHandler;
+  private volatile RestMessageHandler mRestMessageHandler;
 
   /**
    * Default constructor that allows this servlet to be instantiated directly in
@@ -46,7 +46,7 @@ public class EndpointServlet extends HttpServlet {
    */
   public EndpointServlet() {
     if (this instanceof GenericEndpoint) {
-      aEndpoint = (GenericEndpoint) this;
+      mEndpoint = (GenericEndpoint) this;
     }
   }
 
@@ -56,7 +56,7 @@ public class EndpointServlet extends HttpServlet {
    * @param endpoint The endpoint to provide.
    */
   protected EndpointServlet(final GenericEndpoint endpoint) {
-    aEndpoint = endpoint;
+    mEndpoint = endpoint;
   }
 
   /**
@@ -161,7 +161,7 @@ public class EndpointServlet extends HttpServlet {
    * @see {@link #init(ServletConfig)}
    */
   protected GenericEndpoint getEndpointProvider() {
-    return aEndpoint;
+    return mEndpoint;
   }
 
   /**
@@ -172,14 +172,14 @@ public class EndpointServlet extends HttpServlet {
    * @return The soap handler.
    */
   private SoapMessageHandler getSoapMessageHandler() {
-    if (aSoapMessageHandler == null) {
+    if (mSoapMessageHandler == null) {
       synchronized (this) {
-        if (aSoapMessageHandler == null) {
-          aSoapMessageHandler = SoapMessageHandler.newInstance(getEndpointProvider());
+        if (mSoapMessageHandler == null) {
+          mSoapMessageHandler = SoapMessageHandler.newInstance(getEndpointProvider());
         }
       }
     }
-    return aSoapMessageHandler;
+    return mSoapMessageHandler;
   }
 
   /**
@@ -190,15 +190,15 @@ public class EndpointServlet extends HttpServlet {
    * @return The rest handler.
    */
   private RestMessageHandler getRestMessageHandler() {
-    if (aRestMessageHandler == null) {
+    if (mRestMessageHandler == null) {
       synchronized (this) {
-        if (aRestMessageHandler == null) {
-          aRestMessageHandler = RestMessageHandler.newInstance(getEndpointProvider());
+        if (mRestMessageHandler == null) {
+          mRestMessageHandler = RestMessageHandler.newInstance(getEndpointProvider());
         }
 
       }
     }
-    return aRestMessageHandler;
+    return mRestMessageHandler;
   }
 
   /**
@@ -234,8 +234,8 @@ public class EndpointServlet extends HttpServlet {
             + " the class given is " + className, e);
       }
       try {
-        aEndpoint = clazz.newInstance();
-        aEndpoint.initEndpoint(config);
+        mEndpoint = clazz.newInstance();
+        mEndpoint.initEndpoint(config);
       } catch (@NotNull final InstantiationException e) {
         throw new ServletException(e);
       } catch (@NotNull final IllegalAccessException e) {
@@ -248,8 +248,8 @@ public class EndpointServlet extends HttpServlet {
 
   @Override
   public void destroy() {
-    if (aEndpoint != null) {
-      aEndpoint.destroy();
+    if (mEndpoint != null) {
+      mEndpoint.destroy();
     }
     super.destroy();
   }

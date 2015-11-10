@@ -329,29 +329,29 @@ public class PETransformer {
 
   public static class ProcessDataContext extends AbstractDataContext {
 
-    @Nullable private ProcessData[] aProcessData;
-    private int aDefaultIdx;
+    @Nullable private ProcessData[] mProcessData;
+    private int mDefaultIdx;
 
     public ProcessDataContext(@Nullable final ProcessData... processData) {
       if (processData==null) {
-        aProcessData= new ProcessData[0];
-        aDefaultIdx=0;
+        mProcessData= new ProcessData[0];
+        mDefaultIdx=0;
       } else {
-        aProcessData = processData;
-        aDefaultIdx = processData.length==1 ? 0 : -1;
+        mProcessData = processData;
+        mDefaultIdx = processData.length==1 ? 0 : -1;
       }
     }
 
     public ProcessDataContext(final int defaultIdx, @NotNull final ProcessData... processData) {
       assert defaultIdx>=-1 && defaultIdx<processData.length;
-      aProcessData = processData;
-      aDefaultIdx = defaultIdx;
+      mProcessData = processData;
+      mDefaultIdx = defaultIdx;
     }
 
     @Nullable
     @Override
     protected ProcessData getData(@NotNull final String valueName) {
-      for(final ProcessData candidate: aProcessData) {
+      for(final ProcessData candidate: mProcessData) {
         if (valueName.equals(candidate.getName())) { return candidate; }
       }
       return null;
@@ -360,19 +360,19 @@ public class PETransformer {
     @NotNull
     @Override
     public List<XMLEvent> resolveDefaultValue(final XMLEventFactory xef) throws XMLStreamException {
-      if (aProcessData.length==0 || aProcessData[aDefaultIdx]==null) { return Collections.emptyList(); }
-      return toEvents(aProcessData[aDefaultIdx]);
+      if (mProcessData.length==0 || mProcessData[mDefaultIdx]==null) { return Collections.emptyList(); }
+      return toEvents(mProcessData[mDefaultIdx]);
     }
 
   }
 
-  private final PETransformerContext aContext;
-  private final NamespaceContext aNamespaceContext;
+  private final PETransformerContext mContext;
+  private final NamespaceContext mNamespaceContext;
   private final boolean mRemoveWhitespace;
 
   private PETransformer(final PETransformerContext context, final NamespaceContext namespaceContext, final boolean removeWhitespace) {
-    aContext = context;
-    aNamespaceContext = namespaceContext;
+    mContext = context;
+    mNamespaceContext = namespaceContext;
     mRemoveWhitespace = removeWhitespace;
   }
 
@@ -496,12 +496,12 @@ public class PETransformer {
 
   @NotNull
   public XMLEventReader createFilter(final XMLStreamReader input) throws XMLStreamException {
-    return new MyFilter(aContext, aNamespaceContext, input, mRemoveWhitespace);
+    return new MyFilter(mContext, mNamespaceContext, input, mRemoveWhitespace);
   }
 
   @NotNull
   public XMLEventReader createFilter(final XMLEventReader input) throws XMLStreamException {
-    return new MyFilter(aContext, aNamespaceContext, input, mRemoveWhitespace);
+    return new MyFilter(mContext, mNamespaceContext, input, mRemoveWhitespace);
   }
 
   @NotNull

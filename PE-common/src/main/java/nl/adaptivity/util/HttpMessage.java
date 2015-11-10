@@ -121,32 +121,32 @@ public class HttpMessage {
 
   public static class QueryIterator implements Iterator<Query> {
 
-    private final Iterator<Entry<String, String>> aIterator;
+    private final Iterator<Entry<String, String>> mIterator;
 
     public QueryIterator(final Iterator<Entry<String, String>> iterator) {
-      aIterator = iterator;
+      mIterator = iterator;
     }
 
     @Override
     public boolean hasNext() {
-      return (aIterator != null) && aIterator.hasNext();
+      return (mIterator != null) && mIterator.hasNext();
     }
 
     @NotNull
     @Override
     public Query next() {
-      if (aIterator == null) {
+      if (mIterator == null) {
         throw new NoSuchElementException();
       }
-      return new Query(aIterator.next());
+      return new Query(mIterator.next());
     }
 
     @Override
     public void remove() {
-      if (aIterator == null) {
+      if (mIterator == null) {
         throw new IllegalStateException("Removing elements from empty collection");
       }
-      aIterator.remove();
+      mIterator.remove();
     }
 
   }
@@ -155,41 +155,41 @@ public class HttpMessage {
   @XmlAccessorType(XmlAccessType.NONE)
   public static class Query {
 
-    private String aKey;
+    private String mKey;
 
-    private String aValue;
+    private String mValue;
 
     protected Query() {}
 
     public Query(@NotNull final Entry<String, String> entry) {
-      aKey = entry.getKey();
-      aValue = entry.getValue();
+      mKey = entry.getKey();
+      mValue = entry.getValue();
     }
 
     public void setKey(final String key) {
-      aKey = key;
+      mKey = key;
     }
 
     @XmlAttribute(name = "key", required = true)
     public String getKey() {
-      return aKey;
+      return mKey;
     }
 
     public void setValue(final String value) {
-      aValue = value;
+      mValue = value;
     }
 
     @XmlValue
     public String getValue() {
-      return aValue;
+      return mValue;
     }
 
     @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = (prime * result) + ((aKey == null) ? 0 : aKey.hashCode());
-      result = (prime * result) + ((aValue == null) ? 0 : aValue.hashCode());
+      result = (prime * result) + ((mKey == null) ? 0 : mKey.hashCode());
+      result = (prime * result) + ((mValue == null) ? 0 : mValue.hashCode());
       return result;
     }
 
@@ -205,18 +205,18 @@ public class HttpMessage {
         return false;
       }
       final Query other = (Query) obj;
-      if (aKey == null) {
-        if (other.aKey != null) {
+      if (mKey == null) {
+        if (other.mKey != null) {
           return false;
         }
-      } else if (!aKey.equals(other.aKey)) {
+      } else if (!mKey.equals(other.mKey)) {
         return false;
       }
-      if (aValue == null) {
-        if (other.aValue != null) {
+      if (mValue == null) {
+        if (other.mValue != null) {
           return false;
         }
-      } else if (!aValue.equals(other.aValue)) {
+      } else if (!mValue.equals(other.mValue)) {
         return false;
       }
       return true;
@@ -226,24 +226,24 @@ public class HttpMessage {
 
   public static class QueryMapCollection extends AbstractCollection<Query> {
 
-    private Map<String, String> aMap;
+    private Map<String, String> mMap;
 
     public QueryMapCollection(final Map<String, String> map) {
-      aMap = map;
+      mMap = map;
     }
 
     @Override
     public boolean add(@NotNull final Query e) {
-      if (aMap == null) {
-        aMap = new HashMap<>();
+      if (mMap == null) {
+        mMap = new HashMap<>();
       }
-      return aMap.put(e.getKey(), e.getValue()) != null;
+      return mMap.put(e.getKey(), e.getValue()) != null;
     }
 
     @Override
     public void clear() {
-      if (aMap != null) {
-        aMap.clear();
+      if (mMap != null) {
+        mMap.clear();
       }
     }
 
@@ -251,7 +251,7 @@ public class HttpMessage {
     public boolean contains(final Object o) {
       if (o instanceof Query) {
         final Query q = (Query) o;
-        final String match = aMap.get(q.getKey());
+        final String match = mMap.get(q.getKey());
         return ((match == null) && (q.getValue() == null)) || ((q.getValue() != null) && q.getValue().equals(match));
       } else {
         return false;
@@ -260,31 +260,31 @@ public class HttpMessage {
 
     @Override
     public boolean isEmpty() {
-      if (aMap == null) {
+      if (mMap == null) {
         return true;
       }
-      return aMap.isEmpty();
+      return mMap.isEmpty();
     }
 
     @NotNull
     @Override
     public Iterator<Query> iterator() {
-      if (aMap == null) {
+      if (mMap == null) {
         return new QueryIterator(null);
       }
-      return new QueryIterator(aMap.entrySet().iterator());
+      return new QueryIterator(mMap.entrySet().iterator());
     }
 
     @Override
     public boolean remove(final Object o) {
-      if (aMap == null) {
+      if (mMap == null) {
         return false;
       }
       final Query q = (Query) o;
-      final String candidate = aMap.get(q.getKey());
+      final String candidate = mMap.get(q.getKey());
 
       if (((candidate == null) && (q.getValue() == null)) || ((candidate != null) && candidate.equals(q.getValue()))) {
-        aMap.remove(q.getKey());
+        mMap.remove(q.getKey());
         return true;
       } else {
         return false;
@@ -293,56 +293,56 @@ public class HttpMessage {
 
     @Override
     public int size() {
-      if (aMap == null) {
+      if (mMap == null) {
         return 0;
       }
-      return aMap.size();
+      return mMap.size();
     }
 
   }
 
-  private Map<String, String> aQueries;
+  private Map<String, String> mQueries;
 
-  private Map<String, String> aPost;
+  private Map<String, String> mPost;
 
-  private Body aBody;
+  private Body mBody;
 
-  private Collection<ByteContentDataSource> aByteContent;
+  private Collection<ByteContentDataSource> mByteContent;
 
-  private String aRequestPath;
+  private String mRequestPath;
 
-  private String aContextPath;
+  private String mContextPath;
 
-  private String aMethod;
+  private String mMethod;
 
-  private String aContentType;
+  private String mContentType;
 
-  @Nullable private String aCharacterEncoding;
+  @Nullable private String mCharacterEncoding;
 
-  @NotNull private final Map<String, List<String>> aHeaders;
+  @NotNull private final Map<String, List<String>> mHeaders;
 
-  private Map<String, DataSource> aAttachments;
+  private Map<String, DataSource> mAttachments;
 
-  private Principal aUserPrincipal;
+  private Principal mUserPrincipal;
 
   public HttpMessage(@NotNull final HttpServletRequest request) throws IOException {
-    aHeaders = getHeaders(request);
+    mHeaders = getHeaders(request);
 
-    aQueries = toQueries(request.getQueryString());
-    aUserPrincipal = request.getUserPrincipal();
+    mQueries = toQueries(request.getQueryString());
+    mUserPrincipal = request.getUserPrincipal();
 
     setMethod(request.getMethod());
     final String pathInfo = request.getPathInfo();
     setRequestPath((pathInfo == null) || (pathInfo.length() == 0) ? request.getServletPath() : pathInfo);
     setContextPath(request.getContextPath());
     if ("POST".equals(request.getMethod()) || "PUT".equals(request.getMethod())) {
-      aContentType = request.getContentType();
-      aCharacterEncoding = null;
-      if (aContentType != null) {
-        int i = aContentType.indexOf(';');
+      mContentType = request.getContentType();
+      mCharacterEncoding = null;
+      if (mContentType != null) {
+        int i = mContentType.indexOf(';');
         if (i >= 0) {
-          String tail = aContentType;
-          aContentType = aContentType.substring(0, i).trim();
+          String tail = mContentType;
+          mContentType = mContentType.substring(0, i).trim();
           while (i >= 0) {
             tail = tail.substring(i + 1).trim();
             i = tail.indexOf(';');
@@ -356,24 +356,24 @@ public class HttpMessage {
             if (j >= 0) {
               final String paramName = param.substring(0, j).trim();
               if (paramName.equals("charset")) {
-                aCharacterEncoding = param.substring(j + 1).trim();
+                mCharacterEncoding = param.substring(j + 1).trim();
               }
             }
 
           }
         }
       }
-      if (aCharacterEncoding == null) {
-        aCharacterEncoding = request.getCharacterEncoding();
+      if (mCharacterEncoding == null) {
+        mCharacterEncoding = request.getCharacterEncoding();
       }
-      if (aCharacterEncoding == null) {
-        aCharacterEncoding = "UTF-8";
+      if (mCharacterEncoding == null) {
+        mCharacterEncoding = "UTF-8";
       }
-      final boolean isMultipart = (aContentType != null) && aContentType.startsWith("multipart/");
-      if ("application/x-www-form-urlencoded".equals(aContentType)) {
-        aPost = toQueries(getBody(request).toString(aCharacterEncoding));
+      final boolean isMultipart = (mContentType != null) && mContentType.startsWith("multipart/");
+      if ("application/x-www-form-urlencoded".equals(mContentType)) {
+        mPost = toQueries(getBody(request).toString(mCharacterEncoding));
       } else if (isMultipart) {
-        aAttachments = HttpRequest.parseMultipartFormdata(request.getInputStream(), HttpRequest.mimeType(request.getContentType()), null);
+        mAttachments = HttpRequest.parseMultipartFormdata(request.getInputStream(), HttpRequest.mimeType(request.getContentType()), null);
       } else {
         @SuppressWarnings("resource")
         final ByteArrayOutputStream baos = getBody(request);
@@ -384,9 +384,9 @@ public class HttpMessage {
         if (xml == null) {
           addByteContent(baos.toByteArray(), request.getContentType());
         } else {
-          aBody = new Body();
-          aBody.elements = new ArrayList<>(1);
-          aBody.elements.add(xml.getDocumentElement());
+          mBody = new Body();
+          mBody.elements = new ArrayList<>(1);
+          mBody.elements.add(xml.getDocumentElement());
         }
 
       }
@@ -491,15 +491,15 @@ public class HttpMessage {
 
   @Nullable
   public String getQuery(final String name) {
-    return aQueries == null ? null : aQueries.get(name);
+    return mQueries == null ? null : mQueries.get(name);
   }
 
   @Nullable
   public String getPost(final String name) {
-    if (aPost != null) {
-      String result = aPost.get(name);
-      if ((result == null) && (aAttachments != null)) {
-        final DataSource source = aAttachments.get(name);
+    if (mPost != null) {
+      String result = mPost.get(name);
+      if ((result == null) && (mAttachments != null)) {
+        final DataSource source = mAttachments.get(name);
         if (source != null) {
           try {
             result = Streams.toString(new InputStreamReader(source.getInputStream(), "UTF-8"));
@@ -511,7 +511,7 @@ public class HttpMessage {
         }
       }
     }
-    return aPost == null ? null : aPost.get(name);
+    return mPost == null ? null : mPost.get(name);
   }
 
   @Nullable
@@ -525,70 +525,70 @@ public class HttpMessage {
 
   @Nullable
   public DataSource getAttachment(final String name) {
-    if (aAttachments == null) {
+    if (mAttachments == null) {
       return null;
     }
-    return aAttachments.get(name);
+    return mAttachments.get(name);
   }
 
   public Map<String, DataSource> getAttachments() {
-    if (aAttachments == null) {
+    if (mAttachments == null) {
       return Collections.emptyMap();
     }
-    return Collections.unmodifiableMap(aAttachments);
+    return Collections.unmodifiableMap(mAttachments);
   }
 
 
   @NotNull
   @XmlElement(name = "query", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getQueries() {
-    if (aQueries == null) {
-      aQueries = new HashMap<>();
+    if (mQueries == null) {
+      mQueries = new HashMap<>();
     }
-    return new QueryMapCollection(aQueries);
+    return new QueryMapCollection(mQueries);
   }
 
   @NotNull
   @XmlElement(name = "post", namespace = HttpMessage.NAMESPACE)
   public Collection<Query> getPost() {
-    if (aPost == null) {
-      aPost = new HashMap<>();
+    if (mPost == null) {
+      mPost = new HashMap<>();
     }
-    return new QueryMapCollection(aPost);
+    return new QueryMapCollection(mPost);
   }
 
   @XmlElement(name = "body", namespace = HttpMessage.NAMESPACE)
   public Body getBody() {
-    return aBody;
+    return mBody;
   }
 
   public void setBody(final Body body) {
-    aBody = body;
+    mBody = body;
   }
 
   public Collection<ByteContentDataSource> getByteContent() {
-    if (aByteContent == null) {
-      aByteContent = new ArrayList<>();
+    if (mByteContent == null) {
+      mByteContent = new ArrayList<>();
     }
-    return aByteContent;
+    return mByteContent;
   }
 
   public void setRequestPath(final String pathInfo) {
-    aRequestPath = pathInfo;
+    mRequestPath = pathInfo;
   }
 
   @XmlAttribute
   public String getRequestPath() {
-    return aRequestPath;
+    return mRequestPath;
   }
 
   public Iterable<String> getHeaders(final String name) {
-    return Collections.unmodifiableList(aHeaders.get(name));
+    return Collections.unmodifiableList(mHeaders.get(name));
   }
 
   @Nullable
   public String getHeader(final String name) {
-    final List<String> list = aHeaders.get(name);
+    final List<String> list = mHeaders.get(name);
     if ((list == null) || (list.size() < 1)) {
       return null;
     }
@@ -596,39 +596,39 @@ public class HttpMessage {
   }
 
   public Map<String, List<String>> getHeaders() {
-    return Collections.unmodifiableMap(aHeaders);
+    return Collections.unmodifiableMap(mHeaders);
   }
 
   public String getMethod() {
-    return aMethod;
+    return mMethod;
   }
 
   @XmlAttribute
   public void setMethod(final String method) {
-    aMethod = method;
+    mMethod = method;
   }
 
   public void setContextPath(final String contextPath) {
-    aContextPath = contextPath;
+    mContextPath = contextPath;
   }
 
   @XmlAttribute
   public String getContextPath() {
-    return aContextPath;
+    return mContextPath;
   }
 
   public String getContentType() {
-    return aContentType;
+    return mContentType;
   }
 
   @Nullable
   public String getCharacterEncoding() {
-    return aCharacterEncoding;
+    return mCharacterEncoding;
   }
 
   @Nullable
   public Source getContent() {
-    final List<Node> elements = aBody.getElements();
+    final List<Node> elements = mBody.getElements();
     if (elements.size() == 0) {
       return null;
     }
@@ -640,18 +640,18 @@ public class HttpMessage {
 
   @XmlAttribute(name = "user")
   String getUser() {
-    return aUserPrincipal.getName();
+    return mUserPrincipal.getName();
   }
 
   void setUser(final String name) {
-    aUserPrincipal = new SimplePrincipal(name);
+    mUserPrincipal = new SimplePrincipal(name);
   }
 
   public Principal getUserPrincipal() {
-    return aUserPrincipal;
+    return mUserPrincipal;
   }
 
   void setUserPrincipal(final Principal userPrincipal) {
-    aUserPrincipal = userPrincipal;
+    mUserPrincipal = userPrincipal;
   }
 }

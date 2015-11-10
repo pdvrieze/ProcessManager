@@ -12,21 +12,21 @@ import java.util.NoSuchElementException;
 
 
 public abstract class AbstractBufferedEventReader extends AbstractEventReader {
-  @Nullable private ArrayDeque<XMLEvent> aPeekBuffer = new ArrayDeque<>();
+  @Nullable private ArrayDeque<XMLEvent> mPeekBuffer = new ArrayDeque<>();
 
   @Override
   public XMLEvent nextEvent() throws XMLStreamException {
-    if (! aPeekBuffer.isEmpty()) {
-      return aPeekBuffer.removeFirst();
+    if (! mPeekBuffer.isEmpty()) {
+      return mPeekBuffer.removeFirst();
     }
     if (! hasNext()) { throw new NoSuchElementException(); }
     peek();
-    return aPeekBuffer.removeFirst();
+    return mPeekBuffer.removeFirst();
   }
 
   @Override
   public boolean hasNext() {
-    if (! aPeekBuffer.isEmpty()) { return true; }
+    if (! mPeekBuffer.isEmpty()) { return true; }
     try {
       return peek()!=null;
     } catch (@NotNull final XMLStreamException e) {
@@ -35,32 +35,32 @@ public abstract class AbstractBufferedEventReader extends AbstractEventReader {
   }
 
   protected void stripWhiteSpaceFromPeekBuffer() {
-    while(aPeekBuffer.size()>0 && aPeekBuffer.peekLast().isCharacters() && XmlUtil.isXmlWhitespace(aPeekBuffer.peekLast().asCharacters().getData())) {
-      aPeekBuffer.removeLast();
+    while(mPeekBuffer.size()>0 && mPeekBuffer.peekLast().isCharacters() && XmlUtil.isXmlWhitespace(mPeekBuffer.peekLast().asCharacters().getData())) {
+      mPeekBuffer.removeLast();
     }
   }
 
   @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   protected boolean isPeekBufferEmpty() {
-    return aPeekBuffer.isEmpty();
+    return mPeekBuffer.isEmpty();
   }
 
   protected XMLEvent peekFirst() {
-    return aPeekBuffer.peekFirst();
+    return mPeekBuffer.peekFirst();
   }
 
   protected void add(final XMLEvent event) {
-    aPeekBuffer.addLast(event);
+    mPeekBuffer.addLast(event);
   }
 
   protected void addAll(final Collection<? extends XMLEvent> events) {
-    aPeekBuffer.addAll(events);
+    mPeekBuffer.addAll(events);
   }
 
   @Override
   public void close() throws XMLStreamException {
-    aPeekBuffer.clear();
-    aPeekBuffer = null;
+    mPeekBuffer.clear();
+    mPeekBuffer = null;
   }
 
 }

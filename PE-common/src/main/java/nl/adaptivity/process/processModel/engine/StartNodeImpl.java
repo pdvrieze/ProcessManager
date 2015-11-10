@@ -53,7 +53,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   public static final String ELEMENTLOCALNAME = "start";
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-  private List<XmlResultType> aImports;
+  private List<XmlResultType> mImports;
 
   public StartNodeImpl(final ProcessModelImpl ownerModel) {
     super(ownerModel, Collections.<Identifiable>emptyList());
@@ -61,7 +61,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
   public StartNodeImpl(final ProcessModelImpl ownerModel, final List<XmlResultType> imports) {
     super(ownerModel, Collections.<Identifiable>emptyList());
-    aImports = imports;
+    mImports = imports;
   }
 
   @Override
@@ -95,7 +95,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
-    XmlUtil.writeChildren(out, aImports);
+    XmlUtil.writeChildren(out, mImports);
   }
 
   @Override
@@ -109,10 +109,10 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   @Override
   @XmlElement(name = "import")
   public List<XmlResultType> getResults() {
-    if (aImports == null) {
-      aImports = new ArrayList<>();
+    if (mImports == null) {
+      mImports = new ArrayList<>();
     }
-    return this.aImports;
+    return this.mImports;
   }
 
   @Override

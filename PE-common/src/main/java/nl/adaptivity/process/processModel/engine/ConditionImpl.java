@@ -23,10 +23,10 @@ public class ConditionImpl implements XmlSerializable, Condition {
 
   public static final String ELEMENTLOCALNAME = "condition";
 
-  private final String aCondition;
+  private final String mCondition;
 
   public ConditionImpl(final String condition) {
-    aCondition = condition;
+    mCondition = condition;
   }
 
   @Override
@@ -45,7 +45,7 @@ public class ConditionImpl implements XmlSerializable, Condition {
    */
   @Override
   public String getCondition() {
-    return aCondition;
+    return mCondition;
   }
 
   /**

@@ -16,36 +16,36 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RestMessageHandler {
 
-  private static volatile Map<Object, RestMessageHandler> aInstances;
+  private static volatile Map<Object, RestMessageHandler> mInstances;
 
   private Map<Class<?>, EnumMap<HttpMethod, PrefixMap<Method>>> cache;
 
-  private final Object aTarget;
+  private final Object mTarget;
 
 
   public static RestMessageHandler newInstance(final Object pTarget) {
-    if (aInstances == null) {
-      aInstances = new ConcurrentHashMap<>();
+    if (mInstances == null) {
+      mInstances = new ConcurrentHashMap<>();
       final RestMessageHandler instance = new RestMessageHandler(pTarget);
-      aInstances.put(pTarget, instance);
+      mInstances.put(pTarget, instance);
       return instance;
     }
-    if (!aInstances.containsKey(pTarget)) {
-      synchronized (aInstances) {
-        RestMessageHandler instance = aInstances.get(pTarget);
+    if (!mInstances.containsKey(pTarget)) {
+      synchronized (mInstances) {
+        RestMessageHandler instance = mInstances.get(pTarget);
         if (instance == null) {
           instance = new RestMessageHandler(pTarget);
-          aInstances.put(pTarget, instance);
+          mInstances.put(pTarget, instance);
         }
         return instance;
       }
     } else {
-      return aInstances.get(pTarget);
+      return mInstances.get(pTarget);
     }
   }
 
   private RestMessageHandler(final Object pTarget) {
-    aTarget = pTarget;
+    mTarget = pTarget;
   }
 
   public boolean processRequest(final HttpMethod pMethod, final HttpMessage pRequest, final HttpServletResponse pResponse) throws IOException {
@@ -83,7 +83,7 @@ public class RestMessageHandler {
           && pathFits(pathParams, annotation.path(), pHttpMessage.getRequestPath())
           && conditionsSatisfied(annotation.get(), annotation.post(), annotation.query(), pHttpMessage)) {
         if ((resultAnnotation == null) || isMoreSpecificThan(resultAnnotation, annotation)) {
-          result = RestMethodWrapper.get(aTarget, candidate);
+          result = RestMethodWrapper.get(mTarget, candidate);
           result.setPathParams(pathParams);
           resultAnnotation = annotation;
         }
@@ -107,7 +107,7 @@ public class RestMessageHandler {
   }
 
   private Collection<Method> getCandidatesFor(final HttpMethod pHttpMethod, final String pPathInfo) {
-    final Class<?> targetClass = aTarget.getClass();
+    final Class<?> targetClass = mTarget.getClass();
     EnumMap<HttpMethod, PrefixMap<Method>> v;
     if (cache == null) {
       cache = new HashMap<>();

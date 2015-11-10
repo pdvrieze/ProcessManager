@@ -14,26 +14,26 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
   private class Entry implements Map.Entry<String, DataHandler> {
 
-    private final String aKey;
+    private final String mKey;
 
     public Entry(final String key) {
-      aKey = key;
+      mKey = key;
     }
 
     @Override
     public String getKey() {
-      return aKey;
+      return mKey;
     }
 
     @Override
     public DataHandler getValue() {
-      return aMessage.getAttachment(aKey);
+      return mMessage.getAttachment(mKey);
     }
 
     @Override
     public DataHandler setValue(final DataHandler value) {
-      final DataHandler result = aMessage.getAttachment(aKey);
-      aMessage.addAttachment(aKey, value);
+      final DataHandler result = mMessage.getAttachment(mKey);
+      mMessage.addAttachment(mKey, value);
       return result;
     }
 
@@ -41,28 +41,28 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
   private class EntryIterator implements Iterator<Map.Entry<String, DataHandler>> {
 
-    @NotNull private final Iterator<String> aBackingIterator;
+    @NotNull private final Iterator<String> mBackingIterator;
 
     public EntryIterator() {
-      aBackingIterator = aMessage.getAttachmentNames().iterator();
+      mBackingIterator = mMessage.getAttachmentNames().iterator();
     }
 
     @Override
     public boolean hasNext() {
-      return aBackingIterator.hasNext();
+      return mBackingIterator.hasNext();
     }
 
     @NotNull
     @Override
     public Entry next() {
 
-      final String next = aBackingIterator.next();
+      final String next = mBackingIterator.next();
       return new Entry(next);
     }
 
     @Override
     public void remove() {
-      aBackingIterator.remove();
+      mBackingIterator.remove();
     }
 
   }
@@ -78,7 +78,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
       return false;
     }
 
-    private int aSize = -1;
+    private int mSize = -1;
 
     @NotNull
     @Override
@@ -88,10 +88,10 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
     @Override
     public int size() {
-      if (aSize < 0) {
-        aSize = aMessage.getAttachmentNames().size();
+      if (mSize < 0) {
+        mSize = mMessage.getAttachmentNames().size();
       }
-      return aSize;
+      return mSize;
     }
 
     @Override
@@ -105,10 +105,10 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
 
   }
 
-  private final NormalizedMessage aMessage;
+  private final NormalizedMessage mMessage;
 
   public AttachmentMap(final NormalizedMessage message) {
-    aMessage = message;
+    mMessage = message;
   }
 
   @NotNull
@@ -126,7 +126,7 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   @Override
   public DataHandler get(final Object key) {
     if (key instanceof String) {
-      return aMessage.getAttachment((String) key);
+      return mMessage.getAttachment((String) key);
     }
     return null;
   }
@@ -134,15 +134,15 @@ public class AttachmentMap extends AbstractMap<String, DataHandler> {
   @NotNull
   @Override
   public Set<String> keySet() {
-    return aMessage.getAttachmentNames();
+    return mMessage.getAttachmentNames();
   }
 
   @Nullable
   @Override
   public DataHandler remove(final Object key) {
     if (key instanceof String) {
-      final DataHandler old = aMessage.getAttachment((String) key);
-      aMessage.removeAttachment((String) key);
+      final DataHandler old = mMessage.getAttachment((String) key);
+      mMessage.removeAttachment((String) key);
       return old;
     }
     return null;

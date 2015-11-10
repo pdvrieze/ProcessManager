@@ -27,18 +27,18 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
 
   private static class FragmentNamespaceContext extends SimpleNamespaceContext {
 
-    private final FragmentNamespaceContext aParent;
+    private final FragmentNamespaceContext mParent;
 
     public FragmentNamespaceContext(final FragmentNamespaceContext parent, @NotNull final String[] prefixes, @NotNull final String[] namespaces) {
       super(prefixes, namespaces);
-      aParent = parent;
+      mParent = parent;
     }
 
     @Override
     public String getNamespaceURI(final String prefix) {
       final String namespaceURI = super.getNamespaceURI(prefix);
-      if (namespaceURI==null && aParent!=null) {
-        return aParent.getNamespaceURI(prefix);
+      if (namespaceURI==null && mParent!=null) {
+        return mParent.getNamespaceURI(prefix);
       }
       return namespaceURI;
     }
@@ -48,21 +48,21 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
     public String getPrefix(final String namespaceURI) {
 
       final String prefix = super.getPrefix(namespaceURI);
-      if (prefix==null && aParent!=null) { return aParent.getPrefix(namespaceURI); }
+      if (prefix==null && mParent!=null) { return mParent.getPrefix(namespaceURI); }
       return prefix;
 
     }
 
     @Override
     public Iterator<String> getPrefixes(final String namespaceURI) {
-      if (aParent==null) { return super.getPrefixes(namespaceURI); }
+      if (mParent==null) { return super.getPrefixes(namespaceURI); }
       final Set<String> prefixes = new HashSet<>();
 
       for(final Iterator<String> it = super.getPrefixes(namespaceURI); it.hasNext();) {
         prefixes.add(it.next());
       }
 
-      for(final Iterator<String> it = aParent.getPrefixes(namespaceURI); it.hasNext();) {
+      for(final Iterator<String> it = mParent.getPrefixes(namespaceURI); it.hasNext();) {
         final String prefix = it.next();
         final String localNamespaceUri = getLocalNamespaceUri(prefix);
         if (localNamespaceUri==null) {
@@ -144,7 +144,7 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
         break;
       case XMLStreamConstants.END_ELEMENT:
         if (WRAPPERNAMESPACE.equals(delegate.getNamespaceURI())) { return delegate.next(); }
-        localNamespaceContext = localNamespaceContext.aParent;
+        localNamespaceContext = localNamespaceContext.mParent;
         break;
     }
     return result;

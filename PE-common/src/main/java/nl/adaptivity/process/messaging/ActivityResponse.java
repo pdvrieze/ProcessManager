@@ -67,13 +67,13 @@ public class ActivityResponse<T> {
 
   public static final String ATTRTASKSTATE = "taskState";
 
-  private T aReturnValue;
+  private T mReturnValue;
 
-  private Class<T> aReturnType;
+  private Class<T> mReturnType;
 
 
   @XmlTransient
-  private TaskState aTaskState;
+  private TaskState mTaskState;
 
   /** Default constructor for jaxb use */
   protected ActivityResponse() {}
@@ -86,9 +86,9 @@ public class ActivityResponse<T> {
    * @param returnValue The value to return.
    */
   protected ActivityResponse(final TaskState taskState, final Class<T> returnType, final T returnValue) {
-    aTaskState = taskState;
-    aReturnType = returnType;
-    aReturnValue = returnValue;
+    mTaskState = taskState;
+    mReturnType = returnType;
+    mReturnValue = returnValue;
   }
 
   /**
@@ -111,7 +111,7 @@ public class ActivityResponse<T> {
    */
   @XmlAttribute(name = ATTRTASKSTATE)
   public String getTaskStateString() {
-    return aTaskState.name();
+    return mTaskState.name();
   }
 
   /**
@@ -120,7 +120,7 @@ public class ActivityResponse<T> {
    * @return the task state.
    */
   public TaskState getTaskState() {
-    return aTaskState;
+    return mTaskState;
   }
 
   /**
@@ -129,7 +129,7 @@ public class ActivityResponse<T> {
    * @param value the new task state.
    */
   public void setTaskStateString(final String value) {
-    aTaskState = TaskState.valueOf(value);
+    mTaskState = TaskState.valueOf(value);
   }
 
   /**
@@ -138,7 +138,7 @@ public class ActivityResponse<T> {
    * @param taskState the new task state.
    */
   public void setTaskState(final TaskState taskState) {
-    aTaskState = taskState;
+    mTaskState = taskState;
   }
 
   /**
@@ -147,7 +147,7 @@ public class ActivityResponse<T> {
    * @return The embedded return type.
    */
   public Class<T> getReturnType() {
-    return aReturnType;
+    return mReturnType;
   }
 
   /**
@@ -156,7 +156,7 @@ public class ActivityResponse<T> {
    * @return The actual return value.
    */
   public T getReturnValue() {
-    return aReturnValue;
+    return mReturnValue;
   }
 
 }

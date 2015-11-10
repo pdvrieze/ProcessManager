@@ -15,24 +15,24 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "processModel")
 public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
 
-  private String aName;
+  private String mName;
 
-  private long aHandle;
+  private long mHandle;
 
-  @Nullable private UUID aUuid;
+  @Nullable private UUID mUuid;
 
   public ProcessModelRef() {}
 
   public ProcessModelRef(final String name, final long handle, final UUID uuid) {
-    aName = name;
-    aHandle = handle;
-    aUuid = uuid;
+    mName = name;
+    mHandle = handle;
+    mUuid = uuid;
   }
 
   public ProcessModelRef(@NotNull final IProcessModelRef<?> source) {
-    aHandle = source.getHandle();
-    aName = source.getName();
-    aUuid = source.getUuid();
+    mHandle = source.getHandle();
+    mName = source.getName();
+    mUuid = source.getUuid();
   }
 
   @NotNull
@@ -42,39 +42,39 @@ public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
   }
 
   void setName(final String name) {
-    aName = name;
+    mName = name;
   }
 
   @Override
   @XmlAttribute(required = true)
   public String getName() {
-    return aName;
+    return mName;
   }
 
   void setHandle(final long handle) {
-    aHandle = handle;
+    mHandle = handle;
   }
 
   @Override
   @XmlAttribute(required = true)
   public long getHandle() {
-    return aHandle;
+    return mHandle;
   }
 
   @Nullable
   @Override
   public UUID getUuid() {
-    return aUuid;
+    return mUuid;
   }
 
   @Nullable
   @XmlAttribute(name="uuid")
   String getXmlUuid() {
-    return aUuid==null ? null : aUuid.toString();
+    return mUuid==null ? null : mUuid.toString();
   }
 
   void setXmlUuid(@Nullable final String uuid) {
-    aUuid = uuid==null ? null : UUID.fromString(uuid);
+    mUuid = uuid==null ? null : UUID.fromString(uuid);
   }
 
 }

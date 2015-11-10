@@ -31,27 +31,27 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   private static final long serialVersionUID = -7745019972129682199L;
-  @Nullable private ProcessModelImpl aOwnerModel;
+  @Nullable private ProcessModelImpl mOwnerModel;
 
-  @Nullable private ProcessNodeSet<Identifiable> aPredecessors;
+  @Nullable private ProcessNodeSet<Identifiable> mPredecessors;
 
-  @Nullable private ProcessNodeSet<ProcessNodeImpl> aSuccessors = null;
+  @Nullable private ProcessNodeSet<ProcessNodeImpl> mSuccessors = null;
 
-  private String aId;
+  private String mId;
 
-  private String aLabel;
+  private String mLabel;
 
-  private double aX=Double.NaN;
-  private double aY=Double.NaN;
+  private double mX=Double.NaN;
+  private double mY=Double.NaN;
 //
-//  private Collection<? extends IXmlImportType> aImports;
+//  private Collection<? extends IXmlImportType> mImports;
 //
-//  private Collection<? extends IXmlExportType> aExports;
+//  private Collection<? extends IXmlExportType> mExports;
 
   protected ProcessNodeImpl(@Nullable final ProcessModelImpl ownerModel) {
-    aOwnerModel = ownerModel;
+    mOwnerModel = ownerModel;
     if (ownerModel!=null) {
-      aOwnerModel.ensureNode(this);
+      mOwnerModel.ensureNode(this);
     }
   }
 
@@ -102,14 +102,14 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   @Nullable
   @Override
   public Set<? extends Identifiable> getPredecessors() {
-    if (aPredecessors == null) {
-      aPredecessors = ProcessNodeSet.processNodeSet();
+    if (mPredecessors == null) {
+      mPredecessors = ProcessNodeSet.processNodeSet();
     }
-    return aPredecessors;
+    return mPredecessors;
   }
 
   protected void swapPredecessors(@NotNull final Collection<?> predecessors) {
-    aPredecessors=null;
+    mPredecessors=null;
     final List<ProcessNodeImpl> tmp = new ArrayList<>(predecessors.size());
     for(final Object pred:predecessors) {
       if (pred instanceof ProcessNodeImpl) {
@@ -126,27 +126,27 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
    */
   @Override
   public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
-    if (aPredecessors != null) {
+    if (mPredecessors != null) {
       throw new UnsupportedOperationException("Not allowed to change predecessors");
     }
-    aPredecessors = ProcessNodeSet.processNodeSet(predecessors);
+    mPredecessors = ProcessNodeSet.processNodeSet(predecessors);
   }
 
 
   @Override
   public void addPredecessor(@NotNull final Identifiable node) {
-    if (aPredecessors.containsKey(node.getId())) { return; }
-    if (aPredecessors.size()+1>getMaxPredecessorCount()) {
+    if (mPredecessors.containsKey(node.getId())) { return; }
+    if (mPredecessors.size()+1>getMaxPredecessorCount()) {
       throw new IllegalProcessModelException("Can not add more predecessors");
     }
-    if(aPredecessors.add(node)) {
+    if(mPredecessors.add(node)) {
       getOwnerModel().getNode(node).addSuccessor(this);
     }
   }
 
   @Override
   public void removePredecessor(final Identifiable node) {
-    aPredecessors.remove(node);
+    mPredecessors.remove(node);
     // TODO perhaps make this reciprocal
   }
 
@@ -160,10 +160,10 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     if (node == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
-    if (aSuccessors == null) {
-      aSuccessors = ProcessNodeSet.processNodeSet(1);
+    if (mSuccessors == null) {
+      mSuccessors = ProcessNodeSet.processNodeSet(1);
     }
-    aSuccessors.add(node);
+    mSuccessors.add(node);
   }
 
 
@@ -180,7 +180,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   @Nullable
   @Override
   public Set<? extends ProcessNodeImpl> getSuccessors() {
-    return aSuccessors;
+    return mSuccessors;
   }
 
 
@@ -197,7 +197,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
 
   @Override
   public void removeSuccessor(final ProcessNodeImpl node) {
-    aSuccessors.remove(node);
+    mSuccessors.remove(node);
   }
 
   /**
@@ -213,13 +213,13 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
 
   @Nullable
   public ProcessModelImpl getOwnerModel() {
-    return aOwnerModel;
+    return mOwnerModel;
   }
 
   public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
-    if (aOwnerModel!=ownerModel) {
-      if (aOwnerModel!=null) { aOwnerModel.removeNode(this); }
-      aOwnerModel = ownerModel;
+    if (mOwnerModel!=ownerModel) {
+      if (mOwnerModel!=null) { mOwnerModel.removeNode(this); }
+      mOwnerModel = ownerModel;
       ownerModel.ensureNode(this);
     }
   }
@@ -233,45 +233,45 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   @XmlID
   @XmlSchemaType(name = "ID")
   public String getId() {
-    if (aId == null) {
-      aId = IdFactory.create();
+    if (mId == null) {
+      mId = IdFactory.create();
     }
-    return aId;
+    return mId;
   }
 
   public void setId(final String id) {
-    aId = id;
+    mId = id;
   }
 
   @Override
   @XmlAttribute
   @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   public String getLabel() {
-    return aLabel;
+    return mLabel;
   }
 
   public void setLabel(final String label) {
-    aLabel = label;
+    mLabel = label;
   }
 
   @XmlAttribute(name="x")
   @Override
   public double getX() {
-    return aX;
+    return mX;
   }
 
   public void setX(final double x) {
-    aX = x;
+    mX = x;
   }
 
   @XmlAttribute(name="y")
   @Override
   public double getY() {
-    return aY;
+    return mY;
   }
 
   public void setY(final double y) {
-    aY = y;
+    mY = y;
   }
 
   /**
@@ -339,16 +339,16 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
   @Override
   public Collection<? extends IXmlResultType> getResults() {
     return Collections.emptyList();
-//    if (aImports==null) { aImports = new ArrayList<>(); }
-//    return aImports;
+//    if (mImports==null) { mImports = new ArrayList<>(); }
+//    return mImports;
   }
 
 
   @Override
   public Collection<? extends XmlDefineType> getDefines() {
     return Collections.emptyList();
-//    if (aExports==null) { aExports = new ArrayList<>(); }
-//    return aExports;
+//    if (mExports==null) { mExports = new ArrayList<>(); }
+//    return mExports;
   }
 
 

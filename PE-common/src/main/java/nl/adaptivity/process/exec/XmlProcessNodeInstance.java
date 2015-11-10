@@ -70,12 +70,12 @@ public class XmlProcessNodeInstance {
   @XmlAttribute(name = "handle", required = true)
   protected long handle = -1L;
 
-  @Nullable private TaskState aState;
+  @Nullable private TaskState mState;
 
   private long processinstance = -1;
 
   @XmlAttribute(name = "nodeid")
-  private String aNodeId;
+  private String mNodeId;
   private List<ProcessData> mResults;
 
   public XmlProcessNodeInstance() {}
@@ -130,7 +130,7 @@ public class XmlProcessNodeInstance {
    */
   @XmlAttribute(name = "state")
   public String getStateXml() {
-    return aState.name();
+    return mState.name();
   }
 
   /**
@@ -140,20 +140,20 @@ public class XmlProcessNodeInstance {
    */
   public void setStateXml(@Nullable final String value) {
     if (value == null) {
-      aState = null;
+      mState = null;
     } else {
-      aState = TaskState.valueOf(value);
+      mState = TaskState.valueOf(value);
     }
   }
 
 
   @Nullable
   public TaskState getState() {
-    return aState;
+    return mState;
   }
 
   public void setState(final TaskState state) {
-    aState = state;
+    mState = state;
   }
 
   /**
@@ -218,11 +218,11 @@ public class XmlProcessNodeInstance {
 
 
   public void setNodeId(final String id) {
-    aNodeId = id;
+    mNodeId = id;
   }
 
   public String getNodeId() {
-    return aNodeId;
+    return mNodeId;
   }
 
   public void setResults(final List<ProcessData> results) {

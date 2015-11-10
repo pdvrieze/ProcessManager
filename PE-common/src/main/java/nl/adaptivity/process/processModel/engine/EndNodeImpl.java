@@ -49,7 +49,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   public static final String ELEMENTLOCALNAME = "end";
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-  private List<XmlDefineType> aExports;
+  private List<XmlDefineType> mExports;
 
   public EndNodeImpl(final ProcessModelImpl ownerModel, final ProcessNodeImpl previous) {
     super(ownerModel, Collections.singletonList(previous));
@@ -65,7 +65,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
       switch (in.getLocalName()) {
         case "export":
         case XmlDefineType.ELEMENTLOCALNAME:
-          getDefines(); aExports.add(XmlDefineType.deserialize(in)); return true;
+          getDefines(); mExports.add(XmlDefineType.deserialize(in)); return true;
       }
     }
     return false;
@@ -101,7 +101,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
     super.serializeChildren(out);
-    XmlUtil.writeChildren(out, aExports);
+    XmlUtil.writeChildren(out, mExports);
   }
 
   @Override
@@ -151,15 +151,15 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   @Override
   @XmlElement(name = "export")
   public List<? extends XmlDefineType> getDefines() {
-    if (aExports == null) {
-      aExports = new ArrayList<>();
+    if (mExports == null) {
+      mExports = new ArrayList<>();
     }
-    return aExports;
+    return mExports;
   }
 
   @Override
   public void setDefines(final Collection<? extends IXmlDefineType> exports) {
-    aExports = toExportableDefines(exports);
+    mExports = toExportableDefines(exports);
   }
 
   /* (non-Javadoc)

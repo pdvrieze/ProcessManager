@@ -25,36 +25,36 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SoapMessageHandler {
 
-  private static volatile Map<Object, SoapMessageHandler> aInstances;
+  private static volatile Map<Object, SoapMessageHandler> mInstances;
 
   private Map<Class<?>, PrefixMap<Method>> cache;
 
-  private final Object aTarget;
+  private final Object mTarget;
 
 
   public static SoapMessageHandler newInstance(final Object pTarget) {
-    if (aInstances == null) {
-      aInstances = new ConcurrentHashMap<>();
+    if (mInstances == null) {
+      mInstances = new ConcurrentHashMap<>();
       final SoapMessageHandler instance = new SoapMessageHandler(pTarget);
-      aInstances.put(pTarget, instance);
+      mInstances.put(pTarget, instance);
       return instance;
     }
-    if (!aInstances.containsKey(pTarget)) {
-      synchronized (aInstances) {
-        SoapMessageHandler instance = aInstances.get(pTarget);
+    if (!mInstances.containsKey(pTarget)) {
+      synchronized (mInstances) {
+        SoapMessageHandler instance = mInstances.get(pTarget);
         if (instance == null) {
           instance = new SoapMessageHandler(pTarget);
-          aInstances.put(pTarget, instance);
+          mInstances.put(pTarget, instance);
         }
         return instance;
       }
     } else {
-      return aInstances.get(pTarget);
+      return mInstances.get(pTarget);
     }
   }
 
   private SoapMessageHandler(final Object pTarget) {
-    aTarget = pTarget;
+    mTarget = pTarget;
   }
 
   public boolean processRequest(final HttpMessage pRequest, final HttpServletResponse pResponse) throws IOException {
@@ -104,7 +104,7 @@ public class SoapMessageHandler {
 
     final QName operation = new QName(operationElem.getNamespaceURI(), operationElem.getLocalName());
 
-    final SoapMethodWrapper method = getMethodFor(operation, aTarget);
+    final SoapMethodWrapper method = getMethodFor(operation, mTarget);
 
     if (method != null) {
       method.unmarshalParams(envelope, pAttachments);
