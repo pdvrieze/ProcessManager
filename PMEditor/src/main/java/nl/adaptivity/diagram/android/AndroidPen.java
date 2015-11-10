@@ -11,142 +11,142 @@ import android.graphics.Typeface;
 public class AndroidPen implements Pen<AndroidPen> {
 
   private static final float FONT_MEASURE_FACTOR = 3f;
-  private Paint aPaint;
-  private double aStrokeWidth;
-  private float aShadowRadius=-1f;
-  private int aShadowColor;
-  private float aShadowDx;
-  private float aShadowDy;
-  private double aFontSize=Double.NaN;
-  private FontMetrics aFontMetrics;
+  private Paint mPaint;
+  private double mStrokeWidth;
+  private float mShadowRadius=-1f;
+  private int mShadowColor;
+  private float mShadowDx;
+  private float mShadowDy;
+  private double mFontSize=Double.NaN;
+  private FontMetrics mFontMetrics;
 
 
   public AndroidPen(Paint paint) {
-    aPaint = paint;
-    aPaint.setStyle(Style.STROKE);
+    mPaint = paint;
+    mPaint.setStyle(Style.STROKE);
   }
 
   public Paint getPaint() {
-    return aPaint;
+    return mPaint;
   }
 
   @Override
   public AndroidPen setColor(int red, int green, int blue) {
-    aPaint.setARGB(255, red, green, blue);
+    mPaint.setARGB(255, red, green, blue);
     return this;
   }
 
   @Override
   public AndroidPen setColor(int red, int green, int blue, int alpha) {
-    aPaint.setARGB(alpha, red, green, blue);
+    mPaint.setARGB(alpha, red, green, blue);
     return this;
   }
 
   @Override
   public AndroidPen setStrokeWidth(double strokeWidth) {
-    aStrokeWidth = strokeWidth;
-    aPaint.setStrokeWidth((float) strokeWidth);
+    mStrokeWidth = strokeWidth;
+    mPaint.setStrokeWidth((float) strokeWidth);
     return this;
   }
   
   @Override
   public double getStrokeWidth() {
-    return aStrokeWidth;
+    return mStrokeWidth;
   }
 
   public void setShadowLayer(float radius, int color) {
-    aShadowRadius = radius;
-    aShadowColor = color;
-    aShadowDx = 0f;
-    aShadowDy = 0f;
-    aPaint.setShadowLayer(radius, aShadowDx, aShadowDy, color);
+    mShadowRadius = radius;
+    mShadowColor = color;
+    mShadowDx = 0f;
+    mShadowDy = 0f;
+    mPaint.setShadowLayer(radius, mShadowDx, mShadowDy, color);
   }
 
   public AndroidPen scale(double scale) {
-    aPaint.setStrokeWidth((float) (aStrokeWidth*scale));
-    if (aShadowRadius>0f) {
-      aPaint.setShadowLayer((float) (aShadowRadius*scale), (float) (aShadowDx*scale), (float) (aShadowDy*scale), aShadowColor);
+    mPaint.setStrokeWidth((float) (mStrokeWidth*scale));
+    if (mShadowRadius>0f) {
+      mPaint.setShadowLayer((float) (mShadowRadius*scale), (float) (mShadowDx*scale), (float) (mShadowDy*scale), mShadowColor);
     }
-    if (!Double.isNaN(aFontSize)) {
-      aPaint.setTextSize((float) (aFontSize*scale));
+    if (!Double.isNaN(mFontSize)) {
+      mPaint.setTextSize((float) (mFontSize*scale));
     }
     return this;
   }
 
   @Override
   public AndroidPen setFontSize(double fontSize) {
-    aPaint.setTextAlign(Align.LEFT);
-    aPaint.setTextSize((float) fontSize);
-    aFontSize = fontSize;
+    mPaint.setTextAlign(Align.LEFT);
+    mPaint.setTextSize((float) fontSize);
+    mFontSize = fontSize;
     return this;
   }
 
   @Override
   public double getFontSize() {
-    return aFontSize;
+    return mFontSize;
   }
 
   @Override
   public double measureTextWidth(String text, double foldWidth) {
-    float ts = aPaint.getTextSize();
-    aPaint.setTextSize(((float) aFontSize)*FONT_MEASURE_FACTOR);
-    final float result = aPaint.measureText(text)/FONT_MEASURE_FACTOR;
-    aPaint.setTextSize(ts);
+    float ts = mPaint.getTextSize();
+    mPaint.setTextSize(((float) mFontSize)*FONT_MEASURE_FACTOR);
+    final float result = mPaint.measureText(text)/FONT_MEASURE_FACTOR;
+    mPaint.setTextSize(ts);
     return result;
   }
 
   public void ensureFontMetrics() {
-    if (aFontMetrics==null) {
-      float ts = aPaint.getTextSize();
-      aPaint.setTextSize((float) aFontSize);
-      aFontMetrics=aPaint.getFontMetrics();
-      aPaint.setTextSize(ts);
+    if (mFontMetrics==null) {
+      float ts = mPaint.getTextSize();
+      mPaint.setTextSize((float) mFontSize);
+      mFontMetrics=mPaint.getFontMetrics();
+      mPaint.setTextSize(ts);
     }
   }
 
   @Override
   public double getTextMaxAscent() {
     ensureFontMetrics();
-    return Math.abs(aFontMetrics.top);
+    return Math.abs(mFontMetrics.top);
   }
 
   public double getTextAscent() {
     ensureFontMetrics();
-    return Math.abs(aFontMetrics.ascent);
+    return Math.abs(mFontMetrics.ascent);
   }
 
   @Override
   public double getTextMaxDescent() {
     ensureFontMetrics();
-    return Math.abs(aFontMetrics.bottom);
+    return Math.abs(mFontMetrics.bottom);
   }
 
   public double getTextDescent() {
     ensureFontMetrics();
-    return Math.abs(aFontMetrics.descent);
+    return Math.abs(mFontMetrics.descent);
   }
 
   @Override
   public double getTextLeading() {
-//    float ts = aPaint.getTextSize();
-//    aPaint.setTextSize((float) aFontSize);
-//    double result = aPaint.getFontSpacing() - aFontSize;
-//    aPaint.setTextSize(ts);
+//    float ts = mPaint.getTextSize();
+//    mPaint.setTextSize((float) mFontSize);
+//    double result = mPaint.getFontSpacing() - mFontSize;
+//    mPaint.setTextSize(ts);
 //    return result;
     ensureFontMetrics();
-    return Math.abs(aFontMetrics.top)+Math.abs(aFontMetrics.bottom)-Math.abs(aFontMetrics.ascent)-Math.abs(aFontMetrics.descent);
+    return Math.abs(mFontMetrics.top)+Math.abs(mFontMetrics.bottom)-Math.abs(mFontMetrics.ascent)-Math.abs(mFontMetrics.descent);
   }
 
   @Override
   public void setTextItalics(boolean italics) {
-    final Typeface oldTypeface = aPaint.getTypeface();
+    final Typeface oldTypeface = mPaint.getTypeface();
     final int style;
     if (oldTypeface==null) {
       style = italics ? Typeface.ITALIC : Typeface.NORMAL;
     } else {
       style = (oldTypeface.getStyle() & ~ Typeface.ITALIC) | (italics ? Typeface.ITALIC : Typeface.NORMAL);
     }
-    aPaint.setTypeface(Typeface.create(oldTypeface,style));
+    mPaint.setTypeface(Typeface.create(oldTypeface,style));
   }
 
 }

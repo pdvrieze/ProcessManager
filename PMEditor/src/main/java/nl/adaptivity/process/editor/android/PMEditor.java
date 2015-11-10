@@ -61,39 +61,39 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
   private final class LineDrawable extends DiagramDrawable {
 
-    private double aX1;
-    private double aY1;
-    private double aX2;
-    private double aY2;
-    private final Paint aPaint;
+    private double mX1;
+    private double mY1;
+    private double mX2;
+    private double mY2;
+    private final Paint mPaint;
 
     public LineDrawable(double x1, double y1, double x2, double y2, Paint paint) {
-      aX1 = x1;
-      aX2 = x2;
-      aY1 = y1;
-      aY2 = y2;
-      aPaint = paint;
+      mX1 = x1;
+      mX2 = x2;
+      mY1 = y1;
+      mY2 = y2;
+      mPaint = paint;
     }
 
     @Override
     public void draw(Canvas canvas, double scale) {
       int height = (int) Math.round((canvas.getHeight()/scale));
       int width = (int) Math.round(canvas.getWidth()/scale);
-      if (!Double.isNaN(aX1)) {
-        float scaledX = (float) (aX1-diagramView1.getOffsetX());
-        canvas.drawLine(scaledX, 0, scaledX, height, aPaint);
+      if (!Double.isNaN(mX1)) {
+        float scaledX = (float) (mX1-diagramView1.getOffsetX());
+        canvas.drawLine(scaledX, 0, scaledX, height, mPaint);
       }
-      if (!Double.isNaN(aY1)) {
-        float scaledY = (float) (aY1-diagramView1.getOffsetY());
-        canvas.drawLine(0, scaledY, width, scaledY, aPaint);
+      if (!Double.isNaN(mY1)) {
+        float scaledY = (float) (mY1-diagramView1.getOffsetY());
+        canvas.drawLine(0, scaledY, width, scaledY, mPaint);
       }
-      if (!Double.isNaN(aX2)) {
-        float scaledX = (float) (aX2-diagramView1.getOffsetX());
-        canvas.drawLine(scaledX, 0, scaledX, height, aPaint);
+      if (!Double.isNaN(mX2)) {
+        float scaledX = (float) (mX2-diagramView1.getOffsetX());
+        canvas.drawLine(scaledX, 0, scaledX, height, mPaint);
       }
-      if (!Double.isNaN(aY2)) {
-        float scaledY = (float) (aY2-diagramView1.getOffsetY());
-        canvas.drawLine(0, scaledY, width, scaledY, aPaint);
+      if (!Double.isNaN(mY2)) {
+        float scaledY = (float) (mY2-diagramView1.getOffsetY());
+        canvas.drawLine(0, scaledY, width, scaledY, mPaint);
       }
     }
 
@@ -128,35 +128,35 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
   private static class MoveDrawable extends DiagramDrawable{
 
-    private int aAlpha = 255;
+    private int mAlpha = 255;
     private List<float[]> arrows;
-    private Paint aPaint;
-    private Drawable aMinMaxOverlay;
+    private Paint mPaint;
+    private Drawable mMinMaxOverlay;
 
     public MoveDrawable(Drawable minMaxOverlay, List<float[]> arrows) {
-      aMinMaxOverlay = minMaxOverlay;
+      mMinMaxOverlay = minMaxOverlay;
       arrows = arrows;
     }
 
     @Override
     public void draw(Canvas canvas, double scale) {
-      if (aMinMaxOverlay!=null) {
-        if (aMinMaxOverlay instanceof DiagramDrawable) {
-          ((DiagramDrawable)aMinMaxOverlay).draw(canvas, scale);
+      if (mMinMaxOverlay!=null) {
+        if (mMinMaxOverlay instanceof DiagramDrawable) {
+          ((DiagramDrawable)mMinMaxOverlay).draw(canvas, scale);
         } else {
-          aMinMaxOverlay.draw(canvas);
+          mMinMaxOverlay.draw(canvas);
         }
       }
-      if (aPaint ==null) {
-        aPaint = new Paint();
-        aPaint.setAntiAlias(true);
-        aPaint.setAlpha(aAlpha);
-        aPaint.setStyle(Style.STROKE);
-        aPaint.setStrokeWidth(3);
-        aPaint.setARGB(255, 0, 255, 0);
+      if (mPaint ==null) {
+        mPaint = new Paint();
+        mPaint.setAntiAlias(true);
+        mPaint.setAlpha(mAlpha);
+        mPaint.setStyle(Style.STROKE);
+        mPaint.setStrokeWidth(3);
+        mPaint.setARGB(255, 0, 255, 0);
       }
       for(float[] arrow:arrows) {
-        canvas.drawLine(arrow[0], arrow[1], arrow[2], arrow[3], aPaint);
+        canvas.drawLine(arrow[0], arrow[1], arrow[2], arrow[3], mPaint);
       }
     }
 
@@ -167,9 +167,9 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
     @Override
     public void setAlpha(int alpha) {
-      aAlpha = alpha;
-      if (aPaint!=null) {
-        aPaint.setAlpha(alpha);
+      mAlpha = alpha;
+      if (mPaint!=null) {
+        mPaint.setAlpha(alpha);
       }
     }
 
@@ -191,14 +191,14 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
     };
 
-    private final boolean aImmediate;
+    private final boolean mImmediate;
 
-    private Drawable aOverlay;
+    private Drawable mOverlay;
 
     public WaitTask(boolean immediate, Drawable overlay) {
       super(NULLCALLABLE);
-      aImmediate = immediate;
-      aOverlay = overlay;
+      mImmediate = immediate;
+      mOverlay = overlay;
     }
 
     public void trigger() {
@@ -206,37 +206,37 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
     }
 
     public boolean isImmediate() {
-      return aImmediate;
+      return mImmediate;
     }
   }
 
   private class MyStepper extends LayoutStepper<DrawableProcessNode> {
 
-    private boolean aImmediate = false;
-    private AndroidPen aXMostPen;
-    private DiagramNode<DrawableProcessNode> aLayoutNode;
-    private double aMinX = Double.NaN;
-    private double aMinY = Double.NaN;
-    private double aMaxX = Double.NaN;
-    private double aMaxY = Double.NaN;
-    private LineDrawable aMinMaxOverlay = null;
+    private boolean mImmediate = false;
+    private AndroidPen mXMostPen;
+    private DiagramNode<DrawableProcessNode> mLayoutNode;
+    private double mMinX = Double.NaN;
+    private double mMinY = Double.NaN;
+    private double mMaxX = Double.NaN;
+    private double mMaxY = Double.NaN;
+    private LineDrawable mMinMaxOverlay = null;
 
     @Override
     public void reportLayoutNode(DiagramNode<DrawableProcessNode> node) {
-      aMinX = Double.NaN;
-      aMinY = Double.NaN;
-      aMaxX = Double.NaN;
-      aMaxY = Double.NaN;
-      aMinMaxOverlay = null;
+      mMinX = Double.NaN;
+      mMinY = Double.NaN;
+      mMaxX = Double.NaN;
+      mMaxY = Double.NaN;
+      mMinMaxOverlay = null;
       setLabel("node under consideration");
       if (! (Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
-        if (aLayoutNode!=null) {
-          final DrawableProcessNode target = aLayoutNode.getTarget();
+        if (mLayoutNode!=null) {
+          final DrawableProcessNode target = mLayoutNode.getTarget();
           target.setState(target.getState()& ~STATE_ACTIVE);
         }
-        aLayoutNode = node;
+        mLayoutNode = node;
         {
-          final DrawableProcessNode target = aLayoutNode.getTarget();
+          final DrawableProcessNode target = mLayoutNode.getTarget();
           target.setState(target.getState()|STATE_ACTIVE);
         }
         waitForNextClicked(null);
@@ -270,28 +270,28 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
     @Override
     public void reportMinX(List<? extends DiagramNode<DrawableProcessNode>> nodes, double x) {
       setLabel("minX");
-      aMinX = x;
+      mMinX = x;
       reportMinMax(nodes);
     }
 
     @Override
     public void reportMaxX(List<? extends DiagramNode<DrawableProcessNode>> nodes, double x) {
       setLabel("maxX");
-      aMaxX=x;
+      mMaxX=x;
       reportMinMax(nodes);
     }
 
     @Override
     public void reportMinY(List<? extends DiagramNode<DrawableProcessNode>> nodes, double y) {
       setLabel("minY");
-      aMinY = y;
+      mMinY = y;
       reportMinMax(nodes);
     }
 
     @Override
     public void reportMaxY(List<? extends DiagramNode<DrawableProcessNode>> nodes, double y) {
       setLabel("maxY");
-      aMaxY = y;
+      mMaxY = y;
       reportMinMax(nodes);
     }
 
@@ -300,15 +300,15 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()|STATE_GROUP);
       }
-      if (aMinMaxOverlay==null) {
-        aMinMaxOverlay = new LineDrawable(aMinX, aMinY, aMaxX, aMaxY, getLinePen().getPaint());
+      if (mMinMaxOverlay==null) {
+        mMinMaxOverlay = new LineDrawable(mMinX, mMinY, mMaxX, mMaxY, getLinePen().getPaint());
       } else {
-        aMinMaxOverlay.aX1 = aMinX;
-        aMinMaxOverlay.aY1 = aMinY;
-        aMinMaxOverlay.aX2 = aMaxX;
-        aMinMaxOverlay.aY2 = aMaxY;
+        mMinMaxOverlay.mX1 = mMinX;
+        mMinMaxOverlay.mY1 = mMinY;
+        mMinMaxOverlay.mX2 = mMaxX;
+        mMinMaxOverlay.mY2 = mMaxY;
       }
-      waitForNextClicked(aMinMaxOverlay);
+      waitForNextClicked(mMinMaxOverlay);
       for(DiagramNode<DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~STATE_GROUP);
@@ -330,7 +330,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         target.setState(target.getState()|STATE_XMOST);
       }
       updateDiagramBounds();
-      waitForNextClicked(aMinMaxOverlay);
+      waitForNextClicked(mMinMaxOverlay);
       for(DiagramNode<DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~(STATE_XMOST|STATE_GROUP));
@@ -346,14 +346,14 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
       target.setY(newY);
       updateDiagramBounds();
 
-      waitForNextClicked(moveDrawable(aMinMaxOverlay, Arrays.asList(node)));
+      waitForNextClicked(moveDrawable(mMinMaxOverlay, Arrays.asList(node)));
 
       target.setState(target.getState()& ~STATE_MOVED);
-      aMinX = Double.NaN;
-      aMinY = Double.NaN;
-      aMaxX = Double.NaN;
-      aMaxY = Double.NaN;
-      aMinMaxOverlay = null;
+      mMinX = Double.NaN;
+      mMinY = Double.NaN;
+      mMaxX = Double.NaN;
+      mMaxY = Double.NaN;
+      mMinMaxOverlay = null;
     }
 
     private MoveDrawable moveDrawable(Drawable minMaxOverlay, List<? extends DiagramNode<?>> nodes) {
@@ -382,7 +382,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         target.setState(target.getState()|STATE_MOVED);
       }
       updateDiagramBounds();
-      waitForNextClicked(moveDrawable(aMinMaxOverlay, nodes));
+      waitForNextClicked(moveDrawable(mMinMaxOverlay, nodes));
       for(DiagramNode<DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~STATE_MOVED);
@@ -399,7 +399,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         target.setState(target.getState()|STATE_MOVED);
       }
       updateDiagramBounds();
-      waitForNextClicked(moveDrawable(aMinMaxOverlay, nodes));
+      waitForNextClicked(moveDrawable(mMinMaxOverlay, nodes));
       for(DiagramNode<DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~STATE_MOVED);
@@ -426,7 +426,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         target.setState(target.getState()|STATE_ACTIVE);
       }
       updateDiagramBounds();
-      waitForNextClicked(aMinMaxOverlay);
+      waitForNextClicked(mMinMaxOverlay);
       for(DiagramNode<DrawableProcessNode> node: nodes) {
         final DrawableProcessNode target = node.getTarget();
         target.setState(target.getState()& ~(STATE_ACTIVE|STATE_GROUP));
@@ -434,14 +434,14 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
     }
 
     private void waitForNextClicked(Drawable overlay) {
-      if (aLayoutTask!=null) {
+      if (mLayoutTask!=null) {
         if (Thread.currentThread()==Looper.getMainLooper().getThread()) {
           if (BuildConfig.DEBUG) {
             throw new IllegalStateException("Performing layout on UI thread");
           }
         } else {
-          final WaitTask task = new WaitTask(aImmediate, overlay);
-          aLayoutTask.postProgress(task);
+          final WaitTask task = new WaitTask(mImmediate, overlay);
+          mLayoutTask.postProgress(task);
           try {
             task.get();
           } catch (ExecutionException e) { // ignore
@@ -452,13 +452,13 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
     }
 
     private AndroidPen getLinePen() {
-      if (aXMostPen ==null) {
+      if (mXMostPen ==null) {
         final Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setARGB(255, 255, 0, 0);
-        aXMostPen = new AndroidPen(paint);
+        mXMostPen = new AndroidPen(paint);
       }
-      return aXMostPen;
+      return mXMostPen;
     }
 
   }
@@ -485,8 +485,8 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         alg.setTighten(true);
         alg.setLayoutStepper(mStepper);
         mPm.setLayoutAlgorithm(alg);
-        aAdapter = new MyDiagramAdapter(PMEditor.this, mPm);
-        diagramView1.setAdapter(aAdapter);
+        mAdapter = new MyDiagramAdapter(PMEditor.this, mPm);
+        diagramView1.setAdapter(mAdapter);
         mPm.layout();
       }
     }
@@ -509,7 +509,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
       final WaitTask task = values[0];
       if (! isCancelled()) {
   //      findViewById(R.id.ac_next).setEnabled(true);
-        diagramView1.setOverlay(task.aOverlay);
+        diagramView1.setOverlay(task.mOverlay);
         diagramView1.invalidate();
       }
       if (task.isImmediate()) {
@@ -520,19 +520,19 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
     @Override
     protected void onPostExecute(DrawableProcessModel result) {
-      aLayoutTask=null;
+      mLayoutTask=null;
       updateDiagramBounds();
-      if (mStepper.aLayoutNode!=null) {
-        final DrawableProcessNode target = mStepper.aLayoutNode.getTarget();
+      if (mStepper.mLayoutNode!=null) {
+        final DrawableProcessNode target = mStepper.mLayoutNode.getTarget();
         target.setState(target.getState()& (~(STATE_CUSTOM1|STATE_CUSTOM2|STATE_CUSTOM3|STATE_CUSTOM4)));
-        mStepper.aLayoutNode = null;
+        mStepper.mLayoutNode = null;
       }
       diagramView1.setOverlay(null);
       diagramView1.invalidate();
     }
 
     public void playAll() {
-      mStepper.aImmediate= true;
+      mStepper.mImmediate= true;
       if (mTask !=null) {
         mTask.trigger();
         mTask = null;
@@ -580,7 +580,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
               }
               node.setX(diagramX);
               node.setY(diagramY);
-              aPm.addNode(node);
+              mPm.addNode(node);
               diagramView1.invalidate();
               return true;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -626,53 +626,53 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
   private class ItemShadowBuilder extends DragShadowBuilder {
 
-    private DrawableDrawable aDrawable;
-    private double aScale;
+    private DrawableDrawable mDrawable;
+    private double mScale;
 
     public ItemShadowBuilder(DrawableDrawable d) {
       super(elementsView);
-      aDrawable = d.clone();
-      aDrawable.setState(new int[]{android.R.attr.state_pressed});
+      mDrawable = d.clone();
+      mDrawable.setState(new int[]{android.R.attr.state_pressed});
     }
 
     @Override
     public void onProvideShadowMetrics(Point shadowSize, Point shadowTouchPoint) {
-      aScale = diagramView1.getScale();
-      aDrawable.setScale(aScale);
-      shadowSize.x=(int) Math.ceil(aDrawable.getIntrinsicWidth()+2*aScale*AndroidTheme.SHADER_RADIUS);
-      shadowSize.y=(int) Math.ceil(aDrawable.getIntrinsicHeight()+2*aScale*AndroidTheme.SHADER_RADIUS);
+      mScale = diagramView1.getScale();
+      mDrawable.setScale(mScale);
+      shadowSize.x=(int) Math.ceil(mDrawable.getIntrinsicWidth()+2*mScale*AndroidTheme.SHADER_RADIUS);
+      shadowSize.y=(int) Math.ceil(mDrawable.getIntrinsicHeight()+2*mScale*AndroidTheme.SHADER_RADIUS);
       shadowTouchPoint.x=shadowSize.x/2;
       shadowTouchPoint.y=shadowSize.y/2;
-      final int padding = (int) Math.round(aScale*AndroidTheme.SHADER_RADIUS);
-      aDrawable.setBounds(padding, padding, shadowSize.x-padding, shadowSize.y-padding);
+      final int padding = (int) Math.round(mScale*AndroidTheme.SHADER_RADIUS);
+      mDrawable.setBounds(padding, padding, shadowSize.x-padding, shadowSize.y-padding);
     }
 
     @Override
     public void onDrawShadow(Canvas canvas) {
-      final float padding = (float) (aScale*AndroidTheme.SHADER_RADIUS);
+      final float padding = (float) (mScale*AndroidTheme.SHADER_RADIUS);
       int restore = canvas.save();
       canvas.translate(padding, padding);
-      aDrawable.draw(canvas);
+      mDrawable.draw(canvas);
       canvas.restoreToCount(restore);
     }
 
   }
 
-  boolean aStep = true;
+  boolean mStep = true;
 
   private ItemDragListener mItemDragListener = new ItemDragListener();
 
   private DiagramView diagramView1;
 
 
-  private DrawableProcessModel aPm;
+  private DrawableProcessModel mPm;
 
-  private MyDiagramAdapter aAdapter;
+  private MyDiagramAdapter mAdapter;
 
-  private LayoutTask aLayoutTask;
+  private LayoutTask mLayoutTask;
   private LinearLayout elementsView;
-  private Uri aPmUri;
-  private boolean aCancelled = false;
+  private Uri mPmUri;
+  private boolean mCancelled = false;
 
   /** Called when the activity is first created. */
   @Override
@@ -704,18 +704,18 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
     if(savedInstanceState!=null) {
       final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
       if (pmparcelable!=null) {
-        aPm = DrawableProcessModel.get(pmparcelable.getProcessModel());
+        mPm = DrawableProcessModel.get(pmparcelable.getProcessModel());
       }
-      aPmUri = savedInstanceState.getParcelable(KEY_PROCESSMODEL_URI);
+      mPmUri = savedInstanceState.getParcelable(KEY_PROCESSMODEL_URI);
     } else {
-      aPmUri = getIntent().getData();
-      if (aPmUri!=null) {
+      mPmUri = getIntent().getData();
+      if (mPmUri!=null) {
         final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
-        aPm = loadProcessModel(aPmUri, layoutAlgorithm, layoutAlgorithm);
+        mPm = loadProcessModel(mPmUri, layoutAlgorithm, layoutAlgorithm);
       }
     }
-    if (aPm == null) {
-      aPm = loadInitialProcessModel();
+    if (mPm == null) {
+      mPm = loadInitialProcessModel();
     }
     getSupportFragmentManager().beginTransaction().add(new PMProcessesFragment(), "processModelHelper").commit();
   }
@@ -769,7 +769,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
     double minX = Double.POSITIVE_INFINITY;
     double minY = Double.POSITIVE_INFINITY;
     double maxY = Double.NEGATIVE_INFINITY;
-    for(DrawableProcessNode node: aPm.getModelNodes()) {
+    for(DrawableProcessNode node: mPm.getModelNodes()) {
       if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
         final Rectangle bounds = node.getBounds();
         if (bounds.left<minX) { minX = bounds.left; }
@@ -777,8 +777,8 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         if (bounds.bottom()>maxY) { maxY = bounds.bottom(); }
       }
     }
-    double offsetX= Double.isInfinite(minX)? 0 : minX - aPm.getLeftPadding();
-    double offsetY= Double.isInfinite(minY)? 0 : minY - aPm.getTopPadding();
+    double offsetX= Double.isInfinite(minX)? 0 : minX - mPm.getLeftPadding();
+    double offsetY= Double.isInfinite(minY)? 0 : minY - mPm.getTopPadding();
     diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
     diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
@@ -815,17 +815,17 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
   @Override
   protected void onResume() {
     super.onResume();
-    aAdapter = new MyDiagramAdapter(this, aPm);
-    diagramView1.setAdapter(aAdapter);
+    mAdapter = new MyDiagramAdapter(this, mPm);
+    diagramView1.setAdapter(mAdapter);
   }
 
 
 
   @Override
   protected void onDestroy() {
-    if (aLayoutTask!=null) {
-      aLayoutTask.playAll();
-      aLayoutTask.cancel(false);
+    if (mLayoutTask!=null) {
+      mLayoutTask.playAll();
+      mLayoutTask.cancel(false);
     }
     super.onDestroy();
   }
@@ -839,18 +839,18 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
   }
 
   private void updateActivityResult() {
-    if (aCancelled ) {
+    if (mCancelled ) {
       setResult(RESULT_CANCELED);
     } else {
       Intent data = new Intent();
-      if (aPmUri!=null) {
-        data.setData(aPmUri);
-        if ("content".equals(aPmUri.getScheme())||"file".equals(aPmUri.getScheme())) {
+      if (mPmUri!=null) {
+        data.setData(mPmUri);
+        if ("content".equals(mPmUri.getScheme())||"file".equals(mPmUri.getScheme())) {
           OutputStream out;
           try {
-            out = getContentResolver().openOutputStream(aPmUri);
+            out = getContentResolver().openOutputStream(mPmUri);
             try {
-              PMParser.serializeProcessModel(out, aPm);
+              PMParser.serializeProcessModel(out, mPm);
             } finally {
               out.close();
             }
@@ -859,8 +859,8 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
           }
         }
       }
-      if (aPm!=null) {
-        PMParcelable parcelable = new PMParcelable(aPm);
+      if (mPm!=null) {
+        PMParcelable parcelable = new PMParcelable(mPm);
         data.putExtra(EXTRA_PROCESS_MODEL, parcelable);
       }
       setResult(RESULT_OK, data);
@@ -871,29 +871,29 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.ac_cancel:
-        aCancelled = true;
+        mCancelled = true;
         finish();
         break;
       case R.id.ac_next:
-        if (aLayoutTask!=null) {
-          aLayoutTask.next();
+        if (mLayoutTask!=null) {
+          mLayoutTask.next();
         } else {
-          aLayoutTask = new LayoutTask(aPm);
-          aLayoutTask.execute();
+          mLayoutTask = new LayoutTask(mPm);
+          mLayoutTask.execute();
         }
         break;
       case R.id.ac_reset:
-        if (aLayoutTask!=null) {
-          aLayoutTask.cancel(false);
-          aLayoutTask.playAll();
+        if (mLayoutTask!=null) {
+          mLayoutTask.cancel(false);
+          mLayoutTask.playAll();
         }
-        aPm = null; // unset the process model
-        aLayoutTask = new LayoutTask(aPm);
-        aLayoutTask.execute();
+        mPm = null; // unset the process model
+        mLayoutTask = new LayoutTask(mPm);
+        mLayoutTask.execute();
         break;
       case R.id.ac_play:
-        if (aLayoutTask!=null) {
-          aLayoutTask.playAll();
+        if (mLayoutTask!=null) {
+          mLayoutTask.playAll();
         }
         break;
       case android.R.id.home:
@@ -943,15 +943,15 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(aPm));
-    if (aPmUri!=null) {
-      outState.putParcelable(KEY_PROCESSMODEL_URI, aPmUri);
+    outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mPm));
+    if (mPmUri!=null) {
+      outState.putParcelable(KEY_PROCESSMODEL_URI, mPmUri);
     }
   }
 
   @Override
   public DrawableProcessNode getNode(int pos) {
-    return aAdapter.getItem(pos);
+    return mAdapter.getItem(pos);
   }
 
   @Override
@@ -961,7 +961,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
   @Override
   public ClientProcessModel<?> getProcessModel() {
-    return aPm;
+    return mPm;
   }
 
 

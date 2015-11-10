@@ -8,16 +8,16 @@ import android.graphics.drawable.Drawable;
 
 public class AndroidDrawableLightView implements LightView {
 
-  private Drawable aDrawable;
-  private double aScale;
-  private float aLeft = 0;
-  private float aTop = 0;
+  private Drawable mDrawable;
+  private double mScale;
+  private float mLeft = 0;
+  private float mTop = 0;
 
   public AndroidDrawableLightView(Drawable drawable, double scale) {
-    aDrawable = drawable;
+    mDrawable = drawable;
     // Initialise bounds
-    aDrawable.setBounds(0, 0, aDrawable.getIntrinsicWidth(), aDrawable.getIntrinsicHeight());
-    aScale = scale;
+    mDrawable.setBounds(0, 0, mDrawable.getIntrinsicWidth(), mDrawable.getIntrinsicHeight());
+    mScale = scale;
   }
 
   @Override
@@ -61,21 +61,21 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   private void setState(final int stateResource, boolean desiredState) {
-    final int[] oldState = aDrawable.getState();
+    final int[] oldState = mDrawable.getState();
     final int statePos = getStatePos(oldState, stateResource);
     if (desiredState) {
       if (statePos<0) {
         int newState[] = new int[oldState.length+1];
         System.arraycopy(oldState, 0, newState, 0, oldState.length);
         newState[oldState.length]=stateResource;
-        aDrawable.setState(newState);
+        mDrawable.setState(newState);
       }
     } else {
       if (statePos>=0) {
         int newState[] = new int[oldState.length-1];
         System.arraycopy(oldState, 0, newState, 0, statePos);
         System.arraycopy(oldState, statePos+1, newState, statePos, newState.length-statePos);
-        aDrawable.setState(newState);
+        mDrawable.setState(newState);
       }
     }
   }
@@ -91,33 +91,33 @@ public class AndroidDrawableLightView implements LightView {
   }
 
   private boolean hasState(final int stateResource) {
-    return getStatePos(aDrawable.getState(), stateResource)>=0;
+    return getStatePos(mDrawable.getState(), stateResource)>=0;
   }
 
   @Override
   public void getBounds(RectF target) {
-    target.top = aTop;
-    target.left = aLeft;
-    target.right = aLeft+ (float) (aDrawable.getIntrinsicWidth()/aScale);
-    target.bottom = aTop+ (float) (aDrawable.getIntrinsicHeight()/aScale);
+    target.top = mTop;
+    target.left = mLeft;
+    target.right = mLeft+ (float) (mDrawable.getIntrinsicWidth()/mScale);
+    target.bottom = mTop+ (float) (mDrawable.getIntrinsicHeight()/mScale);
   }
 
   @Override
   public void setPos(float left, float top) {
-    aLeft = left;
-    aTop = top;
+    mLeft = left;
+    mTop = top;
   }
 
   @Override
   public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
-    aScale = scale;
-    aDrawable.draw(canvas);
+    mScale = scale;
+    mDrawable.draw(canvas);
   }
 
   @Override
   public void move(float x, float y) {
-    aTop = aTop+y;
-    aLeft = aLeft+x;
+    mTop = mTop+y;
+    mLeft = mLeft+x;
   }
 
 }

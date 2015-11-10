@@ -23,18 +23,18 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   protected static class ConnectorView extends AbstractLightView {
 
-    private Paint aPen;
-    private RectF aBounds = new RectF();
-    private DrawableProcessModel aDiagram;
+    private Paint mPen;
+    private RectF mBounds = new RectF();
+    private DrawableProcessModel mDiagram;
 
     public ConnectorView(BaseProcessAdapter parent) {
-      parent.getBounds(aBounds);
-      aDiagram = parent.getDiagram();
+      parent.getBounds(mBounds);
+      mDiagram = parent.getDiagram();
     }
 
     @Override
     public void getBounds(RectF dest) {
-      dest.set(aBounds);
+      dest.set(mBounds);
     }
 
     @Override
@@ -45,17 +45,17 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
     @Override
     public void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
-      if (aPen ==null) { aPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
-      if (aDiagram==null) { return; }
-      for(DrawableProcessNode start:aDiagram.getModelNodes()) {
+      if (mPen ==null) { mPen = theme.getPen(ProcessThemeItems.LINE, nl.adaptivity.diagram.Drawable.STATE_DEFAULT).getPaint(); }
+      if (mDiagram==null) { return; }
+      for(DrawableProcessNode start:mDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (DrawableProcessNode end: start.getSuccessors()) {
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
-              final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/-aBounds.left)*scale);
-              final float y1 = (float) ((start.getY()-aBounds.top)*scale);
-              final float x2 = (float) ((end.getBounds().left/*+DrawableProcessModel.STROKEWIDTH*/-aBounds.left)*scale);
-              final float y2 = (float) ((end.getY()-aBounds.top)* scale);
-//              pCanvas.drawLine(x1, y1, x2, y2, aPen);
+              final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/-mBounds.left)*scale);
+              final float y1 = (float) ((start.getY()-mBounds.top)*scale);
+              final float x2 = (float) ((end.getBounds().left/*+DrawableProcessModel.STROKEWIDTH*/-mBounds.left)*scale);
+              final float y2 = (float) ((end.getY()-mBounds.top)* scale);
+//              pCanvas.drawLine(x1, y1, x2, y2, mPen);
               LineView.drawArrow(canvas, theme, x1, y1, x2, y2, scale);
             }
           }
@@ -65,37 +65,37 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   }
 
-  private DrawableProcessModel aDiagram;
-  protected Map<DrawableProcessNode, LWDrawableView> aViewCache = new HashMap<>();
-  private LightView aBackground;
-  private RectF aBounds = new RectF();
-  private boolean aInvalid = true;
-  private AndroidTheme aTheme;
+  private DrawableProcessModel mDiagram;
+  protected Map<DrawableProcessNode, LWDrawableView> mViewCache = new HashMap<>();
+  private LightView mBackground;
+  private RectF mBounds = new RectF();
+  private boolean mInvalid = true;
+  private AndroidTheme mTheme;
 
   public BaseProcessAdapter(DrawableProcessModel diagram) {
-    aDiagram = diagram;
+    mDiagram = diagram;
   }
 
   @Override
   public int getCount() {
-    if (aDiagram==null) { return 0; }
-    return aDiagram.getModelNodes().size();
+    if (mDiagram==null) { return 0; }
+    return mDiagram.getModelNodes().size();
   }
 
   @Override
   public DrawableProcessNode getItem(int pos) {
-    return aDiagram.getModelNodes().get(pos);
+    return mDiagram.getModelNodes().get(pos);
   }
 
   @Override
   public LWDrawableView getView(int position) {
     final DrawableProcessNode item = getItem(position);
-    LWDrawableView result = aViewCache.get(item);
+    LWDrawableView result = mViewCache.get(item);
     if (result!=null) {
       return result;
     }
     result = new LWDrawableView(item);
-    aViewCache.put(item, result);
+    mViewCache.put(item, result);
     return result;
   }
 
@@ -106,8 +106,8 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   @Override
   public LightView getBackground() {
-    if (aBackground==null) { aBackground = new ConnectorView(this); }
-    return aBackground;
+    if (mBackground==null) { mBackground = new ConnectorView(this); }
+    return mBackground;
   }
 
   @Override
@@ -117,7 +117,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   @Override
   public void getBounds(RectF diagramBounds) {
-    if (aInvalid) {
+    if (mInvalid) {
       final int len = getCount();
       if (len==0) {
         diagramBounds.set(0f, 0f, 0f, 0f);
@@ -125,25 +125,25 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
       }
       DrawableProcessNode item = getItem(0);
       Rectangle bounds = item.getBounds();
-      aBounds.set((float) bounds.left, (float) bounds.top, bounds.rightf(), bounds.bottomf());
+      mBounds.set((float) bounds.left, (float) bounds.top, bounds.rightf(), bounds.bottomf());
       for(int i=1; i<len; ++i) {
         item = getItem(i);
         bounds = item.getBounds();
-        aBounds.left=Math.min(aBounds.left, (float) bounds.left);
-        aBounds.top=Math.min(aBounds.top, (float) bounds.top);
-        aBounds.right=Math.max(aBounds.right, bounds.rightf());
-        aBounds.bottom=Math.max(aBounds.bottom, bounds.bottomf());
+        mBounds.left=Math.min(mBounds.left, (float) bounds.left);
+        mBounds.top=Math.min(mBounds.top, (float) bounds.top);
+        mBounds.right=Math.max(mBounds.right, bounds.rightf());
+        mBounds.bottom=Math.max(mBounds.bottom, bounds.bottomf());
 
       }
-      aInvalid = false;
+      mInvalid = false;
     }
-    diagramBounds.set(aBounds);
+    diagramBounds.set(mBounds);
   }
 
   @Override
   public AndroidTheme getTheme() {
-    if (aTheme ==null) { aTheme = new AndroidTheme(AndroidStrategy.INSTANCE); }
-    return aTheme;
+    if (mTheme ==null) { mTheme = new AndroidTheme(AndroidStrategy.INSTANCE); }
+    return mTheme;
   }
 
   @Override
@@ -178,16 +178,16 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
   }
 
   public boolean isInvalid() {
-    return aInvalid;
+    return mInvalid;
   }
 
 
   public void invalidate() {
-    aInvalid = true;
+    mInvalid = true;
   }
 
   public DrawableProcessModel getDiagram() {
-    return aDiagram;
+    return mDiagram;
   }
 
 }

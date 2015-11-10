@@ -33,9 +33,9 @@ public class PMParser {
 
     private final XmlSerializer mSerializer;
 
-    private int aIndent = 0;
-    private boolean aPendingBreak = false;
-    private boolean aExtraIndent = false;
+    private int mIndent = 0;
+    private boolean mPendingBreak = false;
+    private boolean mExtraIndent = false;
 
     public XmlSerializerAdapter(XmlSerializer serializer) {
       mSerializer = serializer;
@@ -54,13 +54,13 @@ public class PMParser {
     @Override
     public void startTag(String namespace, String name, boolean addWs) {
       try {
-        if (aPendingBreak) {
+        if (mPendingBreak) {
           printBreak();
         }
         printExtraIndent();
         mSerializer.startTag(namespace, name);
-        ++aIndent;
-        aPendingBreak = addWs;
+        ++mIndent;
+        mPendingBreak = addWs;
       } catch (IllegalArgumentException | IllegalStateException | IOException e) {
         throw new RuntimeException(e);
       }
@@ -70,7 +70,7 @@ public class PMParser {
     public void endTag(String namespace, String name, boolean addWs) {
       try {
         mSerializer.endTag(namespace, name);
-        --aIndent;
+        --mIndent;
         if (addWs) {
           printBreak();
         }
@@ -80,17 +80,17 @@ public class PMParser {
     }
 
     private void printExtraIndent() throws IOException {
-      if (aExtraIndent) {
+      if (mExtraIndent) {
         mSerializer.ignorableWhitespace("  ");
-        aExtraIndent = false;
+        mExtraIndent = false;
       }
     }
 
     private void printBreak() throws IOException {
       mSerializer.ignorableWhitespace("\n");
-      for(int i=aIndent; i>1; --i) { mSerializer.ignorableWhitespace("  "); }
-      aPendingBreak = false;
-      aExtraIndent=true;
+      for(int i=mIndent; i>1; --i) { mSerializer.ignorableWhitespace("  "); }
+      mPendingBreak = false;
+      mExtraIndent=true;
     }
 
     @Override
@@ -105,7 +105,7 @@ public class PMParser {
     @Override
     public void text(String string) {
       try {
-        if (aPendingBreak) {
+        if (mPendingBreak) {
           printBreak();
         }
         printExtraIndent();
@@ -118,7 +118,7 @@ public class PMParser {
     @Override
     public void cdata(String data) {
       try {
-        if (aPendingBreak) {
+        if (mPendingBreak) {
           printBreak();
         }
         printExtraIndent();
@@ -131,7 +131,7 @@ public class PMParser {
     @Override
     public void comment(String data) {
       try {
-        if (aPendingBreak) {
+        if (mPendingBreak) {
           printBreak();
         }
         printExtraIndent();
@@ -144,7 +144,7 @@ public class PMParser {
     @Override
     public void entityReference(String entityRef) {
       try {
-        if (aPendingBreak) {
+        if (mPendingBreak) {
           printBreak();
         }
         printExtraIndent();
@@ -157,7 +157,7 @@ public class PMParser {
     @Override
     public void ignorableWhitespace(String string) {
       try {
-        if (aPendingBreak) {
+        if (mPendingBreak) {
           printBreak();
         }
         printExtraIndent();

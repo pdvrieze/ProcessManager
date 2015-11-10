@@ -12,31 +12,31 @@ import android.util.DisplayMetrics;
 
 public class DrawableDrawable extends Drawable implements Cloneable {
 
-  private nl.adaptivity.diagram.Drawable aImage;
-  private Theme<AndroidStrategy, AndroidPen, AndroidPath> aTheme;
-  private double aScale;
+  private nl.adaptivity.diagram.Drawable mImage;
+  private Theme<AndroidStrategy, AndroidPen, AndroidPath> mTheme;
+  private double mScale;
 
   public DrawableDrawable(nl.adaptivity.diagram.Drawable image, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme) {
-    aTheme = theme;
-    aImage = image;
+    mTheme = theme;
+    mImage = image;
     DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
-    aScale = dm.density*160/96;
+    mScale = dm.density*160/96;
   }
 
   @SuppressWarnings("CloneDoesntCallSuperClone")
   @Override
   public DrawableDrawable clone() {
     if (getClass()==DrawableDrawable.class) {
-      return new DrawableDrawable(aImage.clone(), aTheme);
+      return new DrawableDrawable(mImage.clone(), mTheme);
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
   @Override
   public void draw(Canvas canvas) {
-    if (aImage!=null) {
-      AndroidCanvas androidCanvas =  new AndroidCanvas(canvas, aTheme);
-      aImage.draw(androidCanvas.scale(aScale), null);
+    if (mImage!=null) {
+      AndroidCanvas androidCanvas =  new AndroidCanvas(canvas, mTheme);
+      mImage.draw(androidCanvas.scale(mScale), null);
     }
   }
 
@@ -62,7 +62,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
 
   @Override
   public boolean setState(int[] stateSet) {
-    if (aImage!=null) {
+    if (mImage!=null) {
       int dState = nl.adaptivity.diagram.Drawable.STATE_DISABLED;
       for(int state:stateSet) {
         switch (state) {
@@ -80,8 +80,8 @@ public class DrawableDrawable extends Drawable implements Cloneable {
           break;
         }
       }
-      boolean result = aImage.getState()!=dState;
-      aImage.setState(dState);
+      boolean result = mImage.getState()!=dState;
+      mImage.setState(dState);
       super.setState(stateSet);
       return result;
     }
@@ -90,22 +90,22 @@ public class DrawableDrawable extends Drawable implements Cloneable {
 
   @Override
   public int getIntrinsicWidth() {
-    Rectangle bounds = aImage.getBounds();
-    return (int) (Math.ceil(bounds.right()*aScale)-Math.floor(bounds.left*aScale));
+    Rectangle bounds = mImage.getBounds();
+    return (int) (Math.ceil(bounds.right()*mScale)-Math.floor(bounds.left*mScale));
   }
 
   @Override
   public int getIntrinsicHeight() {
-    Rectangle bounds = aImage.getBounds();
-    return (int) (Math.ceil(bounds.bottom()*aScale)-Math.floor(bounds.top*aScale));
+    Rectangle bounds = mImage.getBounds();
+    return (int) (Math.ceil(bounds.bottom()*mScale)-Math.floor(bounds.top*mScale));
   }
 
   public double getScale() {
-    return aScale;
+    return mScale;
   }
 
   public void setScale(double scale) {
-    aScale = scale;
+    mScale = scale;
   }
 
 }

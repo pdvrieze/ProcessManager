@@ -16,27 +16,27 @@ public class AndroidTheme implements Theme<AndroidStrategy, AndroidPen, AndroidP
   public static final int SELECTED_SHADE_COLOR=Color.argb(0xb0, 23, 166, 255);
 
 
-  private final AndroidStrategy aStrategy;
-  private SparseArray<SparseArray<AndroidPen>> aPens;
+  private final AndroidStrategy mStrategy;
+  private SparseArray<SparseArray<AndroidPen>> mPens;
 
   public AndroidTheme(AndroidStrategy strategy){
-    aStrategy = strategy;
-    aPens = new SparseArray<>();
+    mStrategy = strategy;
+    mPens = new SparseArray<>();
   }
 
   @Override
   public AndroidPen getPen(ThemeItem item, int state) {
     int itemState = item.getEffectiveState(state);
     int themeState = overrideState(item, state, itemState);
-    SparseArray<AndroidPen> statePens = aPens.get(item.getItemNo());
+    SparseArray<AndroidPen> statePens = mPens.get(item.getItemNo());
     if (statePens==null) {
       statePens = new SparseArray<>();
-      aPens.append(item.getItemNo(), statePens);
+      mPens.append(item.getItemNo(), statePens);
     }
 
     AndroidPen result = statePens.get(themeState);
     if (result==null) {
-      result = item.createPen(aStrategy, itemState);
+      result = item.createPen(mStrategy, itemState);
       result = overrideTheme(result, item, themeState);
       statePens.append(themeState, result);
     }

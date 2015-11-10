@@ -32,7 +32,7 @@ public class MultipartEntity extends AbstractHttpEntity {
   private static final String CRLF="\r\n";
   private static final String CONTENT_DISPOSITION = "Content-Disposition: form-data; name=";
 
-  private List<Pair<String, HttpEntity>> aContent = new ArrayList<>();
+  private List<Pair<String, HttpEntity>> mContent = new ArrayList<>();
 
   private String mBoundary;
 
@@ -101,9 +101,9 @@ public class MultipartEntity extends AbstractHttpEntity {
 
   @Override
   public long getContentLength() {
-    if (aContent.isEmpty()) { return 0; }
+    if (mContent.isEmpty()) { return 0; }
     long result = -2; // First boundary does not include a CRLF
-    for (Pair<String, HttpEntity> content: aContent) {
+    for (Pair<String, HttpEntity> content: mContent) {
       final long cl = getContentLength(content.first, content.second);
       if (cl<0) { return cl; } // we don't know if a child doesn't know
       result+=cl;
@@ -147,7 +147,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 
   @Override
   public boolean isRepeatable() {
-    for(Pair<String, HttpEntity> elem:aContent) {
+    for(Pair<String, HttpEntity> elem:mContent) {
       if (!elem.second.isRepeatable()) {
         return false;
       }
@@ -157,7 +157,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 
   @Override
   public boolean isStreaming() {
-    for(Pair<String, HttpEntity> elem:aContent) {
+    for(Pair<String, HttpEntity> elem:mContent) {
       if (elem.second.isStreaming()) {
         return true;
       }
@@ -170,7 +170,7 @@ public class MultipartEntity extends AbstractHttpEntity {
     ensureBoundary();
     Charset cs = Charset.forName("UTF8");
     int skip = 2;
-    for(Pair<String, HttpEntity> elem:aContent) {
+    for(Pair<String, HttpEntity> elem:mContent) {
       final ByteBuffer boundary = cs.encode(getBoundary(elem.first, elem.second));
       int pos = boundary.position();
       if (pos>0) {
@@ -186,7 +186,7 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   public void add(String name, HttpEntity childEntity) {
-    aContent.add(new Pair<>(name, childEntity));
+    mContent.add(new Pair<>(name, childEntity));
   }
 
 }

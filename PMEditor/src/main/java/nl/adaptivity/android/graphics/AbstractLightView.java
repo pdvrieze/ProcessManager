@@ -6,7 +6,7 @@ import nl.adaptivity.diagram.android.LightView;
 
 
 public abstract class AbstractLightView implements LightView{
-  private int aState = 0;
+  private int mState = 0;
 
   public AbstractLightView() {
     super();
@@ -14,16 +14,16 @@ public abstract class AbstractLightView implements LightView{
 
   protected void setState(int var, boolean val) {
     if(val) {
-      aState |= var;
+      mState |= var;
     } else {
-      aState &= ~var;
+      mState &= ~var;
     }
   }
 
   @Override
   public void setFocussed(boolean focussed) {
     setState(Drawable.STATE_FOCUSSED, focussed);
-    aState |= Drawable.STATE_FOCUSSED;
+    mState |= Drawable.STATE_FOCUSSED;
   }
 
   @Override
@@ -32,13 +32,13 @@ public abstract class AbstractLightView implements LightView{
   }
 
   protected boolean hasState(final int state) {
-    return (aState&state)!=0;
+    return (mState&state)!=0;
   }
 
   @Override
   public void setSelected(boolean selected) {
     setState(Drawable.STATE_SELECTED, selected);
-    aState |= Drawable.STATE_SELECTED;
+    mState |= Drawable.STATE_SELECTED;
   }
 
   @Override
@@ -49,7 +49,7 @@ public abstract class AbstractLightView implements LightView{
   @Override
   public void setTouched(boolean touched) {
     setState(Drawable.STATE_TOUCHED, touched);
-    aState |= Drawable.STATE_TOUCHED;
+    mState |= Drawable.STATE_TOUCHED;
   }
 
   @Override
@@ -60,7 +60,7 @@ public abstract class AbstractLightView implements LightView{
   @Override
   public void setActive(boolean active) {
     setState(Drawable.STATE_ACTIVE, active);
-    aState |= Drawable.STATE_ACTIVE;
+    mState |= Drawable.STATE_ACTIVE;
   }
 
   @Override
