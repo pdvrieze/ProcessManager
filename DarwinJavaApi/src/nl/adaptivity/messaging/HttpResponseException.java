@@ -9,25 +9,25 @@ public class HttpResponseException extends MessagingException {
 
   private static final long serialVersionUID = -1958369502963081324L;
 
-  private final int aCode;
+  private final int mCode;
 
   public HttpResponseException(final int code, final String message) {
     super(message);
-    aCode = code;
+    mCode = code;
   }
 
   public HttpResponseException(int code, Throwable cause) {
     super(cause);
-    aCode = code;
+    mCode = code;
   }
 
   public HttpResponseException(int code, String message, Throwable cause) {
     super(message, cause);
-    aCode = code;
+    mCode = code;
   }
 
   public int getResponseCode() {
-    return aCode;
+    return mCode;
   }
 
 }

@@ -33,29 +33,29 @@ public final class MessagingRegistry {
 
   private static class SimpleEndpointDescriptor implements EndpointDescriptor {
 
-    private final QName aServiceName;
-    private final String aEndpointName;
-    private final URI aEndpointLocation;
+    private final QName mServiceName;
+    private final String mEndpointName;
+    private final URI mEndpointLocation;
 
     public SimpleEndpointDescriptor(QName serviceName, String endpointName, URI endpointLocation) {
-      aServiceName = serviceName;
-      aEndpointName = endpointName;
-      aEndpointLocation = endpointLocation;
+      mServiceName = serviceName;
+      mEndpointName = endpointName;
+      mEndpointLocation = endpointLocation;
     }
 
     @Override
     public QName getServiceName() {
-      return aServiceName;
+      return mServiceName;
     }
 
     @Override
     public String getEndpointName() {
-      return aEndpointName;
+      return mEndpointName;
     }
 
     @Override
     public URI getEndpointLocation() {
-      return aEndpointLocation;
+      return mEndpointLocation;
     }
 
   }
@@ -70,68 +70,68 @@ public final class MessagingRegistry {
    */
   private static class WrappingFuture<T> implements Future<T>, MessengerCommand, CompletionListener<T> {
 
-    private final ISendableMessage aMessage;
+    private final ISendableMessage mMessage;
 
-    private Future<T> aOrigin;
+    private Future<T> mOrigin;
 
-    private boolean aCancelled = false;
+    private boolean mCancelled = false;
 
-    private final CompletionListener aCompletionListener;
+    private final CompletionListener mCompletionListener;
 
-    private final Class<T> aReturnType;
+    private final Class<T> mReturnType;
 
-    private Class<?>[] aReturnTypeContext;
+    private Class<?>[] mReturnTypeContext;
 
     public WrappingFuture(final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType, final Class<?>[] returnTypeContext) {
-      aMessage = message;
-      aCompletionListener = completionListener;
-      aReturnType = returnType;
-      aReturnTypeContext = returnTypeContext;
+      mMessage = message;
+      mCompletionListener = completionListener;
+      mReturnType = returnType;
+      mReturnTypeContext = returnTypeContext;
     }
 
     @Override
     public synchronized boolean cancel(final boolean mayInterruptIfRunning) {
-      if (aOrigin == null) {
-        aCancelled = true;
-        if (aCompletionListener != null) {
-          aCompletionListener.onMessageCompletion(this);
+      if (mOrigin == null) {
+        mCancelled = true;
+        if (mCompletionListener != null) {
+          mCompletionListener.onMessageCompletion(this);
         }
       } else {
-        aCancelled = aOrigin.cancel(mayInterruptIfRunning);
+        mCancelled = mOrigin.cancel(mayInterruptIfRunning);
       }
-      return aCancelled;
+      return mCancelled;
     }
 
     @Override
     public synchronized boolean isCancelled() {
-      if (aOrigin != null) {
-        return aOrigin.isCancelled();
+      if (mOrigin != null) {
+        return mOrigin.isCancelled();
       }
-      return aCancelled;
+      return mCancelled;
     }
 
     @Override
     public synchronized boolean isDone() {
-      if (aOrigin != null) {
-        return aOrigin.isDone();
+      if (mOrigin != null) {
+        return mOrigin.isDone();
       }
-      return false || aCancelled;
+      return false || mCancelled;
     }
 
     @Override
     public synchronized T get() throws InterruptedException, ExecutionException {
-      while (aOrigin == null) {
-        if (aCancelled) {
+      while (mOrigin == null) {
+        if (mCancelled) {
           throw new CancellationException();
         }
         wait();
       }
-      return aOrigin.get();
+      return mOrigin.get();
     }
 
     @Override
     public synchronized T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-      if (aOrigin == null) {
+      if (mOrigin == null) {
         final long startTime = System.currentTimeMillis();
         try {
           if (unit == TimeUnit.NANOSECONDS) {
@@ -140,12 +140,12 @@ public final class MessagingRegistry {
             wait(unit.toMillis(timeout));
           }
         } catch (final InterruptedException e) {
-          if (aOrigin != null) {
+          if (mOrigin != null) {
             // Assume we are woken up because of the change not another interruption.
             final long currentTime = System.currentTimeMillis();
             final long millisLeft = unit.toMillis(timeout) - (currentTime - startTime);
             if (millisLeft > 0) {
-              return aOrigin.get(millisLeft, TimeUnit.MILLISECONDS);
+              return mOrigin.get(millisLeft, TimeUnit.MILLISECONDS);
             } else {
               throw new TimeoutException();
             }
@@ -154,7 +154,7 @@ public final class MessagingRegistry {
           }
         }
       }
-      if (aCancelled) {
+      if (mCancelled) {
         throw new CancellationException();
       } else {
         throw new TimeoutException();
@@ -163,16 +163,16 @@ public final class MessagingRegistry {
 
     @Override
     public synchronized void execute(final IMessenger messenger) {
-      if (!aCancelled) {
-        aOrigin = messenger.sendMessage(aMessage, this, aReturnType, aReturnTypeContext);
+      if (!mCancelled) {
+        mOrigin = messenger.sendMessage(mMessage, this, mReturnType, mReturnTypeContext);
       }
       notifyAll(); // Wake up all waiters (should be only one)
     }
 
     @Override
     public void onMessageCompletion(final Future<? extends T> future) {
-      if (aCompletionListener != null) {
-        aCompletionListener.onMessageCompletion(this);
+      if (mCompletionListener != null) {
+        mCompletionListener.onMessageCompletion(this);
       }
     }
 
@@ -230,43 +230,43 @@ public final class MessagingRegistry {
       }
     }
 
-    IMessenger aRealMessenger = null;
+    IMessenger mRealMessenger = null;
 
-    Queue<MessengerCommand> aCommandQueue;
+    Queue<MessengerCommand> mCommandQueue;
 
     StubMessenger(IMessenger oldMessenger) {
-      aCommandQueue = new ArrayDeque<>();
+      mCommandQueue = new ArrayDeque<>();
       if (oldMessenger!=null) {
         for(EndpointDescriptor endpoint: oldMessenger.getRegisteredEndpoints()) {
-          aCommandQueue.add(new RegisterEndpointCommand(endpoint));
+          mCommandQueue.add(new RegisterEndpointCommand(endpoint));
         }
       }
     }
 
     public synchronized void flushTo(final IMessenger messenger) {
-      aRealMessenger = messenger;
-      for (final MessengerCommand command : aCommandQueue) {
-        command.execute(aRealMessenger);
+      mRealMessenger = messenger;
+      for (final MessengerCommand command : mCommandQueue) {
+        command.execute(mRealMessenger);
       }
-      aCommandQueue = null; // We don't need it anymore, we'll just forward.
+      mCommandQueue = null; // We don't need it anymore, we'll just forward.
     }
 
     @Override
     public EndpointDescriptor registerEndpoint(final QName service, final String endPoint, final URI target) {
       synchronized (this) {
-        if (aRealMessenger == null) {
-          aCommandQueue.add(new RegisterEndpointCommand(endPoint, service, target));
+        if (mRealMessenger == null) {
+          mCommandQueue.add(new RegisterEndpointCommand(endPoint, service, target));
           return new SimpleEndpointDescriptor(service, endPoint, target);
         }
       }
-      return aRealMessenger.registerEndpoint(service, endPoint, target);
+      return mRealMessenger.registerEndpoint(service, endPoint, target);
     }
 
     @Override
     public void registerEndpoint(final EndpointDescriptor endpoint) {
       synchronized (this) {
-        if (aRealMessenger == null) {
-          aCommandQueue.add(new MessengerCommand() {
+        if (mRealMessenger == null) {
+          mCommandQueue.add(new MessengerCommand() {
 
             @Override
             public void execute(final IMessenger messenger) {
@@ -277,19 +277,19 @@ public final class MessagingRegistry {
           return;
         }
       }
-      aRealMessenger.registerEndpoint(endpoint);
+      mRealMessenger.registerEndpoint(endpoint);
     }
 
     @Override
     public <T> Future<T> sendMessage(final ISendableMessage message, final CompletionListener completionListener, final Class<T> returnType, Class<?>[] returnTypeContext) {
       synchronized (this) {
-        if (aRealMessenger == null) {
+        if (mRealMessenger == null) {
           final WrappingFuture<T> future = new WrappingFuture<>(message, completionListener, returnType, returnTypeContext);
-          aCommandQueue.add(future);
+          mCommandQueue.add(future);
           return future;
         }
       }
-      return aRealMessenger.sendMessage(message, completionListener, returnType, returnTypeContext);
+      return mRealMessenger.sendMessage(message, completionListener, returnType, returnTypeContext);
     }
 
     @Override
@@ -300,18 +300,18 @@ public final class MessagingRegistry {
     @Override
     public List<EndpointDescriptor> getRegisteredEndpoints() {
       synchronized (this) {
-        if (aRealMessenger == null) {
+        if (mRealMessenger == null) {
           return Collections.emptyList();
         }
       }
-      return aRealMessenger.getRegisteredEndpoints();
+      return mRealMessenger.getRegisteredEndpoints();
     }
 
     @Override
     public boolean unregisterEndpoint(final EndpointDescriptor endpoint) {
       synchronized (this) {
-        if (aRealMessenger == null) {
-          aCommandQueue.add(new MessengerCommand() {
+        if (mRealMessenger == null) {
+          mCommandQueue.add(new MessengerCommand() {
 
             @Override
             public void execute(final IMessenger messenger) {
@@ -322,12 +322,12 @@ public final class MessagingRegistry {
           return true;
         }
       }
-      return aRealMessenger.unregisterEndpoint(endpoint);
+      return mRealMessenger.unregisterEndpoint(endpoint);
     }
 
   }
 
-  private static IMessenger aMessenger;
+  private static IMessenger mMessenger;
 
   /**
    * Register a messenger with the registry. You may not register a second
@@ -340,20 +340,20 @@ public final class MessagingRegistry {
    */
   public static synchronized void registerMessenger(final IMessenger messenger) {
     if (messenger == null) {
-      if (! (aMessenger instanceof StubMessenger)) {
-        aMessenger = new StubMessenger(aMessenger);
+      if (! (mMessenger instanceof StubMessenger)) {
+        mMessenger = new StubMessenger(mMessenger);
       }
       return;
-    } else if (aMessenger instanceof StubMessenger) {
-      ((StubMessenger) aMessenger).flushTo(messenger);
-      aMessenger = messenger;
-    } else if (aMessenger != null) {
+    } else if (mMessenger instanceof StubMessenger) {
+      ((StubMessenger) mMessenger).flushTo(messenger);
+      mMessenger = messenger;
+    } else if (mMessenger != null) {
 
       throw new IllegalStateException("It is not allowed to register multiple messengers");
     }
-    aMessenger = messenger;
-    if (aMessenger != null) {
-      Logger.getAnonymousLogger().info("New messenger registered: " + aMessenger.getClass().getName());
+    mMessenger = messenger;
+    if (mMessenger != null) {
+      Logger.getAnonymousLogger().info("New messenger registered: " + mMessenger.getClass().getName());
     }
   }
 
@@ -366,10 +366,10 @@ public final class MessagingRegistry {
    *         messages).
    */
   public static synchronized IMessenger getMessenger() {
-    if (aMessenger == null) {
-      aMessenger = new StubMessenger(null);
+    if (mMessenger == null) {
+      mMessenger = new StubMessenger(null);
     }
-    return aMessenger;
+    return mMessenger;
   }
 
   /**
