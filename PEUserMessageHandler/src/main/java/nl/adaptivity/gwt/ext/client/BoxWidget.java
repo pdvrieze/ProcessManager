@@ -21,9 +21,9 @@ public class BoxWidget extends Widget {
   @UiField
   DivElement boxSpan;
 
-  public BoxWidget(final String pLabel) {
+  public BoxWidget(final String label) {
     setElement(uiBinder.createAndBindUi(this));
-    labelSpan.setInnerText(pLabel);
+    labelSpan.setInnerText(label);
   }
 
   public DivElement getBox() {

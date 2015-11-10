@@ -1,14 +1,13 @@
 package nl.adaptivity.gwt.ext.client;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
-import nl.adaptivity.gwt.base.client.IWidgetController;
-
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.user.client.ui.FocusWidget;
 import com.google.gwt.user.client.ui.ListBox;
+import nl.adaptivity.gwt.base.client.IWidgetController;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 
 /**
@@ -28,7 +27,7 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
   }
 
   @Override
-  public void onChange(final ChangeEvent pEvent) {
+  public void onChange(final ChangeEvent event) {
     final boolean enabled = getSelectedIndex() >= 0;
     for (final FocusWidget widget : aWidgetsToEnable) {
       widget.setEnabled(enabled);
@@ -42,9 +41,9 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
    * .user.client.ui.FocusWidget)
    */
   @Override
-  public void addControlledWidget(final FocusWidget pWidget) {
-    pWidget.setEnabled(getSelectedIndex() >= 0);
-    aWidgetsToEnable.add(pWidget);
+  public void addControlledWidget(final FocusWidget widget) {
+    widget.setEnabled(getSelectedIndex() >= 0);
+    aWidgetsToEnable.add(widget);
   }
 
   /*
@@ -54,14 +53,14 @@ public class ControllingListBox extends ListBox implements ChangeHandler, IWidge
    * .gwt.user.client.ui.FocusWidget)
    */
   @Override
-  public boolean removeControlledWidget(final FocusWidget pWidget) {
-    return aWidgetsToEnable.remove(pWidget);
+  public boolean removeControlledWidget(final FocusWidget widget) {
+    return aWidgetsToEnable.remove(widget);
   }
 
   @Override
-  public void setSelectedIndex(final int pIndex) {
-    super.setSelectedIndex(pIndex);
-    final boolean enabled = pIndex >= 0;
+  public void setSelectedIndex(final int index) {
+    super.setSelectedIndex(index);
+    final boolean enabled = index >= 0;
     for (final FocusWidget widget : aWidgetsToEnable) {
       widget.setEnabled(enabled);
     }

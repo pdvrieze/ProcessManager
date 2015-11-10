@@ -24,8 +24,8 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
 
   private Button aCancelInstanceButton;
 
-  public InstancesPanel(final Label pStatusLabel) {
-    aStatusLabel = pStatusLabel;
+  public InstancesPanel(final Label statusLabel) {
+    aStatusLabel = statusLabel;
     final SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
     //    hp1.addStyleName("tabPanel");
 
@@ -51,11 +51,11 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
     initWidget(root);
   }
 
-  Button addButtonToPanel(ControllingListBox pController, Panel pContainer, String pLabel) {
-    Button result = new Button(pLabel);
-    pController.addControlledWidget(result);
+  Button addButtonToPanel(ControllingListBox controller, Panel container, String label) {
+    Button result = new Button(label);
+    controller.addControlledWidget(result);
     result.addStyleName("inTabButton");
-    pContainer.add(result);
+    container.add(result);
     result.addClickHandler(this);
     return result;
   }
@@ -64,10 +64,10 @@ public class InstancesPanel extends ResizeComposite implements ClickHandler {
    * @category event handler
    */
   @Override
-  public void onClick(final ClickEvent pEvent) {
-    if (pEvent.getSource() == aShowInstanceStatusButton) {
+  public void onClick(final ClickEvent event) {
+    if (event.getSource() == aShowInstanceStatusButton) {
       showInstance();
-    } else if (pEvent.getSource() == aCancelInstanceButton) {
+    } else if (event.getSource() == aCancelInstanceButton) {
       cancelInstance();
     }
   }

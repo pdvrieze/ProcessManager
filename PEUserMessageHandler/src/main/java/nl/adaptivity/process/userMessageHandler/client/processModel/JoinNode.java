@@ -18,19 +18,19 @@ public class JoinNode extends ProcessNode {
   private Set<ProcessNode> aPredecessors;
   private Set<ProcessNode> aSuccessors;
 
-  public JoinNode(final String pId, final Collection<String> pPredecessorNames, final String pMin, final String pMax) {
-    super(pId);
-    aPredecessorNames = pPredecessorNames;
-    aMin = pMin;
-    aMax = pMax;
+  public JoinNode(final String id, final Collection<String> predecessorNames, final String min, final String max) {
+    super(id);
+    aPredecessorNames = predecessorNames;
+    aMin = min;
+    aMax = max;
   }
 
-  public static JoinNode fromXml(final Element pNode) {
+  public static JoinNode fromXml(final Element node) {
     String id = null;
     String min = null;
     String max = null;
     {
-      final NamedNodeMap attrs = pNode.getAttributes();
+      final NamedNodeMap attrs = node.getAttributes();
       final int attrCount = attrs.getLength();
       for (int i = 0; i < attrCount; ++i) {
         final Attr attr = (Attr) attrs.item(i);
@@ -51,7 +51,7 @@ public class JoinNode extends ProcessNode {
 
     final List<String> predecessors = new ArrayList<String>();
 
-    for (Node child = pNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+    for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (XMLUtil.isNS(ProcessModel.PROCESSMODEL_NS, child)) {
 
         if (XMLUtil.isLocalPart("predecessor", child)) {
@@ -69,7 +69,7 @@ public class JoinNode extends ProcessNode {
   }
 
   @Override
-  public void resolvePredecessors(final Map<String, ProcessNode> pMap) {
+  public void resolvePredecessors(final Map<String, ProcessNode> map) {
     if (aPredecessors == null) {
       aPredecessors = new LinkedHashSet<ProcessNode>();
     } else {
@@ -77,7 +77,7 @@ public class JoinNode extends ProcessNode {
     }
     for (final String predecessorId : aPredecessorNames) {
 
-      final ProcessNode predecessor = pMap.get(predecessorId);
+      final ProcessNode predecessor = map.get(predecessorId);
       if (predecessor != null) {
         aPredecessors.add(predecessor);
         predecessor.ensureSuccessor(this);
@@ -86,11 +86,11 @@ public class JoinNode extends ProcessNode {
   }
 
   @Override
-  public void ensureSuccessor(final ProcessNode pNode) {
+  public void ensureSuccessor(final ProcessNode node) {
     if (aSuccessors == null) {
       aSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    aSuccessors.add(pNode);
+    aSuccessors.add(node);
   }
 
   @Override

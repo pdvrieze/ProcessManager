@@ -11,8 +11,8 @@ public class EditableProcessModel {
 
   List<EditableProcessNode> aNodes;
 
-  public EditableProcessModel(final ProcessModel pProcessModel) {
-    aProcessModel = pProcessModel;
+  public EditableProcessModel(final ProcessModel processModel) {
+    aProcessModel = processModel;
   }
 
   public Collection<EditableProcessNode> getNodes() {

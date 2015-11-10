@@ -31,8 +31,8 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost {
     }
 
     @Override
-    protected void dispatch(final ResetHandler pHandler) {
-      pHandler.onReset(this);
+    protected void dispatch(final ResetHandler handler) {
+      handler.onReset(this);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost {
 
   public interface ResetHandler extends EventHandler {
 
-    void onReset(ResetEvent pResetEvent);
+    void onReset(ResetEvent resetEvent);
 
   }
 
@@ -401,8 +401,8 @@ public class MyFormPanel extends SimplePanel implements FormPanelImplHost {
     return addHandler(handler, SubmitEvent.getType());
   }
 
-  public HandlerRegistration addResetHandler(final ResetHandler pHandler) {
-    return addHandler(pHandler, ResetEvent.getType());
+  public HandlerRegistration addResetHandler(final ResetHandler handler) {
+    return addHandler(handler, ResetEvent.getType());
   }
 
   /**

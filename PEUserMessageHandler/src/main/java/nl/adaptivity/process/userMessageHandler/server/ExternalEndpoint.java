@@ -57,8 +57,8 @@ public class ExternalEndpoint implements GenericEndpoint {
   }
 
   @Override
-  public void initEndpoint(final ServletConfig pConfig) {
-    final StringBuilder path = new StringBuilder(pConfig.getServletContext().getContextPath());
+  public void initEndpoint(final ServletConfig config) {
+    final StringBuilder path = new StringBuilder(config.getServletContext().getContextPath());
     path.append("/UserMessageService");
     try {
       aURI = new URI(null, null, path.toString(), null);
@@ -81,12 +81,12 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}")
   public XmlTask updateTask(
-      @RestParam(name="handle", type=ParamType.VAR) final String pHandle,
-      @RestParam(type=ParamType.BODY) final XmlTask pPartialNewTask,
-      @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) throws SQLException, FileNotFoundException
+      @RestParam(name="handle", type=ParamType.VAR) final String handle,
+      @RestParam(type=ParamType.BODY) final XmlTask partialNewTask,
+      @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws SQLException, FileNotFoundException
   {
     try (DBTransaction transaction = aService.newTransaction()) {
-      final XmlTask result = aService.updateTask(transaction, Long.parseLong(pHandle), pPartialNewTask, pUser);
+      final XmlTask result = aService.updateTask(transaction, Long.parseLong(handle), partialNewTask, user);
       if (result==null) { throw new FileNotFoundException(); }
       transaction.commit();
       return result;
@@ -97,23 +97,23 @@ public class ExternalEndpoint implements GenericEndpoint {
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
-  public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aService.getPendingTask(Long.parseLong(pHandle), pUser);
+  public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+    return aService.getPendingTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
-  public IProcessNodeInstance.TaskState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aService.startTask(Long.parseLong(pHandle), pUser);
+  public IProcessNodeInstance.TaskState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+    return aService.startTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
-  public IProcessNodeInstance.TaskState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aService.takeTask(Long.parseLong(pHandle), pUser);
+  public IProcessNodeInstance.TaskState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+    return aService.takeTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
-  public IProcessNodeInstance.TaskState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String pHandle, @RestParam(type = ParamType.PRINCIPAL) final Principal pUser) {
-    return aService.finishTask(Long.parseLong(pHandle), pUser);
+  public IProcessNodeInstance.TaskState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+    return aService.finishTask(Long.parseLong(handle), user);
   }
 
   @Override

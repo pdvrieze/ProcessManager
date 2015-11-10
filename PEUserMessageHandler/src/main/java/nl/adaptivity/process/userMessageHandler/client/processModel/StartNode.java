@@ -14,13 +14,13 @@ public class StartNode extends ProcessNode {
 
   private Set<ProcessNode> aSuccessors;
 
-  public StartNode(final String pId) {
-    super(pId);
+  public StartNode(final String id) {
+    super(id);
   }
 
-  public static ProcessNode fromXml(final Element pElement) {
+  public static ProcessNode fromXml(final Element element) {
     String id = null;
-    final NamedNodeMap attrs = pElement.getAttributes();
+    final NamedNodeMap attrs = element.getAttributes();
     final int attrCount = attrs.getLength();
     for (int i = 0; i < attrCount; ++i) {
       final Attr attr = (Attr) attrs.item(i);
@@ -36,16 +36,16 @@ public class StartNode extends ProcessNode {
   }
 
   @Override
-  public void resolvePredecessors(final Map<String, ProcessNode> pMap) {
+  public void resolvePredecessors(final Map<String, ProcessNode> map) {
     // start node has no predecessors
   }
 
   @Override
-  public void ensureSuccessor(final ProcessNode pNode) {
+  public void ensureSuccessor(final ProcessNode node) {
     if (aSuccessors == null) {
       aSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    aSuccessors.add(pNode);
+    aSuccessors.add(node);
   }
 
   @Override

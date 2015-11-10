@@ -34,7 +34,7 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   private class SlotUpdateHandler implements ClickHandler {
 
     @Override
-    public void onClick(ClickEvent pEvent) {
+    public void onClick(ClickEvent event) {
       updateSlotClicked();
     }
 
@@ -43,10 +43,10 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   private static class SlotCell extends AbstractCell<Slot> {
 
     @Override
-    public void render(com.google.gwt.cell.client.Cell.Context pContext, Slot pValue, SafeHtmlBuilder pSb) {
-      pSb.appendHtmlConstant("<div class='slotcell'>");
-      pSb.appendEscaped(pValue.getDescription());
-      pSb.appendHtmlConstant("</div>");
+    public void render(com.google.gwt.cell.client.Cell.Context context, Slot value, SafeHtmlBuilder sb) {
+      sb.appendHtmlConstant("<div class='slotcell'>");
+      sb.appendEscaped(value.getDescription());
+      sb.appendHtmlConstant("</div>");
     }
 
   }
@@ -56,9 +56,9 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     private final long aHSlot;
     private final String aDescription;
 
-    public Slot(long pHSlot, String pDescription) {
-      aHSlot = pHSlot;
-      aDescription = pDescription;
+    public Slot(long hSlot, String description) {
+      aHSlot = hSlot;
+      aDescription = description;
     }
 
     public long getHSlot() {
@@ -74,12 +74,12 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   private static class CandidateCell extends AbstractCell<Candidate> {
 
     @Override
-    public void render(com.google.gwt.cell.client.Cell.Context pContext, Candidate pValue, SafeHtmlBuilder pSb) {
-      pSb.appendHtmlConstant("<div class=\"usercell\"><span class=\"fullname\">");
-      pSb.appendEscaped(pValue.getFullname());
-      pSb.appendHtmlConstant("</span> <span class=\"username\">(");
-      pSb.appendEscaped(pValue.getUsername());
-      pSb.appendHtmlConstant(")</span></div>");
+    public void render(com.google.gwt.cell.client.Cell.Context context, Candidate value, SafeHtmlBuilder sb) {
+      sb.appendHtmlConstant("<div class=\"usercell\"><span class=\"fullname\">");
+      sb.appendEscaped(value.getFullname());
+      sb.appendHtmlConstant("</span> <span class=\"username\">(");
+      sb.appendEscaped(value.getUsername());
+      sb.appendHtmlConstant(")</span></div>");
     }
 
   }
@@ -89,9 +89,9 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     private final String aUsername;
     private final String aFullname;
 
-    public Candidate(String pUsername, String pFullname) {
-      aUsername = pUsername;
-      aFullname = pFullname;
+    public Candidate(String username, String fullname) {
+      aUsername = username;
+      aFullname = fullname;
     }
 
     public String getUsername() {
@@ -136,13 +136,13 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
   }
 
-  public void setActiveUserName(String pUsername) {
-    aUsername = pUsername;
+  public void setActiveUserName(String username) {
+    aUsername = username;
   }
 
   @Override
-  public void onResponseReceived(Request pRequest, Response pResponse) {
-    Document xmlResponse = XMLParser.parse(pResponse.getText());
+  public void onResponseReceived(Request request, Response response) {
+    Document xmlResponse = XMLParser.parse(response.getText());
     Element root = xmlResponse.getDocumentElement();
     if ("candidates".equals(XMLUtil.localName(root.getNodeName()))) {
       addCandidatePanel(root);
@@ -158,12 +158,12 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
   }
 
-  private void addCandidatePanel(Element pCandidates) {
+  private void addCandidatePanel(Element candidates) {
     contentHolder.clear();
     contentHolder.getElement().setInnerHTML("<h3>You are not in a group yet!</h3>\n<div style=\"margin-bottom: 1ex\">Please use the control key to select all group members (you have already been selected)</div>\n");
 
     aCandidates = new ArrayList<Candidate>();
-    for(Node candidate=pCandidates.getFirstChild(); candidate!=null; candidate = candidate.getNextSibling()) {
+    for(Node candidate=candidates.getFirstChild(); candidate!=null; candidate = candidate.getNextSibling()) {
       if (XMLUtil.isLocalPart("candidate", candidate)) {
         Element elem = (Element) candidate;
         String username = XMLUtil.getAttributeValue(elem, "user");
@@ -201,15 +201,15 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     aInviteButton.addClickHandler(new ClickHandler() {
 
       @Override
-      public void onClick(ClickEvent pEvent) {
-        pEvent.stopPropagation();
-        inviteClicked(pEvent);
+      public void onClick(ClickEvent event) {
+        event.stopPropagation();
+        inviteClicked(event);
       }
     });
 
   }
 
-  protected void inviteClicked(ClickEvent pEvent) {
+  protected void inviteClicked(ClickEvent event) {
     if (aCandidateSelectionModel.getSelectedSet().size()==0) {
       aFeedbackLabel.setText("Please select your group");
       return;
@@ -234,22 +234,22 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     }
   }
 
-  private void addGroupPanel(Element pGroup) {
+  private void addGroupPanel(Element group) {
     aCandidates = new ArrayList<Candidate>();
 
-    aGroupHandle = XMLUtil.getLongAttr(pGroup, "handle", -1);
-    aSlotHandle = XMLUtil.getLongAttr(pGroup, "slot", -1);
+    aGroupHandle = XMLUtil.getLongAttr(group, "handle", -1);
+    aSlotHandle = XMLUtil.getLongAttr(group, "slot", -1);
     if (aSlotHandle>=0) {
-      aSlotDesc = pGroup.getAttribute("slotdesc");
-      aSlotDate = pGroup.getAttribute("slotdate");
+      aSlotDesc = group.getAttribute("slotdesc");
+      aSlotDate = group.getAttribute("slotdate");
     }
-    String topic = XMLUtil.getAttributeValue(pGroup, "topic");
+    String topic = XMLUtil.getAttributeValue(group, "topic");
 
     SafeHtmlBuilder members = new SafeHtmlBuilder();
     members.appendHtmlConstant("<h3>You have selected your group</h3>\n<div class=\"wsgroup\">Your group consists of: ");
     boolean first = true;
 
-    for(Node member=pGroup.getFirstChild(); member!=null; member = member.getNextSibling()) {
+    for(Node member=group.getFirstChild(); member!=null; member = member.getNextSibling()) {
       if (XMLUtil.isLocalPart("member", member)) {
         Element elem = (Element) member;
         String fullname = XMLUtil.getAttributeValue(elem, "fullname");
@@ -305,13 +305,13 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
       rb.sendRequest(null, new RequestCallback() {
 
         @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
-          handleSlotResponse(pResponse);
+        public void onResponseReceived(Request request, Response response) {
+          handleSlotResponse(response);
         }
 
         @Override
-        public void onError(Request pRequest, Throwable pException) {
-          GWT.log("Error getting available slots", pException);
+        public void onError(Request request, Throwable exception) {
+          GWT.log("Error getting available slots", exception);
           aSlotChoiceContainer.setWidget(new Label("Failure to get available slots"));
         }
       });
@@ -335,12 +335,12 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
     contentHolder.add(vpanel);
   }
 
-  protected void handleSlotResponse(Response pResponse) {
-    if (pResponse.getStatusCode()<200 || pResponse.getStatusCode()>=300) {
-      aSlotChoiceContainer.setWidget(new Label("Failure to get available slots ("+pResponse.getStatusCode()+": "+pResponse.getStatusText()+")"));
+  protected void handleSlotResponse(Response response) {
+    if (response.getStatusCode()<200 || response.getStatusCode()>=300) {
+      aSlotChoiceContainer.setWidget(new Label("Failure to get available slots ("+response.getStatusCode()+": "+response.getStatusText()+")"));
       return;
     }
-    Document xmlResponse = XMLParser.parse(pResponse.getText());
+    Document xmlResponse = XMLParser.parse(response.getText());
     Element root = xmlResponse.getDocumentElement();
 
     Slot currentSlot=null;
@@ -389,8 +389,8 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
       rb.sendRequest(data.toSafeHtml().asString(), new RequestCallback() {
 
         @Override
-        public void onResponseReceived(Request pRequest, Response pResponse) {
-          Document xmlResponse = XMLParser.parse(pResponse.getText());
+        public void onResponseReceived(Request request, Response response) {
+          Document xmlResponse = XMLParser.parse(response.getText());
           Element root = xmlResponse.getDocumentElement();
           if (XMLUtil.isLocalPart("error", root)) {
             aFeedbackLabel.setText("Error: "+XMLUtil.getTextChildren(root));
@@ -402,9 +402,9 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
        }
 
         @Override
-        public void onError(Request pRequest, Throwable pException) {
-          aFeedbackLabel.setText("Error requesting update: "+pException.getMessage());
-          GWT.log("Error requesting update", pException);
+        public void onError(Request request, Throwable exception) {
+          aFeedbackLabel.setText("Error requesting update: "+exception.getMessage());
+          GWT.log("Error requesting update", exception);
         }
       });
     } catch (RequestException e) {
@@ -414,8 +414,8 @@ public class PresentationGroupPanel extends Composite implements RequestCallback
   }
 
   @Override
-  public void onError(Request pRequest, Throwable pException) {
-    contentHolder.getElement().setInnerHTML("Failure getting info<br/>"+pException.getMessage());
+  public void onError(Request request, Throwable exception) {
+    contentHolder.getElement().setInnerHTML("Failure getting info<br/>"+exception.getMessage());
   }
 
 }

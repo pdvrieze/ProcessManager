@@ -179,8 +179,8 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    * @category action
    */
   @Override
-  public void onValueChange(final ValueChangeEvent<String> pEvent) {
-    final String value = pEvent.getValue();
+  public void onValueChange(final ValueChangeEvent<String> event) {
+    final String value = event.getValue();
 
     final int c = aTabPanel.getWidgetCount();
     for (int i = 0; i < c; ++i) {
@@ -196,17 +196,17 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
    * @category action
    */
   @Override
-  public void onSelection(final SelectionEvent<Integer> pEvent) {
-    if (pEvent.getSource() == aTabPanel) {
-      handleTabSelection(pEvent);
+  public void onSelection(final SelectionEvent<Integer> event) {
+    if (event.getSource() == aTabPanel) {
+      handleTabSelection(event);
     }
   }
 
   /**
    * @category action
    */
-  private void handleTabSelection(final SelectionEvent<Integer> pEvent) {
-    final String tabText = aTabPanel.getTabWidget(pEvent.getSelectedItem()).getElement().getInnerText();
+  private void handleTabSelection(final SelectionEvent<Integer> event) {
+    final String tabText = aTabPanel.getTabWidget(event.getSelectedItem()).getElement().getInnerText();
     History.newItem(tabText, false);
     if ("Processes".equals(tabText)) {
       aProcessesPanel.start();
@@ -226,7 +226,7 @@ public class PEUserMessageHandler implements EntryPoint, ValueChangeHandler<Stri
   }
 
   @Override
-  public void onResize(final ResizeEvent pEvent) {
+  public void onResize(final ResizeEvent event) {
     //    int height = Window.getClientHeight();
     //    aRootPanel.setHeight((height-10)+"px");
     //    height -= 14; // margin

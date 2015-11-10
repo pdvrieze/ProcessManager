@@ -16,9 +16,9 @@ public class PresentationPanel extends Composite {
   @UiField
   PresentationGroupPanel groupPanel;
 
-  public PresentationPanel(String pUsername) {
+  public PresentationPanel(String username) {
     initWidget(uiBinder.createAndBindUi(this));
-    groupPanel.setActiveUserName(pUsername);
+    groupPanel.setActiveUserName(username);
   }
 
 }

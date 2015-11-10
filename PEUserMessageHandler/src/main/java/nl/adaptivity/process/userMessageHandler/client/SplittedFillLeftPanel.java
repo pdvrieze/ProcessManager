@@ -41,12 +41,12 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
     return (VerticalPanel) getWidget().getWidget(0);
   }
 
-  public void setTopLeftWidget(final T pWidget) {
+  public void setTopLeftWidget(final T widget) {
     final VerticalPanel leftPanel = getLeftPanel();
     if (aTopLeftWidget != null) {
       leftPanel.remove(aTopLeftWidget);
     }
-    aTopLeftWidget = pWidget;
+    aTopLeftWidget = widget;
     leftPanel.insert(aTopLeftWidget, 0);
     leftPanel.setCellHeight(aTopLeftWidget, "100%");
     aTopLeftWidget.setWidth("100%");
@@ -57,15 +57,15 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
     return aTopLeftWidget;
   }
 
-  public void setBottomLeftWidget(final Widget pWidget) {
+  public void setBottomLeftWidget(final Widget widget) {
     final VerticalPanel leftPanel = getLeftPanel();
     if (aBottomLeftWidget != null) {
       leftPanel.remove(aBottomLeftWidget);
     }
-    aBottomLeftWidget = pWidget;
-    leftPanel.add(pWidget);
-    pWidget.setWidth("100%");
-    pWidget.addStyleName("bottomLeftSplit");
+    aBottomLeftWidget = widget;
+    leftPanel.add(widget);
+    widget.setWidth("100%");
+    widget.addStyleName("bottomLeftSplit");
   }
 
   public Widget getBottomLeftWidget() {
@@ -79,22 +79,22 @@ public class SplittedFillLeftPanel<T extends Widget> extends ResizeComposite {
     return aRightWidget.getWidget(0);
   }
 
-  public void setRightWidget(final Widget pWidget) {
+  public void setRightWidget(final Widget widget) {
     getWidget();
     if (aRightWidget.getWidgetCount() > 0) {
       aRightWidget.remove(0);
     }
-    aRightWidget.add(pWidget);
+    aRightWidget.add(widget);
     //    Layer layer = aRightWidget.getLayer(pWidget);
   }
 
-  public void setHeight(final int pHeight) {
-    int height = pHeight;
-    height -= aBottomLeftWidget.getOffsetHeight();
+  public void setHeight(final int height) {
+    int actualHeight = height;
+    actualHeight -= aBottomLeftWidget.getOffsetHeight();
 
-    height -= 5;
-    final int adjust = pHeight - height;
-    final int listBoxHeight = Math.max(getMinTopHeight(), height);
+    actualHeight -= 5;
+    final int adjust = height - actualHeight;
+    final int listBoxHeight = Math.max(getMinTopHeight(), actualHeight);
     aTopLeftWidget.setHeight(listBoxHeight + "px");
     super.setHeight((listBoxHeight + adjust) + "px");
 

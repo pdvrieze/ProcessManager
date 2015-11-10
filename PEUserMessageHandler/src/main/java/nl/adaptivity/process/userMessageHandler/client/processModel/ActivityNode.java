@@ -1,20 +1,13 @@
 package nl.adaptivity.process.userMessageHandler.client.processModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import nl.adaptivity.gwt.ext.client.XMLUtil;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.xml.client.Attr;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.NamedNodeMap;
 import com.google.gwt.xml.client.Node;
+import nl.adaptivity.gwt.ext.client.XMLUtil;
+
+import java.util.*;
 
 
 public class ActivityNode extends ProcessNode {
@@ -41,18 +34,18 @@ public class ActivityNode extends ProcessNode {
 
   private Set<ProcessNode> aSuccessors;
 
-  public ActivityNode(final String pId, final String pName, final String pPredecessor) {
-    super(pId);
-    aName = pName;
-    aPredecessorId = pPredecessor;
+  public ActivityNode(final String id, final String name, final String predecessor) {
+    super(id);
+    aName = name;
+    aPredecessorId = predecessor;
   }
 
-  public static ActivityNode fromXml(final Element pNode) {
+  public static ActivityNode fromXml(final Element node) {
     String id = null;
     String name = null;
     String predecessor = null;
     {
-      final NamedNodeMap attrs = pNode.getAttributes();
+      final NamedNodeMap attrs = node.getAttributes();
       final int attrCount = attrs.getLength();
       for (int i = 0; i < attrCount; ++i) {
         final Attr attr = (Attr) attrs.item(i);
@@ -76,7 +69,7 @@ public class ActivityNode extends ProcessNode {
     final List<Element> exports = new ArrayList<Element>();
     Node message;
 
-    for (Node child = pNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+    for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (XMLUtil.isNS(ProcessModel.PROCESSMODEL_NS, child)) {
 
         if (XMLUtil.isLocalPart("import", child)) {
@@ -123,49 +116,49 @@ public class ActivityNode extends ProcessNode {
     return result;
   }
 
-  private static String conditionFromXml(final Element pElem) {
-    return XMLUtil.getTextChildren(pElem);
+  private static String conditionFromXml(final Element elem) {
+    return XMLUtil.getTextChildren(elem);
   }
 
-  private static Element importFromXml(final Element pChild) {
-    return pChild;
+  private static Element importFromXml(final Element child) {
+    return child;
   }
 
-  private static Element exportFromXml(final Element pChild) {
-    return pChild;
+  private static Element exportFromXml(final Element child) {
+    return child;
   }
 
-  private void setExports(final List<Element> pExports) {
-    aExports = pExports;
+  private void setExports(final List<Element> exports) {
+    aExports = exports;
   }
 
-  private void setImports(final List<Element> pImports) {
-    aImports = pImports;
+  private void setImports(final List<Element> imports) {
+    aImports = imports;
   }
 
-  private void setCondition(final String pCondition) {
-    aCondition = pCondition;
+  private void setCondition(final String condition) {
+    aCondition = condition;
   }
 
-  private void setOperation(final String pValue) {
-    aOperation = pValue;
+  private void setOperation(final String value) {
+    aOperation = value;
   }
 
-  private void setEndpoint(final String pValue) {
-    aEndpoint = pValue;
+  private void setEndpoint(final String value) {
+    aEndpoint = value;
   }
 
-  private void setServiceName(final String pValue) {
-    aServiceName = pValue;
+  private void setServiceName(final String value) {
+    aServiceName = value;
   }
 
-  private void setServiceNS(final String pValue) {
-    aServiceNS = pValue;
+  private void setServiceNS(final String value) {
+    aServiceNS = value;
   }
 
   @Override
-  public void resolvePredecessors(final Map<String, ProcessNode> pMap) {
-    final ProcessNode predecessor = pMap.get(aPredecessorId);
+  public void resolvePredecessors(final Map<String, ProcessNode> map) {
+    final ProcessNode predecessor = map.get(aPredecessorId);
     if (predecessor != null) {
       aPredecessorId = predecessor.getId();
       aPredecessor = predecessor;
@@ -174,11 +167,11 @@ public class ActivityNode extends ProcessNode {
   }
 
   @Override
-  public void ensureSuccessor(final ProcessNode pNode) {
+  public void ensureSuccessor(final ProcessNode node) {
     if (aSuccessors == null) {
       aSuccessors = new LinkedHashSet<ProcessNode>();
     }
-    aSuccessors.add(pNode);
+    aSuccessors.add(node);
   }
 
   @Override

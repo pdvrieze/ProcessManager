@@ -10,36 +10,36 @@ import com.google.gwt.xml.client.NodeList;
 public final class GwtXmlUtil {
   private GwtXmlUtil() {}
 
-  public static SafeHtml getTextContent(Element pElement) {
+  public static SafeHtml getTextContent(Element element) {
     SafeHtmlBuilder builder = new SafeHtmlBuilder();
-    getTextContent(builder, pElement);
+    getTextContent(builder, element);
     return builder.toSafeHtml();
   }
 
-  private static void getTextContent(SafeHtmlBuilder pBuilder, Element pElement) {
-    for(Node n=pElement.getFirstChild(); n!=null; n=n.getNextSibling()) {
+  private static void getTextContent(SafeHtmlBuilder builder, Element element) {
+    for(Node n=element.getFirstChild(); n!=null; n=n.getNextSibling()) {
       switch (n.getNodeType()) {
         case Node.CDATA_SECTION_NODE:
         case Node.TEXT_NODE:
-          pBuilder.appendEscaped(n.getNodeValue());
+          builder.appendEscaped(n.getNodeValue());
           break;
         case Node.ELEMENT_NODE:
-          getTextContent(pBuilder, (Element)n);
+          getTextContent(builder, (Element)n);
       }
     }
   }
 
-  public static SafeHtml serialize(NodeList pChildNodes) {
+  public static SafeHtml serialize(NodeList childNodes) {
     SafeHtmlBuilder builder = new SafeHtmlBuilder();
-    for(int i=0; i<pChildNodes.getLength(); ++i) {
-      Node child = pChildNodes.item(i);
+    for(int i=0; i<childNodes.getLength(); ++i) {
+      Node child = childNodes.item(i);
       serialize(builder, child);
     }
     return builder.toSafeHtml();
   }
 
-  private static void serialize(SafeHtmlBuilder pBuilder, Node pChild) {
-    pBuilder.appendHtmlConstant(pChild.toString());
+  private static void serialize(SafeHtmlBuilder builder, Node child) {
+    builder.appendHtmlConstant(child.toString());
   }
 
 }

@@ -52,28 +52,28 @@ public class MyFileUpload extends FileUpload implements IWidgetController, Chang
     return null;
   }
 
-  public MyFileUpload(final Element pElement) {
-    super(pElement);
+  public MyFileUpload(final Element element) {
+    super(element);
   }
 
-  public HandlerRegistration registerChangeHandler(final ChangeHandler pHandler) {
-    return addDomHandler(pHandler, ChangeEvent.getType());
+  public HandlerRegistration registerChangeHandler(final ChangeHandler handler) {
+    return addDomHandler(handler, ChangeEvent.getType());
   }
 
   @Override
-  public void addControlledWidget(final FocusWidget pWidget) {
+  public void addControlledWidget(final FocusWidget widget) {
     if (aWidgetsToEnable == null) {
       aWidgetsToEnable = new ArrayList<FocusWidget>();
       aChangeHandler = registerChangeHandler(this);
       aResetHandler = registerResetHandler();
     }
-    aWidgetsToEnable.add(pWidget);
-    pWidget.setEnabled(getFilename().length() > 0);
+    aWidgetsToEnable.add(widget);
+    widget.setEnabled(getFilename().length() > 0);
   }
 
   @Override
-  public boolean removeControlledWidget(final FocusWidget pWidget) {
-    final boolean result = aWidgetsToEnable.remove(pWidget);
+  public boolean removeControlledWidget(final FocusWidget widget) {
+    final boolean result = aWidgetsToEnable.remove(widget);
     if (result) {
       if (aWidgetsToEnable.size() == 0) {
         aWidgetsToEnable = null;
@@ -85,12 +85,12 @@ public class MyFileUpload extends FileUpload implements IWidgetController, Chang
   }
 
   @Override
-  public void onChange(final ChangeEvent pEvent) {
+  public void onChange(final ChangeEvent event) {
     refreshEnablement();
   }
 
   @Override
-  public void onReset(final ResetEvent pResetEvent) {
+  public void onReset(final ResetEvent resetEvent) {
 
     refreshEnablement();
   }

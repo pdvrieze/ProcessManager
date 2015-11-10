@@ -51,8 +51,8 @@ public class Darwin implements EntryPoint {
   private class LoginReceivedCallback implements RequestCallback {
 
     @Override
-    public void onResponseReceived(final Request pRequest, final Response pResponse) {
-      final String text = pResponse.getText();
+    public void onResponseReceived(final Request request, final Response response) {
+      final String text = response.getText();
       final int cpos = text.indexOf(':');
       final int eolpos = text.indexOf('\n', cpos);
       String result, payload;
@@ -87,14 +87,14 @@ public class Darwin implements EntryPoint {
         aLoginContent.password.setValue("");
       } else {
         closeDialogs();
-        error("Invalid response received from login form :" + pResponse.getStatusCode(), null);
+        error("Invalid response received from login form :" + response.getStatusCode(), null);
       }
 
     }
 
     @Override
-    public void onError(final Request pRequest, final Throwable pException) {
-      error("Error validating credentials:" + pException.getMessage(), pException);
+    public void onError(final Request request, final Throwable exception) {
+      error("Error validating credentials:" + exception.getMessage(), exception);
     }
 
   }
@@ -102,8 +102,8 @@ public class Darwin implements EntryPoint {
   private class LoginHandler implements ClickHandler {
 
     @Override
-    public void onClick(final ClickEvent pEvent) {
-      pEvent.stopPropagation(); // We handle the propagation.
+    public void onClick(final ClickEvent event) {
+      event.stopPropagation(); // We handle the propagation.
       final com.google.gwt.user.client.Element dialogBase = dialogContent.getElement();
       final InputElement username = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "username"));
       final InputElement password = InputElement.as(XMLUtil.descendentWithAttribute(dialogBase, "name", "password"));
@@ -127,7 +127,7 @@ public class Darwin implements EntryPoint {
   private class DialogCloseHandler implements ClickHandler {
 
     @Override
-    public void onClick(final ClickEvent pEvent) {
+    public void onClick(final ClickEvent event) {
       closeDialogs();
     }
 
@@ -136,7 +136,7 @@ public class Darwin implements EntryPoint {
   private class LoginoutClickHandler implements ClickHandler {
 
     @Override
-    public void onClick(final ClickEvent pEvent) {
+    public void onClick(final ClickEvent event) {
       if (aUsername == null) {
         loginDialog();
         // Login
@@ -157,8 +157,8 @@ public class Darwin implements EntryPoint {
   private class HistoryChangeHandler implements ValueChangeHandler<String> {
 
     @Override
-    public void onValueChange(final ValueChangeEvent<String> pEvent) {
-      final String newValue = pEvent.getValue();
+    public void onValueChange(final ValueChangeEvent<String> event) {
+      final String newValue = event.getValue();
       navigateTo(newValue, false, false);
     }
 
@@ -167,17 +167,17 @@ public class Darwin implements EntryPoint {
   private class LinkClickHandler implements ClickHandler {
 
     @Override
-    public void onClick(final ClickEvent pEvent) {
-      if(pEvent.getNativeButton()==NativeEvent.BUTTON_LEFT) {
-        final EventTarget target = pEvent.getNativeEvent().getEventTarget();
+    public void onClick(final ClickEvent event) {
+      if(event.getNativeButton()==NativeEvent.BUTTON_LEFT) {
+        final EventTarget target = event.getNativeEvent().getEventTarget();
         String href = target.<Element> cast().getAttribute("href");
         // handle urls to virtual pages
         if (href!=null && href.startsWith("/#")) {
           href=href.substring(2);
         }
         navigateTo(href, true, true);
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
+        event.preventDefault();
+        event.stopPropagation();
       }
     }
 
@@ -186,9 +186,9 @@ public class Darwin implements EntryPoint {
   private class MenuReceivedCallback implements RequestCallback {
 
     @Override
-    public void onResponseReceived(final Request pRequest, final Response pResponse) {
-      if(pResponse.getStatusCode()>=200 && pResponse.getStatusCode()<300) {
-        final String text = pResponse.getText();
+    public void onResponseReceived(final Request request, final Response response) {
+      if(response.getStatusCode()>=200 && response.getStatusCode()<300) {
+        final String text = response.getText();
         aMenu.setInnerHTML(text);
         Element childElement = aMenu.getFirstChildElement();
         if (childElement!=null && childElement.getNodeName().equalsIgnoreCase("menu")) {
@@ -199,13 +199,13 @@ public class Darwin implements EntryPoint {
         }
         updateMenuElements();
       } else {
-        log("Error updating the menu ["+pResponse.getStatusCode()+" "+pResponse.getStatusText()+']');
+        log("Error updating the menu ["+response.getStatusCode()+" "+response.getStatusText()+']');
       }
     }
 
     @Override
-    public void onError(final Request pRequest, final Throwable pException) {
-      log("Error updating the menu", pException);
+    public void onError(final Request request, final Throwable exception) {
+      log("Error updating the menu", exception);
     }
 
   }
@@ -213,8 +213,8 @@ public class Darwin implements EntryPoint {
   private class ContentPanelCallback implements RequestCallback {
 
     @Override
-    public void onResponseReceived(Request pRequest, Response pResponse) {
-      int statusCode = pResponse.getStatusCode();
+    public void onResponseReceived(Request request, Response response) {
+      int statusCode = response.getStatusCode();
       if (statusCode==401) {
         hideBanner();
         loginDialog(); // just return
@@ -226,9 +226,9 @@ public class Darwin implements EntryPoint {
       }
       aContentPanel.clear();
       hideBanner();
-      final String text = pResponse.getText();
-      com.google.gwt.xml.client.Document response = XMLParser.parse(text);
-      com.google.gwt.xml.client.Element root = response.getDocumentElement();
+      final String text = response.getText();
+      com.google.gwt.xml.client.Document responseDocument = XMLParser.parse(text);
+      com.google.gwt.xml.client.Element root = responseDocument.getDocumentElement();
       SafeHtml title=null;
       SafeHtml body=null;
       for(Node childNode = root.getFirstChild(); childNode!=null; childNode = childNode.getNextSibling()) {
@@ -256,9 +256,9 @@ public class Darwin implements EntryPoint {
     }
 
     @Override
-    public void onError(Request pRequest, Throwable pException) {
+    public void onError(Request request, Throwable exception) {
       hideBanner();
-      error("The requested location is not available", pException);
+      error("The requested location is not available", exception);
     }
 
   }
@@ -359,24 +359,24 @@ public class Darwin implements EntryPoint {
   /**
    * @category ui_elements
    */
-  private void modalDialog(final String pString) {
+  private void modalDialog(final String string) {
     final Button closeButton = new Button("Ok");
     closeButton.addClickHandler(aDialogCloseHandler);
-    dialog("Message", new Label(pString), closeButton);
+    dialog("Message", new Label(string), closeButton);
   }
 
   /**
    * @category error_handling
    */
-  public void error(final String pMessage, final Throwable pException) {
-    GWT.log("Error: " + pMessage, pException);
-    String message;
-    if (pException == null) {
-      message = pMessage;
+  public void error(final String message, final Throwable exception) {
+    GWT.log("Error: " + message, exception);
+    String completeMessage;
+    if (exception == null) {
+      completeMessage = message;
     } else {
-      message = pMessage + "<br />" + pException.getMessage();
+      completeMessage = message + "<br />" + exception.getMessage();
     }
-    modalDialog(message);
+    modalDialog(completeMessage);
   }
 
   private void loginDialog() {
@@ -398,18 +398,18 @@ public class Darwin implements EntryPoint {
   /**
    * @category ui_elements
    */
-  private void updateDialogTitle(final String pString) {
-    dialogTitle.setText(pString);
+  private void updateDialogTitle(final String string) {
+    dialogTitle.setText(string);
   }
 
   /**
    * @category ui_elements
    */
-  private void dialog(final String pTitle, final Widget... pContents) {
+  private void dialog(final String title, final Widget... contents) {
     final Widget dialog = darwinDialogBinder.createAndBindUi(this);
-    dialogTitle.setText(pTitle);
+    dialogTitle.setText(title);
     RootPanel.get();
-    for (final Widget w : pContents) {
+    for (final Widget w : contents) {
       dialogContent.add(w);
     }
     aContentPanel.add(dialog);
@@ -429,13 +429,13 @@ public class Darwin implements EntryPoint {
     }
   }
 
-  public void navigateTo(final String pNewLocation, final boolean addHistory, final boolean doRedirect) {
-    if ((aLocation==null && pNewLocation!=null) || (aLocation!=null && !aLocation.equals(pNewLocation))) {
+  public void navigateTo(final String newLocation, final boolean addHistory, final boolean doRedirect) {
+    if ((aLocation==null && newLocation!=null) || (aLocation!=null && !aLocation.equals(newLocation))) {
       if (aLocation!=null && aLocation.startsWith("/accounts/myaccount")) {
-        aLocation = pNewLocation;
+        aLocation = newLocation;
         updateLoginPanel();
       } else {
-        aLocation = pNewLocation;
+        aLocation = newLocation;
       }
       updateMenuTabs();
       
@@ -475,7 +475,7 @@ public class Darwin implements EntryPoint {
         } else {
           if (doRedirect) {
             // Load the page
-            Window.Location.assign(pNewLocation);
+            Window.Location.assign(newLocation);
           } else {
             hideBanner();
           }
@@ -493,9 +493,9 @@ public class Darwin implements EntryPoint {
     }
   }
 
-  private static String asInlineLocation(String pLocation) {
+  private static String asInlineLocation(String location) {
     for(String prefix:INLINEPREFIXES) {
-      if (pLocation.startsWith(prefix)) {
+      if (location.startsWith(prefix)) {
         return prefix;
       }
     }
@@ -620,9 +620,9 @@ public class Darwin implements EntryPoint {
   }
 
 
-  private void requestRefreshMenu(String pLocation) {
+  private void requestRefreshMenu(String location) {
     RequestBuilder rBuilder;
-    rBuilder = new RequestBuilder(RequestBuilder.GET, "/common/menu.php?location=" + URL.encode(pLocation));
+    rBuilder = new RequestBuilder(RequestBuilder.GET, "/common/menu.php?location=" + URL.encode(location));
     try {
       rBuilder.sendRequest(null, new MenuReceivedCallback());
     } catch (final RequestException e) {
@@ -630,12 +630,12 @@ public class Darwin implements EntryPoint {
     }
   }
 
-  private static void log(final String pMessage, final Throwable pThrowable) {
-    GWT.log(pMessage, pThrowable);
+  private static void log(final String message, final Throwable throwable) {
+    GWT.log(message, throwable);
   }
 
-  private static void log(final String pMessage) {
-    GWT.log(pMessage);
+  private static void log(final String message) {
+    GWT.log(message);
   }
 
 }

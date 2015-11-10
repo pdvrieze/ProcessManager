@@ -5,8 +5,8 @@ public class ProcessInstance {
 
   private final ProcessModel aProcessModel;
 
-  public ProcessInstance(final ProcessModel pProcessModel) {
-    aProcessModel = pProcessModel;
+  public ProcessInstance(final ProcessModel processModel) {
+    aProcessModel = processModel;
   }
 
 }

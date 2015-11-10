@@ -24,7 +24,7 @@ public class ActionPanel {
     //    setElement(aDivElement);
   }
 
-  public static void load(final CompletionListener pCompletionListener) {
+  public static void load(final CompletionListener completionListener) {
     new RequestBuilder(RequestBuilder.GET, "PEUserMessageHandler/actions");
 
     // TODO Auto-generated method stub

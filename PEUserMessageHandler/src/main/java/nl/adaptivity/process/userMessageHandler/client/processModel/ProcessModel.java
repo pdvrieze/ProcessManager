@@ -23,13 +23,13 @@ public class ProcessModel {
 
   private List<ProcessNode> aNodes;
 
-  public ProcessModel(final String pName, final List<ProcessNode> pNodes) {
-    aName = pName;
-    setNodes(pNodes);
+  public ProcessModel(final String name, final List<ProcessNode> nodes) {
+    aName = name;
+    setNodes(nodes);
   }
 
-  public static ProcessModel fromXml(final Document pParse) {
-    final Element root = pParse.getDocumentElement();
+  public static ProcessModel fromXml(final Document parse) {
+    final Element root = parse.getDocumentElement();
     if (!XMLUtil.isTag(PROCESSMODEL_NS, "processModel", root)) {
       return null;
     }

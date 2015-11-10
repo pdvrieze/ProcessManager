@@ -1,5 +1,20 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.process.client.ServletProcessEngineClient;
+import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.util.Constants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.*;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,27 +22,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import net.devrieze.util.security.SimplePrincipal;
-
-import nl.adaptivity.messaging.EndpointDescriptorImpl;
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.util.Constants;
 
 @XmlRootElement(name = "task")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -53,19 +47,19 @@ public class XmlTask implements UserTask<XmlTask> {
     // no special operations here
   }
 
-  public XmlTask(final long pHandle) {
-    aHandle = pHandle;
+  public XmlTask(final long handle) {
+    aHandle = handle;
   }
 
-  public XmlTask(UserTask<?> pTask) {
-    this.aHandle = pTask.getHandle();
-    this.aRemoteHandle = pTask.getRemoteHandle();
-    this.aInstanceHandle = pTask.getInstanceHandle();
-    this.aState = pTask.getState();
-    this.aSummary = pTask.getSummary();
+  public XmlTask(UserTask<?> task) {
+    this.aHandle = task.getHandle();
+    this.aRemoteHandle = task.getRemoteHandle();
+    this.aInstanceHandle = task.getInstanceHandle();
+    this.aState = task.getState();
+    this.aSummary = task.getSummary();
     this.aEndPoint = null;
-    this.aOwner = pTask.getOwner();
-    this.aItems = new ArrayList<>(XmlItem.get(pTask.getItems()));
+    this.aOwner = task.getOwner();
+    this.aItems = new ArrayList<>(XmlItem.get(task.getItems()));
   }
 
   @XmlAttribute
@@ -74,26 +68,24 @@ public class XmlTask implements UserTask<XmlTask> {
     return aState;
   }
 
-  void setState(TaskState pState) {
-    aState = pState;
+  void setState(TaskState state) {
+    aState = state;
   }
 
   @Override
-  public void setState(final TaskState pNewState, final Principal pUser) {
+  public void setState(final TaskState newState, final Principal user) {
     try {
-      TaskState newState;
-      if (pNewState == TaskState.Complete) {
-        newState = finishRemoteTask(pUser).get();
+      TaskState verifiedNewState;
+      if (newState == TaskState.Complete) {
+        verifiedNewState = finishRemoteTask(user).get();
         //          newState = TaskState.Complete; // Use server state instead.
-      } else if (pNewState == TaskState.Acknowledged) {
-        newState = pNewState; // Just shortcircuit. This is just record keeping
+      } else if (newState == TaskState.Acknowledged) {
+        verifiedNewState = newState; // Just shortcircuit. This is just record keeping
       } else {
-        newState = updateRemoteTaskState(pNewState, pUser).get();
+        verifiedNewState = updateRemoteTaskState(newState, user).get();
       }
-      aState = newState;
-    } catch (final JAXBException e) {
-      Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
-    } catch (final MessagingException e) {
+      aState = verifiedNewState;
+    } catch (final JAXBException | MessagingException e) {
       Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
     } catch (final InterruptedException e) {
       Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
@@ -102,12 +94,12 @@ public class XmlTask implements UserTask<XmlTask> {
     }
   }
 
-  private Future<TaskState> updateRemoteTaskState(final TaskState pState, final Principal pUser) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.updateTaskState(aRemoteHandle, pState, pUser, null);
+  private Future<TaskState> updateRemoteTaskState(final TaskState state, final Principal user) throws JAXBException, MessagingException {
+    return ServletProcessEngineClient.updateTaskState(aRemoteHandle, state, user, null);
   }
 
-  private Future<TaskState> finishRemoteTask(final Principal pUser) throws JAXBException, MessagingException {
-    return ServletProcessEngineClient.finishTask(aRemoteHandle, createResult(), pUser, null); // Ignore completion???
+  private Future<TaskState> finishRemoteTask(final Principal user) throws JAXBException, MessagingException {
+    return ServletProcessEngineClient.finishTask(aRemoteHandle, createResult(), user, null); // Ignore completion???
   }
 
   private Node createResult() {
@@ -137,8 +129,8 @@ public class XmlTask implements UserTask<XmlTask> {
 
   @XmlAttribute(name = "handle")
   @Override
-  public void setHandle(final long pHandle) {
-    aHandle = pHandle;
+  public void setHandle(final long handle) {
+    aHandle = handle;
   }
 
   @Override
@@ -147,8 +139,8 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   @XmlAttribute(name = "remotehandle")
-  public void setRemoteHandle(final long pHandle) {
-    aRemoteHandle = pHandle;
+  public void setRemoteHandle(final long handle) {
+    aRemoteHandle = handle;
   }
 
   @Override
@@ -157,8 +149,8 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   @XmlAttribute(name = "instancehandle")
-  public void setInstanceHandle(final long pHandle) {
-    aInstanceHandle = pHandle;
+  public void setInstanceHandle(final long handle) {
+    aInstanceHandle = handle;
   }
 
   @Override
@@ -172,14 +164,14 @@ public class XmlTask implements UserTask<XmlTask> {
     return aSummary;
   }
 
-  public void setSummary(final String pSummary) {
-    aSummary = pSummary;
+  public void setSummary(final String summary) {
+    aSummary = summary;
   }
 
   /** Set the endpoint that is used for updating the task state */
   @Override
-  public void setEndpoint(final EndpointDescriptorImpl pEndPoint) {
-    aEndPoint = pEndPoint;
+  public void setEndpoint(final EndpointDescriptorImpl endPoint) {
+    aEndPoint = endPoint;
   }
 
   @Override
@@ -187,8 +179,8 @@ public class XmlTask implements UserTask<XmlTask> {
     return aOwner;
   }
 
-  public void setOwner(final Principal pOwner) {
-    aOwner = pOwner;
+  public void setOwner(final Principal owner) {
+    aOwner = owner;
   }
 
   @XmlAttribute(name = "owner")
@@ -196,8 +188,8 @@ public class XmlTask implements UserTask<XmlTask> {
     return aOwner==null ? null : aOwner.getName();
   }
 
-  void setOwnerString(final String pOwner) {
-    aOwner = pOwner==null ? null : new SimplePrincipal(pOwner);
+  void setOwnerString(final String owner) {
+    aOwner = owner==null ? null : new SimplePrincipal(owner);
   }
 
   @XmlElement(name ="item", namespace=Constants.USER_MESSAGE_HANDLER_NS)
@@ -208,9 +200,9 @@ public class XmlTask implements UserTask<XmlTask> {
   }
 
   @Override
-  public void setItems(List<? extends TaskItem> pItems) {
-    aItems = new ArrayList<>(pItems.size());
-    for(TaskItem item: pItems) {
+  public void setItems(List<? extends TaskItem> items) {
+    aItems = new ArrayList<>(items.size());
+    for(TaskItem item: items) {
       aItems.add((XmlItem) item);
     }
   }
@@ -267,14 +259,14 @@ public class XmlTask implements UserTask<XmlTask> {
     return true;
   }
 
-  public static XmlTask get(UserTask<?> pTask) {
-    if (pTask instanceof XmlTask) { return (XmlTask) pTask; }
-    return new XmlTask(pTask);
+  public static XmlTask get(UserTask<?> task) {
+    if (task instanceof XmlTask) { return (XmlTask) task; }
+    return new XmlTask(task);
   }
 
-  public XmlItem getItem(String pName) {
+  public XmlItem getItem(String name) {
     for(XmlItem item: getItems()) {
-      if (pName.equals(item.getName())) {
+      if (name.equals(item.getName())) {
         return item;
       }
     }

@@ -25,8 +25,8 @@ public class TasksPanel extends Composite implements ClickHandler {
 
   private final RemoteListBox aTaskListBox;
 
-  public TasksPanel(final Label pStatusLabel) {
-    aStatusLabel = pStatusLabel;
+  public TasksPanel(final Label statusLabel) {
+    aStatusLabel = statusLabel;
     final SplittedFillLeftPanel<RemoteListBox> root = new SplittedFillLeftPanel<RemoteListBox>();
     //    root.addStyleName("tabPanel");
 
@@ -71,12 +71,12 @@ public class TasksPanel extends Composite implements ClickHandler {
    * @category event handler
    */
   @Override
-  public void onClick(final ClickEvent pEvent) {
-    if (pEvent.getSource() == aStartTaskButton) {
+  public void onClick(final ClickEvent event) {
+    if (event.getSource() == aStartTaskButton) {
       startTask();
-    } else if (pEvent.getSource() == aTakeTaskButton) {
+    } else if (event.getSource() == aTakeTaskButton) {
       takeTask();
-    } else if (pEvent.getSource() == aCompleteTaskButton) {
+    } else if (event.getSource() == aCompleteTaskButton) {
       completeTask();
     }
   }
@@ -121,12 +121,12 @@ public class TasksPanel extends Composite implements ClickHandler {
       rb.sendRequest(postData, new RequestCallback() {
 
         @Override
-        public void onError(final Request pRequest, final Throwable pException) {
-          aStatusLabel.setText("Error (" + pException.getMessage() + ")");
+        public void onError(final Request request, final Throwable exception) {
+          aStatusLabel.setText("Error (" + exception.getMessage() + ")");
         }
 
         @Override
-        public void onResponseReceived(final Request pRequest, final Response pResponse) {
+        public void onResponseReceived(final Request request, final Response response) {
           aTaskListBox.update();
         }
 

@@ -11,73 +11,73 @@ public class XMLUtil {
 
   private XMLUtil() {}
 
-  public static String getParamText(final Node pNode, final String pSpec) {
-    if (pSpec.startsWith("=")) {
-      return parseParam(pNode, pSpec.substring(1));
-    } else if (pSpec.startsWith("@")) {
-      return parseParam(pNode, "@{" + pSpec.substring(1) + "}");
+  public static String getParamText(final Node node, final String spec) {
+    if (spec.startsWith("=")) {
+      return parseParam(node, spec.substring(1));
+    } else if (spec.startsWith("@")) {
+      return parseParam(node, "@{" + spec.substring(1) + "}");
     } else {
-      return parseParam(pNode, "${" + pSpec + "}");
+      return parseParam(node, "${" + spec + "}");
     }
   }
 
-  public static String getParamText(final com.google.gwt.dom.client.Node pNode, final String pSpec) {
-    if (pSpec.startsWith("=")) {
-      return parseParam(pNode, pSpec.substring(1));
-    } else if (pSpec.startsWith("@")) {
-      return parseParam(pNode, "@{" + pSpec.substring(1) + "}");
+  public static String getParamText(final com.google.gwt.dom.client.Node node, final String spec) {
+    if (spec.startsWith("=")) {
+      return parseParam(node, spec.substring(1));
+    } else if (spec.startsWith("@")) {
+      return parseParam(node, "@{" + spec.substring(1) + "}");
     } else {
-      return parseParam(pNode, "${" + pSpec + "}");
+      return parseParam(node, "${" + spec + "}");
     }
   }
 
-  private static String parseParam(final Node pNode, final String pSpec) {
-    final StringBuilder result = new StringBuilder(pSpec.length() * 2);
+  private static String parseParam(final Node node, final String spec) {
+    final StringBuilder result = new StringBuilder(spec.length() * 2);
     int i = 0;
     int j = 0;
-    while (j < pSpec.length()) {
-      final char c = pSpec.charAt(j);
-      if ((c == '\\') && ((j + 1) < pSpec.length())) {
-        result.append(pSpec.substring(i, j));
+    while (j < spec.length()) {
+      final char c = spec.charAt(j);
+      if ((c == '\\') && ((j + 1) < spec.length())) {
+        result.append(spec.substring(i, j));
         ++j;
         i = j;
       } else if (c == '$') {
-        result.append(pSpec.substring(i, j));
-        if (((j + 3) < pSpec.length()) && (pSpec.charAt(j + 1) == '{')) {
+        result.append(spec.substring(i, j));
+        if (((j + 3) < spec.length()) && (spec.charAt(j + 1) == '{')) {
           j += 2;
           i = j;
-          while ((j < pSpec.length()) && (pSpec.charAt(j) != '}')) {
+          while ((j < spec.length()) && (spec.charAt(j) != '}')) {
             ++j;
           }
-          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
+          result.append(getSubNodeValue(node, spec.substring(i, j)));
           ++j;
         } else {
           ++j;
           i = j;
-          while ((j < pSpec.length()) && isChar(pSpec.charAt(j))) {
+          while ((j < spec.length()) && isChar(spec.charAt(j))) {
             ++j;
           }
-          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
+          result.append(getSubNodeValue(node, spec.substring(i, j)));
         }
 
         i = j;
       } else if (c == '@') {
-        result.append(pSpec.substring(i, j));
-        if (((j + 3) < pSpec.length()) && (pSpec.charAt(j + 1) == '{')) {
+        result.append(spec.substring(i, j));
+        if (((j + 3) < spec.length()) && (spec.charAt(j + 1) == '{')) {
           j += 2;
           i = j;
-          while ((j < pSpec.length()) && (pSpec.charAt(j) != '}')) {
+          while ((j < spec.length()) && (spec.charAt(j) != '}')) {
             ++j;
           }
-          result.append(getAttributeValue((Element) pNode, pSpec.substring(i, j)));
+          result.append(getAttributeValue((Element) node, spec.substring(i, j)));
           ++j;
         } else {
           ++j;
           i = j;
-          while ((j < pSpec.length()) && isChar(pSpec.charAt(j))) {
+          while ((j < spec.length()) && isChar(spec.charAt(j))) {
             ++j;
           }
-          result.append(getAttributeValue((Element) pNode, pSpec.substring(i, j)));
+          result.append(getAttributeValue((Element) node, spec.substring(i, j)));
         }
 
         i = j;
@@ -85,57 +85,57 @@ public class XMLUtil {
         ++j;
       }
     }
-    result.append(pSpec.substring(i, j));
+    result.append(spec.substring(i, j));
     return result.toString();
   }
 
-  private static String parseParam(final com.google.gwt.dom.client.Node pNode, final String pSpec) {
-    final StringBuilder result = new StringBuilder(pSpec.length() * 2);
+  private static String parseParam(final com.google.gwt.dom.client.Node node, final String spec) {
+    final StringBuilder result = new StringBuilder(spec.length() * 2);
     int i = 0;
     int j = 0;
-    while (j < pSpec.length()) {
-      final char c = pSpec.charAt(j);
-      if ((c == '\\') && ((j + 1) < pSpec.length())) {
-        result.append(pSpec.substring(i, j));
+    while (j < spec.length()) {
+      final char c = spec.charAt(j);
+      if ((c == '\\') && ((j + 1) < spec.length())) {
+        result.append(spec.substring(i, j));
         ++j;
         i = j;
       } else if (c == '$') {
-        result.append(pSpec.substring(i, j));
-        if (((j + 3) < pSpec.length()) && (pSpec.charAt(j + 1) == '{')) {
+        result.append(spec.substring(i, j));
+        if (((j + 3) < spec.length()) && (spec.charAt(j + 1) == '{')) {
           j += 2;
           i = j;
-          while ((j < pSpec.length()) && (pSpec.charAt(j) != '}')) {
+          while ((j < spec.length()) && (spec.charAt(j) != '}')) {
             ++j;
           }
-          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
+          result.append(getSubNodeValue(node, spec.substring(i, j)));
           ++j;
         } else {
           ++j;
           i = j;
-          while ((j < pSpec.length()) && isChar(pSpec.charAt(j))) {
+          while ((j < spec.length()) && isChar(spec.charAt(j))) {
             ++j;
           }
-          result.append(getSubNodeValue(pNode, pSpec.substring(i, j)));
+          result.append(getSubNodeValue(node, spec.substring(i, j)));
         }
 
         i = j;
       } else if (c == '@') {
-        result.append(pSpec.substring(i, j));
-        if (((j + 3) < pSpec.length()) && (pSpec.charAt(j + 1) == '{')) {
+        result.append(spec.substring(i, j));
+        if (((j + 3) < spec.length()) && (spec.charAt(j + 1) == '{')) {
           j += 2;
           i = j;
-          while ((j < pSpec.length()) && (pSpec.charAt(j) != '}')) {
+          while ((j < spec.length()) && (spec.charAt(j) != '}')) {
             ++j;
           }
-          result.append(getAttributeValue(com.google.gwt.dom.client.Element.as(pNode), pSpec.substring(i, j)));
+          result.append(getAttributeValue(com.google.gwt.dom.client.Element.as(node), spec.substring(i, j)));
           ++j;
         } else {
           ++j;
           i = j;
-          while ((j < pSpec.length()) && isChar(pSpec.charAt(j))) {
+          while ((j < spec.length()) && isChar(spec.charAt(j))) {
             ++j;
           }
-          result.append(getAttributeValue(com.google.gwt.dom.client.Element.as(pNode), pSpec.substring(i, j)));
+          result.append(getAttributeValue(com.google.gwt.dom.client.Element.as(node), spec.substring(i, j)));
         }
 
         i = j;
@@ -143,49 +143,49 @@ public class XMLUtil {
         ++j;
       }
     }
-    result.append(pSpec.substring(i, j));
+    result.append(spec.substring(i, j));
     return result.toString();
   }
 
-  public static String getSubNodeValue(final Node pNode, final String pName) {
+  public static String getSubNodeValue(final Node node, final String name) {
     final String value;
-    Node candidate = pNode.getFirstChild();
-    while ((candidate != null) && (!pName.equals(candidate.getNodeName()))) {
+    Node candidate = node.getFirstChild();
+    while ((candidate != null) && (!name.equals(candidate.getNodeName()))) {
       candidate = candidate.getNextSibling();
     }
     value = candidate == null ? null : candidate.getNodeValue();
     if (value == null) {
-      GWT.log("subnode " + pName + " could not be resolved", null);
+      GWT.log("subnode " + name + " could not be resolved", null);
     }
     return value;
   }
 
-  public static Object getSubNodeValue(final com.google.gwt.dom.client.Node pNode, final String pName) {
+  public static Object getSubNodeValue(final com.google.gwt.dom.client.Node node, final String name) {
     final String value;
-    com.google.gwt.dom.client.Node candidate = pNode.getFirstChild();
-    while ((candidate != null) && (!pName.equals(candidate.getNodeName()))) {
+    com.google.gwt.dom.client.Node candidate = node.getFirstChild();
+    while ((candidate != null) && (!name.equals(candidate.getNodeName()))) {
       candidate = candidate.getNextSibling();
     }
     value = candidate == null ? null : candidate.getNodeValue();
     if (value == null) {
-      GWT.log("subnode " + pName + " could not be resolved", null);
+      GWT.log("subnode " + name + " could not be resolved", null);
     }
     return value;
   }
 
-  public static String getAttributeValue(final Element pNode, final String pName) {
-    final Node val = pNode.getAttributes().getNamedItem(pName);
+  public static String getAttributeValue(final Element node, final String name) {
+    final Node val = node.getAttributes().getNamedItem(name);
     if (val == null) {
-      GWT.log("Attribute " + pName + " could not be resolved", null);
+      GWT.log("Attribute " + name + " could not be resolved", null);
     }
     return val == null ? null : val.toString();
   }
 
-  public static String getAttributeValue(final com.google.gwt.dom.client.Element pNode, final String pName) {
-    final String val = pNode.getAttribute(pName);
+  public static String getAttributeValue(final com.google.gwt.dom.client.Element node, final String name) {
+    final String val = node.getAttribute(name);
 
     if (val == null) {
-      GWT.log("Attribute " + pName + " could not be resolved", null);
+      GWT.log("Attribute " + name + " could not be resolved", null);
     }
     return val;
   }
@@ -194,28 +194,28 @@ public class XMLUtil {
     return Character.isLetterOrDigit(c);
   }
 
-  public static boolean isTag(final String pNamespace, final String pLocalName, final Node pElement) {
-    return isNS(pNamespace, pElement) && isLocalPart(pLocalName, pElement);
+  public static boolean isTag(final String namespace, final String localName, final Node element) {
+    return isNS(namespace, element) && isLocalPart(localName, element);
   }
 
-  public static boolean isLocalPart(final String pLocalPart, final Node pElement) {
-    if (pElement.getNodeType() == Node.ELEMENT_NODE) {
-      return pLocalPart.equals(((Element) pElement).getTagName());
+  public static boolean isLocalPart(final String localPart, final Node element) {
+    if (element.getNodeType() == Node.ELEMENT_NODE) {
+      return localPart.equals(((Element) element).getTagName());
     }
     return false;
   }
 
-  public static boolean isNS(final String pNameSpace, final Node pElement) {
-    if (pNameSpace == null) {
-      return (pElement.getNamespaceURI() == null) || "".equals(pElement.getNamespaceURI());
+  public static boolean isNS(final String nameSpace, final Node element) {
+    if (nameSpace == null) {
+      return (element.getNamespaceURI() == null) || "".equals(element.getNamespaceURI());
     } else {
-      return pNameSpace.equals(pElement.getNamespaceURI());
+      return nameSpace.equals(element.getNamespaceURI());
     }
   }
 
-  public static String getTextChildren(final Node pNode) {
+  public static String getTextChildren(final Node node) {
     final StringBuilder result = new StringBuilder();
-    for (Node child = pNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+    for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
         result.append(((CDATASection) child).getData());
       } else if (child.getNodeType() == Node.TEXT_NODE) {
@@ -228,15 +228,15 @@ public class XMLUtil {
     return result.toString();
   }
 
-  public static com.google.gwt.dom.client.Element descendentWithAttribute(final com.google.gwt.dom.client.Element pBase, final String pAttributeName, final String pValue) {
-    for (com.google.gwt.dom.client.Element elem = pBase.getFirstChildElement(); elem != null; elem = elem.getNextSiblingElement()) {
-      if (pValue.equals(elem.getAttribute(pAttributeName))) {
+  public static com.google.gwt.dom.client.Element descendentWithAttribute(final com.google.gwt.dom.client.Element base, final String attributeName, final String value) {
+    for (com.google.gwt.dom.client.Element elem = base.getFirstChildElement(); elem != null; elem = elem.getNextSiblingElement()) {
+      if (value.equals(elem.getAttribute(attributeName))) {
         return elem;
       }
     }
 
-    for (com.google.gwt.dom.client.Element elem = pBase.getFirstChildElement(); elem != null; elem = elem.getNextSiblingElement()) {
-      final com.google.gwt.dom.client.Element descendent = descendentWithAttribute(elem, pAttributeName, pValue);
+    for (com.google.gwt.dom.client.Element elem = base.getFirstChildElement(); elem != null; elem = elem.getNextSiblingElement()) {
+      final com.google.gwt.dom.client.Element descendent = descendentWithAttribute(elem, attributeName, value);
       if (descendent != null) {
         return descendent;
       }
@@ -244,24 +244,24 @@ public class XMLUtil {
     return null;
   }
 
-  public static String localName(String pNodeName) {
-    final int i = pNodeName.indexOf(':');
+  public static String localName(String nodeName) {
+    final int i = nodeName.indexOf(':');
     if (i < 0) {
-      return pNodeName;
+      return nodeName;
     }
-    return pNodeName.substring(i + 1);
+    return nodeName.substring(i + 1);
   }
 
-  public static long getLongAttr(Element pOwner, String pAttribute, long pDefault) {
-    String a = pOwner.getAttribute(pAttribute);
+  public static long getLongAttr(Element owner, String attribute, long defaultVal) {
+    String a = owner.getAttribute(attribute);
     if (a!=null) {
       try {
         return Long.parseLong(a);
       } catch (NumberFormatException e) {
-        return pDefault;
+        return defaultVal;
       }
     }
-    return pDefault;
+    return defaultVal;
   }
 
 }

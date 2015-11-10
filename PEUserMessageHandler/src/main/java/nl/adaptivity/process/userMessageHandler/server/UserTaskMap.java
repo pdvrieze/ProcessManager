@@ -57,10 +57,10 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     private int aColNoRemoteHandle;
 
     @Override
-    public void initResultSet(ResultSetMetaData pMetaData) throws SQLException {
-      final int columnCount = pMetaData.getColumnCount();
+    public void initResultSet(ResultSetMetaData metaData) throws SQLException {
+      final int columnCount = metaData.getColumnCount();
       for (int i=1; i<=columnCount;++i) {
-        String colName = pMetaData.getColumnName(i);
+        String colName = metaData.getColumnName(i);
         if (COL_HANDLE.equals(colName)) {
           aColNoHandle = i;
         } else if (COL_REMOTEHANDLE.equals(colName)) {
@@ -80,9 +80,9 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public XmlTask create(DBTransaction pConnection, ResultSet pResultSet) throws SQLException {
-      long handle = pResultSet.getLong(aColNoHandle);
-      long remoteHandle = pResultSet.getLong(aColNoRemoteHandle);
+    public XmlTask create(DBTransaction connection, ResultSet resultSet) throws SQLException {
+      long handle = resultSet.getLong(aColNoHandle);
+      long remoteHandle = resultSet.getLong(aColNoRemoteHandle);
 
       XmlProcessNodeInstance instance;
       try {
@@ -138,14 +138,14 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public void postCreate(DBTransaction pConnection, XmlTask pElement) throws SQLException {
-      try(PreparedStatement statement = pConnection.prepareStatement(QUERY_GET_DATA_FOR_TASK)) {
-        statement.setLong(1, pElement.getHandle());
+    public void postCreate(DBTransaction connection, XmlTask element) throws SQLException {
+      try(PreparedStatement statement = connection.prepareStatement(QUERY_GET_DATA_FOR_TASK)) {
+        statement.setLong(1, element.getHandle());
         if(statement.execute()) {
           try (ResultSet resultset = statement.getResultSet()) {
             while(resultset.next()) {
               String name = resultset.getString(1);
-              XmlItem item = pElement.getItem(name);
+              XmlItem item = element.getItem(name);
               if (item!=null) {
                 item.setValue(resultset.getString(2));
               }
@@ -156,19 +156,19 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public CharSequence getPrimaryKeyCondition(XmlTask pObject) {
-      return getHandleCondition(pObject.getHandle());
+    public CharSequence getPrimaryKeyCondition(XmlTask object) {
+      return getHandleCondition(object.getHandle());
     }
 
     @Override
-    public int setPrimaryKeyParams(PreparedStatement pStatement, XmlTask pObject, int pOffset) throws SQLException {
-      return setHandleParams(pStatement, pObject.getHandle(), pOffset);
+    public int setPrimaryKeyParams(PreparedStatement statement, XmlTask object, int offset) throws SQLException {
+      return setHandleParams(statement, object.getHandle(), offset);
     }
 
     @Override
-    public XmlTask asInstance(Object pO) {
-      if (pO instanceof XmlTask) {
-        return (XmlTask) pO;
+    public XmlTask asInstance(Object o) {
+      if (o instanceof XmlTask) {
+        return (XmlTask) o;
       }
       return null;
     }
@@ -184,23 +184,23 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public int setStoreParams(PreparedStatement pStatement, XmlTask pElement, int pOffset) throws SQLException {
-      pStatement.setLong(pOffset, pElement.getRemoteHandle());
+    public int setStoreParams(PreparedStatement statement, XmlTask element, int offset) throws SQLException {
+      statement.setLong(offset, element.getRemoteHandle());
       return 1;
     }
 
     @Override
-    public void postStore(DBTransaction pConnection, long pHandle, XmlTask pOldValue, XmlTask pNewValue) throws SQLException {
-      try (PreparedStatement statement = pConnection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
-        final List<XmlItem> items = pNewValue.getItems();
+    public void postStore(DBTransaction connection, long handle, XmlTask oldValue, XmlTask newValue) throws SQLException {
+      try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
+        final List<XmlItem> items = newValue.getItems();
         for(XmlItem item:items) {
           if (item!=null && item.getName()!=null) {
-            XmlItem oldItem = pOldValue==null ? null : pOldValue.getItem(item.getName());
+            XmlItem oldItem = oldValue==null ? null : oldValue.getItem(item.getName());
             if (oldItem==null ||
                 oldItem.getValue()==null ||
                 (! oldItem.getValue().equals(item.getValue()))) {
               if (! ((oldItem==null || oldItem.getValue()==null) && item.getValue()==null)) {
-                statement.setLong(1, pHandle);
+                statement.setLong(1, handle);
                 statement.setString(2, item.getName());
                 statement.setString(3, item.getValue());
                 statement.addBatch();
@@ -213,18 +213,18 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public CharSequence getHandleCondition(long pElement) {
+    public CharSequence getHandleCondition(long element) {
       return COL_HANDLE+" = ?";
     }
 
     @Override
-    public int setHandleParams(PreparedStatement pStatement, long pHandle, int pOffset) throws SQLException {
-      pStatement.setLong(pOffset, pHandle);
+    public int setHandleParams(PreparedStatement statement, long handle, int offset) throws SQLException {
+      statement.setLong(offset, handle);
       return 1;
     }
 
     @Override
-    public void preClear(DBTransaction pConnection) throws SQLException {
+    public void preClear(DBTransaction connection) throws SQLException {
       CharSequence filter = getFilterExpression();
       final String sql;
       if (filter==null) {
@@ -232,35 +232,35 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
       } else {
         sql= "DELETE FROM `"+TABLEDATA+"` WHERE `"+COL_HANDLE+"` IN (SELECT `"+COL_HANDLE+"` FROM `"+TABLE+"` WHERE "+filter+");";
       }
-      try (PreparedStatement statement = pConnection.prepareStatement(sql)) {
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
         setFilterParams(statement, 1);
         statement.execute();
       }
     }
 
     @Override
-    public void preRemove(DBTransaction pConnection, long pHandle) throws SQLException {
+    public void preRemove(DBTransaction connection, long handle) throws SQLException {
       final String sql = "DELETE FROM "+TABLEDATA+" WHERE `"+COL_HANDLE+"` = ?";
-      try (PreparedStatement statement = pConnection.prepareStatement(sql)) {
-        statement.setLong(1, pHandle);
+      try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        statement.setLong(1, handle);
         statement.execute();
       }
     }
 
     @Override
-    public void preRemove(DBTransaction pConnection, XmlTask pElement) throws SQLException {
-      preRemove(pConnection, pElement.getHandle());
+    public void preRemove(DBTransaction connection, XmlTask element) throws SQLException {
+      preRemove(connection, element.getHandle());
     }
 
     @Override
-    public void preRemove(DBTransaction pConnection, ResultSet pElementSource) throws SQLException {
-      preRemove(pConnection, pElementSource.getLong(aColNoHandle));
+    public void preRemove(DBTransaction connection, ResultSet elementSource) throws SQLException {
+      preRemove(connection, elementSource.getLong(aColNoHandle));
     }
 
   }
 
-  public UserTaskMap(TransactionFactory<? extends DBTransaction> pConnectionProvider) {
-    super(pConnectionProvider, new UserTaskFactory());
+  public UserTaskMap(TransactionFactory<? extends DBTransaction> connectionProvider) {
+    super(connectionProvider, new UserTaskFactory());
   }
 
 }

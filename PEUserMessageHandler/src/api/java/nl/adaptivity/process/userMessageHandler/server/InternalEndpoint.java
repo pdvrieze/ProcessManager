@@ -30,7 +30,7 @@ import nl.adaptivity.ws.soap.SoapSeeAlso;
 public interface InternalEndpoint extends GenericEndpoint {
 
   @WebMethod
-  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl pEndPoint, @WebParam(name = "taskParam", mode = Mode.IN) /*@SoapSeeAlso(XmlTask.class)*/ final UserTask<?> pTask);
+  public ActivityResponse<Boolean> postTask(@WebParam(name = "repliesParam", mode = Mode.IN) final EndpointDescriptorImpl endPoint, @WebParam(name = "taskParam", mode = Mode.IN) /*@SoapSeeAlso(XmlTask.class)*/ final UserTask<?> task);
 
   public static class Descriptor implements EndpointDescriptor {
     @Override

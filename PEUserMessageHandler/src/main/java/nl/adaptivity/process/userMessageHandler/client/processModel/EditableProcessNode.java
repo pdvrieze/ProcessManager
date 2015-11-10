@@ -14,13 +14,13 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
   class MyDragHandler implements DragHandler, DragStartHandler {
 
     @Override
-    public void onDragStart(final DragStartEvent pEvent) {
+    public void onDragStart(final DragStartEvent event) {
       // TODO Auto-generated method stub
       // 
     }
 
     @Override
-    public void onDrag(final DragEvent pEvent) {
+    public void onDrag(final DragEvent event) {
       // TODO Auto-generated method stub
       // 
     }
@@ -34,22 +34,22 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
 
   private ProcessShape aShape;
 
-  public EditableProcessNode(final ProcessNode pNode) {
-    aNode = pNode;
+  public EditableProcessNode(final ProcessNode node) {
+    aNode = node;
     String extraStyle = null;
-    if (pNode instanceof StartNode) {
+    if (node instanceof StartNode) {
       aWidget = new Image("images/startNode.png");
       extraStyle = "StartNode";
-    } else if (pNode instanceof EndNode) {
+    } else if (node instanceof EndNode) {
       aWidget = new Image("images/endNode.png");
       extraStyle = "EndNode";
     } else {
-      if (pNode instanceof JoinNode) {
+      if (node instanceof JoinNode) {
         extraStyle = "JoinNode";
-      } else if (pNode instanceof ActivityNode) {
+      } else if (node instanceof ActivityNode) {
         extraStyle = "ActivityNode";
       }
-      aWidget = new BoxWidget(pNode.getId());
+      aWidget = new BoxWidget(node.getId());
     }
     initWidget(aWidget);
     setStyleName("EditableProcessNode");
@@ -60,8 +60,8 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
     //    addDragStartHandler(new MyDragHandler());
   }
 
-  public static EditableProcessNode create(final ProcessNode pNode) {
-    return new EditableProcessNode(pNode);
+  public static EditableProcessNode create(final ProcessNode node) {
+    return new EditableProcessNode(node);
   }
 
   public int getX() {
@@ -72,10 +72,10 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
     return aNode.getY();
   }
 
-  public void setShape(final ProcessShape pShape) {
+  public void setShape(final ProcessShape shape) {
 
     // TODO evaluate the necessity of this, for now ignore
-    aShape = pShape;
+    aShape = shape;
   }
 
   public ProcessNode getNode() {
@@ -101,11 +101,11 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
   }
 
   @SuppressWarnings("deprecation")
-  private Widget wrapMouseEventSource(final Widget pWidget) {
-    if (pWidget instanceof SourcesMouseEvents) {
-      return pWidget;
+  private Widget wrapMouseEventSource(final Widget widget) {
+    if (widget instanceof SourcesMouseEvents) {
+      return widget;
     }
-    return new FocusPanel(pWidget);
+    return new FocusPanel(widget);
   }
 
   public int getVerticalOffset() {
@@ -117,38 +117,38 @@ public class EditableProcessNode extends Composite implements HasAllDragAndDropH
   }
 
   @Override
-  public HandlerRegistration addDragEndHandler(final DragEndHandler pHandler) {
-    return addDomHandler(pHandler, DragEndEvent.getType());
+  public HandlerRegistration addDragEndHandler(final DragEndHandler handler) {
+    return addDomHandler(handler, DragEndEvent.getType());
   }
 
   @Override
-  public HandlerRegistration addDragEnterHandler(final DragEnterHandler pHandler) {
-    return addDomHandler(pHandler, DragEnterEvent.getType());
+  public HandlerRegistration addDragEnterHandler(final DragEnterHandler handler) {
+    return addDomHandler(handler, DragEnterEvent.getType());
   }
 
   @Override
-  public HandlerRegistration addDragLeaveHandler(final DragLeaveHandler pHandler) {
-    return addDomHandler(pHandler, DragLeaveEvent.getType());
+  public HandlerRegistration addDragLeaveHandler(final DragLeaveHandler handler) {
+    return addDomHandler(handler, DragLeaveEvent.getType());
   }
 
   @Override
-  public HandlerRegistration addDragHandler(final DragHandler pHandler) {
-    return addDomHandler(pHandler, DragEvent.getType());
+  public HandlerRegistration addDragHandler(final DragHandler handler) {
+    return addDomHandler(handler, DragEvent.getType());
   }
 
   @Override
-  public HandlerRegistration addDragOverHandler(final DragOverHandler pHandler) {
-    return addDomHandler(pHandler, DragOverEvent.getType());
+  public HandlerRegistration addDragOverHandler(final DragOverHandler handler) {
+    return addDomHandler(handler, DragOverEvent.getType());
   }
 
   @Override
-  public HandlerRegistration addDragStartHandler(final DragStartHandler pHandler) {
-    return addDomHandler(pHandler, DragStartEvent.getType());
+  public HandlerRegistration addDragStartHandler(final DragStartHandler handler) {
+    return addDomHandler(handler, DragStartEvent.getType());
   }
 
   @Override
-  public HandlerRegistration addDropHandler(final DropHandler pHandler) {
-    return addDomHandler(pHandler, DropEvent.getType());
+  public HandlerRegistration addDropHandler(final DropHandler handler) {
+    return addDomHandler(handler, DropEvent.getType());
   }
 
 }

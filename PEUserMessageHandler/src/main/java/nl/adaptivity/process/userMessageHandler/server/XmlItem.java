@@ -30,8 +30,8 @@ public class XmlItem implements TaskItem{
     return aName;
   }
 
-  public void setName(String pName) {
-    aName = pName;
+  public void setName(String name) {
+    aName = name;
   }
 
   @Override
@@ -40,8 +40,8 @@ public class XmlItem implements TaskItem{
     return aLabel;
   }
 
-  public void setLabel(String pLabel) {
-    aLabel = pLabel;
+  public void setLabel(String label) {
+    aLabel = label;
   }
 
   @Override
@@ -50,8 +50,8 @@ public class XmlItem implements TaskItem{
     return aParams;
   }
 
-  public void setParams(String pParams) {
-    aParams = pParams;
+  public void setParams(String params) {
+    aParams = params;
   }
 
   @Override
@@ -60,8 +60,8 @@ public class XmlItem implements TaskItem{
     return aType;
   }
 
-  public void setType(String pType) {
-    aType = pType;
+  public void setType(String type) {
+    aType = type;
   }
 
   @Override
@@ -70,8 +70,8 @@ public class XmlItem implements TaskItem{
     return aValue;
   }
 
-  public void setValue(String pValue) {
-    aValue = pValue;
+  public void setValue(String value) {
+    aValue = value;
   }
 
   @Override
@@ -81,8 +81,8 @@ public class XmlItem implements TaskItem{
   }
 
   @XmlElement(name="option", namespace=Constants.USER_MESSAGE_HANDLER_NS)
-  public void setOptions(List<String> pOptions) {
-    aOptions = pOptions;
+  public void setOptions(List<String> options) {
+    aOptions = options;
   }
 
   @Override
@@ -128,30 +128,30 @@ public class XmlItem implements TaskItem{
     return true;
   }
 
-  public static Collection<XmlItem> get(Collection<? extends TaskItem> pSource) {
-    if (pSource.isEmpty()) {
+  public static Collection<XmlItem> get(Collection<? extends TaskItem> source) {
+    if (source.isEmpty()) {
       return Collections.emptyList();
     }
-    if (pSource.size()==1) {
-      return Collections.singleton(get(pSource.iterator().next()));
+    if (source.size()==1) {
+      return Collections.singleton(get(source.iterator().next()));
     }
-    ArrayList<XmlItem> result = new ArrayList<>(pSource.size());
-    for(TaskItem item: pSource) {
+    ArrayList<XmlItem> result = new ArrayList<>(source.size());
+    for(TaskItem item: source) {
       result.add(get(item));
     }
     return result;
   }
 
-  public static XmlItem get(TaskItem pOrig) {
-    if (pOrig instanceof XmlItem) { return (XmlItem) pOrig; }
-    if (pOrig == null) { return null; }
+  public static XmlItem get(TaskItem orig) {
+    if (orig instanceof XmlItem) { return (XmlItem) orig; }
+    if (orig == null) { return null; }
     XmlItem result = new XmlItem();
-    result.aName = pOrig.getName();
-    result.aLabel = pOrig.getLabel();
-    result.aType = pOrig.getType();
-    result.aValue = pOrig.getValue();
-    result.aParams = pOrig.getParams();
-    result.aOptions = new ArrayList<>(pOrig.getOptions());
+    result.aName = orig.getName();
+    result.aLabel = orig.getLabel();
+    result.aType = orig.getType();
+    result.aValue = orig.getValue();
+    result.aParams = orig.getParams();
+    result.aOptions = new ArrayList<>(orig.getOptions());
     return result;
   }
 }

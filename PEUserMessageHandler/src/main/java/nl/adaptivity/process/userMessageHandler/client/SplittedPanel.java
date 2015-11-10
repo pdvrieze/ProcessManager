@@ -20,12 +20,12 @@ public class SplittedPanel extends Composite {
     initWidget(aMainPanel);
   }
 
-  protected void setLeftWidget(final Widget pWidget) {
-    aMainPanel.setLeftWidget(pWidget);
+  protected void setLeftWidget(final Widget widget) {
+    aMainPanel.setLeftWidget(widget);
   }
 
-  protected void setRightWidget(final Widget pWidget) {
-    aMainPanel.setRightWidget(pWidget);
+  protected void setRightWidget(final Widget widget) {
+    aMainPanel.setRightWidget(widget);
   }
 
   public Widget getLeftWidget() {

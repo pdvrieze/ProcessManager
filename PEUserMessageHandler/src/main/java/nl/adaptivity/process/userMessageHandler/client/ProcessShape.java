@@ -22,8 +22,8 @@ public class ProcessShape {
    * private ConnectionPoint aEastConnectionPoint;
    */
 
-  public ProcessShape(final EditableProcessNode pW) {
-    aNode = pW;
+  public ProcessShape(final EditableProcessNode w) {
+    aNode = w;
     aNode.getElement().setDraggable(Element.DRAGGABLE_TRUE);
   }
 

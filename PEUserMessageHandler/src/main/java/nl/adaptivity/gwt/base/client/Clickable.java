@@ -11,10 +11,10 @@ import com.google.gwt.user.client.ui.Widget;
 
 public class Clickable extends Widget {
 
-  public static Clickable wrap(final Element pElement) {
-    assert Document.get().getBody().isOrHasChild(pElement);
+  public static Clickable wrap(final Element element) {
+    assert Document.get().getBody().isOrHasChild(element);
 
-    final Clickable clickable = new Clickable(pElement);
+    final Clickable clickable = new Clickable(element);
 
     clickable.onAttach();
 
@@ -24,18 +24,18 @@ public class Clickable extends Widget {
 
   }
 
-  public Clickable(final Element pElement) {
-    setElement(pElement);
+  public Clickable(final Element element) {
+    setElement(element);
   }
 
-  public HandlerRegistration addClickHandler(final ClickHandler pClickHandler) {
-    return addDomHandler(pClickHandler, ClickEvent.getType());
+  public HandlerRegistration addClickHandler(final ClickHandler clickHandler) {
+    return addDomHandler(clickHandler, ClickEvent.getType());
   }
 
-  public static Clickable wrapNoAttach(final Element pElement) {
-    assert Document.get().getBody().isOrHasChild(pElement);
+  public static Clickable wrapNoAttach(final Element element) {
+    assert Document.get().getBody().isOrHasChild(element);
 
-    final Clickable clickable = new Clickable(pElement);
+    final Clickable clickable = new Clickable(element);
     clickable.onAttach();
     return clickable;
   }

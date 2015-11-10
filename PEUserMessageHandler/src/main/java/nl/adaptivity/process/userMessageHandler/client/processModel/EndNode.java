@@ -19,16 +19,16 @@ public class EndNode extends ProcessNode {
 
   private ProcessNode aPredecessor;
 
-  public EndNode(final String pId, final String pPredecessorName) {
-    super(pId);
-    aPredecessorId = pPredecessorName;
+  public EndNode(final String id, final String predecessorName) {
+    super(id);
+    aPredecessorId = predecessorName;
   }
 
-  public static EndNode fromXml(final Element pNode) {
+  public static EndNode fromXml(final Element node) {
     String id = null;
     String predecessor = null;
     {
-      final NamedNodeMap attrs = pNode.getAttributes();
+      final NamedNodeMap attrs = node.getAttributes();
       final int attrCount = attrs.getLength();
       for (int i = 0; i < attrCount; ++i) {
         final Attr attr = (Attr) attrs.item(i);
@@ -48,7 +48,7 @@ public class EndNode extends ProcessNode {
 
     final List<Element> exports = new ArrayList<Element>();
 
-    for (Node child = pNode.getFirstChild(); child != null; child = child.getNextSibling()) {
+    for (Node child = node.getFirstChild(); child != null; child = child.getNextSibling()) {
       if (XMLUtil.isNS(ProcessModel.PROCESSMODEL_NS, child)) {
 
         if (XMLUtil.isLocalPart("export", child)) {
@@ -65,17 +65,17 @@ public class EndNode extends ProcessNode {
     return result;
   }
 
-  private void setExports(final List<Element> pExports) {
-    aExports = pExports;
+  private void setExports(final List<Element> exports) {
+    aExports = exports;
   }
 
-  private static Element exportFromXml(final Element pChild) {
-    return pChild;
+  private static Element exportFromXml(final Element child) {
+    return child;
   }
 
   @Override
-  public void resolvePredecessors(final Map<String, ProcessNode> pMap) {
-    final ProcessNode predecessor = pMap.get(aPredecessorId);
+  public void resolvePredecessors(final Map<String, ProcessNode> map) {
+    final ProcessNode predecessor = map.get(aPredecessorId);
     if (predecessor != null) {
       aPredecessorId = predecessor.getId();
       aPredecessor = predecessor;
@@ -84,7 +84,7 @@ public class EndNode extends ProcessNode {
   }
 
   @Override
-  public void ensureSuccessor(final ProcessNode pNode) {
+  public void ensureSuccessor(final ProcessNode node) {
     throw new UnsupportedOperationException("end nodes never have successors");
   }
 

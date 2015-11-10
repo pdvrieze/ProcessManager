@@ -162,7 +162,7 @@ dependencies {
 
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
 
-//    compile 'com.google.gwt:gwt-user:2.6.1'
+    compile 'com.google.gwt:gwt-user:2.6.1'
     compile project(':DarwinClients')
 
     testCompile 'junit:junit:4.12'

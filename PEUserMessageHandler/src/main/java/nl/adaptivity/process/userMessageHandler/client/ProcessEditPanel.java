@@ -31,9 +31,9 @@ public class ProcessEditPanel extends Composite {
 
 
     @Deprecated
-    public void onDrop(final DropEvent pEvent) {
-      final ArrayList<Object> pContext = new ArrayList<Object>();
-      for (final Object w : pContext) {
+    public void onDrop(final DropEvent event) {
+      final ArrayList<Object> context = new ArrayList<Object>();
+      for (final Object w : context) {
         String kind = null;
 
         if (w == aNewStartNode) {
@@ -74,10 +74,10 @@ public class ProcessEditPanel extends Composite {
 
     @Deprecated
     @Override
-    public void onComplete(final InputCompleteEvent pInputCompleteEvent) {
-      if (pInputCompleteEvent.isSuccess()) {
+    public void onComplete(final InputCompleteEvent inputCompleteEvent) {
+      if (inputCompleteEvent.isSuccess()) {
         for (final Object w : new ArrayList<Object>()) {
-          final String name = pInputCompleteEvent.getNewValue();
+          final String name = inputCompleteEvent.getNewValue();
           ProcessNode processNode = null;
           if (w == aNewStartNode) {
             processNode = new StartNode(name);
@@ -128,8 +128,8 @@ public class ProcessEditPanel extends Composite {
 
   private Image aArrow;
 
-  public ProcessEditPanel(final boolean pEditable) {
-    aEditable = pEditable;
+  public ProcessEditPanel(final boolean editable) {
+    aEditable = editable;
     aDiagramPanel = new AbsolutePanel();
     aDiagramPanel.setSize("100%", "100%");
     aDiagramPanel.addStyleName("autoscroll");
@@ -194,8 +194,8 @@ public class ProcessEditPanel extends Composite {
 
   }
 
-  public void setInstance(final boolean pInstance) {
-    aEditInstance = pInstance;
+  public void setInstance(final boolean instance) {
+    aEditInstance = instance;
   }
 
   public void reset() {
@@ -208,17 +208,17 @@ public class ProcessEditPanel extends Composite {
     }
   }
 
-  public void init(final Response pResponse) {
-    final ProcessModel plainModel = ProcessModel.fromXml(XMLParser.parse(pResponse.getText()));
+  public void init(final Response response) {
+    final ProcessModel plainModel = ProcessModel.fromXml(XMLParser.parse(response.getText()));
     init(plainModel);
   }
 
-  public void init(final ProcessModel pModel) {
+  public void init(final ProcessModel model) {
     while (aDiagramPanel.getWidgetCount() > 0) {
       aDiagramPanel.remove(0);
     }
-    if (pModel != null) {
-      aProcessModel = new EditableProcessModel(pModel);
+    if (model != null) {
+      aProcessModel = new EditableProcessModel(model);
       aProcessModel.layout();
       final HashMap<String, EditableProcessNode> map = new HashMap<String, EditableProcessNode>();
 

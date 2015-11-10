@@ -10,8 +10,8 @@ public interface IWidgetController {
    * allowed. This also sets the current enabled state based on the current list
    * state.
    */
-  public void addControlledWidget(FocusWidget pWidget);
+  public void addControlledWidget(FocusWidget widget);
 
-  public boolean removeControlledWidget(FocusWidget pWidget);
+  public boolean removeControlledWidget(FocusWidget widget);
 
 }

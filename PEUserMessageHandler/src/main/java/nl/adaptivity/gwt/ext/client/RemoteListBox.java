@@ -1,8 +1,5 @@
 package nl.adaptivity.gwt.ext.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventHandler;
 import com.google.gwt.event.shared.GwtEvent;
@@ -13,19 +10,22 @@ import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Node;
 import com.google.gwt.xml.client.XMLParser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class RemoteListBox extends ControllingListBox implements RequestCallback {
 
 
   private static class ListElement {
 
-    final String value;
+    final String mValue;
 
-    final String text;
+    final String mText;
 
-    public ListElement(final String pValue, final String pText) {
-      value = pValue;
-      text = pText;
+    public ListElement(final String value, final String text) {
+      mValue = value;
+      mText = text;
     }
 
   }
@@ -36,8 +36,8 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
 
     private final Throwable aException;
 
-    public UpdateEvent(final Throwable pException) {
-      aException = pException;
+    public UpdateEvent(final Throwable exception) {
+      aException = exception;
     }
 
     public static Type<UpdateEventHandler> getType() {
@@ -48,8 +48,8 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
 
     @Override
-    protected void dispatch(final UpdateEventHandler pHandler) {
-      pHandler.onUpdateRemoteList(this);
+    protected void dispatch(final UpdateEventHandler handler) {
+      handler.onUpdateRemoteList(this);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
 
   public interface UpdateEventHandler extends EventHandler {
 
-    void onUpdateRemoteList(UpdateEvent pUpdateEvent);
+    void onUpdateRemoteList(UpdateEvent updateEvent);
 
   }
 
@@ -89,8 +89,8 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
 
   private boolean aStarted = false;
 
-  public RemoteListBox(final String pUrl) {
-    aUrl = pUrl;
+  public RemoteListBox(final String url) {
+    aUrl = url;
   }
 
   public void start() {
@@ -121,9 +121,9 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
   }
 
-  private void fireUpdateError(final Throwable pException) {
-    fireEvent(new UpdateEvent(pException));
-    GWT.log("Error: " + pException.getMessage(), pException);
+  private void fireUpdateError(final Throwable exception) {
+    fireEvent(new UpdateEvent(exception));
+    GWT.log("Error: " + exception.getMessage(), exception);
   }
 
   public void setMethod(final Method method) {
@@ -146,70 +146,70 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     return aRootElement;
   }
 
-  public void setRootElement(final String pRootElement) {
-    aRootElement = pRootElement;
+  public void setRootElement(final String rootElement) {
+    aRootElement = rootElement;
   }
 
   public String getListElement() {
     return aListElement;
   }
 
-  public void setListElement(final String pListElement) {
-    aListElement = pListElement;
+  public void setListElement(final String listElement) {
+    aListElement = listElement;
   }
 
   public String getTextElement() {
     return aTextElement;
   }
 
-  public void setTextElement(final String pTextElement) {
-    aTextElement = pTextElement;
+  public void setTextElement(final String textElement) {
+    aTextElement = textElement;
   }
 
   public String getValueElement() {
     return aValueElement;
   }
 
-  public void setValueElement(final String pValueElement) {
-    aValueElement = pValueElement;
+  public void setValueElement(final String valueElement) {
+    aValueElement = valueElement;
   }
 
-  public void setNameSpace(final String pNameSpace) {
-    aNameSpace = pNameSpace;
+  public void setNameSpace(final String nameSpace) {
+    aNameSpace = nameSpace;
   }
 
   public String getNameSpace() {
     return aNameSpace;
   }
 
-  public HandlerRegistration addUpdateEventHandler(final UpdateEventHandler pHandler) {
-    return addHandler(pHandler, UpdateEvent.getType());
+  public HandlerRegistration addUpdateEventHandler(final UpdateEventHandler handler) {
+    return addHandler(handler, UpdateEvent.getType());
   }
 
   @Override
-  public void onError(final Request pRequest, final Throwable pException) {
-    fireUpdateError(pException);
+  public void onError(final Request request, final Throwable exception) {
+    fireUpdateError(exception);
   }
 
   @Override
-  public void onResponseReceived(final Request pRequest, final Response pResponse) {
-    if (Response.SC_OK == pResponse.getStatusCode()) {
-      updateList(asListElements(pResponse.getText()));
-    } else if (pResponse.getStatusCode() >= 400) {
-      fireUpdateError(new RemoteListException(pResponse.getStatusCode(), pResponse.getStatusText() + "[" + pRequest.toString() + "]"));
+  public void onResponseReceived(final Request request, final Response response) {
+    if (Response.SC_OK == response.getStatusCode()) {
+      updateList(asListElements(response.getText()));
+    } else if (response.getStatusCode() >= 400) {
+      fireUpdateError(new RemoteListException(response.getStatusCode(), response.getStatusText() + "[" + request.toString() + "]"));
     }
   }
 
-  private void updateList(final List<ListElement> pListElements) {
+  private void updateList(final List<ListElement> listElements) {
     final int selectedIndex = getSelectedIndex();
     final String selected = selectedIndex >= 0 ? getValue(selectedIndex) : null;
     clear();
 
     int newSelected = -1;
     int i = 0;
-    for (final ListElement ref : pListElements) {
-      addItem(ref.text, ref.value);
-      if (ref.value.equals(selected)) {
+    for (final ListElement ref : listElements) {
+      addItem(ref.mText, ref.mValue);
+      if (ref.mValue.equals(selected)) {
         newSelected = i;
       }
       ++i;
@@ -219,8 +219,8 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
     }
   }
 
-  public void update(final com.google.gwt.dom.client.Document pResults) {
-    updateList(asListElements(pResults));
+  public void update(final com.google.gwt.dom.client.Document results) {
+    updateList(asListElements(results));
   }
 
 
@@ -249,18 +249,18 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
   }
 
 
-  private String localName(final String pNodeName) {
-    final int i = pNodeName.indexOf(':');
+  private String localName(final String nodeName) {
+    final int i = nodeName.indexOf(':');
     if (i < 0) {
-      return pNodeName;
+      return nodeName;
     }
-    return pNodeName.substring(i + 1);
+    return nodeName.substring(i + 1);
   }
 
-  private List<ListElement> asListElements(final String pText) {
+  private List<ListElement> asListElements(final String sourceXml) {
     final Document myResponse;
 
-    myResponse = XMLParser.parse(pText);
+    myResponse = XMLParser.parse(sourceXml);
     final ArrayList<ListElement> result = new ArrayList<ListElement>();
 
     final Node root = myResponse.getFirstChild();
@@ -268,11 +268,11 @@ public class RemoteListBox extends ControllingListBox implements RequestCallback
       Node child = root.getFirstChild();
       while (child != null) {
         if (aListElement.equals(localName(child.getNodeName()))) {
-          final String text = XMLUtil.getParamText(child, aTextElement);
-          final String value = XMLUtil.getParamText(child, aValueElement);
+          final String textElemContent = XMLUtil.getParamText(child, aTextElement);
+          final String valueElemContent = XMLUtil.getParamText(child, aValueElement);
 
-          if ((text != null) && (value != null)) {
-            result.add(new ListElement(value, text));
+          if ((textElemContent != null) && (valueElemContent != null)) {
+            result.add(new ListElement(valueElemContent, textElemContent));
           }
         }
         child = child.getNextSibling();
