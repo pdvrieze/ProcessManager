@@ -552,7 +552,7 @@ public class DarwinMessenger implements IMessenger {
    */
   @Nullable
   @Override
-  public <T> Future<T> sendMessage(@NotNull final ISendableMessage message, @Nullable final CompletionListener completionListener, @NotNull final Class<T> returnType, final Class<?>[] returnContext) {
+  public <T> Future<T> sendMessage(@NotNull final ISendableMessage message, @Nullable final CompletionListener<T> completionListener, @NotNull final Class<T> returnType, final Class<?>[] returnContext) {
     EndpointDescriptor registeredEndpoint = getEndpoint(message.getDestination());
 
     if (registeredEndpoint instanceof DirectEndpoint) {
