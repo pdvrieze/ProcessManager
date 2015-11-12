@@ -8,6 +8,7 @@
             <xsd:element name="start" type="tns:StartNode"></xsd:element>
             <xsd:element name="activity" type="tns:Activity"></xsd:element>
             <xsd:element name="join" type="tns:Join"></xsd:element>
+            <xsd:element name="split" type="tns:Split"></xsd:element>
             <xsd:element name="end" type="tns:EndNode"></xsd:element>
         </xsd:choice>
 
@@ -74,6 +75,20 @@
                     <xsd:element name="predecessor" type="xsd:IDREF">
                     </xsd:element>
                 </xsd:sequence>
+                <xsd:attribute name="min" type="xsd:int"
+                               use="required">
+                </xsd:attribute>
+                <xsd:attribute name="max" type="xsd:int" use="required"></xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="Split">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessModelNode">
+                <xsd:attribute name="predecessor" type="xsd:IDREF"
+                               use="required">
+                </xsd:attribute>
                 <xsd:attribute name="min" type="xsd:int"
                                use="required">
                 </xsd:attribute>

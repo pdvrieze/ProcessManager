@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<jbi xmlns="http://java.sun.com/xml/ns/jbi" version="1.0">
-  <services binding-component="false" xmlns:ns1="http://adaptivity.nl/ProcessEngine/">
-    <provides interface-name="ns1:ProcessEnginePortType" service-name="ns1:ProcessEngine" endpoint-name="endpoint"/>
-    <!--<consumes interface-name="ns1:ProcessEnginePortType" service-name="ns1:ProcessEngine"></consumes>-->
-  </services>
-</jbi>
