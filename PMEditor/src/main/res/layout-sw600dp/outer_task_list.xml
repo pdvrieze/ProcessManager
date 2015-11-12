@@ -1,12 +1,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:baselineAligned="false"
-    android:divider="?android:attr/dividerHorizontal"
-    android:orientation="horizontal"
-    android:showDividers="middle"
-    tools:context="nl.adaptivity.process.tasks.android.TaskListOuterFragment" >
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:baselineAligned="false"
+              android:divider="?android:attr/dividerHorizontal"
+              android:orientation="horizontal"
+              android:showDividers="middle"
+              tools:context="nl.adaptivity.process.tasks.android.TaskListOuterFragment">
 
     <!--
         This layout is a two-pane layout for the ProcessModels
@@ -19,16 +19,15 @@
         http://developer.android.com/training/multiscreen/screensizes.html#TaskUseAliasFilters
     -->
 
-    <FrameLayout
-        android:id="@+id/task_list"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+    <FrameLayout android:id="@+id/task_list"
+                 android:layout_width="0dp"
+                 android:layout_height="match_parent"
+                 android:layout_weight="1" />
 
-    <FrameLayout
-        android:id="@+id/task_detail_container"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="3" />
+    <FrameLayout android:id="@+id/task_detail_container"
+                 android:layout_width="0dp"
+                 android:layout_height="match_parent"
+                 android:layout_weight="3"
+                 tools:ignore="InconsistentLayout" />
 
 </LinearLayout>

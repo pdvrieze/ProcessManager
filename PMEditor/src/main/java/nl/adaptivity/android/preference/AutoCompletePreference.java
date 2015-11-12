@@ -1,5 +1,7 @@
 package nl.adaptivity.android.preference;
 
+import android.annotation.TargetApi;
+import android.os.Build.VERSION_CODES;
 import android.preference.DialogPreference;
 
 
@@ -57,11 +59,19 @@ public class AutoCompletePreference extends DialogPreference {
 
   private String mText;
 
+  @TargetApi(VERSION_CODES.LOLLIPOP)
   public AutoCompletePreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
     super(context, attrs, defStyleAttr, defStyleRes);
 
-    TypedArray a = getContext().obtainStyledAttributes(attrs,R.styleable.AutoCompletePreference,defStyleAttr,defStyleRes);
-    int suggestionsId = a.getResourceId(R.styleable.AutoCompletePreference_candidates,0);
+    int suggestionsId;
+    {
+      TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.AutoCompletePreference, defStyleAttr, defStyleRes);
+      try {
+        suggestionsId = a.getResourceId(R.styleable.AutoCompletePreference_candidates, 0);
+      } finally {
+        a.recycle();
+      }
+    }
 
     setDialogLayoutResource(R.layout.auto_complete_preference);
 

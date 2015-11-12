@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="nl.adaptivity.process.editor.android"
-    android:versionCode="1"
-    android:versionName="1.0" >
+          xmlns:tools="http://schemas.android.com/tools"
+          package="nl.adaptivity.process.editor.android" >
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,87 +13,74 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
-        android:supportsRtl="true"
-        android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <activity
-            android:name="nl.adaptivity.process.editor.android.PMEditor"
-            android:label="@string/app_name"
-            android:parentActivityName="nl.adaptivity.process.editor.android.MainActivity"
-            tools:ignore="UnusedAttribute" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="nl.adaptivity.process.editor.android.MainActivity" />
+    <application android:allowBackup="true"
+                 android:icon="@drawable/ic_launcher"
+                 android:supportsRtl="true"
+                 android:label="@string/app_name"
+                 android:theme="@style/AppTheme"
+                 tools:ignore="UnusedAttribute">
+
+        <activity android:name="nl.adaptivity.process.editor.android.PMEditor"
+                  android:label="@string/app_name"
+                  android:parentActivityName="nl.adaptivity.process.editor.android.MainActivity"
+                  tools:ignore="UnusedAttribute">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                       android:value="nl.adaptivity.process.editor.android.MainActivity" />
         </activity>
-        <activity
-            android:name="nl.adaptivity.process.editor.android.MainActivity"
-            android:label="@string/title_main" >
+
+        <activity android:name="nl.adaptivity.process.editor.android.MainActivity" android:label="@string/title_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="nl.adaptivity.process.editor.android.ProcessModelDetailActivity"
-            android:label="@string/title_processmodel_detail"
-            android:parentActivityName="nl.adaptivity.process.editor.android.ProcessModelListActivity"
-            tools:ignore="UnusedAttribute" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="nl.adaptivity.process.editor.android.ProcessModelListActivity" />
+
+        <activity android:name="nl.adaptivity.process.editor.android.ProcessModelDetailActivity"
+                  android:label="@string/title_processmodel_detail"
+                  android:parentActivityName="nl.adaptivity.process.editor.android.MainActivity"
+                  tools:ignore="UnusedAttribute">
+            <meta-data android:name="android.support.PARENT_ACTIVITY"
+                       android:value="nl.adaptivity.process.editor.android.MainActivity" />
         </activity>
 
-        <provider
-            android:name="nl.adaptivity.process.models.ProcessModelProvider"
-            android:authorities="nl.adaptivity.process.models"
-            android:exported="false"
-            android:label="ProcessModels"
-            android:syncable="true" >
-        </provider>
-        <provider
-            android:name="nl.adaptivity.process.tasks.data.TaskProvider"
-            android:authorities="nl.adaptivity.process.tasks"
-            android:exported="false"
-            android:label="Tasks"
-            android:syncable="true" >
-        </provider>
+        <provider android:name="nl.adaptivity.process.models.ProcessModelProvider"
+                  android:authorities="nl.adaptivity.process.models"
+                  android:exported="false"
+                  android:label="ProcessModels"
+                  android:syncable="true" />
 
-        <activity
-            android:name="nl.adaptivity.process.editor.android.SettingsActivity"
-            android:label="@string/title_activity_settings" >
-        </activity>
+        <provider android:name="nl.adaptivity.process.tasks.data.TaskProvider"
+                  android:authorities="nl.adaptivity.process.tasks"
+                  android:exported="false"
+                  android:label="Tasks"
+                  android:syncable="true"/>
+
+        <activity android:name="nl.adaptivity.process.editor.android.SettingsActivity"
+                  android:label="@string/title_activity_settings"/>
+
         <activity android:name="nl.adaptivity.process.tasks.android.TaskDetailActivity"
                   android:label="@string/lbl_ac_task_detail"
 
-                  />
+        />
 
-        <service
-            android:name="nl.adaptivity.process.models.ProcessModelSyncService"
-            android:exported="true"
-            tools:ignore="ExportedService" >
+        <service android:name="nl.adaptivity.process.models.ProcessModelSyncService"
+                 android:exported="true"
+                 tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
 
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/processsyncadapter" />
+            <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/processsyncadapter" />
         </service>
-        <service
-            android:name="nl.adaptivity.process.tasks.data.TaskSyncService"
-            android:exported="true"
-            tools:ignore="ExportedService" >
+        <service android:name="nl.adaptivity.process.tasks.data.TaskSyncService"
+                 android:exported="true"
+                 tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
 
-            <meta-data
-                android:name="android.content.SyncAdapter"
-                android:resource="@xml/tasksyncadapter" />
+            <meta-data android:name="android.content.SyncAdapter" android:resource="@xml/tasksyncadapter" />
         </service>
     </application>
 

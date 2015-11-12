@@ -1,27 +1,12 @@
 package nl.adaptivity.process.tasks.data;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
-
-import javax.xml.XMLConstants;
-
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-import org.xmlpull.v1.XmlSerializer;
-
+import android.content.*;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.RemoteException;
+import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
-
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
@@ -31,20 +16,24 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.tasks.items.GenericItem;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import android.content.ContentProviderClient;
-import android.content.ContentProviderOperation;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.OperationApplicationException;
-import android.content.SharedPreferences;
-import android.content.SyncResult;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.RemoteException;
-import android.preference.PreferenceManager;
-import android.provider.BaseColumns;
-import static nl.adaptivity.process.tasks.UserTask.*;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
+
+import javax.xml.XMLConstants;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.*;
+
+import static nl.adaptivity.process.tasks.UserTask.NS_TASKS;
+import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
 
 @SuppressWarnings("boxing")
 public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
@@ -252,26 +241,31 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     ArrayList<ContentProviderOperation> result = new ArrayList<>();
     ArrayList<String> options = new ArrayList<>(remoteItem.getOptions());
     Cursor localItems = provider.query(Options.CONTENT_ID_URI_BASE, new String[]{ BaseColumns._ID, Options.COLUMN_VALUE }, Options.COLUMN_ITEMID+"="+Long.toString(localItemId), null, BaseColumns._ID);
-    ListIterator<String> remoteIt = options.listIterator();
-    outer: while (localItems.moveToNext()) {
-      long localId = localItems.getLong(0);
-      String localOption = localItems.getString(1);
-      if(remoteIt.hasNext()) {
-        String remoteOption = remoteIt.next();
-        if (StringUtil.isEqual(remoteOption,localOption)) {
-          remoteIt.remove();
-          continue outer;
-        } else {
-          result.add(ContentProviderOperation
-              .newDelete(Options.CONTENT_ID_URI_BASE
-                  .buildUpon()
-                  .appendEncodedPath(Long.toString(localId))
-                  .encodedFragment("nonetnotify")
-                  .build())
-              .build());
-          remoteIt.previous();
+    try {
+      ListIterator<String> remoteIt = options.listIterator();
+      outer:
+      while (localItems.moveToNext()) {
+        long localId = localItems.getLong(0);
+        String localOption = localItems.getString(1);
+        if (remoteIt.hasNext()) {
+          String remoteOption = remoteIt.next();
+          if (StringUtil.isEqual(remoteOption, localOption)) {
+            remoteIt.remove();
+            continue outer;
+          } else {
+            result.add(ContentProviderOperation
+                               .newDelete(Options.CONTENT_ID_URI_BASE
+                                                  .buildUpon()
+                                                  .appendEncodedPath(Long.toString(localId))
+                                                  .encodedFragment("nonetnotify")
+                                                  .build())
+                               .build());
+            remoteIt.previous();
+          }
         }
       }
+    } finally {
+      localItems.close();
     }
     for(String option: options) {
       if (option!=null) {

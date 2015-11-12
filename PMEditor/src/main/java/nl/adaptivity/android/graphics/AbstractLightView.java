@@ -12,7 +12,7 @@ public abstract class AbstractLightView implements LightView{
     super();
   }
 
-  protected void setState(int var, boolean val) {
+  protected void setState(final int var, final boolean val) {
     if(val) {
       mState |= var;
     } else {
@@ -21,7 +21,7 @@ public abstract class AbstractLightView implements LightView{
   }
 
   @Override
-  public void setFocussed(boolean focussed) {
+  public void setFocussed(final boolean focussed) {
     setState(Drawable.STATE_FOCUSSED, focussed);
     mState |= Drawable.STATE_FOCUSSED;
   }

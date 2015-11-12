@@ -1,5 +1,6 @@
 package nl.adaptivity.android.util;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -109,7 +110,7 @@ public class GetNameDialogFragment extends DialogFragment {
 
     AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     LayoutInflater inflater = LayoutInflater.from(builder.getContext());
-    View parent = inflater.inflate(R.layout.dialog_content_edit_name, null, false);
+    @SuppressLint("InflateParams") View parent = inflater.inflate(R.layout.dialog_content_edit_name, null, false);
     mEditText = (EditText) parent.findViewById(R.id.edit);
 //    mEditText = new EditText(getActivity());
     mEditText.setInputType(InputType.TYPE_CLASS_TEXT);

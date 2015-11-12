@@ -294,7 +294,7 @@ public class DiagramView extends View implements OnZoomListener{
 
   public DiagramView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    mMultitouch = (isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    mMultitouch = (!isInEditMode()) &&(isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
     mGestureDetector = new GestureDetector(context, mGestureListener);
     mScaleGestureDetector = new ScaleGestureDetector(context, mScaleGestureListener);
     init(attrs);

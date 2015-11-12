@@ -1,31 +1,40 @@
 package nl.adaptivity.diagram.android;
 
-import nl.adaptivity.diagram.Theme;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.support.annotation.IntDef;
+import nl.adaptivity.diagram.Theme;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 
 public class RelativeLightView implements LightView {
 
-  public static final int HGRAVITY=0;
-  public static final int LEFT=1;
-  public static final int RIGHT=2;
+  @IntDef({DEFAULT, HGRAVITY, LEFT, RIGHT, VGRAVITY, TOP, BOTTOM})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface LVGravity{}
+
+  public static final int HGRAVITY=1;
+  public static final int LEFT=2;
+  public static final int RIGHT=4;
   public static final int HMASK=HGRAVITY|LEFT|RIGHT;
-  public static final int VGRAVITY=0;
-  public static final int TOP=4;
-  public static final int BOTTOM=8;
+  public static final int VGRAVITY=8;
+  public static final int TOP=16;
+  public static final int BOTTOM=32;
   public static final int VMASK=VGRAVITY|TOP|BOTTOM;
-  public static final int GRAVITY=HGRAVITY|VGRAVITY;
+  public static final int DEFAULT=HGRAVITY|VGRAVITY;
 
   private final int mRelativePos;
 
   private final LightView mView;
 
-  public RelativeLightView(LightView view, int relativePos) {
+  public RelativeLightView(LightView view, @LVGravity int relativePos) {
     mView = view;
-    mRelativePos = relativePos;
+    mRelativePos = ((relativePos & HMASK)==0 ? HGRAVITY : relativePos) & ((relativePos & VMASK) == 0 ? VGRAVITY : relativePos);
   }
 
+  @LVGravity
   public int getRelativePos() {
     return mRelativePos;
   }

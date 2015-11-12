@@ -1,5 +1,8 @@
 package nl.adaptivity.diagram.android;
 
+import android.support.annotation.ColorInt;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntRange;
 import nl.adaptivity.diagram.Pen;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
@@ -31,19 +34,19 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public AndroidPen setColor(int red, int green, int blue) {
+  public AndroidPen setColor(@IntRange(from=0, to=255) int red,@IntRange(from=0, to=255)  int green, @IntRange(from=0, to=255) int blue) {
     mPaint.setARGB(255, red, green, blue);
     return this;
   }
 
   @Override
-  public AndroidPen setColor(int red, int green, int blue, int alpha) {
+  public AndroidPen setColor(@IntRange(from=0, to=255) int red,@IntRange(from=0, to=255)  int green,@IntRange(from=0, to=255)  int blue, @IntRange(from=0, to=255) int alpha) {
     mPaint.setARGB(alpha, red, green, blue);
     return this;
   }
 
   @Override
-  public AndroidPen setStrokeWidth(double strokeWidth) {
+  public AndroidPen setStrokeWidth(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double strokeWidth) {
     mStrokeWidth = strokeWidth;
     mPaint.setStrokeWidth((float) strokeWidth);
     return this;
@@ -54,7 +57,7 @@ public class AndroidPen implements Pen<AndroidPen> {
     return mStrokeWidth;
   }
 
-  public void setShadowLayer(float radius, int color) {
+  public void setShadowLayer(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) float radius, @ColorInt int color) {
     mShadowRadius = radius;
     mShadowColor = color;
     mShadowDx = 0f;
@@ -62,7 +65,7 @@ public class AndroidPen implements Pen<AndroidPen> {
     mPaint.setShadowLayer(radius, mShadowDx, mShadowDy, color);
   }
 
-  public AndroidPen scale(double scale) {
+  public AndroidPen scale(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double scale) {
     mPaint.setStrokeWidth((float) (mStrokeWidth*scale));
     if (mShadowRadius>0f) {
       mPaint.setShadowLayer((float) (mShadowRadius*scale), (float) (mShadowDx*scale), (float) (mShadowDy*scale), mShadowColor);
@@ -74,7 +77,7 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public AndroidPen setFontSize(double fontSize) {
+  public AndroidPen setFontSize(@FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double fontSize) {
     mPaint.setTextAlign(Align.LEFT);
     mPaint.setTextSize((float) fontSize);
     mFontSize = fontSize;
@@ -87,7 +90,7 @@ public class AndroidPen implements Pen<AndroidPen> {
   }
 
   @Override
-  public double measureTextWidth(String text, double foldWidth) {
+  public double measureTextWidth(String text, @FloatRange(from=0, to=Float.MAX_VALUE,fromInclusive = false) double foldWidth) {
     float ts = mPaint.getTextSize();
     mPaint.setTextSize(((float) mFontSize)*FONT_MEASURE_FACTOR);
     final float result = mPaint.measureText(text)/FONT_MEASURE_FACTOR;
