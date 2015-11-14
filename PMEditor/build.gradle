@@ -4,6 +4,12 @@ version = '1.0.0'
 description = 'Android interface with process model editor and task interface'
 //group = ['android' ]
 
+//sourceSets {
+//    testLocal {
+//        java.srcDir file('src/test/java')
+//        resources.srcDir file('src/test/resources')
+//    }
+//}
 
 dependencies {
     compile project(':PE-diagram')
@@ -11,6 +17,11 @@ dependencies {
     compile fileTree(include: '*.jar', dir: 'libs')
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'com.android.support:support-annotations:23.1.0'
+    testCompile 'junit:junit:4.12'
+//    testCompile 'org.robolectric:robolectric:3.0'
+    testCompile 'net.sf.kxml:kxml2:2.3.0'
+//    testLocalCompile project(':PE-diagram')
+//    testLocalCompile project(':darwinlib')
 }
 
 android {
@@ -34,5 +45,9 @@ android {
             applicationIdSuffix ".debug"
             useJack false
         }
+    }
+
+    testOptions {
+//        unitTests.returnDefaultValues = true
     }
 }
