@@ -8,7 +8,7 @@ version = '1.0.0'
 description = 'A project for the automatically generated service clients for various services'
 //group = 'server'
 
-def genDir = projectDir.absolutePath+'/gen'
+def genDir = new File(projectDir.absolutePath,'gen')
 def genClasses = ['nl.adaptivity.process.userMessageHandler.server.InternalEndpoint' , 'nl.adaptivity.process.engine.servlet.ServletProcessEngine']
 
 configurations {
@@ -91,6 +91,7 @@ idea {
     module {
         scopes.COMPILE.minus += [configurations.providedCompile]
         scopes.PROVIDED.plus += [configurations.providedCompile]
+	    generatedSourceDirs += file(genDir)
     }
 }
 
