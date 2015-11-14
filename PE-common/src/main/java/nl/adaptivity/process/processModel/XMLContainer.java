@@ -43,8 +43,9 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     setContent(originalNSContext, content);
   }
 
+  @Deprecated
   public XMLContainer(final Source source) throws XMLStreamException {
-    setContent(source);
+    setContent(XmlUtil.siblingsToFragment(XmlUtil.createXMLStreamReader(XMLInputFactory.newFactory(), source)));
   }
 
   public void deserializeChildren(@NotNull final XMLStreamReader in) throws XMLStreamException {
@@ -91,10 +92,6 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
       throw new RuntimeException(e);
     }
     originalNSContext = new SimpleNamespaceContext(nsmap);
-  }
-
-  public void setContent(final Source content) throws XMLStreamException {
-    setContent(XmlUtil.siblingsToFragment(XmlUtil.createXMLStreamReader(XMLInputFactory.newFactory(), content)));
   }
 
   void addNamespaceContext(@NotNull final SimpleNamespaceContext namespaceContext) {

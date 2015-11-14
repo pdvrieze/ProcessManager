@@ -59,9 +59,6 @@ public interface IXmlMessage {
    */
   String getOperation();
 
-  @Deprecated
-  void setMessageBody(Source o);
-
   @NotNull
   CompactFragment getMessageBody();
 

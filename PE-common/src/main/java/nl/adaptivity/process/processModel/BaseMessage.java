@@ -155,15 +155,6 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     }
   }
 
-  @Override
-  public void setMessageBody(final Source o) {
-    try {
-      setContent(o);
-    } catch (@NotNull final XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @NotNull
   @Override
   public Source getBodySource() {
