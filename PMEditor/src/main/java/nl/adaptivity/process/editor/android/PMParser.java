@@ -241,7 +241,7 @@ public class PMParser {
       XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
       parser = factory.newPullParser();
-      parser.setInput(in, "utf-8");
+      parser.setInput(in, "UTF-8");
     } catch (Exception e){
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
@@ -272,6 +272,7 @@ public class PMParser {
         for(int i=0; i< modelElems.size(); ++i) {
           final DrawableProcessNode elem = modelElems.get(i);
           resolveRefs(elem, nodeMap, modelElems);
+          addId(elem, nodeMap);
           noPos|=Double.isNaN(elem.getX())||Double.isNaN(elem.getY());
         }
         final DrawableProcessModel drawableProcessModel = new DrawableProcessModel(uuid==null? null: UUID.fromString(uuid), modelName, modelElems, noPos ? advancedAlgorithm : simpleLayoutAlgorithm);
@@ -284,6 +285,20 @@ public class PMParser {
     } catch (Exception e) {
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
+    }
+  }
+
+  private static void addId(final DrawableProcessNode elem, final Map<String, DrawableProcessNode> nodeMap) {
+    int counter = 1;
+    String baseId = elem.getIdBase();
+    if (elem.getId()!=null && elem.getId().length()==0) {
+      elem.setId(null);
+    }
+    while (elem.getId()==null) {
+      String candidateId = baseId+Integer.toString(counter);
+      if (! nodeMap.containsKey(candidateId)) {
+        elem.setId(candidateId);
+      }
     }
   }
 
@@ -570,9 +585,9 @@ public class PMParser {
     Identifiable val = nodes.get(name);
     if (val==null) {
       val = new Identifier(name);
-    } else { // there already is a node
+    } else if (val instanceof DrawableProcessNode) { // there already is a node
       // Allow temporary references to collect as many successors as desired, it might be a split.
-      if ((!(val instanceof DrawableProcessNode))|| (((DrawableProcessNode)val).getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
+      if ((((DrawableProcessNode)val).getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
         return val;
       } else {
         // There is no suitable successor
@@ -606,7 +621,6 @@ public class PMParser {
   private static void addAsSuccessor(DrawableProcessNode predecessor, DrawableProcessNode successor, List<DrawableProcessNode> modelElems) {
     if (predecessor.getSuccessors().size()<predecessor.getMaxSuccessorCount()) {
       predecessor.addSuccessor(successor);
-      successor.addPredecessor(predecessor);
     } else {
       DrawableSplit newSplit = introduceSplit(predecessor, modelElems);
       newSplit.addSuccessor(successor);
