@@ -1,8 +1,20 @@
 package nl.adaptivity.process.editor.android;
 
-import java.io.IOException;
-import java.util.UUID;
-
+import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Intent;
+import android.graphics.RectF;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
+import android.view.*;
+import android.view.View.OnClickListener;
+import android.view.View.OnLayoutChangeListener;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
@@ -14,30 +26,13 @@ import nl.adaptivity.process.models.ProcessModelLoader.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Intent;
-import android.graphics.RectF;
-import android.net.Uri;
-import android.os.Bundle;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnLayoutChangeListener;
-import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * A fragment representing a single ProcessModel detail screen. This fragment is
- * either contained in a {@link ProcessModelListActivity} in two-pane mode (on
+ * either contained in a {@link MainActivity} in two-pane mode (on
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
