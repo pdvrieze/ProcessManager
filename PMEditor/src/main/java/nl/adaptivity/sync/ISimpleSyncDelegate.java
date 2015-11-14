@@ -1,22 +1,20 @@
 package nl.adaptivity.sync;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
-import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.ContentProviderClient;
 import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
+import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.UUID;
 
 
 public interface ISimpleSyncDelegate {
@@ -62,10 +60,7 @@ public interface ISimpleSyncDelegate {
    * @param delegator TODO
    * @param provider The {@link ContentProviderClient}
    * @param itemuri The local content uri of the item.
-   * @param syncState TODO
-   * @param pair The details (if available) of the item, based upon the return
-   *          of {@link #parseItem(XmlPullParser)}.
-   * @param syncResult The sync status.
+   * @param syncresult The sync status.
    * @return The new values to be stored in the database for the object.
    * @throws RemoteException
    * @throws IOException
@@ -79,9 +74,7 @@ public interface ISimpleSyncDelegate {
    * @param provider The {@link ContentProviderClient}
    * @param itemuri The local content uri of the item.
    * @param syncState The state of the item in the local database.
-   * @param pair The details (if available) of the item, based upon the return
-   *          of {@link #parseItem(XmlPullParser)}.
-   * @param syncResult The sync status.
+   * @param syncresult The sync status.
    *
    * @return The new values to be stored in the database for the object.
    * @throws RemoteException
@@ -95,14 +88,12 @@ public interface ISimpleSyncDelegate {
    * server and the local database. This method does not need to update the
    * primary row in the database.
    *
-   * @param httpClient The {@link AuthenticatedWebClient} to use.
    * @param provider The {@link ContentProviderClient}
-   * @param itemuri The local content uri of the item.
+   * @param uri The local content uri of the item.
    * @param item The details (if available) of the item. These are initially
    *          the values from the server, but if they are changed that will
    *          result in a server update to be triggered. In any case the local
    *          database will be updated with these values.
-   * @param syncResult The sync status.
    * @return If <code>true</code>, the conflict has been resolved. If
    *         <code>false</code> this is not the case.
    * @throws RemoteException
@@ -163,7 +154,7 @@ public interface ISimpleSyncDelegate {
    * @return The result.
    * @category Configuration
    */
-  String getListUrl(String base);
+  URI getListUrl(URI base);
 
   /**
    * Get the SELECT conditions needed to provide the list of items to sync (can be null if the entire list should be synchronized).

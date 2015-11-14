@@ -13,6 +13,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyncAdapter implements RemoteXmlSyncAdapterDelegate.DelegatingResources {
@@ -58,12 +59,14 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
 
   @Override
   public final void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-    String mBase = getSyncSource();
-    if (! mBase.endsWith("/")) {
-      mBase = mBase +'/'; }
+    URI mBase = getSyncSource();
+    if (! mBase.toString().endsWith("/")) {
+      assert false : "Sync sources should be forced to end with / in all cases.";
+      mBase = URI.create(mBase.toString() +'/');
+    }
 
     {
-      String authbase = AuthenticatedWebClient.getAuthBase(mBase);
+      URI authbase = AuthenticatedWebClient.getAuthBase(mBase);
       mHttpClient = new AuthenticatedWebClient(getContext(), account, authbase);
     }
     for(ISyncAdapterDelegate delegate: mDelegates) {
@@ -103,7 +106,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
    * @return The base url.
    * @category Configuration
    */
-  public abstract String getSyncSource();
+  public abstract URI getSyncSource();
 
   @Override
   public AuthenticatedWebClient getWebClient() {

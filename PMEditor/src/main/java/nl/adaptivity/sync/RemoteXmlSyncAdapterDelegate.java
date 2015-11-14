@@ -9,14 +9,15 @@ import android.provider.BaseColumns;
 import android.util.Log;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient.GetRequest;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +31,9 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 @SuppressWarnings("boxing")
 public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
 
-  public static interface DelegatingResources {
+  public interface DelegatingResources {
     AuthenticatedWebClient getWebClient();
-    String getSyncSource();
+    URI getSyncSource();
     XmlPullParser newPullParser() throws XmlPullParserException;
   }
 
@@ -74,26 +75,34 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
   @Override
   public
   final void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlPullParserException, IOException, OperationApplicationException {
-    HttpGet getList = new HttpGet(mActualDelegate.getListUrl(delegator.getSyncSource()));
-    HttpResponse result;
+    GetRequest getList = new GetRequest(mActualDelegate.getListUrl(delegator.getSyncSource()));
+    HttpURLConnection result;
     try {
       result = delegator.getWebClient().execute(getList);
     } catch (IOException e) {
       syncResult.stats.numIoExceptions++;
       return;
     }
-    if (result!=null) {
-      final int statusCode = result.getStatusLine().getStatusCode();
-      if (statusCode>=200 && statusCode<400) {
-        mUpdateList = updateItemListFromServer(delegator, provider, syncResult, result.getEntity().getContent());
-        result.getEntity().consumeContent();
+    try {
+      if (result != null) {
+        final int statusCode = result.getResponseCode();
+        if (statusCode >= 200 && statusCode < 400) {
+          InputStream content = result.getInputStream();
+          try {
+            mUpdateList = updateItemListFromServer(delegator, provider, syncResult, content);
+          } finally {
+            content.close();
+          }
+        } else {
+          result.getErrorStream().skip(Integer.MAX_VALUE);
+          mUpdateList = null;
+          syncResult.stats.numIoExceptions++;
+        }
       } else {
-        result.getEntity().consumeContent();
-        mUpdateList = null;
-        syncResult.stats.numIoExceptions++;
+        syncResult.stats.numAuthExceptions++;
       }
-    } else {
-      syncResult.stats.numAuthExceptions++;
+    } finally {
+      result.disconnect();
     }
   }
 

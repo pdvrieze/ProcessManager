@@ -40,6 +40,6 @@
     <string name="lbl_ac_task_detail">Task Details</string>
     <string name="menu_ac_reset">Reset</string>
     <string name="menu_ac_sync">Sync</string>
-    <string name="default_sync_location">https://darwin.bournemouth.ac.uk/ProcessEngine</string>
+    <string name="default_sync_location">https://darwin.bournemouth.ac.uk/ProcessEngine/</string>
 
 </resources>

@@ -1,25 +1,6 @@
 package nl.adaptivity.process.editor.android;
 
-import java.io.IOException;
-import java.util.Set;
-import java.util.TreeSet;
-
-import nl.adaptivity.android.compat.Compat;
-import nl.adaptivity.android.compat.TitleFragment;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
-import nl.adaptivity.android.util.GetNameDialogFragment;
-import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.tasks.android.TaskDetailFragment.TaskDetailCallbacks;
-import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
-import nl.adaptivity.process.tasks.android.TaskListOuterFragment.TaskListCallbacks;
-import nl.adaptivity.process.tasks.data.TaskProvider;
-import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
+import android.accounts.*;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -39,12 +20,23 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.*;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.android.compat.TitleFragment;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.tasks.android.TaskDetailFragment.TaskDetailCallbacks;
+import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
+import nl.adaptivity.process.tasks.android.TaskListOuterFragment.TaskListCallbacks;
+import nl.adaptivity.process.tasks.data.TaskProvider;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * The main activity that contains the navigation drawer.
@@ -98,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
   }
 
-  private static final class SyncTask extends AsyncTask<String, Void, Account> {
+  private static final class SyncTask extends AsyncTask<URI, Void, Account> {
 
     private boolean mExpedited;
     private Context mContext;
@@ -111,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
 
     @Override
-    protected Account doInBackground(String... params) {
+    protected Account doInBackground(URI... params) {
       Account account = AuthenticatedWebClient.ensureAccount(mContext, params[0]);
       ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
       AccountManager accountManager = AccountManager.get(mContext);
@@ -207,14 +199,14 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     Account[] accounts = am.getAccountsByType(AuthenticatedWebClient.ACCOUNT_TYPE);
     if (accounts.length==0) {
       Bundle options = new Bundle(1);
-      String authbase = getAuthBase(this);
-      options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase);
+      URI authbase = getAuthBase(this);
+      options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase.toString());
       am.addAccount(AuthenticatedWebClient.ACCOUNT_TYPE, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, options, this, null, null);
     } else {
-      AsyncTask<String, Void, Account> task = new AsyncTask<String, Void, Account> () {
+      AsyncTask<URI, Void, Account> task = new AsyncTask<URI, Void, Account> () {
 
         @Override
-        protected Account doInBackground(String... params) {
+        protected Account doInBackground(URI... params) {
           return AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0]);
         }
 
@@ -378,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     if (context instanceof MainActivity) {
       ((MainActivity) context).requestSync(authority, expedited);
     }
-    String authbase = getAuthBase(context);
+    URI authbase = getAuthBase(context);
     if (authbase!=null) {
       (new SyncTask(context, authority, expedited)).execute(authbase);
     }
@@ -390,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     return source;
   }
 
-  private static String getAuthBase(Context context) {
+  private static URI getAuthBase(Context context) {
     final String source = getSyncSource(context);
     return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
   }

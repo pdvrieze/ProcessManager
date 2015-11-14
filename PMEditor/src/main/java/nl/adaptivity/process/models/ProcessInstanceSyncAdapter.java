@@ -1,22 +1,15 @@
 package nl.adaptivity.process.models;
 
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-
+import android.content.ContentProviderClient;
+import android.content.ContentValues;
+import android.content.SyncResult;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.RemoteException;
+import android.util.Log;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient.DeleteRequest;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient.PostRequest;
 import nl.adaptivity.android.util.LogUtil;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpPost;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import static org.xmlpull.v1.XmlPullParser.*;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.ISimpleSyncDelegate;
@@ -26,14 +19,18 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.SimpleContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
-import android.content.ContentProviderClient;
-import android.content.ContentValues;
-import android.content.SyncResult;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.RemoteException;
-import android.util.Log;
-import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+
+import static nl.adaptivity.sync.RemoteXmlSyncAdapter.SYNC_UPTODATE;
+import static org.xmlpull.v1.XmlPullParser.END_TAG;
+import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 @SuppressWarnings("boxing")
 public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate implements ISimpleSyncDelegate {
@@ -49,8 +46,8 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   }
 
   @Override
-  public String getListUrl(String base) {
-    return base+"/processInstances";
+  public URI getListUrl(URI base) {
+    return base.resolve("processInstances");
   }
 
   @Override
@@ -104,47 +101,50 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
        .append(URLEncoder.encode(name, "UTF-8"));
     if (uuid!=null) { url.append("&uuid=").append(uuid); }
 
-    return postInstanceToServer(delegator, url.toString(), syncResult);
+    return postInstanceToServer(delegator, URI.create(url.toString()), syncResult);
   }
 
-  private static ContentValuesProvider postInstanceToServer(DelegatingResources delegator, final String url, SyncResult syncResult) throws ClientProtocolException,
-      IOException, XmlPullParserException {
-    HttpPost post = new HttpPost(url);
-    HttpResponse response = delegator.getWebClient().execute(post);
-    int status = response.getStatusLine().getStatusCode();
-    if (status>=200 && status<400) {
-      XmlPullParser parser = delegator.newPullParser();
-      try {
-        parser.setInput(response.getEntity().getContent(), "UTF8");
+  private static ContentValuesProvider postInstanceToServer(DelegatingResources delegator, final URI url, SyncResult syncResult) throws
+          IOException, XmlPullParserException {
+    PostRequest post = new PostRequest(url, "");
+    HttpURLConnection urlConnection = delegator.getWebClient().execute(post);
+    try {
+      int status = urlConnection.getResponseCode();
+      if (status >= 200 && status < 400) {
+        XmlPullParser parser = delegator.newPullParser();
+        InputStream input = urlConnection.getInputStream();
+        try {
+          parser.setInput(input, "UTF-8");
 
-        parser.nextTag(); // Skip document start etc.
-        parser.require(XmlPullParser.START_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
-        long handle = Long.parseLong(parser.nextText());
-        parser.nextTag();
-        parser.require(XmlPullParser.END_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
+          parser.nextTag(); // Skip document start etc.
+          parser.require(XmlPullParser.START_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
+          long handle = Long.parseLong(parser.nextText());
+          parser.nextTag();
+          parser.require(XmlPullParser.END_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
 
-        ContentValues cv = new ContentValues(2);
-        cv.put(ProcessInstances.COLUMN_HANDLE, handle);
-        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
-        ContentValuesProvider values = new SimpleContentValuesProvider(cv);
-        ++syncResult.stats.numUpdates;
-        return values;
-      } finally {
-        response.getEntity().consumeContent();
-      }
-
-    } else {
-      if (Log.isLoggable(TAG, Log.DEBUG)) {
-        LogUtil.logResponse(TAG, Log.DEBUG, url, response.getStatusLine().toString(), response.getEntity().getContent());
+          ContentValues cv = new ContentValues(2);
+          cv.put(ProcessInstances.COLUMN_HANDLE, handle);
+          cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
+          ContentValuesProvider values = new SimpleContentValuesProvider(cv);
+          ++syncResult.stats.numUpdates;
+          return values;
+        } finally {
+          input.close();
+        }
       } else {
-        response.getEntity().consumeContent();
-      }
-      // Don't throw an exception.
-      ++syncResult.stats.numSkippedEntries;
-//      ++pSyncResult.stats.numIoExceptions;
-//      return null;
+        String statusline = Integer.toString(urlConnection.getResponseCode())+urlConnection.getResponseMessage();
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
+          LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), statusline, urlConnection.getErrorStream());
+        }
+        // Don't throw an exception.
+        ++syncResult.stats.numSkippedEntries;
+        //      ++pSyncResult.stats.numIoExceptions;
+        //      return null;
 
-      throw new IOException("The server could not be updated: "+response.getStatusLine());
+        throw new IOException("The server could not be updated: " + statusline);
+      }
+    } finally {
+      urlConnection.disconnect();
     }
   }
 
@@ -166,26 +166,28 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
       }
     }
 
-    String uri =delegator.getSyncSource()+"/processInstances/"+handle;
-    HttpDelete request = new HttpDelete(uri);
-    HttpResponse response = delegator.getWebClient().execute(request);
-    int status = response.getStatusLine().getStatusCode();
-    if (status>=200 && status<400) {
-      CharArrayWriter out = new CharArrayWriter();
-      InputStream ins = response.getEntity().getContent();
-      Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
-      char[] buffer = new char[2048];
-      int cnt;
-      while ((cnt=in.read(buffer))>=0) {
-        out.write(buffer, 0, cnt);
-      }
-      Log.i(TAG, "Response on deleting item: \""+out.toString()+"\"");
+    URI uri =delegator.getSyncSource().resolve("processInstances/"+handle);
+    DeleteRequest request = new DeleteRequest(uri);
+    HttpURLConnection urlConnection = delegator.getWebClient().execute(request);
+    try {
+      int status = urlConnection.getResponseCode();
+      if (status >= 200 && status < 400) {
+        CharArrayWriter out = new CharArrayWriter();
+        InputStream ins = urlConnection.getInputStream();
+        Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
+        char[] buffer = new char[2048];
+        int cnt;
+        while ((cnt = in.read(buffer)) >= 0) {
+          out.write(buffer, 0, cnt);
+        }
+        Log.i(TAG, "Response on deleting item: \"" + out.toString() + "\"");
 
-      ContentValues cv = new ContentValues(1);
-      cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
-      return new SimpleContentValuesProvider(cv);
-    } else {
-      response.getEntity().consumeContent();
+        ContentValues cv = new ContentValues(1);
+        cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
+        return new SimpleContentValuesProvider(cv);
+      }
+    } finally {
+      urlConnection.disconnect();
     }
     return null;
   }
