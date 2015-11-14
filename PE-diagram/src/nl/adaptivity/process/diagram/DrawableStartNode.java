@@ -1,15 +1,9 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STARTNODERADIUS;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
-import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
+
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
@@ -17,6 +11,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
   private static final double REFERENCE_OFFSET_X = STARTNODERADIUS+(STROKEWIDTH/2);
   private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS+(STROKEWIDTH/2);
+  public static final String IDBASE = "start";
   private int mState = STATE_DEFAULT;
 
 
@@ -87,6 +82,11 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
 
       canvas.drawFilledCircle(realradius, realradius, realradius, fillPen);
     }
+  }
+
+  @Override
+  public String getIdBase() {
+    return IDBASE;
   }
 
   @Override

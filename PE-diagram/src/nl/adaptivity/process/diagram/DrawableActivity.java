@@ -1,19 +1,10 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYHEIGHT;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYROUNDX;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYROUNDY;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ACTIVITYWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
-import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
+
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
@@ -21,6 +12,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
 
   private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
   private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
+  public static final String IDBASE = "ac";
   private int mState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
@@ -82,6 +74,11 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     if (getOwner()!=null) {
       getOwner().nodeChanged(this);
     }
+  }
+
+  @Override
+  public String getIdBase() {
+    return IDBASE;
   }
 
   @Override

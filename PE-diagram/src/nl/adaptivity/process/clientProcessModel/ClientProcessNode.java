@@ -137,12 +137,16 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     }
 
     mPredecessors.add(predId);
-    T pred = getOwner().getNode(predId);
-    if (!pred.getSuccessors().contains(this)) {
-      pred.addSuccessor(this.asT());
-    }
-    if (mOwner!=null) {
+    T pred = predId instanceof ClientProcessNode ? (T) ((ClientProcessNode) predId).asT() : (T) null;
+
+    if (pred==null && mOwner!=null) {
+      pred = getOwner().getNode(predId);
       mOwner.addNode(pred);
+    }
+    if (pred!=null) {
+      if (!pred.getSuccessors().contains(this)) {
+        pred.addSuccessor(this.asT());
+      }
     }
   }
 
@@ -161,15 +165,6 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
       mOwner.addNode(node);
     }
 
-
-
-    if (mSuccessors.add(node)) {
-      @SuppressWarnings("unchecked")
-      final T pred = (T) this;
-      if (!node.getPredecessors().contains(pred)) {
-        node.addPredecessor(pred);
-      }
-    }
   }
 
   @Override
@@ -185,7 +180,10 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
   @Override
   public final void removePredecessor(Identifiable node) {
     if (mPredecessors.remove(node)) {
-      getOwner().getNode(node).removeSuccessor(this.asT());
+      ClientProcessModel<T> owner = getOwner();
+      T drawableNode;
+      if (owner!=null && (drawableNode = owner.getNode(node))!=null) {
+        drawableNode.removeSuccessor(this.asT()); }
     }
   }
 

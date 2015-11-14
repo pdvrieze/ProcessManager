@@ -1,16 +1,10 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINHEIGHT;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
-import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
+
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
@@ -26,6 +20,7 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   private static final double INDX = JOINWIDTH*0.2;
   private static final double INDY = JOINHEIGHT*0.2;
   private static final double INLEN = Math.sqrt(INDX*INDX+INDY*INDY);
+  public static final String IDBASE = "join";
 
   public DrawableJoin() {
     super();
@@ -58,6 +53,11 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     result.setMin(elem.getMin());
     result.setMax(elem.getMax());
     return result;
+  }
+
+  @Override
+  public String getIdBase() {
+    return IDBASE;
   }
 
   @Override

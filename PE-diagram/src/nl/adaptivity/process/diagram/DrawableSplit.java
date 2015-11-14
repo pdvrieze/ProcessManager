@@ -1,16 +1,10 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
-import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
-import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
+
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
@@ -24,6 +18,7 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   /** The x coordinate if the line were horizontal. */
   private static final double ARROWDNEAR = ARROWLEN*Math.cos(0.25*Math.PI-ARROWHEADANGLE);
   private static final double INLEN = Math.sqrt(ARROWHEADDX*ARROWHEADDX+ARROWHEADDY*ARROWHEADDY);
+  public static final String IDBASE = "split";
 
 
   public DrawableSplit() {
@@ -57,6 +52,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   @Override
   public int getMaxSuccessorCount() {
     return Integer.MAX_VALUE;
+  }
+
+  @Override
+  public String getIdBase() {
+    return IDBASE;
   }
 
   @Override

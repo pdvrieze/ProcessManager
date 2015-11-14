@@ -1,16 +1,9 @@
 package nl.adaptivity.process.diagram;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ENDNODEINNERRRADIUS;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ENDNODEOUTERRADIUS;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.ENDNODEOUTERSTROKEWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.copyProcessNodeAttrs;
-import nl.adaptivity.diagram.Canvas;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
+
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
@@ -18,6 +11,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
 
   private static final double REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS;
   private static final double REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS;
+  public static final String IDBASE = "end";
   private int mState = STATE_DEFAULT;
 
 
@@ -73,6 +67,11 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   @Override
   public void setState(int state) {
     mState = state;
+  }
+
+  @Override
+  public String getIdBase() {
+    return IDBASE;
   }
 
   @Override
