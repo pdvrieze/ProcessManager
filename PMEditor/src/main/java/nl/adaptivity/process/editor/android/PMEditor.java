@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.*;
@@ -29,6 +30,7 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.editor.android.NodeEditDialogFragment.NodeEditListener;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.FileNotFoundException;
@@ -129,13 +131,13 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
   private static class MoveDrawable extends DiagramDrawable{
 
     private int mAlpha = 255;
-    private List<float[]> arrows;
+    private List<float[]> mArrows;
     private Paint mPaint;
     private Drawable mMinMaxOverlay;
 
-    public MoveDrawable(Drawable minMaxOverlay, List<float[]> arrows) {
+    public MoveDrawable(@Nullable Drawable minMaxOverlay, @NotNull List<float[]> arrows) {
       mMinMaxOverlay = minMaxOverlay;
-      arrows = arrows;
+      mArrows = arrows;
     }
 
     @Override
@@ -155,7 +157,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         mPaint.setStrokeWidth(3);
         mPaint.setARGB(255, 0, 255, 0);
       }
-      for(float[] arrow:arrows) {
+      for(float[] arrow:mArrows) {
         canvas.drawLine(arrow[0], arrow[1], arrow[2], arrow[3], mPaint);
       }
     }
@@ -356,7 +358,8 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
       mMinMaxOverlay = null;
     }
 
-    private MoveDrawable moveDrawable(Drawable minMaxOverlay, List<? extends DiagramNode<?>> nodes) {
+    @NotNull
+    private MoveDrawable moveDrawable(@Nullable Drawable minMaxOverlay, @NotNull List<? extends DiagramNode<?>> nodes) {
       List<float[]> arrows = new ArrayList<>(nodes.size());
       for(DiagramNode<?> node: nodes) {
         if (! (Double.isNaN(node.getX())|| Double.isNaN(node.getY()))) {
@@ -487,7 +490,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
         mPm.setLayoutAlgorithm(alg);
         mAdapter = new MyDiagramAdapter(PMEditor.this, mPm);
         diagramView1.setAdapter(mAdapter);
-        mPm.layout();
+//        mPm.layout();
       }
     }
 

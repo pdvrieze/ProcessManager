@@ -1,5 +1,6 @@
 package nl.adaptivity.process.editor.android;
 
+import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import nl.adaptivity.process.clientProcessModel.ClientMessage;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
@@ -8,7 +9,9 @@ import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import org.w3c.dom.*;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import org.w3c.dom.DOMException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -16,9 +19,6 @@ import org.xmlpull.v1.XmlSerializer;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.dom.DOMSource;
 
 import java.io.*;
 import java.util.*;
@@ -309,7 +309,7 @@ public class PMParser {
         // First remove the link with the temporary
         node.removePredecessor(predid);
         // Get the node that should replace the temporary
-        DrawableProcessNode realNode = nodes.get(predid);
+        DrawableProcessNode realNode = nodes.get(predid.getId());
         // Add the node as successor to the real predecessor
         addAsSuccessor(realNode, node, modelElems);
       }
@@ -368,7 +368,7 @@ public class PMParser {
     return result;
   }
 
-  private static IXmlMessage parseMessage(XmlPullParser in) {
+  private static IXmlMessage parseMessage(XmlPullParser in) throws XmlPullParserException, IOException {
     ClientMessage result = new ClientMessage();
     String endpoint = in.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint");
     String operation = in.getAttributeValue(XMLConstants.NULL_NS_URI, "operation");
@@ -387,25 +387,36 @@ public class PMParser {
       result.setServiceName(serviceName);
     }
 
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    Document doc;
-    try {
-      doc = dbf.newDocumentBuilder().newDocument();
-    } catch (ParserConfigurationException e) {
-      throw new RuntimeException(e);
-    }
+    XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
+    xmlPullParserFactory.setNamespaceAware(true);
+    XmlSerializer serializer = xmlPullParserFactory.newSerializer();
+    CharArrayWriter caw = new CharArrayWriter();
+    serializer.setOutput(caw);
+
+    Map<String, String> namespaces = new ArrayMap<>();
+    int nsStart = in.getNamespaceCount(in.getDepth()-1);
+    parseChildren(namespaces, in, serializer, nsStart);
+    serializer.flush();
+    // TODO fix this as it does not do fragments properly
+    result.setContent(new CompactFragment(new SimpleNamespaceContext(namespaces), caw.toCharArray()));
+    return result;
+  }
+
+  private static void parseChildren(final Map<String, String> namespaces, final XmlPullParser in, final XmlSerializer serializer, final int nsStart) {
     int tagtype;
     try {
       while ((tagtype=in.next())!=END_TAG) {
         switch (tagtype) {
+          case XmlPullParser.COMMENT:
+            serializer.comment(in.getText()); break;
+          case XmlPullParser.TEXT:
+            serializer.text(in.getText()); break;
+          case XmlPullParser.CDSECT:
+            serializer.cdsect(in.getText()); break;
           case START_TAG: {
-            Node node = parseXmlTag(doc, in);
-            if (doc.getDocumentElement()!=null) {
-              doc.replaceChild(node, doc.getDocumentElement());
-            } else {
-              doc.appendChild(node);
-            }
+            addUndefinedNamespaces(namespaces, in, serializer, nsStart);
+            serializer.startTag(in.getNamespace(), in.getName());
+            parseChildren(namespaces, in, serializer, nsStart);
             break;
           }
           default: {
@@ -416,36 +427,42 @@ public class PMParser {
     } catch (DOMException | XmlPullParserException | IOException e) {
       Log.e(PMParser.class.getSimpleName(), "Error parsing activity body", e);
     }
-    // TODO fix this as it does not do fragments properly
-    result.setMessageBody(new DOMSource(doc.getDocumentElement()));
-    return result;
   }
 
-  private static Element parseXmlTag(Document doc, XmlPullParser in) throws IOException, XmlPullParserException {
-    Element element=doc.createElementNS(in.getNamespace(), in.getName());
-    element.setPrefix(in.getPrefix());
-    for(int i=0; i<in.getAttributeCount(); ++i) {
-      Attr a = doc.createAttributeNS(in.getAttributeNamespace(i), in.getAttributeName(i));
-      a.setPrefix(in.getAttributePrefix(i));
-      a.setNodeValue(in.getAttributeValue(i));
-      element.setAttributeNode(a);
-    }
-    int type;
-    while ((type=in.next())!=END_TAG) {
-      switch (type) {
-        case START_TAG: {
-          Element e = parseXmlTag(doc, in);
-          element.appendChild(e);
-          break;
-        }
-        case TEXT: {
-          Text text = doc.createTextNode(in.getText());
-          element.appendChild(text);
-          break;
-        }
+  private static void addUndefinedNamespaces(final Map<String, String> target, final XmlPullParser in, final XmlSerializer out, final int nsStart) throws
+          XmlPullParserException {
+    String namespace = in.getNamespace();
+    String prefix = in.getPrefix();
+    addUndefinedNamespace(target, prefix, namespace, in, out, nsStart);
+
+    int attributeCount = in.getAttributeCount();
+    for(int i=0; i<attributeCount; ++i) {
+      if (! XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(in.getAttributeNamespace(i))) {
+        addUndefinedNamespace(target, in.getAttributePrefix(i), in.getAttributeNamespace(i), in, out, nsStart);
       }
     }
-    return element;
+  }
+
+  private static void addUndefinedNamespace(final Map<String, String> target, final String prefix, final String namespace, final XmlPullParser in, final XmlSerializer out, final int nsStart) throws
+          XmlPullParserException {
+    if (namespace!=null && prefix!=null && namespace.length()>0) {
+      if (! isPrefixDefinedInFragment(in, prefix, namespace, nsStart)) {
+        target.put(prefix, namespace);
+      }
+    }
+  }
+
+  private static boolean isPrefixDefinedInFragment(final XmlPullParser in, final String prefix, final String namespace, final int nsStart) throws
+          XmlPullParserException {
+    int nsEnd = in.getNamespaceCount(in.getDepth());
+    for(int i = nsStart; i<nsEnd; ++i) {
+      String defPrefix = in.getNamespacePrefix(i);
+      String defNs = in.getNamespaceUri(i);
+      if (prefix.equals(defPrefix) && namespace.equals(defNs)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static QName toQName(XmlPullParser in, String value) {

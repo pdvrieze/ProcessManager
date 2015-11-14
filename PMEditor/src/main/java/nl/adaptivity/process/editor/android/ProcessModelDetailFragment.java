@@ -163,21 +163,32 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   @Override
   public void onLoadFinished(Loader<ProcessModelHolder> loader, ProcessModelHolder data) {
     mSpinner.setVisibility(View.GONE);
-    mTVName.setVisibility(View.VISIBLE);
-    mModelView.setVisibility(View.VISIBLE);
-    mModelView.getParent().requestLayout(); // Do a layout
-    mTVName.setText(data.model.getName());
-    mItem = new BaseProcessAdapter(DrawableProcessModel.get(data.model));
-    mModelHandle = data.handle;
-    if (data.handle!=null) {
+    if (data.model==null) {
+      mTVName.setVisibility(View.VISIBLE);
+      mTVName.setText(R.string.text_load_pm_error);
+      mModelView.setVisibility(View.GONE);
+      mModelView.setAdapter(null);
+      mItem = null;
+      mModelHandle = null;
       mBtnPublish.setVisibility(View.GONE);
-      mBtnExec.setVisibility(View.VISIBLE);
-    } else {
-      mBtnPublish.setVisibility(View.VISIBLE);
       mBtnExec.setVisibility(View.GONE);
+    } else {
+      mTVName.setVisibility(View.VISIBLE);
+      mModelView.setVisibility(View.VISIBLE);
+      mModelView.getParent().requestLayout(); // Do a layout
+      mTVName.setText(data.model.getName());
+      mItem = new BaseProcessAdapter(DrawableProcessModel.get(data.model));
+      mModelHandle = data.handle;
+      if (data.handle != null) {
+        mBtnPublish.setVisibility(View.GONE);
+        mBtnExec.setVisibility(View.VISIBLE);
+      } else {
+        mBtnPublish.setVisibility(View.VISIBLE);
+        mBtnExec.setVisibility(View.GONE);
+      }
+      mModelView.setAdapter(mItem);
+      updateDiagramScale();
     }
-    mModelView.setAdapter(mItem);
-    updateDiagramScale();
   }
 
   @Override

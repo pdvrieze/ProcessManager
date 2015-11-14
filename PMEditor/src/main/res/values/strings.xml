@@ -41,5 +41,6 @@
     <string name="menu_ac_reset">Reset</string>
     <string name="menu_ac_sync">Sync</string>
     <string name="default_sync_location">https://darwin.bournemouth.ac.uk/ProcessEngine/</string>
+    <string name="text_load_pm_error">Error loading process model</string>
 
 </resources>
