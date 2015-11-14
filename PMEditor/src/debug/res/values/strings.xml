@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- In debug mode default to the local machine -->
-    <string name="default_sync_location">http://10.0.2.2:8080/ProcessEngine</string>
+    <string name="default_sync_location">http://10.0.2.2:8080/ProcessEngine/</string>
 </resources>
