@@ -28,6 +28,5 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="PE-dataservices.PE-dataservices-0.4" level="project" />
   </component>
 </module>
