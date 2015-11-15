@@ -3,6 +3,8 @@ package nl.adaptivity.process.clientProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.util.Identifiable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -25,14 +27,17 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
    */
   void setY(double y);
 
+  @NotNull
   @Override
-  public Set<? extends Identifiable> getPredecessors();
+  Set<? extends Identifiable> getPredecessors();
 
+  @NotNull
   @Override
-  public ProcessNodeSet<? extends T> getSuccessors();
+  ProcessNodeSet<? extends T> getSuccessors();
 
   void setOwner(ClientProcessModel<T> owner);
 
+  @Nullable
   ClientProcessModel<T> getOwner();
   
   void disconnect();
