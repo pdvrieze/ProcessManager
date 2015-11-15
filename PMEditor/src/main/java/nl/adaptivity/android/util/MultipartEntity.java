@@ -1,29 +1,13 @@
 package nl.adaptivity.android.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
+import android.util.Pair;
+
+import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.util.ByteArrayBuffer;
-
-import android.util.Pair;
 
 
 public class MultipartEntity extends AbstractHttpEntity {
@@ -59,13 +43,8 @@ public class MultipartEntity extends AbstractHttpEntity {
   }
 
   @Override
-  public Header getContentType() {
-    return new BasicHeader("Content-Type", MIMETYPE_BASE+"; boundary="+mBoundary.substring(2));
-  }
-
-  @Override
-  public void setContentType(Header contentType) {
-    setContentType(contentType.getValue());
+  public String getContentType() {
+    return MIMETYPE_BASE+"; boundary="+mBoundary.substring(2);
   }
 
   @Override
@@ -126,15 +105,15 @@ public class MultipartEntity extends AbstractHttpEntity {
     result.append(CRLF).append(mBoundary).append(CRLF);
     result.append(CONTENT_DISPOSITION).append(name).append(CRLF);
     {
-      Header ct = entity.getContentType();
+      String ct = entity.getContentType();
       if (ct!=null) {
-        result.append(ct.getName()).append(": ").append(ct.getValue()).append(CRLF);
+        result.append("Content-Type: ").append(ct).append(CRLF);
       }
     }
     {
-      Header ce = entity.getContentEncoding();
+      String ce = entity.getContentEncoding();
       if (ce!=null) {
-        result.append(ce.getName()).append(": ").append(ce.getValue()).append(CRLF);
+        result.append("Content-Transfer-Encoding: ").append(ce).append(CRLF);
       }
     }
     long cl = entity.getContentLength();

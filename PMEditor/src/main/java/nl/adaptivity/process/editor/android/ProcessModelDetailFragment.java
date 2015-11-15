@@ -172,6 +172,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       mModelHandle = null;
       mBtnPublish.setVisibility(View.GONE);
       mBtnExec.setVisibility(View.GONE);
+
     } else {
       mTVName.setVisibility(View.VISIBLE);
       mModelView.setVisibility(View.VISIBLE);
