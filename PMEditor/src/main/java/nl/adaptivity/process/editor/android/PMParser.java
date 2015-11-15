@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 import android.support.v4.util.ArrayMap;
 import android.util.Log;
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.clientProcessModel.ClientMessage;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
@@ -11,7 +12,7 @@ import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import org.w3c.dom.DOMException;
+import nl.adaptivity.xml.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -23,7 +24,7 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.util.*;
 
-import static org.xmlpull.v1.XmlPullParser.*;
+import static nl.adaptivity.xml.XmlReadingConstants.*;
 
 public class PMParser {
 
@@ -222,12 +223,9 @@ public class PMParser {
   }
 
   public static DrawableProcessModel parseProcessModel(Reader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
-    XmlPullParser parser;
+    XmlReader parser;
     try {
-      XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-      factory.setNamespaceAware(true);
-      parser = factory.newPullParser();
-      parser.setInput(in);
+      parser = new AndroidXmlReader(in);
     } catch (Exception e){
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
@@ -236,12 +234,9 @@ public class PMParser {
   }
 
   public static DrawableProcessModel parseProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
-    XmlPullParser parser;
+    XmlReader parser;
     try {
-      XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-      factory.setNamespaceAware(true);
-      parser = factory.newPullParser();
-      parser.setInput(in, "UTF-8");
+      parser = new AndroidXmlReader(in, "UTF-8");
     } catch (Exception e){
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
@@ -249,14 +244,14 @@ public class PMParser {
     return parseProcessModel(parser, simpleLayoutAlgorithm, advancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(XmlPullParser in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  public static DrawableProcessModel parseProcessModel(XmlReader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     try {
 
-      if(in.nextTag()==START_TAG && NS_PROCESSMODEL.equals(in.getNamespace()) && "processModel".equals(in.getName())){
+      if(in.nextTag()== START_TAG && StringUtil.isEqual(NS_PROCESSMODEL,in.getNamespace()) && StringUtil.isEqual("processModel",in.getLocalName())){
         ArrayList<DrawableProcessNode> modelElems = new ArrayList<>();
-        String modelName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "name");
-        String uuid = in.getAttributeValue(XMLConstants.NULL_NS_URI, "uuid");
-        String owner = in.getAttributeValue(XMLConstants.NULL_NS_URI, "owner");
+        String modelName = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
+        String uuid = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "uuid"));
+        String owner = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "owner"));
         Map<String, DrawableProcessNode> nodeMap = new HashMap<>();
         for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
 
@@ -316,43 +311,45 @@ public class PMParser {
     }
   }
 
-  private static DrawableProcessNode parseNode(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseNode(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
+          XmlException {
     if (!NS_PROCESSMODEL.equals(in.getNamespace())) {
       throw new IllegalArgumentException("Invalid process model");
     }
-    if ("start".equals(in.getName())) {
+    if ("start".equals(in.getLocalName())) {
       return parseStart(in, nodes, modelElems);
-    } else if ("activity".equals(in.getName())) {
+    } else if ("activity".equals(in.getLocalName())) {
       return parseActivity(in, nodes, modelElems);
-    } else if ("split".equals(in.getName())) {
+    } else if ("split".equals(in.getLocalName())) {
       return parseSplit(in, nodes, modelElems);
-    } else if ("join".equals(in.getName())) {
+    } else if ("join".equals(in.getLocalName())) {
       return parseJoin(in, nodes, modelElems);
-    } else if ("end".equals(in.getName())) {
+    } else if ("end".equals(in.getLocalName())) {
       return parseEnd(in, nodes, modelElems);
     }
     throw new UnsupportedOperationException("Unsupported tag");
   }
 
-  private static DrawableProcessNode parseStart(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseStart(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
+          XmlException {
     DrawableStartNode result = new DrawableStartNode();
     parseCommon(in, nodes, modelElems, result);
     if (in.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static DrawableProcessNode parseActivity(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseActivity(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlException {
     DrawableActivity result = new DrawableActivity();
     parseCommon(in, nodes, modelElems, result);
     String name = trimWS(in.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
     if (name!=null && name.length()>0) {
       result.setName(name);
     }
-    for(int type = in.next(); type!=END_TAG; type = in.next()) {
+    for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
       switch (type) {
       case START_TAG:
         if (NS_PROCESSMODEL.equals(in.getNamespace())) {
-          if ("message".equals(in.getName())) {
+          if ("message".equals(in.getLocalName())) {
             result.setMessage(parseMessage(in));
           } else {
             parseUnknownTag(in);
@@ -368,33 +365,36 @@ public class PMParser {
     return result;
   }
 
-  private static IXmlMessage parseMessage(XmlPullParser in) throws XmlPullParserException, IOException {
+  private static IXmlMessage parseMessage(XmlReader in) throws XmlException {
     ClientMessage result = new ClientMessage();
-    String endpoint = in.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint");
-    String operation = in.getAttributeValue(XMLConstants.NULL_NS_URI, "operation");
-    String url = in.getAttributeValue(XMLConstants.NULL_NS_URI, "url");
-    String method = in.getAttributeValue(XMLConstants.NULL_NS_URI, "method");
-    String type = in.getAttributeValue(XMLConstants.NULL_NS_URI, "type");
-    String serviceNS = in.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceNS");
-    String serviceName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceName");
+    String endpoint = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "endpoint"));
+    String operation = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "operation"));
+    String url = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "url"));
+    String method = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "method"));
+    String type = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "type"));
+    CharSequence serviceNS = in.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceNS");
+    CharSequence serviceName = in.getAttributeValue(XMLConstants.NULL_NS_URI, "serviceName");
     result.setEndpoint(endpoint);
     result.setOperation(operation);
     result.setUrl(url);
     result.setMethod(method);
     result.setType(type);
     if(serviceName!=null) {
-      result.setServiceNS(serviceNS);
-      result.setServiceName(serviceName);
+      result.setServiceNS(StringUtil.toString(serviceNS));
+      result.setServiceName(StringUtil.toString(serviceName));
     }
 
-    XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
-    xmlPullParserFactory.setNamespaceAware(true);
-    XmlSerializer serializer = xmlPullParserFactory.newSerializer();
     CharArrayWriter caw = new CharArrayWriter();
-    serializer.setOutput(caw);
+
+    XmlWriter serializer = null;
+    try {
+      serializer = new AndroidXmlWriter(caw);
+    } catch (XmlPullParserException | IOException e) {
+      throw new XmlException(e);
+    }
 
     Map<String, String> namespaces = new ArrayMap<>();
-    int nsStart = in.getNamespaceCount(in.getDepth()-1);
+    int nsStart = in.getNamespaceStart();
     parseChildren(namespaces, in, serializer, nsStart);
     serializer.flush();
     // TODO fix this as it does not do fragments properly
@@ -402,20 +402,20 @@ public class PMParser {
     return result;
   }
 
-  private static void parseChildren(final Map<String, String> namespaces, final XmlPullParser in, final XmlSerializer serializer, final int nsStart) {
+  private static void parseChildren(final Map<String, String> namespaces, final XmlReader in, final XmlWriter serializer, final int nsStart) {
     int tagtype;
     try {
       while ((tagtype=in.next())!=END_TAG) {
         switch (tagtype) {
-          case XmlPullParser.COMMENT:
+          case COMMENT:
             serializer.comment(in.getText()); break;
-          case XmlPullParser.TEXT:
+          case TEXT:
             serializer.text(in.getText()); break;
-          case XmlPullParser.CDSECT:
+          case CDSECT:
             serializer.cdsect(in.getText()); break;
           case START_TAG: {
             addUndefinedNamespaces(namespaces, in, serializer, nsStart);
-            serializer.startTag(in.getNamespace(), in.getName());
+            serializer.startTag(in.getNamespace(), in.getLocalName(), in.getPrefix());
             parseChildren(namespaces, in, serializer, nsStart);
             break;
           }
@@ -424,15 +424,14 @@ public class PMParser {
           }
         }
       }
-    } catch (DOMException | XmlPullParserException | IOException e) {
+    } catch (XmlException e) {
       Log.e(PMParser.class.getSimpleName(), "Error parsing activity body", e);
     }
   }
 
-  private static void addUndefinedNamespaces(final Map<String, String> target, final XmlPullParser in, final XmlSerializer out, final int nsStart) throws
-          XmlPullParserException {
-    String namespace = in.getNamespace();
-    String prefix = in.getPrefix();
+  private static void addUndefinedNamespaces(final Map<String, String> target, final XmlReader in, final XmlWriter out, final int nsStart) throws XmlException {
+    CharSequence namespace = in.getNamespace();
+    CharSequence prefix = in.getPrefix();
     addUndefinedNamespace(target, prefix, namespace, in, out, nsStart);
 
     int attributeCount = in.getAttributeCount();
@@ -443,22 +442,21 @@ public class PMParser {
     }
   }
 
-  private static void addUndefinedNamespace(final Map<String, String> target, final String prefix, final String namespace, final XmlPullParser in, final XmlSerializer out, final int nsStart) throws
-          XmlPullParserException {
+  private static void addUndefinedNamespace(final Map<String, String> target, final CharSequence prefix, final CharSequence namespace, final XmlReader in, final XmlWriter out, final int nsStart) throws XmlException {
     if (namespace!=null && prefix!=null && namespace.length()>0) {
       if (! isPrefixDefinedInFragment(in, prefix, namespace, nsStart)) {
-        target.put(prefix, namespace);
+        target.put(prefix.toString(), namespace.toString());
       }
     }
   }
 
-  private static boolean isPrefixDefinedInFragment(final XmlPullParser in, final String prefix, final String namespace, final int nsStart) throws
-          XmlPullParserException {
-    int nsEnd = in.getNamespaceCount(in.getDepth());
+  private static boolean isPrefixDefinedInFragment(final XmlReader in, final CharSequence prefix, final CharSequence namespace, final int nsStart) throws
+          XmlException {
+    int nsEnd = in.getNamespaceEnd();
     for(int i = nsStart; i<nsEnd; ++i) {
-      String defPrefix = in.getNamespacePrefix(i);
-      String defNs = in.getNamespaceUri(i);
-      if (prefix.equals(defPrefix) && namespace.equals(defNs)) {
+      CharSequence defPrefix = in.getNamespacePrefix(i);
+      CharSequence defNs = in.getNamespaceUri(i);
+      if (StringUtil.isEqual(prefix,defPrefix) && StringUtil.isEqual(namespace,defNs)) {
         return true;
       }
     }
@@ -479,7 +477,7 @@ public class PMParser {
     }
   }
 
-  private static void parseUnknownTag(XmlPullParser in) throws XmlPullParserException, IOException {
+  private static void parseUnknownTag(XmlReader in) throws XmlException {
     for(int type = in.next(); type!=END_TAG; type = in.next()) {
       switch (type) {
       case START_TAG:
@@ -491,14 +489,15 @@ public class PMParser {
     }
   }
 
-  private static DrawableProcessNode parseJoin(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseJoin(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
+          XmlException {
     DrawableJoin result = new DrawableJoin();
     parseCommon(in, nodes, modelElems, result);
     parseJoinSplitAttrs(in, result);
     List<Identifiable> predecessors = new ArrayList<>();
 
     for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
-      if (! (NS_PROCESSMODEL.equals(in.getNamespace()) && "predecessor".equals(in.getName()))) {
+      if (! (StringUtil.isEqual(NS_PROCESSMODEL,in.getNamespace()) && StringUtil.isEqual("predecessor",in.getLocalName()))) {
         throw new IllegalArgumentException("Invalid process model");
       }
       StringBuilder name = new StringBuilder();
@@ -530,7 +529,7 @@ public class PMParser {
     return codepoint==0x20|codepoint==0x9||codepoint==0xD||codepoint==0xA;
   }
 
-  private static DrawableProcessNode parseSplit(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseSplit(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlException {
     DrawableSplit result = new DrawableSplit();
     parseCommon(in, nodes, modelElems, result);
     parseJoinSplitAttrs(in, result);
@@ -547,41 +546,43 @@ public class PMParser {
     return result;
   }
 
-  private static void parseJoinSplitAttrs(XmlPullParser in, DrawableJoinSplit node) {
+  private static void parseJoinSplitAttrs(XmlReader in, DrawableJoinSplit node) throws XmlException {
     for(int i=0; i< in.getAttributeCount();++i) {
       if (XMLConstants.NULL_NS_URI.equals(in.getAttributeNamespace(i))) {
-        final String aname = in.getAttributeName(i);
-        if ("min".equals(aname)) {
-          node.setMin(Integer.parseInt(in.getAttributeValue(i)));
+        final CharSequence aname = in.getAttributeLocalName(i);
+        if (StringUtil.isEqual("min",aname)) {
+          node.setMin(Integer.parseInt(in.getAttributeValue(i).toString()));
         } else if ("max".equals(aname)) {
-          node.setMax(Integer.parseInt(in.getAttributeValue(i)));
+          node.setMax(Integer.parseInt(in.getAttributeValue(i).toString()));
         }
       }
     }
   }
 
-  private static DrawableProcessNode parseEnd(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlPullParserException, IOException {
+  private static DrawableProcessNode parseEnd(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
+          XmlException {
     DrawableEndNode result = new DrawableEndNode();
     parseCommon(in, nodes, modelElems, result);
     if (in.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
-  private static void parseCommon(XmlPullParser in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems, DrawableProcessNode node) {
+  private static void parseCommon(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems, DrawableProcessNode node) throws
+          XmlException {
     for(int i=0; i< in.getAttributeCount();++i) {
       if (XMLConstants.NULL_NS_URI.equals(in.getAttributeNamespace(i))) {
-        final String aname = in.getAttributeName(i);
+        final CharSequence aname = in.getAttributeLocalName(i);
         if ("x".equals(aname)) {
-          node.setX(Double.parseDouble(in.getAttributeValue(i)));
+          node.setX(Double.parseDouble(in.getAttributeValue(i).toString()));
         } else if ("y".equals(aname)) {
-          node.setY(Double.parseDouble(in.getAttributeValue(i)));
+          node.setY(Double.parseDouble(in.getAttributeValue(i).toString()));
         } else if ("id".equals(aname)) {
           node.setId(trimWS(in.getAttributeValue(i)));
         } else if ("label".equals(aname)) {
-          node.setLabel(in.getAttributeValue(i));
+          node.setLabel(in.getAttributeValue(i).toString());
         } else if ("name".equals(aname)) {
           if (node.getLabel()==null) {
-            node.setLabel(in.getAttributeValue(i));
+            node.setLabel(in.getAttributeValue(i).toString());
           }
         } else if ("predecessor".equals(aname)) {
           addPredecessor(node, trimWS(in.getAttributeValue(i)), nodes, modelElems);
@@ -599,19 +600,18 @@ public class PMParser {
   }
 
   private static Identifiable getPredecessor(String name, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) {
-    Identifiable val = nodes.get(name);
+    DrawableProcessNode val = nodes.get(name);
     if (val==null) {
-      val = new Identifier(name);
-    } else if (val instanceof DrawableProcessNode) { // there already is a node
+      return new Identifier(name);
+    } else { // there already is a node
       // Allow temporary references to collect as many successors as desired, it might be a split.
-      if ((((DrawableProcessNode)val).getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
+      if ((val.getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
         return val;
       } else {
         // There is no suitable successor
         return introduceSplit((DrawableProcessNode)val, modelElems);
       }
     }
-    return val;
   }
 
   private static DrawableSplit introduceSplit(DrawableProcessNode predecessor, List<DrawableProcessNode> modelElems) {

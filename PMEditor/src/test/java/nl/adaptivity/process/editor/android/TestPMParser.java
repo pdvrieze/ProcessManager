@@ -1,8 +1,9 @@
 package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.process.diagram.*;
+import nl.adaptivity.xml.AndroidXmlReader;
+import nl.adaptivity.xml.XmlReader;
 import org.junit.Test;
-import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.InputStream;
@@ -16,10 +17,8 @@ public class TestPMParser {
 
   @Test
   public void testParseSimple() throws XmlPullParserException {
-    KXmlParser parser = new KXmlParser();
-    parser.setFeature("http://xmlpull.org/v1/doc/features.html#process-namespaces", true);
     InputStream inputStream = getClass().getResourceAsStream("/processmodel.xml");
-    parser.setInput(inputStream, "UTF-8");
+    XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
     DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
     assertNotNull(model);
 
