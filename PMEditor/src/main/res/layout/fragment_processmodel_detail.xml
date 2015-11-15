@@ -1,66 +1,89 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/processmodel_detail"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="@dimen/default_margin" >
+<!--suppress AndroidDomInspection -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ProgressBar
-        android:id="@+id/processmodel_detail_spinner"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:layout_weight="1" />
+    <data>
 
-    <TextView
-        android:id="@+id/processmodel_name"
-        style="?android:attr/textAppearanceLarge"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:gravity="center"
-        android:textIsSelectable="true"
-        tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
+        <import type="android.view.View" />
 
-    <nl.adaptivity.diagram.android.DiagramView
-        android:id="@+id/diagramView1"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:layout_marginLeft="@dimen/default_margin"
-        android:layout_marginRight="@dimen/default_margin"
-        android:layout_weight="1"
-        app:editable="false" />
+        <variable name="data"
+                  type="nl.adaptivity.process.models.ProcessModelHolder"
+                  tools:ignore="MissingPrefix" />
+    </data>
 
-    <Button
-        android:id="@+id/btn_pm_clone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:text="@string/btn_pm_clone" />
+    <LinearLayout
 
-    <Button
-        android:id="@+id/btn_pm_edit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:text="@string/btn_pm_edit" />
+            android:id="@+id/processmodel_detail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/default_margin">
 
-    <Button
-        android:id="@+id/btn_pm_publish"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/default_margin"
-        android:text="@string/btn_pm_publish" />
+        <ProgressBar
+                android:id="@+id/processmodel_detail_spinner"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:visibility="@{data.isLoading ? View.VISIBLE : View.GONE}"
+                android:layout_weight="1" />
 
-    <Button
-        android:id="@+id/btn_pm_exec"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_pm_execute" />
+        <TextView
+                android:id="@+id/processmodel_name"
+                style="?android:attr/textAppearanceLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:gravity="center"
+                android:textIsSelectable="true"
+                android:text="@{data.name ?? @string/text_load_pm_error}"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
 
-</LinearLayout>
+        <nl.adaptivity.diagram.android.DiagramView
+                android:id="@+id/diagramView1"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:layout_marginLeft="@dimen/default_margin"
+                android:layout_marginRight="@dimen/default_margin"
+                android:layout_weight="1"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                app:editable="false" />
+
+        <Button
+                android:id="@+id/btn_pm_clone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:text="@string/btn_pm_clone"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                />
+
+        <Button
+                android:id="@+id/btn_pm_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                android:text="@string/btn_pm_edit" />
+
+        <Button
+                android:id="@+id/btn_pm_publish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:visibility="@{(data.isLoading || data.handle==null) ? View.GONE : View.VISIBLE}"
+                android:text="@string/btn_pm_publish" />
+
+        <Button
+                android:id="@+id/btn_pm_exec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="@{(data.isLoading || data.handle==null) ? View.GONE : View.VISIBLE}"
+                android:text="@string/btn_pm_execute" />
+
+    </LinearLayout>
+</layout>

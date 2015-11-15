@@ -1,6 +1,5 @@
 package nl.adaptivity.process.models;
 
-import nl.adaptivity.process.models.ProcessModelLoader.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.processModel.ProcessModel;
 import android.content.ContentUris;
@@ -11,16 +10,6 @@ import android.support.v4.content.AsyncTaskLoader;
 
 
 public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
-
-  public static class ProcessModelHolder {
-    public final ProcessModel<?> model;
-    public final Long handle;
-
-    public ProcessModelHolder(ProcessModel<?> model, Long handle) {
-      this.model = model;
-      this.handle = handle;
-    }
-  }
 
   private Uri mUri=null;
   private long mHandle=-1L;

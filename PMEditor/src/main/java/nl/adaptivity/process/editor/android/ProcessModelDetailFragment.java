@@ -5,6 +5,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,16 +14,15 @@ import android.support.v4.content.Loader;
 import android.view.*;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.process.editor.android.databinding.FragmentProcessmodelDetailBinding;
+import nl.adaptivity.process.models.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelLoader;
-import nl.adaptivity.process.models.ProcessModelLoader.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
@@ -71,21 +71,12 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
    */
   private BaseProcessAdapter mItem;
 
-  private TextView mTVName;
-
-  private DiagramView mModelView;
-
-  private ProgressBar mSpinner;
-
   private PMProcessesFragment mProcessesFragment;
 
   private long mProcessModelId;
 
-  private View mBtnPublish;
-
-  private View mBtnExec;
-
   private Long mModelHandle;
+  private FragmentProcessmodelDetailBinding mBinding;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -104,15 +95,16 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   void updateDiagramScale() {
     RectF diagramBounds =new RectF();
     mItem.getBounds(diagramBounds);
-    float scale = Math.min(mModelView.getWidth()/diagramBounds.width(),mModelView.getHeight()/diagramBounds.height());
-    mModelView.setScale(scale);
+    final DiagramView diagramView = mBinding.diagramView1;
+    float scale = Math.min(diagramView.getWidth()/diagramBounds.width(),diagramView.getHeight()/diagramBounds.height());
+    diagramView.setScale(scale);
 
-    float w2 = mModelView.getWidth()/scale;
+    float w2 = diagramView.getWidth()/scale;
 
-    mModelView.setOffsetX(diagramBounds.left-(w2-diagramBounds.width())/2);
+    diagramView.setOffsetX(diagramBounds.left-(w2-diagramBounds.width())/2);
 
-    float h2 = mModelView.getHeight()/scale;
-    mModelView.setOffsetY(diagramBounds.top-(h2-diagramBounds.height())/2);
+    float h2 = diagramView.getHeight()/scale;
+    diagramView.setOffsetY(diagramBounds.top-(h2-diagramBounds.height())/2);
   }
 
   @Override
@@ -128,29 +120,20 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    View rootView = inflater.inflate(R.layout.fragment_processmodel_detail, container, false);
+    mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_processmodel_detail, container, false);
+    mBinding.setData(new ProcessModelHolder());
 
-    mTVName = (TextView) rootView.findViewById(R.id.processmodel_name);
-    mModelView = (DiagramView) rootView.findViewById(R.id.diagramView1);
-    mModelView.addOnLayoutChangeListener(new ModelViewLayoutChangeListener());
+    mBinding.diagramView1.addOnLayoutChangeListener(new ModelViewLayoutChangeListener());
 
-    mSpinner = (ProgressBar) rootView.findViewById(R.id.processmodel_detail_spinner);
-    mTVName.setVisibility(View.GONE);
-    mModelView.setVisibility(View.GONE);
+    mBinding.btnPmEdit.setOnClickListener(this);
 
-    rootView.findViewById(R.id.btn_pm_edit).setOnClickListener(this);
+    mBinding.btnPmExec.setOnClickListener(this);
 
-    mBtnExec = rootView.findViewById(R.id.btn_pm_exec);
-    mBtnExec.setOnClickListener(this);
-    mBtnExec.setVisibility(View.GONE);
+    mBinding.btnPmClone.setOnClickListener(this);
 
-    rootView.findViewById(R.id.btn_pm_clone).setOnClickListener(this);
+    mBinding.btnPmPublish.setOnClickListener(this);
 
-    mBtnPublish = rootView.findViewById(R.id.btn_pm_publish);
-    mBtnPublish.setOnClickListener(this);
-    mBtnPublish.setVisibility(View.GONE);
-
-    return rootView;
+    return mBinding.getRoot();
   }
 
   @Override
@@ -162,41 +145,28 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   @Override
   public void onLoadFinished(Loader<ProcessModelHolder> loader, ProcessModelHolder data) {
-    mSpinner.setVisibility(View.GONE);
+    mBinding.processmodelDetailSpinner.setVisibility(View.GONE);
+    mBinding.setData(data);
+
     if (data.model==null) {
-      mTVName.setVisibility(View.VISIBLE);
-      mTVName.setText(R.string.text_load_pm_error);
-      mModelView.setVisibility(View.GONE);
-      mModelView.setAdapter(null);
+      mBinding.diagramView1.setAdapter(null);
       mItem = null;
       mModelHandle = null;
-      mBtnPublish.setVisibility(View.GONE);
-      mBtnExec.setVisibility(View.GONE);
 
     } else {
-      mTVName.setVisibility(View.VISIBLE);
-      mModelView.setVisibility(View.VISIBLE);
-      mModelView.getParent().requestLayout(); // Do a layout
-      mTVName.setText(data.model.getName());
+      mBinding.diagramView1.getParent().requestLayout(); // Do a layout
       mItem = new BaseProcessAdapter(DrawableProcessModel.get(data.model));
       mModelHandle = data.handle;
-      if (data.handle != null) {
-        mBtnPublish.setVisibility(View.GONE);
-        mBtnExec.setVisibility(View.VISIBLE);
-      } else {
-        mBtnPublish.setVisibility(View.VISIBLE);
-        mBtnExec.setVisibility(View.GONE);
-      }
-      mModelView.setAdapter(mItem);
+      mBinding.diagramView1.setAdapter(mItem);
       updateDiagramScale();
     }
   }
 
   @Override
   public void onLoaderReset(Loader<ProcessModelHolder> loader) {
-    mTVName.setText(null);
+    mBinding.processmodelName.setText(null);
     mItem = null;
-    mModelView.setAdapter(null);
+    mBinding.diagramView1.setAdapter(null);
     // TODO Auto-generated method stub
 
   }
@@ -224,11 +194,11 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   public void btnPmExecClicked() {
     long id = getArguments().getLong(ARG_ITEM_ID);
-    mCallbacks.onInstantiateModel(id, mTVName.getText()+" Instance");
+    mCallbacks.onInstantiateModel(id, mBinding.processmodelName.getText()+" Instance");
   }
 
   public void btnPmCloneClicked() {
-    CharSequence previousName = mTVName.getText();
+    CharSequence previousName = mBinding.processmodelName.getText();
     String suggestedNewName = ProcessModelUtil.suggestNewName(getActivity(), previousName);
 
     GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
@@ -248,7 +218,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   protected void cloneWithName(String newName) {
     // TODO Auto-generated method stub
-    DrawableProcessModel currentModel = ((BaseProcessAdapter) mModelView.getAdapter()).getDiagram();
+    DrawableProcessModel currentModel = ((BaseProcessAdapter) mBinding.diagramView1.getAdapter()).getDiagram();
     DrawableProcessModel newModel = currentModel.clone();
     newModel.setName(newName);
     newModel.setUuid(UUID.randomUUID());
@@ -270,7 +240,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
     final ContentResolver contentResolver = getActivity().getContentResolver();
     contentResolver.update(itemUri, cv, null, null);
-    mBtnPublish.setEnabled(false);
+    mBinding.btnPmPublish.setEnabled(false);
     MainActivity.requestSyncProcessModelList(getActivity(), true);
   }
 
