@@ -104,23 +104,27 @@ public class ContentProviderHelper {
         } finally {
           is.close();
         }
-        ContentValues values = new ContentValues(mSyncStateColumn==null? 1 : 2);
-        values.put(mColumn, data.toString());
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        db.beginTransaction();
-        try {
-          if (mSyncStateColumn!=null) {
-            values.put(mSyncStateColumn, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
+        if (data.length()>0) {
+          ContentValues values = new ContentValues(mSyncStateColumn == null ? 1 : 2);
+          values.put(mColumn, data.toString());
+          SQLiteDatabase db = mDbHelper.getWritableDatabase();
+          db.beginTransaction();
+          try {
+            if (mSyncStateColumn != null) {
+              values.put(mSyncStateColumn, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
+            }
+            int updateCount = db.update(mTable, values, BaseColumns._ID + " = ?", new String[]{Long.toString(mId)});
+            if (updateCount != 1) {
+              Log.e(TAG, "Failure to update the database");
+              Compat.closeWithError(mFileDescriptor, "Database update failure");
+            } else {
+              db.setTransactionSuccessful();
+            }
+          } finally {
+            db.endTransaction();
           }
-          int updateCount = db.update(mTable, values , BaseColumns._ID+" = ?", new String[] {Long.toString(mId)});
-          if (updateCount!=1) {
-            Log.e(TAG, "Failure to update the database");
-            Compat.closeWithError(mFileDescriptor, "Database update failure");
-          } else {
-            db.setTransactionSuccessful();
-          }
-        } finally {
-          db.endTransaction();
+        } else {
+          Compat.closeWithError(mFileDescriptor, "Empty process model provided. This is not valid");
         }
       } catch (IOException e) {
         Log.e(TAG, "Failure to excute pipe", e);
