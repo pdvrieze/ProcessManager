@@ -9,10 +9,7 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.Namespace;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
+import nl.adaptivity.xml.XmlEvent;
 
 import java.util.Collections;
 import java.util.List;
@@ -84,7 +81,7 @@ public class ProcessNodeInstanceContext extends AbstractDataContext {
   }
 
   @Override
-  public List<XMLEvent> resolveDefaultValue(XMLEventFactory xef) throws XMLStreamException {
+  public List<XmlEvent> resolveDefaultValue() {
     throw new UnsupportedOperationException("There is no default in this context");
   }
 

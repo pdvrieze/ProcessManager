@@ -20,6 +20,10 @@ import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlWriter;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
@@ -27,19 +31,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.*;
-import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stax.StAXSource;
 
 import java.io.*;
 import java.net.URI;
@@ -83,18 +83,19 @@ public class TestProcessEngine {
     @Override
     public boolean sendMessage(final Transaction transaction, final IXmlMessage protoMessage, final ProcessNodeInstance instance) throws
             SQLException {
+      CompactFragment instantiatedContent = null;
+      XmlMessage processedMessage = null;
       try {
-        CompactFragment instantiatedContent = instance.instantiateXmlPlaceholders(transaction, protoMessage.getBodySource(), false);
-        Source contentSource = new StAXSource(XMLFragmentStreamReader.from(instantiatedContent));
-        XmlMessage processedMessage = new XmlMessage(protoMessage.getService(), protoMessage.getEndpoint(), protoMessage.getOperation(), protoMessage.getUrl(), protoMessage.getMethod(), protoMessage.getContentType(), contentSource);
-
-        ((XmlMessage) processedMessage).setContent(instantiatedContent.getNamespaces(), instantiatedContent.getContent());
-        mMessages.add(processedMessage);
-        mMessageNodes.add(new HProcessNodeInstance(instance.getHandle()));
-        return true;
-      } catch (XMLStreamException e) {
+        instantiatedContent = instance.instantiateXmlPlaceholders(transaction, XMLFragmentStreamReader.from(protoMessage.getMessageBody()), false);
+        processedMessage = new XmlMessage(protoMessage.getService(), protoMessage.getEndpoint(), protoMessage.getOperation(), protoMessage.getUrl(), protoMessage.getMethod(), protoMessage.getContentType(), instantiatedContent);
+      } catch (XmlException e) {
         throw new RuntimeException(e);
       }
+
+      ((XmlMessage) processedMessage).setContent(instantiatedContent.getNamespaces(), instantiatedContent.getContent());
+      mMessages.add(processedMessage);
+      mMessageNodes.add(new HProcessNodeInstance(instance.getHandle()));
+      return true;
     }
   }
 
@@ -240,12 +241,11 @@ public class TestProcessEngine {
     }
   }
 
-  private XMLStreamReader getStream(String name) throws XMLStreamException {
-    XMLInputFactory xif = XMLInputFactory.newFactory();
-    return xif.createXMLStreamReader(getXml(name));
+  private XmlReader getStream(String name) throws XmlException {
+    return XmlStreaming.newReader(getXml(name), "UTF-8");
   }
 
-  private ProcessModelImpl getProcessModel(String name) throws XMLStreamException {
+  private ProcessModelImpl getProcessModel(String name) throws XmlException {
     return ProcessModelImpl.deserialize(getStream(name));
   }
 
@@ -263,15 +263,14 @@ public class TestProcessEngine {
     mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemTransactionedHandleMap<ProcessModelImpl>(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
   }
 
-  private char[] serializeToXmlCharArray(final Object object) throws XMLStreamException {
+  private char[] serializeToXmlCharArray(final Object object) throws XmlException {
     char[] receivedChars;
     {
       CharArrayWriter caw = new CharArrayWriter();
       if (object instanceof XmlSerializable) {
-        XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
-        XMLStreamWriter xsw = xmlOutputFactory.createXMLStreamWriter(caw);
-        ((XmlSerializable) object).serialize(xsw);
-        xsw.close();
+        XmlWriter writer = XmlStreaming.newWriter(caw);
+        ((XmlSerializable) object).serialize(writer);
+        writer.close();
       } else {
         JAXB.marshal(object, caw);
       }
@@ -296,7 +295,7 @@ public class TestProcessEngine {
   }
 
   @Test
-  public void testExecuteSingleActivity() throws XMLStreamException, SQLException, IOException, SAXException {
+  public void testExecuteSingleActivity() throws Exception {
     ProcessModelImpl model = getProcessModel("testModel1.xml");
     StubTransaction transaction = mStubTransactionFactory.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);
@@ -337,8 +336,7 @@ public class TestProcessEngine {
   }
 
   @Test
-  public void testGetDataFromTask() throws SQLException, IOException, SAXException, TransformerException,
-          XMLStreamException {
+  public void testGetDataFromTask() throws Exception {
     ProcessModelImpl model = getProcessModel("testModel2.xml");
     StubTransaction transaction = mStubTransactionFactory.startTransaction();
     IProcessModelRef modelHandle = mProcessEngine.addProcessModel(transaction, model, mPrincipal);

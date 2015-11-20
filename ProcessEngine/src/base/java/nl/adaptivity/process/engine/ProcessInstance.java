@@ -5,7 +5,6 @@ import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
@@ -19,6 +18,8 @@ import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
@@ -26,8 +27,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
+
 import java.io.Serializable;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -468,117 +468,118 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   }
 
   @Override
-  public void serialize(XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(XmlWriter out) throws XmlException {
     //
     if(out.getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
       out.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
     }
-    out.writeStartElement(Constants.PROCESS_ENGINE_NS, "processInstance");
+    out.startTag(Constants.PROCESS_ENGINE_NS, null, "processInstance");
     try {
-      out.writeAttribute("handle", Long.toString(mHandle));
-      out.writeAttribute("name", mName);
-      out.writeAttribute("processModel", Long.toString(getProcessModel().getHandle()));
-      out.writeAttribute("owner", mOwner.getName());
-      out.writeAttribute("state", mState.name());
+      out.attribute(null, "handle", null, Long.toString(mHandle));
+      out.attribute(null, "name", null, mName);
+      out.attribute(null, "processModel", null, Long.toString(getProcessModel().getHandle()));
+      out.attribute(null, "owner", null, mOwner.getName());
+      out.attribute(null, "state", null, mState.name());
 
-      out.writeStartElement(Constants.PROCESS_ENGINE_NS, "inputs");
+      out.startTag(Constants.PROCESS_ENGINE_NS, null, "inputs");
       try {
         for(ProcessData input:mInputs) {
           input.serialize(out);
         }
       } finally {
-        out.writeEndElement();
+        out.endTag(Constants.PROCESS_ENGINE_NS, null, "inputs");
       }
 
-      out.writeStartElement(Constants.PROCESS_ENGINE_NS, "outputs");
+      out.startTag(Constants.PROCESS_ENGINE_NS, null, "outputs");
       try {
         for(ProcessData output:mOutputs) {
           output.serialize(out);
         }
       } finally {
-        out.writeEndElement();
+        out.endTag(Constants.PROCESS_ENGINE_NS, null, "outputs");
       }
 
       try(Transaction transaction = getEngine().startTransaction()) {
 
         if (mThreads.size() > 0) {
           try {
-            out.writeStartElement(Constants.PROCESS_ENGINE_NS, "active");
+            out.startTag(Constants.PROCESS_ENGINE_NS, null, "active");
             for (Handle<? extends ProcessNodeInstance> active : mThreads) {
               writeActiveNodeRef(transaction, out, active);
             }
           } finally {
-            out.writeEndElement();
+            out.endTag(Constants.PROCESS_ENGINE_NS, null, "active");
           }
         }
         if (mFinishedNodes.size() > 0) {
           try {
-            out.writeStartElement(Constants.PROCESS_ENGINE_NS, "finished");
+            out.startTag(Constants.PROCESS_ENGINE_NS, null, "finished");
             for (Handle<? extends ProcessNodeInstance> finished : mFinishedNodes) {
               writeActiveNodeRef(transaction, out, finished);
             }
           } finally {
-            out.writeEndElement();
+            out.endTag(Constants.PROCESS_ENGINE_NS, null, "finished");
           }
         }
         if (mEndResults.size() > 0) {
           try {
-            out.writeStartElement(Constants.PROCESS_ENGINE_NS, "endresults");
+            out.startTag(Constants.PROCESS_ENGINE_NS, null, "endresults");
             for (Handle<? extends ProcessNodeInstance> result : mEndResults) {
               writeResultNodeRef(transaction, out, result);
             }
           } finally {
-            out.writeEndElement();
+            out.endTag(Constants.PROCESS_ENGINE_NS, null, "endresults");
           }
         }
         transaction.commit();
       } catch (SQLException e) {
-        throw new XMLStreamException(e);
+        throw new XmlException(e);
       }
     } finally {
-      out.writeEndElement();
+      out.endTag(Constants.PROCESS_ENGINE_NS, null, "processInstance");
     }
 
   }
 
-  private void writeActiveNodeRef(Transaction transaction, XMLStreamWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
-          XMLStreamException, SQLException {
+  private void writeActiveNodeRef(Transaction transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
+          XmlException, SQLException {
     ProcessNodeInstance nodeInstance = getEngine().getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
-    out.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
+    out.startTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
     try {
       writeNodeRefCommon(out, nodeInstance);
     } finally{
-      out.writeEndElement();
+      out.endTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
     }
   }
 
-  private void writeResultNodeRef(Transaction transaction, XMLStreamWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
-          XMLStreamException, SQLException {
+  private void writeResultNodeRef(Transaction transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
+          XmlException, SQLException {
     ProcessNodeInstance nodeInstance = getEngine().getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
-    out.writeStartElement(Constants.PROCESS_ENGINE_NS, "nodeinstance");
+    out.startTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
     try {
       writeNodeRefCommon(out, nodeInstance);
-      out.writeStartElement(Constants.PROCESS_ENGINE_NS, "results");
+      out.startTag(Constants.PROCESS_ENGINE_NS, null, "results");
       try {
         List<ProcessData> results = nodeInstance.getResults();
         for(ProcessData result:results) {
           result.serialize(out);
         }
       } finally {
-        out.writeEndElement();
+        out.endTag(Constants.PROCESS_ENGINE_NS, null, "results");
       }
     } finally{
-      out.writeEndElement();
+      out.endTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
     }
   }
 
-  private static void writeNodeRefCommon(XMLStreamWriter out, ProcessNodeInstance nodeInstance) throws XMLStreamException {
-    out.writeAttribute("nodeid", nodeInstance.getNode().getId());
-    out.writeAttribute("handle", Long.toString(nodeInstance.getHandle()));
-    out.writeAttribute("state", nodeInstance.getState().toString());
+  private static void writeNodeRefCommon(XmlWriter out, ProcessNodeInstance nodeInstance) throws XmlException {
+    out.attribute(null, "nodeid", null, nodeInstance.getNode().getId());
+    out.attribute(null, "handle", null, Long.toString(nodeInstance.getHandle()));
+    out.attribute(null, "state", null, nodeInstance.getState().toString());
     if (nodeInstance.getState()==TaskState.Failed) {
       final Throwable failureCause = nodeInstance.getFailureCause();
-      out.writeAttribute("failureCause", failureCause==null? "<unknown>" : failureCause.getClass().getName()+": "+failureCause.getMessage());
+      final String value = failureCause==null? "<unknown>" : failureCause.getClass().getName()+": "+failureCause.getMessage();
+      out.attribute(null, "failureCause", null, value);
     }
 
   }

@@ -14,16 +14,8 @@ import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import nl.adaptivity.util.xml.CompactFragment;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import java.io.IOException;
-import java.io.StringReader;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -150,22 +142,8 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
               while(resultset.next()) {
                 String name = resultset.getString(1);
                 String data = resultset.getString(2);
-                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-                dbf.setNamespaceAware(true);
-                Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader("<value>"+ data +"</value>")));
-                Node value;
-                if (doc.getDocumentElement().getChildNodes().getLength()==1) {
-                  value = doc.getDocumentElement().getFirstChild();
-                } else {
-                  value = doc.createDocumentFragment();
-                  for(Node n = doc.getDocumentElement().getFirstChild(); n!=null; n=n.getNextSibling()) {
-                    value.appendChild(n);
-                  }
-                }
-                results.add(new ProcessData(name, value));
+                results.add(new ProcessData(name, new CompactFragment(data)));
               }
-            } catch (SAXException | IOException | ParserConfigurationException e) {
-              throw new RuntimeException(e);
             }
           }
         }

@@ -15,19 +15,21 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.stax.StAXResult;
 
 import java.io.CharArrayWriter;
 import java.sql.SQLException;
@@ -261,20 +263,32 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     mResults.addAll(results);
   }
 
-  public void instantiateXmlPlaceholders(Transaction transaction, Source source, final Result result) throws XMLStreamException, SQLException {
+  public void instantiateXmlPlaceholders(Transaction transaction, Source source, final Result result) throws
+          SQLException, XmlException {
     instantiateXmlPlaceholders(transaction, source, true);
   }
 
-  public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final Source source, final boolean removeWhitespace) throws
-          SQLException, XMLStreamException {
-    CharArrayWriter caw = new CharArrayWriter();
+  public void instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final XmlWriter out, final boolean removeWhitespace) throws
+          XmlException, SQLException {
     List<ProcessData> defines = getDefines(transaction);
     PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, mState== TaskState.Complete), removeWhitespace);
-    XMLOutputFactory xof = XMLOutputFactory.newFactory();
-    xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
-    XMLStreamWriter xsw = XmlUtil.stripMetatags(xof.createXMLStreamWriter(caw));
-    transformer.transform(source, new StAXResult(xsw));
-    xsw.close();
+    transformer.transform(in, XmlUtil.stripMetatags(out));
+  }
+
+  public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final Source source, final boolean removeWhitespace) throws
+          SQLException, XmlException {
+    XmlReader in = XmlStreaming.newReader(source);
+    return instantiateXmlPlaceholders(transaction, in, removeWhitespace);
+  }
+
+  @NotNull
+  public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final boolean removeWhitespace) throws
+          XmlException, SQLException {
+    CharArrayWriter caw = new CharArrayWriter();
+
+    XmlWriter writer = XmlStreaming.newWriter(caw, true);
+    instantiateXmlPlaceholders(transaction, in, writer, removeWhitespace);
+    writer.close();
     return new CompactFragment(Collections.<Namespace>emptyList(), caw.toCharArray());
   }
 
@@ -291,22 +305,19 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     if (mNode instanceof Activity<?>) {
       Activity<?> act = (Activity<?>) mNode;
       IXmlMessage message = act.getMessage();
-      Source source = message.getBodySource();
-
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-
-      Document document;
       try {
-        document = dbf.newDocumentBuilder().newDocument();
-      } catch (ParserConfigurationException e1) {
-        throw new RuntimeException(e1);
-      }
-      final DOMResult transformResult = new DOMResult(document);
-      try {
-        instantiateXmlPlaceholders(transaction, source, transformResult);
-        xmlNodeInst.setBody(new Body(document.getDocumentElement()));
-      } catch (XMLStreamException e) {
+        XmlReader in = XMLFragmentStreamReader.from(message.getMessageBody());
+
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        Document document = dbf.newDocumentBuilder().newDocument();
+        final DOMResult transformResult = new DOMResult(document);
+
+        XmlWriter out = XmlStreaming.newWriter(transformResult);
+
+        instantiateXmlPlaceholders(transaction, in, out, true /** TODO should this be stripped? */);
+        xmlNodeInst.setBody(new Body(document.getDocumentElement())); // XXX don't use DOM anymore.
+      } catch (ParserConfigurationException | XmlException e) {
         getLogger().log(Level.WARNING, "Error processing body", e);
         throw new RuntimeException(e);
       }

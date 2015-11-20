@@ -7,6 +7,7 @@ import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.io.Writable;
 import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
@@ -27,8 +28,10 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
-import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import org.apache.catalina.ServerFactory;
 import org.apache.catalina.Service;
 import org.apache.catalina.connector.Connector;
@@ -52,11 +55,10 @@ import javax.xml.stream.*;
 import javax.xml.stream.events.*;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Writer;
 import java.net.URI;
 import java.security.Principal;
 import java.sql.SQLException;
@@ -92,7 +94,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   }
 
-  static class NewServletMessage implements ISendableMessage, DataSource {
+  static class NewServletMessage implements ISendableMessage, Writable {
 
     //    private Endpoint mDestination;
     //    private String mMethod;
@@ -103,7 +105,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     private IXmlMessage mMessage;
 
-    private InputStream mInputStream;
+    private Writable mData;
 
     public NewServletMessage(final IXmlMessage message, final EndpointDescriptor localEndPoint) {
       mMessage = message;
@@ -141,30 +143,21 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     }
 
     @Override
-    public DataSource getBodySource() {
+    public Writable getBodySource() {
       return this;
     }
 
-    @Override
     public String getContentType() {
       return mMessage.getContentType();
     }
 
-    public Source getSource() {
-      Source messageBody = mMessage.getBodySource();
-      if (messageBody==null) {
-        throw new NullPointerException();
-      }
-      if (messageBody instanceof DOMSource) {
-        ((DOMSource) messageBody).getNode();
-        messageBody = new StreamSource(Sources.toReader(messageBody));
-      }
-      return messageBody;
+    public XmlReader getSource() throws XmlException {
+      return XMLFragmentStreamReader.from(mMessage.getMessageBody());
     }
 
     @Override
-    public InputStream getInputStream() throws IOException {
-      return mInputStream;
+    public void writeTo(final Writer destination) throws IOException {
+      mData.writeTo(destination);
     }
 
 
@@ -357,32 +350,15 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     }
 
-    @Override
-    public String getName() {
-      return null;
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws IOException {
-      throw new UnsupportedOperationException("Can not write to messages through a stream");
-    }
-
 
     public void setHandle(Transaction transaction, final ProcessNodeInstance nodeInstance) throws SQLException {
       mNodeInstance = nodeInstance;
 
-      Source messageBody;
       try {
-        messageBody = getSource();
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        final StreamResult result = new StreamResult(baos);
 
-        mNodeInstance.instantiateXmlPlaceholders(transaction, messageBody, result);
-        mInputStream = new ByteArrayInputStream(baos.toByteArray());
+        mData = mNodeInstance.instantiateXmlPlaceholders(transaction, getSource(), false);
 
-      } catch (final FactoryConfigurationError e) {
-        throw new MessagingException(e);
-      } catch (final XMLStreamException e) {
+      } catch (final FactoryConfigurationError | XmlException e) {
         throw new MessagingException(e);
       }
 
