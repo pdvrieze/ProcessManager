@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 import java.io.*;
 import java.util.*;
 
-import static nl.adaptivity.xml.XmlReadingConstants.*;
+import static nl.adaptivity.xml.XmlStreaming.*;
 
 public class PMParser {
 
@@ -247,13 +247,13 @@ public class PMParser {
   public static DrawableProcessModel parseProcessModel(XmlReader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     try {
 
-      if(in.nextTag()== START_TAG && StringUtil.isEqual(NS_PROCESSMODEL,in.getNamespace()) && StringUtil.isEqual("processModel",in.getLocalName())){
+      if(in.nextTag()== START_ELEMENT && StringUtil.isEqual(NS_PROCESSMODEL, in.getNamespaceUri()) && StringUtil.isEqual("processModel", in.getLocalName())){
         ArrayList<DrawableProcessNode> modelElems = new ArrayList<>();
         String modelName = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
         String uuid = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "uuid"));
         String owner = StringUtil.toString(in.getAttributeValue(XMLConstants.NULL_NS_URI, "owner"));
         Map<String, DrawableProcessNode> nodeMap = new HashMap<>();
-        for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
+        for(EventType type = in.nextTag(); type!= END_ELEMENT; type = in.nextTag()) {
 
           DrawableProcessNode node = parseNode(in, nodeMap, modelElems);
           modelElems.add(node);
@@ -313,7 +313,7 @@ public class PMParser {
 
   private static DrawableProcessNode parseNode(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
           XmlException {
-    if (!NS_PROCESSMODEL.equals(in.getNamespace())) {
+    if (!NS_PROCESSMODEL.equals(in.getNamespaceUri())) {
       throw new IllegalArgumentException("Invalid process model");
     }
     if ("start".equals(in.getLocalName())) {
@@ -334,7 +334,7 @@ public class PMParser {
           XmlException {
     DrawableStartNode result = new DrawableStartNode();
     parseCommon(in, nodes, modelElems, result);
-    if (in.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
+    if (in.nextTag()!= END_ELEMENT) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
@@ -345,10 +345,10 @@ public class PMParser {
     if (name!=null && name.length()>0) {
       result.setName(name);
     }
-    for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
+    for(EventType type = in.nextTag(); type!= END_ELEMENT; type = in.nextTag()) {
       switch (type) {
-      case START_TAG:
-        if (NS_PROCESSMODEL.equals(in.getNamespace())) {
+      case START_ELEMENT:
+        if (NS_PROCESSMODEL.equals(in.getNamespaceUri())) {
           if ("message".equals(in.getLocalName())) {
             result.setMessage(parseMessage(in));
           } else {
@@ -403,9 +403,9 @@ public class PMParser {
   }
 
   private static void parseChildren(final Map<String, String> namespaces, final XmlReader in, final XmlWriter serializer, final int nsStart) {
-    int tagtype;
+    EventType tagtype;
     try {
-      while ((tagtype=in.next())!=END_TAG) {
+      while ((tagtype=in.next())!= END_ELEMENT) {
         switch (tagtype) {
           case COMMENT:
             serializer.comment(in.getText()); break;
@@ -413,9 +413,9 @@ public class PMParser {
             serializer.text(in.getText()); break;
           case CDSECT:
             serializer.cdsect(in.getText()); break;
-          case START_TAG: {
+          case START_ELEMENT: {
             addUndefinedNamespaces(namespaces, in, serializer, nsStart);
-            serializer.startTag(in.getNamespace(), in.getLocalName(), in.getPrefix());
+            serializer.startTag(in.getNamespaceUri(), in.getLocalName(), in.getPrefix());
             parseChildren(namespaces, in, serializer, nsStart);
             break;
           }
@@ -430,7 +430,7 @@ public class PMParser {
   }
 
   private static void addUndefinedNamespaces(final Map<String, String> target, final XmlReader in, final XmlWriter out, final int nsStart) throws XmlException {
-    CharSequence namespace = in.getNamespace();
+    CharSequence namespace = in.getNamespaceUri();
     CharSequence prefix = in.getPrefix();
     addUndefinedNamespace(target, prefix, namespace, in, out, nsStart);
 
@@ -478,9 +478,9 @@ public class PMParser {
   }
 
   private static void parseUnknownTag(XmlReader in) throws XmlException {
-    for(int type = in.next(); type!=END_TAG; type = in.next()) {
+    for(EventType type = in.next(); type!= END_ELEMENT; type = in.next()) {
       switch (type) {
-      case START_TAG:
+      case START_ELEMENT:
         parseUnknownTag(in);
         break;
       default:
@@ -496,16 +496,16 @@ public class PMParser {
     parseJoinSplitAttrs(in, result);
     List<Identifiable> predecessors = new ArrayList<>();
 
-    for(int type = in.nextTag(); type!=END_TAG; type = in.nextTag()) {
-      if (! (StringUtil.isEqual(NS_PROCESSMODEL,in.getNamespace()) && StringUtil.isEqual("predecessor",in.getLocalName()))) {
+    for(EventType type = in.nextTag(); type!= END_ELEMENT; type = in.nextTag()) {
+      if (! (StringUtil.isEqual(NS_PROCESSMODEL,in.getNamespaceUri()) && StringUtil.isEqual("predecessor", in.getLocalName()))) {
         throw new IllegalArgumentException("Invalid process model");
       }
       StringBuilder name = new StringBuilder();
       type = in.next();
-      while (type!=END_TAG) {
+      while (type!= END_ELEMENT) {
         if (type==TEXT) {
           name.append(in.getText());
-        } else if (type==START_TAG) {
+        } else if (type== START_ELEMENT) {
           throw new IllegalArgumentException("Invalid process model");
         }
         type=in.next();
@@ -526,16 +526,16 @@ public class PMParser {
   }
 
   private static boolean isXMLWS(int codepoint) {
-    return codepoint==0x20|codepoint==0x9||codepoint==0xD||codepoint==0xA;
+    return codepoint<=0x20 && (codepoint==0x20||codepoint==0x9||codepoint==0xD||codepoint==0xA);
   }
 
   private static DrawableProcessNode parseSplit(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlException {
     DrawableSplit result = new DrawableSplit();
     parseCommon(in, nodes, modelElems, result);
     parseJoinSplitAttrs(in, result);
-    for(int type = in.next(); type!=END_TAG; type = in.next()) {
+    for(EventType type = in.next(); type!= END_ELEMENT; type = in.next()) {
       switch (type) {
-      case START_TAG:
+      case START_ELEMENT:
         parseUnknownTag(in);
         break;
       default:
@@ -563,7 +563,7 @@ public class PMParser {
           XmlException {
     DrawableEndNode result = new DrawableEndNode();
     parseCommon(in, nodes, modelElems, result);
-    if (in.nextTag()!=END_TAG) { throw new IllegalArgumentException("Invalid process model"); }
+    if (in.nextTag()!= END_ELEMENT) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
