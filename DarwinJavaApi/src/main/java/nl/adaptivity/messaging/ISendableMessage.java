@@ -1,9 +1,11 @@
 package nl.adaptivity.messaging;
 
-import java.util.Collection;
-import java.util.Map;
+import nl.adaptivity.io.Writable;
 
 import javax.activation.DataSource;
+
+import java.util.Collection;
+import java.util.Map;
 
 
 /**
@@ -62,8 +64,9 @@ public interface ISendableMessage {
    *         type unless overridden by a header returned by
    *         {@link #getHeaders()}
    */
-  DataSource getBodySource();
+  Writable getBodySource();
 
   Map<String, DataSource> getAttachments();
 
+  String getContentType();
 }
