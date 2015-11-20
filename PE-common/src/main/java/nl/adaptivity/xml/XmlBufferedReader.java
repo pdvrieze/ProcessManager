@@ -150,6 +150,8 @@ public class XmlBufferedReader extends AbstractXmlReader {
   @Override
   public CharSequence getNamespaceUri() throws XmlException {
     switch (mCurrent.getEventType()) {
+      case ATTRIBUTE:
+        return ((Attribute) mCurrent).namespaceUri;
       case START_ELEMENT:
         return ((StartElementEvent) mCurrent).namespaceUri;
       case END_ELEMENT:
@@ -162,6 +164,8 @@ public class XmlBufferedReader extends AbstractXmlReader {
   @Override
   public CharSequence getLocalName() throws XmlException {
     switch (mCurrent.getEventType()) {
+      case ATTRIBUTE:
+        return ((Attribute) mCurrent).localName;
       case START_ELEMENT:
         return ((StartElementEvent) mCurrent).localName;
       case END_ELEMENT:
@@ -174,6 +178,8 @@ public class XmlBufferedReader extends AbstractXmlReader {
   @Override
   public CharSequence getPrefix() throws XmlException {
     switch (mCurrent.getEventType()) {
+      case ATTRIBUTE:
+        return ((Attribute) mCurrent).prefix;
       case START_ELEMENT:
         return ((StartElementEvent) mCurrent).prefix;
       case END_ELEMENT:
@@ -190,6 +196,9 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   @Override
   public CharSequence getText() throws XmlException {
+    if (mCurrent.getEventType()==EventType.ATTRIBUTE) {
+        return ((Attribute) mCurrent).value;
+    }
     return ((TextEvent) mCurrent).text;
   }
 
@@ -200,7 +209,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   @Override
   public CharSequence getAttributeNamespace(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).attributes[i].namespace;
+    return ((StartElementEvent) mCurrent).attributes[i].namespaceUri;
   }
 
   @Override
@@ -227,7 +236,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
   public CharSequence getAttributeValue(final CharSequence nsUri, final CharSequence localName) throws XmlException {
     StartElementEvent current = (StartElementEvent) mCurrent;
     for(Attribute attr: current.attributes) {
-      if ((nsUri==null || StringUtil.isEqual(nsUri, attr.namespace)) &&
+      if ((nsUri==null || StringUtil.isEqual(nsUri, attr.namespaceUri)) &&
               StringUtil.isEqual(localName, attr.localName)) {
         return attr.value;
       }

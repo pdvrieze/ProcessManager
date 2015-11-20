@@ -893,6 +893,8 @@ public final class XmlUtil {
         out.comment(in.getText()); break;
       case TEXT:
         out.text(in.getText()); break;
+      case ATTRIBUTE:
+        out.attribute(in.getNamespaceUri(), in.getLocalName(),in.getPrefix(), in.getText()); break;
       case CDSECT:
         out.cdsect(in.getText()); break;
       case DOCDECL:
@@ -905,7 +907,8 @@ public final class XmlUtil {
         out.ignorableWhitespace(in.getText()); break;
       case PROCESSING_INSTRUCTION:
         out.processingInstruction(in.getText()); break;
-        
+      default:
+        throw new XmlException("Unsupported element found");
     }
   }
 

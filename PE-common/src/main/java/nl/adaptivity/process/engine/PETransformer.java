@@ -83,6 +83,14 @@ public class PETransformer {
       }
     }
 
+
+    private static void stripWhiteSpaceFromPeekBuffer(final List<XmlEvent> results) {
+      XmlEvent peekLast;
+      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtil.isXmlWhitespace(((TextEvent)peekLast).text)) {
+        results.remove(results.size()-1);
+      }
+    }
+
     private void peekStartElement(final List<XmlEvent> results, @NotNull final StartElementEvent element) throws XmlException {
       if (Constants.MODIFY_NS_STR.equals(element.namespaceUri)) {
         final String localname = StringUtil.toString(element.localName);
@@ -91,7 +99,7 @@ public class PETransformer {
 
         switch (localname) {
           case "attribute":
-            stripWhiteSpaceFromPeekBuffer();
+            stripWhiteSpaceFromPeekBuffer(results);
             results.add(getAttribute(attributes));
             readEndTag(element);
             return;
@@ -110,7 +118,7 @@ public class PETransformer {
         boolean filterAttributes = false;
         final List<XmlEvent.Attribute> newAttrs = new ArrayList<>();
         for(final XmlEvent.Attribute attr : element.attributes) {
-          if (attr.isNamespace() && StringUtil.isEqual(Constants.MODIFY_NS_STR,attr.value)) {
+          if (attr.getNamespaceUri() && StringUtil.isEqual(Constants.MODIFY_NS_STR, attr.value)) {
             filterAttributes=true;
           } else {
             newAttrs.add(attr);

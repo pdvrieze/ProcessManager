@@ -139,7 +139,7 @@ public abstract class XmlEvent {
     public void writeTo(final XmlWriter writer) throws XmlException {
       writer.startTag(namespaceUri, localName, prefix);
       for(Attribute attr: attributes) {
-        writer.attribute(attr.namespace, attr.localName, attr.prefix, attr.value);
+        writer.attribute(attr.namespaceUri, attr.localName, attr.prefix, attr.value);
       }
       for(Namespace ns: namespaceDecls) {
         writer.namespaceAttr(ns.getPrefix(), ns.getNamespaceURI());
@@ -197,14 +197,14 @@ public abstract class XmlEvent {
 
   public static class Attribute extends XmlEvent {
 
-    public final CharSequence namespace;
+    public final CharSequence namespaceUri;
     public final CharSequence localName;
     public final CharSequence prefix;
     public final CharSequence value;
 
-    public Attribute(final String locationInfo, final CharSequence namespace, final CharSequence localName, final CharSequence prefix, final CharSequence value) {
+    public Attribute(final String locationInfo, final CharSequence namespaceUri, final CharSequence localName, final CharSequence prefix, final CharSequence value) {
       super(locationInfo);
-      this.namespace = namespace;
+      this.namespaceUri = namespaceUri;
       this.localName = localName;
       this.prefix = prefix;
       this.value = value;
@@ -217,11 +217,11 @@ public abstract class XmlEvent {
 
     @Override
     public void writeTo(final XmlWriter writer) throws XmlException {
-      writer.attribute(namespace, localName, prefix, value);
+      writer.attribute(namespaceUri, localName, prefix, value);
     }
 
-    public boolean isNamespace() {
-      return StringUtil.isEqual(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, namespace) ||
+    public boolean getNamespaceUri() {
+      return StringUtil.isEqual(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, namespaceUri) ||
               (prefix.length()==0 && StringUtil.isEqual(XMLConstants.XMLNS_ATTRIBUTE, localName)) ;
     }
   }
