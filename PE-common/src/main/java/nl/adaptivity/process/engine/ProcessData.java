@@ -6,23 +6,26 @@ import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.stream.*;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stax.StAXResult;
-import javax.xml.transform.stax.StAXSource;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 @XmlJavaTypeAdapter(XmlSerializable.JAXBAdapter.class)
@@ -34,8 +37,13 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
   private final boolean mIsNodeList = false;
 
 // Object Initialization
+
+  /**
+   * @deprecated Initialise with compact fragment instead.
+   * @see #ProcessData(String, CompactFragment)
+   */
   @Deprecated
-  public ProcessData(final String name, final Node value) {
+  public ProcessData(final String name, final Node value) throws XmlException {
     this(name, toCompactFragment(value));
   }
 // Object Initialization end
@@ -45,22 +53,19 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     mValue = value;
   }
 
+  @SuppressWarnings("deprecation")
   @Deprecated
-  public ProcessData(final String name, @Nullable final NodeList value) {
+  public ProcessData(final String name, @Nullable final NodeList value) throws XmlException {
     this(name, (value==null || value.getLength()<=1)? toNode(value) : XmlUtil.toDocFragment(value));
   }
 
-  public DocumentFragment getContentFragment() throws XMLStreamException {
+  public DocumentFragment getContentFragment() throws XmlException {
     return XmlUtil.childrenToDocumentFragment(getContentStream());
   }
 
   @NotNull
-  private static CompactFragment toCompactFragment(final Node value) {
-    try {
-      return XmlUtil.nodeToFragment(value);
-    } catch (@NotNull final XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
+  private static CompactFragment toCompactFragment(final Node value) throws XmlException {
+    return XmlUtil.nodeToFragment(value);
   }
 
   @Nullable
@@ -70,8 +75,9 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     return value.item(0);
   }
 
+  @SuppressWarnings("deprecation")
   @Deprecated
-  public ProcessData(final String name, final List<Node> value) {
+  public ProcessData(final String name, final List<Node> value) throws XmlException {
     this(name, XmlUtil.toDocFragment(value));
   }
 
@@ -93,7 +99,7 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
   }
 
   @NotNull
-  public XMLStreamReader getContentStream() throws XMLStreamException {
+  public XmlReader getContentStream() throws XmlException {
     return XMLFragmentStreamReader.from(getContent());
   }
 
@@ -107,6 +113,7 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     return result;
   }
 
+  @SuppressWarnings("Duplicates")
   @Override
   public boolean equals(@Nullable final Object obj) {
     if (this == obj)
@@ -129,22 +136,20 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     return true;
   }
 
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     if (out.getNamespaceContext().getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
-      out.writeStartElement(Constants.PROCESS_ENGINE_NS_PREFIX, "value", Constants.PROCESS_ENGINE_NS);
-      out.writeNamespace(Constants.PROCESS_ENGINE_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
+      out.startTag(null, "value", Constants.PROCESS_ENGINE_NS_PREFIX);
+      out.namespaceAttr(Constants.PROCESS_ENGINE_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
     } else {
-      out.writeStartElement(Constants.PROCESS_ENGINE_NS, "value");
+      out.startTag(Constants.PROCESS_ENGINE_NS, null, "value");
     }
-    final XMLStreamWriter strippedout = XmlUtil.stripMetatags(out);
+    final XmlWriter strippedout = XmlUtil.stripMetatags(out);
 
     try {
-      strippedout.writeAttribute("name", mName);
-      XmlUtil.serialize(strippedout, new StAXSource(getContentStream()));
-    } catch (@NotNull final Exception e) {
-      Logger.getAnonymousLogger().log(Level.WARNING,"Error serializing children", e);
+      strippedout.attribute(null, "name", null, mName);
+      XmlUtil.serialize(getContentStream(), strippedout);
     } finally {
-      out.writeEndElement();
+      out.endTag(null, null, null);
     }
   }
 

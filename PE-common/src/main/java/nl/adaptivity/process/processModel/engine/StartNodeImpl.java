@@ -13,6 +13,9 @@ import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -20,9 +23,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,13 +38,14 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
     @NotNull
     @Override
-    public StartNodeImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public StartNodeImpl deserialize(@NotNull final XmlReader in) throws XmlException {
       return StartNodeImpl.deserialize(null, in);
     }
   }
 
   @NotNull
-  public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+          XmlException {
     return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
 
@@ -65,9 +66,9 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-      switch (in.getLocalName()) {
+  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
+      switch (in.getLocalName().toString()) {
         case "import":
           getResults().add(XmlResultType.deserialize(in)); return true;
       }
@@ -76,7 +77,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @Override
-  public boolean deserializeChildText(final String elementText) {
+  public boolean deserializeChildText(final CharSequence elementText) {
     return false;
   }
 
@@ -87,14 +88,14 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.writeEndElement();
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
-  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeChildren(final XmlWriter out) throws XmlException {
     XmlUtil.writeChildren(out, mImports);
   }
 

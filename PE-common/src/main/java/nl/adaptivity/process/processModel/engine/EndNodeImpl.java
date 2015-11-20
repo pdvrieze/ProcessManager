@@ -5,21 +5,24 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.IXmlDefineType;
+import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import java.util.*;
 
@@ -34,13 +37,14 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
     @NotNull
     @Override
-    public EndNodeImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public EndNodeImpl deserialize(@NotNull final XmlReader in) throws XmlException {
       return EndNodeImpl.deserialize(null, in);
     }
   }
 
   @NotNull
-  public static EndNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static EndNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+          XmlException {
     return XmlUtil.deserializeHelper(new EndNodeImpl(ownerModel), in);
   }
 
@@ -60,9 +64,9 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-      switch (in.getLocalName()) {
+  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
+      switch (in.getLocalName().toString()) {
         case "export":
         case XmlDefineType.ELEMENTLOCALNAME:
           getDefines(); mExports.add(XmlDefineType.deserialize(in)); return true;
@@ -72,16 +76,16 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     if (ATTR_PREDECESSOR.equals(attributeLocalName)) {
-      setPredecessor(new Identifier(attributeValue));
+      setPredecessor(new Identifier(attributeValue.toString()));
       return true;
     }
     return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
   }
 
   @Override
-  public boolean deserializeChildText(final String elementText) {
+  public boolean deserializeChildText(final CharSequence elementText) {
     return false;
   }
 
@@ -92,20 +96,20 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.writeEndElement();
+    out.endTag(null, null, null);
   }
 
-  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeChildren(final XmlWriter out) throws XmlException {
     super.serializeChildren(out);
     XmlUtil.writeChildren(out, mExports);
   }
 
   @Override
-  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     if (getPredecessor()!=null) {
       XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessor().getId());

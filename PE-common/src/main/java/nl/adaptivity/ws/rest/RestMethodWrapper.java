@@ -11,6 +11,9 @@ import nl.adaptivity.util.HttpMessage;
 import nl.adaptivity.util.HttpMessage.Body;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.StAXWriter;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlStreaming;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -28,8 +31,6 @@ import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
@@ -475,15 +476,15 @@ public abstract class RestMethodWrapper {
       XMLOutputFactory factory = XMLOutputFactory.newInstance();
       factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
       try {
-        XMLStreamWriter out = factory.createXMLStreamWriter(pResponse.getOutputStream());
+        StAXWriter out = (StAXWriter) XmlStreaming.newWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding(), true);
         try {
-          out.writeStartDocument();
+          out.startDocument(null, null, null);
           ((XmlSerializable) value).serialize(out);
-          out.writeEndDocument();
+          out.endDocument();
         } finally {
           out.close();
         }
-      } catch (XMLStreamException e) {
+      } catch (XmlException e) {
         throw new TransformerException(e);
       }
     } else if (value instanceof Collection) {

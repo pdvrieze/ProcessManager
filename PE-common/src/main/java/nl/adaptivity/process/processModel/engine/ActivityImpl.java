@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
@@ -12,14 +13,14 @@ import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
     @NotNull
     @Override
-    public ActivityImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public ActivityImpl deserialize(@NotNull final XmlReader in) throws XmlException {
       return ActivityImpl.deserialize(null, in);
     }
   }
@@ -88,23 +89,24 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   public ActivityImpl(final ProcessModelImpl ownerModel) {super(ownerModel);}
 
   @NotNull
-  public static ActivityImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static ActivityImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+          XmlException {
     return XmlUtil.deserializeHelper(new ActivityImpl(ownerModel), in);
   }
 
   @Override
-  public boolean deserializeAttribute(final String attributeNamespace, @NotNull final String attributeLocalName, final String attributeValue) {
-    switch (attributeLocalName) {
-      case ATTR_PREDECESSOR: setPredecessor(new Identifier(attributeValue)); return true;
-      case "name": setName(attributeValue);
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    switch (attributeLocalName.toString()) {
+      case ATTR_PREDECESSOR: setPredecessor(new Identifier(attributeValue.toString())); return true;
+      case "name": setName(StringUtil.toString(attributeValue)); return true;
     }
     return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    if (Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-      switch (in.getLocalName()) {
+  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
+    if (Engine.NAMESPACE.equals(in.getNamespaceUri())) {
+      switch (in.getLocalName().toString()) {
         case XmlDefineType.ELEMENTLOCALNAME:
           mDefines.add(XmlDefineType.deserialize(in));return true;
         case XmlResultType.ELEMENTLOCALNAME:
@@ -119,7 +121,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   }
 
   @Override
-  public boolean deserializeChildText(final String elementText) {
+  public boolean deserializeChildText(final CharSequence elementText) {
     return false;
   }
 
@@ -130,21 +132,21 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.writeEndElement();
+    out.endTag(null, null, null);
   }
 
   @Override
-  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
-    out.writeAttribute(ATTR_PREDECESSOR, getPredecessor().getId());
+    out.attribute(null, ATTR_PREDECESSOR, null, getPredecessor().getId());
     XmlUtil.writeAttribute(out, "name", getName());
   }
 
-  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeChildren(final XmlWriter out) throws XmlException {
     super.serializeChildren(out);
     XmlUtil.writeChildren(out, getDefines());
     XmlUtil.writeChildren(out, getResults());
@@ -273,19 +275,11 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Override
   public void setMessage(final IXmlMessage message) {
-    try {
-      mMessage = XmlMessage.get(message);
-    } catch (@NotNull final XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
+    mMessage = XmlMessage.get(message);
   }
 
   public void setMessage(final XmlMessage message) {
-    try {
-      mMessage = XmlMessage.get(message);
-    } catch (@NotNull final XMLStreamException e) {
-      throw new RuntimeException(e);
-    }
+    mMessage = XmlMessage.get(message);
   }
 
   /**

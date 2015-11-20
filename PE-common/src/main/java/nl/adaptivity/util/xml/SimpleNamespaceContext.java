@@ -77,7 +77,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     }
   }
 
-  private SimpleNamespaceContext(final String[] strings) {
+  SimpleNamespaceContext(final String[] strings) {
     mStrings = strings;
   }
 
@@ -161,7 +161,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
       case XMLConstants.XMLNS_ATTRIBUTE:
         return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
     }
-    for(int i=mStrings.length-2; i>=0; i-=2) {
+    for(int i=mStrings.length-2; i>=0; i-=2) { // Should be backwards to allow overrriding
       if (prefix.equals(mStrings[i])) {
         return mStrings[i+1];
       }
@@ -183,7 +183,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
       case XMLConstants.XMLNS_ATTRIBUTE_NS_URI:
         return XMLConstants.XMLNS_ATTRIBUTE;
       default:
-        for(int i=mStrings.length-2; i>=0; i-=2) {
+        for(int i=mStrings.length-2; i>=0; i-=2) {// Should be backwards to allow overrriding
           if (namespaceURI.equals(mStrings[i+1])) {
             return mStrings[i];
           }
@@ -202,7 +202,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
         return Collections.singleton(XMLConstants.XMLNS_ATTRIBUTE).iterator();
       default:
         final List<String> result = new ArrayList<>(mStrings.length/2);
-        for(int i=mStrings.length-2; i>=0; i-=2) {
+        for(int i=mStrings.length-2; i>=0; i-=2) {// Should be backwards to allow overrriding
           if (namespaceURI.equals(mStrings[i+1])) {
             result.add(mStrings[i]);
           }

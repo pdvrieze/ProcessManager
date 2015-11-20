@@ -12,15 +12,17 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.Source;
 
 import java.net.URI;
 
@@ -60,7 +62,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
     @NotNull
     @Override
-    public Object deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public Object deserialize(@NotNull final XmlReader in) throws XmlException {
       return XmlMessage.deserialize(in);
     }
   }
@@ -72,14 +74,13 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
   public XmlMessage() { /* default constructor */ }
 
 
-  public XmlMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final Source messageBody) throws
-          XMLStreamException {
+  public XmlMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final CompactFragment messageBody) {
     super(service, endpoint, operation, url, method, contentType, messageBody);
   }
 
 
   @NotNull
-  public static XmlMessage get(final IXmlMessage message) throws XMLStreamException {
+  public static XmlMessage get(final IXmlMessage message) {
     if (message instanceof XmlMessage) { return (XmlMessage) message; }
     return new XmlMessage(message.getService(),
                           message.getEndpoint(),
@@ -87,11 +88,11 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
                           message.getUrl(),
                           message.getMethod(),
                           message.getContentType(),
-                          message.getBodySource());
+                          message.getMessageBody());
   }
 
   @NotNull
-  public static XmlMessage deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static XmlMessage deserialize(@NotNull final XmlReader in) throws XmlException {
     return XmlUtil.deserializeHelper(new XmlMessage(), in);
   }
 
@@ -102,7 +103,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
   }
 
   @Override
-  protected void serializeStartElement(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeStartElement(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
   }
 

@@ -2,7 +2,8 @@ package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
-import nl.adaptivity.xml.GatheringNamespaceContext;
+import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,9 +47,37 @@ public final class XmlUtil {
     }
   }
 
-  private static class MetaStripper extends StreamWriterDelegate {
+  private static class MetaStripper extends XmlDelegatingWriter {
 
-    public MetaStripper(final XMLStreamWriter wrapped) {
+    public MetaStripper(final XmlWriter delegate) {
+      super(delegate);
+    }
+
+    @Override
+    public void processingInstruction(final CharSequence text) throws XmlException {
+      /* ignore */
+    }
+
+    @Override
+    public void endDocument() throws XmlException {
+      /* ignore */
+    }
+
+    @Override
+    public void docdecl(final CharSequence text) throws XmlException {
+      /* ignore */
+    }
+
+    @Override
+    public void startDocument(final CharSequence version, final CharSequence encoding, final Boolean standalone) throws
+            XmlException {
+      /* ignore */
+    }
+  }
+
+  private static class StAXMetaStripper extends StreamWriterDelegate {
+
+    public StAXMetaStripper(final XMLStreamWriter wrapped) {
       super(wrapped);
     }
 
@@ -85,6 +114,27 @@ public final class XmlUtil {
     @Override
     public void writeEndDocument() throws XMLStreamException {
       /* Ignore */
+    }
+  }
+
+  private static class SubstreamFilter extends XmlDelegatingReader {
+
+    public SubstreamFilter(final XmlReader delegate) {
+      super(delegate);
+    }
+
+    @Override
+    public EventType next() throws XmlException {
+      EventType eventType = super.next();
+      if (eventType==null) { return null; }
+      switch (eventType) {
+        case START_DOCUMENT:
+        case PROCESSING_INSTRUCTION:
+        case DOCDECL:
+        case END_DOCUMENT:
+          return next();
+      }
+      return eventType;
     }
   }
 
@@ -133,6 +183,10 @@ public final class XmlUtil {
       root = document.createElementNS(outerName.getNamespaceURI(), outerName.getPrefix() + ':' + outerName.getLocalPart());
     }
     return root;
+  }
+
+  public static void writeEndElement(final XmlWriter out, final QName predelemname) throws XmlException {
+    out.endTag(predelemname.getNamespaceURI(), predelemname.getLocalPart(), predelemname.getPrefix());
   }
 
   @Nullable
@@ -281,13 +335,20 @@ public final class XmlUtil {
     return null;
   }
 
-  public static void serialize(@NotNull final XMLStreamWriter out, final Node node) throws XMLStreamException {
-    serialize(out, new StAXSource(createXMLStreamReader(XMLInputFactory.newFactory(), new DOMSource(node))));
+  public static void serialize(final Node in, @NotNull final XMLStreamWriter out) throws XMLStreamException {
+    serialize(new StAXSource(createXMLStreamReader(XMLInputFactory.newFactory(), new DOMSource(in))), out);
   }
 
-  public static void serialize(@NotNull final XMLStreamWriter out, @NotNull final StAXSource source) throws
+  public static void serialize(@NotNull final StAXSource in, @NotNull final XMLStreamWriter out) throws
           XMLStreamException {
-    serialize(createXMLEventWriter(XMLOutputFactory.newFactory(), out), createXMLEventReader(XMLInputFactory.newFactory(), source));
+    serialize(createXMLEventWriter(XMLOutputFactory.newFactory(), out), createXMLEventReader(XMLInputFactory.newFactory(), in));
+  }
+
+  public static void serialize(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
+    while (in.hasNext()) {
+      in.next();
+      writeCurrentEvent(in, out);
+    }
   }
 
   public static void serialize(@NotNull final XMLEventWriter out, final XMLEventReader in) throws XMLStreamException {
@@ -301,7 +362,7 @@ public final class XmlUtil {
   public static void serialize(@NotNull final XMLStreamWriter out, final Source source) throws TransformerFactoryConfigurationError,
       XMLStreamException {
     if (source instanceof StAXSource) {
-      serialize(out, (StAXSource) source);
+      serialize((StAXSource) source, out);
       return;
     }
     try {
@@ -317,26 +378,27 @@ public final class XmlUtil {
   }
 
   @NotNull
-  public static <T extends XmlDeserializable> T deserializeHelper(@NotNull final T result, @NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static <T extends XmlDeserializable> T deserializeHelper(@NotNull final T result, @NotNull final XmlReader in) throws
+          XmlException {
     XmlUtil.skipPreamble(in);
     final QName elementName = result.getElementName();
-    assert XmlUtil.isElement(in, elementName): "Expected "+elementName+" but found "+in.getName();
+    assert XmlUtil.isElement(in, elementName): "Expected "+elementName+" but found "+in.getLocalName();
     for(int i=in.getAttributeCount()-1; i>=0; --i) {
       result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
     }
     result.onBeforeDeserializeChildren(in);
-    int event = -1;
+    EventType event = null;
     if (result instanceof SimpleXmlDeserializable) {
-      loop: while (in.hasNext() && event != XMLStreamConstants.END_ELEMENT) {
+      loop: while (in.hasNext() && event != XmlStreaming.END_ELEMENT) {
         switch ((event = in.next())) {
-          case XMLStreamConstants.START_ELEMENT:
+          case START_ELEMENT:
             if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
               continue loop;
             }
             XmlUtil.unhandledEvent(in);
             break;
-          case XMLStreamConstants.CHARACTERS:
-          case XMLStreamConstants.CDATA:
+          case TEXT:
+          case CDSECT:
             if (((SimpleXmlDeserializable)result).deserializeChildText(in.getText())) {
               continue loop;
             }
@@ -347,37 +409,34 @@ public final class XmlUtil {
     } else if (result instanceof ExtXmlDeserializable){
       ((ExtXmlDeserializable)result).deserializeChildren(in);
       if (XmlUtil.class.desiredAssertionStatus()) {
-        in.require(XMLStreamConstants.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
+        in.require(XmlStreaming.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
       if(! isXmlWhitespace(siblingsToFragment(in).getContent())) {
-        throw new XMLStreamException("Unexpected child content in element");
+        throw new XmlException("Unexpected child content in element");
       }
     }
     return result;
   }
 
-  public static <T> T deSerialize(final InputStream in, @NotNull final Class<T> type) throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return deSerialize(xif.createXMLStreamReader(in), type);
+  public static <T> T deSerialize(final InputStream in, @NotNull final Class<T> type) throws XmlException {
+    return deSerialize(XmlStreaming.newReader(in, "UTF-8"), type);
   }
 
-  public static <T> T deSerialize(final Reader in, @NotNull final Class<T> type) throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return deSerialize(xif.createXMLStreamReader(in), type);
+  public static <T> T deSerialize(final Reader in, @NotNull final Class<T> type) throws XmlException {
+    return deSerialize(XmlStreaming.newReader(in), type);
   }
 
-  public static <T> T deSerialize(final Source in, @NotNull final Class<T> type) throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return deSerialize(xif.createXMLStreamReader(in), type);
+  public static <T> T deSerialize(final Source in, @NotNull final Class<T> type) throws XmlException {
+    return deSerialize(XmlStreaming.newReader(in), type);
   }
 
-  public static <T> T deSerialize(final XMLStreamReader in, @NotNull final Class<T> type) throws XMLStreamException {
+  public static <T> T deSerialize(final XmlReader in, @NotNull final Class<T> type) throws XmlException {
     final XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
     if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
     try {
       @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
-      return factory.deserialize(in);
+      return factory.deserialize((StAXReader) in);
     } catch (@NotNull InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
@@ -425,8 +484,24 @@ public final class XmlUtil {
     return toString(serializable, flags);
   }
 
-  public static String readSimpleElement(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    return in.getElementText();
+  public static CharSequence readSimpleElement(@NotNull final XmlReader in) throws XmlException {
+    in.require(EventType.START_ELEMENT, null, null);
+    EventType type;
+    StringBuilder result = new StringBuilder();
+    while ((type = in.next())!=EventType.END_ELEMENT) {
+      switch (type) {
+        case COMMENT:
+        case PROCESSING_INSTRUCTION:
+          /* Ignore */
+          break;
+        case TEXT:
+        case CDSECT:
+          result.append(in.getText());
+        default:
+          throw new XmlException("Expected text content or end tag, found: "+type);
+      }
+    }
+    return result.toString(); // create a string to ensure some lifetime for the buffer
   }
 
   /**
@@ -439,6 +514,16 @@ public final class XmlUtil {
           XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newFactory();
     return xif.createFilteredReader(streamReader, SUBSTREAM_FILTER);
+  }
+
+  /**
+   * Filter the stream such that is a valid substream. This basically strips start document, end document, processing
+   * instructions and dtd declarations.
+   * @param streamReader The original stream reader.
+   * @return A filtered stream
+   */
+  public static XmlReader filterSubstream(final XmlReader streamReader) {
+    return new SubstreamFilter(streamReader);
   }
 
   public static XMLEventReader filterSubstream(final XMLEventReader xMLEventReader) throws XMLStreamException {
@@ -541,10 +626,10 @@ public final class XmlUtil {
     final XMLOutputFactory factory = XMLOutputFactory.newInstance();
     configure(factory, flags);
     try {
-      final XMLStreamWriter serializer = factory.createXMLStreamWriter(out);
+      final XmlWriter serializer = XmlStreaming.newWriter(out);
       serializable.serialize(serializer);
       serializer.close();
-    } catch (@NotNull final XMLStreamException e) {
+    } catch (@NotNull final XmlException e) {
       throw new RuntimeException(e);
     }
     return out.toString();
@@ -636,6 +721,11 @@ public final class XmlUtil {
 
   @NotNull
   public static XMLStreamWriter stripMetatags(final XMLStreamWriter out) {
+    return new StAXMetaStripper(out);
+  }
+
+  @NotNull
+  public static XmlWriter stripMetatags(final XmlWriter out) {
     return new MetaStripper(out);
   }
 
@@ -650,36 +740,49 @@ public final class XmlUtil {
   }
 
   public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in) throws XMLStreamException {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    Document doc;
     try {
-      final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-      Document doc;
-      try {
-        doc = dbf.newDocumentBuilder().newDocument();
-      } catch (@NotNull final ParserConfigurationException e) {
-        throw new XMLStreamException(e);
-      }
-
-      final XMLInputFactory xif = XMLInputFactory.newFactory();
-      final XMLEventReader xer = xif.createXMLEventReader(in);
-
-      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
-      final DocumentFragment documentFragment = doc.createDocumentFragment();
-      final XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
-      final XMLEventFactory xef = XMLEventFactory.newFactory();
-
-      while (xer.hasNext() && (! xer.peek().isEndElement())) {
-        final XMLEvent event = xer.nextEvent();
-        out.add(event);
-        if (event.isStartElement()) {
-          writeElementContent(xer, out);
-        }
-      }
-      return documentFragment;
-    } catch (@NotNull XMLStreamException | RuntimeException e) {
-      throw e;
+      doc = dbf.newDocumentBuilder().newDocument();
+    } catch (@NotNull final ParserConfigurationException e) {
+      throw new XMLStreamException(e);
     }
+    final XMLInputFactory xif = XMLInputFactory.newFactory();
+    final XMLEventReader xer = xif.createXMLEventReader(in);
+    final XMLOutputFactory xof = XMLOutputFactory.newFactory();
+    xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
+    final DocumentFragment documentFragment = doc.createDocumentFragment();
+    final XMLEventWriter out = xof.createXMLEventWriter(new DOMResult(documentFragment));
+    final XMLEventFactory xef = XMLEventFactory.newFactory();
+    while (xer.hasNext() && (! xer.peek().isEndElement())) {
+      final XMLEvent event = xer.nextEvent();
+      out.add(event);
+      if (event.isStartElement()) {
+        writeElementContent(xer, out);
+      }
+    }
+    return documentFragment;
+  }
+
+  public static DocumentFragment childrenToDocumentFragment(final XmlReader in) throws XmlException {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    Document doc;
+    try {
+      doc = dbf.newDocumentBuilder().newDocument();
+    } catch (@NotNull final ParserConfigurationException e) {
+      throw new XmlException(e);
+    }
+    final DocumentFragment documentFragment = doc.createDocumentFragment();
+    XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
+    while (in.hasNext() && (in.next()!= EventType.END_ELEMENT)) {
+      writeCurrentEvent(in, out);
+      if (in.getEventType()== EventType.START_ELEMENT) {
+        writeElementContent(null, in, out);
+      }
+    }
+    return documentFragment;
   }
 
   public static char[] siblingsToCharArray(final XMLStreamReader in) throws XMLStreamException {
@@ -696,6 +799,114 @@ public final class XmlUtil {
     final XMLInputFactory xif = XMLInputFactory.newFactory();
     final XMLEventReader xer = xif.createXMLEventReader(in);
     return siblingsToFragment(xer);
+  }
+
+  /**
+   * Differs from {@link #siblingsToFragment(XmlReader)} in that it skips the current event.
+   * @param in
+   * @return
+   * @throws XmlException
+   */
+  public static CompactFragment readerToFragment(final XmlReader in) throws XmlException {
+    if (in.hasNext()) {
+      in.next();
+      return siblingsToFragment(in);
+    }
+    return new CompactFragment("");
+  }
+
+  /**
+   * Read the current element (and content) and all its siblings into a fragment.
+   * @param in The source stream.
+   * @return the fragment
+   * @throws XmlException parsing failed
+   */
+  @NotNull
+  public static CompactFragment siblingsToFragment(final XmlReader in) throws XmlException {
+    CharArrayWriter caw = new CharArrayWriter();
+
+    final String startLocation = in.getLocationInfo();
+    try {
+
+      final TreeMap<String, String> missingNamespaces = new TreeMap<>();
+      GatheringNamespaceContext gatheringContext = null;
+      int initialDepth = in.getDepth();
+      for(EventType type = in.getEventType(); type!=XmlStreaming.END_DOCUMENT && type!=XmlStreaming.END_ELEMENT && in.getDepth()>=initialDepth; type = (in.hasNext()? in.next(): null)) {
+        if (type==XmlStreaming.START_ELEMENT) {
+          XmlWriter out = XmlStreaming.newWriter(caw);
+          writeCurrentEvent(in, out); // writes the start tag
+          for(String prefix: undeclaredPrefixes(in, out)) {
+            if (! missingNamespaces.containsKey(prefix)) {
+              missingNamespaces.put(prefix, in.getNamespaceContext().getNamespaceURI(prefix));
+            }
+          }
+          writeElementContent(missingNamespaces, in, out); // writes the children and end tag
+          out.close();
+        } else if (type==XmlStreaming.TEXT) {
+          caw.append(xmlEncode(in.getText().toString()));
+        }
+      }
+      return new CompactFragment(new SimpleNamespaceContext(missingNamespaces), caw.toCharArray());
+    } catch (@NotNull XmlException | RuntimeException e) {
+      throw new XmlException("Failure to parse children into string at "+startLocation, e);
+    }
+
+  }
+
+  private static List<String> undeclaredPrefixes(final XmlReader in, final XmlWriter reference) throws XmlException {
+    assert in.getEventType()==XmlStreaming.START_ELEMENT;
+    List<String> result = new ArrayList<>(2);
+    String prefix = StringUtil.toString(in.getPrefix());
+    if (prefix!=null) {
+      CharSequence uri;
+      if ((! prefix.isEmpty()) && ((uri=reference.getNamespaceUri(prefix))==null || (uri.length()==0 && prefix.length()>0))) {
+        result.add(prefix);
+      }
+    }
+    return result;
+  }
+
+  public static void writeCurrentEvent(final XmlReader in, final XmlWriter out) throws XmlException {
+    switch (in.getEventType()) {
+      case START_DOCUMENT:
+        out.startDocument(null, in.getEncoding(), in.getStandalone());break;
+      case START_ELEMENT: {
+        out.startTag(in.getNamespaceUri(), in.getLocalName(), in.getPrefix());
+        {
+          int nsStart = in.getNamespaceStart();
+          int nsEnd = in.getNamespaceEnd();
+          for(int i=nsStart; i<nsEnd; ++i) {
+            out.namespaceAttr(in.getNamespacePrefix(i), in.getNamespaceUri(i));
+          }
+        }
+        {
+          int attrCount = in.getAttributeCount();
+          for(int i=0; i<attrCount; ++i) {
+            out.attribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), null, in.getAttributeValue(i));
+          }
+        }
+        break;
+      }
+      case END_ELEMENT:
+        out.endTag(in.getNamespaceUri(), in.getLocalName(), in.getPrefix()); break;
+      case COMMENT:
+        out.comment(in.getText()); break;
+      case TEXT:
+        out.text(in.getText()); break;
+      case CDSECT:
+        out.cdsect(in.getText()); break;
+      case DOCDECL:
+        out.docdecl(in.getText()); break;
+      case END_DOCUMENT:
+        out.endDocument(); break;
+      case ENTITY_REF:
+        out.entityRef(in.getText()); break;
+      case IGNORABLE_WHITESPACE:
+        out.ignorableWhitespace(in.getText()); break;
+      case PROCESSING_INSTRUCTION:
+        out.processingInstruction(in.getText()); break;
+        
+    }
   }
 
   @NotNull
@@ -733,35 +944,36 @@ public final class XmlUtil {
   }
 
   @NotNull
-  public static CompactFragment nodeListToFragment(@NotNull final NodeList nodeList) throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return nodeListToFragment(xif, nodeList);
-  }
-
-  @NotNull
-  public static CompactFragment nodeListToFragment(@NotNull final XMLInputFactory xif, @NotNull final NodeList nodeList) throws XMLStreamException {
+  public static CompactFragment nodeListToFragment(@NotNull final NodeList nodeList) throws XmlException {
     switch(nodeList.getLength()) {
       case 0:
         return new CompactFragment("");
       case 1:
         final Node node = nodeList.item(0);
-        return nodeToFragment(xif, node);
+        return nodeToFragment(node);
       default:
-        return nodeToFragment(xif, toDocFragment(nodeList));
+        return nodeToFragment(toDocFragment(nodeList));
     }
   }
 
   @NotNull
-  public static CompactFragment nodeToFragment(final Node node) throws XMLStreamException {
-    return nodeToFragment(XMLInputFactory.newFactory(), node);
+  public static CompactFragment nodeListToFragment(@NotNull final XMLInputFactory xif, @NotNull final NodeList nodeList) throws XMLStreamException {
+    try {
+      return nodeListToFragment(nodeList);
+    } catch (XmlException e) {
+      if (e.getCause() instanceof XMLStreamException) {
+        throw (XMLStreamException) e.getCause();
+      }
+      throw new XMLStreamException(e);
+    }
   }
 
   @NotNull
-  public static CompactFragment nodeToFragment(@NotNull final XMLInputFactory xif, final Node node) throws XMLStreamException {
+  public static CompactFragment nodeToFragment(final Node node) throws XmlException {
     if (node instanceof Text) {
       return new CompactFragment(((Text) node).getData());
     }
-    return siblingsToFragment(xif.createXMLStreamReader(new DOMSource(node)));
+    return siblingsToFragment(XmlStreaming.newReader(new DOMSource(node)));
   }
 
   public static void unhandledEvent(@NotNull final XMLStreamReader in) throws XMLStreamException {
@@ -781,18 +993,36 @@ public final class XmlUtil {
     }
   }
 
+  public static void unhandledEvent(@NotNull final XmlReader in) throws XmlException {
+    switch (in.getEventType()) {
+      case CDSECT:
+      case TEXT:
+        if (!in.isWhitespace()) {
+          throw new XmlException("Content found where not expected ["+in.getLocationInfo()+"]");
+        }
+        break;
+      case COMMENT:
+        break; // ignore
+      case START_ELEMENT:
+        throw new XmlException("Element found where not expected ["+in.getLocationInfo()+"]: "+in.getLocalName());
+      case END_DOCUMENT:
+        throw new XmlException("End of document found where not expected");
+    }
+  }
+
   /**
    * Skil the preamble events in the stream reader
    * @param in The stream reader to skip
    */
-  public static void skipPreamble(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    int type = in.getEventType();
-    while (isPreamble(type) && in.hasNext()) {
+  public static void skipPreamble(@NotNull final XmlReader in) throws XmlException {
+    EventType type = in.getEventType();
+    while (isIgnorable(type) && in.hasNext()) {
       type = in.next();
     }
   }
 
-  public static boolean isPreamble(final int type) {
+  @Deprecated
+  public static boolean isStAXPreamble(final int type) {
     switch (type) {
       case XMLStreamConstants.COMMENT:
       case XMLStreamConstants.START_DOCUMENT:
@@ -805,14 +1035,28 @@ public final class XmlUtil {
     }
   }
 
-  public static void writeChild(final XMLStreamWriter out, @Nullable final XmlSerializable child) throws XMLStreamException {
+  public static boolean isIgnorable(final EventType type) {
+    switch (type) {
+      case COMMENT:
+      case START_DOCUMENT:
+      case END_DOCUMENT:
+      case PROCESSING_INSTRUCTION:
+      case DOCDECL:
+      case IGNORABLE_WHITESPACE:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  public static void writeChild(final XmlWriter out, @Nullable final XmlSerializable child) throws XmlException {
     if (child!=null) {
       child.serialize(out);
     }
   }
 
-  public static void writeChildren(final XMLStreamWriter out, @Nullable final Iterable<? extends XmlSerializable> children) throws
-          XMLStreamException {
+  public static void writeChildren(final XmlWriter out, @Nullable final Iterable<? extends XmlSerializable> children) throws
+          XmlException {
     if (children!=null) {
       for (final XmlSerializable child : children) {
         writeChild(out, child);
@@ -820,10 +1064,10 @@ public final class XmlUtil {
     }
   }
 
-  public static void writeStartElement(@NotNull final XMLStreamWriter out, @NotNull final QName qName) throws XMLStreamException {
+  public static void writeStartElement(@NotNull final XmlWriter out, @NotNull final QName qName) throws XmlException {
     boolean writeNs = false;
     String namespace = qName.getNamespaceURI();
-    String prefix;
+    CharSequence prefix;
     if (namespace==null) {
       namespace = out.getNamespaceContext().getNamespaceURI(qName.getPrefix());
       prefix = qName.getPrefix();
@@ -834,13 +1078,14 @@ public final class XmlUtil {
         prefix = qName.getPrefix();
       }
     }
-    out.writeStartElement(prefix, qName.getLocalPart(), namespace);
+    out.startTag(null, qName.getLocalPart(), prefix);
     if (writeNs) {
-      out.writeNamespace(prefix, namespace);
+      out.namespaceAttr(prefix, namespace);
     }
   }
 
-  public static void writeEmptyElement(@NotNull final XMLStreamWriter out, @NotNull final QName qName) throws XMLStreamException {
+/* XXX These can't work because they don't allow for attributes
+  public static void writeEmptyElement(@NotNull final StAXWriter out, @NotNull final QName qName) throws XMLStreamException {
     String namespace = qName.getNamespaceURI();
     String prefix;
     if (namespace==null) {
@@ -852,37 +1097,31 @@ public final class XmlUtil {
     }
     out.writeEmptyElement(prefix, qName.getLocalPart(), namespace);
   }
+*/
 
+  public static void writeSimpleElement(@NotNull final XmlWriter out, @NotNull final QName qName, @Nullable final CharSequence value) throws
+        XmlException {
+    writeStartElement(out, qName);
+    if (value!=null && value.length()!=0) {
+      out.text(value);
+    }
+    writeEndElement(out, qName);
+  }
 
-  public static void writeSimpleElement(@NotNull final XMLStreamWriter out, @NotNull final QName qName, @Nullable final String value) throws
-  XMLStreamException {
+  public static void writeAttribute(@NotNull final XmlWriter out, final String name, @Nullable final String value) throws XmlException {
     if (value!=null) {
-      if (value.isEmpty()) {
-        writeEmptyElement(out, qName);
-      } else {
-        writeStartElement(out, qName);
-        out.writeCharacters(value);
-        out.writeEndElement();
-      }
+      out.attribute(null, name, null, value);
     }
   }
 
-  public static void writeAttribute(@NotNull final XMLStreamWriter out, final String name, @Nullable final String value) throws
-  XMLStreamException {
-    if (value!=null) {
-      out.writeAttribute(name, value);
-    }
-  }
-
-  public static void writeAttribute(@NotNull final XMLStreamWriter out, final String name, final double value) throws
-  XMLStreamException {
+  public static void writeAttribute(@NotNull final XmlWriter out, final String name, final double value) throws XmlException {
     if (! Double.isNaN(value)) {
-      out.writeAttribute(name, Double.toString(value));
+      out.attribute(null, name, null, Double.toString(value));
     }
   }
 
-  public static void writeAttribute(@NotNull final XMLStreamWriter out, final String name, @Nullable final QName value) throws
-          XMLStreamException {
+  public static void writeAttribute(@NotNull final XmlWriter out, final String name, @Nullable final QName value) throws
+          XMLStreamException, XmlException {
     if (value!=null) {
       String prefix;
       if (value.getNamespaceURI()!=null) {
@@ -892,7 +1131,7 @@ public final class XmlUtil {
           prefix = out.getNamespaceContext().getPrefix(value.getNamespaceURI());
           if (prefix == null) {
             prefix = value.getPrefix();
-            out.writeNamespace(prefix, value.getNamespaceURI());
+            out.namespaceAttr(prefix, value.getNamespaceURI());
           }
         }
       } else {
@@ -900,12 +1139,12 @@ public final class XmlUtil {
         final String ns = out.getNamespaceContext().getNamespaceURI(prefix);
         if (ns==null) { throw new IllegalArgumentException("Cannot determine namespace of qname"); }
       }
-      out.writeAttribute(name, prefix+':'+value.getLocalPart());
+      out.attribute(null, name, null, prefix+':'+value.getLocalPart());
     }
   }
 
-  private static boolean nullOrEmpty(@Nullable final String s) {
-    return s==null || s.isEmpty();
+  private static boolean nullOrEmpty(@Nullable final CharSequence s) {
+    return s==null || s.length()==0;
   }
 
   /**
@@ -922,11 +1161,34 @@ public final class XmlUtil {
   /**
    * Check that the current state is a start element for the given name. The mPrefix is ignored.
    * @param in The stream reader to check
+   * @param elementname The name to check against
+   * @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+
+  public static boolean isElement(@NotNull final XmlReader in, @NotNull final QName elementname) throws XmlException {
+    return isElement(in, elementname.getNamespaceURI(), elementname.getLocalPart(), elementname.getPrefix());
+  }
+
+  /**
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
+   * @param in The stream reader to check
    * @param elementNamespace  The namespace to check against.
    * @param elementName The local name to check against
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
   public static boolean isElement(@NotNull final XMLStreamReader in, final String elementNamespace, final String elementName) {
+    final String elementPrefix = null;
+    return isElement(in, elementNamespace, elementName, elementPrefix);
+  }
+
+  /**
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
+   * @param in The stream reader to check
+   * @param elementNamespace  The namespace to check against.
+   * @param elementName The local name to check against   @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(@NotNull final XmlReader in, final CharSequence elementNamespace, final CharSequence elementName) throws
+          XmlException {
     final String elementPrefix = null;
     return isElement(in, elementNamespace, elementName, elementPrefix);
   }
@@ -957,6 +1219,32 @@ public final class XmlUtil {
     }
   }
 
+  /**
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
+   * @param in The stream reader to check
+   * @param elementNamespace  The namespace to check against.
+   * @param elementName The local name to check against
+   * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined
+   * @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(@NotNull final XmlReader in, final CharSequence elementNamespace, final CharSequence elementName, @NotNull final CharSequence elementPrefix) throws
+          XmlException {
+    if (in.getEventType()!= XmlStreaming.START_ELEMENT) { return false; }
+    CharSequence expNs =  elementNamespace;
+    if (expNs!=null && expNs.length()==0) { expNs = null; }
+    if (! in.getLocalName().equals(elementName)) { return false; }
+
+    if (nullOrEmpty(elementNamespace)) {
+      if (nullOrEmpty(elementPrefix)) {
+        return nullOrEmpty(in.getPrefix());
+      } else {
+        return elementPrefix.equals(in.getPrefix());
+      }
+    } else {
+      return StringUtil.isEqual(expNs,in.getNamespaceUri());
+    }
+  }
+
   private static void writeElementContent(@NotNull final XMLEventReader in, @NotNull final XMLEventWriter out) throws XMLStreamException {
     while (in.hasNext()) {
       final XMLEvent event = in.nextEvent();
@@ -966,6 +1254,27 @@ public final class XmlUtil {
         writeElementContent(in, out);
       }
       if (event.isEndElement()) {
+        break;
+      }
+    }
+  }
+
+  private static void writeElementContent(@Nullable final Map<String, String> missingNamespaces, @NotNull final XmlReader in, @NotNull final XmlWriter out) throws
+          XmlException {
+    while (in.hasNext()) {
+      EventType type = in.next();
+      writeCurrentEvent(in, out);
+      if (type== EventType.START_ELEMENT) {
+        if (missingNamespaces!=null) {
+          for (String prefix : undeclaredPrefixes(in, out)) {
+            if (!missingNamespaces.containsKey(prefix)) {
+              missingNamespaces.put(prefix, in.getNamespaceContext().getNamespaceURI(prefix));
+            }
+          }
+        }
+        writeElementContent(missingNamespaces, in, out);
+      }
+      if (type == EventType.END_ELEMENT) {
         break;
       }
     }

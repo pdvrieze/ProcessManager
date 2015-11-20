@@ -12,14 +12,14 @@ import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,13 +37,14 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
 
     @NotNull
     @Override
-    public JoinImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public JoinImpl deserialize(@NotNull final XmlReader in) throws XmlException {
       return JoinImpl.deserialize(null, in);
     }
   }
 
   @NotNull
-  public static JoinImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static JoinImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+          XmlException {
     return XmlUtil.deserializeHelper(new JoinImpl(ownerModel), in);
   }
 
@@ -70,17 +71,19 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.writeEndElement();
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
-  protected void serializeChildren(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeChildren(@NotNull final XmlWriter out) throws XmlException {
     super.serializeChildren(out);
     for(final Identifiable pred: getPredecessors()) {
-      XmlUtil.writeSimpleElement(out, PREDELEMNAME, pred.getId());
+      XmlUtil.writeStartElement(out, PREDELEMNAME);
+      out.text(pred.getId());
+      XmlUtil.writeEndElement(out, PREDELEMNAME);
     }
   }
 
@@ -91,9 +94,9 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
+  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
     if (XmlUtil.isElement(in, PREDELEMNAME)) {
-      final String id = XmlUtil.readSimpleElement(in);
+      final String id = XmlUtil.readSimpleElement(in).toString();
       addPredecessor(new Identifier(id));
       return true;
     }

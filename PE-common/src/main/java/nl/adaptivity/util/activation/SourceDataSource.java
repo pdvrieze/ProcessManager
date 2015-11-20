@@ -3,14 +3,14 @@ package nl.adaptivity.util.activation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.activation.DataSource;
+import javax.xml.transform.Source;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.activation.DataSource;
-import javax.xml.transform.Source;
-
-
+// TODO do this better still.
 public class SourceDataSource implements DataSource {
 
   private final String mContentType;

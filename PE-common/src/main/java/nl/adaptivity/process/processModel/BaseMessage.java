@@ -2,6 +2,8 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;
@@ -9,11 +11,6 @@ import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stax.StAXSource;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -33,12 +30,11 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
   @Deprecated
   public BaseMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final Node messageBody) throws
-          XMLStreamException {
-    this(service, endpoint, operation, url, method, contentType, new DOMSource(messageBody));
+          XmlException {
+    this(service, endpoint, operation, url, method, contentType, XmlUtil.nodeToFragment(messageBody));
   }
 
-  public BaseMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final Source messageBody) throws
-    XMLStreamException {
+  public BaseMessage(final QName service, final String endpoint, final String operation, final String url, final String method, final String contentType, final CompactFragment messageBody) {
     super(messageBody);
     this.mService = service;
     this.mEndpoint = endpoint;
@@ -48,18 +44,18 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     mType = contentType;
   }
 
-  public BaseMessage(@NotNull final IXmlMessage message) throws XMLStreamException {
+  public BaseMessage(@NotNull final IXmlMessage message) throws XmlException {
     this(message.getService(),
          message.getEndpoint(),
          message.getOperation(),
          message.getUrl(),
          message.getMethod(),
          message.getContentType(),
-         message.getBodySource());
+         message.getMessageBody());
   }
 
   @Override
-  protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     XmlUtil.writeAttribute(out, "type", getContentType());
     XmlUtil.writeAttribute(out, "serviceNS", getServiceNS());
@@ -71,16 +67,17 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
   }
 
 
-  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     if (XMLConstants.NULL_NS_URI.equals(attributeNamespace)) {
-      switch (attributeLocalName) {
-        case "endpoint": mEndpoint = attributeValue; return true;
-        case "operation": mOperation = attributeValue; return true;
-        case "url": mUrl =attributeValue; return true;
-        case "method": mMethod = attributeValue; return true;
-        case "type": mType = attributeValue; return true;
-        case "serviceNS": setServiceNS(attributeValue); return true;
-        case "serviceName": setServiceName(attributeValue); return true;
+      String value = attributeValue.toString();
+      switch (attributeLocalName.toString()) {
+        case "endpoint": mEndpoint = value; return true;
+        case "operation": mOperation = value; return true;
+        case "url": mUrl =value; return true;
+        case "method": mMethod = value; return true;
+        case "type": mType = value; return true;
+        case "serviceNS": setServiceNS(value); return true;
+        case "serviceName": setServiceName(value); return true;
       }
     }
     return false;
@@ -151,16 +148,6 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     try {
       return XmlUtil.tryParseXmlFragment(new CharArrayReader(getContent()));
     } catch (@NotNull final IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @NotNull
-  @Override
-  public Source getBodySource() {
-    try {
-      return new StAXSource(getBodyStreamReader());
-    } catch (@NotNull final XMLStreamException e) {
       throw new RuntimeException(e);
     }
   }

@@ -1,8 +1,11 @@
 package nl.adaptivity.util.xml;
 
+import nl.adaptivity.io.Writable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -11,7 +14,7 @@ import java.util.Collections;
  * A class representing an xml fragment compactly.
  * Created by pdvrieze on 06/11/15.
  */
-public class CompactFragment {
+public class CompactFragment implements Writable {
 
   private final SimpleNamespaceContext namespaces;
   private final char[] content;
@@ -24,6 +27,11 @@ public class CompactFragment {
   /** Convenience constructor for content without namespaces. */
   public CompactFragment(@NotNull final String string) {
     this(Collections.<Namespace>emptyList(), string.toCharArray());
+  }
+
+  @Override
+  public void writeTo(final Writer destination) throws IOException {
+
   }
 
   public SimpleNamespaceContext getNamespaces() {

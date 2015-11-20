@@ -7,6 +7,9 @@ import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.Namespace;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -17,9 +20,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -37,6 +37,7 @@ import static org.junit.Assert.*;
 /**
  * Created by pdvrieze on 24/08/15.
  */
+@SuppressWarnings("ConstantConditions")
 public class TestXmlResultType {
 
   @Test
@@ -99,10 +100,9 @@ public class TestXmlResultType {
 
 
   @Test
-  public void testXDefineHolder() throws JAXBException, XMLStreamException {
+  public void testXDefineHolder() throws JAXBException, XmlException {
     final String testData = "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    final XMLStreamReader in = xif.createXMLStreamReader(new StringReader(testData));
+    final XmlReader in = XmlStreaming.newReader(new StringReader(testData));
 
     final XmlDefineType testHolder = XmlDefineType.deserialize(in);
 
@@ -114,11 +114,10 @@ public class TestXmlResultType {
 
 
   @Test
-  public void testXMLResultHolder() throws Exception {
+  public void testXMLResultHolder() throws XmlException {
     final String testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />";
 
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    final XMLStreamReader in = xif.createXMLStreamReader(new StringReader(testData));
+    final XmlReader in = XmlStreaming.newReader(new StringReader(testData));
 
 
     final XmlResultType testHolder = XmlResultType.deserialize(in);

@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import javax.xml.transform.Source;
 
 
 public interface IXmlMessage {
@@ -61,9 +60,6 @@ public interface IXmlMessage {
 
   @NotNull
   CompactFragment getMessageBody();
-
-  @NotNull
-  Source getBodySource();
 
   /**
    * Sets the value of the operation property.

@@ -1,8 +1,7 @@
 package nl.adaptivity.util.xml;
 
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 
 
 /**
@@ -10,6 +9,6 @@ import javax.xml.stream.XMLStreamWriter;
  */
 public interface XmlDeserializerFactory<T> {
 
-  T deserialize(XMLStreamReader in) throws XMLStreamException;
+  T deserialize(XmlReader in) throws XmlException;
 
 }

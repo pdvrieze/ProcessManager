@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts.Engine;
@@ -12,14 +13,14 @@ import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import java.util.Collections;
 
@@ -34,13 +35,13 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
 
     @NotNull
     @Override
-    public SplitImpl deserialize(final XMLStreamReader in) throws XMLStreamException {
+    public SplitImpl deserialize(final XmlReader in) throws XmlException {
       return SplitImpl.deserialize(null, in);
     }
   }
 
   @NotNull
-  public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XMLStreamReader in) throws XMLStreamException {
+  public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XmlReader in) throws XmlException {
     return XmlUtil.deserializeHelper(new SplitImpl(ownerModel), in);
   }
 
@@ -66,15 +67,15 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.writeEndElement();
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
   @Override
-  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     if (getPredecessor()!=null) {
       XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessor().getId());
@@ -88,9 +89,9 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   @Override
-  public boolean deserializeAttribute(final String attributeNamespace, final String attributeLocalName, final String attributeValue) {
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     if (ATTR_PREDECESSOR.equals(attributeLocalName)) {
-      setPredecessor(new Identifier(attributeValue));
+      setPredecessor(new Identifier(StringUtil.toString(attributeValue)));
       return true;
     }
     return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);

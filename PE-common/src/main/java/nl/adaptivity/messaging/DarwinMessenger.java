@@ -1,9 +1,9 @@
 package nl.adaptivity.messaging;
 
 import net.devrieze.util.InputStreamOutputStream;
+import nl.adaptivity.io.Writable;
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.util.activation.SourceDataSource;
-import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
 import org.jetbrains.annotations.NotNull;
@@ -14,10 +14,7 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -292,7 +289,7 @@ public class DarwinMessenger implements IMessenger {
           contenttypeset |= "Content-Type".equals(header.getName());
         }
         if (hasPayload && (!contenttypeset)) { // Set the content type from the source if not yet set.
-          final String contentType = mMessage.getBodySource().getContentType();
+          final String contentType = mMessage.getContentType();
           if ((contentType != null) && (contentType.length() > 0)) {
             httpConnection.addRequestProperty("Content-Type", contentType);
           }
@@ -305,7 +302,8 @@ public class DarwinMessenger implements IMessenger {
         try {
           if (hasPayload) {
             try(final OutputStream out = httpConnection.getOutputStream()) {
-              InputStreamOutputStream.writeToOutputStream(mMessage.getBodySource().getInputStream(), out);
+              Writer writer = new OutputStreamWriter(out, httpConnection.getContentEncoding());
+              mMessage.getBodySource().writeTo(writer);
             }
           }
           mResponseCode = httpConnection.getResponseCode();
@@ -560,30 +558,22 @@ public class DarwinMessenger implements IMessenger {
     }
 
     if (registeredEndpoint instanceof Endpoint) { // Direct delivery when we don't just have a descriptor.
-      if ("application/soap+xml".equals(message.getBodySource().getContentType())) {
+      if ("application/soap+xml".equals(message.getContentType())) {
         final SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
-        final Source resultSource;
-        try {
-          resultSource = handler.processMessage(message.getBodySource(), message.getAttachments());
-        } catch (@NotNull final Exception e) {
-          final Future<T> resultfuture = new MessageTask<>(e);
-          if (completionListener != null) {
-            completionListener.onMessageCompletion(resultfuture);
-          }
-          return resultfuture;
-        }
+        final Source resultSource2;
+        Writable writable = message.getBodySource();
 
         final MessageTask<T> resultfuture;
         if (returnType.isAssignableFrom(SourceDataSource.class)) {
-          final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          final CharArrayWriter caw = new CharArrayWriter();
           try {
-            InputStreamOutputStream.writeToOutputStream(Sources.toInputStream(resultSource), baos);
+            writable.writeTo(caw);
           } catch (@NotNull final IOException e) {
             throw new MessagingException(e);
           }
-          resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new ByteArrayInputStream(baos.toByteArray())))));
+          resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new CharArrayReader(caw.toCharArray())))));
         } else {
-          final T resultval = SoapHelper.processResponse(returnType, returnContext, resultSource);
+          final T resultval = SoapHelper.processResponse(returnType, returnContext, writable);
           resultfuture = new MessageTask<>(resultval);
         }
 

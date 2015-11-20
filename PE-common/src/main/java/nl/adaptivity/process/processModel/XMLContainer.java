@@ -1,19 +1,19 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.GatheringNamespaceContext;
-import org.codehaus.stax2.XMLOutputFactory2;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.stream.*;
 import javax.xml.transform.Source;
-import javax.xml.transform.stax.StAXResult;
 
 import java.io.CharArrayReader;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 /**
@@ -21,15 +21,6 @@ import java.util.*;
  * Created by pdvrieze on 30/10/15.
  */
 public abstract class XMLContainer implements ExtXmlDeserializable {
-
-  public static class Factory<T extends XMLContainer> implements XmlDeserializerFactory<T> {
-
-    @Nullable
-    @Override
-    public T deserialize(final XMLStreamReader in) throws XMLStreamException {
-      return null;
-    }
-  }
 
   private static final SimpleNamespaceContext BASE_NS_CONTEXT = new SimpleNamespaceContext(new String[]{""}, new String[]{""});
 
@@ -43,14 +34,18 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     setContent(originalNSContext, content);
   }
 
-  @Deprecated
-  public XMLContainer(final Source source) throws XMLStreamException {
-    setContent(XmlUtil.siblingsToFragment(XmlUtil.createXMLStreamReader(XMLInputFactory.newFactory(), source)));
+  public XMLContainer(final CompactFragment fragment) {
+    setContent(fragment);
   }
 
-  public void deserializeChildren(@NotNull final XMLStreamReader in) throws XMLStreamException {
+  @Deprecated
+  public XMLContainer(final Source source) throws XmlException {
+    setContent(XmlUtil.siblingsToFragment(XmlStreaming.newReader(source)));
+  }
+
+  public void deserializeChildren(@NotNull final XmlReader in) throws XmlException {
     if (in.hasNext()) {
-      if (in.next() != XMLStreamConstants.END_ELEMENT) {
+      if (in.next() != XmlStreaming.END_ELEMENT) {
         final CompactFragment content = XmlUtil.siblingsToFragment(in);
         setContent(content);
       }
@@ -58,8 +53,9 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
   }
 
   @Override
-  public void onBeforeDeserializeChildren(@NotNull final XMLStreamReader in) {
-    for(int i=in.getNamespaceCount()-1; i>=0; --i) {
+  public void onBeforeDeserializeChildren(@NotNull final XmlReader in) throws XmlException {
+    int nsEnd = in.getNamespaceEnd();
+    for(int i=in.getNamespaceStart(); i< nsEnd;++i) {
       visitNamespace(in, in.getNamespacePrefix(i));
     }
   }
@@ -88,7 +84,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     try {
       final GatheringNamespaceContext gatheringNamespaceContext = new GatheringNamespaceContext(context, nsmap);
       visitNamespaces(gatheringNamespaceContext);
-    } catch (@NotNull final XMLStreamException e) {
+    } catch (@NotNull final XmlException e) {
       throw new RuntimeException(e);
     }
     originalNSContext = new SimpleNamespaceContext(nsmap);
@@ -99,27 +95,27 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     serializeStartElement(out);
     serializeAttributes(out);
     final NamespaceContext outNs = out.getNamespaceContext();
     if (originalNSContext!=null) {
       for (final Namespace ns : originalNSContext) {
         if (!ns.getNamespaceURI().equals(outNs.getNamespaceURI(ns.getPrefix()))) {
-          out.writeNamespace(ns.getPrefix(), ns.getNamespaceURI());
+          out.namespaceAttr(ns.getPrefix(), ns.getNamespaceURI());
         }
       }
     }
     serializeBody(out);
-    out.writeEndElement();
+    out.endTag(null, null, null);
   }
 
-  protected static void visitNamespace(@NotNull final XMLStreamReader in, final String prefix) {
-    in.getNamespaceURI(prefix);
+  protected static void visitNamespace(@NotNull final XmlReader in, final CharSequence prefix) throws XmlException {
+    in.getNamespaceContext().getNamespaceURI(prefix.toString());
   }
 
-  protected void visitNamesInElement(@NotNull final XMLStreamReader source) {
-    assert source.getEventType()==XMLStreamConstants.START_ELEMENT;
+  protected void visitNamesInElement(@NotNull final XmlReader source) throws XmlException {
+    assert source.getEventType()==XmlStreaming.START_ELEMENT;
     visitNamespace(source, source.getPrefix());
 
     for(int i=source.getAttributeCount()-1; i>=0; --i ) {
@@ -128,7 +124,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     }
   }
 
-  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final QName attributeName, final String attributeValue) {
+  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, final QName owner, final QName attributeName, final CharSequence attributeValue) {
     // By default there are no special attributes
   }
 
@@ -138,26 +134,24 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     return Collections.emptyList();
   }
 
-  protected void visitNamespaces(final NamespaceContext baseContext) throws XMLStreamException {
+  protected void visitNamespaces(final NamespaceContext baseContext) throws XmlException {
     if (content != null) {
-      final XMLInputFactory xif = XMLInputFactory.newFactory();
-
-      final XMLStreamReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.from(xif, new CharArrayReader(content), originalNSContext));
+      final XmlReader xsr = new NamespaceAddingStreamReader(baseContext, XMLFragmentStreamReader.from(new CharArrayReader(content), originalNSContext));
 
       visitNamespacesInContent(xsr, null);
     }
   }
 
-  private void visitNamespacesInContent(@NotNull final XMLStreamReader xsr, final QName parent) throws
-          XMLStreamException {
+  private void visitNamespacesInContent(@NotNull final XmlReader xsr, final QName parent) throws
+          XmlException {
     while (xsr.hasNext()) {
       switch(xsr.next()) {
-        case XMLStreamConstants.START_ELEMENT: {
+        case START_ELEMENT: {
           visitNamesInElement(xsr);
           visitNamespacesInContent(xsr, xsr.getName());
           break;
         }
-        case XMLStreamConstants.CHARACTERS: {
+        case TEXT: {
           visitNamesInTextContent(parent, xsr.getText());
           break;
         }
@@ -168,34 +162,26 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
     }
   }
 
-  private void serializeBody(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  private void serializeBody(@NotNull final XmlWriter out) throws XmlException {
     if (content !=null && content.length>0) {
-      final XMLOutputFactory xof = XMLOutputFactory.newFactory();
-      xof.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES,true); // Make sure to repair namespaces when writing
-      final XMLEventWriter xew = xof instanceof XMLOutputFactory2 ? ((XMLOutputFactory2)xof).createXMLEventWriter(out) : xof.createXMLEventWriter(new StAXResult(out));
-
-      final XMLEventReader contentReader = getBodyEventReader();
-      xew.add(contentReader);
+      final XmlReader contentReader = XmlUtil.filterSubstream(getBodyStreamReader());
+      while(contentReader.next()!=null) {
+        XmlUtil.writeCurrentEvent(contentReader, out);
+      }
     }
 
   }
 
   @NotNull
-  public XMLStreamReader getBodyStreamReader() throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return XMLFragmentStreamReader.from(xif, new CharArrayReader(content), originalNSContext);
+  public XmlReader getBodyStreamReader() throws XmlException {
+    return XMLFragmentStreamReader.from(new CharArrayReader(content), originalNSContext);
   }
 
-  public XMLEventReader getBodyEventReader() throws XMLStreamException {
-    final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return XmlUtil.filterSubstream(xif.createXMLEventReader(getBodyStreamReader()));
-  }
-
-  protected void serializeAttributes(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(final XmlWriter out) throws XmlException {
     // No attributes by default
   }
 
-  protected abstract void serializeStartElement(final XMLStreamWriter out) throws XMLStreamException;
+  protected abstract void serializeStartElement(final XmlWriter out) throws XmlException;
 
 
 }

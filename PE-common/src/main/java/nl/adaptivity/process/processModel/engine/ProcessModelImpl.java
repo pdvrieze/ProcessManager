@@ -16,6 +16,9 @@ import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
@@ -24,9 +27,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -69,13 +69,13 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
 
     @NotNull
     @Override
-    public ProcessModelImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
       return ProcessModelImpl.deserialize(in);
     }
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, XmlProcessModel.ELEMENTNAME);
     XmlUtil.writeAttribute(out, "name", getName());
     XmlUtil.writeAttribute(out, "owner", mOwner==null ? null : mOwner.getName());
@@ -91,9 +91,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   @Override
-  public boolean deserializeChild(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceURI())) {
-      switch (in.getLocalName()) {
+  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
+    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
+      switch (in.getLocalName().toString()) {
         case EndNodeImpl.ELEMENTLOCALNAME:
           EndNodeImpl.deserialize(this, in); break;
         case ActivityImpl.ELEMENTLOCALNAME:
@@ -110,17 +110,18 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   @Override
-  public boolean deserializeChildText(final String elementText) {
+  public boolean deserializeChildText(final CharSequence elementText) {
     return false; // No text expected except whitespace
   }
 
   @Override
-  public boolean deserializeAttribute(final String attributeNamespace, @NotNull final String attributeLocalName, @NotNull final String attributeValue) {
-    switch (attributeLocalName) {
-      case "name" : setName(attributeValue); break;
-      case "owner": setOwner(new SimplePrincipal(attributeValue)); break;
-      case XmlProcessModel.ATTR_ROLES: mRoles.addAll(Arrays.asList(attributeValue.split(" *, *"))); break;
-      case "uuid": setUuid(UUID.fromString(attributeValue)); break;
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, @NotNull final CharSequence attributeValue) {
+    final String value = StringUtil.toString(attributeValue);
+    switch (StringUtil.toString(attributeLocalName)) {
+      case "name" : setName(value); break;
+      case "owner": setOwner(new SimplePrincipal(value)); break;
+      case XmlProcessModel.ATTR_ROLES: mRoles.addAll(Arrays.asList(value.split(" *, *"))); break;
+      case "uuid": setUuid(UUID.fromString(value)); break;
       default:
         return false;
     }
@@ -128,7 +129,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XMLStreamReader in) {
+  public void onBeforeDeserializeChildren(final XmlReader in) {
     // do nothing
   }
 
@@ -138,7 +139,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
   }
 
   @NotNull
-  public static ProcessModelImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
     final ProcessModelImpl processModel = XmlUtil.deserializeHelper(new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList()), in);
     for(final ProcessNodeImpl node:processModel.mProcessNodes) {
       for(final Identifiable pred: node.getPredecessors()) {

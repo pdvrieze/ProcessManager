@@ -1,8 +1,12 @@
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.GatheringNamespaceContext;
+import nl.adaptivity.util.xml.CombiningNamespaceContext;
+import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,9 +14,6 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
@@ -28,7 +29,7 @@ public abstract class XPathHolder extends XMLContainer {
   private static final XPathExpression SELF_PATH;
   private String name;
 
-  @Nullable private XPathExpression path;
+  @Nullable private volatile XPathExpression path; // This is merely a cache.
   @Nullable private String pathString;
 
   static {
@@ -109,14 +110,14 @@ public abstract class XPathHolder extends XMLContainer {
     this.name = value;
   }
 
-  public boolean deserializeAttribute(final String attributeNamespace, @NotNull final String attributeLocalName, final String attributeValue) {
-    switch(attributeLocalName) {
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    switch(attributeLocalName.toString()) {
       case "name":
-        setName(attributeValue);
+        setName(StringUtil.toString(attributeValue));
         return true;
       case "path":
       case "xpath":
-        pathString=attributeValue;
+        pathString=StringUtil.toString(attributeValue);
         return true;
       case XMLConstants.XMLNS_ATTRIBUTE:
         return true;
@@ -126,7 +127,7 @@ public abstract class XPathHolder extends XMLContainer {
   }
 
   @Override
-  public void deserializeChildren(@NotNull final XMLStreamReader in) throws XMLStreamException {
+  public void deserializeChildren(@NotNull final XmlReader in) throws XmlException {
     final NamespaceContext origContext = in.getNamespaceContext();
     super.deserializeChildren(in);
     final Map<String, String> namespaces = new TreeMap<>();
@@ -138,12 +139,12 @@ public abstract class XPathHolder extends XMLContainer {
   }
 
   @NotNull
-  protected static <T extends XPathHolder> T deserialize(@NotNull final XMLStreamReader in, @NotNull final T result) throws
-          XMLStreamException {
+  protected static <T extends XPathHolder> T deserialize(@NotNull final XmlReader in, @NotNull final T result) throws
+          XmlException {
     return XmlUtil.deserializeHelper(result, in);
   }
 
-  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     if (pathString!=null) {
       final Map<String, String> namepaces = new TreeMap<>();
@@ -154,36 +155,36 @@ public abstract class XPathHolder extends XMLContainer {
       visitXpathUsedPrefixes(pathString, nsc);
       for(final Entry<String, String> ns: namepaces.entrySet()) {
         if (! ns.getValue().equals(referenceContext.getNamespaceURI(ns.getKey()))) {
-          out.writeNamespace(ns.getKey(), ns.getValue());
+          out.namespaceAttr(ns.getKey(), ns.getValue());
         }
       }
-      out.writeAttribute("xpath", pathString);
+      out.attribute(null, "xpath", null, pathString);
 
     }
     XmlUtil.writeAttribute(out, "name", name);
   }
 
   @Override
-  protected void visitNamespaces(final NamespaceContext baseContext) throws XMLStreamException {
+  protected void visitNamespaces(final NamespaceContext baseContext) throws XmlException {
     path = null;
     if (pathString!=null) { visitXpathUsedPrefixes(pathString, baseContext); }
     super.visitNamespaces(baseContext);
   }
 
   @Override
-  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, @NotNull final QName owner, @NotNull final QName attributeName, final String attributeValue) {
+  protected void visitNamesInAttributeValue(final NamespaceContext referenceContext, @NotNull final QName owner, @NotNull final QName attributeName, final CharSequence attributeValue) {
     if (Constants.MODIFY_NS_STR.equals(owner.getNamespaceURI()) && (XMLConstants.NULL_NS_URI.equals(attributeName.getNamespaceURI())||XMLConstants.DEFAULT_NS_PREFIX.equals(attributeName.getPrefix())) && "xpath".equals(attributeName.getLocalPart())) {
       visitXpathUsedPrefixes(attributeValue, referenceContext);
     }
   }
 
-  protected static void visitXpathUsedPrefixes(@Nullable final String path, final NamespaceContext namespaceContext) {
+  protected static void visitXpathUsedPrefixes(@Nullable final CharSequence path, final NamespaceContext namespaceContext) {
     if (path!=null && path.length()>0) {
       try {
         final XPathFactory xpf = XPathFactory.newInstance();
         final XPath xpath = xpf.newXPath();
         xpath.setNamespaceContext(namespaceContext);
-        xpath.compile(path);
+        xpath.compile(path.toString());
       } catch (@NotNull final XPathExpressionException e) {
         throw new RuntimeException(e);
       }

@@ -1,26 +1,23 @@
 package nl.adaptivity.messaging;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
+import nl.adaptivity.io.Writable;
+import nl.adaptivity.util.activation.Sources;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3.soapEnvelope.Envelope;
 
 import javax.activation.DataSource;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
-import nl.adaptivity.util.activation.Sources;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3.soapEnvelope.Envelope;
 
-
-public class SendableSoapSource implements ISendableMessage, DataSource {
+public class SendableSoapSource implements ISendableMessage, Writable {
 
   private final EndpointDescriptor mDestination;
 
@@ -57,7 +54,7 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
 
   @NotNull
   @Override
-  public DataSource getBodySource() {
+  public Writable getBodySource() {
     return this;
   }
 
@@ -66,28 +63,13 @@ public class SendableSoapSource implements ISendableMessage, DataSource {
     return Envelope.MIMETYPE;
   }
 
-  @NotNull
   @Override
-  public InputStream getInputStream() throws IOException {
-    final ByteArrayOutputStream boas = new ByteArrayOutputStream();
+  public void writeTo(final Writer destination) throws IOException {
     try {
-      Sources.writeToStream(mMessage, boas);
-    } catch (@NotNull final TransformerException e) {
+      Sources.writeToWriter(mMessage, destination);
+    } catch (TransformerException e) {
       throw new IOException(e);
     }
-    return new ByteArrayInputStream(boas.toByteArray());
-  }
-
-  @Nullable
-  @Override
-  public String getName() {
-    return null; // No relevant name
-  }
-
-  @NotNull
-  @Override
-  public OutputStream getOutputStream() throws IOException {
-    throw new UnsupportedOperationException("Not supported");
   }
 
   @Override

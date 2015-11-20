@@ -3,6 +3,8 @@ package nl.adaptivity.ws.soap;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.io.Writable;
+import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.util.xml.XmlUtil;
 import org.w3.soapEnvelope.Envelope;
@@ -205,8 +207,9 @@ public class SoapHelper {
     return wrapper;
   }
 
-  public static <T> T processResponse(final Class<T> pClass, Class<?>[] pContext, final Source pContent) {
-    final Envelope env = JAXB.unmarshal(pContent, Envelope.class);
+  public static <T> T processResponse(final Class<T> pClass, Class<?>[] pContext, final Writable pContent) {
+    // XXX get rid of JAXB here if possible
+    final Envelope env = JAXB.unmarshal(new WritableReader(pContent), Envelope.class);
     final List<Object> elements = env.getBody().getAny();
     if (elements.size() != 1) {
       return null;

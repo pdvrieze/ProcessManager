@@ -1,19 +1,17 @@
 package nl.adaptivity.process.processModel.engine;
 
 
-import java.util.Collection;
+import nl.adaptivity.process.processModel.JoinSplit;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
-import nl.adaptivity.process.processModel.JoinSplit;
-import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -35,12 +33,12 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
   }
 
   @Override
-  public boolean deserializeChild(final XMLStreamReader in) throws XMLStreamException {
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
     return false;
   }
 
   @Override
-  public boolean deserializeChildText(final String elementText) {
+  public boolean deserializeChildText(final CharSequence elementText) {
     return false;
   }
 

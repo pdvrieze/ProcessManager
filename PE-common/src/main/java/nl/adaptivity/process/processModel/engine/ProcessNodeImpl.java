@@ -1,6 +1,7 @@
 package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.IdFactory;
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -8,6 +9,9 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,11 +19,7 @@ import javax.xml.XMLConstants;
 import javax.xml.bind.annotation.*;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
-import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -27,7 +27,7 @@ import java.util.*;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
-public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable, ProcessNode<ProcessNodeImpl> {
+public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<ProcessNodeImpl> {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   private static final long serialVersionUID = -7745019972129682199L;
@@ -67,32 +67,33 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, Serializable
     setPredecessors(predecessors);
   }
 
-  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
-    out.writeAttribute("id", getId());
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
+    out.attribute(null, "id", null, getId());
     XmlUtil.writeAttribute(out, "label", getLabel());
     XmlUtil.writeAttribute(out, "x", getX());
     XmlUtil.writeAttribute(out, "y", getY());
   }
 
-  protected void serializeChildren(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeChildren(final XmlWriter out) throws XmlException {
 
   }
 
   @Override
-  public boolean deserializeAttribute(final String attributeNamespace, @NotNull final String attributeLocalName, final String attributeValue) {
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    String value = StringUtil.toString(attributeValue);
     if (XMLConstants.NULL_NS_URI.equals(attributeNamespace)) {
-      switch (attributeLocalName) {
-        case "id": setId(attributeValue); return true;
-        case "label": setLabel(attributeValue); return true;
-        case "x": setX(Double.parseDouble(attributeValue)); return true;
-        case "y": setY(Double.parseDouble(attributeValue)); return true;
+      switch (attributeLocalName.toString()) {
+        case "id": setId(value); return true;
+        case "label": setLabel(value); return true;
+        case "x": setX(Double.parseDouble(value)); return true;
+        case "y": setY(Double.parseDouble(value)); return true;
       }
     }
     return false;
   }
 
   @Override
-  public void onBeforeDeserializeChildren(final XMLStreamReader in) {
+  public void onBeforeDeserializeChildren(final XmlReader in) {
     // do nothing
   }
 

@@ -1,13 +1,15 @@
 package nl.adaptivity.util.xml;
 
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.namespace.QName;
-import javax.xml.stream.*;
 
 import java.io.CharArrayReader;
 import java.io.Reader;
@@ -23,7 +25,7 @@ import java.util.Set;
  *
  * Created by pdvrieze on 04/11/15.
  */
-public class XMLFragmentStreamReader implements XMLStreamReader {
+public class XMLFragmentStreamReader extends XmlDelegatingReader {
 
   private static class FragmentNamespaceContext extends SimpleNamespaceContext {
 
@@ -85,10 +87,16 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
 
   private static final String WRAPPERPPREFIX = "SDFKLJDSF";
   private static final String WRAPPERNAMESPACE = "http://wrapperns";
-  private final XMLStreamReader delegate;
+  private final XmlReader delegate = mDelegate;
   @Nullable private FragmentNamespaceContext localNamespaceContext;
 
-  public XMLFragmentStreamReader(@NotNull final XMLInputFactory xif, final Reader in, @NotNull final Iterable<Namespace> wrapperNamespaceContext) throws XMLStreamException {
+  public XMLFragmentStreamReader(final Reader in, @NotNull final Iterable<Namespace> wrapperNamespaceContext) throws XmlException {
+    super(getDelegate(in, wrapperNamespaceContext));
+    localNamespaceContext = new FragmentNamespaceContext(null, new String[0], new String[0]);
+  }
+
+  private static XmlReader getDelegate(final Reader in, final @NotNull Iterable<Namespace> wrapperNamespaceContext) throws
+          XmlException {
     final StringBuilder wrapperBuilder = new StringBuilder();
     wrapperBuilder.append("<" + WRAPPERPPREFIX + ":wrapper xmlns:" + WRAPPERPPREFIX + "=\"" + WRAPPERNAMESPACE+'"');
     for(final Namespace ns:wrapperNamespaceContext) {
@@ -105,276 +113,61 @@ public class XMLFragmentStreamReader implements XMLStreamReader {
 
     final String wrapper = wrapperBuilder.toString();
     final Reader actualInput = new CombiningReader(new StringReader(wrapper), in, new StringReader("</" + WRAPPERPPREFIX + ":wrapper>"));
-    delegate = xif.createXMLStreamReader(actualInput);
-    localNamespaceContext = new FragmentNamespaceContext(null, new String[0], new String[0]);
+    return XmlStreaming.newReader(actualInput);
   }
 
   @NotNull
-  public static XMLFragmentStreamReader from (@NotNull final XMLInputFactory xif, final Reader in, @NotNull final Iterable<Namespace> namespaceContext) throws XMLStreamException {
-    return new XMLFragmentStreamReader(xif, in, namespaceContext);
+  public static XMLFragmentStreamReader from(final Reader in, @NotNull final Iterable<Namespace> namespaceContext) throws
+          XmlException {
+    return new XMLFragmentStreamReader(in, namespaceContext);
   }
 
   @NotNull
-  public static XMLFragmentStreamReader from (@NotNull final XMLInputFactory xif, final Reader in) throws XMLStreamException {
-    return new XMLFragmentStreamReader(xif, in, Collections.<Namespace>emptyList());
+  public static XMLFragmentStreamReader from(final Reader in) throws
+          XmlException {
+    return new XMLFragmentStreamReader(in, Collections.<Namespace>emptyList());
   }
 
   @NotNull
-  public static XMLFragmentStreamReader from(@NotNull final CompactFragment fragment) throws XMLStreamException {
-    return new XMLFragmentStreamReader(XMLInputFactory.newFactory(), new CharArrayReader(fragment.getContent()), fragment.getNamespaces());
+  public static XMLFragmentStreamReader from(@NotNull final CompactFragment fragment) throws XmlException {
+    return new XMLFragmentStreamReader(new CharArrayReader(fragment.getContent()), fragment.getNamespaces());
   }
 
   @Override
-  public Object getProperty(final String name) throws IllegalArgumentException {
-    return delegate.getProperty(name);
-  }
-
-  @Override
-  public int next() throws XMLStreamException {
-    final int result = delegate.next();
+  public EventType next() throws XmlException {
+    final EventType result = delegate.next();
+    if (result==null) { return null; }
     switch (result) {
-      case XMLStreamConstants.START_DOCUMENT:
-      case XMLStreamConstants.END_DOCUMENT:
-      case XMLStreamConstants.PROCESSING_INSTRUCTION:
-      case XMLStreamConstants.DTD:
+      case START_DOCUMENT:
+      case END_DOCUMENT:
+      case PROCESSING_INSTRUCTION:
+      case DOCDECL:
         return next();
-      case XMLStreamConstants.START_ELEMENT:
-        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceURI())) { return delegate.next(); }
+      case START_ELEMENT:
+        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceUri())) { return delegate.next(); }
         extendNamespace();
         break;
-      case XMLStreamConstants.END_ELEMENT:
-        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceURI())) { return delegate.next(); }
+      case END_ELEMENT:
+        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceUri())) { return delegate.next(); }
         localNamespaceContext = localNamespaceContext.mParent;
         break;
     }
     return result;
   }
 
-  private void extendNamespace() {
-    final int nscount = delegate.getNamespaceCount();
+  private void extendNamespace() throws XmlException {
+    int nsEnd = delegate.getNamespaceEnd();
+    int nsStart = delegate.getNamespaceStart();
+    final int nscount = nsEnd - nsStart;
     final String[] prefixes = new String[nscount];
     final String[] namespaces = new String[nscount];
-    for(int i=nscount-1; i>=0; --i) {
-      prefixes[i] = delegate.getNamespacePrefix(i);
-      namespaces[i] = delegate.getNamespaceURI(i);
+    int j = 0;
+    for(int i = nsStart; i<nsEnd; ++i, ++j) {
+      prefixes[j] = StringUtil.toString(delegate.getNamespacePrefix(i));
+      namespaces[j] = StringUtil.toString(delegate.getNamespaceUri(i));
     }
     localNamespaceContext = new FragmentNamespaceContext(localNamespaceContext, prefixes, namespaces);
   }
 
-  @Override
-  public void require(final int type, final String namespaceURI, final String localName) throws XMLStreamException {
-    delegate.require(type, namespaceURI, localName);
-  }
 
-  @Override
-  public String getElementText() throws XMLStreamException {
-    return delegate.getElementText();
-  }
-
-  @Override
-  public int nextTag() throws XMLStreamException {
-    return delegate.nextTag();
-  }
-
-  @Override
-  public boolean hasNext() throws XMLStreamException {
-    return delegate.hasNext();
-  }
-
-  @Override
-  public void close() throws XMLStreamException {
-    delegate.close();
-  }
-
-  @Override
-  public String getNamespaceURI(final String prefix) {
-    return delegate.getNamespaceURI(prefix);
-  }
-
-  @Override
-  public boolean isStartElement() {
-    return delegate.isStartElement();
-  }
-
-  @Override
-  public boolean isEndElement() {
-    return delegate.isEndElement();
-  }
-
-  @Override
-  public boolean isCharacters() {
-    return delegate.isCharacters();
-  }
-
-  @Override
-  public boolean isWhiteSpace() {
-    return delegate.isWhiteSpace();
-  }
-
-  @Override
-  public String getAttributeValue(final String namespaceURI, final String localName) {
-    return delegate.getAttributeValue(namespaceURI, localName);
-  }
-
-  @Override
-  public int getAttributeCount() {
-    return delegate.getAttributeCount();
-  }
-
-  @Override
-  public QName getAttributeName(final int index) {
-    return delegate.getAttributeName(index);
-  }
-
-  @Override
-  public String getAttributeNamespace(final int index) {
-    return delegate.getAttributeNamespace(index);
-  }
-
-  @Override
-  public String getAttributeLocalName(final int index) {
-    return delegate.getAttributeLocalName(index);
-  }
-
-  @Override
-  public String getAttributePrefix(final int index) {
-    return delegate.getAttributePrefix(index);
-  }
-
-  @Override
-  public String getAttributeType(final int index) {
-    return delegate.getAttributeType(index);
-  }
-
-  @Override
-  public String getAttributeValue(final int index) {
-    return delegate.getAttributeValue(index);
-  }
-
-  @Override
-  public boolean isAttributeSpecified(final int index) {
-    return delegate.isAttributeSpecified(index);
-  }
-
-  @Override
-  public int getNamespaceCount() {
-    return delegate.getNamespaceCount();
-  }
-
-  @Override
-  public String getNamespacePrefix(final int index) {
-    return delegate.getNamespacePrefix(index);
-  }
-
-  @Override
-  public String getNamespaceURI(final int index) {
-    return delegate.getNamespaceURI(index);
-  }
-
-  @Nullable
-  @Override
-  public NamespaceContext getNamespaceContext() {
-    return localNamespaceContext;
-  }
-
-  @Override
-  public int getEventType() {
-    return delegate.getEventType();
-  }
-
-  @Override
-  public String getText() {
-    return delegate.getText();
-  }
-
-  @Override
-  public char[] getTextCharacters() {
-    return delegate.getTextCharacters();
-  }
-
-  @Override
-  public int getTextCharacters(final int sourceStart, final char[] target, final int targetStart, final int length) throws
-          XMLStreamException {
-    return delegate.getTextCharacters(sourceStart, target, targetStart, length);
-  }
-
-  @Override
-  public int getTextStart() {
-    return delegate.getTextStart();
-  }
-
-  @Override
-  public int getTextLength() {
-    return delegate.getTextLength();
-  }
-
-  @Override
-  public String getEncoding() {
-    return delegate.getEncoding();
-  }
-
-  @Override
-  public boolean hasText() {
-    return delegate.hasText();
-  }
-
-  @Override
-  public Location getLocation() {
-    return delegate.getLocation();
-  }
-
-  @Override
-  public QName getName() {
-    return delegate.getName();
-  }
-
-  @Override
-  public String getLocalName() {
-    return delegate.getLocalName();
-  }
-
-  @Override
-  public boolean hasName() {
-    return delegate.hasName();
-  }
-
-  @Override
-  public String getNamespaceURI() {
-    return delegate.getNamespaceURI();
-  }
-
-  @Override
-  public String getPrefix() {
-    return delegate.getPrefix();
-  }
-
-  @Override
-  public String getVersion() {
-    return delegate.getVersion();
-  }
-
-  @Override
-  public boolean isStandalone() {
-    return delegate.isStandalone();
-  }
-
-  @Override
-  public boolean standaloneSet() {
-    return delegate.standaloneSet();
-  }
-
-  @Override
-  public String getCharacterEncodingScheme() {
-    return delegate.getCharacterEncodingScheme();
-  }
-
-  @Override
-  public String getPITarget() {
-    return delegate.getPITarget();
-  }
-
-  @Override
-  public String getPIData() {
-    return delegate.getPIData();
-  }
 }

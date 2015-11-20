@@ -1,17 +1,18 @@
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 
 /**
@@ -30,14 +31,14 @@ public class ConditionImpl implements XmlSerializable, Condition {
   }
 
   @Override
-  public void serialize(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeSimpleElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX), getCondition());
   }
 
   @NotNull
-  public static ConditionImpl deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
-    final String condition = XmlUtil.readSimpleElement(in);
-    return new ConditionImpl(condition);
+  public static ConditionImpl deserialize(@NotNull final XmlReader in) throws XmlException {
+    final CharSequence condition = XmlUtil.readSimpleElement(in);
+    return new ConditionImpl(StringUtil.toString(condition));
   }
 
   /* (non-Javadoc)

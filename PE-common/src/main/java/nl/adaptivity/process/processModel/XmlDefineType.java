@@ -8,20 +8,21 @@
 
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -35,7 +36,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
     @NotNull
     @Override
-    public XmlDefineType deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+    public XmlDefineType deserialize(@NotNull final XmlReader in) throws XmlException {
       return XmlDefineType.deserialize(in);
     }
   }
@@ -56,7 +57,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   }
 
   @NotNull
-  public static XmlDefineType deserialize(@NotNull final XMLStreamReader in) throws XMLStreamException {
+  public static XmlDefineType deserialize(@NotNull final XmlReader in) throws XmlException {
     return deserialize(in, new XmlDefineType());
   }
 
@@ -67,22 +68,22 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
   }
 
   @Override
-  public boolean deserializeAttribute(final String attributeNamespace, @NotNull final String attributeLocalName, final String attributeValue) {
-    switch (attributeLocalName) {
-      case "refnode": setRefNode(attributeValue); return true;
-      case "refname": setRefName(attributeValue); return true;
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    switch (attributeLocalName.toString()) {
+      case "refnode": setRefNode(StringUtil.toString(attributeValue)); return true;
+      case "refname": setRefName(StringUtil.toString(attributeValue)); return true;
       default:
         return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
     }
   }
 
   @Override
-  protected void serializeStartElement(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeStartElement(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX));
   }
 
   @Override
-  protected void serializeAttributes(@NotNull final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
     XmlUtil.writeAttribute(out, "refnode", getRefNode());
     XmlUtil.writeAttribute(out, "refname", getRefName());
@@ -147,7 +148,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
           } else {
             processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(origpair.getContentFragment(), XPathConstants.NODESET)));
           }
-        } catch (@NotNull XPathExpressionException|XMLStreamException e) {
+        } catch (@NotNull XPathExpressionException|XmlException e) {
           throw new RuntimeException(e);
         }
       }
@@ -159,10 +160,10 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       try {
         final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
 
-        final CompactFragment transformed = XmlUtil.siblingsToFragment(transformer.createFilter(getBodyStreamReader()));
+        final CompactFragment transformed = XmlUtil.readerToFragment(transformer.createFilter(getBodyStreamReader()));
         return new ProcessData(getName(), transformed);
 
-      } catch (@NotNull final XMLStreamException e) {
+      } catch (@NotNull final XmlException e) {
         throw new RuntimeException(e);
       }
     } else {
