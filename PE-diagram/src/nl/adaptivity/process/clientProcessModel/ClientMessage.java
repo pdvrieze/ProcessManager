@@ -4,11 +4,11 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.process.processModel.BaseMessage;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
@@ -22,11 +22,11 @@ public class ClientMessage extends BaseMessage {
   }
 
   public ClientMessage(QName service, String endpoint, String operation, String url, String method, String contentType,
-                       Node messageBody) throws XMLStreamException {
+                       Node messageBody) throws XmlException {
     super(service, endpoint, operation, url, method, contentType, messageBody);
   }
 
-  public ClientMessage(IXmlMessage message) throws XMLStreamException {
+  public ClientMessage(IXmlMessage message) throws XmlException {
     super(message);
   }
 
@@ -35,7 +35,7 @@ public class ClientMessage extends BaseMessage {
     if (message instanceof ClientMessage) { return (ClientMessage) message; }
     try {
       return new ClientMessage(message);
-    } catch (XMLStreamException e) {
+    } catch (XmlException e) {
       throw new RuntimeException(e);
     }
   }
@@ -46,7 +46,7 @@ public class ClientMessage extends BaseMessage {
   }
 
   @Override
-  protected void serializeStartElement(final XMLStreamWriter out) throws XMLStreamException {
+  protected void serializeStartElement(final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, getElementName());
   }
 
