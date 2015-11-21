@@ -37,7 +37,7 @@ public class AndroidXmlReader extends AbstractXmlReader {
     DELEGATE_TO_LOCAL[XmlPullParser.START_TAG] = XmlStreaming.START_ELEMENT;
     DELEGATE_TO_LOCAL[XmlPullParser.TEXT] = XmlStreaming.TEXT;
 
-    LOCAL_TO_DELEGATE = new int[11];
+    LOCAL_TO_DELEGATE = new int[12];
     LOCAL_TO_DELEGATE[XmlStreaming.CDSECT.ordinal()] = XmlPullParser.CDSECT;
     LOCAL_TO_DELEGATE[XmlStreaming.COMMENT.ordinal()] = XmlPullParser.COMMENT;
     LOCAL_TO_DELEGATE[XmlStreaming.DOCDECL.ordinal()] = XmlPullParser.DOCDECL;
@@ -49,6 +49,7 @@ public class AndroidXmlReader extends AbstractXmlReader {
     LOCAL_TO_DELEGATE[XmlStreaming.START_DOCUMENT.ordinal()] = XmlPullParser.START_DOCUMENT;
     LOCAL_TO_DELEGATE[XmlStreaming.START_ELEMENT.ordinal()] = XmlPullParser.START_TAG;
     LOCAL_TO_DELEGATE[XmlStreaming.TEXT.ordinal()] = XmlPullParser.TEXT;
+    LOCAL_TO_DELEGATE[XmlStreaming.ATTRIBUTE.ordinal()] = Integer.MIN_VALUE;
   }
 
   final XmlPullParser mReader;

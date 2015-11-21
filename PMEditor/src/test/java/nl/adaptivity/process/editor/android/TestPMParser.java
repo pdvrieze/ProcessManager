@@ -1,11 +1,13 @@
 package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.process.diagram.*;
-import nl.adaptivity.xml.AndroidXmlReader;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.process.engine.TestProcessData;
+import nl.adaptivity.xml.*;
+import org.junit.Before;
 import org.junit.Test;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.CharArrayWriter;
 import java.io.InputStream;
 
 import static org.junit.Assert.*;
@@ -15,11 +17,29 @@ import static org.junit.Assert.*;
  */
 public class TestPMParser {
 
+  @Before
+  public void init() {
+    XmlStreaming.setFactory(new AndroidStreamingFactory());
+  }
+
+  @Test
+  public void testParseNew() throws XmlPullParserException, XmlException {
+    InputStream inputStream = getClass().getResourceAsStream("/processmodel.xml");
+    XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
+    DrawableProcessModel model = DrawableProcessModel.deserialize(parser);
+    checkModel1(model);
+  }
+
   @Test
   public void testParseSimple() throws XmlPullParserException {
     InputStream inputStream = getClass().getResourceAsStream("/processmodel.xml");
     XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
     DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
+    checkModel1(model);
+
+  }
+
+  private void checkModel1(final DrawableProcessModel model) {
     assertNotNull(model);
 
     assertEquals("There should be 9 effective elements in the process model (including an introduced split)", 9, model.getChildElements().size());
@@ -57,7 +77,36 @@ public class TestPMParser {
 
     assertArrayEquals(toArray(ac4), end.getPredecessors().toArray());
     assertArrayEquals(toArray(), end.getSuccessors().toArray());
+  }
 
+  @Test
+  public void testRoundTripResult1() throws Exception {
+    TestProcessData otherTestSuite = new TestProcessData();
+    otherTestSuite.testRoundTripResult1();
+  }
+
+  @Test
+  public void testWriter() throws XmlException {
+    CharArrayWriter caw = new CharArrayWriter();
+    XmlWriter writer = XmlStreaming.newWriter(caw);
+    testWriterCommon(writer);
+    assertEquals("<prefix:tag>Hello</prefix:tag>", caw.toString());
+  }
+
+  @Test
+  public void testWriterRepairing() throws XmlException {
+    CharArrayWriter caw = new CharArrayWriter();
+    XmlWriter writer = XmlStreaming.newWriter(caw, true);
+    testWriterCommon(writer);
+    assertEquals("<prefix:tag xmlns:prefix=\"urn:foo\">Hello</prefix:tag>", caw.toString());
+  }
+
+  private void testWriterCommon(final XmlWriter writer) throws XmlException {
+    writer.setPrefix("bar", "urn:bar");
+    writer.startTag("urn:foo", "tag", "prefix");
+    writer.text("Hello");
+    writer.endTag("urn:foo", "tag", "prefix");
+    writer.close();
   }
 
   private static Object[] toArray(Object... val) {

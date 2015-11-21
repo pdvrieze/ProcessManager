@@ -5,7 +5,6 @@ import android.util.Log;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.clientProcessModel.ClientMessage;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.util.Identifiable;
@@ -29,147 +28,6 @@ import static nl.adaptivity.xml.XmlStreaming.*;
 public class PMParser {
 
   public static final String MIME_TYPE="application/x-processmodel";
-
-  public static class XmlSerializerAdapter implements SerializerAdapter {
-
-    private final XmlSerializer mSerializer;
-
-    private int mIndent = 0;
-    private boolean mPendingBreak = false;
-    private boolean mExtraIndent = false;
-
-    public XmlSerializerAdapter(XmlSerializer serializer) {
-      mSerializer = serializer;
-    }
-
-    @Override
-    public void addNamespace(String prefix, String namespace) {
-      // TODO maybe record pending namespaces and only add them on startTag
-      try {
-        mSerializer.setPrefix(prefix, namespace);
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void startTag(String namespace, String name, boolean addWs) {
-      try {
-        if (mPendingBreak) {
-          printBreak();
-        }
-        printExtraIndent();
-        mSerializer.startTag(namespace, name);
-        ++mIndent;
-        mPendingBreak = addWs;
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void endTag(String namespace, String name, boolean addWs) {
-      try {
-        mSerializer.endTag(namespace, name);
-        --mIndent;
-        if (addWs) {
-          printBreak();
-        }
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    private void printExtraIndent() throws IOException {
-      if (mExtraIndent) {
-        mSerializer.ignorableWhitespace("  ");
-        mExtraIndent = false;
-      }
-    }
-
-    private void printBreak() throws IOException {
-      mSerializer.ignorableWhitespace("\n");
-      for(int i=mIndent; i>1; --i) { mSerializer.ignorableWhitespace("  "); }
-      mPendingBreak = false;
-      mExtraIndent=true;
-    }
-
-    @Override
-    public void addAttribute(String namespace, String name, String value) {
-      try {
-        mSerializer.attribute(namespace, name, value);
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void text(String string) {
-      try {
-        if (mPendingBreak) {
-          printBreak();
-        }
-        printExtraIndent();
-        mSerializer.text(string);
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void cdata(String data) {
-      try {
-        if (mPendingBreak) {
-          printBreak();
-        }
-        printExtraIndent();
-        mSerializer.cdsect(data);
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void comment(String data) {
-      try {
-        if (mPendingBreak) {
-          printBreak();
-        }
-        printExtraIndent();
-        mSerializer.comment(data);
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void entityReference(String entityRef) {
-      try {
-        if (mPendingBreak) {
-          printBreak();
-        }
-        printExtraIndent();
-        mSerializer.entityRef(entityRef);;
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Override
-    public void ignorableWhitespace(String string) {
-      try {
-        if (mPendingBreak) {
-          printBreak();
-        }
-        printExtraIndent();
-        mSerializer.ignorableWhitespace(string);
-      } catch (IllegalArgumentException | IllegalStateException | IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-
-  }
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
@@ -215,9 +73,9 @@ public class PMParser {
     try {
       serializer.startDocument(null, null);
       serializer.ignorableWhitespace("\n");
-      processModel.serialize(new XmlSerializerAdapter(serializer));
+      processModel.serialize(new AndroidXmlWriter(serializer));
       serializer.endDocument();
-    } catch (IllegalArgumentException | IllegalStateException | IOException e) {
+    } catch (IllegalArgumentException | IllegalStateException | IOException | XmlException e) {
       throw new RuntimeException(e);
     }
   }

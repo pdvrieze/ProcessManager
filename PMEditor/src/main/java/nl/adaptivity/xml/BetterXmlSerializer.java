@@ -23,12 +23,14 @@ package nl.adaptivity.xml;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import javax.xml.XMLConstants;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-public class BetterXmlSerializer implements XmlSerializer {
+public class BetterXmlSerializer implements XmlSerializer{
 
   //    static final String UNDEFINED = ":";
 
@@ -41,11 +43,13 @@ public class BetterXmlSerializer implements XmlSerializer {
   private String[] elementStack = new String[12];
   //nsp/prefix/name
   private int[] nspCounts = new int[4];
-  private String[] nspStack = new String[8];
+  private String[] nspStack = new String[10];
+  private boolean[] nspWritten = new boolean[5];
   //prefix/nsp; both empty are ""
   private boolean[] indent = new boolean[4];
   private boolean unicode;
   private String encoding;
+  private boolean escapeAggressive = false;
 
   private final void check(boolean close) throws IOException {
     if (!pending)
@@ -60,22 +64,6 @@ public class BetterXmlSerializer implements XmlSerializer {
       indent = hlp;
     }
     indent[depth] = indent[depth - 1];
-
-    for (int i = nspCounts[depth - 1];
-         i < nspCounts[depth];
-         i++) {
-      writer.write(' ');
-      writer.write("xmlns");
-      if (!"".equals(nspStack[i * 2])) {
-        writer.write(':');
-        writer.write(nspStack[i * 2]);
-      }
-      else if ("".equals(getNamespace()) && !"".equals(nspStack[i * 2 + 1]))
-        throw new IllegalStateException("Cannot set default namespace for elements in no namespace");
-      writer.write("=\"");
-      writeEscaped(nspStack[i * 2 + 1], '"');
-      writer.write('"');
-    }
 
     if (nspCounts.length <= depth + 1) {
       int[] hlp = new int[depth + 8];
@@ -95,39 +83,39 @@ public class BetterXmlSerializer implements XmlSerializer {
     for (int i = 0; i < s.length(); i++) {
       char c = s.charAt(i);
       switch (c) {
+        case '&' :
+        writer.write("&amp;");
+        break;
+        case '>' :
+        writer.write("&gt;");
+        break;
+        case '<' :
+        writer.write("&lt;");
+        break;
+        case '"' :
+        case '\'' :
+        if (c == quot) {
+          writer.write(
+                    c == '"' ? "&quot;" : "&apos;");
+          break;
+        }
         case '\n':
         case '\r':
         case '\t':
-          if(quot == -1)
-            writer.write(c);
-          else
+          if(escapeAggressive && quot != -1) {
             writer.write("&#"+((int) c)+';');
-          break;
-        case '&' :
-          writer.write("&amp;");
-          break;
-        case '>' :
-          writer.write("&gt;");
-          break;
-        case '<' :
-          writer.write("&lt;");
-          break;
-        case '"' :
-        case '\'' :
-          if (c == quot) {
-            writer.write(
-                    c == '"' ? "&quot;" : "&apos;");
-            break;
+          } else {
+            writer.write(c);
           }
+          break;
         default :
           //if(c < ' ')
           //	throw new IllegalArgumentException("Illegal control code:"+((int) c));
-
-          if (c >= ' ' && c !='@' && (c < 127 || unicode))
-            writer.write(c);
-          else
+          if (escapeAggressive && (c<' ' || c=='@' || (c>127 && ! unicode))) {
             writer.write("&#" + ((int) c) + ";");
-
+          } else {
+            writer.write(c);
+          }
       }
     }
   }
@@ -180,10 +168,7 @@ public class BetterXmlSerializer implements XmlSerializer {
     }
   }
 
-  private final String getPrefix(
-          String namespace,
-          boolean includeDefault,
-          boolean create)
+  private final String getPrefix(String namespace, boolean includeDefault, boolean create)
           throws IOException {
 
     for (int i = nspCounts[depth + 1] * 2 - 2;
@@ -191,17 +176,18 @@ public class BetterXmlSerializer implements XmlSerializer {
          i -= 2) {
       if (nspStack[i + 1].equals(namespace)
               && (includeDefault || !nspStack[i].equals(""))) {
-        String cand = nspStack[i];
+        String candidate = nspStack[i];
         for (int j = i + 2;
              j < nspCounts[depth + 1] * 2;
              j++) {
-          if (nspStack[j].equals(cand)) {
-            cand = null;
+          if (nspStack[j].equals(candidate)) {
+            candidate = null;
             break;
           }
         }
-        if (cand != null)
-          return cand;
+        if (candidate != null) {
+          return candidate;
+        }
       }
     }
 
@@ -257,32 +243,53 @@ public class BetterXmlSerializer implements XmlSerializer {
             "Unsupported Property:" + value);
   }
 
-  public void setPrefix(String prefix, String namespace)
-          throws IOException {
+  public void setPrefix(String prefix, String namespace) throws IOException {
 
-    check(false);
     if (prefix == null)
       prefix = "";
     if (namespace == null)
       namespace = "";
 
-    String defined = getPrefix(namespace, true, false);
-
-    // boil out if already defined
-
-    if (prefix.equals(defined))
-      return;
-
-    int pos = (nspCounts[depth + 1]++) << 1;
-
-    if (nspStack.length < pos + 1) {
-      String[] hlp = new String[nspStack.length + 16];
-      System.arraycopy(nspStack, 0, hlp, 0, pos);
-      nspStack = hlp;
+    final int depth;
+    if (pending) {
+      depth = this.depth;
+    } else {
+      depth = this.depth+1;
     }
+
+    for (int i = nspCounts[depth] * 2 - 2;
+         i >= 0;
+         i -= 2) {
+      if (nspStack[i + 1].equals(namespace) && nspStack[i].equals(prefix)) {
+        // bail out if already defined
+        return;
+      }
+    }
+
+
+    int pos = (nspCounts[depth]++) << 1;
+
+    resizeNspStack();
 
     nspStack[pos++] = prefix;
     nspStack[pos] = namespace;
+  }
+
+  private void resizeNspStack() {
+    int nspCount = nspCounts[pending ? depth + 1 : depth];
+    int pos = nspCount << 1;
+    if (nspStack.length < pos + 2) {
+      {
+        String[] hlp = new String[nspStack.length + 16];
+        System.arraycopy(nspStack, 0, hlp, 0, pos);
+        nspStack = hlp;
+      }
+      {
+        boolean[] help = new boolean[nspWritten.length + 8];
+        System.arraycopy(nspWritten, 0, help, 0, nspCount);
+        nspWritten = help;
+      }
+    }
   }
 
   public void setOutput(Writer writer) {
@@ -293,12 +300,14 @@ public class BetterXmlSerializer implements XmlSerializer {
     //nspStack = new String[8]; //prefix/nsp
     //indent = new boolean[4];
 
-    nspCounts[0] = 2;
-    nspCounts[1] = 2;
+    nspCounts[0] = 3;
+    nspCounts[1] = 3;
     nspStack[0] = "";
     nspStack[1] = "";
     nspStack[2] = "xml";
     nspStack[3] = "http://www.w3.org/XML/1998/namespace";
+    nspStack[4] = "xmlns";
+    nspStack[5] = "http://www.w3.org/2000/xmlns/";
     pending = false;
     auto = 0;
     depth = 0;
@@ -347,7 +356,7 @@ public class BetterXmlSerializer implements XmlSerializer {
     writer.write("?>");
   }
 
-  public XmlSerializer startTag(String namespace, String name)
+  public BetterXmlSerializer startTag(String namespace, String name)
           throws IOException {
     check(false);
 
@@ -373,7 +382,7 @@ public class BetterXmlSerializer implements XmlSerializer {
                     ? ""
                     : getPrefix(namespace, true, true);
 
-    if ("".equals(namespace)) {
+    if (namespace.isEmpty()) {
       for (int i = nspCounts[depth];
            i < nspCounts[depth + 1];
            i++) {
@@ -388,7 +397,7 @@ public class BetterXmlSerializer implements XmlSerializer {
     elementStack[esp] = name;
 
     writer.write('<');
-    if (!"".equals(prefix)) {
+    if (prefix.length()>0) {
       writer.write(prefix);
       writer.write(':');
     }
@@ -400,7 +409,7 @@ public class BetterXmlSerializer implements XmlSerializer {
     return this;
   }
 
-  public XmlSerializer attribute(
+  public BetterXmlSerializer attribute(
           String namespace,
           String name,
           String value)
@@ -410,8 +419,11 @@ public class BetterXmlSerializer implements XmlSerializer {
 
     //        int cnt = nspCounts[depth];
 
-    if (namespace == null)
+    if (namespace == null) {
       namespace = "";
+    } else if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespace)) {
+      return namespace(name, value); // If it is a namespace attribute, just go there.
+    }
 
     //		depth--;
     //		pending = false;
@@ -452,6 +464,56 @@ public class BetterXmlSerializer implements XmlSerializer {
     return this;
   }
 
+  public BetterXmlSerializer namespace(
+          String prefix,
+          String namespace)
+          throws IOException {
+    if (!pending)
+      throw new IllegalStateException("illegal position for attribute");
+
+    boolean wasSet = false;
+    for (int i = nspCounts[depth];
+         i < nspCounts[depth+1];
+         i++) {
+      if (prefix.equals(nspStack[i * 2])) {
+        if (! nspStack[i * 2 + 1].equals(namespace)) { // If we find the prefix redefined within the element, bail out
+          throw new IllegalArgumentException("Attempting to bind prefix to conflicting values in one element");
+        } if (nspWritten[i]) {
+          // otherwise just ignore the request.
+          return this;
+        }
+        nspWritten[i] = true;
+        wasSet = true;
+        break;
+      }
+    }
+
+    if (! wasSet) { // Don't use setPrefix as we know it isn't there
+      int pos = (nspCounts[depth+1]++)<<1;
+      resizeNspStack();
+      nspStack[pos] = prefix;
+      nspStack[pos+1] = namespace;
+      nspWritten[pos>>1] = true;
+    }
+
+    if (namespace == null)
+      namespace = "";
+
+    writer.write(' ');
+    if (prefix.length()>0) {
+      writer.write(XMLConstants.XMLNS_ATTRIBUTE);
+      writer.write(':');
+    }
+    writer.write(prefix);
+    writer.write('=');
+    char q = namespace.indexOf('"') == -1 ? '"' : '\'';
+    writer.write(q);
+    writeEscaped(namespace, q);
+    writer.write(q);
+
+    return this;
+  }
+
   public void flush() throws IOException {
     check(false);
     writer.flush();
@@ -462,7 +524,7 @@ public class BetterXmlSerializer implements XmlSerializer {
       writer.close();
     }
   */
-  public XmlSerializer endTag(String namespace, String name)
+  public BetterXmlSerializer endTag(String namespace, String name)
           throws IOException {
 
     if (!pending)
@@ -514,14 +576,14 @@ public class BetterXmlSerializer implements XmlSerializer {
     return pending ? depth + 1 : depth;
   }
 
-  public XmlSerializer text(String text) throws IOException {
+  public BetterXmlSerializer text(String text) throws IOException {
     check(false);
     indent[depth] = false;
     writeEscaped(text, -1);
     return this;
   }
 
-  public XmlSerializer text(char[] text, int start, int len)
+  public BetterXmlSerializer text(char[] text, int start, int len)
           throws IOException {
     text(new String(text, start, len));
     return this;
