@@ -2,6 +2,8 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import java.util.Collection;
 import java.util.List;
@@ -106,14 +108,14 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
 
   @Override
-  public void serialize(SerializerAdapter out) {
-    out.startTag(NS_PM, "activity", true);
+  public void serialize(XmlWriter out) throws XmlException {
+    out.startTag(NS_PM, "activity", null);
     serializeCommonAttrs(out);
-    if (mName!=null) { out.addAttribute(null, "name", mName); }
-    if (mCondition!=null) { out.addAttribute(null, "condition", mCondition); }
+    if (mName != null) { out.attribute(null, "name", null, mName); }
+    if (mCondition != null) { out.attribute(null, "condition", null, mCondition); }
     serializeCommonChildren(out);
-    if (mMessage!=null) { mMessage.serialize(out); }
-    out.endTag(NS_PM, "activity", true);
+    if (mMessage != null) { mMessage.serialize(out); }
+    out.endTag(NS_PM, "activity", null);
   }
 
   @Override

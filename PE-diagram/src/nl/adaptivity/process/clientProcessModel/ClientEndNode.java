@@ -6,6 +6,8 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import java.util.Collection;
 import java.util.List;
@@ -58,11 +60,11 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
   }
 
   @Override
-  public void serialize(SerializerAdapter out) {
-    out.startTag(NS_PM, "end", true);
+  public void serialize(XmlWriter out) throws XmlException {
+    out.startTag(NS_PM, "end", null);
     serializeCommonAttrs(out);
     serializeCommonChildren(out);
-    out.endTag(NS_PM, "end", true);
+    out.endTag(NS_PM, "end", null);
   }
 
   @Override

@@ -8,6 +8,8 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.XMLConstants;
 
@@ -15,7 +17,7 @@ import java.security.Principal;
 import java.util.*;
 
 
-public class ClientProcessModel<T extends IClientProcessNode<T>> implements ProcessModel<T>{
+public class ClientProcessModel<T extends IClientProcessNode<T>> extends ProcessModelBase<T> {
 
   public static final String NS_JBI = "http://adaptivity.nl/ProcessEngine/activity";
 
@@ -53,10 +55,15 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
   }
 
   public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes, LayoutAlgorithm<T> layoutAlgorithm) {
+    super(nodes);
     mName = name;
     mLayoutAlgorithm = layoutAlgorithm == null ? new LayoutAlgorithm<T>() : layoutAlgorithm;
     setNodes(nodes);
     mUuid = uuid==null ? UUID.randomUUID() : uuid;
+  }
+
+  protected ClientProcessModel() {
+    this(null, null, new ArrayList<T>(), null);
   }
 
   public void setNodes(final Collection<? extends T> nodes) {
@@ -206,7 +213,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     mUuid = uuid;
   }
 
-  @Override
   public int getEndNodeCount() {
     int i=0;
     for(T node: getModelNodes()) {
@@ -284,7 +290,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return mRoles;
   }
 
-  @Override
   public Collection<? extends ClientStartNode<? extends T>> getStartNodes() {
     List<ClientStartNode<? extends T>> result = new ArrayList<>();
     for(T n:getModelNodes()) {
@@ -295,11 +300,14 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     return result;
   }
 
-  public void addNode(T node) {
-    mNodes.add(node);
-    node.setOwner(this);
-    // Make sure that children can know of the change.
-    nodeChanged(node);
+  public boolean addNode(T node) {
+    if (mNodes.add(node)) {
+      node.setOwner(this);
+      // Make sure that children can know of the change.
+      nodeChanged(node);
+      return true;
+    }
+    return false;
   }
 
   public void removeNode(int nodePos) {
@@ -307,11 +315,16 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     disconnectNode(node);
   }
 
-  void removeNode(T node) {
-    if (node==null) { return; }
+  @Override
+  public boolean removeNode(T node) {
+    if (node==null) {
+      return false;
+    }
     if (mNodes.remove(node)) {
       disconnectNode(node);
+      return true;
     }
+    return false;
   }
 
   private void disconnectNode(T node) {
@@ -333,22 +346,22 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> implements Proc
     }
   }
 
-  public void serialize(SerializerAdapter out) {
-    out.addNamespace(XMLConstants.NULL_NS_URI, NS_PM);
-    out.addNamespace("umh", NS_UMH);
-    out.addNamespace("jbi", NS_JBI);
+  public void serialize(XmlWriter out) throws XmlException {
+    out.namespaceAttr(XMLConstants.NULL_NS_URI, NS_PM);
+    out.namespaceAttr("umh", NS_UMH);
+    out.namespaceAttr("jbi", NS_JBI);
 
-    out.startTag(NS_PM, "processModel", true);
+    out.startTag(NS_PM, "processModel", null);
     if (mName!=null) {
-      out.addAttribute(null, "name", mName);
+      out.attribute(null, "name", null, mName);
     }
     if (mUuid!=null) {
-      out.addAttribute(null, "uuid", mUuid.toString());
+      out.attribute(null, "uuid", null, mUuid.toString());
     }
     for(T node:mNodes) {
       node.serialize(out);
     }
-    out.endTag(NS_PM, "processModel", true);
+    out.endTag(NS_PM, "processModel", null);
   }
 
   private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> modelNodes) {

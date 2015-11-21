@@ -6,6 +6,8 @@ import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -304,17 +306,17 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> impleme
     return mOwner;
   }
 
-  public void serializeCommonAttrs(SerializerAdapter out) {
-    out.addAttribute(null, "id", mId);
-    if (mLabel!=null) { out.addAttribute(null, "label", mLabel); }
-    if (!Double.isNaN(mX)) { out.addAttribute(null, "x", Double.toString(mX)); }
-    if (!Double.isNaN(mY)) { out.addAttribute(null, "y", Double.toString(mY)); }
+  public void serializeCommonAttrs(XmlWriter out) throws XmlException {
+    out.attribute(null, "id", null, mId);
+    if (mLabel!=null) { out.attribute(null, "label", null, mLabel); }
+    if (!Double.isNaN(mX)) { out.attribute(null, "x", null, Double.toString(mX)); }
+    if (!Double.isNaN(mY)) { out.attribute(null, "y", null, Double.toString(mY)); }
     if (getMaxPredecessorCount()==1 && mPredecessors.size()==1) {
-      out.addAttribute(null, "predecessor", mPredecessors.get(0).getId());
+      out.attribute(null, "predecessor", null, mPredecessors.get(0).getId());
     }
   }
 
-  public void serializeCommonChildren(SerializerAdapter out) {
+  public void serializeCommonChildren(XmlWriter out) {
     // TODO handle imports and exports.
   }
 }

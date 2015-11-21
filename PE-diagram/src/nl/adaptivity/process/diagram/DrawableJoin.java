@@ -1,8 +1,10 @@
 package nl.adaptivity.process.diagram;
+
 import nl.adaptivity.diagram.*;
-import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -100,7 +102,7 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   }
 
   @Override
-  public void serialize(SerializerAdapter out) {
+  public void serialize(XmlWriter out) throws XmlException {
     serializeJoin(out);
   }
 

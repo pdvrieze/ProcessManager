@@ -3,6 +3,8 @@ package nl.adaptivity.process.clientProcessModel;
 import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import java.util.List;
 
@@ -34,11 +36,11 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  public void serialize(SerializerAdapter out) {
-    out.startTag(NS_PM, "start", true);
+  public void serialize(XmlWriter out) throws XmlException {
+    out.startTag(NS_PM, "start", null);
     serializeCommonAttrs(out);
     serializeCommonChildren(out);
-    out.endTag(NS_PM, "start", true);
+    out.endTag(NS_PM, "start", null);
   }
 
   @Override

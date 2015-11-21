@@ -3,8 +3,9 @@ package nl.adaptivity.process.diagram.svg;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
-import nl.adaptivity.process.clientProcessModel.SerializerAdapter;
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.XMLConstants;
 
@@ -16,7 +17,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   interface IPaintedElem {
 
-    void serialize(SerializerAdapter out);
+    void serialize(XmlWriter out) throws XmlException;
 
   }
 
@@ -27,11 +28,11 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       mColor = color;
     }
 
-    void serializeFill(SerializerAdapter out) {
+    void serializeFill(XmlWriter out) throws XmlException {
       serializeStyle(out, null, mColor, null);
     }
 
-    void serializeStroke(SerializerAdapter out) {
+    void serializeStroke(XmlWriter out) throws XmlException {
       serializeStyle(out, mColor, null, null);
     }
 
@@ -45,12 +46,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       mBounds = bounds;
     }
 
-    void serializeRect(SerializerAdapter out) {
-      out.startTag(SVG_NAMESPACE, "rect", true);
-      out.addAttribute(null, "x", Double.toString(mBounds.left));
-      out.addAttribute(null, "y", Double.toString(mBounds.top));
-      out.addAttribute(null, "width", Double.toString(mBounds.width));
-      out.addAttribute(null, "height", Double.toString(mBounds.height));
+    void serializeRect(XmlWriter out) throws XmlException {
+      out.startTag(SVG_NAMESPACE, "rect", null);
+      out.attribute(null, "x", null, Double.toString(mBounds.left));
+      out.attribute(null, "y", null, Double.toString(mBounds.top));
+      out.attribute(null, "width", null, Double.toString(mBounds.width));
+      out.attribute(null, "height", null, Double.toString(mBounds.height));
     }
   }
 
@@ -61,10 +62,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
+    public void serialize(XmlWriter out) throws XmlException {
       serializeRect(out);
       serializeStroke(out);
-      out.endTag(SVG_NAMESPACE, "rect", true);
+      out.endTag(SVG_NAMESPACE, "rect", null);
     }
 
   }
@@ -76,10 +77,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
+    public void serialize(XmlWriter out) throws XmlException {
       serializeRect(out);
       serializeFill(out);
-      out.endTag(SVG_NAMESPACE, "rect", true);
+      out.endTag(SVG_NAMESPACE, "rect", null);
     }
 
   }
@@ -94,10 +95,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       mRy = ry;
     }
 
-    void serializeRoundRect(SerializerAdapter out) {
+    void serializeRoundRect(XmlWriter out) throws XmlException {
       serializeRect(out);
-      out.addAttribute(null, "rx", Double.toString(mRx));
-      out.addAttribute(null, "ry", Double.toString(mRy));
+      out.attribute(null, "rx", null, Double.toString(mRx));
+      out.attribute(null, "ry", null, Double.toString(mRy));
     }
   }
 
@@ -108,10 +109,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
+    public void serialize(XmlWriter out) throws XmlException {
       serializeRoundRect(out);
       serializeStroke(out);
-      out.endTag(SVG_NAMESPACE, "rect", true);
+      out.endTag(SVG_NAMESPACE, "rect", null);
     }
 
   }
@@ -123,10 +124,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
+    public void serialize(XmlWriter out) throws XmlException {
       serializeRoundRect(out);
       serializeFill(out);
-      out.endTag(SVG_NAMESPACE, "rect", true);
+      out.endTag(SVG_NAMESPACE, "rect", null);
     }
 
   }
@@ -144,11 +145,11 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       mRadius = radius;
     }
 
-    public void serializeCircle(SerializerAdapter out) {
-      out.startTag(SVG_NAMESPACE, "circle", true);
-      out.addAttribute(null, "cx", Double.toString(mX));
-      out.addAttribute(null, "cy", Double.toString(mY));
-      out.addAttribute(null, "r", Double.toString(mRadius));
+    public void serializeCircle(XmlWriter out) throws XmlException {
+      out.startTag(SVG_NAMESPACE, "circle", null);
+      out.attribute(null, "cx", null, Double.toString(mX));
+      out.attribute(null, "cy", null, Double.toString(mY));
+      out.attribute(null, "r", null, Double.toString(mRadius));
     }
 
   }
@@ -160,10 +161,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
+    public void serialize(XmlWriter out) throws XmlException {
       serializeCircle(out);
       serializeStroke(out);
-      out.endTag(SVG_NAMESPACE, "circle", true);
+      out.endTag(SVG_NAMESPACE, "circle", null);
     }
 
   }
@@ -175,10 +176,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
+    public void serialize(XmlWriter out) throws XmlException {
       serializeCircle(out);
       serializeFill(out);
-      out.endTag(SVG_NAMESPACE, "circle", true);
+      out.endTag(SVG_NAMESPACE, "circle", null);
     }
 
   }
@@ -196,13 +197,13 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
-      out.startTag(SVG_NAMESPACE, "path", true);
+    public void serialize(XmlWriter out) throws XmlException {
+      out.startTag(SVG_NAMESPACE, "path", null);
       serializeStyle(out, mStroke, mFill, null);
 
-      out.addAttribute(null, "d", mPath.toPathData());
+      out.attribute(null, "d", null, mPath.toPathData());
 
-      out.endTag(SVG_NAMESPACE, "path", true);
+      out.endTag(SVG_NAMESPACE, "path", null);
     }
 
   }
@@ -227,15 +228,15 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
-      out.startTag(SVG_NAMESPACE, "text", true);
-      out.addAttribute(null, "x", Double.toString(mX));
-      out.addAttribute(null, "y", Double.toString(mY));
+    public void serialize(XmlWriter out) throws XmlException {
+      out.startTag(SVG_NAMESPACE, "text", null);
+      out.attribute(null, "x", null, Double.toString(mX));
+      out.attribute(null, "y", null, Double.toString(mY));
       serializeStyle(out, null, mColor, mTextPos);
-      out.startTag(SVG_NAMESPACE, "tspan", false);
+      out.startTag(SVG_NAMESPACE, "tspan", null);
       out.text(mText);
-      out.endTag(SVG_NAMESPACE, "tspan", true);
-      out.endTag(SVG_NAMESPACE, "text", true);
+      out.endTag(SVG_NAMESPACE, "tspan", null);
+      out.endTag(SVG_NAMESPACE, "text", null);
     }
 
   }
@@ -254,17 +255,17 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(SerializerAdapter out) {
-      out.startTag(SVG_NAMESPACE, "g", true);
+    public void serialize(XmlWriter out) throws XmlException {
+      out.startTag(SVG_NAMESPACE, "g", null);
       if (mX==0 && mY==0) {
-        out.addAttribute(null, "transform", "scale("+mScale+")");
+        out.attribute(null, "transform", null, "scale("+mScale+")");
       } else {
-        out.addAttribute(null, "transform", "matrix("+mScale+",0,0,"+mScale+","+mX*mScale+","+mY*mScale+")");
+        out.attribute(null, "transform", null, "matrix("+mScale+",0,0,"+mScale+","+mX*mScale+","+mY*mScale+")");
       }
       for (IPaintedElem element:this.mPath) {
         element.serialize(out);
       }
-      out.endTag(SVG_NAMESPACE, "g", true);
+      out.endTag(SVG_NAMESPACE, "g", null);
     }
 
   }
@@ -296,7 +297,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 //    mGreenPen.setColor(0, 0xff, 0);
   }
 
-  public static void serializeStyle(SerializerAdapter out, SVGPen<?> stroke, SVGPen<?> fill, TextPos textPos) {
+  public static void serializeStyle(XmlWriter out, SVGPen<?> stroke, SVGPen<?> fill, TextPos textPos) throws XmlException {
     StringBuilder style = new StringBuilder();
     if (stroke!=null) {
       final int color = stroke.getColor();
@@ -331,7 +332,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       style.append("fill:none; ");
     }
 
-    out.addAttribute(null, "style", style.toString());
+    out.attribute(null, "style", null, style.toString());
   }
 
   private static String toBaseline(TextPos textPos) {
@@ -529,17 +530,19 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     throw new IllegalArgumentException();
   }
 
-  public void serialize(SerializerAdapter out) {
-    out.addNamespace(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
-    out.startTag(SVG_NAMESPACE, "svg", true);
-    out.addAttribute(null, "version", "1.1");
-    out.addAttribute(null, "width", Double.toString(mBounds.width+mBounds.left*2));
-    out.addAttribute(null, "height", Double.toString(mBounds.height+mBounds.top*2));
+  public void serialize(XmlWriter out) throws XmlException {
+    out.namespaceAttr(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
+    out.startTag(SVG_NAMESPACE, "svg", null);
+    out.attribute(null, "version", null, "1.1");
+    out.attribute(null, "width", null, Double.toString(mBounds.width+mBounds.left*2));
+    out.attribute(null, "height", null, Double.toString(mBounds.height+mBounds.top*2));
 
     for (IPaintedElem element:mPath) {
-      element.serialize(out);
+      try {element.serialize(out);} catch (XmlException e) {
+        throw new RuntimeException(e);
+      }
     }
 
-    out.endTag(SVG_NAMESPACE, "svg", true);
+    out.endTag(SVG_NAMESPACE, "svg", null);
   }
 }

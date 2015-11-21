@@ -2,6 +2,8 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 
 public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Split<T> {
@@ -24,7 +26,7 @@ public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoin
   }
 
   @Override
-  public void serialize(SerializerAdapter out) {
+  public void serialize(XmlWriter out) throws XmlException {
     serializeSplit(out);
   }
 

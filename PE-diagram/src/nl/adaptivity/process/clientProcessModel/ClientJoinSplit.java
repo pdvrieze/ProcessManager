@@ -3,6 +3,8 @@ package nl.adaptivity.process.clientProcessModel;
 
 import nl.adaptivity.process.processModel.JoinSplit;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
@@ -47,29 +49,31 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   }
 
   @Override
-  public void serializeCommonAttrs(SerializerAdapter out) {
+  public void serializeCommonAttrs(XmlWriter out) throws XmlException {
     super.serializeCommonAttrs(out);
-    if (mMin>=0) { out.addAttribute(null, "min", Integer.toString(mMin)); }
-    if (mMax>=0) { out.addAttribute(null, "max", Integer.toString(mMax)); }
+    if (mMin>=0) { out.attribute(null, "min", null, Integer.toString(mMin)); }
+    if (mMax>=0) {
+      out.attribute(null, "max", null, Integer.toString(mMax));
+    }
   }
 
-  protected void serializeSplit(SerializerAdapter out) {
-    out.startTag(NS_PM, "split", true);
+  protected void serializeSplit(XmlWriter out) throws XmlException {
+    out.startTag(NS_PM, "split", null);
     serializeCommonAttrs(out);
     serializeCommonChildren(out);
-    out.endTag(NS_PM, "split", true);
+    out.endTag(NS_PM, "split", null);
   }
 
-  protected void serializeJoin(SerializerAdapter out) {
-    out.startTag(NS_PM, "join", true);
+  protected void serializeJoin(XmlWriter out) throws XmlException {
+    out.startTag(NS_PM, "join", null);
     serializeCommonAttrs(out);
     serializeCommonChildren(out);
     for(Identifiable predecessor: getPredecessors()) {
-      out.startTag(NS_PM, "predecessor", false);
+      out.startTag(NS_PM, "predecessor", null);
       out.text(predecessor.getId());
-      out.endTag(NS_PM, "predecessor", true);
+      out.endTag(NS_PM, "predecessor", null);
     }
-    out.endTag(NS_PM, "join", true);
+    out.endTag(NS_PM, "join", null);
   }
 
 }

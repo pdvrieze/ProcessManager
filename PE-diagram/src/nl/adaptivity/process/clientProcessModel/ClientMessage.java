@@ -51,39 +51,42 @@ public class ClientMessage extends BaseMessage {
   }
 
   @Override
+  protected void serializeEndElement(final XmlWriter out) throws XmlException {
+    XmlUtil.writeEndElement(out, getElementName());
+  }
+
+  @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
-  public void serialize(SerializerAdapter out) {
-    out.startTag(NS_PM, "message", false);
-    if (getServiceNS()!=null) { out.addAttribute(null, "serviceNS", getServiceNS()); }
-    if (getServiceName()!=null) { out.addAttribute(null, "serviceName", getServiceName()); }
-    if (getEndpoint()!=null) { out.addAttribute(null, "endpoint", getEndpoint()); }
-    if (getOperation()!=null) { out.addAttribute(null, "operation", getOperation()); }
-    if (getUrl()!=null) { out.addAttribute(null, "url", getUrl()); }
-    if (getContentType()!=null) { out.addAttribute(null, "type", getContentType()); }
-    if (getMethod()!=null) { out.addAttribute(null, "method", getMethod()); }
-
+  public void serialize(XmlWriter out) throws XmlException {
+    out.startTag(NS_PM, "message", null);
+    if (getServiceNS()!=null) out.attribute(null, "serviceNS", null, getServiceNS());
+    if (getServiceName()!=null) out.attribute(null, "serviceName", null, getServiceName());
+    if (getEndpoint()!=null) out.attribute(null, "endpoint", null, getEndpoint());
+    if (getOperation()!=null) out.attribute(null, "operation", null, getOperation());
+    if (getUrl()!=null) out.attribute(null, "url", null, getUrl()); if (getContentType()!=null) out.attribute(null, "type", null, getContentType());
+    if (getMethod()!=null) out.attribute(null, "method", null, getMethod());
     // TODO don't do this through DOM
     serialize(out, getMessageBodyNode());
 
-    out.endTag(NS_PM, "message", true);
+    out.endTag(NS_PM, "message", null);
   }
 
-  private void serialize(SerializerAdapter out, Node node) {
+  private void serialize(XmlWriter out, Node node) throws XmlException {
     switch (node.getNodeType()) {
     case Node.ELEMENT_NODE:
       serializeElement(out, (Element)node);
       break;
     case Node.CDATA_SECTION_NODE:
-      out.cdata(((CDATASection)node).getData());
+      out.cdsect(((CDATASection)node).getData());
       break;
     case Node.COMMENT_NODE:
       out.comment(((Comment)node).getData());
       break;
     case Node.ENTITY_REFERENCE_NODE:
-      out.entityReference(((EntityReference)node).getLocalName());
+      out.entityRef(((EntityReference)node).getLocalName());
       break;
     case Node.TEXT_NODE:
       out.text(((Text)node).getData());
@@ -91,18 +94,18 @@ public class ClientMessage extends BaseMessage {
 
   }
 
-  private void serializeElement(SerializerAdapter out, Element node) {
-    out.addNamespace(node.getPrefix(), node.getNamespaceURI());
-    out.startTag(node.getNamespaceURI(), node.getLocalName(), false);
+  private void serializeElement(XmlWriter out, Element node) throws XmlException {
+    out.namespaceAttr(node.getPrefix(), node.getNamespaceURI());
+    out.startTag(node.getNamespaceURI(), node.getLocalName(), null);
     NamedNodeMap attrs = node.getAttributes();
     for(int i=0; i<attrs.getLength(); ++i) {
       Attr attr = (Attr) attrs.item(i);
-      out.addAttribute(attr.getNamespaceURI(), attr.getLocalName(), attr.getValue());
+      out.attribute(attr.getNamespaceURI(), attr.getLocalName(), null, attr.getValue());
     }
     for(Node child = node.getFirstChild(); child!=null; child = child.getNextSibling()) {
       serialize(out, node);
     }
-    out.endTag(node.getNamespaceURI(), node.getLocalName(), false);
+    out.endTag(node.getNamespaceURI(), node.getLocalName(), null);
   }
 
 }

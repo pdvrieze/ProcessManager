@@ -4,11 +4,53 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode> implements Diagram {
+
+  private static class Factory implements DeserializationFactory<DrawableProcessNode>, XmlDeserializerFactory<DrawableProcessModel> {
+
+    @Override
+    public DrawableProcessModel deserialize(final XmlReader in) throws XmlException {
+      return DrawableProcessModel.deserialize(this, in);
+    }
+
+    @Override
+    public DrawableEndNode deserializeEndNode(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+            XmlException {
+      return null;
+    }
+
+    @Override
+    public Activity<? extends DrawableProcessNode> deserializeActivity(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+            XmlException {
+      return null;
+    }
+
+    @Override
+    public StartNode<? extends DrawableProcessNode> deserializeStartNode(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+            XmlException {
+      return null;
+    }
+
+    @Override
+    public Join<? extends DrawableProcessNode> deserializeJoin(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+            XmlException {
+      return null;
+    }
+
+    @Override
+    public Split<? extends DrawableProcessNode> deserializeSplit(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+            XmlException {
+      return null;
+    }
+  }
 
   public static final double STARTNODERADIUS=10d;
   public static final double ENDNODEOUTERRADIUS=12d;
@@ -32,6 +74,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private int mState = STATE_DEFAULT;
   private int idSeq=0;
 
+  private DrawableProcessModel() {
+    super();
+  }
+
   public DrawableProcessModel(ProcessModel<?> original) {
     this(original, null);
   }
@@ -44,6 +90,16 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setVertSeparation(DEFAULT_VERT_SEPARATION);
     ensureIds();
     layout();
+  }
+
+  @NotNull
+  public static DrawableProcessModel deserialize(@NotNull final XmlReader in) throws XmlException {
+    return deserialize(new Factory(), in);
+  }
+
+  @NotNull
+  public static DrawableProcessModel deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
+    return (DrawableProcessModel) ProcessModelBase.deserialize(factory, new DrawableProcessModel(), in);
   }
 
   private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?>> original) {
@@ -125,12 +181,6 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     });
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public Collection<? extends DrawableStartNode> getStartNodes() {
-    return (Collection<? extends DrawableStartNode>) super.getStartNodes();
-  }
-
   @Override
   public Rectangle getBounds() {
     if (Double.isNaN(mBounds.left) && getModelNodes().size()>0) {
@@ -152,9 +202,10 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void addNode(DrawableProcessNode node) {
+  public boolean addNode(DrawableProcessNode node) {
     ensureId(node);
     super.addNode(ensureId(node));
+    return false;
   }
 
   private void ensureIds() {
