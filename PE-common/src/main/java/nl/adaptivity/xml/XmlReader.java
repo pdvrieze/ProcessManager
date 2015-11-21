@@ -1,6 +1,7 @@
 package nl.adaptivity.xml;
 
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -58,7 +59,7 @@ public interface XmlReader {
 
   CharSequence getNamespaceUri(int i) throws XmlException;
 
-  CharSequence getNamespacePrefix(CharSequence namespaceUri) throws XmlException;
+  @Nullable CharSequence getNamespacePrefix(CharSequence namespaceUri) throws XmlException;
 
   boolean isWhitespace() throws XmlException;
 
@@ -68,7 +69,7 @@ public interface XmlReader {
 
   boolean isStartElement() throws XmlException;
 
-  String getNamespaceUri(CharSequence prefix) throws XmlException;
+  @Nullable String getNamespaceUri(CharSequence prefix) throws XmlException;
 
   /** Get some information on the current location in the file. This is implementation dependent. */
   String getLocationInfo();

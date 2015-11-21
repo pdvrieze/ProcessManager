@@ -64,6 +64,11 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
     XmlUtil.writeStartElement(out, ELEMENTNAME);
   }
 
+  @Override
+  protected void serializeEndElement(@NotNull final XmlWriter out) throws XmlException {
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
+  }
+
   public static XmlResultType get(IXmlResultType pImport) {
     if (pImport instanceof XmlResultType) { return (XmlResultType) pImport; }
     return new XmlResultType(pImport.getName(), pImport.getPath(), (char[]) null, pImport.getOriginalNSContext());

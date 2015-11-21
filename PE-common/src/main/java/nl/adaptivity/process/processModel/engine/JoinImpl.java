@@ -6,6 +6,7 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
@@ -43,7 +44,7 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   }
 
   @NotNull
-  public static JoinImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static JoinImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new JoinImpl(ownerModel), in);
   }
@@ -54,14 +55,14 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
   public static final QName PREDELEMNAME = new QName(Engine.NAMESPACE, "predecessor", Engine.NSPREFIX);
 
-  public JoinImpl(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public JoinImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors, min, max);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
   }
 
-  public JoinImpl(final ProcessModelImpl ownerModel) {
+  public JoinImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {
     super(ownerModel);
   }
 

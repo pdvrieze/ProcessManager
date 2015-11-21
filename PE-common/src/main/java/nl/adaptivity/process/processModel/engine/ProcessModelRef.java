@@ -1,19 +1,20 @@
 package nl.adaptivity.process.processModel.engine;
 
+import nl.adaptivity.process.processModel.ProcessNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import java.util.UUID;
+
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "processModel")
-public class ProcessModelRef implements IProcessModelRef<ProcessNodeImpl> {
+public class ProcessModelRef<T extends ProcessNode<T>> implements IProcessModelRef<T> {
 
   private String mName;
 

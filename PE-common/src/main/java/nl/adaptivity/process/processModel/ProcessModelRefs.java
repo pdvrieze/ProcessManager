@@ -17,9 +17,9 @@ import java.util.Iterator;
 
 @XmlRootElement(name = "processModels")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModelRefs implements Collection<IProcessModelRef<ProcessNodeImpl>> {
+public class ProcessModelRefs implements Collection<IProcessModelRef<? extends ProcessNodeImpl>> {
 
-  private Collection<IProcessModelRef<ProcessNodeImpl>> mCollection;
+  private Collection<IProcessModelRef<? extends ProcessNodeImpl>> mCollection;
 
   public ProcessModelRefs() {
     mCollection = new ArrayList<>();
@@ -44,7 +44,7 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<ProcessNode
     return (Collection) mCollection;
   }
 
-  public boolean add(final IProcessModelRef<ProcessNodeImpl> modelRef) {
+  public boolean add(final IProcessModelRef<? extends ProcessNodeImpl> modelRef) {
     if (modelRef instanceof ProcessModelRef) {
       return mCollection.add(modelRef);
     } else {
@@ -56,9 +56,9 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<ProcessNode
     return mCollection.add(e);
   }
 
-  public boolean addAll(@NotNull final Collection<? extends IProcessModelRef<ProcessNodeImpl>> c) {
+  public boolean addAll(@NotNull final Collection<? extends IProcessModelRef<? extends ProcessNodeImpl>> c) {
     boolean changed = false;
-    for(final IProcessModelRef<ProcessNodeImpl> elem:c) {
+    for(final IProcessModelRef<? extends ProcessNodeImpl> elem:c) {
       changed |= add(elem);
     }
     return changed;
@@ -102,7 +102,7 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<ProcessNode
 
   @NotNull
   @Override
-  public Iterator<IProcessModelRef<ProcessNodeImpl>> iterator() {
+  public Iterator<IProcessModelRef<? extends ProcessNodeImpl>> iterator() {
     return mCollection.iterator();
   }
 

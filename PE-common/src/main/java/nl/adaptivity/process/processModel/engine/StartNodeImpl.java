@@ -5,6 +5,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlResultType;
@@ -44,7 +45,7 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @NotNull
-  public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static StartNodeImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
@@ -56,11 +57,11 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
 
   private List<XmlResultType> mImports;
 
-  public StartNodeImpl(final ProcessModelImpl ownerModel) {
+  public StartNodeImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {
     super(ownerModel, Collections.<Identifiable>emptyList());
   }
 
-  public StartNodeImpl(final ProcessModelImpl ownerModel, final List<XmlResultType> imports) {
+  public StartNodeImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final List<XmlResultType> imports) {
     super(ownerModel, Collections.<Identifiable>emptyList());
     mImports = imports;
   }

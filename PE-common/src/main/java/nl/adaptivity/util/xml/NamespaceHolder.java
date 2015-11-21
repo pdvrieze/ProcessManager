@@ -29,7 +29,7 @@ public class NamespaceHolder {
   }
 
   public void decDepth() { // XXX consider shrinking the arrays.
-    Arrays.fill(mNamespaces, mNamespaceCounts[mDepth - 1], mNamespaceCounts[mDepth], null); // Clear out all unused namespaces
+    Arrays.fill(mNamespaces, mDepth==0 ? 0 : mNamespaceCounts[mDepth - 1], mNamespaceCounts[mDepth], null); // Clear out all unused namespaces
     mNamespaceCounts[mDepth] = 0;
     --mDepth;
   }

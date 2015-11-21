@@ -6,12 +6,25 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 configurations {
     providedCompile
+
+    testJarConfig {
+        extendsFrom testRuntime
+    }
 }
 
 version = '1.0.0'
 description = 'A library with process engine support classes'
 //group = ['util', 'process' ]
 
+
+task testJar(type: Jar) {
+    from sourceSets.test.output
+    classifier = 'test'
+}
+
+artifacts {
+    testJarConfig testJar
+}
 
 sourceSets {
     main {

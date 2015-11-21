@@ -2,6 +2,7 @@ package nl.adaptivity.process.processModel.engine;
 
 
 import nl.adaptivity.process.processModel.JoinSplit;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.XmlException;
@@ -22,11 +23,11 @@ public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit
   private int mMin;
   private int mMax;
 
-  public JoinSplitImpl(final ProcessModelImpl ownerModel) {
+  public JoinSplitImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel) {
     super(ownerModel);
   }
 
-  public JoinSplitImpl(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public JoinSplitImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors);
     mMin = min;
     mMax = max;

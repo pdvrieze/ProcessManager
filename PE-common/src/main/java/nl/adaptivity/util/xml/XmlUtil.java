@@ -1007,7 +1007,7 @@ public final class XmlUtil {
       case COMMENT:
         break; // ignore
       case START_ELEMENT:
-        throw new XmlException("Element found where not expected ["+in.getLocationInfo()+"]: "+in.getLocalName());
+        throw new XmlException("Element found where not expected ["+in.getLocationInfo()+"]: "+in.getName());
       case END_DOCUMENT:
         throw new XmlException("End of document found where not expected");
     }
@@ -1081,7 +1081,7 @@ public final class XmlUtil {
         prefix = qName.getPrefix();
       }
     }
-    out.startTag(null, qName.getLocalPart(), prefix);
+    out.startTag(namespace, qName.getLocalPart(), prefix);
     if (writeNs) {
       out.namespaceAttr(prefix, namespace);
     }

@@ -4,12 +4,13 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.util.xml.XmlSerializable;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 
 
-public interface IXmlDefineType {
+public interface IXmlDefineType extends XmlSerializable {
 
   @Nullable
   <T extends IProcessNodeInstance<T>> ProcessData apply(Transaction transaction, IProcessNodeInstance<T> node) throws

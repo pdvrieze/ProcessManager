@@ -6,6 +6,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.util.Identifiable;
@@ -41,7 +42,7 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   @NotNull
-  public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XmlReader in) throws XmlException {
+  public static SplitImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws XmlException {
     return XmlUtil.deserializeHelper(new SplitImpl(ownerModel), in);
   }
 
@@ -50,14 +51,14 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   public static final String ELEMENTLOCALNAME = "split";
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
-  public SplitImpl(final ProcessModelImpl ownerModel, final ProcessNodeImpl predecessor, final int min, final int max) {
+  public SplitImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final ProcessNodeImpl predecessor, final int min, final int max) {
     super(ownerModel, Collections.singleton(predecessor), min, max);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
   }
 
-  public SplitImpl(final ProcessModelImpl ownerModel) {
+  public SplitImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {
     super(ownerModel);
   }
 

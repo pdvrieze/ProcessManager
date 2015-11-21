@@ -1,14 +1,15 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.diagram.Positioned;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.XmlSerializable;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Set;
 
-import nl.adaptivity.diagram.Positioned;
-import nl.adaptivity.process.util.Identifiable;
-import org.jetbrains.annotations.Nullable;
 
-
-public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Identifiable {
+public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Identifiable, XmlSerializable {
 
   interface Visitor<R> {
     R visitStartNode(StartNode<?> startNode);

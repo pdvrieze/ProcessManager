@@ -3,32 +3,24 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.HandleMap.HandleAware;
 import net.devrieze.util.StringCache;
-import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
-import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
-import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
-import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.namespace.QName;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.*;
@@ -44,7 +36,7 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXmlDeserializable, Serializable, SecureObject, ProcessModel<ProcessNodeImpl> {
+public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implements HandleAware<ProcessModelImpl>, SecureObject {
 
   static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModelImpl> {
 
@@ -65,110 +57,58 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
     INSTANTIATE
   }
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory, DeserializationFactory<ProcessNodeImpl> {
 
     @NotNull
     @Override
     public ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
       return ProcessModelImpl.deserialize(in);
     }
-  }
 
-  @Override
-  public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, XmlProcessModel.ELEMENTNAME);
-    XmlUtil.writeAttribute(out, "name", getName());
-    XmlUtil.writeAttribute(out, "owner", mOwner==null ? null : mOwner.getName());
-    if (mRoles!=null && mRoles.size()>0) {
-      XmlUtil.writeAttribute(out, XmlProcessModel.ATTR_ROLES,StringUtil.join(",", mRoles));
+    @Override
+    public EndNodeImpl deserializeEndNode(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+            XmlException {
+      return EndNodeImpl.deserialize(ownerModel, in);
     }
-    if (mUuid!=null) {
-      XmlUtil.writeAttribute(out, "uuid", mUuid.toString());
+
+    @Override
+    public ActivityImpl deserializeActivity(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+            XmlException {
+      return ActivityImpl.deserialize(ownerModel, in);
     }
-    XmlUtil.writeChildren(out, mImports);
-    XmlUtil.writeChildren(out, mExports);
-    XmlUtil.writeChildren(out, mProcessNodes);
-  }
 
-  @Override
-  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
-    if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
-      switch (in.getLocalName().toString()) {
-        case EndNodeImpl.ELEMENTLOCALNAME:
-          EndNodeImpl.deserialize(this, in); break;
-        case ActivityImpl.ELEMENTLOCALNAME:
-          ActivityImpl.deserialize(this, in); break;
-        case StartNodeImpl.ELEMENTLOCALNAME:
-          StartNodeImpl.deserialize(this, in); break;
-        case JoinImpl.ELEMENTLOCALNAME:
-          JoinImpl.deserialize(this, in); break;
-        case SplitImpl.ELEMENTLOCALNAME:
-          SplitImpl.deserialize(this, in); break;
-      }
+    @Override
+    public StartNodeImpl deserializeStartNode(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+            XmlException {
+      return StartNodeImpl.deserialize(ownerModel, in);
     }
-    return false;
-  }
 
-  @Override
-  public boolean deserializeChildText(final CharSequence elementText) {
-    return false; // No text expected except whitespace
-  }
-
-  @Override
-  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, @NotNull final CharSequence attributeValue) {
-    final String value = StringUtil.toString(attributeValue);
-    switch (StringUtil.toString(attributeLocalName)) {
-      case "name" : setName(value); break;
-      case "owner": setOwner(new SimplePrincipal(value)); break;
-      case XmlProcessModel.ATTR_ROLES: mRoles.addAll(Arrays.asList(value.split(" *, *"))); break;
-      case "uuid": setUuid(UUID.fromString(value)); break;
-      default:
-        return false;
+    @Override
+    public JoinImpl deserializeJoin(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+            XmlException {
+      return JoinImpl.deserialize(ownerModel, in);
     }
-    return true;
-  }
 
-  @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) {
-    // do nothing
-  }
-
-  @Override
-  public QName getElementName() {
-    return XmlProcessModel.ELEMENTNAME;
-  }
-
-  @NotNull
-  public static ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
-    final ProcessModelImpl processModel = XmlUtil.deserializeHelper(new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList()), in);
-    for(final ProcessNodeImpl node:processModel.mProcessNodes) {
-      for(final Identifiable pred: node.getPredecessors()) {
-        final ProcessNodeImpl predNode = processModel.getNode(pred);
-        predNode.addSuccessor(node);
-      }
+    @Override
+    public SplitImpl deserializeSplit(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+            XmlException {
+      return SplitImpl.deserialize(ownerModel, in);
     }
-    return processModel;
   }
-
-  private static final long serialVersionUID = -4199223546188994559L;
-
-  private ProcessNodeSet<ProcessNodeImpl> mProcessNodes;
 
   private int mEndNodeCount;
 
-  private String mName;
+  @NotNull
+  public static ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
+    return deserialize(new Factory(), in);
+  }
 
-  private long mHandle;
+    @NotNull
+  public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
+    return (ProcessModelImpl) ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList()), in);
+  }
 
-  @Nullable private Principal mOwner;
-
-  private Set<String> mRoles;
-
-  @Nullable private UUID mUuid;
-
-  @NotNull private List<XmlResultType> mImports = new ArrayList<>();
-
-  @NotNull private List<XmlDefineType> mExports = new ArrayList<>();
+  private static final long serialVersionUID = -4199223546188994559L;
 
   /**
    * A class handle purely used for caching and special casing the DarwinPrincipal class.
@@ -188,9 +128,9 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
    *
    */
   public ProcessModelImpl(final Collection<? extends ProcessNodeImpl> processNodes) {
-    mProcessNodes=ProcessNodeSet.processNodeSet(processNodes);
+    super(processNodes);
     int endNodeCount=0;
-    for(final ProcessNodeImpl node:mProcessNodes) {
+    for(final ProcessNodeImpl node:getModelNodes()) {
       node.setOwnerModel(this);
       if (node instanceof EndNodeImpl) { ++endNodeCount; }
     }
@@ -207,58 +147,24 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
 
     setName(xmlModel.getName());
     final String owner = xmlModel.getOwner();
-    mOwner = owner == null ? null : new SimplePrincipal(xmlModel.getOwner());
-    mUuid = xmlModel.getUuid()==null ? null : xmlModel.getUuid();
+    setOwner(owner == null ? null : new SimplePrincipal(xmlModel.getOwner()));
+    setUuid(xmlModel.getUuid()==null ? null : xmlModel.getUuid());
   }
 
-  public void ensureNode(@NotNull final ProcessNodeImpl processNode) {
-    if (mProcessNodes.add(processNode)) {
+  /**
+   * Ensure that the given node is owned by this model.
+   * @param processNode
+   */
+  public boolean addNode(@NotNull final ProcessNodeImpl processNode) {
+    if (super.addNode(processNode)) {
       processNode.setOwnerModel(this);
+      return true;
     }
+    return false;
   }
 
-  public void removeNode(final ProcessNodeImpl processNode) {
+  public boolean removeNode(final ProcessNodeImpl processNode) {
     throw new UnsupportedOperationException("This will break in all kinds of ways");
-  }
-
-  @Nullable
-  @Override
-  @XmlAttribute(name="uuid")
-  public UUID getUuid() {
-    return mUuid;
-  }
-
-  public void setUuid(final UUID uuid) {
-    mUuid = uuid;
-  }
-
-  /**
-   * Get an array of all process nodes in the model. Used by XmlProcessModel
-   *
-   * @return An array of all nodes.
-   */
-  @Override
-  public Collection<? extends ProcessNodeImpl> getModelNodes() {
-    return Collections.unmodifiableCollection(mProcessNodes);
-  }
-
-  /**
-   * Set the process nodes for the model. This will actually just retrieve the
-   * {@link EndNodeImpl}s and sets the model accordingly. This does mean that only
-   * passing {@link EndNodeImpl}s will have the same result, and the other nodes
-   * will be pulled in.
-   *
-   * @param processNodes The process nodes to base the model on.
-   */
-  public void setModelNodes(@NotNull final Collection<? extends ProcessNodeImpl> processNodes) {
-    mProcessNodes = ProcessNodeSet.processNodeSet(processNodes);
-    int endNodeCount = 0;
-    for (final ProcessNodeImpl n : processNodes) {
-      if (n instanceof EndNodeImpl) {
-        ++endNodeCount;
-      }
-    }
-    mEndNodeCount = endNodeCount;
   }
 
   /**
@@ -286,130 +192,53 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
    *
    * @return The start nodes.
    */
-  @Override
   public Collection<StartNodeImpl> getStartNodes() {
-    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList<StartNodeImpl>(), mProcessNodes, StartNodeImpl.class));
+    return Collections.unmodifiableCollection(CollectionUtil.addInstancesOf(new ArrayList<StartNodeImpl>(), getModelNodes(), StartNodeImpl.class));
+  }
+
+  @Override
+  public void setModelNodes(@NotNull final Collection<? extends ProcessNodeImpl> processNodes) {
+    super.setModelNodes(processNodes);
+    int endNodeCount = 0;
+    for (final ProcessNodeImpl n : processNodes) {
+      if (n instanceof EndNodeImpl) {
+        ++endNodeCount;
+      }
+    }
+    mEndNodeCount = endNodeCount;
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
-   */
-  @Override
+     * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
+     */
   public int getEndNodeCount() {
     return mEndNodeCount;
   }
 
-  /**
-   * Get the name of the model.
-   *
-   * @return
-   */
-  @Override
-  public String getName() {
-    return mName;
-  }
-
-  /**
-   * Set the name of the model.
-   *
-   * @param name The name
-   */
-  public void setName(final String name) {
-    mName = name;
-  }
-
-  /**
-   * Get the handle recorded for this model.
-   */
-  @Override
-  public long getHandle() {
-    return mHandle;
-  }
-
-  /**
-   * Set the handle for this model.
-   */
-  @Override
-  public void setHandle(final long handle) {
-    mHandle = handle;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
-   */
-  @Nullable
-  @Override
-  public IProcessModelRef<ProcessNodeImpl> getRef() {
-    return new ProcessModelRef(getName(), mHandle, getUuid());
-  }
-
-  @Nullable
-  @Override
-  public Principal getOwner() {
-    return mOwner;
-  }
-
-  /**
-   * @param owner
-   * @return
-   * @todo add security checks.
-   */
-  public void setOwner(final Principal owner) {
-    mOwner = owner;
-  }
-
-  @Override
-  public Set<String> getRoles() {
-    if (mRoles == null) {
-      mRoles = new HashSet<>();
-    }
-    return mRoles;
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends IXmlResultType> getImports() {
-    return mImports;
-  }
-
-  @NotNull
-  @Override
-  public Collection<? extends IXmlDefineType> getExports() {
-    return mExports;
-  }
-
   public void cacheStrings(@NotNull final StringCache stringCache) {
-    if (mOwner instanceof SimplePrincipal) {
-      mOwner = new SimplePrincipal(stringCache.lookup(mOwner.getName()));
+    if (getOwner() instanceof SimplePrincipal) {
+      setOwner(new SimplePrincipal(stringCache.lookup(getOwner().getName())));
     } else if (_cls_darwin_principal!=null) {
-      if (_cls_darwin_principal.isInstance(mOwner)) {
+      if (_cls_darwin_principal.isInstance(getOwner())) {
         try {
           final Method cacheStrings = _cls_darwin_principal.getMethod("cacheStrings", StringCache.class);
           if (cacheStrings!=null) {
-            mOwner = (Principal) cacheStrings.invoke(mOwner, stringCache);
+            setOwner((Principal) cacheStrings.invoke(getOwner(), stringCache));
           }
         } catch (@NotNull final Exception e) {
           // Ignore
         }
       }
     }
-    mName = stringCache.lookup(mName);
-    if ((mRoles != null) && (mRoles.size() > 0)) {
-      final Set<String> roles = mRoles;
-      mRoles = new HashSet<>(mRoles.size() + (mRoles.size() >> 1));
-      for (final String role : roles) {
-        mRoles.add(stringCache.lookup(role));
+    setName(stringCache.lookup(getName()));
+    Set<String> oldRoles = getRoles();
+    if ((oldRoles != null) && (oldRoles.size() > 0)) {
+      HashSet<String> newRoles = new HashSet<>(oldRoles.size() + (oldRoles.size() >> 1));
+      for (final String role : oldRoles) {
+        newRoles.add(stringCache.lookup(role));
       }
+      setRoles(newRoles);
     }
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
-   */
-  @Override
-  public ProcessNodeImpl getNode(final Identifiable nodeId) {
-    if (nodeId instanceof ProcessModelImpl) { return (ProcessNodeImpl) nodeId; }
-    return mProcessNodes.get(nodeId);
   }
 
   /**
@@ -418,7 +247,7 @@ public class ProcessModelImpl implements HandleAware<ProcessModelImpl>, SimpleXm
    * @return
    */
   public ProcessNodeImpl getNode(final String nodeId) {
-    return mProcessNodes.get(nodeId);
+    return getNode(new Identifier(nodeId));
   }
 
   @NotNull

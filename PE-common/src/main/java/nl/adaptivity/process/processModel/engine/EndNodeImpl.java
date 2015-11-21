@@ -5,10 +5,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IXmlDefineType;
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
@@ -43,7 +40,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @NotNull
-  public static EndNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static EndNodeImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new EndNodeImpl(ownerModel), in);
   }
@@ -55,11 +52,11 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   private List<XmlDefineType> mExports;
 
-  public EndNodeImpl(final ProcessModelImpl ownerModel, final ProcessNodeImpl previous) {
+  public EndNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel, final ProcessNodeImpl previous) {
     super(ownerModel, Collections.singletonList(previous));
   }
 
-  public EndNodeImpl(final ProcessModelImpl ownerModel) {
+  public EndNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel) {
     super(ownerModel);
   }
 

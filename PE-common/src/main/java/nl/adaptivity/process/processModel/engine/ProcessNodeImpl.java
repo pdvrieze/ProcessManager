@@ -31,7 +31,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   private static final long serialVersionUID = -7745019972129682199L;
-  @Nullable private ProcessModelImpl mOwnerModel;
+  @Nullable private ProcessModelBase<ProcessNodeImpl> mOwnerModel;
 
   @Nullable private ProcessNodeSet<Identifiable> mPredecessors;
 
@@ -48,15 +48,15 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
 //
 //  private Collection<? extends IXmlExportType> mExports;
 
-  protected ProcessNodeImpl(@Nullable final ProcessModelImpl ownerModel) {
+  protected ProcessNodeImpl(@Nullable final ProcessModelBase<ProcessNodeImpl> ownerModel) {
     mOwnerModel = ownerModel;
     if (ownerModel!=null) {
-      mOwnerModel.ensureNode(this);
+      mOwnerModel.addNode(this);
     }
   }
 
 
-  public ProcessNodeImpl(final ProcessModelImpl ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
+  public ProcessNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
     this(ownerModel);
     if ((predecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
@@ -213,15 +213,15 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
   public abstract boolean condition(final Transaction transaction, IProcessNodeInstance<?> instance);
 
   @Nullable
-  public ProcessModelImpl getOwnerModel() {
+  public ProcessModelBase<ProcessNodeImpl> getOwnerModel() {
     return mOwnerModel;
   }
 
-  public void setOwnerModel(@NotNull final ProcessModelImpl ownerModel) {
+  public void setOwnerModel(@NotNull final ProcessModelBase<ProcessNodeImpl> ownerModel) {
     if (mOwnerModel!=ownerModel) {
       if (mOwnerModel!=null) { mOwnerModel.removeNode(this); }
       mOwnerModel = ownerModel;
-      ownerModel.ensureNode(this);
+      ownerModel.addNode(this);
     }
   }
 

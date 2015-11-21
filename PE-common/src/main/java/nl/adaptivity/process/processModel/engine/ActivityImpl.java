@@ -78,7 +78,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * @param predecessor The process node that starts immediately precedes this
    *          activity.
    */
-  public ActivityImpl(final ProcessModelImpl ownerModel, final ProcessNodeImpl predecessor) {
+  public ActivityImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final ProcessNodeImpl predecessor) {
     super(ownerModel, Collections.singletonList(predecessor));
   }
 
@@ -86,10 +86,10 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    * Create an activity without predecessor. This constructor is needed for JAXB
    * to work.
    */
-  public ActivityImpl(final ProcessModelImpl ownerModel) {super(ownerModel);}
+  public ActivityImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {super(ownerModel);}
 
   @NotNull
-  public static ActivityImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
+  public static ActivityImpl deserialize(final ProcessModelBase<ProcessNodeImpl>  ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new ActivityImpl(ownerModel), in);
   }

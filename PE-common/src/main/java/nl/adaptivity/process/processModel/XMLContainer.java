@@ -107,11 +107,13 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
       }
     }
     serializeBody(out);
-    out.endTag(null, null, null);
+    serializeEndElement(out);
   }
 
   protected static void visitNamespace(@NotNull final XmlReader in, final CharSequence prefix) throws XmlException {
-    in.getNamespaceContext().getNamespaceURI(prefix.toString());
+    if (prefix!=null) {
+      in.getNamespaceContext().getNamespaceURI(prefix.toString());
+    }
   }
 
   protected void visitNamesInElement(@NotNull final XmlReader source) throws XmlException {
@@ -182,6 +184,8 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
   }
 
   protected abstract void serializeStartElement(final XmlWriter out) throws XmlException;
+
+  protected abstract void serializeEndElement(final XmlWriter out) throws XmlException;
 
 
 }
