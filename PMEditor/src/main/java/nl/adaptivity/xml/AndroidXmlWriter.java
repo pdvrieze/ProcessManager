@@ -87,8 +87,8 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
           XmlException {
     String namespaceStr = StringUtil.toString(namespace.toString());
     try {
-      if (prefix != null) {
-        mWriter.setPrefix(prefix.toString(), namespaceStr);
+      if (namespace != null) {
+        mWriter.setPrefix(prefix==null ? "" : prefix.toString(), namespaceStr);
       }
       mWriter.startTag(namespaceStr, StringUtil.toString(localName));
       mNamespaceHolder.incDepth();
