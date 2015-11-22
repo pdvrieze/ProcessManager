@@ -269,13 +269,13 @@ public class BetterXmlSerializer implements XmlSerializer{
 
     int pos = (nspCounts[depth]++) << 1;
 
-    resizeNspStack();
+    addSpaceToNspStack();
 
     nspStack[pos++] = prefix;
     nspStack[pos] = namespace;
   }
 
-  private void resizeNspStack() {
+  private void addSpaceToNspStack() {
     int nspCount = nspCounts[pending ? depth + 1 : depth];
     int pos = nspCount << 1;
     if (nspStack.length < pos + 2) {
@@ -489,8 +489,8 @@ public class BetterXmlSerializer implements XmlSerializer{
     }
 
     if (! wasSet) { // Don't use setPrefix as we know it isn't there
+      addSpaceToNspStack();
       int pos = (nspCounts[depth+1]++)<<1;
-      resizeNspStack();
       nspStack[pos] = prefix;
       nspStack[pos+1] = namespace;
       nspWritten[pos>>1] = true;
