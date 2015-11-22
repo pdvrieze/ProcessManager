@@ -24,22 +24,22 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   private static final double INLEN = Math.sqrt(INDX*INDX+INDY*INDY);
   public static final String IDBASE = "join";
 
-  public DrawableJoin() {
-    super();
+  public DrawableJoin(final boolean compat) {
+    super(compat);
   }
 
-  public DrawableJoin(String id) {
-    super(id);
+  public DrawableJoin(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  public DrawableJoin(DrawableJoin orig) {
-    super(orig);
+  public DrawableJoin(DrawableJoin orig, final boolean compat) {
+    super(orig, compat);
   }
 
   @Override
   public DrawableJoin clone() {
     if (getClass()==DrawableJoin.class) {
-      return new DrawableJoin(this);
+      return new DrawableJoin(this, isCompat());
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
@@ -49,8 +49,8 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     return Integer.MAX_VALUE;
   }
 
-  public static DrawableJoin from(Join<?> elem) {
-    DrawableJoin result = new DrawableJoin();
+  public static DrawableJoin from(Join<?> elem, final boolean compat) {
+    DrawableJoin result = new DrawableJoin(compat);
     copyProcessNodeAttrs(elem, result);
     result.setMin(elem.getMin());
     result.setMax(elem.getMax());

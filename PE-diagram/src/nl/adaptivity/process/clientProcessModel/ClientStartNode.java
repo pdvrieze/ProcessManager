@@ -12,16 +12,16 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
-  public ClientStartNode() {
-    super();
+  public ClientStartNode(final boolean compat) {
+    super(compat);
   }
 
-  public ClientStartNode(final String id) {
-    super(id);
+  public ClientStartNode(final String id, final boolean compat) {
+    super(id, compat);
   }
 
-  protected ClientStartNode(final ClientStartNode<T> orig) {
-    super(orig);
+  protected ClientStartNode(final ClientStartNode<T> orig, final boolean compat) {
+    super(orig, compat);
   }
 
   @Override

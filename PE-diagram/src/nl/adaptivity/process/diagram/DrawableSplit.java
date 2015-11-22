@@ -24,15 +24,15 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
 
 
   public DrawableSplit() {
-    super();
+    super(false);
   }
 
   public DrawableSplit(String id) {
-    super(id);
+    super(id, false);
   }
 
   public DrawableSplit(DrawableJoinSplit orig) {
-    super(orig);
+    super(orig, false);
   }
 
   @Override

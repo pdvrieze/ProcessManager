@@ -13,11 +13,10 @@ import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.XMLConstants;
 
-import java.security.Principal;
 import java.util.*;
 
 
-public class ClientProcessModel<T extends IClientProcessNode<T>> extends ProcessModelBase<T> {
+public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extends ProcessModelBase<T> {
 
   public static final String NS_JBI = "http://adaptivity.nl/ProcessEngine/activity";
 
@@ -26,10 +25,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
   public static final String NS_PM = "http://adaptivity.nl/ProcessEngine/";
 
   static final String PROCESSMODEL_NS = NS_PM;
-
-  private String mName;
-
-  private ProcessNodeSet<T> mNodes;
 
   private double mTopPadding = 5d;
   private double mLeftPadding = 5d;
@@ -40,37 +35,26 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
 
   private boolean mNeedsLayout = false;
 
-  private UUID mUuid;
-
-  private Principal mOwner;
-
-  private Set<String> mRoles;
-
-  private Collection<IXmlResultType> mImports;
-
-  private Collection<IXmlDefineType> mExports;
-
   public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes) {
     this(uuid, name, nodes, new LayoutAlgorithm<T>());
   }
 
   public ClientProcessModel(UUID uuid, final String name, final Collection<? extends T> nodes, LayoutAlgorithm<T> layoutAlgorithm) {
     super(nodes);
-    mName = name;
+    setName(name);
     mLayoutAlgorithm = layoutAlgorithm == null ? new LayoutAlgorithm<T>() : layoutAlgorithm;
     setNodes(nodes);
-    mUuid = uuid==null ? UUID.randomUUID() : uuid;
+    setUuid(uuid == null ? UUID.randomUUID() : uuid);
   }
 
   protected ClientProcessModel() {
     this(null, null, new ArrayList<T>(), null);
   }
 
+  public abstract T asNode(final Identifiable id);
+
   public void setNodes(final Collection<? extends T> nodes) {
-    mNodes = ProcessNodeSet.processNodeSet(nodes);
-    for(T node: mNodes) {
-      node.setOwner(this);
-    }
+    super.setModelNodes(ProcessNodeSet.processNodeSet(nodes));
     invalidate();
   }
 
@@ -140,7 +124,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
 
   public void setTopPadding(double topPadding) {
     double offset = topPadding-mTopPadding;
-    for(T n:mNodes) {
+    for(T n: getModelNodes()) {
       n.setY(n.getY()+offset);
     }
     mTopPadding = topPadding;
@@ -154,7 +138,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
 
   public void setLeftPadding(double leftPadding) {
     double offset = leftPadding-mLeftPadding;
-    for(T n:mNodes) {
+    for(T n: getModelNodes()) {
       n.setX(n.getX()+offset);
     }
     mLeftPadding = leftPadding;
@@ -186,7 +170,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
   }
 
   public void resetLayout() {
-    for (T n:mNodes) {
+    for (T n: getModelNodes()) {
       n.setX(Double.NaN);
       n.setY(Double.NaN);
     }
@@ -202,15 +186,6 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
    */
   public void nodeChanged(T node) {
     // no implementation here
-  }
-
-  @Override
-  public UUID getUuid() {
-    return mUuid;
-  }
-
-  public void setUuid(UUID uuid) {
-    mUuid = uuid;
   }
 
   public int getEndNodeCount() {
@@ -245,49 +220,8 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
     return null;
   }
 
-  @Override
-  public List<? extends T> getModelNodes() {
-    if (mNodes == null) {
-      mNodes = ProcessNodeSet.processNodeSet();
-    }
-    return mNodes;
-  }
-
-  @Override
-  public String getName() {
-    return mName;
-  }
-
-  public void setName(String name) {
-    mName = name;
-  }
-
   public void setOwner(String owner) {
-    mOwner = new SimplePrincipal(owner);
-  }
-
-  public void setOwner(Principal owner) {
-    mOwner = owner;
-  }
-
-  @Override
-  public Principal getOwner() {
-    return mOwner;
-  }
-
-  @Override
-  public Collection<IXmlResultType> getImports() {
-    return mImports;
-  }
-
-  @Override
-  public Collection<IXmlDefineType> getExports() {
-    return mExports;
-  }
-
-  @Override
-  public Set<String> getRoles() {
-    return mRoles;
+    setOwner(new SimplePrincipal(owner));
   }
 
   public Collection<? extends ClientStartNode<? extends T>> getStartNodes() {
@@ -301,7 +235,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
   }
 
   public boolean addNode(T node) {
-    if (mNodes.add(node)) {
+    if (super.addNode(node)) {
       node.setOwner(this);
       // Make sure that children can know of the change.
       nodeChanged(node);
@@ -310,9 +244,10 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
     return false;
   }
 
-  public void removeNode(int nodePos) {
-    T node = mNodes.remove(nodePos);
+  public T removeNode(int nodePos) {
+    T node = super.removeNode(nodePos);
     disconnectNode(node);
+    return node;
   }
 
   @Override
@@ -320,7 +255,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
     if (node==null) {
       return false;
     }
-    if (mNodes.remove(node)) {
+    if (getModelNodes().remove(node)) {
       disconnectNode(node);
       return true;
     }
@@ -352,13 +287,13 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
     out.namespaceAttr("jbi", NS_JBI);
 
     out.startTag(NS_PM, "processModel", null);
-    if (mName!=null) {
-      out.attribute(null, "name", null, mName);
+    if (getName() != null) {
+      out.attribute(null, "name", null, getName());
     }
-    if (mUuid!=null) {
-      out.attribute(null, "uuid", null, mUuid.toString());
+    if (getUuid() != null) {
+      out.attribute(null, "uuid", null, getUuid().toString());
     }
-    for(T node:mNodes) {
+    for(T node: getModelNodes()) {
       node.serialize(out);
     }
     out.endTag(NS_PM, "processModel", null);
@@ -403,7 +338,7 @@ public class ClientProcessModel<T extends IClientProcessNode<T>> extends Process
 
     for(DiagramNode<T> dn:result) {
       T mn = dn.getTarget();
-      for(T successor:mn.getSuccessors()) {
+      for(Identifiable successor:mn.getSuccessors()) {
         DiagramNode<T> rightdn = map.get(successor);
         if (rightdn!=null) {
           dn.getRightNodes().add(rightdn);

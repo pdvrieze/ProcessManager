@@ -18,15 +18,15 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
 
   public ClientEndNode() {
-    super();
+    super(false);
   }
 
   public ClientEndNode(String id) {
-    super(id);
+    super(id, false);
   }
 
   protected ClientEndNode(ClientEndNode<T> orig) {
-    super(orig);
+super(orig, false);
   }
 
   @Override

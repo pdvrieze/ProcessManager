@@ -1,18 +1,11 @@
 package nl.adaptivity.process.diagram;
 
 
-import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINHEIGHT;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
-import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
-import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
-import nl.adaptivity.diagram.DiagramPath;
-import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.diagram.DrawingStrategy;
-import nl.adaptivity.diagram.ItemCache;
-import nl.adaptivity.diagram.Pen;
-import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
+
+import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode> implements DrawableProcessNode {
@@ -32,16 +25,16 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   protected final ItemCache mItems = new ItemCache();
   private int mState = STATE_DEFAULT;
 
-  public DrawableJoinSplit() {
-    super();
+  public DrawableJoinSplit(final boolean compat) {
+    super(compat);
   }
 
-  public DrawableJoinSplit(String id) {
-    super(id);
+  public DrawableJoinSplit(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  public DrawableJoinSplit(DrawableJoinSplit orig) {
-    super(orig);
+  public DrawableJoinSplit(DrawableJoinSplit orig, final boolean compat) {
+    super(orig, compat);
     mState = orig.mState;
   }
 

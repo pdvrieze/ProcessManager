@@ -8,16 +8,16 @@ import nl.adaptivity.xml.XmlWriter;
 
 public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Join<T> {
 
-  public ClientJoinNode() {
-    super();
+  public ClientJoinNode(final boolean compat) {
+    super(compat);
   }
 
-  public ClientJoinNode(String id) {
-    super(id);
+  public ClientJoinNode(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  protected ClientJoinNode(ClientJoinSplit<T> orig) {
-    super(orig);
+  protected ClientJoinNode(ClientJoinSplit<T> orig, final boolean compat) {
+    super(orig, compat);
   }
 
   @Override

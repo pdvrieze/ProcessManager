@@ -19,17 +19,17 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
 
   private ClientMessage mMessage;
 
-  public ClientActivityNode() {
-    super();
+  public ClientActivityNode(final boolean compat) {
+    super(compat);
   }
 
 
-  public ClientActivityNode(String id) {
-    super(id);
+  public ClientActivityNode(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  protected ClientActivityNode(ClientActivityNode<T> orig) {
-    super(orig);
+  protected ClientActivityNode(ClientActivityNode<T> orig, final boolean compat) {
+    super(orig, compat);
     mName = orig.mName;
     mCondition = orig.mCondition;
     mMessage = orig.mMessage;

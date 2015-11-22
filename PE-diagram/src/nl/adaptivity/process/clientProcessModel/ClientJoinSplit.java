@@ -14,16 +14,16 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   private int mMin=-1;
   private int mMax=-1;
 
-  public ClientJoinSplit() {
-    super();
+  public ClientJoinSplit(final boolean compat) {
+    super(compat);
   }
 
-  public ClientJoinSplit(String id) {
-    super(id);
+  public ClientJoinSplit(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  public ClientJoinSplit(ClientJoinSplit<T> orig) {
-    super(orig);
+  public ClientJoinSplit(ClientJoinSplit<T> orig, final boolean compat) {
+    super(orig, compat);
     mMin = orig.mMin;
     mMax = orig.mMax;
   }

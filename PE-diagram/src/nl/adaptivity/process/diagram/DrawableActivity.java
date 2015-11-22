@@ -16,23 +16,23 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   private int mState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
-  public DrawableActivity() {
-    super();
+  public DrawableActivity(final boolean compat) {
+    super(compat);
   }
 
-  public DrawableActivity(String id) {
-    super(id);
+  public DrawableActivity(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  public DrawableActivity(DrawableActivity drawableActivity) {
-    super(drawableActivity);
+  public DrawableActivity(DrawableActivity drawableActivity, final boolean compat) {
+    super(drawableActivity, compat);
     mState = drawableActivity.mState;
   }
 
   @Override
   public DrawableActivity clone() {
     if (getClass()==DrawableActivity.class) {
-      return new DrawableActivity(this);
+      return new DrawableActivity(this, isCompat());
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
@@ -116,8 +116,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     }
   }
 
-  public static DrawableActivity from(Activity<?> elem) {
-    DrawableActivity result = new DrawableActivity();
+  public static DrawableActivity from(Activity<?> elem, final boolean compat) {
+    DrawableActivity result = new DrawableActivity(compat);
     copyProcessNodeAttrs(elem, result);
     result.setName(elem.getName());
     result.setLabel(elem.getLabel());

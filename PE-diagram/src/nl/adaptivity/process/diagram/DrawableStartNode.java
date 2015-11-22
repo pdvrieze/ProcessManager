@@ -15,23 +15,23 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
   private int mState = STATE_DEFAULT;
 
 
-  public DrawableStartNode() {
-    super();
+  public DrawableStartNode(final boolean compat) {
+    super(compat);
   }
 
-  public DrawableStartNode(String id) {
-    super(id);
+  public DrawableStartNode(String id, final boolean compat) {
+    super(id, compat);
   }
 
-  public DrawableStartNode(DrawableStartNode orig) {
-    super(orig);
+  public DrawableStartNode(DrawableStartNode orig, final boolean compat) {
+    super(orig, compat);
     mState = orig.mState;
   }
 
   @Override
   public DrawableStartNode clone() {
     if (getClass()==DrawableStartNode.class) {
-      return new DrawableStartNode(this);
+      return new DrawableStartNode(this, isCompat());
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
@@ -94,8 +94,8 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
-  public static DrawableStartNode from(StartNode<?> n) {
-    DrawableStartNode result = new DrawableStartNode();
+  public static DrawableStartNode from(StartNode<?> n, final boolean compat) {
+    DrawableStartNode result = new DrawableStartNode(compat);
     copyProcessNodeAttrs(n, result);
     result.setDefines(n.getDefines());
     return result;
