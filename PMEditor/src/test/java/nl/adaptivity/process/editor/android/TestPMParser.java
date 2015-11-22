@@ -1,5 +1,7 @@
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.diagram.Drawable;
+import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.engine.TestProcessData;
 import nl.adaptivity.xml.*;
@@ -9,6 +11,9 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.CharArrayWriter;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -52,7 +57,10 @@ public class TestPMParser {
     DrawableSplit split = (DrawableSplit) model.getNode("split1");
     DrawableJoin j1 = (DrawableJoin) model.getNode("j1");
     DrawableEndNode end = (DrawableEndNode) model.getNode("end");
-    assertArrayEquals(new Object[] {start, ac1, ac2, split, ac3, ac5, j1, ac4, end}, model.getChildElements().toArray());
+    Collection<? extends Drawable> actualNodes = model.getChildElements();
+    List<? extends ClientProcessNode<DrawableProcessNode>> expectedNodes = Arrays.asList(start, ac1, ac2, split, ac3, ac5, j1, ac4, end);
+    assertEquals(expectedNodes.size(), actualNodes.size());
+    assertTrue(actualNodes.containsAll(expectedNodes));
 
     assertArrayEquals(toArray(), start.getPredecessors().toArray());
     assertArrayEquals(toArray(ac1), start.getSuccessors().toArray());
@@ -83,6 +91,30 @@ public class TestPMParser {
   public void testRoundTripResult1() throws Exception {
     TestProcessData otherTestSuite = new TestProcessData();
     otherTestSuite.testRoundTripResult1();
+  }
+
+  @Test
+  public void testRoundTripResult2() throws Exception {
+    TestProcessData otherTestSuite = new TestProcessData();
+    otherTestSuite.testRoundTripResult2();
+  }
+
+  @Test
+  public void testRoundTripActivity() throws Exception {
+    TestProcessData otherTestSuite = new TestProcessData();
+    otherTestSuite.testRoundTripActivity();
+  }
+
+  @Test
+  public void testRoundTripMessage() throws Exception {
+    TestProcessData otherTestSuite = new TestProcessData();
+    otherTestSuite.testRoundTripMessage();
+  }
+
+  @Test
+  public void testRoundTripProcessModel1() throws Exception {
+    TestProcessData otherTestSuite = new TestProcessData();
+    otherTestSuite.testJaxbRoundTripProcessModel1();
   }
 
   @Test

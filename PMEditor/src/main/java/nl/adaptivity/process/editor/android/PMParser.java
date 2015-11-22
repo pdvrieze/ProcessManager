@@ -190,14 +190,14 @@ public class PMParser {
 
   private static DrawableProcessNode parseStart(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
           XmlException {
-    DrawableStartNode result = new DrawableStartNode();
+    DrawableStartNode result = new DrawableStartNode(false);
     parseCommon(in, nodes, modelElems, result);
     if (in.nextTag()!= END_ELEMENT) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
   }
 
   private static DrawableProcessNode parseActivity(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlException {
-    DrawableActivity result = new DrawableActivity();
+    DrawableActivity result = new DrawableActivity(false);
     parseCommon(in, nodes, modelElems, result);
     String name = trimWS(in.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
     if (name!=null && name.length()>0) {
@@ -349,7 +349,7 @@ public class PMParser {
 
   private static DrawableProcessNode parseJoin(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
           XmlException {
-    DrawableJoin result = new DrawableJoin();
+    DrawableJoin result = new DrawableJoin(false);
     parseCommon(in, nodes, modelElems, result);
     parseJoinSplitAttrs(in, result);
     List<Identifiable> predecessors = new ArrayList<>();
@@ -473,15 +473,16 @@ public class PMParser {
   }
 
   private static DrawableSplit introduceSplit(DrawableProcessNode predecessor, List<DrawableProcessNode> modelElems) {
-    for(DrawableProcessNode successor:predecessor.getSuccessors()) {
+    for(Identifiable successor:predecessor.getSuccessors()) {
       if (successor instanceof DrawableSplit) {
         return (DrawableSplit) successor;
       }
     }
 
     DrawableSplit newSplit = new DrawableSplit();
-    ArrayList<DrawableProcessNode> successors = new ArrayList<>(predecessor.getSuccessors());
-    for(DrawableProcessNode successor: successors) {
+    ArrayList<Identifiable> successors = new ArrayList<>(predecessor.getSuccessors());
+    for(Identifiable successorId: successors) {
+      DrawableProcessNode successor = (DrawableProcessNode) successorId;
       predecessor.removeSuccessor(successor);
       successor.removePredecessor(predecessor);
       newSplit.addSuccessor(successor);

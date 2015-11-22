@@ -13,6 +13,7 @@ import nl.adaptivity.diagram.android.*;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.ProcessThemeItems;
+import nl.adaptivity.process.util.Identifiable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,7 +50,8 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
       if (mDiagram==null) { return; }
       for(DrawableProcessNode start:mDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
-          for (DrawableProcessNode end: start.getSuccessors()) {
+          for (Identifiable endId: start.getSuccessors()) {
+            DrawableProcessNode end = start.getOwner().asNode(endId);
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
               final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/-mBounds.left)*scale);
               final float y1 = (float) ((start.getY()-mBounds.top)*scale);
@@ -84,7 +86,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
 
   @Override
   public DrawableProcessNode getItem(int pos) {
-    return mDiagram.getModelNodes().get(pos);
+    return mDiagram.getNode(pos);
   }
 
   @Override
