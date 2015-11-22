@@ -52,11 +52,15 @@ public abstract class AbstractXmlReader implements XmlReader {
 
   @Override
   public QName getName() throws XmlException {
-    return new QName(StringUtil.toString(getNamespaceUri()), StringUtil.toString(getLocalName()), StringUtil.toString(getPrefix()));
+    CharSequence prefix = getPrefix();
+    return new QName(StringUtil.toString(getNamespaceUri()), getLocalName().toString(), prefix ==null ? "" : prefix
+            .toString());
   }
 
   @Override
   public QName getAttributeName(final int i) throws XmlException {
-    return new QName(StringUtil.toString(getAttributeNamespace(i)), StringUtil.toString(getAttributeLocalName(i)), StringUtil.toString(getAttributePrefix(i)));
+    CharSequence attributePrefix = getAttributePrefix(i);
+    return new QName(StringUtil.toString(getAttributeNamespace(i)), getAttributeLocalName(i).toString(), attributePrefix ==null ? "" : attributePrefix
+            .toString());
   }
 }

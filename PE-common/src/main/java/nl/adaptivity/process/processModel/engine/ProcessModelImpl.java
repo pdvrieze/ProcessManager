@@ -9,6 +9,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
@@ -182,8 +183,8 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
     }
     to.add(node);
     seen.add(node.getId());
-    for (final ProcessNodeImpl successor : node.getSuccessors()) {
-      extractElements(to, seen, successor);
+    for (final Identifiable successor : node.getSuccessors()) {
+      extractElements(to, seen, (ProcessNodeImpl) successor);
     }
   }
 

@@ -138,8 +138,9 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
     final EventType result = delegate.next();
     if (result==null) { return null; }
     switch (result) {
-      case START_DOCUMENT:
       case END_DOCUMENT:
+        return result;
+      case START_DOCUMENT:
       case PROCESSING_INSTRUCTION:
       case DOCDECL:
         return next();

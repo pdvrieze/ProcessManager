@@ -131,8 +131,9 @@ public final class XmlUtil {
         case START_DOCUMENT:
         case PROCESSING_INSTRUCTION:
         case DOCDECL:
-        case END_DOCUMENT:
           return next();
+        case END_DOCUMENT:
+          return null;
       }
       return eventType;
     }
@@ -497,6 +498,7 @@ public final class XmlUtil {
         case TEXT:
         case CDSECT:
           result.append(in.getText());
+          break;
         default:
           throw new XmlException("Expected text content or end tag, found: "+type);
       }
@@ -1276,8 +1278,7 @@ public final class XmlUtil {
           }
         }
         writeElementContent(missingNamespaces, in, out);
-      }
-      if (type == EventType.END_ELEMENT) {
+      } else if (type == EventType.END_ELEMENT) {
         break;
       }
     }

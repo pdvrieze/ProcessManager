@@ -168,7 +168,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
    */
   @NotNull
   @Override
-  public Set<? extends ProcessNodeImpl> getSuccessors() {
+  public Set<? extends Identifiable> getSuccessors() {
     return Collections.emptySet();
   }
 

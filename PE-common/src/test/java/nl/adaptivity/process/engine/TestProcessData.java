@@ -26,7 +26,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -38,7 +37,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.xpath.*;
 
 import java.io.*;
@@ -192,8 +190,7 @@ public class TestProcessData {
   }
 
   @Test
-  public void testDeserializeProcessModel() throws IOException, SAXException, JAXBException,
-          XmlException {
+  public void testDeserializeProcessModel() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
     final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     ActivityImpl ac1 = null;
@@ -339,8 +336,7 @@ public class TestProcessData {
   }
 
   @Test
-  public void testRoundTripProcessModel1_ac1_result1() throws IOException, SAXException, JAXBException,
-          XmlException {
+  public void testRoundTripProcessModel1_ac1_result1() throws Exception {
     final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     {
       final CharArrayWriter caw = new CharArrayWriter();
@@ -373,8 +369,7 @@ public class TestProcessData {
   }
 
   @Test
-  public void testRoundTripProcessModel1_ac1_result2() throws IOException, SAXException, JAXBException,
-          XmlException {
+  public void testRoundTripProcessModel1_ac1_result2() throws Exception {
     final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
     {
       final CharArrayWriter caw = new CharArrayWriter();
@@ -404,8 +399,7 @@ public class TestProcessData {
   }
 
   @Test
-  public void testJaxbRoundTripProcessModel1() throws IOException, SAXException, JAXBException, XMLStreamException,
-          InstantiationException, IllegalAccessException, XmlException {
+  public void testJaxbRoundTripProcessModel1() throws Exception {
 
     testRoundTrip(getDocument("testModel2.xml"), ProcessModelImpl.class);
 

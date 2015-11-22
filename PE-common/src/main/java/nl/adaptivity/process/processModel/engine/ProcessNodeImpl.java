@@ -35,7 +35,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
 
   @Nullable private ProcessNodeSet<Identifiable> mPredecessors;
 
-  @Nullable private ProcessNodeSet<ProcessNodeImpl> mSuccessors = null;
+  @Nullable private ProcessNodeSet<Identifiable> mSuccessors = null;
 
   private String mId;
 
@@ -102,9 +102,9 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
      */
   @Nullable
   @Override
-  public Set<? extends Identifiable> getPredecessors() {
+  public final Set<? extends Identifiable> getPredecessors() {
     if (mPredecessors == null) {
-      mPredecessors = ProcessNodeSet.processNodeSet();
+      mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
     }
     return mPredecessors;
   }
@@ -136,12 +136,20 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
 
   @Override
   public void addPredecessor(@NotNull final Identifiable node) {
-    if (mPredecessors.containsKey(node.getId())) { return; }
-    if (mPredecessors.size()+1>getMaxPredecessorCount()) {
-      throw new IllegalProcessModelException("Can not add more predecessors");
-    }
-    if(mPredecessors.add(node)) {
-      getOwnerModel().getNode(node).addSuccessor(this);
+    if (mPredecessors!=null) {
+      if (mPredecessors.containsKey(node.getId())) { return; }
+      if (mPredecessors.size() + 1 > getMaxPredecessorCount()) {
+        throw new IllegalProcessModelException("Can not add more predecessors");
+      }
+      ProcessModelBase<ProcessNodeImpl> ownerModel = getOwnerModel();
+      if (mPredecessors.add(node) && ownerModel !=null) {
+        ownerModel.getNode(node).addSuccessor(this);
+      }
+    } else if (getMaxPredecessorCount()==1) {
+      mPredecessors = ProcessNodeSet.singleton(node);
+    } else {
+      mPredecessors = ProcessNodeSet.processNodeSet(1);
+      mPredecessors.add(node);
     }
   }
 
@@ -157,7 +165,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
    * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
    */
   @Override
-  public void addSuccessor(@Nullable final ProcessNodeImpl node) {
+  public void addSuccessor(@Nullable final Identifiable node) {
     if (node == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
@@ -169,8 +177,8 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
 
 
   @Override
-  public void setSuccessors(@NotNull final Collection<? extends ProcessNodeImpl> successors) {
-    for(final ProcessNodeImpl n: successors) {
+  public void setSuccessors(@NotNull final Collection<? extends Identifiable> successors) {
+    for(final Identifiable n: successors) {
       addSuccessor(n);
     }
   }
@@ -180,7 +188,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
    */
   @Nullable
   @Override
-  public Set<? extends ProcessNodeImpl> getSuccessors() {
+  public Set<? extends Identifiable> getSuccessors() {
     return mSuccessors;
   }
 
@@ -197,7 +205,7 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
   }
 
   @Override
-  public void removeSuccessor(final ProcessNodeImpl node) {
+  public void removeSuccessor(final Identifiable node) {
     mSuccessors.remove(node);
   }
 
@@ -381,4 +389,10 @@ public abstract class ProcessNodeImpl implements XmlDeserializable, ProcessNode<
     return newImports;
   }
 
+  @Override
+  public void resolveRefs() {
+    ProcessModelBase<ProcessNodeImpl> ownerModel = getOwnerModel();
+    mPredecessors.resolve(ownerModel);
+    mSuccessors.resolve(ownerModel);
+  }
 }

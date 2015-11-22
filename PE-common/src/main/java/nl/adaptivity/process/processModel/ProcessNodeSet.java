@@ -1,8 +1,8 @@
 package nl.adaptivity.process.processModel;
 
-import org.jetbrains.annotations.NotNull;
 import net.devrieze.util.ReadMap;
 import nl.adaptivity.process.util.Identifiable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
@@ -143,7 +143,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     public boolean retainAll(final Collection<?> c) {
       throw new UnsupportedOperationException("This set is immutable");
     }
-  
+
+    @Override
+    public void resolve(final ProcessModelBase<? extends T> reference) {
+      throw new UnsupportedOperationException("This set is immutable");
+    }
   }
 
   private static final class BaseProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
@@ -193,6 +197,27 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
+    public boolean contains(final Object o) {
+      if (o == null) { return false; }
+      int len = mStore.size();
+      if (o instanceof Identifiable) {
+        String id = ((Identifiable)o).getId();
+        if (id!=null) {
+          for (int i = 0; i < len; ++i) {
+            if (id.equals(mStore.get(i).getId())) {
+              return true;
+            }
+          }
+          return false;
+        }
+      }
+      for (int i = 0; i < len; ++i) {
+        if (o.equals(mStore.get(i))) { return true; }
+      }
+      return false;
+    }
+
+    @Override
     public void clear() {
       mStore.clear();
     }
@@ -212,6 +237,13 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return mStore.size();
     }
 
+    @Override
+    public void resolve(final ProcessModelBase<? extends V> reference) {
+      int len = mStore.size();
+      for(int i=0; i<len; ++i) {
+        mStore.set(i, reference.getNode(mStore.get(i)));
+      }
+    }
   }
 
   private static final class EmptyProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
@@ -239,6 +271,10 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return 0;
     }
 
+    @Override
+    public void resolve(final ProcessModelBase<? extends V> reference) {
+      // do nothing
+    }
   }
 
   private static final class SingletonProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
@@ -323,7 +359,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
     @Override
     public boolean contains(@NotNull final Object o) {
-      return o.equals(mElement);
+      if (mElement == null) { return o==null; }
+      if (o instanceof Identifiable && mElement.getId()!=null) {
+        return mElement.getId().equals(((Identifiable)o).getId());
+      }
+      return mElement.equals(o);
     }
 
     @NotNull
@@ -366,7 +406,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     @Override
     public boolean containsAll(@NotNull final Collection<?> c) {
       for(final Object o:c) {
-        if (! o.equals(mElement)) { return false; }
+        if (! contains(o)) { return false; }
       }
       return true;
     }
@@ -384,7 +424,12 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       return change;
     }
 
-
+    @Override
+    public void resolve(final ProcessModelBase<? extends V> reference) {
+      if (mElement!=null) {
+        mElement = reference.getNode(mElement);
+      }
+    }
   }
 
   private static final class MyKeyIterator implements Iterator<String> {
@@ -426,6 +471,8 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
   }
+
+  public abstract void resolve(final ProcessModelBase<? extends T> reference);
 
   @NotNull
   public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet() {

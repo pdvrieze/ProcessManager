@@ -1,6 +1,7 @@
 package nl.adaptivity.xml;
 
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
@@ -19,11 +20,11 @@ public interface XmlReader {
 
   EventType next() throws XmlException;
 
-  CharSequence getNamespaceUri() throws XmlException;
+  @Nullable CharSequence getNamespaceUri() throws XmlException;
 
-  CharSequence getLocalName() throws XmlException;
+  @NotNull CharSequence getLocalName() throws XmlException;
 
-  CharSequence getPrefix() throws XmlException;
+  @Nullable CharSequence getPrefix() throws XmlException;
 
   QName getName() throws XmlException;
 
@@ -35,19 +36,19 @@ public interface XmlReader {
 
   int getAttributeCount() throws XmlException;
 
-  CharSequence getAttributeNamespace(int i) throws XmlException;
+  @Nullable CharSequence getAttributeNamespace(int i) throws XmlException;
 
-  CharSequence getAttributePrefix(int i) throws XmlException;
+  @Nullable CharSequence getAttributePrefix(int i) throws XmlException;
 
-  CharSequence getAttributeLocalName(int i) throws XmlException;
+  @NotNull CharSequence getAttributeLocalName(int i) throws XmlException;
 
-  QName getAttributeName(int i) throws XmlException;
+  @NotNull QName getAttributeName(int i) throws XmlException;
 
   CharSequence getAttributeValue(int i) throws XmlException;
 
   EventType getEventType() throws XmlException;
 
-  CharSequence getAttributeValue(CharSequence nsUri, CharSequence localName) throws XmlException;
+  @Nullable CharSequence getAttributeValue(CharSequence nsUri, CharSequence localName) throws XmlException;
 
   int getNamespaceStart() throws XmlException;
 

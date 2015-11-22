@@ -19,6 +19,11 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
     R visitEndNode(EndNode<?> endNode);
   }
 
+  /**
+   * Make all references (predecessors successors) directly reference nodes. Not names.
+   */
+  void resolveRefs();
+
   @Nullable
   Set<? extends Identifiable> getPredecessors();
 
@@ -28,18 +33,18 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
 
   void addPredecessor(Identifiable node);
 
-  void addSuccessor(T node);
+  void addSuccessor(Identifiable node);
 
-  void removeSuccessor(T node);
+  void removeSuccessor(Identifiable node);
 
   @Nullable
-  Set<? extends T> getSuccessors();
+  Set<? extends Identifiable> getSuccessors();
 
   int getMaxSuccessorCount();
 
   int getMaxPredecessorCount();
 
-  void setSuccessors(Collection<? extends T/** TODO Identifyable*/> successors);
+  void setSuccessors(Collection<? extends Identifiable> successors);
 
   String getLabel();
 

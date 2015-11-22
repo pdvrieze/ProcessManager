@@ -167,7 +167,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable {
   private void serializeBody(@NotNull final XmlWriter out) throws XmlException {
     if (content !=null && content.length>0) {
       final XmlReader contentReader = XmlUtil.filterSubstream(getBodyStreamReader());
-      while(contentReader.next()!=null) {
+      while(contentReader.hasNext() && contentReader.next()!=null) {
         XmlUtil.writeCurrentEvent(contentReader, out);
       }
     }
