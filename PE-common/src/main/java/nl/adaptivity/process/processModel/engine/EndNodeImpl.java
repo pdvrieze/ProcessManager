@@ -97,7 +97,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.endTag(null, null, null);
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
   protected void serializeChildren(final XmlWriter out) throws XmlException {
