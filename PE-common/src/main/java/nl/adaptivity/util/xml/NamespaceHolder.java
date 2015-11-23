@@ -29,7 +29,7 @@ public class NamespaceHolder {
   }
 
   public void decDepth() { // XXX consider shrinking the arrays.
-    Arrays.fill(mNamespaces, mDepth==0 ? 0 : mNamespaceCounts[mDepth - 1], mNamespaceCounts[mDepth], null); // Clear out all unused namespaces
+    Arrays.fill(mNamespaces, mDepth==0 ? 0 : mNamespaceCounts[mDepth - 1]*2, mNamespaceCounts[mDepth]*2, null); // Clear out all unused namespaces
     mNamespaceCounts[mDepth] = 0;
     --mDepth;
   }
@@ -53,14 +53,14 @@ public class NamespaceHolder {
     if (nextNamespacePos >= mNamespaces.length) {
       enlarge();
     }
-    mNamespaces[nextNamespacePos] = StringUtil.toString(prefix);
-    mNamespaces[nextNamespacePos + 1] = StringUtil.toString(namespaceUri);
+    mNamespaces[nextNamespacePos] = prefix==null ? "" : prefix.toString();
+    mNamespaces[nextNamespacePos + 1] = namespaceUri==null ? "" : namespaceUri.toString();
     mNamespaceCounts[getDepth()]++;
   }
 
   private void enlarge() {
     String[] namespaces = new String[mNamespaces.length * 2];
-    System.arraycopy(mNamespaces, 0, namespaces, 0, mNamespaceCounts[mDepth]);
+    System.arraycopy(mNamespaces, 0, namespaces, 0, mNamespaceCounts[mDepth]*2);
     mNamespaces = namespaces;
   }
 
