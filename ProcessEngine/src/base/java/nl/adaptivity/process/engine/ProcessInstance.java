@@ -17,6 +17,7 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
@@ -371,8 +372,8 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     mThreads.remove(predecessor);
 
     final List<ProcessNodeInstance> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
-    for (final ProcessNodeImpl successorNode : predecessor.getNode().getSuccessors()) {
-      final ProcessNodeInstance instance = getProcessNodeInstance(transaction, predecessor, successorNode);
+    for (final Identifiable successorNode : predecessor.getNode().getSuccessors()) {
+      final ProcessNodeInstance instance = getProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
       if (instance instanceof JoinInstance && mThreads.contains(instance)) {
         continue;
       } else {
