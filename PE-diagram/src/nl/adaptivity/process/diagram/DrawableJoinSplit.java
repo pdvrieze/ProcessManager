@@ -4,6 +4,7 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
+import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -36,6 +37,12 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   public DrawableJoinSplit(DrawableJoinSplit orig, final boolean compat) {
     super(orig, compat);
     mState = orig.mState;
+  }
+
+  @Nullable
+  @Override
+  public DrawableProcessModel getOwnerModel() {
+    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override

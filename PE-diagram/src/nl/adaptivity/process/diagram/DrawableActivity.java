@@ -3,6 +3,7 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
+import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -41,6 +42,12 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   public Rectangle getBounds() {
 
     return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
+  }
+
+  @Nullable
+  @Override
+  public DrawableProcessModel getOwnerModel() {
+    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override

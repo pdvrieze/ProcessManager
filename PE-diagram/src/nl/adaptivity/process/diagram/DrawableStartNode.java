@@ -2,6 +2,7 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
+import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -34,6 +35,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
       return new DrawableStartNode(this, isCompat());
     }
     throw new RuntimeException(new CloneNotSupportedException());
+  }
+
+  @Nullable
+  @Override
+  public DrawableProcessModel getOwnerModel() {
+    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override

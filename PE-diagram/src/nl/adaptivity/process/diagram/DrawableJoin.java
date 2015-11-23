@@ -5,6 +5,7 @@ import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 

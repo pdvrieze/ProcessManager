@@ -2,6 +2,7 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
+import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -72,6 +73,12 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
   @Override
   public String getIdBase() {
     return IDBASE;
+  }
+
+  @Nullable
+  @Override
+  public DrawableProcessModel getOwnerModel() {
+    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override

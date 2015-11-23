@@ -75,19 +75,33 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> extends
   @Override
   public void setX(double x) {
     super.setX(x);
-    if (getOwnerModel() != null) getOwnerModel().nodeChanged(this.asT());
+    notifyChange();
   }
 
   @Override
   public void setY(double y) {
     super.setY(y);
-    if (getOwnerModel() != null) getOwnerModel().nodeChanged(this.asT());
+    notifyChange();
   }
 
   public void offset(final int offsetX, final int offsetY) {
     setX(getX()+ offsetX);
     setY(getY()+ offsetY);
-    if (getOwnerModel() != null) getOwnerModel().nodeChanged(this.asT());
+    notifyChange();
+  }
+
+  protected void notifyChange() {if (getOwnerModel() != null) getOwnerModel().nodeChanged(this.asT());}
+
+  @Override
+  public void setLabel(final String label) {
+    super.setLabel(label);
+    notifyChange();
+  }
+
+  @Override
+  public void setId(final String id) {
+    super.setId(id);
+    notifyChange();
   }
 
   @Override

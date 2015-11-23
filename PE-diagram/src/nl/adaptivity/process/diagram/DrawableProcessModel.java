@@ -5,6 +5,7 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -14,26 +15,6 @@ import java.util.*;
 
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode> implements Diagram {
-
-  private static class ChangableIdentifier implements Identifiable {
-
-    private final String mIdBase;
-    private int mIdNo;
-
-    public ChangableIdentifier(final String idBase) {
-      mIdBase = idBase;
-      mIdNo = 1;
-    }
-
-    public void next() {
-      ++mIdNo;
-    }
-
-    @Override
-    public String getId() {
-      return mIdBase+Integer.toString(mIdNo);
-    }
-  }
 
   private static class Factory implements DeserializationFactory<DrawableProcessNode>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode> {
 
@@ -90,11 +71,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     @Override
     public DrawableSplit createSplit(final ProcessModelBase<DrawableProcessNode> ownerModel, final Collection<? extends Identifiable> successors) {
       DrawableSplit join = new DrawableSplit();
-      ChangableIdentifier id = new ChangableIdentifier(join.getIdBase());
-      while (ownerModel.getNode(id)!=null) {
-        id.next();
-      }
-      join.setId(id.getId());
+      join.setId(Identifier.findIdentifier(join.getIdBase(), ownerModel.getModelNodes()));
       ownerModel.addNode(join);
       join.setSuccessors(successors);
       return join;

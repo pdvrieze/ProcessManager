@@ -22,4 +22,6 @@ public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessN
 
   DrawableProcessNode clone();
 
+  DrawableProcessModel getOwnerModel();
+
 }
