@@ -27,7 +27,7 @@ import java.util.*;
 @XmlRootElement(name = EndNode.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "EndNode")
-public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl>, SimpleXmlDeserializable {
+public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ExecutableProcessNode>, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -39,18 +39,18 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   @NotNull
-  public static EndNodeImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final XmlReader in) throws
+  public static EndNodeImpl deserialize(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new EndNodeImpl(ownerModel), in);
   }
 
   private static final long serialVersionUID = 220908810658246960L;
 
-  public EndNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel, final ProcessNodeImpl previous) {
+  public EndNodeImpl(final ProcessModelBase<ExecutableProcessNode> ownerModel, final ExecutableProcessNode previous) {
     super(ownerModel, Collections.singletonList(previous));
   }
 
-  public EndNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel) {
+  public EndNodeImpl(final ProcessModelBase<ExecutableProcessNode> ownerModel) {
     super(ownerModel);
   }
 

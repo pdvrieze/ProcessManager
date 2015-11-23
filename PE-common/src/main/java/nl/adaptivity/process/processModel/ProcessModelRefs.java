@@ -1,9 +1,9 @@
 package nl.adaptivity.process.processModel;
 
-import org.jetbrains.annotations.NotNull;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -17,9 +17,9 @@ import java.util.Iterator;
 
 @XmlRootElement(name = "processModels")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ProcessModelRefs implements Collection<IProcessModelRef<? extends ProcessNodeImpl>> {
+public class ProcessModelRefs implements Collection<IProcessModelRef<? extends ExecutableProcessNode>> {
 
-  private Collection<IProcessModelRef<? extends ProcessNodeImpl>> mCollection;
+  private Collection<IProcessModelRef<? extends ExecutableProcessNode>> mCollection;
 
   public ProcessModelRefs() {
     mCollection = new ArrayList<>();
@@ -29,7 +29,7 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<? extends P
    * Create a new collection with the given source of references to initialise it
    * @param collection The initialiser.
    */
-  public ProcessModelRefs(@NotNull final Collection<? extends IProcessModelRef<ProcessNodeImpl>> collection) {
+  public ProcessModelRefs(@NotNull final Collection<? extends IProcessModelRef<ExecutableProcessNode>> collection) {
     mCollection = new ArrayList<>(collection.size());
     addAll(collection);
   }
@@ -44,7 +44,7 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<? extends P
     return (Collection) mCollection;
   }
 
-  public boolean add(final IProcessModelRef<? extends ProcessNodeImpl> modelRef) {
+  public boolean add(final IProcessModelRef<? extends ExecutableProcessNode> modelRef) {
     if (modelRef instanceof ProcessModelRef) {
       return mCollection.add(modelRef);
     } else {
@@ -56,9 +56,9 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<? extends P
     return mCollection.add(e);
   }
 
-  public boolean addAll(@NotNull final Collection<? extends IProcessModelRef<? extends ProcessNodeImpl>> c) {
+  public boolean addAll(@NotNull final Collection<? extends IProcessModelRef<? extends ExecutableProcessNode>> c) {
     boolean changed = false;
-    for(final IProcessModelRef<? extends ProcessNodeImpl> elem:c) {
+    for(final IProcessModelRef<? extends ExecutableProcessNode> elem:c) {
       changed |= add(elem);
     }
     return changed;
@@ -102,7 +102,7 @@ public class ProcessModelRefs implements Collection<IProcessModelRef<? extends P
 
   @NotNull
   @Override
-  public Iterator<IProcessModelRef<? extends ProcessNodeImpl>> iterator() {
+  public Iterator<IProcessModelRef<? extends ExecutableProcessNode>> iterator() {
     return mCollection.iterator();
   }
 

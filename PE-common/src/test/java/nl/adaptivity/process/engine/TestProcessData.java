@@ -198,8 +198,8 @@ public class TestProcessData {
     StartNodeImpl start = null;
     EndNodeImpl end = null;
     for(final Object o: xpm.getNodes()) {
-      if (o instanceof ProcessNodeImpl) {
-        final ProcessNodeImpl node = (ProcessNodeImpl) o;
+      if (o instanceof ExecutableProcessNode) {
+        final ExecutableProcessNode node = (ExecutableProcessNode) o;
         if (node.getId() != null) {
           switch (node.getId()) {
             case "start":
@@ -341,7 +341,7 @@ public class TestProcessData {
     {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
-      final ProcessNodeImpl ac1 = xpm.getNodes().get(1);
+      final ExecutableProcessNode ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
 
@@ -375,7 +375,7 @@ public class TestProcessData {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
-      final ProcessNodeImpl ac1 = xpm.getNodes().get(1);
+      final ExecutableProcessNode ac1 = xpm.getNodes().get(1);
       assertEquals("ac1", ac1.getId());
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
       final XmlResultType result = (XmlResultType) ac1Results.get(1);

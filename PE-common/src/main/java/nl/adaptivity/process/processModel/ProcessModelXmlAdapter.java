@@ -1,23 +1,23 @@
 package nl.adaptivity.process.processModel;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
-public class ProcessModelXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModel<? extends ProcessNodeImpl>> {
+
+public class ProcessModelXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModel<? extends ExecutableProcessNode>> {
 
   @NotNull
   @Override
-  public XmlProcessModel marshal(@NotNull final ProcessModel<? extends ProcessNodeImpl> processModel) throws Exception {
+  public XmlProcessModel marshal(@NotNull final ProcessModel<? extends ExecutableProcessNode> processModel) throws Exception {
     return new XmlProcessModel(processModel);
   }
 
   @NotNull
   @Override
-  public ProcessModel<? extends ProcessNodeImpl> unmarshal(@NotNull final XmlProcessModel model) throws Exception {
+  public ProcessModel<? extends ExecutableProcessNode> unmarshal(@NotNull final XmlProcessModel model) throws Exception {
     return new ProcessModelImpl(model);
   }
 

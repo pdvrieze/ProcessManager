@@ -3,6 +3,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.diagram.Positioned;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -19,6 +20,11 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
     R visitJoin(Join<?> join);
     R visitEndNode(EndNode<?> endNode);
   }
+
+  @Nullable
+  ProcessModelBase<T> getOwnerModel();
+
+  void setOwnerModel(@NotNull ProcessModelBase<T> ownerModel);
 
   T asT();
 

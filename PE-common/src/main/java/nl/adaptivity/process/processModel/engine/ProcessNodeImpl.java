@@ -1,9 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.IdFactory;
-import net.devrieze.util.Transaction;
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
@@ -14,20 +11,19 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 
-import java.sql.SQLException;
 import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
-public abstract class ProcessNodeImpl extends ProcessNodeBase<ProcessNodeImpl>  {
+public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessNode> implements ExecutableProcessNode {
 
 //  private Collection<? extends IXmlImportType> mImports;
 //
 //  private Collection<? extends IXmlExportType> mExports;
 
-  protected ProcessNodeImpl(@Nullable final ProcessModelBase<ProcessNodeImpl> ownerModel) {
+  protected ProcessNodeImpl(@Nullable final ProcessModelBase<ExecutableProcessNode> ownerModel) {
     super(ownerModel);
     if (ownerModel!=null) {
       mOwnerModel.addNode(this);
@@ -35,7 +31,7 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ProcessNodeImpl>  
   }
 
 
-  public ProcessNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
+  public ProcessNodeImpl(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
     this(ownerModel);
     if ((predecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
@@ -55,37 +51,6 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ProcessNodeImpl>  
     }
     return id;
   }
-
-  /**
-   * Should this node be able to be provided?
-   *
-   *
-   * @param transaction
-   * @param instance The instance against which the condition should be evaluated.
-   * @return <code>true</code> if the node can be started, <code>false</code> if
-   *         not.
-   */
-  public abstract boolean condition(final Transaction transaction, IProcessNodeInstance<?> instance);
-
-  /**
-   * Take action to make task available
-   *
-   * @param messageService The message service to use for the communication.
-   * @param instance The processnode instance involved.
-   * @return <code>true</code> if the task can/must be automatically taken
-   */
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean provideTask(Transaction transaction, IMessageService<T, U> messageService, U instance) throws SQLException;
-
-  /**
-   * Take action to accept the task (but not start it yet)
-   *
-   * @param messageService The message service to use for the communication.
-   * @param instance The processnode instance involved.
-   * @return <code>true</code> if the task can/must be automatically started
-   */
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean takeTask(IMessageService<T, U> messageService, U instance);
-
-  public abstract <T, U extends IProcessNodeInstance<U>> boolean startTask(IMessageService<T, U> messageService, U instance);
 
   @NotNull
   @Override

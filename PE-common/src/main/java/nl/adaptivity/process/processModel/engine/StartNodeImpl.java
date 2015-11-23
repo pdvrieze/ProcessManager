@@ -30,7 +30,7 @@ import java.util.List;
 @XmlDeserializer(StartNodeImpl.Factory.class)
 @XmlRootElement(name = StartNode.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl>, SimpleXmlDeserializable {
+public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ExecutableProcessNode>, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -42,16 +42,16 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
   }
 
   @NotNull
-  public static StartNodeImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final XmlReader in) throws
+  public static StartNodeImpl deserialize(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
 
-  public StartNodeImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {
+  public StartNodeImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel) {
     super(ownerModel, Collections.<Identifiable>emptyList());
   }
 
-  public StartNodeImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final List<XmlResultType> imports) {
+  public StartNodeImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final List<XmlResultType> imports) {
     super(ownerModel, Collections.<Identifiable>emptyList());
     setResults(imports);
   }

@@ -1,7 +1,7 @@
 package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -73,10 +73,10 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
 
   protected final void swapPredecessors(@NotNull final Collection<?> predecessors) {
     mPredecessors=null;
-    final List<ProcessNodeImpl> tmp = new ArrayList<>(predecessors.size());
+    final List<ExecutableProcessNode> tmp = new ArrayList<>(predecessors.size());
     for(final Object pred:predecessors) {
-      if (pred instanceof ProcessNodeImpl) {
-        tmp.add((ProcessNodeImpl) pred);
+      if (pred instanceof ExecutableProcessNode) {
+        tmp.add((ExecutableProcessNode) pred);
       }
     }
     setPredecessors(tmp);
@@ -277,11 +277,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return 1;
   }
 
+  @Override
   @Nullable
   public ProcessModelBase<T> getOwnerModel() {
     return mOwnerModel;
   }
 
+  @Override
   public void setOwnerModel(@NotNull final ProcessModelBase<T> ownerModel) {
     if (mOwnerModel!=ownerModel) {
       T thisT = this.asT();

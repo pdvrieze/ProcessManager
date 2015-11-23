@@ -61,15 +61,15 @@ public class XmlProcessModel {
 
   }
 
-  public XmlProcessModel(@NotNull final ProcessModel<? extends ProcessNodeImpl> m) {
-    nodes = filter(CollectionUtil.<Object>copy(m.getModelNodes()), ProcessNodeImpl.class);
+  public XmlProcessModel(@NotNull final ProcessModel<? extends ExecutableProcessNode> m) {
+    nodes = filter(CollectionUtil.<Object>copy(m.getModelNodes()), ExecutableProcessNode.class);
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
     roles = m.getRoles();
     uuid = m.getUuid();
   }
 
-  private List<ProcessNodeImpl> nodes;
+  private List<ExecutableProcessNode> nodes;
 
   @Nullable private UUID uuid;
 
@@ -97,9 +97,9 @@ public class XmlProcessModel {
    * Objects of the following type(s) are allowed in the list {@link EndNodeImpl }
    * {@link ActivityImpl } {@link StartNode } {@link Join }
    */
-  public List<? extends ProcessNodeImpl> getNodes() {
+  public List<? extends ExecutableProcessNode> getNodes() {
     if (nodes == null) {
-      nodes = filter(new ArrayList<>(), ProcessNodeImpl.class);
+      nodes = filter(new ArrayList<>(), ExecutableProcessNode.class);
     }
     return this.nodes;
   }
@@ -110,7 +110,7 @@ public class XmlProcessModel {
                    @XmlElementRef(name = StartNode.ELEMENTLOCALNAME, type = StartNodeImpl.class),
                    @XmlElementRef(name = Join.ELEMENTLOCALNAME, type = JoinImpl.class),
                    @XmlElementRef(name = Split.ELEMENTLOCALNAME, type = SplitImpl.class)})
-  public void setNodes(@NotNull final List<? extends ProcessNodeImpl> nodes) {
+  public void setNodes(@NotNull final List<? extends ExecutableProcessNode> nodes) {
     this.nodes.clear();
     this.nodes.addAll(nodes);
   }
@@ -125,7 +125,7 @@ public class XmlProcessModel {
   @NotNull
   public ProcessModelImpl toProcessModel() {
     if (nodes instanceof ArrayList) {
-      final List<ProcessNodeImpl> filtered = filter(nodes, ProcessNodeImpl.class);
+      final List<ExecutableProcessNode> filtered = filter(nodes, ExecutableProcessNode.class);
       if (nodes.size()!=filtered.size()) {
         nodes.clear();
         nodes.addAll(filtered);

@@ -31,7 +31,7 @@ import java.util.Set;
 @XmlRootElement(name = Join.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
-public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
+public class JoinImpl extends JoinSplitImpl implements Join<ExecutableProcessNode> {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -43,27 +43,27 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   }
 
   @NotNull
-  public static JoinImpl deserialize(final ProcessModelBase<ProcessNodeImpl> ownerModel, @NotNull final XmlReader in) throws
+  public static JoinImpl deserialize(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new JoinImpl(ownerModel), in);
   }
 
   private static final long serialVersionUID = -8598245023280025173L;
 
-  public JoinImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public JoinImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors, min, max);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
   }
 
-  public JoinImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {
+  public JoinImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel) {
     super(ownerModel);
   }
 
   @NotNull
-  public static JoinImpl andJoin(final ProcessModelImpl ownerModel, final ProcessNodeImpl... nodes) {
-    return new JoinImpl(ownerModel, Arrays.asList(nodes), Integer.MAX_VALUE, Integer.MAX_VALUE);
+  public static JoinImpl andJoin(final ProcessModelImpl ownerModel, final ExecutableProcessNode... predecessors) {
+    return new JoinImpl(ownerModel, Arrays.asList(predecessors), Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
   @Override
@@ -113,7 +113,7 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   @XmlElement(name = "predecessor")
 //@XmlJavaTypeAdapter(PredecessorAdapter.class)
   @XmlIDREF
-  void setXmlPrececessors(final List<? extends ProcessNodeImpl> pred) {
+  void setXmlPrececessors(final List<? extends ExecutableProcessNode> pred) {
     swapPredecessors(pred);
   }
 

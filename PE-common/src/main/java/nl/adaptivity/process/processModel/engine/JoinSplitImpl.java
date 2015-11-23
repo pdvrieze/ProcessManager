@@ -16,18 +16,18 @@ import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ProcessNodeImpl>, SimpleXmlDeserializable {
+public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ExecutableProcessNode>, SimpleXmlDeserializable {
 
   private static final long serialVersionUID = -4343040873373817308L;
 
   private int mMin;
   private int mMax;
 
-  public JoinSplitImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel) {
+  public JoinSplitImpl(final ProcessModelBase<ExecutableProcessNode> ownerModel) {
     super(ownerModel);
   }
 
-  public JoinSplitImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public JoinSplitImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors);
     mMin = min;
     mMax = max;

@@ -37,7 +37,7 @@ import java.util.*;
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implements HandleAware<ProcessModelImpl>, SecureObject {
+public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode> implements HandleAware<ProcessModelImpl>, SecureObject {
 
   static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModelImpl> {
 
@@ -58,7 +58,7 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
     INSTANTIATE
   }
 
-  public static class Factory implements XmlDeserializerFactory, DeserializationFactory<ProcessNodeImpl> {
+  public static class Factory implements XmlDeserializerFactory, DeserializationFactory<ExecutableProcessNode> {
 
     @NotNull
     @Override
@@ -67,31 +67,31 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
     }
 
     @Override
-    public EndNodeImpl deserializeEndNode(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+    public EndNodeImpl deserializeEndNode(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
             XmlException {
       return EndNodeImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public ActivityImpl deserializeActivity(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+    public ActivityImpl deserializeActivity(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
             XmlException {
       return ActivityImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public StartNodeImpl deserializeStartNode(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+    public StartNodeImpl deserializeStartNode(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
             XmlException {
       return StartNodeImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public JoinImpl deserializeJoin(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+    public JoinImpl deserializeJoin(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
             XmlException {
       return JoinImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public SplitImpl deserializeSplit(final ProcessModelBase<ProcessNodeImpl> ownerModel, final XmlReader in) throws
+    public SplitImpl deserializeSplit(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
             XmlException {
       return SplitImpl.deserialize(ownerModel, in);
     }
@@ -106,7 +106,7 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
 
     @NotNull
   public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return (ProcessModelImpl) ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ProcessNodeImpl>emptyList()), in);
+    return (ProcessModelImpl) ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ExecutableProcessNode>emptyList()), in);
   }
 
   private static final long serialVersionUID = -4199223546188994559L;
@@ -128,10 +128,10 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
    * Create a new processModel based on the given nodes. These nodes should be complete
    *
    */
-  public ProcessModelImpl(final Collection<? extends ProcessNodeImpl> processNodes) {
+  public ProcessModelImpl(final Collection<? extends ExecutableProcessNode> processNodes) {
     super(processNodes);
     int endNodeCount=0;
-    for(final ProcessNodeImpl node:getModelNodes()) {
+    for(final ExecutableProcessNode node:getModelNodes()) {
       node.setOwnerModel(this);
       if (node instanceof EndNodeImpl) { ++endNodeCount; }
     }
@@ -156,7 +156,7 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
    * Ensure that the given node is owned by this model.
    * @param processNode
    */
-  public boolean addNode(@NotNull final ProcessNodeImpl processNode) {
+  public boolean addNode(@NotNull final ExecutableProcessNode processNode) {
     if (super.addNode(processNode)) {
       processNode.setOwnerModel(this);
       return true;
@@ -164,7 +164,7 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
     return false;
   }
 
-  public boolean removeNode(final ProcessNodeImpl processNode) {
+  public boolean removeNode(final ExecutableProcessNode processNode) {
     throw new UnsupportedOperationException("This will break in all kinds of ways");
   }
 
@@ -177,14 +177,14 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
    * @param node The node to start extraction from. This will go on to the
    *          successors.
    */
-  private static void extractElements(final Collection<? super ProcessNodeImpl> to, final HashSet<String> seen, final ProcessNodeImpl node) {
+  private static void extractElements(final Collection<? super ExecutableProcessNode> to, final HashSet<String> seen, final ExecutableProcessNode node) {
     if (seen.contains(node.getId())) {
       return;
     }
     to.add(node);
     seen.add(node.getId());
     for (final Identifiable successor : node.getSuccessors()) {
-      extractElements(to, seen, (ProcessNodeImpl) successor);
+      extractElements(to, seen, (ExecutableProcessNode) successor);
     }
   }
 
@@ -198,10 +198,10 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
   }
 
   @Override
-  public void setModelNodes(@NotNull final Collection<? extends ProcessNodeImpl> processNodes) {
+  public void setModelNodes(@NotNull final Collection<? extends ExecutableProcessNode> processNodes) {
     super.setModelNodes(processNodes);
     int endNodeCount = 0;
-    for (final ProcessNodeImpl n : processNodes) {
+    for (final ExecutableProcessNode n : processNodes) {
       if (n instanceof EndNodeImpl) {
         ++endNodeCount;
       }
@@ -247,7 +247,7 @@ public class ProcessModelImpl extends ProcessModelBase<ProcessNodeImpl> implemen
    * @param nodeId
    * @return
    */
-  public ProcessNodeImpl getNode(final String nodeId) {
+  public ExecutableProcessNode getNode(final String nodeId) {
     return getNode(new Identifier(nodeId));
   }
 
