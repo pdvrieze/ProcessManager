@@ -101,7 +101,7 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
       }
       canvas.drawPath(path, linePen, bgPen);
 
-      if (getOwner()!=null || getMin()>=0 || getMax()>=0) {
+      if (getOwnerModel() != null || getMin() >= 0 || getMax() >= 0) {
         PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, mState);
         String s = getMinMaxText();
 

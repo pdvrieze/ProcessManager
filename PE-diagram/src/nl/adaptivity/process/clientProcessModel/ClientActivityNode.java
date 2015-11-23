@@ -4,9 +4,11 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
+import javax.xml.namespace.QName;
+
+import java.util.*;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
@@ -18,6 +20,8 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   private String mCondition;
 
   private ClientMessage mMessage;
+  private List<XmlDefineType> mDefines;
+  private List<XmlResultType> mResults;
 
   public ClientActivityNode(final boolean compat) {
     super(compat);
@@ -33,6 +37,11 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
     mName = orig.mName;
     mCondition = orig.mCondition;
     mMessage = orig.mMessage;
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
@@ -56,12 +65,12 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public Identifiable getPredecessor() {
-    ProcessNodeSet<? extends Identifiable> list = getPredecessors();
+  public Identifiable getPredecessor() { // XXX pull up
+    Set<? extends Identifiable> list = getPredecessors();
     if (list.isEmpty()) {
       return null;
     } else {
-      return list.get(0);
+      return list.iterator().next();
     }
   }
 
@@ -85,32 +94,20 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
     mMessage = ClientMessage.from(message);
   }
 
-
   @Override
-  public List<IXmlResultType> getResults() {
-    return super.getResults();
+  public void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
+    super.setDefines(exports);
   }
 
   @Override
-  public void setDefines(Collection<? extends IXmlDefineType> imports) {
-    super.setDefines(imports);
+  public void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
+    super.setResults(imports);
   }
-
-  @Override
-  public List<IXmlDefineType> getDefines() {
-    return super.getDefines();
-  }
-
-  @Override
-  public void setResults(Collection<? extends IXmlResultType> exports) {
-    super.setResults(exports);
-  }
-
 
   @Override
   public void serialize(XmlWriter out) throws XmlException {
     out.startTag(NS_PM, "activity", null);
-    serializeCommonAttrs(out);
+    serializeAttributes(out);
     if (mName != null) { out.attribute(null, "name", null, mName); }
     if (mCondition != null) { out.attribute(null, "condition", null, mCondition); }
     serializeCommonChildren(out);

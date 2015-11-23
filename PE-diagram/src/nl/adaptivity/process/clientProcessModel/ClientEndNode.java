@@ -9,8 +9,9 @@ import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
+import javax.xml.namespace.QName;
+
 import java.util.Collection;
-import java.util.List;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
@@ -30,13 +31,13 @@ super(orig, false);
   }
 
   @Override
-  public int getMaxSuccessorCount() {
-    return 0;
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
-  public List<IXmlDefineType> getDefines() {
-    return super.getDefines();
+  public int getMaxSuccessorCount() {
+    return 0;
   }
 
   @Override
@@ -62,7 +63,7 @@ super(orig, false);
   @Override
   public void serialize(XmlWriter out) throws XmlException {
     out.startTag(NS_PM, "end", null);
-    serializeCommonAttrs(out);
+    serializeAttributes(out);
     serializeCommonChildren(out);
     out.endTag(NS_PM, "end", null);
   }

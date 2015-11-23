@@ -236,7 +236,7 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
 
   public boolean addNode(T node) {
     if (super.addNode(node)) {
-      node.setOwner(this);
+      node.setOwnerModel(this);
       // Make sure that children can know of the change.
       nodeChanged(node);
       return true;

@@ -35,10 +35,10 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
   @Override
   Set<? extends Identifiable> getSuccessors();
 
-  void setOwner(ProcessModelBase<T> owner);
+  void setOwnerModel(ProcessModelBase<T> owner);
 
   @Nullable
-  ClientProcessModel<T> getOwner();
+  ProcessModelBase<T> getOwnerModel();
   
   void disconnect();
 }

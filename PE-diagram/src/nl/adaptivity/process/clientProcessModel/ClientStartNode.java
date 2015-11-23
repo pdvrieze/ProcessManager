@@ -1,16 +1,20 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
-import java.util.List;
+import javax.xml.namespace.QName;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
 
   public ClientStartNode(final boolean compat) {
     super(compat);
@@ -25,12 +29,6 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   }
 
   @Override
-  public List<IXmlResultType> getResults() {
-    return super.getResults();
-  }
-
-
-  @Override
   public int getMaxPredecessorCount() {
     return 0;
   }
@@ -38,7 +36,7 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
   @Override
   public void serialize(XmlWriter out) throws XmlException {
     out.startTag(NS_PM, "start", null);
-    serializeCommonAttrs(out);
+    serializeAttributes(out);
     serializeCommonChildren(out);
     out.endTag(NS_PM, "start", null);
   }

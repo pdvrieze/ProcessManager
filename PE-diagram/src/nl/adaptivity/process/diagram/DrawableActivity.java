@@ -71,8 +71,8 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   public void setState(int state) {
     if (state==mState) { return ; }
     mState = state;
-    if (getOwner()!=null) {
-      getOwner().nodeChanged(this);
+    if (getOwnerModel() != null) {
+      getOwnerModel().nodeChanged(this);
     }
   }
 
@@ -104,7 +104,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, mState);
     String label = getLabel();
     if (label==null) { label = getName(); }
-    if (label==null && getOwner()!=null) {
+    if (label==null && getOwnerModel() != null) {
       label='<'+getId()+'>';
       textPen.setTextItalics(true);
     } else if (label!=null) {

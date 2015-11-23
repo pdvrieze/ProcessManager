@@ -49,8 +49,8 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   }
 
   @Override
-  public void serializeCommonAttrs(XmlWriter out) throws XmlException {
-    super.serializeCommonAttrs(out);
+  public void serializeAttributes(XmlWriter out) throws XmlException {
+    super.serializeAttributes(out);
     if (mMin>=0) { out.attribute(null, "min", null, Integer.toString(mMin)); }
     if (mMax>=0) {
       out.attribute(null, "max", null, Integer.toString(mMax));
@@ -59,14 +59,14 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
 
   protected void serializeSplit(XmlWriter out) throws XmlException {
     out.startTag(NS_PM, "split", null);
-    serializeCommonAttrs(out);
+    serializeAttributes(out);
     serializeCommonChildren(out);
     out.endTag(NS_PM, "split", null);
   }
 
   protected void serializeJoin(XmlWriter out) throws XmlException {
     out.startTag(NS_PM, "join", null);
-    serializeCommonAttrs(out);
+    serializeAttributes(out);
     serializeCommonChildren(out);
     for(Identifiable predecessor: getPredecessors()) {
       out.startTag(NS_PM, "predecessor", null);

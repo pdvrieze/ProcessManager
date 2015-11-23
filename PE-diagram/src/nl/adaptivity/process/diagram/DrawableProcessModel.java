@@ -47,7 +47,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableEndNode result = DrawableEndNode.from(EndNodeImpl.deserialize(null, in));
-      result.setOwner(ownerModel);
+      result.setOwnerModel(ownerModel);
       return result;
     }
 
@@ -56,7 +56,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableActivity result = DrawableActivity.from(ActivityImpl.deserialize(null, in), true);
-      result.setOwner(ownerModel);
+      result.setOwnerModel(ownerModel);
       return result;
     }
 
@@ -65,7 +65,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableStartNode result = DrawableStartNode.from(StartNodeImpl.deserialize(null, in), true);
-      result.setOwner(ownerModel);
+      result.setOwnerModel(ownerModel);
       return result;
     }
 
@@ -74,7 +74,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableJoin result = DrawableJoin.from(JoinImpl.deserialize(null, in), true);
-      result.setOwner(ownerModel);
+      result.setOwnerModel(ownerModel);
       return result;
     }
 
@@ -83,7 +83,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableSplit result = DrawableSplit.from(SplitImpl.deserialize(null, in));
-      result.setOwner(ownerModel);
+      result.setOwnerModel(ownerModel);
       return result;
     }
 

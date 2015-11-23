@@ -5,6 +5,8 @@ import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
+import javax.xml.namespace.QName;
+
 
 /**
  * A split node for clients. Note that ClientSplitNodes don't have a compat mode. They have multiple succesors
@@ -24,6 +26,11 @@ public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoin
 
   protected ClientSplitNode(ClientJoinSplit<T> orig) {
     super(orig, false);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override

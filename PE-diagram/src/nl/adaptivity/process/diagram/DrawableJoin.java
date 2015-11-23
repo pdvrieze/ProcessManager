@@ -6,6 +6,8 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
+import javax.xml.namespace.QName;
+
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
@@ -34,6 +36,11 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
 
   public DrawableJoin(DrawableJoin orig, final boolean compat) {
     super(orig, compat);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override

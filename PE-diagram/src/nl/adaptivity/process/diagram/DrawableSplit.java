@@ -6,6 +6,8 @@ import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
+import javax.xml.namespace.QName;
+
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
@@ -33,6 +35,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
 
   public DrawableSplit(DrawableJoinSplit orig) {
     super(orig, false);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override

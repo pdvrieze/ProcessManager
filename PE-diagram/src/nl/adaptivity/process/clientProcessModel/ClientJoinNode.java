@@ -5,6 +5,8 @@ import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
+import javax.xml.namespace.QName;
+
 
 public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Join<T> {
 
@@ -18,6 +20,11 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinS
 
   protected ClientJoinNode(ClientJoinSplit<T> orig, final boolean compat) {
     super(orig, compat);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
