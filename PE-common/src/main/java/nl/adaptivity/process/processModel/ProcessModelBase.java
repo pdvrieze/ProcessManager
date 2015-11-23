@@ -111,6 +111,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
     XmlUtil.writeChildren(out, getImports());
     XmlUtil.writeChildren(out, getExports());
     XmlUtil.writeChildren(out, mProcessNodes);
+    XmlUtil.writeEndElement(out, XmlProcessModel.ELEMENTNAME);
   }
 
   public T removeNode(final int nodePos) {
