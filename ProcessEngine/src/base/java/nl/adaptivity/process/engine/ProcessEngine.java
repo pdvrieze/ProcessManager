@@ -16,6 +16,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.engine.*;
+import nl.adaptivity.process.processModel.engine.ProcessNodeImpl.ExecutableSplitFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -220,6 +221,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    */
   public ProcessModelImpl getProcessModel(T transaction, final Handle<ProcessModelImpl> handle, final Principal user) throws SQLException {
     final ProcessModelImpl result = getProcessModels().get(transaction, handle);
+    result.normalize(new ExecutableSplitFactory());
     if (result != null) {
       mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, result);
       if (result.getUuid()==null) { result.setUuid(UUID.randomUUID());
