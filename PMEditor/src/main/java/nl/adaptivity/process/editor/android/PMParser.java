@@ -478,8 +478,8 @@ public class PMParser {
         return (DrawableSplit) successor;
       }
     }
-
     DrawableSplit newSplit = new DrawableSplit();
+
     ArrayList<Identifiable> successors = new ArrayList<>(predecessor.getSuccessors());
     for(Identifiable successorId: successors) {
       DrawableProcessNode successor = (DrawableProcessNode) successorId;
