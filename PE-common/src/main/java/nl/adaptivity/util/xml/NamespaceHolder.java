@@ -49,7 +49,7 @@ public class NamespaceHolder {
   }
 
   public void addPrefixToContext(final CharSequence prefix, final CharSequence namespaceUri) {
-    int nextNamespacePos = 2 * mNamespaceCounts[getDepth()] + 2;
+    int nextNamespacePos = 2 * mNamespaceCounts[getDepth()];
     if (nextNamespacePos >= mNamespaces.length) {
       enlarge();
     }
