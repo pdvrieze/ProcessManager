@@ -87,7 +87,6 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
 
   private static final String WRAPPERPPREFIX = "SDFKLJDSF";
   private static final String WRAPPERNAMESPACE = "http://wrapperns";
-  private final XmlReader delegate = mDelegate;
   @Nullable private FragmentNamespaceContext localNamespaceContext;
 
   public XMLFragmentStreamReader(final Reader in, @NotNull final Iterable<Namespace> wrapperNamespaceContext) throws XmlException {
@@ -135,7 +134,7 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
 
   @Override
   public EventType next() throws XmlException {
-    final EventType result = delegate.next();
+    final EventType result = mDelegate.next();
     if (result==null) { return null; }
     switch (result) {
       case END_DOCUMENT:
@@ -145,11 +144,11 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
       case DOCDECL:
         return next();
       case START_ELEMENT:
-        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceUri())) { return delegate.next(); }
+        if (WRAPPERNAMESPACE.equals(mDelegate.getNamespaceUri())) { return mDelegate.next(); }
         extendNamespace();
         break;
       case END_ELEMENT:
-        if (WRAPPERNAMESPACE.equals(delegate.getNamespaceUri())) { return delegate.next(); }
+        if (WRAPPERNAMESPACE.equals(mDelegate.getNamespaceUri())) { return mDelegate.next(); }
         localNamespaceContext = localNamespaceContext.mParent;
         break;
     }
@@ -157,15 +156,15 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
   }
 
   private void extendNamespace() throws XmlException {
-    int nsEnd = delegate.getNamespaceEnd();
-    int nsStart = delegate.getNamespaceStart();
+    int nsEnd = mDelegate.getNamespaceEnd();
+    int nsStart = mDelegate.getNamespaceStart();
     final int nscount = nsEnd - nsStart;
     final String[] prefixes = new String[nscount];
     final String[] namespaces = new String[nscount];
     int j = 0;
     for(int i = nsStart; i<nsEnd; ++i, ++j) {
-      prefixes[j] = StringUtil.toString(delegate.getNamespacePrefix(i));
-      namespaces[j] = StringUtil.toString(delegate.getNamespaceUri(i));
+      prefixes[j] = StringUtil.toString(mDelegate.getNamespacePrefix(i));
+      namespaces[j] = StringUtil.toString(mDelegate.getNamespaceUri(i));
     }
     localNamespaceContext = new FragmentNamespaceContext(localNamespaceContext, prefixes, namespaces);
   }
