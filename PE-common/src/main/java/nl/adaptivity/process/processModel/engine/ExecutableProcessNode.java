@@ -52,4 +52,5 @@ public interface ExecutableProcessNode extends ProcessNode<ExecutableProcessNode
 
   List<? extends XmlDefineType> getDefines();
 
+  void setId(String s);
 }

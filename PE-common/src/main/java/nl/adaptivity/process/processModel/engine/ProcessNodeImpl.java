@@ -1,6 +1,5 @@
 package nl.adaptivity.process.processModel.engine;
 
-import net.devrieze.util.IdFactory;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +17,16 @@ import java.util.Collection;
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
 public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessNode> implements ExecutableProcessNode {
+
+  public static class ExecutableSplitFactory implements ProcessModelBase.SplitFactory<ExecutableProcessNode> {
+
+    @Override
+    public Split<? extends ExecutableProcessNode> createSplit(final ProcessModelBase<ExecutableProcessNode> ownerModel, final Collection<? extends Identifiable> successors) {
+      SplitImpl result = new SplitImpl(ownerModel);
+      result.setSuccessors(successors);
+      return result;
+    }
+  }
 
 //  private Collection<? extends IXmlImportType> mImports;
 //
@@ -40,16 +49,6 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
       throw new IllegalProcessModelException("Only join nodes may have multiple predecessors");
     }
     setPredecessors(predecessors);
-  }
-
-  @Override
-  public String getId() {
-    String id = super.getId();
-    if (id == null) {
-      id = IdFactory.create();
-      setId(id);
-    }
-    return id;
   }
 
   @NotNull

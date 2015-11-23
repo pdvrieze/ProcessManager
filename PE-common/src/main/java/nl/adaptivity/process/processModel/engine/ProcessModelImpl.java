@@ -273,4 +273,35 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode> im
     return result;
   }
 
+  @Override
+  public ProcessModelBase normalize(final SplitFactory<ExecutableProcessNode> splitFactory) {
+    super.normalize(splitFactory);
+
+    // Make sure all nodes have an ID.
+    Set<String> ids = new HashSet<>();
+    List<ExecutableProcessNode> unnamedNodes = new ArrayList<>();
+    for(ExecutableProcessNode node: getModelNodes()) {
+      String id = node.getId();
+      if (id==null) {
+        unnamedNodes.add(node);
+      } else {
+        ids.add(id);
+      }
+    }
+    Map<String, Integer> startCounts = new HashMap<>();
+    for(ExecutableProcessNode unnamed: unnamedNodes) {
+      String idBase = unnamed.getIdBase();
+      int startCount = getOrDefault(startCounts, idBase, 1);
+      for(String id=idBase+Integer.toString(startCount); ! ids.contains(id); id=idBase+Integer.toString(startCount)) {++startCount; }
+      unnamed.setId(idBase+Integer.toString(startCount));
+      startCounts.put(idBase, startCount+1);
+    }
+
+    return this;
+  }
+
+  private static int getOrDefault(final Map<String, Integer> map, final String key, final int defaultValue) {
+    final Integer val = map.get(key);
+    return val == null ? defaultValue : val.intValue();
+  }
 }

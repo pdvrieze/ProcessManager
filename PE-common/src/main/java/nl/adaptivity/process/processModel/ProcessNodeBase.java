@@ -316,6 +316,11 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   }
 
   @Override
+  public String getIdBase() {
+    return "id";
+  }
+
+  @Override
   @XmlAttribute
   @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   public String getLabel() {

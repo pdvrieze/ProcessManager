@@ -65,4 +65,5 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
 
   List<? extends IXmlDefineType> getDefines();
 
+  String getIdBase();
 }
