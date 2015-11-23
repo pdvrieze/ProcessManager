@@ -19,6 +19,8 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
     R visitEndNode(EndNode<?> endNode);
   }
 
+  T asT();
+
   /**
    * Make all references (predecessors successors) directly reference nodes. Not names.
    */
