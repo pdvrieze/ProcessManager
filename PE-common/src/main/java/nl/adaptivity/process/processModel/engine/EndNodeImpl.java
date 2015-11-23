@@ -3,7 +3,6 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.util.Identifiable;
@@ -25,7 +24,7 @@ import java.util.*;
 
 
 @XmlDeserializer(EndNodeImpl.Factory.class)
-@XmlRootElement(name = EndNodeImpl.ELEMENTLOCALNAME)
+@XmlRootElement(name = EndNode.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "EndNode")
 public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeImpl>, SimpleXmlDeserializable {
@@ -47,11 +46,6 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
 
   private static final long serialVersionUID = 220908810658246960L;
 
-  public static final String ELEMENTLOCALNAME = "end";
-  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
-
-  private List<XmlDefineType> mExports;
-
   public EndNodeImpl(final ProcessModelBase<ProcessNodeImpl> ownerModel, final ProcessNodeImpl previous) {
     super(ownerModel, Collections.singletonList(previous));
   }
@@ -66,7 +60,7 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
       switch (in.getLocalName().toString()) {
         case "export":
         case XmlDefineType.ELEMENTLOCALNAME:
-          getDefines(); mExports.add(XmlDefineType.deserialize(in)); return true;
+          getDefines().add(XmlDefineType.deserialize(in)); return true;
       }
     }
     return false;
@@ -100,11 +94,6 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
     XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
-  protected void serializeChildren(final XmlWriter out) throws XmlException {
-    super.serializeChildren(out);
-    XmlUtil.writeChildren(out, mExports);
-  }
-
   @Override
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
@@ -133,9 +122,14 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
     return ps.iterator().next();
   }
 
+  @Override
+  public void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
+    super.setDefines(exports);
+  }
+
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.EndNode#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
-   */
+     * @see nl.adaptivity.process.processModel.EndNode#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
+     */
   @Override
   public void setPredecessor(final Identifier predecessor) {
     setPredecessors(Arrays.asList(predecessor));
@@ -147,29 +141,12 @@ public class EndNodeImpl extends ProcessNodeImpl implements EndNode<ProcessNodeI
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.EndNode#getExports()
-   */
-  @Override
-  @XmlElement(name = "export")
-  public List<? extends XmlDefineType> getDefines() {
-    if (mExports == null) {
-      mExports = new ArrayList<>();
-    }
-    return mExports;
-  }
-
-  @Override
-  public void setDefines(final Collection<? extends IXmlDefineType> exports) {
-    mExports = toExportableDefines(exports);
-  }
-
-  /* (non-Javadoc)
    * @see nl.adaptivity.process.processModel.EndNode#getSuccessors()
    */
   @NotNull
   @Override
-  public Set<? extends Identifiable> getSuccessors() {
-    return Collections.emptySet();
+  public ProcessNodeSet<? extends Identifiable> getSuccessors() {
+    return ProcessNodeSet.empty();
   }
 
   @Override

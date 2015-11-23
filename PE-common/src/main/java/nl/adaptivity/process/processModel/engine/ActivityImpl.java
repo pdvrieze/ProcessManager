@@ -40,9 +40,9 @@ import java.util.List;
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ActivityImpl.Factory.class)
-@XmlRootElement(name = ActivityImpl.ELEMENTLOCALNAME)
+@XmlRootElement(name = Activity.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = ActivityImpl.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
+@XmlType(name = Activity.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
 public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNodeImpl>, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory {
@@ -53,13 +53,6 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
       return ActivityImpl.deserialize(null, in);
     }
   }
-
-  private static final long serialVersionUID = 282944120294737322L;
-
-  /** The name of the XML element. */
-  public static final String ELEMENTLOCALNAME = "activity";
-
-  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   @Nullable private String mName;
 
@@ -111,7 +104,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
           mDefines.add(XmlDefineType.deserialize(in));return true;
         case XmlResultType.ELEMENTLOCALNAME:
           mResults.add(XmlResultType.deserialize(in));return true;
-        case ConditionImpl.ELEMENTLOCALNAME:
+        case Condition.ELEMENTLOCALNAME:
           mCondition = ConditionImpl.deserialize(in); return true;
         case XmlMessage.ELEMENTLOCALNAME:
           mMessage = XmlMessage.deserialize(in);return true;
@@ -181,7 +174,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
    */
   @Nullable
   @Override
-  @XmlElement(name = ConditionImpl.ELEMENTLOCALNAME)
+  @XmlElement(name = Condition.ELEMENTLOCALNAME)
   public String getCondition() {
     return mCondition ==null ? null : mCondition.toString();
   }
@@ -194,51 +187,19 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     mCondition = condition==null ? null : new ConditionImpl(condition);
   }
 
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#getImports()
-   */
-  @NotNull
-  @Override
-  @XmlElement(name = XmlResultType.ELEMENTLOCALNAME)
-  public List<? extends XmlResultType> getResults() {
-    if (mResults ==null) {
-      mResults = new ArrayList<>();
-    }
-    return mResults;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#setImports(java.util.Collection)
-   */
-  @Override
-  public void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
-    mResults = imports==null ? new ArrayList<XmlResultType>(0) : toExportableResults(imports);
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#getExports()
-   */
-  @NotNull
-  @Override
-  @XmlElement(name = XmlDefineType.ELEMENTLOCALNAME)
-  public List<? extends XmlDefineType> getDefines() {
-    if (mDefines ==null) {
-      mDefines = new ArrayList<>();
-    }
-    return mDefines;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#setExports(java.util.Collection)
-   */
   @Override
   public void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
-    mDefines = exports==null ? new ArrayList<XmlDefineType>(0) : toExportableDefines(exports);
+    super.setDefines(exports);
+  }
+
+  @Override
+  public void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
+    super.setResults(imports);
   }
 
   /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#getPredecessor()
-   */
+     * @see nl.adaptivity.process.processModel.IActivity#getPredecessor()
+     */
   @Nullable
   @Override
   @XmlAttribute(name = ATTR_PREDECESSOR, required = true)

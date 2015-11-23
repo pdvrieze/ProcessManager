@@ -1,13 +1,20 @@
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.util.Identifiable;
 import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 import java.util.Collection;
 import java.util.List;
 
 
 public interface Activity<T extends ProcessNode<T>> extends ProcessNode<T> {
+
+  /** The name of the XML element. */
+  String ELEMENTLOCALNAME = "activity";
+  QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   /**
    * Get the name of the activity.

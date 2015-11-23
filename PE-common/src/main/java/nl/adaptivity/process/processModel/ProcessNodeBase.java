@@ -26,7 +26,7 @@ import java.util.*;
  * A base class for process nodes. Works like {@link ProcessModelBase}
  * Created by pdvrieze on 23/11/15.
  */
-public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements ProcessNode<T>, XmlDeserializable {
+public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements ProcessNode<T>, XmlDeserializable {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
   @Nullable protected ProcessModelBase<T> mOwnerModel;
@@ -36,6 +36,8 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
   private String mLabel;
   private double mX=Double.NaN;
   private double mY=Double.NaN;
+  private List<XmlDefineType> mDefines;
+  private List<XmlResultType> mResults;
 
   public ProcessNodeBase(@Nullable final ProcessModelBase<T> ownerModel) {mOwnerModel = ownerModel;}
 
@@ -47,7 +49,8 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
   }
 
   protected void serializeChildren(final XmlWriter out) throws XmlException {
-
+    XmlUtil.writeChildren(out, getResults());
+    XmlUtil.writeChildren(out, getDefines());
   }
 
   @Override
@@ -69,7 +72,7 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
     // do nothing
   }
 
-  protected void swapPredecessors(@NotNull final Collection<?> predecessors) {
+  protected final void swapPredecessors(@NotNull final Collection<?> predecessors) {
     mPredecessors=null;
     final List<ProcessNodeImpl> tmp = new ArrayList<>(predecessors.size());
     for(final Object pred:predecessors) {
@@ -100,8 +103,15 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
   }
 
   @Override
-  public void removePredecessor(final Identifiable node) {
-    mPredecessors.remove(node);
+  public final void removePredecessor(final Identifiable predecessorId) {
+
+    if (mPredecessors.remove(predecessorId)) {
+      ProcessModelBase<T> owner = mOwnerModel;
+      T predecessor;
+      if (owner!=null && (predecessor = owner.getNode(predecessorId))!=null) {
+        predecessor.removeSuccessor(this.asT()); }
+    }
+
     // TODO perhaps make this reciprocal
   }
 
@@ -109,26 +119,50 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
      * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
      */
   @Override
-  public void addSuccessor(@Nullable final Identifiable node) {
-    if (node == null) {
+  public final void addSuccessor(@Nullable final Identifiable nodeId) {
+    if (nodeId == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
     if (mSuccessors == null) {
-      mSuccessors = ProcessNodeSet.processNodeSet(1);
+      mSuccessors = getMaxSuccessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet(1);
+    } else {
+      if (mSuccessors.contains(nodeId)) { return; }
+      if (mSuccessors.size()+1>getMaxSuccessorCount()) {
+        throw new IllegalProcessModelException("Can not add more successors");
+      }
     }
-    mSuccessors.add(node);
+    mSuccessors.add(nodeId);
+
+    ProcessModelBase<T> owner = mOwnerModel;
+    ProcessNode<?> node = null;
+    if (owner!=null) {
+      T node2 = owner.getNode(nodeId);
+      owner.addNode((T) node2);
+      node = node2;
+    } else if (nodeId instanceof ProcessNode){
+      node = (ProcessNode<?>) nodeId;
+    }
+    if (node!=null) {
+      Set<? extends Identifiable> predecessors = node.getPredecessors();
+      if (predecessors!=null && !predecessors.contains(this)) {
+        node.addPredecessor(this.asT());
+      }
+    }
   }
 
   @Override
-  public void removeSuccessor(final Identifiable node) {
-    mSuccessors.remove(node);
+  public final void removeSuccessor(final Identifiable node) {
+    if (mSuccessors.remove(node)) {
+      ProcessNode successorNode = node instanceof ProcessNode ? (ProcessNode) node : (mOwnerModel == null ? null : mOwnerModel.getNode(node));
+      if (successorNode!=null) { successorNode.removePredecessor(this.asT()); }
+    }
   }
 
   @Override
-  public void resolveRefs() {
+  public final void resolveRefs() {
     ProcessModelBase<T> ownerModel = getOwnerModel();
-    mPredecessors.resolve(ownerModel);
-    mSuccessors.resolve(ownerModel);
+    if (mPredecessors!=null) mPredecessors.resolve(ownerModel);
+    if (mSuccessors!=null) mSuccessors.resolve(ownerModel);
   }
 
   /* (non-Javadoc)
@@ -136,9 +170,13 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
        */
   @Nullable
   @Override
-  public final Set<? extends Identifiable> getPredecessors() {
+  public final ProcessNodeSet<? extends Identifiable> getPredecessors() {
     if (mPredecessors == null) {
-      mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
+      switch (getMaxPredecessorCount()) {
+        case 0: mPredecessors = ProcessNodeSet.empty(); break;
+        case 1: mPredecessors = ProcessNodeSet.singleton(); break;
+        default: mPredecessors = ProcessNodeSet.processNodeSet(); break;
+      }
     }
     return mPredecessors;
   }
@@ -147,18 +185,57 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
      * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
      */
   @Override
-  public void setPredecessors(final Collection<? extends Identifiable> predecessors) {
-    if (mPredecessors != null) {
-      throw new UnsupportedOperationException("Not allowed to change predecessors");
+  public final void setPredecessors(final Collection<? extends Identifiable> predecessors) {
+    if (mPredecessors == null) {
+      mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
     }
-    mPredecessors = ProcessNodeSet.processNodeSet(predecessors);
+
+    if (predecessors.size()>getMaxPredecessorCount()) {
+      throw new IllegalArgumentException();
+    }
+    List<Identifiable> toRemove = new ArrayList<>(mPredecessors.size());
+    for(Iterator<Identifiable> it = mPredecessors.iterator(); it.hasNext(); ) {
+      Identifiable item = it.next();
+      if (predecessors.contains(item)) {
+        predecessors.remove(item);
+      } else {
+        toRemove.add(item);
+        it.remove();
+      }
+    }
+    for(Identifiable oldPred: toRemove) {
+      removePredecessor(oldPred);
+    }
+    for(Identifiable pred: predecessors) {
+      addPredecessor(pred);
+    }
+
   }
 
   @Override
-  public void setSuccessors(@NotNull final Collection<? extends Identifiable> successors) {
-    for(final Identifiable n: successors) {
-      addSuccessor(n);
+  public final void setSuccessors(@NotNull final Collection<? extends Identifiable> successors) {
+    if (successors.size()>getMaxSuccessorCount()) {
+      throw new IllegalArgumentException();
     }
+    if (mSuccessors!=null) {
+      List<Identifiable> toRemove = new ArrayList<>(mSuccessors.size());
+      for (Iterator<Identifiable> it = mSuccessors.iterator(); it.hasNext(); ) {
+        Identifiable item = it.next();
+        if (successors.contains(item)) {
+          successors.remove(item);
+        } else {
+          toRemove.add(item);
+          it.remove();
+        }
+      }
+      for(Identifiable oldSuc: toRemove) {
+        removeSuccessor(oldSuc);
+      }
+    }
+    for(Identifiable suc: successors) {
+      addSuccessor(suc);
+    }
+
   }
 
   /* (non-Javadoc)
@@ -166,7 +243,19 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
      */
   @Nullable
   @Override
-  public Set<? extends Identifiable> getSuccessors() {
+  public ProcessNodeSet<? extends Identifiable> getSuccessors() {
+    if (mSuccessors==null) {
+      switch (getMaxSuccessorCount()) {
+        case 0:
+          mSuccessors = ProcessNodeSet.empty();
+          break;
+        case 1:
+          mSuccessors = ProcessNodeSet.singleton();
+          break;
+        default:
+          mSuccessors = ProcessNodeSet.processNodeSet(2);
+      }
+    }
     return mSuccessors;
   }
 
@@ -190,7 +279,9 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
       T thisT = this.asT();
       if (mOwnerModel!=null) { mOwnerModel.removeNode(thisT); }
       mOwnerModel = ownerModel;
-      ownerModel.addNode(thisT);
+      if (ownerModel!=null) {
+        ownerModel.addNode(thisT);
+      }
     }
   }
 
@@ -264,18 +355,28 @@ public abstract class ProcessNodeBase<T extends ProcessNodeBase<T>> implements P
     return false;
   }
 
-  @Override
-  public Collection<? extends IXmlResultType> getResults() {
-    return Collections.emptyList();
-//    if (mImports==null) { mImports = new ArrayList<>(); }
-//    return mImports;
+  protected void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
+    mDefines = exports==null ? new ArrayList<XmlDefineType>(0) : toExportableDefines(exports);
   }
 
   @Override
-  public Collection<? extends XmlDefineType> getDefines() {
-    return Collections.emptyList();
-//    if (mExports==null) { mExports = new ArrayList<>(); }
-//    return mExports;
+  public final List<XmlDefineType> getDefines() {
+    if (mDefines==null) {
+      mDefines = new ArrayList<>();
+    }
+    return mDefines;
+  }
+
+  protected void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
+    mResults = imports==null ? new ArrayList<XmlResultType>(0) : toExportableResults(imports);
+  }
+
+  @Override
+  public final List<XmlResultType> getResults() {
+    if (mResults==null) {
+      mResults = new ArrayList<>();
+    }
+    return mResults;
   }
 
   @NotNull

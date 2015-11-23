@@ -69,15 +69,15 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
   public boolean deserializeChild(final DeserializationFactory<T> factory, @NotNull final XmlReader in) throws XmlException {
     if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
-        case EndNodeImpl.ELEMENTLOCALNAME:
+        case EndNode.ELEMENTLOCALNAME:
           factory.deserializeEndNode(this, in); return true;
-        case ActivityImpl.ELEMENTLOCALNAME:
+        case Activity.ELEMENTLOCALNAME:
           factory.deserializeActivity(this, in); return true;
-        case StartNodeImpl.ELEMENTLOCALNAME:
+        case StartNode.ELEMENTLOCALNAME:
           factory.deserializeStartNode(this, in); return true;
-        case JoinImpl.ELEMENTLOCALNAME:
+        case Join.ELEMENTLOCALNAME:
           factory.deserializeJoin(this, in); return true;
-        case SplitImpl.ELEMENTLOCALNAME:
+        case Split.ELEMENTLOCALNAME:
           factory.deserializeSplit(this, in); return true;
       }
     }

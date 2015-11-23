@@ -22,8 +22,6 @@ import javax.xml.namespace.QName;
  */
 public class ConditionImpl implements XmlSerializable, Condition {
 
-  public static final String ELEMENTLOCALNAME = "condition";
-
   private final String mCondition;
 
   public ConditionImpl(final String condition) {

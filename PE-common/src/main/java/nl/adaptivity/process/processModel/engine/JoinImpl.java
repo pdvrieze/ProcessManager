@@ -2,7 +2,6 @@ package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
@@ -29,7 +28,7 @@ import java.util.Set;
 
 
 @XmlDeserializer(JoinImpl.Factory.class)
-@XmlRootElement(name = JoinImpl.ELEMENTLOCALNAME)
+@XmlRootElement(name = Join.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
 public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
@@ -50,10 +49,6 @@ public class JoinImpl extends JoinSplitImpl implements Join<ProcessNodeImpl> {
   }
 
   private static final long serialVersionUID = -8598245023280025173L;
-
-  public static final String ELEMENTLOCALNAME = "join";
-  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
-  public static final QName PREDELEMNAME = new QName(Engine.NAMESPACE, "predecessor", Engine.NSPREFIX);
 
   public JoinImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors, min, max);

@@ -22,9 +22,6 @@ import java.util.Collection;
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
 public abstract class ProcessNodeImpl extends ProcessNodeBase<ProcessNodeImpl>  {
 
-  private static final long serialVersionUID = -7745019972129682199L;
-
-  //
 //  private Collection<? extends IXmlImportType> mImports;
 //
 //  private Collection<? extends IXmlExportType> mExports;

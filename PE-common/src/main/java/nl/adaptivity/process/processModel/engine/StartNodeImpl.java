@@ -3,7 +3,6 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNode;
@@ -21,17 +20,15 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 
 @XmlDeserializer(StartNodeImpl.Factory.class)
-@XmlRootElement(name = StartNodeImpl.ELEMENTLOCALNAME)
+@XmlRootElement(name = StartNode.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessNodeImpl>, SimpleXmlDeserializable {
 
@@ -50,20 +47,13 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
     return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
 
-  private static final long serialVersionUID = 7779338146413772452L;
-
-  public static final String ELEMENTLOCALNAME = "start";
-  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
-
-  private List<XmlResultType> mImports;
-
   public StartNodeImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel) {
     super(ownerModel, Collections.<Identifiable>emptyList());
   }
 
   public StartNodeImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final List<XmlResultType> imports) {
     super(ownerModel, Collections.<Identifiable>emptyList());
-    mImports = imports;
+    setResults(imports);
   }
 
   @Override
@@ -96,25 +86,9 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ProcessN
     XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
-  protected void serializeChildren(final XmlWriter out) throws XmlException {
-    XmlUtil.writeChildren(out, mImports);
-  }
-
   @Override
   public boolean condition(final Transaction transaction, final IProcessNodeInstance<?> instance) {
     return true;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.StartNode#getImports()
-   */
-  @Override
-  @XmlElement(name = "import")
-  public List<XmlResultType> getResults() {
-    if (mImports == null) {
-      mImports = new ArrayList<>();
-    }
-    return this.mImports;
   }
 
   @Override

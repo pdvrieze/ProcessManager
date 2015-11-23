@@ -6,6 +6,7 @@ import nl.adaptivity.util.xml.XmlSerializable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 
@@ -54,8 +55,8 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
 
   <R> R visit(Visitor<R> visitor);
 
-  Collection<? extends IXmlResultType> getResults();
+  List<? extends IXmlResultType> getResults();
 
-  Collection<? extends IXmlDefineType> getDefines();
+  List<? extends IXmlDefineType> getDefines();
 
 }

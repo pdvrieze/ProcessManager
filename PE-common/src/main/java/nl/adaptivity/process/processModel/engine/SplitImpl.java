@@ -3,7 +3,6 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.ProcessModelBase;
@@ -27,7 +26,7 @@ import java.util.Collections;
 
 
 @XmlDeserializer(SplitImpl.Factory.class)
-@XmlRootElement(name = SplitImpl.ELEMENTLOCALNAME)
+@XmlRootElement(name = Split.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Split")
 public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
@@ -47,9 +46,6 @@ public class SplitImpl extends JoinSplitImpl implements Split<ProcessNodeImpl> {
   }
 
   private static final long serialVersionUID = -8598245023280025173L;
-
-  public static final String ELEMENTLOCALNAME = "split";
-  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   public SplitImpl(final ProcessModelBase<ProcessNodeImpl>  ownerModel, final ProcessNodeImpl predecessor, final int min, final int max) {
     super(ownerModel, Collections.singleton(predecessor), min, max);
