@@ -51,7 +51,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
       for(DrawableProcessNode start:mDiagram.getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
           for (Identifiable endId: start.getSuccessors()) {
-            DrawableProcessNode end = start.getOwner().asNode(endId);
+            DrawableProcessNode end = start.getOwnerModel().getNode(endId);
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
               final float x1 = (float) ((start.getBounds().right()/*-DrawableProcessModel.STROKEWIDTH*/-mBounds.left)*scale);
               final float y1 = (float) ((start.getY()-mBounds.top)*scale);
