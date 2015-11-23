@@ -136,7 +136,7 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     serializeAttributes(out);
     serializeChildren(out);
-    out.endTag(null, null, null);
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
   @Override
