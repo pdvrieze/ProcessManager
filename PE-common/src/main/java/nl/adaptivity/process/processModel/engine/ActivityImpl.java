@@ -23,10 +23,8 @@ import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -57,10 +55,6 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
   @Nullable private String mName;
 
   @Nullable private ConditionImpl mCondition;
-
-  @NotNull private List<XmlResultType> mResults = new ArrayList<>();
-
-  @NotNull private List<XmlDefineType> mDefines = new ArrayList<>();
 
   private XmlMessage mMessage;
 
@@ -101,9 +95,9 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
     if (Engine.NAMESPACE.equals(in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
         case XmlDefineType.ELEMENTLOCALNAME:
-          mDefines.add(XmlDefineType.deserialize(in));return true;
+          getDefines().add(XmlDefineType.deserialize(in));return true;
         case XmlResultType.ELEMENTLOCALNAME:
-          mResults.add(XmlResultType.deserialize(in));return true;
+          getResults().add(XmlResultType.deserialize(in));return true;
         case Condition.ELEMENTLOCALNAME:
           mCondition = ConditionImpl.deserialize(in); return true;
         case XmlMessage.ELEMENTLOCALNAME:
@@ -141,8 +135,6 @@ public class ActivityImpl extends ProcessNodeImpl implements Activity<ProcessNod
 
   protected void serializeChildren(final XmlWriter out) throws XmlException {
     super.serializeChildren(out);
-    XmlUtil.writeChildren(out, getDefines());
-    XmlUtil.writeChildren(out, getResults());
     XmlUtil.writeChild(out, mCondition);
     if (mCondition !=null) { mCondition.serialize(out); }
 

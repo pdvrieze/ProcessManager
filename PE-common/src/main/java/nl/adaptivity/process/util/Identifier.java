@@ -7,6 +7,26 @@ import org.jetbrains.annotations.Nullable;
  * Created by pdvrieze on 01/11/15.
  */
 public class Identifier implements Identifiable {
+  private static class ChangableIdentifier implements Identifiable {
+
+    private final String mIdBase;
+    private int mIdNo;
+
+    public ChangableIdentifier(final String idBase) {
+      mIdBase = idBase;
+      mIdNo = 1;
+    }
+
+    public void next() {
+      ++mIdNo;
+    }
+
+    @Override
+    public String getId() {
+      return mIdBase + Integer.toString(mIdNo);
+    }
+  }
+
 
   private String mID;
 
@@ -42,5 +62,17 @@ public class Identifier implements Identifiable {
   @Override
   public String toString() {
     return mID;
+  }
+
+  public static String findIdentifier(String idBase, Iterable<? extends Identifiable> exclusions) {
+    ChangableIdentifier idFactory = new ChangableIdentifier(idBase);
+    outer: for(String candidate=idFactory.getId(); true; idFactory.next(), candidate = idFactory.getId()) {
+      for(Identifiable exclusion: exclusions) {
+        if (candidate.equals(exclusion.getId())) {
+          continue outer;
+        }
+      }
+      return candidate;
+    }
   }
 }

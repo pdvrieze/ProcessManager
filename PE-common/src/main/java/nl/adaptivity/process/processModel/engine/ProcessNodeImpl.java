@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
+import net.devrieze.util.IdFactory;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
@@ -45,6 +46,15 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ProcessNodeImpl>  
     setPredecessors(predecessors);
   }
 
+  @Override
+  public String getId() {
+    String id = super.getId();
+    if (id == null) {
+      id = IdFactory.create();
+      setId(id);
+    }
+    return id;
+  }
 
   /**
    * Should this node be able to be provided?

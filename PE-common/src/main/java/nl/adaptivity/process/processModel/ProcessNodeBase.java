@@ -1,6 +1,5 @@
 package nl.adaptivity.process.processModel;
 
-import net.devrieze.util.IdFactory;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.process.util.Identifiable;
@@ -84,22 +83,31 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   }
 
   @Override
-  public void addPredecessor(@NotNull final Identifiable node) {
+  public void addPredecessor(@NotNull final Identifiable predId) {
     if (mPredecessors!=null) {
-      if (mPredecessors.containsKey(node.getId())) { return; }
+      if (mPredecessors.containsKey(predId.getId())) { return; }
       if (mPredecessors.size() + 1 > getMaxPredecessorCount()) {
         throw new IllegalProcessModelException("Can not add more predecessors");
       }
-      ProcessModelBase<T> ownerModel = getOwnerModel();
-      if (mPredecessors.add(node) && ownerModel !=null) {
-        ownerModel.getNode(node).addSuccessor(this);
-      }
     } else if (getMaxPredecessorCount()==1) {
-      mPredecessors = ProcessNodeSet.singleton(node);
+      mPredecessors = ProcessNodeSet.singleton();
     } else {
       mPredecessors = ProcessNodeSet.processNodeSet(1);
-      mPredecessors.add(node);
     }
+    if (mPredecessors.add(predId)) {
+      ProcessModelBase<T> ownerModel = getOwnerModel();
+
+      ProcessNode node = null;
+      if (predId instanceof ProcessNode) {
+        node = (ProcessNode) predId;
+      } else if (ownerModel != null) {
+        node = ownerModel.getNode(predId);
+      }
+      if (node!=null) {
+        node.addSuccessor(this);
+      }
+    }
+
   }
 
   @Override
@@ -298,9 +306,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   @XmlID
   @XmlSchemaType(name = "ID")
   public String getId() {
-    if (mId == null) {
-      mId = IdFactory.create();
-    }
     return mId;
   }
 
