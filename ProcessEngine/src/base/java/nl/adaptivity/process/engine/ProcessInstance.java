@@ -12,10 +12,7 @@ import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.engine.JoinImpl;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
-import nl.adaptivity.process.processModel.engine.StartNodeImpl;
+import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
@@ -389,7 +386,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private ProcessNodeInstance getProcessNodeInstance(Transaction transaction, final ProcessNodeInstance predecessor, final ProcessNodeImpl node) throws SQLException {
+  private ProcessNodeInstance getProcessNodeInstance(Transaction transaction, final ProcessNodeInstance predecessor, final ExecutableProcessNode node) throws SQLException {
     if (node instanceof JoinImpl) {
       final JoinImpl join = (JoinImpl) node;
       if (mJoins == null) {

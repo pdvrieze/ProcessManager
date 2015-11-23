@@ -12,7 +12,7 @@ import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance;
 import nl.adaptivity.process.exec.XmlProcessNodeInstance.Body;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.Namespace;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
 
-  private final ProcessNodeImpl mNode;
+  private final ExecutableProcessNode mNode;
 
   private List<ProcessData> mResults = new ArrayList<>();
 
@@ -57,7 +57,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Throwable mFailureCause;
 
-  public ProcessNodeInstance(final ProcessNodeImpl node, final Handle<? extends ProcessNodeInstance> predecessor, final ProcessInstance processInstance) {
+  public ProcessNodeInstance(final ExecutableProcessNode node, final Handle<? extends ProcessNodeInstance> predecessor, final ProcessInstance processInstance) {
     super();
     mNode = node;
     if (predecessor==null) {
@@ -75,7 +75,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  protected ProcessNodeInstance(final ProcessNodeImpl node, final Collection<? extends Handle<? extends ProcessNodeInstance>> predecessors, final ProcessInstance processInstance) {
+  protected ProcessNodeInstance(final ExecutableProcessNode node, final Collection<? extends Handle<? extends ProcessNodeInstance>> predecessors, final ProcessInstance processInstance) {
     super();
     mNode = node;
     mPredecessors = new ArrayList<>(predecessors);
@@ -85,7 +85,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  ProcessNodeInstance(ProcessNodeImpl node, ProcessInstance processInstance, TaskState state) {
+  ProcessNodeInstance(ExecutableProcessNode node, ProcessInstance processInstance, TaskState state) {
     mNode = node;
     mProcessInstance = processInstance;
     mState = state;
@@ -107,7 +107,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   }
 
-  public ProcessNodeImpl getNode() {
+  public ExecutableProcessNode getNode() {
     return mNode;
   }
 

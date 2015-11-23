@@ -15,10 +15,7 @@ import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.processModel.engine.IProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.process.processModel.engine.ProcessModelRef;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
+import nl.adaptivity.process.processModel.engine.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -199,7 +196,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return The processModel to add.
    * @throws SQLException
    */
-  public IProcessModelRef<ProcessNodeImpl> addProcessModel(T transaction, final ProcessModelImpl pm, final Principal user) throws SQLException {
+  public IProcessModelRef<ExecutableProcessNode> addProcessModel(T transaction, final ProcessModelImpl pm, final Principal user) throws SQLException {
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user);
 
     if (pm.getOwner() == null) {

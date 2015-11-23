@@ -12,8 +12,8 @@ import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
-import nl.adaptivity.process.processModel.engine.ProcessNodeImpl;
 import nl.adaptivity.util.xml.CompactFragment;
 
 import java.sql.*;
@@ -97,7 +97,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       ProcessInstance processInstance = mProcessEngine.getProcessInstance(connection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
 
       String nodeId = mStringCache.lookup(row.getString(mColNoNodeId));
-      ProcessNodeImpl node = processInstance.getProcessModel().getNode(nodeId);
+      ExecutableProcessNode node = processInstance.getProcessModel().getNode(nodeId);
 
       long handle = row.getLong(mColNoHandle);
 
