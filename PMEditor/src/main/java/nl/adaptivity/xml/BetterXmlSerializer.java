@@ -250,12 +250,7 @@ public class BetterXmlSerializer implements XmlSerializer{
     if (namespace == null)
       namespace = "";
 
-    final int depth;
-    if (pending) {
-      depth = this.depth;
-    } else {
-      depth = this.depth+1;
-    }
+    final int depth = this.depth +1;
 
     for (int i = nspCounts[depth] * 2 - 2;
          i >= 0;
@@ -273,6 +268,7 @@ public class BetterXmlSerializer implements XmlSerializer{
 
     nspStack[pos++] = prefix;
     nspStack[pos] = namespace;
+    nspWritten[nspCounts[depth]-1] = false;
   }
 
   private void addSpaceToNspStack() {
