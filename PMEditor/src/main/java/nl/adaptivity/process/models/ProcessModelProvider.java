@@ -1,16 +1,12 @@
 package nl.adaptivity.process.models;
 
-import java.io.BufferedInputStream;
-import java.io.CharArrayWriter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.UUID;
-
-import org.xmlpull.v1.XmlPullParserException;
-
+import android.content.*;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+import android.os.RemoteException;
+import android.provider.BaseColumns;
 import nl.adaptivity.android.util.ContentProviderHelper;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -19,13 +15,12 @@ import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import android.content.*;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
-import android.os.ParcelFileDescriptor;
-import android.os.RemoteException;
-import android.provider.BaseColumns;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.*;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.UUID;
 
 
 public class ProcessModelProvider extends ContentProvider {
@@ -352,7 +347,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static ProcessModel<?> getProcessModelForHandle(Context context, long handle) {
+  public static ProcessModel<?, ?> getProcessModelForHandle(Context context, long handle) {
     try {
       final ContentResolver contentResolver = context.getContentResolver();
       Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
@@ -374,12 +369,12 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static ProcessModel<?> getProcessModelForId(Context context, long id) {
+  public static ProcessModel<?, ?> getProcessModelForId(Context context, long id) {
     Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
     return getProcessModel(context, uri);
   }
 
-  public static ProcessModel<?> getProcessModel(Context context, Uri uri) {
+  public static ProcessModel<?, ?> getProcessModel(Context context, Uri uri) {
     try {
       InputStream in;
       if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())||
@@ -400,12 +395,12 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static ProcessModel<?> getProcessModel(InputStream in) {
+  private static ProcessModel<?, ?> getProcessModel(InputStream in) {
     final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
     return PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
   }
 
-  public static Uri newProcessModel(Context context, ClientProcessModel<?> processModel) throws IOException {
+  public static Uri newProcessModel(Context context, ClientProcessModel<?, ?> processModel) throws IOException {
     CharArrayWriter out = new CharArrayWriter();
     try {
       PMParser.serializeProcessModel(out, processModel);

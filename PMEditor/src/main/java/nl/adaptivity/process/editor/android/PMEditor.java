@@ -962,7 +962,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
   }
 
   @Override
-  public ClientProcessModel<?> getProcessModel() {
+  public ClientProcessModel<?, ?> getProcessModel() {
     return mPm;
   }
 

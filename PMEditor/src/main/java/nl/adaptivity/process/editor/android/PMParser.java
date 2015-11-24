@@ -31,12 +31,12 @@ public class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  public static void serializeProcessModel(OutputStream out, ClientProcessModel<?> processModel) throws XmlPullParserException, IOException {
+  public static void serializeProcessModel(OutputStream out, ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer(out);
     serializeProcessModel(serializer, processModel);
   }
 
-  public static void serializeProcessModel(Writer out, ClientProcessModel<?> processModel) throws XmlPullParserException, IOException {
+  public static void serializeProcessModel(Writer out, ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer(out);
     serializeProcessModel(serializer, processModel);
   }
@@ -69,7 +69,7 @@ public class PMParser {
     return serializer;
   }
 
-  private static void serializeProcessModel(XmlSerializer serializer, ClientProcessModel<?> processModel) {
+  private static void serializeProcessModel(XmlSerializer serializer, ClientProcessModel<?, ?> processModel) {
     try {
       serializer.startDocument(null, null);
       serializer.ignorableWhitespace("\n");

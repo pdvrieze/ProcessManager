@@ -281,7 +281,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
-  public ClientProcessModel<?> getProcessModel() {
+  public ClientProcessModel<?, ?> getProcessModel() {
     return mItem.getDiagram();
   }
 }

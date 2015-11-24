@@ -1,17 +1,16 @@
 package nl.adaptivity.process.editor.android;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.xmlpull.v1.XmlPullParserException;
-
-import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import android.os.Parcel;
-import android.os.Parcelable;
 
 
 public class PMParcelable implements Parcelable {
@@ -28,13 +27,13 @@ public class PMParcelable implements Parcelable {
       return new PMParcelable(source);
     }
   };
-  private ClientProcessModel<?> mProcessModel;
+  private ClientProcessModel<?, ?> mProcessModel;
 
   public PMParcelable(Parcel source) {
     this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
-  public PMParcelable(ClientProcessModel<?> processModel) {
+  public PMParcelable(ClientProcessModel<?, ?> processModel) {
     mProcessModel = processModel;
   }
 
@@ -73,7 +72,7 @@ public class PMParcelable implements Parcelable {
     }
   }
 
-  public ClientProcessModel<?> getProcessModel() {
+  public ClientProcessModel<?, ?> getProcessModel() {
     return mProcessModel;
   }
 

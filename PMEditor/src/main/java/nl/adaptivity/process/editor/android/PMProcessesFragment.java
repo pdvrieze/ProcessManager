@@ -43,7 +43,7 @@ public class PMProcessesFragment extends Fragment {
   public static final String ARG_MENU = "menu";
 
   public interface PMProvider {
-    ClientProcessModel<?> getProcessModel();
+    ClientProcessModel<?, ?> getProcessModel();
   }
 
   private class FileStoreListener {
@@ -68,7 +68,7 @@ public class PMProcessesFragment extends Fragment {
 
 
 
-  public class FileStoreTask extends AsyncTask<ClientProcessModel<?>, Object, File> {
+  public class FileStoreTask extends AsyncTask<ClientProcessModel<?, ?>, Object, File> {
     private File mFile;
     private FileStoreListener mPostSave;
     private int mType;
@@ -84,7 +84,7 @@ public class PMProcessesFragment extends Fragment {
     }
 
     @Override
-    protected File doInBackground(ClientProcessModel<?>... params) {
+    protected File doInBackground(ClientProcessModel<?, ?>... params) {
       if (mFile == null) {
         try {
           mFile = File.createTempFile("tmp_", ".pm", getActivity().getExternalCacheDir());
@@ -124,7 +124,7 @@ public class PMProcessesFragment extends Fragment {
 
   }
 
-  private ClientProcessModel<?> mProcessModel;
+  private ClientProcessModel<?, ?> mProcessModel;
   protected File mTmpFile;
   private boolean mMenu;
   private PMProvider mProvider;
@@ -179,12 +179,12 @@ public class PMProcessesFragment extends Fragment {
 
 
 
-  public void doShareFile(ClientProcessModel<?> processModel) {
+  public void doShareFile(ClientProcessModel<?, ?> processModel) {
     FileStoreTask task = new FileStoreTask(TYPE_FILE,new FileStoreListener("*/*", REQUEST_SHARE_FILE));
     task.execute(processModel);
   }
 
-  public void doSaveFile(ClientProcessModel<?> processModel) {
+  public void doSaveFile(ClientProcessModel<?, ?> processModel) {
     mProcessModel = processModel;
     requestSaveFile("*/*", REQUEST_SAVE_FILE);
   }
@@ -193,7 +193,7 @@ public class PMProcessesFragment extends Fragment {
     return getActivity().getContentResolver().openOutputStream(data.getData());
   }
 
-  public void doSaveFile(Intent data, ClientProcessModel<?> processModel) {
+  public void doSaveFile(Intent data, ClientProcessModel<?, ?> processModel) {
     try {
       OutputStream out = getOutputStreamFromSave(data);
       try {
@@ -206,7 +206,7 @@ public class PMProcessesFragment extends Fragment {
     }
   }
 
-  public void doSaveFile(Writer out, ClientProcessModel<?> processModel) throws IOException {
+  public void doSaveFile(Writer out, ClientProcessModel<?, ?> processModel) throws IOException {
     try {
       PMParser.serializeProcessModel(out , processModel);
     } catch (XmlPullParserException e) {
@@ -214,7 +214,7 @@ public class PMProcessesFragment extends Fragment {
     }
   }
 
-  public void doSaveFile(OutputStream out, ClientProcessModel<?> processModel) throws IOException {
+  public void doSaveFile(OutputStream out, ClientProcessModel<?, ?> processModel) throws IOException {
     try {
       PMParser.serializeProcessModel(out , processModel);
     } catch (XmlPullParserException e) {
@@ -222,12 +222,12 @@ public class PMProcessesFragment extends Fragment {
     }
   }
 
-  public void doShareSVG(ClientProcessModel<?> processModel) {
+  public void doShareSVG(ClientProcessModel<?, ?> processModel) {
     FileStoreTask task = new FileStoreTask(TYPE_SVG,new FileStoreListener("image/svg", REQUEST_SHARE_SVG));
     task.execute(processModel);
   }
 
-  public void doExportSVG(ClientProcessModel<?> processModel) {
+  public void doExportSVG(ClientProcessModel<?, ?> processModel) {
     mProcessModel = processModel;
     requestSaveFile("image/svg", REQUEST_EXPORT_SVG);
   }
@@ -347,7 +347,7 @@ public class PMProcessesFragment extends Fragment {
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    ClientProcessModel<?> pm = null;
+    ClientProcessModel<?, ?> pm = null;
     if ((item.getItemId()==R.id.ac_export||item.getItemId()==R.id.ac_export_svg||item.getItemId()==R.id.ac_share_pm||item.getItemId()==R.id.ac_share_pm_svg)&&
         (mProvider==null|| (pm = mProvider.getProcessModel())==null)) {
       Toast.makeText(getActivity(), "No process model available", Toast.LENGTH_LONG).show();

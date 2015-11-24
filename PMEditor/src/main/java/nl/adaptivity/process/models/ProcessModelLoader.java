@@ -38,7 +38,7 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   @Override
   public ProcessModelHolder loadInBackground() {
     Long handle = mHandle>=0 ? Long.valueOf(mHandle) : null;
-    final ProcessModel<?> processModel;
+    final ProcessModel<?, ?> processModel;
     if (handle!=null) {
       processModel = ProcessModelProvider.getProcessModelForHandle(getContext(),mHandle);
     } else {

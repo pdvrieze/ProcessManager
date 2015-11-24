@@ -7,7 +7,7 @@ import nl.adaptivity.process.processModel.ProcessModel;
  */
 public class ProcessModelHolder {
 
-  public final ProcessModel<?> model;
+  public final ProcessModel<?, ?> model;
   public final Long handle;
   private final boolean mLoading;
 
@@ -17,7 +17,7 @@ public class ProcessModelHolder {
     this.handle = null;
   }
 
-  public ProcessModelHolder(ProcessModel<?> model, Long handle) {
+  public ProcessModelHolder(ProcessModel<?, ?> model, Long handle) {
     mLoading = false;
     this.model = model;
     this.handle = handle;

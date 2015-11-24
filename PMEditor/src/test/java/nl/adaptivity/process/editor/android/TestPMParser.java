@@ -58,7 +58,7 @@ public class TestPMParser {
     DrawableJoin j1 = (DrawableJoin) model.getNode("j1");
     DrawableEndNode end = (DrawableEndNode) model.getNode("end");
     Collection<? extends Drawable> actualNodes = model.getChildElements();
-    List<? extends ProcessNodeBase<DrawableProcessNode>> expectedNodes = Arrays.asList(start, ac1, ac2, split, ac3, ac5, j1, ac4, end);
+    List<? extends ProcessNodeBase<DrawableProcessNode, M>> expectedNodes = Arrays.asList(start, ac1, ac2, split, ac3, ac5, j1, ac4, end);
     assertEquals(expectedNodes.size(), actualNodes.size());
     assertTrue(actualNodes.containsAll(expectedNodes));
 
