@@ -79,7 +79,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     if (state==mState) { return ; }
     mState = state;
     if (getOwnerModel() != null) {
-      getOwnerModel().nodeChanged(this);
+      getOwnerModel().notifyNodeChanged(this);
     }
   }
 

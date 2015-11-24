@@ -181,13 +181,6 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
     return mNeedsLayout;
   }
 
-  /**
-   * @param node The node that has changed.
-   */
-  public void nodeChanged(T node) {
-    // no implementation here
-  }
-
   public int getEndNodeCount() {
     int i=0;
     for(T node: getModelNodes()) {
@@ -238,7 +231,7 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
     if (super.addNode(node)) {
       node.setOwnerModel(this);
       // Make sure that children can know of the change.
-      nodeChanged(node);
+      notifyNodeChanged(node);
       return true;
     }
     return false;
@@ -263,8 +256,9 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
   }
 
   private void disconnectNode(T node) {
-    node.disconnect();
-    nodeChanged(node);
+    node.setPredecessors(Collections.<Identifiable>emptyList());
+    node.setSuccessors(Collections.<Identifiable>emptyList());
+    notifyNodeChanged(node);
   }
 
   public void layout() {

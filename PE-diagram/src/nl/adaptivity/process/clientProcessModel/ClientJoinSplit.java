@@ -14,16 +14,16 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
   private int mMin=-1;
   private int mMax=-1;
 
-  public ClientJoinSplit(final boolean compat) {
-    super(compat);
+  public ClientJoinSplit() {
+    super();
   }
 
-  public ClientJoinSplit(String id, final boolean compat) {
-    super(id, compat);
+  public ClientJoinSplit(String id) {
+    super(id);
   }
 
-  public ClientJoinSplit(ClientJoinSplit<T> orig, final boolean compat) {
-    super(orig, compat);
+  public ClientJoinSplit(ClientJoinSplit<T> orig) {
+    super(orig);
     mMin = orig.mMin;
     mMax = orig.mMax;
   }
@@ -74,6 +74,11 @@ public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends C
       out.endTag(NS_PM, "predecessor", null);
     }
     out.endTag(NS_PM, "join", null);
+  }
+
+  @Override
+  public int getMaxSuccessorCount() {
+    return isCompat() ? Integer.MAX_VALUE : 1;
   }
 
 }

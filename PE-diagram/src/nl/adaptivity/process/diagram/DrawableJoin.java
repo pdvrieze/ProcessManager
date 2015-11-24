@@ -5,7 +5,6 @@ import nl.adaptivity.process.processModel.Join;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -26,17 +25,21 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   private static final double INDY = JOINHEIGHT*0.2;
   private static final double INLEN = Math.sqrt(INDX*INDX+INDY*INDY);
   public static final String IDBASE = "join";
+  private final boolean mCompat;
 
   public DrawableJoin(final boolean compat) {
-    super(compat);
+    super();
+    mCompat = compat;
   }
 
   public DrawableJoin(String id, final boolean compat) {
-    super(id, compat);
+    super(id);
+    mCompat = compat;
   }
 
   public DrawableJoin(DrawableJoin orig, final boolean compat) {
-    super(orig, compat);
+    super(orig);
+    mCompat = compat;
   }
 
   @Override
@@ -55,6 +58,11 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   @Override
   public int getMaxPredecessorCount() {
     return Integer.MAX_VALUE;
+  }
+
+  @Override
+  public boolean isCompat() {
+    return mCompat;
   }
 
   public static DrawableJoin from(Join<?> elem, final boolean compat) {

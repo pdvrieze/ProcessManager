@@ -15,6 +15,7 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
 
+  private final boolean mCompat;
   private String mName;
 
   private String mCondition;
@@ -24,16 +25,18 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   private List<XmlResultType> mResults;
 
   public ClientActivityNode(final boolean compat) {
-    super(compat);
+    mCompat = compat;
   }
 
 
   public ClientActivityNode(String id, final boolean compat) {
-    super(id, compat);
+    super(id);
+    mCompat = compat;
   }
 
   protected ClientActivityNode(ClientActivityNode<T> orig, final boolean compat) {
-    super(orig, compat);
+    super(orig);
+    mCompat = compat;
     mName = orig.mName;
     mCondition = orig.mCondition;
     mMessage = orig.mMessage;
@@ -120,4 +123,13 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
     return visitor.visitActivity(this);
   }
 
+  @Override
+  public int getMaxSuccessorCount() {
+    return isCompat() ? Integer.MAX_VALUE : 1;
+  }
+
+  @Override
+  public boolean isCompat() {
+    return mCompat;
+  }
 }

@@ -26,16 +26,16 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   protected final ItemCache mItems = new ItemCache();
   private int mState = STATE_DEFAULT;
 
-  public DrawableJoinSplit(final boolean compat) {
-    super(compat);
+  public DrawableJoinSplit() {
+    super();
   }
 
-  public DrawableJoinSplit(String id, final boolean compat) {
-    super(id, compat);
+  public DrawableJoinSplit(String id) {
+    super(id);
   }
 
-  public DrawableJoinSplit(DrawableJoinSplit orig, final boolean compat) {
-    super(orig, compat);
+  public DrawableJoinSplit(DrawableJoinSplit orig) {
+    super(orig);
     mState = orig.mState;
   }
 

@@ -11,6 +11,8 @@ import java.util.Set;
 
 public interface IClientProcessNode<T extends IClientProcessNode<T>> extends ProcessNode<T> {
 
+  boolean isCompat();
+
   /**
    * Set the X coordinate of the reference point of the element. This is
    * normally the center.
@@ -39,6 +41,5 @@ public interface IClientProcessNode<T extends IClientProcessNode<T>> extends Pro
 
   @Nullable
   ProcessModelBase<T> getOwnerModel();
-  
-  void disconnect();
+
 }

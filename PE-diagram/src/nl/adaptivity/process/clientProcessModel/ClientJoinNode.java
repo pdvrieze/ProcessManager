@@ -10,16 +10,21 @@ import javax.xml.namespace.QName;
 
 public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Join<T> {
 
+  private final boolean mCompat;
+
   public ClientJoinNode(final boolean compat) {
-    super(compat);
+    super();
+    mCompat = compat;
   }
 
   public ClientJoinNode(String id, final boolean compat) {
-    super(id, compat);
+    super(id);
+    mCompat = compat;
   }
 
   protected ClientJoinNode(ClientJoinSplit<T> orig, final boolean compat) {
-    super(orig, compat);
+    super(orig);
+    mCompat = compat;
   }
 
   @Override
@@ -42,4 +47,8 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinS
     return visitor.visitJoin(this);
   }
 
+  @Override
+  public boolean isCompat() {
+    return mCompat;
+  }
 }

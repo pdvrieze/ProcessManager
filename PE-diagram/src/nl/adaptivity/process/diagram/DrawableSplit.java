@@ -26,15 +26,15 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
 
 
   public DrawableSplit() {
-    super(false);
+    super();
   }
 
   public DrawableSplit(String id) {
-    super(id, false);
+    super(id);
   }
 
   public DrawableSplit(DrawableJoinSplit orig) {
-    super(orig, false);
+    super(orig);
   }
 
   @Override
@@ -48,6 +48,11 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
       return new DrawableSplit(this);
     }
     throw new RuntimeException(new CloneNotSupportedException());
+  }
+
+  @Override
+  public boolean isCompat() {
+    return false;
   }
 
   public static DrawableSplit from(Split<?> elem) {

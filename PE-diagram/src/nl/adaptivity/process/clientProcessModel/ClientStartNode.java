@@ -11,21 +11,26 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
 
+  private final boolean mCompat;
+
   @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
   public ClientStartNode(final boolean compat) {
-    super(compat);
+    super();
+    mCompat = compat;
   }
 
   public ClientStartNode(final String id, final boolean compat) {
-    super(id, compat);
+    super(id);
+    mCompat = compat;
   }
 
   protected ClientStartNode(final ClientStartNode<T> orig, final boolean compat) {
-    super(orig, compat);
+    super(orig);
+    mCompat = compat;
   }
 
   @Override
@@ -46,4 +51,13 @@ public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProc
     return visitor.visitStartNode(this);
   }
 
+  @Override
+  public int getMaxSuccessorCount() {
+    return isCompat() ? Integer.MAX_VALUE : 1;
+  }
+
+  @Override
+  public boolean isCompat() {
+    return mCompat;
+  }
 }

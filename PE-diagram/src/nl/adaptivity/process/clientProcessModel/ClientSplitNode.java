@@ -17,15 +17,15 @@ import javax.xml.namespace.QName;
 public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Split<T> {
 
   public ClientSplitNode() {
-    super(false);
+    super();
   }
 
   public ClientSplitNode(String id) {
-    super(id, false);
+    super(id);
   }
 
   protected ClientSplitNode(ClientJoinSplit<T> orig) {
-    super(orig, false);
+    super(orig);
   }
 
   @Override
@@ -48,4 +48,8 @@ public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoin
     return visitor.visitSplit(this);
   }
 
+  @Override
+  public boolean isCompat() {
+    return false;
+  }
 }

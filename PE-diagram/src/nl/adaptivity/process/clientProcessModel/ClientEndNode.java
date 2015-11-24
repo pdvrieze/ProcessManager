@@ -19,15 +19,15 @@ import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
 
   public ClientEndNode() {
-    super(false);
+    super();
   }
 
   public ClientEndNode(String id) {
-    super(id, false);
+    super(id);
   }
 
   protected ClientEndNode(ClientEndNode<T> orig) {
-super(orig, false);
+super(orig);
   }
 
   @Override
@@ -73,4 +73,8 @@ super(orig, false);
     return visitor.visitEndNode(this);
   }
 
+  @Override
+  public boolean isCompat() {
+    return false;
+  }
 }
