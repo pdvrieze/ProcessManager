@@ -9,7 +9,7 @@ import nl.adaptivity.xml.XmlWriter;
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
-public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements JoinSplit<T>{
+public abstract class ClientJoinSplit<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements JoinSplit<T>, IClientProcessNode<T> {
 
   private int mMin=-1;
   private int mMax=-1;

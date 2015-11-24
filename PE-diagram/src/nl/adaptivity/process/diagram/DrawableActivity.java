@@ -3,6 +3,10 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
@@ -17,17 +21,19 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   private int mState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
-  public DrawableActivity(final boolean compat) {
-    super(compat);
+  public DrawableActivity(final DrawableProcessModel owner, final boolean compat) {
+    super(owner, compat);
   }
 
-  public DrawableActivity(String id, final boolean compat) {
-    super(id, compat);
+  public DrawableActivity(String id, final boolean compat, final DrawableProcessModel owner) {
+    super(owner, id, compat);
   }
 
-  public DrawableActivity(DrawableActivity drawableActivity, final boolean compat) {
-    super(drawableActivity, compat);
-    mState = drawableActivity.mState;
+  public DrawableActivity(Activity<?> orig, final boolean compat) {
+    super(orig, compat);
+    if (orig instanceof DrawableActivity) {
+      mState = ((DrawableActivity) orig).mState;
+    }
   }
 
   @Override
@@ -36,6 +42,11 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
       return new DrawableActivity(this, isCompat());
     }
     throw new RuntimeException(new CloneNotSupportedException());
+  }
+
+  @NotNull
+  public static DrawableActivity deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new DrawableActivity(ownerModel, true), in);
   }
 
   @Override
@@ -124,7 +135,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   }
 
   public static DrawableActivity from(Activity<?> elem, final boolean compat) {
-    DrawableActivity result = new DrawableActivity(compat);
+    DrawableActivity result = new DrawableActivity(elem, compat);
     copyProcessNodeAttrs(elem, result);
     result.setName(elem.getName());
     result.setLabel(elem.getLabel());

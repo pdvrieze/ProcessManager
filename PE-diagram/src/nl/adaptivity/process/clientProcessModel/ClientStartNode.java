@@ -9,7 +9,7 @@ import javax.xml.namespace.QName;
 
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
-public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T> {
+public class ClientStartNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements StartNode<T>, IClientProcessNode<T> {
 
   private final boolean mCompat;
 

@@ -1,12 +1,13 @@
 package nl.adaptivity.process.clientProcessModel;
 
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.Nullable;
 
 
-public abstract class ClientProcessNode<T extends IClientProcessNode<T>> extends ProcessNodeBase<T> implements IClientProcessNode<T>{
+public abstract class ClientProcessNode<T extends IClientProcessNode<T>> extends ProcessNodeBase<T> {
 
 
   protected ClientProcessNode() {
@@ -14,7 +15,7 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> extends
   }
 
   protected ClientProcessNode(final String id) {
-    super(null);
+    super((ProcessModelBase<T>) null);
     setId(id);
   }
 

@@ -1,60 +1,36 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.util.Identifiable;
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.ActivityBase;
+import nl.adaptivity.process.processModel.Condition;
+import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-
-import java.util.*;
-
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
-public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements Activity<T> {
+public class ClientActivityNode<T extends IClientProcessNode<T>> extends ActivityBase<T> implements IClientProcessNode<T> {
 
   private final boolean mCompat;
-  private String mName;
-
   private String mCondition;
 
-  private ClientMessage mMessage;
-  private List<XmlDefineType> mDefines;
-  private List<XmlResultType> mResults;
-
-  public ClientActivityNode(final boolean compat) {
+  public ClientActivityNode(final ProcessModelBase<T> owner, final boolean compat) {
+    super(owner);
     mCompat = compat;
   }
 
 
-  public ClientActivityNode(String id, final boolean compat) {
-    super(id);
+  public ClientActivityNode(final ProcessModelBase<T> owner, String id, final boolean compat) {
+    super(owner);
+    setId(id);
     mCompat = compat;
   }
 
-  protected ClientActivityNode(ClientActivityNode<T> orig, final boolean compat) {
+  protected ClientActivityNode(Activity<?> orig, final boolean compat) {
     super(orig);
     mCompat = compat;
-    mName = orig.mName;
-    mCondition = orig.mCondition;
-    mMessage = orig.mMessage;
-  }
-
-  @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
-  }
-
-  @Override
-  public String getName() {
-    return mName;
-  }
-
-  @Override
-  public void setName(String name) {
-    mName = name;
   }
 
   @Override
@@ -68,59 +44,15 @@ public class ClientActivityNode<T extends IClientProcessNode<T>> extends ClientP
   }
 
   @Override
-  public Identifiable getPredecessor() { // XXX pull up
-    Set<? extends Identifiable> list = getPredecessors();
-    if (list.isEmpty()) {
-      return null;
-    } else {
-      return list.iterator().next();
+  protected void deserializeCondition(final XmlReader in) throws XmlException {
+    mCondition = StringUtil.toString(XmlUtil.readSimpleElement(in));
+  }
+
+  @Override
+  protected void serializeCondition(final XmlWriter out) throws XmlException {
+    if (mCondition!=null && mCondition.length()>0) {
+      XmlUtil.writeSimpleElement(out, Condition.ELEMENTNAME, mCondition);
     }
-  }
-
-  @Override
-  public void setPredecessor(Identifiable predecessor) {
-    Identifiable previous = getPredecessor();
-    if (previous==null) {
-      removePredecessor(previous);
-    }
-    addPredecessor(predecessor);
-  }
-
-
-  @Override
-  public IXmlMessage getMessage() {
-    return mMessage;
-  }
-
-  @Override
-  public void setMessage(IXmlMessage message) {
-    mMessage = ClientMessage.from(message);
-  }
-
-  @Override
-  public void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
-    super.setDefines(exports);
-  }
-
-  @Override
-  public void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
-    super.setResults(imports);
-  }
-
-  @Override
-  public void serialize(XmlWriter out) throws XmlException {
-    out.startTag(NS_PM, "activity", null);
-    serializeAttributes(out);
-    if (mName != null) { out.attribute(null, "name", null, mName); }
-    if (mCondition != null) { out.attribute(null, "condition", null, mCondition); }
-    serializeCommonChildren(out);
-    if (mMessage != null) { mMessage.serialize(out); }
-    out.endTag(NS_PM, "activity", null);
-  }
-
-  @Override
-  public <R> R visit(ProcessNode.Visitor<R> visitor) {
-    return visitor.visitActivity(this);
   }
 
   @Override

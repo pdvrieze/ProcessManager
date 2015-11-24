@@ -5,7 +5,6 @@ import nl.adaptivity.process.processModel.IXmlDefineType;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
@@ -16,7 +15,7 @@ import java.util.Collection;
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
-public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T> {
+public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T>, IClientProcessNode<T> {
 
   public ClientEndNode() {
     super();
@@ -52,7 +51,7 @@ super(orig);
   }
 
   @Override
-  public void setPredecessor(Identifier predecessor) {
+  public void setPredecessor(Identifiable predecessor) {
     Identifiable previous = getPredecessor();
     if (previous==null) {
       removePredecessor(previous);

@@ -36,7 +36,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     public DrawableActivity deserializeActivity(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
             XmlException {
       // XXX Properly use a common node deserialization.
-      DrawableActivity result = DrawableActivity.from(ActivityImpl.deserialize(null, in), true);
+      DrawableActivity result = DrawableActivity.deserialize(null, in);
       result.setOwnerModel(ownerModel);
       return result;
     }
