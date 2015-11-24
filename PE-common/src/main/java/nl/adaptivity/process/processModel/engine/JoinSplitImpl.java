@@ -2,7 +2,6 @@ package nl.adaptivity.process.processModel.engine;
 
 
 import nl.adaptivity.process.processModel.JoinSplit;
-import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.xml.XmlException;
@@ -16,18 +15,18 @@ import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ExecutableProcessNode>, SimpleXmlDeserializable, ExecutableProcessNode {
+public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ExecutableProcessNode, ProcessModelImpl>, SimpleXmlDeserializable, ExecutableProcessNode {
 
   private static final long serialVersionUID = -4343040873373817308L;
 
   private int mMin;
   private int mMax;
 
-  public JoinSplitImpl(final ProcessModelBase<ExecutableProcessNode> ownerModel) {
+  public JoinSplitImpl(final ProcessModelImpl ownerModel) {
     super(ownerModel);
   }
 
-  public JoinSplitImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public JoinSplitImpl(final ProcessModelImpl  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors);
     mMin = min;
     mMax = max;

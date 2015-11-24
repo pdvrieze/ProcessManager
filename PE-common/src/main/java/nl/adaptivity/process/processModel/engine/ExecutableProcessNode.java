@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by pdvrieze on 23/11/15.
  */
-public interface ExecutableProcessNode extends ProcessNode<ExecutableProcessNode> {
+public interface ExecutableProcessNode extends ProcessNode<ExecutableProcessNode, ProcessModelImpl> {
 
   /**
    * Should this node be able to be provided?

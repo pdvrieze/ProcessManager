@@ -3,6 +3,7 @@ package nl.adaptivity.process.processModel;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
@@ -25,22 +26,22 @@ import java.util.*;
 /**
  * Created by pdvrieze on 21/11/15.
  */
-public class ProcessModelBase<T extends ProcessNode<? extends T>> implements ProcessModel<T>, XmlSerializable {
+public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends ProcessModelBase<T, M>> implements ProcessModel<T, M>, XmlSerializable {
 
-  protected interface DeserializationFactory<U extends ProcessNode<? extends U>> {
+  protected interface DeserializationFactory<U extends ProcessNode<? extends U, M>, M extends ProcessModelBase<U, M>> {
 
-    EndNode<? extends U> deserializeEndNode(ProcessModelBase<U> ownerModel, XmlReader in) throws XmlException;
+    EndNode<? extends U, M> deserializeEndNode(M ownerModel, XmlReader in) throws XmlException;
 
-    Activity<? extends U> deserializeActivity(ProcessModelBase<U> ownerModel, XmlReader in) throws XmlException;
+    Activity<? extends U, M> deserializeActivity(M ownerModel, XmlReader in) throws XmlException;
 
-    StartNode<? extends U> deserializeStartNode(ProcessModelBase<U> ownerModel, XmlReader in) throws XmlException;
+    StartNode<? extends U, M> deserializeStartNode(M ownerModel, XmlReader in) throws XmlException;
 
-    Join<? extends U> deserializeJoin(ProcessModelBase<U> ownerModel, XmlReader in) throws XmlException;
+    Join<? extends U, M> deserializeJoin(M ownerModel, XmlReader in) throws XmlException;
 
-    Split<? extends U> deserializeSplit(ProcessModelBase<U> ownerModel, XmlReader in) throws XmlException;
+    Split<? extends U, M> deserializeSplit(M ownerModel, XmlReader in) throws XmlException;
   }
 
-  public interface SplitFactory<U extends ProcessNode<? extends U>> {
+  public interface SplitFactory<U extends ProcessNode<? extends U, M>, M extends ProcessModel<U, M>> {
 
     /**
      * Create a new join node. This must register the node with the owner, and mark the join as successor to
@@ -50,8 +51,13 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
      * @param successors The predecessors
      * @return The resulting join node.
      */
-    Split<? extends U> createSplit(ProcessModelBase<U> ownerModel, Collection<? extends Identifiable> successors);
+    Split<? extends U, M> createSplit(M ownerModel, Collection<? extends Identifiable> successors);
   }
+
+  public static final String ELEMENTLOCALNAME = "processModel";
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
+  public static final String ATTR_ROLES = "roles";
+  public static final String ATTR_NAME = "name";
 
   private ProcessNodeSet<T> mProcessNodes;
   private String mName;
@@ -66,19 +72,19 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
     mProcessNodes=ProcessNodeSet.processNodeSet(processNodes);
   }
 
-  public boolean deserializeChild(final DeserializationFactory<T> factory, @NotNull final XmlReader in) throws XmlException {
+  public boolean deserializeChild(final DeserializationFactory<T, M> factory, @NotNull final XmlReader in) throws XmlException {
     if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
         case EndNode.ELEMENTLOCALNAME:
-          factory.deserializeEndNode(this, in); return true;
+          factory.deserializeEndNode(asM(), in); return true;
         case Activity.ELEMENTLOCALNAME:
-          factory.deserializeActivity(this, in); return true;
+          factory.deserializeActivity(asM(), in); return true;
         case StartNode.ELEMENTLOCALNAME:
-          factory.deserializeStartNode(this, in); return true;
+          factory.deserializeStartNode(asM(), in); return true;
         case Join.ELEMENTLOCALNAME:
-          factory.deserializeJoin(this, in); return true;
+          factory.deserializeJoin(asM(), in); return true;
         case Split.ELEMENTLOCALNAME:
-          factory.deserializeSplit(this, in); return true;
+          factory.deserializeSplit(asM(), in); return true;
       }
     }
     return false;
@@ -89,7 +95,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
     switch (StringUtil.toString(attributeLocalName)) {
       case "name" : setName(value); break;
       case "owner": setOwner(new SimplePrincipal(value)); break;
-      case XmlProcessModel.ATTR_ROLES: mRoles.addAll(Arrays.asList(value.split(" *, *"))); break;
+      case ATTR_ROLES: mRoles.addAll(Arrays.asList(value.split(" *, *"))); break;
       case "uuid": setUuid(UUID.fromString(value)); break;
       default:
         return false;
@@ -99,11 +105,11 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, XmlProcessModel.ELEMENTNAME);
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
     XmlUtil.writeAttribute(out, "name", getName());
     XmlUtil.writeAttribute(out, "owner", mOwner==null ? null : mOwner.getName());
     if (mRoles!=null && mRoles.size()>0) {
-      XmlUtil.writeAttribute(out, XmlProcessModel.ATTR_ROLES,StringUtil.join(",", mRoles));
+      XmlUtil.writeAttribute(out, ATTR_ROLES,StringUtil.join(",", mRoles));
     }
     if (getUuid() !=null) {
       XmlUtil.writeAttribute(out, "uuid", getUuid().toString());
@@ -111,18 +117,18 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
     XmlUtil.writeChildren(out, getImports());
     XmlUtil.writeChildren(out, getExports());
     XmlUtil.writeChildren(out, mProcessNodes);
-    XmlUtil.writeEndElement(out, XmlProcessModel.ELEMENTNAME);
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
   public T removeNode(final int nodePos) {
     return mProcessNodes.remove(nodePos);
   }
 
-  public static <T extends ProcessNode<T>> ProcessModelBase<T> deserialize(final DeserializationFactory<T> factory, final ProcessModelBase<T> processModel, final XmlReader in) throws
+  public static <T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> M deserialize(final DeserializationFactory<T, M> factory, final M processModel, final XmlReader in) throws
           XmlException {
 
     XmlUtil.skipPreamble(in);
-    final QName elementName = XmlProcessModel.ELEMENTNAME;
+    final QName elementName = ELEMENTNAME;
     assert XmlUtil.isElement(in, elementName): "Expected "+elementName+" but found "+ in.getLocalName();
     for(int i = in.getAttributeCount()-1; i>=0; --i) {
       processModel.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
@@ -147,7 +153,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
       }
     }
 
-    for(final T node: processModel.mProcessNodes) {
+    for(final T node: processModel.getModelNodes()) {
       for(final Identifiable pred: node.getPredecessors()) {
         final T predNode = processModel.getNode(pred);
         predNode.addSuccessor(node);
@@ -232,7 +238,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
      */
   @Nullable
   @Override
-  public IProcessModelRef<? extends T> getRef() {
+  public IProcessModelRef<? extends T, M> getRef() {
     return new ProcessModelRef(getName(), getHandle(), getUuid());
   }
 
@@ -303,7 +309,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  public ProcessModelBase<T> normalize(SplitFactory<T> splitFactory) {
+  public ProcessModelBase<T, M> normalize(SplitFactory<T, M> splitFactory) {
     // Make all nodes directly refer to other nodes.
     for(T childNode: mProcessNodes) {
       childNode.resolveRefs();
@@ -313,15 +319,20 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
       ArrayList<Identifiable> successors = new ArrayList<>(childNode.getSuccessors());
       if (successors.size()>1 && ! (childNode instanceof Split)) {
         for(Identifiable suc2: successors) { // Remove the current node as predecessor.
-          ProcessNode<?> suc = (ProcessNode) suc2;
+          ProcessNode<?, ?> suc = (ProcessNode) suc2;
           suc.removePredecessor(childNode);
           childNode.removeSuccessor(suc); // remove the predecessor from the current node
         }
         // create a new join, this should
-        Split<? extends T> newSplit = splitFactory.createSplit(this, successors);
+        Split<? extends T, M> newSplit = splitFactory.createSplit(asM(), successors);
         childNode.addSuccessor(newSplit);
       }
     }
     return this;
+  }
+
+  @SuppressWarnings("unchecked")
+  public final M asM() {
+    return (M) this;
   }
 }

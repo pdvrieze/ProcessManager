@@ -26,10 +26,10 @@ import java.util.*;
  * A base class for process nodes. Works like {@link ProcessModelBase}
  * Created by pdvrieze on 23/11/15.
  */
-public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements ProcessNode<T>, XmlDeserializable {
+public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessNode<T, M>, XmlDeserializable {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
-  @Nullable protected ProcessModelBase<T> mOwnerModel;
+  @Nullable protected M mOwnerModel;
   @Nullable private ProcessNodeSet<Identifiable> mPredecessors;
   @Nullable private ProcessNodeSet<Identifiable> mSuccessors = null;
   private String mId;
@@ -39,13 +39,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   private List<XmlDefineType> mDefines;
   private List<XmlResultType> mResults;
 
-  public ProcessNodeBase(@Nullable final ProcessModelBase<T> ownerModel) {mOwnerModel = ownerModel;}
+  public ProcessNodeBase(@Nullable final M ownerModel) {mOwnerModel = ownerModel;}
 
   /**
    * Copy constructor
    * @param orig Original
    */
-  public ProcessNodeBase(final ProcessNode<?> orig) {
+  public ProcessNodeBase(final ProcessNode<?, ?> orig) {
     mPredecessors = toIdentifiers(orig.getPredecessors());
     mSuccessors = toIdentifiers(orig.getSuccessors());
     setId(orig.getId());
@@ -135,7 +135,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
       mPredecessors = ProcessNodeSet.processNodeSet(1);
     }
     if (mPredecessors.add(predId)) {
-      ProcessModelBase<T> ownerModel = getOwnerModel();
+      M ownerModel = getOwnerModel();
 
       ProcessNode node = null;
       if (predId instanceof ProcessNode) {
@@ -154,7 +154,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   public final void removePredecessor(final Identifiable predecessorId) {
 
     if (mPredecessors.remove(predecessorId)) {
-      ProcessModelBase<T> owner = mOwnerModel;
+      M owner = mOwnerModel;
       T predecessor;
       if (owner!=null && (predecessor = owner.getNode(predecessorId))!=null) {
         predecessor.removeSuccessor(this.asT()); }
@@ -178,14 +178,14 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     }
     mSuccessors.add(nodeId);
 
-    ProcessModelBase<T> owner = mOwnerModel;
-    ProcessNode<?> node = null;
+    ProcessModelBase<T, M> owner = mOwnerModel;
+    ProcessNode<?, M> node = null;
     if (owner!=null) {
       T node2 = owner.getNode(nodeId);
       owner.addNode((T) node2);
       node = node2;
     } else if (nodeId instanceof ProcessNode){
-      node = (ProcessNode<?>) nodeId;
+      node = (ProcessNode<?, M>) nodeId;
     }
     if (node!=null) {
       Set<? extends Identifiable> predecessors = node.getPredecessors();
@@ -322,7 +322,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
 
   @Override
   public final void resolveRefs() {
-    ProcessModelBase<T> ownerModel = getOwnerModel();
+    ProcessModelBase<T, M> ownerModel = getOwnerModel();
     if (mPredecessors!=null) mPredecessors.resolve(ownerModel);
     if (mSuccessors!=null) mSuccessors.resolve(ownerModel);
   }
@@ -334,12 +334,12 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
 
   @Override
   @Nullable
-  public ProcessModelBase<T> getOwnerModel() {
+  public final M getOwnerModel() {
     return mOwnerModel;
   }
 
   @Override
-  public void setOwnerModel(@Nullable final ProcessModelBase<T> ownerModel) {
+  public final void setOwnerModel(@Nullable final M ownerModel) {
     if (mOwnerModel!=ownerModel) {
       T thisT = this.asT();
       if (mOwnerModel!=null) { mOwnerModel.removeNode(thisT); }

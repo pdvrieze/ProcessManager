@@ -1,5 +1,6 @@
 package nl.adaptivity.process.processModel.engine;
 
+import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlRootElement(name = "processModel")
-public class ProcessModelRef<T extends ProcessNode<T>> implements IProcessModelRef<T> {
+public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> implements IProcessModelRef<T, M> {
 
   private String mName;
 
@@ -30,14 +31,14 @@ public class ProcessModelRef<T extends ProcessNode<T>> implements IProcessModelR
     mUuid = uuid;
   }
 
-  public ProcessModelRef(@NotNull final IProcessModelRef<?> source) {
+  public ProcessModelRef(@NotNull final IProcessModelRef<?, M> source) {
     mHandle = source.getHandle();
     mName = source.getName();
     mUuid = source.getUuid();
   }
 
   @NotNull
-  public static ProcessModelRef get(final IProcessModelRef<?> src) {
+  public static ProcessModelRef get(final IProcessModelRef<?, ?> src) {
     if (src instanceof ProcessModelRef) { return (ProcessModelRef) src; }
     return new ProcessModelRef(src);
   }

@@ -9,7 +9,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 
 
-public interface EndNode<T extends ProcessNode<T>> extends ProcessNode<T>{
+public interface EndNode<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends ProcessNode<T, M>{
 
   String ELEMENTLOCALNAME = "end";
   QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);

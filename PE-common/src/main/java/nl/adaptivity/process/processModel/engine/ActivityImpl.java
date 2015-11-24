@@ -33,7 +33,7 @@ import java.sql.SQLException;
 @XmlRootElement(name = Activity.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = Activity.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
-public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements ExecutableProcessNode {
+public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -53,7 +53,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
    * @param predecessor The process node that starts immediately precedes this
    *          activity.
    */
-  public ActivityImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final ExecutableProcessNode predecessor) {
+  public ActivityImpl(final ProcessModelImpl  ownerModel, final ExecutableProcessNode predecessor) {
     super(ownerModel);
     setPredecessor(predecessor);
   }
@@ -62,7 +62,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
    * Create an activity without predecessor. This constructor is needed for JAXB
    * to work.
    */
-  public ActivityImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel) {super(ownerModel);}
+  public ActivityImpl(final ProcessModelImpl  ownerModel) {super(ownerModel);}
 
   @Override
   protected void serializeCondition(final XmlWriter out) throws XmlException {
@@ -94,7 +94,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
   }
 
   @NotNull
-  public static ActivityImpl deserialize(final ProcessModelBase<ExecutableProcessNode>  ownerModel, @NotNull final XmlReader in) throws
+  public static ActivityImpl deserialize(final ProcessModelImpl  ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new ActivityImpl(ownerModel), in);
   }

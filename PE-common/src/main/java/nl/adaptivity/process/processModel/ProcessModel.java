@@ -13,7 +13,7 @@ import java.util.UUID;
 
 
 @XmlDeserializer(ProcessModelImpl.Factory.class)
-public interface ProcessModel<T extends ProcessNode<? extends T>> {
+public interface ProcessModel<T extends ProcessNode<? extends T, M>, M extends ProcessModel<T, M>> {
 
   /**
    * Get the UUID for this process model.
@@ -30,7 +30,7 @@ public interface ProcessModel<T extends ProcessNode<? extends T>> {
    * @return A reference node.
    */
   @Nullable
-  IProcessModelRef<? extends T> getRef();
+  IProcessModelRef<? extends T, M> getRef();
 
   /**
    * Get the process node with the given id.

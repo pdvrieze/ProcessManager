@@ -4,7 +4,6 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.XmlResultType;
@@ -30,7 +29,7 @@ import java.util.List;
 @XmlDeserializer(StartNodeImpl.Factory.class)
 @XmlRootElement(name = StartNode.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ExecutableProcessNode>, SimpleXmlDeserializable, ExecutableProcessNode {
+public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ExecutableProcessNode, ProcessModelImpl>, SimpleXmlDeserializable, ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -42,16 +41,16 @@ public class StartNodeImpl extends ProcessNodeImpl implements StartNode<Executab
   }
 
   @NotNull
-  public static StartNodeImpl deserialize(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final XmlReader in) throws
+  public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new StartNodeImpl(ownerModel), in);
   }
 
-  public StartNodeImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel) {
+  public StartNodeImpl(final ProcessModelImpl  ownerModel) {
     super(ownerModel, Collections.<Identifiable>emptyList());
   }
 
-  public StartNodeImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final List<XmlResultType> imports) {
+  public StartNodeImpl(final ProcessModelImpl ownerModel, final List<XmlResultType> imports) {
     super(ownerModel, Collections.<Identifiable>emptyList());
     setResults(imports);
   }

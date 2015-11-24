@@ -11,20 +11,20 @@ import java.util.List;
 import java.util.Set;
 
 
-public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Identifiable, XmlSerializable {
+public interface ProcessNode<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> extends Positioned, Identifiable, XmlSerializable {
 
   interface Visitor<R> {
-    R visitStartNode(StartNode<?> startNode);
-    R visitActivity(Activity<?> activity);
-    R visitSplit(Split<?> split);
-    R visitJoin(Join<?> join);
-    R visitEndNode(EndNode<?> endNode);
+    R visitStartNode(StartNode<?, ?> startNode);
+    R visitActivity(Activity<?, ?> activity);
+    R visitSplit(Split<?, ?> split);
+    R visitJoin(Join<?, ?> join);
+    R visitEndNode(EndNode<?, ?> endNode);
   }
 
   @Nullable
-  ProcessModelBase<T> getOwnerModel();
+  M getOwnerModel();
 
-  void setOwnerModel(@NotNull ProcessModelBase<T> ownerModel);
+  void setOwnerModel(@NotNull M ownerModel);
 
   T asT();
 

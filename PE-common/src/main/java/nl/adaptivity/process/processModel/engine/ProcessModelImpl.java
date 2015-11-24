@@ -8,7 +8,6 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl.PMXmlAdapter;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
@@ -18,9 +17,6 @@ import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import java.lang.reflect.Method;
 import java.security.Principal;
@@ -33,32 +29,16 @@ import java.util.*;
  *
  * @author Paul de Vrieze
  */
-@XmlJavaTypeAdapter(PMXmlAdapter.class)
 @XmlDeserializer(ProcessModelImpl.Factory.class)
 
 @SuppressWarnings("unused")
-public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode> implements HandleAware<ProcessModelImpl>, SecureObject {
-
-  static class PMXmlAdapter extends XmlAdapter<XmlProcessModel, ProcessModelImpl> {
-
-    @Override
-    public ProcessModelImpl unmarshal(@NotNull final XmlProcessModel v) throws Exception {
-      return v.toProcessModel();
-    }
-
-    @NotNull
-    @Override
-    public XmlProcessModel marshal(final ProcessModelImpl v) throws Exception {
-      return new XmlProcessModel(v);
-    }
-
-  }
+public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, ProcessModelImpl> implements HandleAware<ProcessModelImpl>, SecureObject {
 
   public enum Permissions implements SecurityProvider.Permission {
     INSTANTIATE
   }
 
-  public static class Factory implements XmlDeserializerFactory, DeserializationFactory<ExecutableProcessNode> {
+  public static class Factory implements XmlDeserializerFactory, DeserializationFactory<ExecutableProcessNode, ProcessModelImpl> {
 
     @NotNull
     @Override
@@ -67,31 +47,31 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode> im
     }
 
     @Override
-    public EndNodeImpl deserializeEndNode(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
+    public EndNodeImpl deserializeEndNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
       return EndNodeImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public ActivityImpl deserializeActivity(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
+    public ActivityImpl deserializeActivity(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
       return ActivityImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public StartNodeImpl deserializeStartNode(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
+    public StartNodeImpl deserializeStartNode(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
       return StartNodeImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public JoinImpl deserializeJoin(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
+    public JoinImpl deserializeJoin(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
       return JoinImpl.deserialize(ownerModel, in);
     }
 
     @Override
-    public SplitImpl deserializeSplit(final ProcessModelBase<ExecutableProcessNode> ownerModel, final XmlReader in) throws
+    public SplitImpl deserializeSplit(final ProcessModelImpl ownerModel, final XmlReader in) throws
             XmlException {
       return SplitImpl.deserialize(ownerModel, in);
     }
@@ -274,7 +254,7 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode> im
   }
 
   @Override
-  public ProcessModelBase normalize(final SplitFactory<ExecutableProcessNode> splitFactory) {
+  public ProcessModelBase normalize(final SplitFactory<ExecutableProcessNode, ProcessModelImpl> splitFactory) {
     super.normalize(splitFactory);
 
     // Make sure all nodes have an ID.

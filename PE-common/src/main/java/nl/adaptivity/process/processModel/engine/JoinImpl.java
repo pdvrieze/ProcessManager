@@ -5,7 +5,6 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
@@ -31,7 +30,7 @@ import java.util.Set;
 @XmlRootElement(name = Join.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
-public class JoinImpl extends JoinSplitImpl implements Join<ExecutableProcessNode> {
+public class JoinImpl extends JoinSplitImpl implements Join<ExecutableProcessNode, ProcessModelImpl> {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -43,21 +42,21 @@ public class JoinImpl extends JoinSplitImpl implements Join<ExecutableProcessNod
   }
 
   @NotNull
-  public static JoinImpl deserialize(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final XmlReader in) throws
+  public static JoinImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new JoinImpl(ownerModel), in);
   }
 
   private static final long serialVersionUID = -8598245023280025173L;
 
-  public JoinImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
+  public JoinImpl(final ProcessModelImpl  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
     super(ownerModel, predecessors, min, max);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }
   }
 
-  public JoinImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel) {
+  public JoinImpl(final ProcessModelImpl  ownerModel) {
     super(ownerModel);
   }
 

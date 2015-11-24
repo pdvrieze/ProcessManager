@@ -10,14 +10,12 @@ package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.util.ListFilter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
-import javax.xml.namespace.QName;
 
 import java.util.*;
 
@@ -45,23 +43,15 @@ import java.util.*;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = XmlProcessModel.ELEMENTLOCALNAME + "Type", propOrder = { "nodes" })
-@XmlRootElement(name = XmlProcessModel.ELEMENTLOCALNAME)
+@XmlType(name = ProcessModelBase.ELEMENTLOCALNAME + "Type", propOrder = { "nodes" })
+@XmlRootElement(name = ProcessModelBase.ELEMENTLOCALNAME)
 public class XmlProcessModel {
-
-  public static final String ELEMENTLOCALNAME = "processModel";
-
-  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE,ELEMENTLOCALNAME,Engine.NSPREFIX);
-
-  public static final String ATTR_ROLES = "roles";
-
-  public static final String ATTR_NAME = "name";
 
   public XmlProcessModel() {
 
   }
 
-  public XmlProcessModel(@NotNull final ProcessModel<? extends ExecutableProcessNode> m) {
+  public XmlProcessModel(@NotNull final ProcessModel<? extends ExecutableProcessNode, ? extends ProcessModelImpl> m) {
     nodes = filter(CollectionUtil.<Object>copy(m.getModelNodes()), ExecutableProcessNode.class);
     name = m.getName();
     owner = m.getOwner()==null ? null : m.getOwner().getName();
@@ -73,7 +63,7 @@ public class XmlProcessModel {
 
   @Nullable private UUID uuid;
 
-  @XmlAttribute(name = ATTR_NAME)
+  @XmlAttribute(name = ProcessModelBase.ATTR_NAME)
   private String name;
 
   @Nullable private String owner;
@@ -160,7 +150,7 @@ public class XmlProcessModel {
   }
 
   @Nullable
-  @XmlAttribute(name = ATTR_ROLES)
+  @XmlAttribute(name = ProcessModelBase.ATTR_ROLES)
   public String getRolesString() {
     if ((roles == null) || (roles.size() == 0)) {
       return null;

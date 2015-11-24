@@ -22,9 +22,9 @@ import java.util.Collections;
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-public abstract class ActivityBase<T extends ProcessNode<T>> extends ProcessNodeBase<T> implements Activity<T>, SimpleXmlDeserializable {
+public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements Activity<T, M>, SimpleXmlDeserializable {
 
-  public ActivityBase(final Activity<?> orig) {
+  public ActivityBase(final Activity<?, ?> orig) {
     super(orig);
     setMessage(orig.getMessage());
     setName(orig.getName());
@@ -34,7 +34,7 @@ public abstract class ActivityBase<T extends ProcessNode<T>> extends ProcessNode
   @Nullable private String mName;
 
   // Object Initialization
-  public ActivityBase(@Nullable final ProcessModelBase<T> ownerModel) {
+  public ActivityBase(@Nullable final M ownerModel) {
     super(ownerModel);
   }
 // Object Initialization end

@@ -20,9 +20,9 @@ import java.util.Collection;
 /**
  * Created by pdvrieze on 24/11/15.
  */
-public abstract class EndNodeBase<T extends ProcessNode<T>> extends ProcessNodeBase<T> implements EndNode<T>, SimpleXmlDeserializable {
+public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements EndNode<T, M>, SimpleXmlDeserializable {
 
-  public EndNodeBase(@Nullable final ProcessModelBase<T> ownerModel) {
+  public EndNodeBase(@Nullable final M ownerModel) {
     super(ownerModel);
   }
 

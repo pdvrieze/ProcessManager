@@ -145,7 +145,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends T> reference) {
+    public void resolve(final ProcessModelBase<? extends T, ?> reference) {
       throw new UnsupportedOperationException("This set is immutable");
     }
   }
@@ -238,7 +238,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends V> reference) {
+    public void resolve(final ProcessModelBase<? extends V, ?> reference) {
       int len = mStore.size();
       for(int i=0; i<len; ++i) {
         mStore.set(i, reference.getNode(mStore.get(i)));
@@ -272,7 +272,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends V> reference) {
+    public void resolve(final ProcessModelBase<? extends V, ?> reference) {
       // do nothing
     }
   }
@@ -425,7 +425,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
-    public void resolve(final ProcessModelBase<? extends V> reference) {
+    public void resolve(final ProcessModelBase<? extends V, ?> reference) {
       if (mElement!=null) {
         mElement = reference.getNode(mElement);
       }
@@ -472,7 +472,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
 
   }
 
-  public abstract void resolve(final ProcessModelBase<? extends T> reference);
+  public abstract void resolve(final ProcessModelBase<? extends T, ?> reference);
 
   @NotNull
   public static <V extends Identifiable> ProcessNodeSet<V> processNodeSet() {

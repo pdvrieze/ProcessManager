@@ -16,12 +16,12 @@ import java.util.Collection;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
 @XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
-public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessNode> implements ExecutableProcessNode {
+public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
-  public static class ExecutableSplitFactory implements ProcessModelBase.SplitFactory<ExecutableProcessNode> {
+  public static class ExecutableSplitFactory implements ProcessModelBase.SplitFactory<ExecutableProcessNode, ProcessModelImpl> {
 
     @Override
-    public Split<? extends ExecutableProcessNode> createSplit(final ProcessModelBase<ExecutableProcessNode> ownerModel, final Collection<? extends Identifiable> successors) {
+    public Split<? extends ExecutableProcessNode, ProcessModelImpl> createSplit(final ProcessModelImpl ownerModel, final Collection<? extends Identifiable> successors) {
       SplitImpl result = new SplitImpl(ownerModel);
       result.setSuccessors(successors);
       return result;
@@ -32,7 +32,7 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
 //
 //  private Collection<? extends IXmlExportType> mExports;
 
-  protected ProcessNodeImpl(@Nullable final ProcessModelBase<ExecutableProcessNode> ownerModel) {
+  protected ProcessNodeImpl(@Nullable final ProcessModelImpl ownerModel) {
     super(ownerModel);
     if (ownerModel!=null) {
       mOwnerModel.addNode(this);
@@ -40,7 +40,7 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
   }
 
 
-  public ProcessNodeImpl(final ProcessModelBase<ExecutableProcessNode> ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
+  public ProcessNodeImpl(final ProcessModelImpl ownerModel, @NotNull final Collection<? extends Identifiable> predecessors) {
     this(ownerModel);
     if ((predecessors.size() < 1) && (!(this instanceof StartNode))) {
       throw new IllegalProcessModelException("Process nodes, except start nodes must connect to preceding elements");
