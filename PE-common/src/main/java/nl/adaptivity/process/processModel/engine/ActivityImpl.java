@@ -1,15 +1,10 @@
 package nl.adaptivity.process.processModel.engine;
 
-import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -20,11 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.*;
-import javax.xml.namespace.QName;
 
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
 
 
 /**
@@ -41,7 +33,7 @@ import java.util.Collections;
 @XmlRootElement(name = Activity.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = Activity.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
-public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements Activity<ExecutableProcessNode>, SimpleXmlDeserializable, ExecutableProcessNode {
+public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -52,11 +44,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
     }
   }
 
-  @Nullable private String mName;
-
-  @Nullable private ConditionImpl mCondition;
-
-  private XmlMessage mMessage;
+  @Nullable protected ConditionImpl mCondition;
 
   /**
    * Create a new Activity. Note that activities can only have a a single
@@ -76,165 +64,41 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
    */
   public ActivityImpl(final ProcessModelBase<ExecutableProcessNode>  ownerModel) {super(ownerModel);}
 
+  @Override
+  protected void serializeCondition(final XmlWriter out) throws XmlException {
+    XmlUtil.writeChild(out, mCondition);
+  }
+
+  @Override
+  protected void deserializeCondition(final XmlReader in) throws XmlException {
+    mCondition = ConditionImpl.deserialize(in);
+  }
+
+  /* (non-Javadoc)
+         * @see nl.adaptivity.process.processModel.IActivity#getCondition()
+         */
+  @Nullable
+  @Override
+  @XmlElement(name = Condition.ELEMENTLOCALNAME)
+  public String getCondition() {
+    return mCondition == null ? null : mCondition.toString();
+  }
+
+  /* (non-Javadoc)
+       * @see nl.adaptivity.process.processModel.IActivity#setCondition(java.lang.String)
+       */
+  @Override
+  public void setCondition(@Nullable final String condition) {
+    mCondition = condition == null ? null : new ConditionImpl(condition);
+    notifyChange();
+  }
+
   @NotNull
   public static ActivityImpl deserialize(final ProcessModelBase<ExecutableProcessNode>  ownerModel, @NotNull final XmlReader in) throws
           XmlException {
     return XmlUtil.deserializeHelper(new ActivityImpl(ownerModel), in);
   }
 
-  @Override
-  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, final CharSequence attributeValue) {
-    switch (attributeLocalName.toString()) {
-      case ATTR_PREDECESSOR: setPredecessor(new Identifier(attributeValue.toString())); return true;
-      case "name": setName(StringUtil.toString(attributeValue)); return true;
-    }
-    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
-  }
-
-  @Override
-  public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
-    if (Engine.NAMESPACE.equals(in.getNamespaceUri())) {
-      switch (in.getLocalName().toString()) {
-        case XmlDefineType.ELEMENTLOCALNAME:
-          getDefines().add(XmlDefineType.deserialize(in));return true;
-        case XmlResultType.ELEMENTLOCALNAME:
-          getResults().add(XmlResultType.deserialize(in));return true;
-        case Condition.ELEMENTLOCALNAME:
-          mCondition = ConditionImpl.deserialize(in); return true;
-        case XmlMessage.ELEMENTLOCALNAME:
-          mMessage = XmlMessage.deserialize(in);return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public boolean deserializeChildText(final CharSequence elementText) {
-    return false;
-  }
-
-  @NotNull
-  @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
-  }
-
-  @Override
-  public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    serializeAttributes(out);
-    serializeChildren(out);
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
-  }
-
-  @Override
-  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
-    super.serializeAttributes(out);
-    out.attribute(null, ATTR_PREDECESSOR, null, getPredecessor().getId());
-    XmlUtil.writeAttribute(out, "name", getName());
-  }
-
-  protected void serializeChildren(final XmlWriter out) throws XmlException {
-    super.serializeChildren(out);
-    XmlUtil.writeChild(out, mCondition);
-    if (mCondition !=null) { mCondition.serialize(out); }
-
-    {
-      final XmlMessage m = getMessage();
-      if (m!=null) { m.serialize(out); }
-    }
-  }
-
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.IActivity#getName()
-     */
-  @Override
-  @XmlAttribute
-  public String getName() {
-    return mName;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#setName(java.lang.String)
-   */
-  @Override
-  public void setName(final String name) {
-    mName = name;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#getCondition()
-   */
-  @Nullable
-  @Override
-  @XmlElement(name = Condition.ELEMENTLOCALNAME)
-  public String getCondition() {
-    return mCondition ==null ? null : mCondition.toString();
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#setCondition(java.lang.String)
-   */
-  @Override
-  public void setCondition(@Nullable final String condition) {
-    mCondition = condition==null ? null : new ConditionImpl(condition);
-  }
-
-  @Override
-  public void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
-    super.setDefines(exports);
-  }
-
-  @Override
-  public void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
-    super.setResults(imports);
-  }
-
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.IActivity#getPredecessor()
-     */
-  @Nullable
-  @Override
-  @XmlAttribute(name = ATTR_PREDECESSOR, required = true)
-  @XmlIDREF
-  public Identifiable getPredecessor() {
-    final Collection<? extends Identifiable> ps = getPredecessors();
-    if ((ps == null) || (ps.size() != 1)) {
-      return null;
-    }
-    return ps.iterator().next();
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#setPredecessor(nl.adaptivity.process.processModel.ProcessNode)
-   */
-  @Override
-  public void setPredecessor(final Identifiable predecessor) {
-    setPredecessors(Collections.singleton(predecessor));
-  }
-
-
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#getMessage()
-   */
-  @Override
-  @XmlElement(name = XmlMessage.ELEMENTLOCALNAME, required = true)
-  public XmlMessage getMessage() {
-    return mMessage;
-  }
-
-  /* (non-Javadoc)
-   * @see nl.adaptivity.process.processModel.IActivity#setMessage(nl.adaptivity.process.processModel.XmlMessage)
-   */
-  @Override
-  public void setMessage(final IXmlMessage message) {
-    mMessage = XmlMessage.get(message);
-  }
-
-  public void setMessage(final XmlMessage message) {
-    mMessage = XmlMessage.get(message);
-  }
 
   /**
    * Determine whether the process can start.
@@ -260,7 +124,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
   @Override
   public <T, U extends IProcessNodeInstance<U>> boolean provideTask(final Transaction transaction, @NotNull final IMessageService<T, U> messageService, @NotNull final U instance) throws SQLException {
     // TODO handle imports
-    final T message = messageService.createMessage(mMessage);
+    final T message = messageService.createMessage(getMessage());
     try {
       if (!messageService.sendMessage(transaction, message, instance)) {
         instance.failTaskCreation(transaction, new MessagingException("Failure to send message"));
@@ -293,11 +157,6 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode> implements
   @Override
   public <T, U extends IProcessNodeInstance<U>> boolean startTask(final IMessageService<T, U> messageService, final U instance) {
     return false;
-  }
-
-  @Override
-  public <R> R visit(@NotNull final ProcessNode.Visitor<R> visitor) {
-    return visitor.visitActivity(this);
   }
 
 

@@ -3,6 +3,7 @@ package nl.adaptivity.process.processModel;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
@@ -39,6 +40,39 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   private List<XmlResultType> mResults;
 
   public ProcessNodeBase(@Nullable final ProcessModelBase<T> ownerModel) {mOwnerModel = ownerModel;}
+
+  /**
+   * Copy constructor
+   * @param orig Original
+   */
+  public ProcessNodeBase(final ProcessNode<?> orig) {
+    mPredecessors = toIdentifiers(orig.getPredecessors());
+    mSuccessors = toIdentifiers(orig.getSuccessors());
+    setId(orig.getId());
+    setLabel(orig.getLabel());
+    setX(orig.getX());
+    setY(orig.getY());
+    setDefines(orig.getDefines());
+    setResults(orig.getResults());
+  }
+
+  private ProcessNodeSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> predecessors) {
+    if (predecessors==null) { return null; }
+    final ProcessNodeSet<Identifiable> result;
+    switch (getMaxSuccessorCount()) {
+      case 0: result = ProcessNodeSet.empty(); break;
+      case 1: if (predecessors.size() <= 1) { result = ProcessNodeSet.singleton(); break; }
+      default: result = ProcessNodeSet.processNodeSet(predecessors.size());
+    }
+    for(Identifiable pred: predecessors) {
+      if (pred instanceof Identifier) {
+        result.add((Identifier) pred);
+      } else {
+        result.add(new Identifier(pred.getId()));
+      }
+    }
+    return result;
+  }
 
   public void offset(final int offsetX, final int offsetY) {
     setX(getX()+ offsetX);
@@ -129,9 +163,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     // TODO perhaps make this reciprocal
   }
 
-  /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.ProcessNode#addSuccessor(nl.adaptivity.process.processModel.ProcessNodeImpl)
-     */
   @Override
   public final void addSuccessor(@Nullable final Identifiable nodeId) {
     if (nodeId == null) {
@@ -172,13 +203,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     }
   }
 
-  @Override
-  public final void resolveRefs() {
-    ProcessModelBase<T> ownerModel = getOwnerModel();
-    if (mPredecessors!=null) mPredecessors.resolve(ownerModel);
-    if (mSuccessors!=null) mSuccessors.resolve(ownerModel);
-  }
-
   /* (non-Javadoc)
        * @see nl.adaptivity.process.processModel.ProcessNode#getPredecessors()
        */
@@ -200,25 +224,20 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
      */
   @Override
   public final void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
+    if (predecessors.size()>getMaxPredecessorCount()) {
+      throw new IllegalArgumentException();
+    }
+
     if (mPredecessors == null) {
       mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
     }
 
-    if (predecessors.size()>getMaxPredecessorCount()) {
-      throw new IllegalArgumentException();
-    }
-    List<Identifiable> toRemove = new ArrayList<>(mPredecessors.size());
-    for(Iterator<Identifiable> it = mPredecessors.iterator(); it.hasNext(); ) {
-      Identifiable item = it.next();
-      if (predecessors.contains(item)) {
-        predecessors.remove(item);
-      } else {
-        toRemove.add(item);
-        it.remove();
+    if (mPredecessors.size()>0) {
+      List<Identifiable> toRemove = removeNonShared(mPredecessors, predecessors);
+      new ArrayList<>(mPredecessors.size());
+      for (Identifiable oldPred : toRemove) {
+        removePredecessor(oldPred);
       }
-    }
-    for(Identifiable oldPred: toRemove) {
-      removePredecessor(oldPred);
     }
     for(Identifiable pred: predecessors) {
       addPredecessor(pred);
@@ -226,23 +245,41 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
 
   }
 
+  /**
+   * Remove all elements from the baseList that are not also present in others. This
+   * will modify both lists. This method is a building block for replacing a list with
+   * another one that does not touch overlaps.
+   *
+   * @param baseList Modified list now only containing the shared elements.
+   * @param others Modified list that no longer contains the shared elements.
+   * @param <U> The type of the elements
+   * @return List of elements removed from baseList (items in baselist but not others)
+   */
+  public static <U> List<U> removeNonShared(Collection<? extends U> baseList, Collection<? extends U> others) {
+    List<U> result = new ArrayList<>(baseList);
+    if (others!=null && others.size()>0) {
+      result.removeAll(others);
+      baseList.removeAll(result);
+      others.removeAll(baseList);
+    } else {
+      baseList.clear();
+    }
+    return result;
+  }
+
   @Override
   public final void setSuccessors(@NotNull final Collection<? extends Identifiable> successors) {
     if (successors.size()>getMaxSuccessorCount()) {
       throw new IllegalArgumentException();
     }
-    if (mSuccessors!=null) {
-      List<Identifiable> toRemove = new ArrayList<>(mSuccessors.size());
-      for (Iterator<Identifiable> it = mSuccessors.iterator(); it.hasNext(); ) {
-        Identifiable item = it.next();
-        if (successors.contains(item)) {
-          successors.remove(item);
-        } else {
-          toRemove.add(item);
-          it.remove();
-        }
-      }
-      for(Identifiable oldSuc: toRemove) {
+    if (mSuccessors == null) {
+      mSuccessors = getMaxSuccessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
+    }
+
+    if (mSuccessors.size()>0) {
+      List<Identifiable> toRemove = removeNonShared(mSuccessors, successors);
+      new ArrayList<>(mPredecessors.size());
+      for (Identifiable oldSuc : toRemove) {
         removeSuccessor(oldSuc);
       }
     }
@@ -283,6 +320,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return 1;
   }
 
+  @Override
+  public final void resolveRefs() {
+    ProcessModelBase<T> ownerModel = getOwnerModel();
+    if (mPredecessors!=null) mPredecessors.resolve(ownerModel);
+    if (mSuccessors!=null) mSuccessors.resolve(ownerModel);
+  }
+
   public void unsetPos() {
     setX(Double.NaN);
     setY(Double.NaN);
@@ -295,7 +339,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
   }
 
   @Override
-  public void setOwnerModel(@NotNull final ProcessModelBase<T> ownerModel) {
+  public void setOwnerModel(@Nullable final ProcessModelBase<T> ownerModel) {
     if (mOwnerModel!=ownerModel) {
       T thisT = this.asT();
       if (mOwnerModel!=null) { mOwnerModel.removeNode(thisT); }
@@ -383,7 +427,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
       if (getId().equals(pred.getId())) {
         return true;
       }
-      if (isPredecessorOf(getOwnerModel().getNode(pred))) {
+      if (pred instanceof ProcessNode) {
+        return (isPredecessorOf((T)pred));
+      } else if (isPredecessorOf(getOwnerModel().getNode(pred))) {
         return true;
       }
     }

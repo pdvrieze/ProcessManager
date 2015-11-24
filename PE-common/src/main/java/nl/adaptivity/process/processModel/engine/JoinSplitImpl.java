@@ -16,7 +16,7 @@ import java.util.Collection;
 
 
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ExecutableProcessNode>, SimpleXmlDeserializable {
+public abstract class JoinSplitImpl extends ProcessNodeImpl implements JoinSplit<ExecutableProcessNode>, SimpleXmlDeserializable, ExecutableProcessNode {
 
   private static final long serialVersionUID = -4343040873373817308L;
 

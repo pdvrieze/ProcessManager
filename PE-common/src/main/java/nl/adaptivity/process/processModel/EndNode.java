@@ -2,7 +2,6 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.process.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -20,6 +19,6 @@ public interface EndNode<T extends ProcessNode<T>> extends ProcessNode<T>{
   @Nullable
   Identifiable getPredecessor();
 
-  void setPredecessor(Identifier predecessor);
+  void setPredecessor(Identifiable predecessor);
 
 }

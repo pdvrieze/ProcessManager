@@ -4,9 +4,9 @@ import org.jetbrains.annotations.Nullable;
 
 
 /**
- * Created by pdvrieze on 01/11/15.
+ * A class representing a simple identifier. It just holds a single string.
  */
-public class Identifier implements Identifiable {
+public final class Identifier implements Identifiable {
   private static class ChangableIdentifier implements Identifiable {
 
     private final String mIdBase;

@@ -30,7 +30,7 @@ import java.util.List;
 @XmlDeserializer(StartNodeImpl.Factory.class)
 @XmlRootElement(name = StartNode.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ExecutableProcessNode>, SimpleXmlDeserializable {
+public class StartNodeImpl extends ProcessNodeImpl implements StartNode<ExecutableProcessNode>, SimpleXmlDeserializable, ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory {
 

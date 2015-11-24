@@ -33,7 +33,7 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
    */
   void resolveRefs();
 
-  @Nullable
+  @NotNull
   Set<? extends Identifiable> getPredecessors();
 
   void setPredecessors(Collection<? extends Identifiable> predecessors);
@@ -46,7 +46,7 @@ public interface ProcessNode<T extends ProcessNode<T>> extends Positioned, Ident
 
   void removeSuccessor(Identifiable node);
 
-  @Nullable
+  @NotNull
   Set<? extends Identifiable> getSuccessors();
 
   int getMaxSuccessorCount();
