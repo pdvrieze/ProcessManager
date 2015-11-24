@@ -4,31 +4,30 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.ActivityBase;
 import nl.adaptivity.process.processModel.Condition;
-import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
 
 
-public class ClientActivityNode<T extends IClientProcessNode<T>> extends ActivityBase<T> implements IClientProcessNode<T> {
+public class ClientActivityNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase<T, M> implements IClientProcessNode<T, M> {
 
   private final boolean mCompat;
   private String mCondition;
 
-  public ClientActivityNode(final ProcessModelBase<T> owner, final boolean compat) {
+  public ClientActivityNode(final M owner, final boolean compat) {
     super(owner);
     mCompat = compat;
   }
 
 
-  public ClientActivityNode(final ProcessModelBase<T> owner, String id, final boolean compat) {
+  public ClientActivityNode(final M owner, String id, final boolean compat) {
     super(owner);
     setId(id);
     mCompat = compat;
   }
 
-  protected ClientActivityNode(Activity<?> orig, final boolean compat) {
+  protected ClientActivityNode(Activity<?, ?> orig, final boolean compat) {
     super(orig);
     mCompat = compat;
   }

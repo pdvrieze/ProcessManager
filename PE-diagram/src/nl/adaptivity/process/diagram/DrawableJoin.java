@@ -12,7 +12,7 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
-public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProcessNode> {
+public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProcessNode, DrawableProcessModel> {
 
   private static final double ARROWHEADDX = JOINWIDTH*0.375;
   private static final double ARROWHEADADJUST = 0.5*STROKEWIDTH/Math.sin(ARROWHEADANGLE);
@@ -65,7 +65,7 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     return mCompat;
   }
 
-  public static DrawableJoin from(Join<?> elem, final boolean compat) {
+  public static DrawableJoin from(Join<?, ?> elem, final boolean compat) {
     DrawableJoin result = new DrawableJoin(compat);
     copyProcessNodeAttrs(elem, result);
     result.setMin(elem.getMin());

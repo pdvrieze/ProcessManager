@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 
-public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode> implements Diagram {
+public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode, DrawableProcessModel> implements Diagram {
 
-  private static class Factory implements DeserializationFactory<DrawableProcessNode>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode> {
+  private static class Factory implements DeserializationFactory<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
 
     @Override
     public DrawableProcessModel deserialize(final XmlReader in) throws XmlException {
@@ -24,7 +24,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableEndNode deserializeEndNode(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+    public DrawableEndNode deserializeEndNode(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableEndNode result = DrawableEndNode.from(EndNodeImpl.deserialize(null, in));
@@ -33,7 +33,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableActivity deserializeActivity(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+    public DrawableActivity deserializeActivity(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableActivity result = DrawableActivity.deserialize(null, in);
@@ -42,7 +42,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableStartNode deserializeStartNode(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+    public DrawableStartNode deserializeStartNode(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableStartNode result = DrawableStartNode.from(StartNodeImpl.deserialize(null, in), true);
@@ -51,7 +51,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableJoin deserializeJoin(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+    public DrawableJoin deserializeJoin(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableJoin result = DrawableJoin.from(JoinImpl.deserialize(null, in), true);
@@ -60,7 +60,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableSplit deserializeSplit(final ProcessModelBase<DrawableProcessNode> ownerModel, final XmlReader in) throws
+    public DrawableSplit deserializeSplit(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
       // XXX Properly use a common node deserialization.
       DrawableSplit result = DrawableSplit.from(SplitImpl.deserialize(null, in));
@@ -69,7 +69,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     @Override
-    public DrawableSplit createSplit(final ProcessModelBase<DrawableProcessNode> ownerModel, final Collection<? extends Identifiable> successors) {
+    public DrawableSplit createSplit(final DrawableProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
       DrawableSplit join = new DrawableSplit();
       join.setId(Identifier.findIdentifier(join.getIdBase(), ownerModel.getModelNodes()));
       ownerModel.addNode(join);
@@ -104,11 +104,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     super();
   }
 
-  public DrawableProcessModel(ProcessModel<?> original) {
+  public DrawableProcessModel(ProcessModel<?, ?> original) {
     this(original, null);
   }
 
-  public DrawableProcessModel(ProcessModel<?> original, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  public DrawableProcessModel(ProcessModel<?, ?> original, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     super(original.getUuid(), original.getName(), cloneNodes(original), layoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
@@ -128,12 +128,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return (DrawableProcessModel) ProcessModelBase.deserialize(factory, new DrawableProcessModel(), in).normalize(factory);
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?>> original) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?, ?>, ?> original) {
     Map<String,DrawableProcessNode> cache = new HashMap<>(original.getModelNodes().size());
     return cloneNodes(original, cache, original.getModelNodes());
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<?> source, Map<String, DrawableProcessNode> cache, Collection<? extends Identifiable> nodes) {
+  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<?, ?> source, Map<String, DrawableProcessNode> cache, Collection<? extends Identifiable> nodes) {
     List<DrawableProcessNode> result = new ArrayList<>(nodes.size());
     for(Identifiable origId: nodes) {
       DrawableProcessNode val = cache.get(origId.getId());
@@ -166,7 +166,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  public static DrawableProcessModel get(ProcessModel<?> src) {
+  public static DrawableProcessModel get(ProcessModel<?, ?> src) {
     if (src instanceof DrawableProcessModel) { return (DrawableProcessModel) src; }
     return src==null ? null : new DrawableProcessModel(src);
   }
@@ -176,31 +176,31 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 	return new DrawableProcessModel(this);
   }
 
-  private static DrawableProcessNode toDrawableNode(ProcessNode<?> elem) {
+  private static DrawableProcessNode toDrawableNode(ProcessNode<?, ?> elem) {
     return elem.visit(new Visitor<DrawableProcessNode>() {
 
       @Override
-      public DrawableProcessNode visitStartNode(StartNode<?> startNode) {
+      public DrawableProcessNode visitStartNode(StartNode<?, ?> startNode) {
         return DrawableStartNode.from(startNode, true);
       }
 
       @Override
-      public DrawableProcessNode visitActivity(Activity<?> activity) {
+      public DrawableProcessNode visitActivity(Activity<?, ?> activity) {
         return DrawableActivity.from(activity, true);
       }
 
       @Override
-      public DrawableProcessNode visitSplit(Split<?> split) {
+      public DrawableProcessNode visitSplit(Split<?, ?> split) {
         return DrawableSplit.from(split);
       }
 
       @Override
-      public DrawableProcessNode visitJoin(Join<?> join) {
+      public DrawableProcessNode visitJoin(Join<?, ?> join) {
         return DrawableJoin.from(join, true);
       }
 
       @Override
-      public DrawableProcessNode visitEndNode(EndNode<?> endNode) {
+      public DrawableProcessNode visitEndNode(EndNode<?, ?> endNode) {
         return DrawableEndNode.from(endNode);
       }
 
@@ -374,7 +374,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return getModelNodes();
   }
 
-  static void copyProcessNodeAttrs(ProcessNode<?> from, DrawableProcessNode to) {
+  static void copyProcessNodeAttrs(ProcessNode<?, ?> from, DrawableProcessNode to) {
     to.setId(from.getId());
     to.setX(from.getX());
     to.setY(from.getY());

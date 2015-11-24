@@ -2,13 +2,12 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
-import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
-public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> implements DrawableProcessNode{
+public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode{
 
   private static final double REFERENCE_OFFSET_X = STARTNODERADIUS+(STROKEWIDTH/2);
   private static final double REFERENCE_OFFSET_Y = STARTNODERADIUS+(STROKEWIDTH/2);
@@ -35,12 +34,6 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
       return new DrawableStartNode(this, isCompat());
     }
     throw new RuntimeException(new CloneNotSupportedException());
-  }
-
-  @Nullable
-  @Override
-  public DrawableProcessModel getOwnerModel() {
-    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override
@@ -101,7 +94,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode> impl
     DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
-  public static DrawableStartNode from(StartNode<?> n, final boolean compat) {
+  public static DrawableStartNode from(StartNode<?, ?> n, final boolean compat) {
     DrawableStartNode result = new DrawableStartNode(compat);
     copyProcessNodeAttrs(n, result);
     result.setDefines(n.getDefines());

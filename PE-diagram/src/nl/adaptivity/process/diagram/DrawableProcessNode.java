@@ -9,7 +9,7 @@ import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.IClientProcessNode;
 
 
-public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessNode>, Drawable {
+public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
 
   void setId(String id);
 

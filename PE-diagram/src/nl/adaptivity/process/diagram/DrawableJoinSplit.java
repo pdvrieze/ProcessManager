@@ -4,12 +4,11 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
 import nl.adaptivity.process.clientProcessModel.ClientJoinSplit;
-import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
-public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode> implements DrawableProcessNode {
+public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode {
 
   protected static final boolean CURVED_ARROWS=true;
   private static final boolean TEXT_DESC=true;
@@ -37,12 +36,6 @@ public abstract class DrawableJoinSplit extends ClientJoinSplit<DrawableProcessN
   public DrawableJoinSplit(DrawableJoinSplit orig) {
     super(orig);
     mState = orig.mState;
-  }
-
-  @Nullable
-  @Override
-  public DrawableProcessModel getOwnerModel() {
-    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override

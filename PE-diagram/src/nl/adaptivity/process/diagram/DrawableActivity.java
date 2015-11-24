@@ -7,13 +7,12 @@ import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
-public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> implements DrawableProcessNode {
+public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode {
 
   private static final double REFERENCE_OFFSET_X = (ACTIVITYWIDTH+STROKEWIDTH)/2;
   private static final double REFERENCE_OFFSET_Y = (ACTIVITYHEIGHT+STROKEWIDTH)/2;
@@ -29,7 +28,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     super(owner, id, compat);
   }
 
-  public DrawableActivity(Activity<?> orig, final boolean compat) {
+  public DrawableActivity(Activity<?, ?> orig, final boolean compat) {
     super(orig, compat);
     if (orig instanceof DrawableActivity) {
       mState = ((DrawableActivity) orig).mState;
@@ -53,12 +52,6 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
   public Rectangle getBounds() {
 
     return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, ACTIVITYWIDTH + STROKEWIDTH, ACTIVITYHEIGHT + STROKEWIDTH);
-  }
-
-  @Nullable
-  @Override
-  public DrawableProcessModel getOwnerModel() {
-    return (DrawableProcessModel) super.getOwnerModel();
   }
 
   @Override
@@ -134,7 +127,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode> im
     }
   }
 
-  public static DrawableActivity from(Activity<?> elem, final boolean compat) {
+  public static DrawableActivity from(Activity<?, ?> elem, final boolean compat) {
     DrawableActivity result = new DrawableActivity(elem, compat);
     copyProcessNodeAttrs(elem, result);
     result.setName(elem.getName());

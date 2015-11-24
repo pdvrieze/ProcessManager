@@ -12,7 +12,7 @@ import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
-public class DrawableSplit extends DrawableJoinSplit implements Split<DrawableProcessNode>{
+public class DrawableSplit extends DrawableJoinSplit implements Split<DrawableProcessNode, DrawableProcessModel>{
 
   private static final double ARROWHEADDX = JOINWIDTH*0.2;
   private static final double ARROWHEADDY = JOINWIDTH*0.2;
@@ -55,7 +55,7 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
     return false;
   }
 
-  public static DrawableSplit from(Split<?> elem) {
+  public static DrawableSplit from(Split<?, ?> elem) {
     DrawableSplit result = new DrawableSplit();
     copyProcessNodeAttrs(elem, result);
     result.setMin(elem.getMin());

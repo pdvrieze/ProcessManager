@@ -2,13 +2,12 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
-import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
 
-public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implements DrawableProcessNode {
+public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, DrawableProcessModel> implements DrawableProcessNode {
 
   private static final double REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS;
   private static final double REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS;
@@ -75,12 +74,6 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     return IDBASE;
   }
 
-  @Nullable
-  @Override
-  public DrawableProcessModel getOwnerModel() {
-    return (DrawableProcessModel) super.getOwnerModel();
-  }
-
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
     if (hasPos()) {
@@ -104,7 +97,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode> implemen
     DrawableUtil.defaultDrawLabel(this, canvas, clipBounds, left, top);
   }
 
-  public static  DrawableEndNode from(EndNode<?> elem) {
+  public static  DrawableEndNode from(EndNode<?, ?> elem) {
     DrawableEndNode result = new DrawableEndNode();
     copyProcessNodeAttrs(elem, result);
     return result;

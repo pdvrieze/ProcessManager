@@ -8,7 +8,7 @@ import nl.adaptivity.xml.XmlWriter;
 import javax.xml.namespace.QName;
 
 
-public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Join<T> {
+public class ClientJoinNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientJoinSplit<T, M> implements Join<T, M> {
 
   private final boolean mCompat;
 
@@ -22,7 +22,7 @@ public class ClientJoinNode<T extends IClientProcessNode<T>> extends ClientJoinS
     mCompat = compat;
   }
 
-  protected ClientJoinNode(ClientJoinSplit<T> orig, final boolean compat) {
+  protected ClientJoinNode(ClientJoinSplit<T, M> orig, final boolean compat) {
     super(orig);
     mCompat = compat;
   }

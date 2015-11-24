@@ -15,7 +15,7 @@ import java.util.Collection;
 import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
 
 
-public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProcessNode<T> implements EndNode<T>, IClientProcessNode<T> {
+public class ClientEndNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientProcessNode<T, M> implements EndNode<T, M>, IClientProcessNode<T, M> {
 
   public ClientEndNode() {
     super();
@@ -25,7 +25,7 @@ public class ClientEndNode<T extends IClientProcessNode<T>> extends ClientProces
     super(id);
   }
 
-  protected ClientEndNode(ClientEndNode<T> orig) {
+  protected ClientEndNode(ClientEndNode<T, M> orig) {
 super(orig);
   }
 

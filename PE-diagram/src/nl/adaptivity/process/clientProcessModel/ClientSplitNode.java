@@ -14,7 +14,7 @@ import javax.xml.namespace.QName;
  *
  * @param <T> The type of ProcessNode used.
  */
-public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoinSplit<T> implements Split<T> {
+public class ClientSplitNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientJoinSplit<T, M> implements Split<T, M> {
 
   public ClientSplitNode() {
     super();
@@ -24,7 +24,7 @@ public class ClientSplitNode<T extends IClientProcessNode<T>> extends ClientJoin
     super(id);
   }
 
-  protected ClientSplitNode(ClientJoinSplit<T> orig) {
+  protected ClientSplitNode(ClientJoinSplit<T, M> orig) {
     super(orig);
   }
 

@@ -1,13 +1,11 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
-import org.jetbrains.annotations.Nullable;
 
 
-public abstract class ClientProcessNode<T extends IClientProcessNode<T>> extends ProcessNodeBase<T> {
+public abstract class ClientProcessNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ProcessNodeBase<T, M> {
 
 
   protected ClientProcessNode() {
@@ -15,17 +13,12 @@ public abstract class ClientProcessNode<T extends IClientProcessNode<T>> extends
   }
 
   protected ClientProcessNode(final String id) {
-    super((ProcessModelBase<T>) null);
+    super((M) null);
     setId(id);
   }
 
-  protected ClientProcessNode(final ClientProcessNode<T> orig) {
+  protected ClientProcessNode(final ClientProcessNode<T, M> orig) {
     this(orig.getId());
-  }
-
-  @Nullable
-  public ClientProcessModel<T> getOwnerModel() {
-    return (ClientProcessModel<T>) super.getOwnerModel();
   }
 
   @Override

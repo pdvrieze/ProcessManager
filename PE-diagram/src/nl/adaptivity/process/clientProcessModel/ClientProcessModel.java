@@ -16,7 +16,7 @@ import javax.xml.XMLConstants;
 import java.util.*;
 
 
-public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extends ProcessModelBase<T> {
+public abstract class ClientProcessModel<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ProcessModelBase<T, M> {
 
   public static final String NS_JBI = "http://adaptivity.nl/ProcessEngine/activity";
 
@@ -190,7 +190,7 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
   }
 
   @Override
-  public IProcessModelRef<T> getRef() {
+  public IProcessModelRef<T, M> getRef() {
     throw new UnsupportedOperationException("Not implemented");
   }
 
@@ -217,11 +217,11 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
     setOwner(new SimplePrincipal(owner));
   }
 
-  public Collection<? extends ClientStartNode<? extends T>> getStartNodes() {
-    List<ClientStartNode<? extends T>> result = new ArrayList<>();
+  public Collection<? extends ClientStartNode<? extends T, M>> getStartNodes() {
+    List<ClientStartNode<? extends T, M>> result = new ArrayList<>();
     for(T n:getModelNodes()) {
       if (n instanceof ClientStartNode) {
-        result.add((ClientStartNode<? extends T>) n);
+        result.add((ClientStartNode<? extends T, M>) n);
       }
     }
     return result;
@@ -229,7 +229,7 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T>> extend
 
   public boolean addNode(T node) {
     if (super.addNode(node)) {
-      node.setOwnerModel(this);
+      node.setOwnerModel(asM());
       // Make sure that children can know of the change.
       notifyNodeChanged(node);
       return true;
