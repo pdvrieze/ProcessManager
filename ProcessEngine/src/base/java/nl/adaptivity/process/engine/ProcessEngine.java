@@ -197,7 +197,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return The processModel to add.
    * @throws SQLException
    */
-  public IProcessModelRef<ExecutableProcessNode> addProcessModel(T transaction, final ProcessModelImpl pm, final Principal user) throws SQLException {
+  public IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> addProcessModel(T transaction, final ProcessModelImpl pm, final Principal user) throws SQLException {
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user);
 
     if (pm.getOwner() == null) {

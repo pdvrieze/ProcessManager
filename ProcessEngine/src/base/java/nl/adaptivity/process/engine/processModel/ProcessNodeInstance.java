@@ -302,8 +302,8 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     xmlNodeInst.setState(mState);
     xmlNodeInst.setHandle(mHandle);
 
-    if (mNode instanceof Activity<?>) {
-      Activity<?> act = (Activity<?>) mNode;
+    if (mNode instanceof Activity) {
+      Activity<?, ?> act = (Activity<?, ?>) mNode;
       IXmlMessage message = act.getMessage();
       try {
         XmlReader in = XMLFragmentStreamReader.from(message.getMessageBody());

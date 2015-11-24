@@ -181,7 +181,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
     for(ProcessNodeInstance instance: nodes) {
 
-      if (instance.getNode() instanceof EndNode<?>) {
+      if (instance.getNode() instanceof EndNode) {
         mEndResults.add(instance);
         threads.remove(Handles.handle(instance));
       }
