@@ -292,6 +292,14 @@ public class ProcessModelBase<T extends ProcessNode<? extends T>> implements Pro
   }
 
   /**
+   * Initiate the notification that a node has changed. Actual implementations can override this.
+   * @param node The node that has changed.
+   */
+  public void notifyNodeChanged(T node) {
+    // no implementation here
+  }
+
+  /**
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */

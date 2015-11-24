@@ -40,6 +40,12 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
 
   public ProcessNodeBase(@Nullable final ProcessModelBase<T> ownerModel) {mOwnerModel = ownerModel;}
 
+  public void offset(final int offsetX, final int offsetY) {
+    setX(getX()+ offsetX);
+    setY(getY()+ offsetY);
+    notifyChange();
+  }
+
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     out.attribute(null, "id", null, getId());
     XmlUtil.writeAttribute(out, "label", getLabel());
@@ -193,7 +199,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
      * @see nl.adaptivity.process.processModel.ProcessNode#setPredecessors(java.util.Collection)
      */
   @Override
-  public final void setPredecessors(final Collection<? extends Identifiable> predecessors) {
+  public final void setPredecessors(@NotNull final Collection<? extends Identifiable> predecessors) {
     if (mPredecessors == null) {
       mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
     }
@@ -277,6 +283,11 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return 1;
   }
 
+  public void unsetPos() {
+    setX(Double.NaN);
+    setY(Double.NaN);
+  }
+
   @Override
   @Nullable
   public ProcessModelBase<T> getOwnerModel() {
@@ -295,7 +306,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     }
   }
 
-  public T asT() {
+  public final T asT() {
     return (T) this;
   }
 
@@ -311,8 +322,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return mId;
   }
 
-  public void setId(final String id) {
+  public final void setId(final String id) {
     mId = id;
+    notifyChange();
   }
 
   @Override
@@ -327,8 +339,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return mLabel;
   }
 
-  public void setLabel(final String label) {
+  protected void notifyChange() {
+    if (getOwnerModel() != null) getOwnerModel().notifyNodeChanged(this.asT());
+  }
+
+  public final void setLabel(final String label) {
     mLabel = label;
+    notifyChange();
   }
 
   @XmlAttribute(name="x")
@@ -337,8 +354,13 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return mX;
   }
 
-  public void setX(final double x) {
+  public boolean hasPos() {
+    return !Double.isNaN(getX()) && !Double.isNaN(getY());
+  }
+
+  public final void setX(final double x) {
     mX = x;
+    notifyChange();
   }
 
   @XmlAttribute(name="y")
@@ -347,8 +369,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     return mY;
   }
 
-  public void setY(final double y) {
+  public final void setY(final double y) {
     mY = y;
+    notifyChange();
   }
 
   /* (non-Javadoc)
@@ -418,4 +441,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T>> implements Proce
     }
     return newImports;
   }
+
+
 }

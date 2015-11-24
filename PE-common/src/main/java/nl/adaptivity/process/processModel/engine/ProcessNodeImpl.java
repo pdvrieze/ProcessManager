@@ -54,15 +54,20 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
   @NotNull
   @Override
   public String toString() {
+    return toString(this);
+  }
+
+  @NotNull
+  protected static String toString(final ProcessNodeImpl obj) {
     final StringBuilder result = new StringBuilder();
-    result.append(getClass().getSimpleName()).append(" (").append(getId());
-    if ((this.getPredecessors() == null) || (getMaxPredecessorCount()==0)) {
+    result.append(obj.getClass().getSimpleName()).append(" (").append(obj.getId());
+    if ((obj.getPredecessors() == null) || (obj.getMaxPredecessorCount()==0)) {
       result.append(')');
     } else {
-      final int predCount = this.getPredecessors().size();
+      final int predCount = obj.getPredecessors().size();
       if (predCount != 1) {
         result.append(", pred={");
-        for (final Identifiable pred : getPredecessors()) {
+        for (final Identifiable pred : obj.getPredecessors()) {
           result.append(pred.getId()).append(", ");
         }
         if (result.charAt(result.length() - 2) == ',') {
@@ -70,7 +75,7 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
         }
         result.append("})");
       } else {
-        result.append(", pred=").append(getPredecessors().iterator().next().getId());
+        result.append(", pred=").append(obj.getPredecessors().iterator().next().getId());
         result.append(')');
       }
     }
