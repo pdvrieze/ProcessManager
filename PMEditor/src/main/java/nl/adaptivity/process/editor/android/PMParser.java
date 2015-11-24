@@ -197,7 +197,7 @@ public class PMParser {
   }
 
   private static DrawableProcessNode parseActivity(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlException {
-    DrawableActivity result = new DrawableActivity(false);
+    DrawableActivity result = new DrawableActivity((DrawableProcessModel) null, false);
     parseCommon(in, nodes, modelElems, result);
     String name = trimWS(in.getAttributeValue(XMLConstants.NULL_NS_URI, "name"));
     if (name!=null && name.length()>0) {

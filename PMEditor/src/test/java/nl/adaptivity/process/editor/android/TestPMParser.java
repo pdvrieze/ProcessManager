@@ -1,9 +1,9 @@
 package nl.adaptivity.process.editor.android;
 
 import nl.adaptivity.diagram.Drawable;
-import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.engine.TestProcessData;
+import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.xml.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,7 +58,7 @@ public class TestPMParser {
     DrawableJoin j1 = (DrawableJoin) model.getNode("j1");
     DrawableEndNode end = (DrawableEndNode) model.getNode("end");
     Collection<? extends Drawable> actualNodes = model.getChildElements();
-    List<? extends ClientProcessNode<DrawableProcessNode>> expectedNodes = Arrays.asList(start, ac1, ac2, split, ac3, ac5, j1, ac4, end);
+    List<? extends ProcessNodeBase<DrawableProcessNode>> expectedNodes = Arrays.asList(start, ac1, ac2, split, ac3, ac5, j1, ac4, end);
     assertEquals(expectedNodes.size(), actualNodes.size());
     assertTrue(actualNodes.containsAll(expectedNodes));
 
