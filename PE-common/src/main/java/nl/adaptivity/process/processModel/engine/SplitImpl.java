@@ -5,6 +5,7 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
+import nl.adaptivity.process.processModel.JoinSplitBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.util.Identifiable;
@@ -28,7 +29,7 @@ import java.util.Collections;
 @XmlRootElement(name = Split.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Split")
-public class SplitImpl extends JoinSplitImpl implements Split<ExecutableProcessNode, ProcessModelImpl> {
+public class SplitImpl extends JoinSplitBase<ExecutableProcessNode, ProcessModelImpl> implements Split<ExecutableProcessNode, ProcessModelImpl>, ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -47,7 +48,7 @@ public class SplitImpl extends JoinSplitImpl implements Split<ExecutableProcessN
   private static final long serialVersionUID = -8598245023280025173L;
 
   public SplitImpl(final ProcessModelImpl  ownerModel, final ExecutableProcessNode predecessor, final int min, final int max) {
-    super(ownerModel, Collections.singleton(predecessor), min, max);
+    super(ownerModel, Collections.singleton(predecessor), max, min);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }

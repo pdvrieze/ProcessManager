@@ -5,6 +5,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.exec.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
 import nl.adaptivity.process.processModel.Join;
+import nl.adaptivity.process.processModel.JoinSplitBase;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
@@ -30,7 +31,7 @@ import java.util.Set;
 @XmlRootElement(name = Join.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "Join")
-public class JoinImpl extends JoinSplitImpl implements Join<ExecutableProcessNode, ProcessModelImpl> {
+public class JoinImpl extends JoinSplitBase<ExecutableProcessNode, ProcessModelImpl> implements Join<ExecutableProcessNode, ProcessModelImpl>, ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory {
 
@@ -50,7 +51,7 @@ public class JoinImpl extends JoinSplitImpl implements Join<ExecutableProcessNod
   private static final long serialVersionUID = -8598245023280025173L;
 
   public JoinImpl(final ProcessModelImpl  ownerModel, final Collection<? extends Identifiable> predecessors, final int min, final int max) {
-    super(ownerModel, predecessors, min, max);
+    super(ownerModel, predecessors, max, min);
     if ((getMin() < 1) || (max < min)) {
       throw new IllegalProcessModelException("Join range (" + min + ", " + max + ") must be sane");
     }

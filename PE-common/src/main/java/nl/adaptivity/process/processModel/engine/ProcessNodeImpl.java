@@ -15,7 +15,7 @@ import java.util.Collection;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "ProcesNode")
-@XmlSeeAlso({ JoinImpl.class, SplitImpl.class, JoinSplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
+@XmlSeeAlso({ JoinImpl.class, SplitImpl.class, ActivityImpl.class, EndNodeImpl.class, StartNodeImpl.class })
 public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
   public static class ExecutableSplitFactory implements ProcessModelBase.SplitFactory<ExecutableProcessNode, ProcessModelImpl> {
