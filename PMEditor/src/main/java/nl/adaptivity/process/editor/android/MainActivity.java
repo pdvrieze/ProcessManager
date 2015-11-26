@@ -4,6 +4,7 @@ import android.accounts.*;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -93,10 +94,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
   private static final class SyncTask extends AsyncTask<URI, Void, Account> {
 
     private boolean mExpedited;
-    private Context mContext;
+    private Activity mContext;
     private String mAuthority;
 
-    public SyncTask(Context context, String authority, boolean expedited) {
+    public SyncTask(Activity context, String authority, boolean expedited) {
       mContext = context;
       mAuthority = authority;
       mExpedited = expedited;
@@ -104,26 +105,31 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
     @Override
     protected Account doInBackground(URI... params) {
-      Account account = AuthenticatedWebClient.ensureAccount(mContext, params[0]);
-      ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
-      AccountManager accountManager = AccountManager.get(mContext);
-      AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
+      Account[] accounts = AuthenticatedWebClient.ensureAccount(mContext, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
+      if (accounts!=null && accounts.length>0) {
+        Account account = accounts[0];
+        ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
+        AccountManager accountManager = AccountManager.get(mContext);
+        AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
 
-        @Override
-        public void run(AccountManagerFuture<Bundle> future) {
-          try {
-            future.getResult();
-          } catch (OperationCanceledException | AuthenticatorException | IOException e) {
-            Log.e(TAG, "Failure to get auth token", e);
+          @Override
+          public void run(AccountManagerFuture<Bundle> future) {
+            try {
+              future.getResult();
+            } catch (OperationCanceledException | AuthenticatorException | IOException e) {
+              Log.e(TAG, "Failure to get auth token", e);
+            }
           }
-        }};
-      if (mContext instanceof Activity) {
-        accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, (Activity) mContext, callback  , null);
-      } else {
-        Compat.getAuthToken(accountManager, account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, true, callback, null);
-      }
+        };
+        if (mContext instanceof Activity) {
+          accountManager.getAuthToken(account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, (Activity) mContext, callback, null);
+        } else {
+          Compat.getAuthToken(accountManager, account, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, true, callback, null);
+        }
 
-      return account;
+        return account;
+      }
+      return null;
     }
 
     @Override
@@ -136,6 +142,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
       }
     }
   }
+
+  private static final int ENSURE_ACCOUNT_REQUEST_CODE = 1;
 
   private Account mAccount;
 
@@ -207,7 +215,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
         @Override
         protected Account doInBackground(URI... params) {
-          return AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0]);
+          Account[] accounts = AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
+          return accounts == null || accounts.length==0 ? null : accounts[0];
         }
 
         @Override
@@ -241,6 +250,12 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     super.onPostCreate(savedInstanceState);
     // Sync the toggle state after onRestoreInstanceState has occurred.
     mDrawerToggle.syncState();
+  }
+
+  @Override
+  protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    // XXX Make this actually do something on account selection.
   }
 
   @Override
@@ -358,15 +373,15 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     }
   }
 
-  public static void requestSyncProcessModelList(Context context, boolean expedited) {
+  public static void requestSyncProcessModelList(Activity context, boolean expedited) {
     requestSync(context, ProcessModelProvider.AUTHORITY, expedited);
   }
 
-  public static void requestSyncTaskList(Context context, boolean expedited) {
+  public static void requestSyncTaskList(Activity context, boolean expedited) {
     requestSync(context, TaskProvider.AUTHORITY, expedited);
   }
 
-  private static void requestSync(Context context, final String authority, boolean expedited) {
+  private static void requestSync(Activity context, final String authority, boolean expedited) {
     if (context instanceof MainActivity) {
       ((MainActivity) context).requestSync(authority, expedited);
     }
