@@ -277,7 +277,11 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
   }
 
   public boolean addNode(T node) {
-    return mProcessNodes.add(node);
+    if(mProcessNodes.add(node)) {
+      node.setOwnerModel(this.asM());
+      return true;
+    }
+    return false;
   }
 
   public boolean removeNode(T node) {

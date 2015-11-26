@@ -29,7 +29,7 @@ import java.util.*;
 public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> implements ProcessNode<T, M>, XmlDeserializable {
 
   public static final String ATTR_PREDECESSOR = "predecessor";
-  @Nullable protected M mOwnerModel;
+  @Nullable private M mOwnerModel;
   @Nullable private ProcessNodeSet<Identifiable> mPredecessors;
   @Nullable private ProcessNodeSet<Identifiable> mSuccessors = null;
   private String mId;
@@ -39,7 +39,12 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   private List<XmlDefineType> mDefines;
   private List<XmlResultType> mResults;
 
-  public ProcessNodeBase(@Nullable final M ownerModel) {mOwnerModel = ownerModel;}
+  public ProcessNodeBase(@Nullable final M ownerModel) {
+    if (ownerModel!=null) {
+      mOwnerModel = ownerModel;
+      mOwnerModel.addNode(this.asT());
+    }
+  }
 
   /**
    * Copy constructor
@@ -111,6 +116,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     // do nothing
   }
 
+  @Deprecated
   protected final void swapPredecessors(@NotNull final Collection<?> predecessors) {
     mPredecessors=null;
     final List<ExecutableProcessNode> tmp = new ArrayList<>(predecessors.size());

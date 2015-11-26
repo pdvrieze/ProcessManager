@@ -58,6 +58,7 @@ import static org.mockito.Mockito.*;
 /**
  * Created by pdvrieze on 24/08/15.
  */
+@SuppressWarnings("ConstantConditions")
 public class TestProcessData {
 
   private static class TestValidationEventHandler implements ValidationEventHandler {
@@ -192,29 +193,26 @@ public class TestProcessData {
   @Test
   public void testDeserializeProcessModel() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
-    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final ProcessModelImpl pm = getProcessModel("testModel2.xml");
     ActivityImpl ac1 = null;
     ActivityImpl ac2 = null;
     StartNodeImpl start = null;
     EndNodeImpl end = null;
-    for(final Object o: xpm.getNodes()) {
-      if (o instanceof ExecutableProcessNode) {
-        final ExecutableProcessNode node = (ExecutableProcessNode) o;
-        if (node.getId() != null) {
-          switch (node.getId()) {
-            case "start":
-              start = (StartNodeImpl) node;
-              break;
-            case "ac1":
-              ac1 = (ActivityImpl) node;
-              break;
-            case "ac2":
-              ac2 = (ActivityImpl) node;
-              break;
-            case "end":
-              end = (EndNodeImpl) node;
-              break;
-          }
+    for(final ExecutableProcessNode node: pm.getModelNodes()) {
+      if (node.getId() != null) {
+        switch (node.getId()) {
+          case "start":
+            start = (StartNodeImpl) node;
+            break;
+          case "ac1":
+            ac1 = (ActivityImpl) node;
+            break;
+          case "ac2":
+            ac2 = (ActivityImpl) node;
+            break;
+          case "end":
+            end = (EndNodeImpl) node;
+            break;
         }
       }
     }
@@ -370,12 +368,12 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripProcessModel1_ac1_result2() throws Exception {
-    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final ProcessModelImpl processModel = getProcessModel("testModel2.xml");
     {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
 
-      final ExecutableProcessNode ac1 = xpm.getNodes().get(1);
+      final ExecutableProcessNode ac1 = processModel.getNode("ac1");
       assertEquals("ac1", ac1.getId());
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
       final XmlResultType result = (XmlResultType) ac1Results.get(1);

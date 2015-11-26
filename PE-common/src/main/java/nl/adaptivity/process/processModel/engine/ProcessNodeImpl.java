@@ -34,9 +34,6 @@ public abstract class ProcessNodeImpl extends ProcessNodeBase<ExecutableProcessN
 
   protected ProcessNodeImpl(@Nullable final ProcessModelImpl ownerModel) {
     super(ownerModel);
-    if (ownerModel!=null) {
-      mOwnerModel.addNode(this);
-    }
   }
 
 

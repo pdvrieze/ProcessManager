@@ -1,0 +1,74 @@
+package nl.adaptivity.process.processModel;
+
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.SplitImpl;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+
+import java.util.Collection;
+import java.util.Collections;
+
+
+/**
+ * Created by pdvrieze on 26/11/15.
+ */
+public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends JoinSplitBase<T, M> implements Split<T, M> {
+
+  public SplitBase(final M ownerModel, final Collection<? extends Identifiable> predecessors, final int max, final int min) {super(ownerModel, predecessors, max, min);}
+
+  public SplitBase(final M ownerModel) {super(ownerModel);}
+
+  @Override
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    serializeAttributes(out);
+    serializeChildren(out);
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
+  }
+
+  @Override
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
+    super.serializeAttributes(out);
+    if (getPredecessors()!=null && getPredecessors().size()>0) {
+      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, getPredecessors().get(0).getId());
+    }
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    if (ATTR_PREDECESSOR.equals(attributeLocalName)) {
+      setPredecessors(Collections.singleton(new Identifier(StringUtil.toString(attributeValue))));
+      return true;
+    }
+    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
+  }
+
+  @Override
+  public <R> R visit(@NotNull final Visitor<R> visitor) {
+    return visitor.visitSplit(this);
+  }
+
+  @NotNull
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public int getMaxSuccessorCount() {
+    return Integer.MAX_VALUE;
+  }
+
+  @NotNull
+  public static SplitImpl deserialize(final ProcessModelImpl ownerModel, final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new SplitImpl(ownerModel), in);
+  }
+}

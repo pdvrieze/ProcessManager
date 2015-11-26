@@ -86,7 +86,7 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
 
     @NotNull
   public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
-    return (ProcessModelImpl) ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ExecutableProcessNode>emptyList()), in);
+    return ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ExecutableProcessNode>emptyList()), in);
   }
 
   private static final long serialVersionUID = -4199223546188994559L;
