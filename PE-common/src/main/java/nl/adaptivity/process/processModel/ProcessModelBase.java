@@ -156,7 +156,9 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
     for(final T node: processModel.getModelNodes()) {
       for(final Identifiable pred: node.getPredecessors()) {
         final T predNode = processModel.getNode(pred);
-        predNode.addSuccessor(node);
+        if (predNode!=null) {
+          predNode.addSuccessor(node);
+        }
       }
     }
     return processModel;
@@ -292,7 +294,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
      * @see nl.adaptivity.process.processModel.ProcessModel#getNode(java.lang.String)
      */
   @Override
-  public T getNode(final Identifiable nodeId) {
+  public final T getNode(final Identifiable nodeId) {
     if (nodeId instanceof ProcessNode) { return (T) nodeId; }
     return mProcessNodes.get(nodeId);
   }

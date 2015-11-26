@@ -50,18 +50,18 @@ public abstract class StartNodeBase<T extends ProcessNode<T, M>, M extends Proce
   }
 
   @Override
-  public <R> R visit(@NotNull final Visitor<R> visitor) {
+  public final <R> R visit(@NotNull final Visitor<R> visitor) {
     return visitor.visitStartNode(this);
   }
 
   @NotNull
   @Override
-  public QName getElementName() {
+  public final QName getElementName() {
     return ELEMENTNAME;
   }
 
   @Override
-  public int getMaxPredecessorCount() {
+  public final int getMaxPredecessorCount() {
     return 0;
   }
 }

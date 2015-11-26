@@ -275,6 +275,7 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     public void resolve(final ProcessModelBase<? extends V, ?> reference) {
       // do nothing
     }
+
   }
 
   private static final class SingletonProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {

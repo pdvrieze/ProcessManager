@@ -18,9 +18,20 @@ import java.util.Collection;
  */
 public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,M>> extends JoinSplitBase<T, M> implements Join<T, M> {
 
+  public static final String IDBASE = "join";
+
   public JoinBase(final M ownerModel, final Collection<? extends Identifiable> predecessors, final int max, final int min) {super(ownerModel, predecessors, max, min);}
 
   public JoinBase(final M ownerModel) {super(ownerModel);}
+
+  public JoinBase(final Join<?, ?> orig) {
+    super(orig);
+  }
+
+  @Override
+  public final String getIdBase() {
+    return IDBASE;
+  }
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
@@ -50,18 +61,18 @@ public class JoinBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T,
   }
 
   @Override
-  public <R> R visit(@NotNull final Visitor<R> visitor) {
+  public final <R> R visit(@NotNull final Visitor<R> visitor) {
     return visitor.visitJoin(this);
   }
 
   @NotNull
   @Override
-  public QName getElementName() {
+  public final QName getElementName() {
     return ELEMENTNAME;
   }
 
   @Override
-  public int getMaxPredecessorCount() {
+  public final int getMaxPredecessorCount() {
     return Integer.MAX_VALUE;
   }
 }

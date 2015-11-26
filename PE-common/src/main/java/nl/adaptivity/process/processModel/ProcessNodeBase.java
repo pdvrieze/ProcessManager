@@ -51,8 +51,8 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
    * @param orig Original
    */
   public ProcessNodeBase(final ProcessNode<?, ?> orig) {
-    mPredecessors = toIdentifiers(orig.getPredecessors());
-    mSuccessors = toIdentifiers(orig.getSuccessors());
+    mPredecessors = toIdentifiers(orig.getPredecessors(), getMaxPredecessorCount());
+    mSuccessors = toIdentifiers(orig.getSuccessors(), getMaxSuccessorCount());
     setId(orig.getId());
     setLabel(orig.getLabel());
     setX(orig.getX());
@@ -61,17 +61,17 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     setResults(orig.getResults());
   }
 
-  private ProcessNodeSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> predecessors) {
-    if (predecessors==null) { return null; }
+  private ProcessNodeSet<Identifiable> toIdentifiers(final Set<? extends Identifiable> identifiables, int maxSize) {
+    if (identifiables==null) { return null; }
     final ProcessNodeSet<Identifiable> result;
-    switch (getMaxSuccessorCount()) {
+    switch (maxSize) {
       case 0: result = ProcessNodeSet.empty(); break;
-      case 1: if (predecessors.size() <= 1) { result = ProcessNodeSet.singleton(); break; }
-      default: result = ProcessNodeSet.processNodeSet(predecessors.size());
+      case 1: if (identifiables.size() <= 1) { result = ProcessNodeSet.singleton(); break; }
+      default: result = ProcessNodeSet.processNodeSet(identifiables.size());
     }
-    for(Identifiable pred: predecessors) {
+    for(Identifiable pred: identifiables) {
       if (pred instanceof Identifier) {
-        result.add((Identifier) pred);
+        result.add(pred);
       } else {
         result.add(new Identifier(pred.getId()));
       }
@@ -187,9 +187,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     ProcessModelBase<T, M> owner = mOwnerModel;
     ProcessNode<?, M> node = null;
     if (owner!=null) {
-      T node2 = owner.getNode(nodeId);
-      owner.addNode((T) node2);
-      node = node2;
+      node = owner.getNode(nodeId);
     } else if (nodeId instanceof ProcessNode){
       node = (ProcessNode<?, M>) nodeId;
     }
@@ -424,6 +422,12 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     notifyChange();
   }
 
+  public void translate(final double dX, final double dY) {
+    mX+=dX;
+    mY+=dY;
+    notifyChange();
+  }
+
   /* (non-Javadoc)
      * @see nl.adaptivity.process.processModel.ProcessNode#isPredecessorOf(nl.adaptivity.process.processModel.ProcessNode)
      */
@@ -494,5 +498,36 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     return newImports;
   }
 
+  public String toString() {
+    String name = getClass().getSimpleName();
+    if (name.endsWith("Node")) {
+      name = name.substring(0, name.length()-4);
+    }
+    {
+      for(int i=name.length()-1; i>=0; --i) {
+        if (Character.isUpperCase(name.charAt(i)) && (i==0 || ! Character.isUpperCase(name.charAt(i-1)))) {
+          name = name.substring(i);
+          break;
+        }
+      }
+    }
+    StringBuilder result = new StringBuilder();
+    result.append(name).append('(');
+    if (mId!=null) { result.append(" id=\'").append(mId).append('\''); }
+    if (mPredecessors!=null && mPredecessors.size()>0) {
+      result.append(" pred=\'");
+      Iterator<Identifiable> predIt = mPredecessors.iterator();
+      result.append(predIt.next().getId());
+      while(predIt.hasNext()) {
+        result.append(", ").append(predIt.next().getId());
+      }
+      result.append('\'');
+    }
+    if (mOwnerModel!=null && mOwnerModel.getName()!=null && mOwnerModel.getName().length()>0) {
+      result.append(" owner='").append(mOwnerModel.getName()).append('\'');
+    }
+    result.append(" )");
+    return result.toString();
+  }
 
 }

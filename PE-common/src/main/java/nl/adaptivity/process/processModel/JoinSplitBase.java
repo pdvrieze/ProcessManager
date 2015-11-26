@@ -27,6 +27,12 @@ public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends Proce
 
   public JoinSplitBase(final M ownerModel) {super(ownerModel);}
 
+  public JoinSplitBase(final JoinSplit<?, ?> orig) {
+    super(orig);
+    mMin = orig.getMin();
+    mMax = orig.getMax();
+  }
+
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
     return false;

@@ -26,6 +26,10 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
 
   public SplitBase(final M ownerModel) {super(ownerModel);}
 
+  public SplitBase(final Split<?, ?> orig) {
+    super(orig);
+  }
+
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
@@ -52,13 +56,13 @@ public class SplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T
   }
 
   @Override
-  public <R> R visit(@NotNull final Visitor<R> visitor) {
+  public final <R> R visit(@NotNull final Visitor<R> visitor) {
     return visitor.visitSplit(this);
   }
 
   @NotNull
   @Override
-  public QName getElementName() {
+  public final QName getElementName() {
     return ELEMENTNAME;
   }
 

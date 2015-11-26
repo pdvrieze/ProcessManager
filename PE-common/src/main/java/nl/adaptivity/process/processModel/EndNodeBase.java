@@ -26,6 +26,10 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
     super(ownerModel);
   }
 
+  public EndNodeBase(final EndNode<?, ?> orig) {
+    super(orig);
+  }
+
   @Override
   public boolean deserializeChild(@NotNull final XmlReader in) throws XmlException {
     if (ProcessConsts.Engine.NAMESPACE.equals(in.getNamespaceUri())) {
@@ -69,7 +73,7 @@ public abstract class EndNodeBase<T extends ProcessNode<T, M>, M extends Process
   }
 
   @Override
-  public <R> R visit(@NotNull final Visitor<R> visitor) {
+  public final <R> R visit(@NotNull final Visitor<R> visitor) {
     return visitor.visitEndNode(this);
   }
 

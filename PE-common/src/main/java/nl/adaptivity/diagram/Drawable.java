@@ -49,7 +49,7 @@ public interface Drawable extends Bounded, Cloneable {
   void setState(int state);
 
 
-  void move(double x, double y);
+  void translate(double dX, double dY);
 
   void setPos(double left, double top);
 
