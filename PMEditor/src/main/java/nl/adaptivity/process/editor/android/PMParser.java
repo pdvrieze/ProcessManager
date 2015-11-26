@@ -190,7 +190,7 @@ public class PMParser {
 
   private static DrawableProcessNode parseStart(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
           XmlException {
-    DrawableStartNode result = new DrawableStartNode(false);
+    DrawableStartNode result = new DrawableStartNode((DrawableProcessModel) null, false);
     parseCommon(in, nodes, modelElems, result);
     if (in.nextTag()!= END_ELEMENT) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
@@ -244,7 +244,7 @@ public class PMParser {
 
     CharArrayWriter caw = new CharArrayWriter();
 
-    XmlWriter serializer = null;
+    XmlWriter serializer;
     try {
       serializer = new AndroidXmlWriter(caw);
     } catch (XmlPullParserException | IOException e) {
@@ -349,7 +349,7 @@ public class PMParser {
 
   private static DrawableProcessNode parseJoin(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
           XmlException {
-    DrawableJoin result = new DrawableJoin(false);
+    DrawableJoin result = new DrawableJoin((DrawableProcessModel)null, false);
     parseCommon(in, nodes, modelElems, result);
     parseJoinSplitAttrs(in, result);
     List<Identifiable> predecessors = new ArrayList<>();
@@ -388,7 +388,7 @@ public class PMParser {
   }
 
   private static DrawableProcessNode parseSplit(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws XmlException {
-    DrawableSplit result = new DrawableSplit();
+    DrawableSplit result = new DrawableSplit((DrawableProcessModel) null);
     parseCommon(in, nodes, modelElems, result);
     parseJoinSplitAttrs(in, result);
     for(EventType type = in.next(); type!= END_ELEMENT; type = in.next()) {
@@ -419,7 +419,7 @@ public class PMParser {
 
   private static DrawableProcessNode parseEnd(XmlReader in, Map<String, DrawableProcessNode> nodes, List<DrawableProcessNode> modelElems) throws
           XmlException {
-    DrawableEndNode result = new DrawableEndNode();
+    DrawableEndNode result = new DrawableEndNode((DrawableProcessModel)null);
     parseCommon(in, nodes, modelElems, result);
     if (in.nextTag()!= END_ELEMENT) { throw new IllegalArgumentException("Invalid process model"); }
     return result;
@@ -463,11 +463,11 @@ public class PMParser {
       return new Identifier(name);
     } else { // there already is a node
       // Allow temporary references to collect as many successors as desired, it might be a split.
-      if ((val.getSuccessors().size()<((DrawableProcessNode)val).getMaxSuccessorCount())) {
+      if ((val.getSuccessors().size() < val.getMaxSuccessorCount())) {
         return val;
       } else {
         // There is no suitable successor
-        return introduceSplit((DrawableProcessNode)val, modelElems);
+        return introduceSplit(val, modelElems);
       }
     }
   }
@@ -478,7 +478,7 @@ public class PMParser {
         return (DrawableSplit) successor;
       }
     }
-    DrawableSplit newSplit = new DrawableSplit();
+    DrawableSplit newSplit = new DrawableSplit((DrawableProcessModel) null);
 
     ArrayList<Identifiable> successors = new ArrayList<>(predecessor.getSuccessors());
     for(Identifiable successorId: successors) {

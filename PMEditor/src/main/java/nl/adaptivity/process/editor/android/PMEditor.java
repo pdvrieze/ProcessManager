@@ -695,11 +695,11 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
       final AndroidTheme theme = new AndroidTheme(AndroidStrategy.INSTANCE);
 
-      addNodeView(theme, new DrawableStartNode(false));
+      addNodeView(theme, new DrawableStartNode((DrawableProcessModel) null, false));
       addNodeView(theme, new DrawableActivity((DrawableProcessModel) null, false));
-      addNodeView(theme, new DrawableSplit());
-      addNodeView(theme, new DrawableJoin(false));
-      addNodeView(theme, new DrawableEndNode());
+      addNodeView(theme, new DrawableSplit((DrawableProcessModel) null));
+      addNodeView(theme, new DrawableJoin((DrawableProcessModel) null, false));
+      addNodeView(theme, new DrawableEndNode((DrawableProcessModel)null));
 
       elementsView.requestLayout();
     }

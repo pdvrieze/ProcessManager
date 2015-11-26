@@ -96,7 +96,7 @@ public class LWDrawableView implements LightView{
 
   @Override
   public void move(float x, float y) {
-    mItem.move(x, y);
+    mItem.translate(x, y);
   }
 
   @Override
