@@ -6,10 +6,10 @@ import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.diagram.DrawingStrategy;
 import nl.adaptivity.diagram.Pen;
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.clientProcessModel.IClientProcessNode;
+import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 
 
-public interface DrawableProcessNode extends IClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
+public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
 
   void setId(String id);
 

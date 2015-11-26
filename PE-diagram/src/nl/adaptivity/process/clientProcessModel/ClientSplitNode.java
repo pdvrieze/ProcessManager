@@ -1,11 +1,7 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.process.processModel.Split;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
-
-import javax.xml.namespace.QName;
+import nl.adaptivity.process.processModel.SplitBase;
 
 
 /**
@@ -14,38 +10,24 @@ import javax.xml.namespace.QName;
  *
  * @param <T> The type of ProcessNode used.
  */
-public class ClientSplitNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientJoinSplit<T, M> implements Split<T, M> {
+public class ClientSplitNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends SplitBase<T, M> implements ClientProcessNode<T,M> {
 
-  public ClientSplitNode() {
-    super();
+  public ClientSplitNode(final M ownerModel) {
+    super(ownerModel);
   }
 
-  public ClientSplitNode(String id) {
-    super(id);
+  public ClientSplitNode(final M ownerModel, String id) {
+    super(ownerModel);
+    setId(id);
   }
 
-  protected ClientSplitNode(ClientJoinSplit<T, M> orig) {
+  protected ClientSplitNode(Split<?, ?> orig) {
     super(orig);
-  }
-
-  @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
   }
 
   @Override
   public int getMaxSuccessorCount() {
     return Integer.MAX_VALUE;
-  }
-
-  @Override
-  public void serialize(XmlWriter out) throws XmlException {
-    serializeSplit(out);
-  }
-
-  @Override
-  public <R> R visit(ProcessNode.Visitor<R> visitor) {
-    return visitor.visitSplit(this);
   }
 
   @Override

@@ -1,50 +1,44 @@
 package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.*;
+import nl.adaptivity.process.clientProcessModel.ClientJoinNode;
 import nl.adaptivity.process.processModel.Join;
-import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
-
-import javax.xml.namespace.QName;
+import nl.adaptivity.xml.XmlReader;
+import org.jetbrains.annotations.NotNull;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
 
-
-public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProcessNode, DrawableProcessModel> {
+public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawableProcessModel> implements Join<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
 
   private static final double ARROWHEADDX = JOINWIDTH*0.375;
-  private static final double ARROWHEADADJUST = 0.5*STROKEWIDTH/Math.sin(ARROWHEADANGLE);
+  private static final double ARROWHEADADJUST = 0.5*STROKEWIDTH/Math.sin(DrawableJoinSplit.ARROWHEADANGLE);
 
   /** The y coordinate if the line were horizontal. */
-  private static final double ARROWDFAR = ARROWLEN*Math.sin(ARROWHEADANGLE);
+  private static final double ARROWDFAR = DrawableJoinSplit.ARROWLEN*Math.sin(DrawableJoinSplit.ARROWHEADANGLE);
   /** The x coordinate if the line were horizontal. */
-  private static final double ARROWDNEAR = ARROWLEN*Math.cos(ARROWHEADANGLE);
+  private static final double ARROWDNEAR = DrawableJoinSplit.ARROWLEN*Math.cos(DrawableJoinSplit.ARROWHEADANGLE);
   private static final double INDX = JOINWIDTH*0.2;
   private static final double INDY = JOINHEIGHT*0.2;
   private static final double INLEN = Math.sqrt(INDX*INDX+INDY*INDY);
-  public static final String IDBASE = "join";
-  private final boolean mCompat;
 
-  public DrawableJoin(final boolean compat) {
-    super();
-    mCompat = compat;
+  private final DrawableJoinSplitDelegate mDrawableJoinSplitDelegate;
+
+  public DrawableJoin(final DrawableProcessModel ownerModel, final boolean compat) {
+    super(ownerModel, compat);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }
 
-  public DrawableJoin(String id, final boolean compat) {
-    super(id);
-    mCompat = compat;
+  public DrawableJoin(final DrawableProcessModel ownerModel, String id, final boolean compat) {
+    super(ownerModel, id, compat);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }
 
   public DrawableJoin(DrawableJoin orig, final boolean compat) {
-    super(orig);
-    mCompat = compat;
-  }
-
-  @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
+    super(orig, compat);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate(orig.mDrawableJoinSplitDelegate);
   }
 
   @Override
@@ -55,34 +49,21 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
-  @Override
-  public int getMaxPredecessorCount() {
-    return Integer.MAX_VALUE;
-  }
-
-  @Override
-  public boolean isCompat() {
-    return mCompat;
-  }
-
   public static DrawableJoin from(Join<?, ?> elem, final boolean compat) {
-    DrawableJoin result = new DrawableJoin(compat);
-    copyProcessNodeAttrs(elem, result);
-    result.setMin(elem.getMin());
-    result.setMax(elem.getMax());
-    return result;
+    return new DrawableJoin((DrawableProcessModel)null, compat);
   }
 
-  @Override
-  public String getIdBase() {
-    return IDBASE;
+  @NotNull
+  public static DrawableJoin deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new DrawableJoin(ownerModel, true), in);
   }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
-    super.draw(canvas, clipBounds);
+    mDrawableJoinSplitDelegate.draw(this, canvas, clipBounds);
+
     final S strategy = canvas.getStrategy();
-    PATH_T path = mItems.getPath(strategy, 1);
+    PATH_T path = mDrawableJoinSplitDelegate.mItems.getPath(strategy, 1);
     if (path==null) {
       path = strategy.newPath();
       if (CURVED_ARROWS) {
@@ -104,7 +85,7 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
             .lineTo(CENTERX, CENTERY)
             .lineTo(CENTERX-INDX,CENTERY+INDY);
       }
-      mItems.setPath(strategy, 1, path);
+      mDrawableJoinSplitDelegate.mItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
       PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState());
@@ -118,13 +99,33 @@ public class DrawableJoin extends DrawableJoinSplit implements Join<DrawableProc
   }
 
   @Override
-  public void serialize(XmlWriter out) throws XmlException {
-    serializeJoin(out);
+  public void setPos(final double left, final double top) {
+    setX(left);
+    setY(top);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> visitor) {
-    return visitor.visitJoin(this);
+  public Rectangle getBounds() {
+    return DrawableJoinSplitDelegate.getBounds(this);
+  }
+
+  @Override
+  public Drawable getItemAt(double x, double y) {
+    return DrawableJoinSplitDelegate.getItemAt(this, x, y);
+  }
+
+  @Override
+  public int getState() {
+    return mDrawableJoinSplitDelegate.getState();
+  }
+
+  @Override
+  public void setState(int state) {
+    mDrawableJoinSplitDelegate.setState(state);
+  }
+
+  public String getMinMaxText() {
+    return DrawableJoinSplitDelegate.getMinMaxText(this);
   }
 
 }

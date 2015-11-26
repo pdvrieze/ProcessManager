@@ -16,7 +16,7 @@ import javax.xml.XMLConstants;
 import java.util.*;
 
 
-public abstract class ClientProcessModel<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ProcessModelBase<T, M> {
+public abstract class ClientProcessModel<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ProcessModelBase<T, M> {
 
   public static final String NS_JBI = "http://adaptivity.nl/ProcessEngine/activity";
 
@@ -192,16 +192,6 @@ public abstract class ClientProcessModel<T extends IClientProcessNode<T, M>, M e
   @Override
   public IProcessModelRef<T, M> getRef() {
     throw new UnsupportedOperationException("Not implemented");
-  }
-
-  @Override
-  public T getNode(Identifiable nodeId) {
-    for(T n: getModelNodes()) {
-      if (nodeId.getId().equals(n.getId())) {
-        return n;
-      }
-    }
-    return null;
   }
 
   public T getNode(String nodeId) {

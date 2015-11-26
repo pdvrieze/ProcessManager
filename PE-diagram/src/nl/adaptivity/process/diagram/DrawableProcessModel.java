@@ -3,7 +3,6 @@ import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
-import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
@@ -26,51 +25,36 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     @Override
     public DrawableEndNode deserializeEndNode(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
-      // XXX Properly use a common node deserialization.
-      DrawableEndNode result = DrawableEndNode.from(EndNodeImpl.deserialize(null, in));
-      result.setOwnerModel(ownerModel);
-      return result;
+      return DrawableEndNode.deserialize(ownerModel, in);
     }
 
     @Override
     public DrawableActivity deserializeActivity(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
-      // XXX Properly use a common node deserialization.
-      DrawableActivity result = DrawableActivity.deserialize(null, in);
-      result.setOwnerModel(ownerModel);
-      return result;
+      return DrawableActivity.deserialize(ownerModel, in);
     }
 
     @Override
     public DrawableStartNode deserializeStartNode(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
-      // XXX Properly use a common node deserialization.
-      DrawableStartNode result = DrawableStartNode.from(StartNodeImpl.deserialize(null, in), true);
-      result.setOwnerModel(ownerModel);
-      return result;
+      return DrawableStartNode.deserialize(ownerModel, in);
     }
 
     @Override
     public DrawableJoin deserializeJoin(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
-      // XXX Properly use a common node deserialization.
-      DrawableJoin result = DrawableJoin.from(JoinImpl.deserialize(null, in), true);
-      result.setOwnerModel(ownerModel);
-      return result;
+      return DrawableJoin.deserialize(ownerModel, in);
     }
 
     @Override
     public DrawableSplit deserializeSplit(final DrawableProcessModel ownerModel, final XmlReader in) throws
             XmlException {
-      // XXX Properly use a common node deserialization.
-      DrawableSplit result = DrawableSplit.from(SplitImpl.deserialize(null, in));
-      result.setOwnerModel(ownerModel);
-      return result;
+      return DrawableSplit.deserialize(ownerModel, in);
     }
 
     @Override
     public DrawableSplit createSplit(final DrawableProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
-      DrawableSplit join = new DrawableSplit();
+      DrawableSplit join = new DrawableSplit(ownerModel);
       join.setId(Identifier.findIdentifier(join.getIdBase(), ownerModel.getModelNodes()));
       ownerModel.addNode(join);
       join.setSuccessors(successors);
@@ -216,7 +200,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void move(double x, double y) {
+  public void translate(double dX, double dY) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
   }
@@ -225,13 +209,6 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public void setPos(double left, double top) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
-  }
-
-  @Override
-  public boolean addNode(DrawableProcessNode node) {
-    ensureId(node);
-    super.addNode(ensureId(node));
-    return false;
   }
 
   private void ensureIds() {

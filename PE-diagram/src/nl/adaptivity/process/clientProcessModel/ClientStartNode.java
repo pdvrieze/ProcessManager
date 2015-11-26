@@ -1,54 +1,25 @@
 package nl.adaptivity.process.clientProcessModel;
 
-import nl.adaptivity.process.processModel.ProcessNode;
-import nl.adaptivity.process.processModel.StartNode;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.process.processModel.StartNodeBase;
 
-import javax.xml.namespace.QName;
-
-import static nl.adaptivity.process.clientProcessModel.ClientProcessModel.NS_PM;
-
-public class ClientStartNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientProcessNode<T, M> implements StartNode<T, M>, IClientProcessNode<T, M> {
+public class ClientStartNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends StartNodeBase<T, M> implements ClientProcessNode<T, M> {
 
   private final boolean mCompat;
 
-  @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
-  }
-
-  public ClientStartNode(final boolean compat) {
-    super();
+  public ClientStartNode(final M ownerModel, final boolean compat) {
+    super(ownerModel);
     mCompat = compat;
   }
 
-  public ClientStartNode(final String id, final boolean compat) {
-    super(id);
+  public ClientStartNode(final M ownerModel, final String id, final boolean compat) {
+    super(ownerModel);
+    setId(id);
     mCompat = compat;
   }
 
   protected ClientStartNode(final ClientStartNode<T, M> orig, final boolean compat) {
     super(orig);
     mCompat = compat;
-  }
-
-  @Override
-  public int getMaxPredecessorCount() {
-    return 0;
-  }
-
-  @Override
-  public void serialize(XmlWriter out) throws XmlException {
-    out.startTag(NS_PM, "start", null);
-    serializeAttributes(out);
-    serializeCommonChildren(out);
-    out.endTag(NS_PM, "start", null);
-  }
-
-  @Override
-  public <R> R visit(ProcessNode.Visitor<R> visitor) {
-    return visitor.visitStartNode(this);
   }
 
   @Override

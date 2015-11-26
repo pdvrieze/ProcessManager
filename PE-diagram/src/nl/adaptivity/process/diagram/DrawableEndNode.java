@@ -2,6 +2,10 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientEndNode;
 import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import org.jetbrains.annotations.NotNull;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -15,17 +19,19 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
   private int mState = STATE_DEFAULT;
 
 
-  public DrawableEndNode() {
-    super();
+  public DrawableEndNode(final DrawableProcessModel ownerModel) {
+    super(ownerModel);
   }
 
-  public DrawableEndNode(String id) {
-    super(id);
+  public DrawableEndNode(final DrawableProcessModel ownerModel, String id) {
+    super(ownerModel, id);
   }
 
-  public DrawableEndNode(DrawableEndNode orig) {
+  public DrawableEndNode(EndNode<?,?> orig) {
     super(orig);
-    mState = orig.mState;
+    if (orig instanceof DrawableEndNode) {
+      mState = ((DrawableEndNode) orig).mState;
+    }
   }
 
   @Override
@@ -34,6 +40,11 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
       return new DrawableEndNode(this);
     }
     throw new RuntimeException(new CloneNotSupportedException());
+  }
+
+  @NotNull
+  public static DrawableEndNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new DrawableEndNode(ownerModel), in);
   }
 
   @Override
@@ -48,9 +59,9 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
   }
 
   @Override
-  public void move(double x, double y) {
-    setX(getX()+x);
-    setY(getY()+y);
+  public void translate(double dX, double dY) {
+    setX(getX() + dX);
+    setY(getY() + dY);
   }
 
   @Override
@@ -98,8 +109,7 @@ public class DrawableEndNode extends ClientEndNode<DrawableProcessNode, Drawable
   }
 
   public static  DrawableEndNode from(EndNode<?, ?> elem) {
-    DrawableEndNode result = new DrawableEndNode();
-    copyProcessNodeAttrs(elem, result);
+    DrawableEndNode result = new DrawableEndNode(elem);
     return result;
   }
 

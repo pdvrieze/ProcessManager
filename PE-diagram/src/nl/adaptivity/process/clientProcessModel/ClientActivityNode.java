@@ -10,7 +10,7 @@ import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
 
 
-public class ClientActivityNode<T extends IClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase<T, M> implements IClientProcessNode<T, M> {
+public class ClientActivityNode<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ActivityBase<T, M> implements ClientProcessNode<T, M> {
 
   private final boolean mCompat;
   private String mCondition;

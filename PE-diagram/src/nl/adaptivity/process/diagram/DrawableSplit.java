@@ -1,18 +1,18 @@
 package nl.adaptivity.process.diagram;
 
 import nl.adaptivity.diagram.*;
-import nl.adaptivity.process.processModel.ProcessNode;
+import nl.adaptivity.process.clientProcessModel.ClientSplitNode;
 import nl.adaptivity.process.processModel.Split;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.XmlReader;
+import org.jetbrains.annotations.NotNull;
 
-import javax.xml.namespace.QName;
-
-import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
-
+import static nl.adaptivity.process.diagram.DrawableProcessModel.JOINWIDTH;
+import static nl.adaptivity.process.diagram.DrawableProcessModel.STROKEWIDTH;
 
 
-public class DrawableSplit extends DrawableJoinSplit implements Split<DrawableProcessNode, DrawableProcessModel>{
+public class DrawableSplit extends ClientSplitNode<DrawableProcessNode, DrawableProcessModel> implements Split<DrawableProcessNode, DrawableProcessModel>, DrawableJoinSplit {
 
   private static final double ARROWHEADDX = JOINWIDTH*0.2;
   private static final double ARROWHEADDY = JOINWIDTH*0.2;
@@ -23,31 +23,40 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   private static final double ARROWDNEAR = ARROWLEN*Math.cos(0.25*Math.PI-ARROWHEADANGLE);
   private static final double INLEN = Math.sqrt(ARROWHEADDX*ARROWHEADDX+ARROWHEADDY*ARROWHEADDY);
   public static final String IDBASE = "split";
+  private final DrawableJoinSplitDelegate mDrawableJoinSplitDelegate;
 
 
-  public DrawableSplit() {
-    super();
+  public DrawableSplit(final DrawableProcessModel ownerModel) {
+    super(ownerModel);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }
 
-  public DrawableSplit(String id) {
-    super(id);
+  public DrawableSplit(final DrawableProcessModel ownerModel, String id) {
+    super(ownerModel, id);
+    mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
   }
 
-  public DrawableSplit(DrawableJoinSplit orig) {
+  public DrawableSplit(Split<?,?> orig) {
     super(orig);
+    if (orig instanceof DrawableSplit) {
+      mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate(((DrawableSplit) orig).mDrawableJoinSplitDelegate);
+    } else {
+      mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();
+    }
   }
 
+  @SuppressWarnings("CloneDoesntCallSuperClone")
   @Override
-  public QName getElementName() {
-    return ELEMENTNAME;
-  }
-
-  @Override
-  public DrawableJoinSplit clone() {
+  public DrawableSplit clone() {
     if (getClass()==DrawableSplit.class) {
       return new DrawableSplit(this);
     }
     throw new RuntimeException(new CloneNotSupportedException());
+  }
+
+  @NotNull
+  public static DrawableSplit deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new DrawableSplit(ownerModel), in);
   }
 
   @Override
@@ -56,11 +65,7 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   }
 
   public static DrawableSplit from(Split<?, ?> elem) {
-    DrawableSplit result = new DrawableSplit();
-    copyProcessNodeAttrs(elem, result);
-    result.setMin(elem.getMin());
-    result.setMax(elem.getMax());
-    return result;
+    return new DrawableSplit(elem);
   }
 
   @Override
@@ -75,9 +80,10 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
-    super.draw(canvas, clipBounds);
+    mDrawableJoinSplitDelegate.draw(this, canvas, clipBounds);
+
     final S strategy = canvas.getStrategy();
-    PATH_T path = mItems.getPath(strategy, 1);
+    PATH_T path = mDrawableJoinSplitDelegate.mItems.getPath(strategy, 1);
     if (path==null) {
       path = strategy.newPath();
       if (CURVED_ARROWS) {
@@ -101,10 +107,10 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
           .lineTo(CENTERX+ARROWHEADDX,CENTERY+ARROWHEADDY)
           .lineTo(CENTERX+ARROWHEADDX-ARROWDNEAR,CENTERY+ARROWHEADDY-ARROWDFAR);
 
-      mItems.setPath(strategy, 1, path);
+      mDrawableJoinSplitDelegate.mItems.setPath(strategy, 1, path);
     }
     if (hasPos()) {
-      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.INNERLINE, getState() & ~STATE_TOUCHED);
+      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.INNERLINE, mDrawableJoinSplitDelegate.getState() & ~STATE_TOUCHED);
       canvas.drawPath(path, linePen, null);
     }
   }
@@ -115,13 +121,33 @@ public class DrawableSplit extends DrawableJoinSplit implements Split<DrawablePr
   }
 
   @Override
-  public void serialize(XmlWriter out) throws XmlException {
-    serializeSplit(out);
+  public void setPos(final double left, final double top) {
+    setX(left);
+    setY(top);
   }
 
   @Override
-  public <R> R visit(ProcessNode.Visitor<R> visitor) {
-    return visitor.visitSplit(this);
+  public Rectangle getBounds() {
+    return DrawableJoinSplitDelegate.getBounds(this);
+  }
+
+  @Override
+  public Drawable getItemAt(double x, double y) {
+    return DrawableJoinSplitDelegate.getItemAt(this, x, y);
+  }
+
+  @Override
+  public int getState() {
+    return mDrawableJoinSplitDelegate.getState();
+  }
+
+  @Override
+  public void setState(int state) {
+    mDrawableJoinSplitDelegate.setState(state);
+  }
+
+  public String getMinMaxText() {
+    return DrawableJoinSplitDelegate.getMinMaxText(this);
   }
 
 }

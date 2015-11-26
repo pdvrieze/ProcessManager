@@ -2,6 +2,10 @@ package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientStartNode;
 import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import org.jetbrains.annotations.NotNull;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -15,12 +19,12 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   private int mState = STATE_DEFAULT;
 
 
-  public DrawableStartNode(final boolean compat) {
-    super(compat);
+  public DrawableStartNode(final DrawableProcessModel ownerModel, final boolean compat) {
+    super(ownerModel, compat);
   }
 
-  public DrawableStartNode(String id, final boolean compat) {
-    super(id, compat);
+  public DrawableStartNode(final DrawableProcessModel ownerModel, String id, final boolean compat) {
+    super(ownerModel, id, compat);
   }
 
   public DrawableStartNode(DrawableStartNode orig, final boolean compat) {
@@ -36,15 +40,20 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
     throw new RuntimeException(new CloneNotSupportedException());
   }
 
+  @NotNull
+  public static DrawableStartNode deserialize(final DrawableProcessModel ownerModel, @NotNull final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new DrawableStartNode(ownerModel, true), in);
+  }
+
   @Override
   public Rectangle getBounds() {
     return new Rectangle(getX()-REFERENCE_OFFSET_X, getY()-REFERENCE_OFFSET_Y, STARTNODERADIUS*2+STROKEWIDTH, STARTNODERADIUS*2+STROKEWIDTH);
   }
 
   @Override
-  public void move(double x, double y) {
-    setX(getX()+x);
-    setY(getY()+y);
+  public void translate(double dX, double dY) {
+    setX(getX() + dX);
+    setY(getY() + dY);
   }
 
   @Override
@@ -95,7 +104,7 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   }
 
   public static DrawableStartNode from(StartNode<?, ?> n, final boolean compat) {
-    DrawableStartNode result = new DrawableStartNode(compat);
+    DrawableStartNode result = new DrawableStartNode((DrawableProcessModel) null, compat);
     copyProcessNodeAttrs(n, result);
     result.setDefines(n.getDefines());
     return result;

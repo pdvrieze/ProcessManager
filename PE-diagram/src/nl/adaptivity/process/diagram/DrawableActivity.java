@@ -24,7 +24,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
     super(owner, compat);
   }
 
-  public DrawableActivity(String id, final boolean compat, final DrawableProcessModel owner) {
+  public DrawableActivity(final DrawableProcessModel owner, String id, final boolean compat) {
     super(owner, id, compat);
   }
 
@@ -55,9 +55,9 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   }
 
   @Override
-  public void move(double x, double y) {
-    setX(getX()+x);
-    setY(getY()+y);
+  public void translate(double dX, double dY) {
+    setX(getX() + dX);
+    setY(getY() + dY);
   }
 
   @Override
