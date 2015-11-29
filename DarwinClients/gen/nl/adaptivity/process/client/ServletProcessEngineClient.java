@@ -23,8 +23,8 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.messaging.SendableSoapSource;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.exec.XmlProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.ws.soap.SoapHelper;
 
 import org.w3c.dom.Node;
