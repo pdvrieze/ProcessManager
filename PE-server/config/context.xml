@@ -44,6 +44,12 @@
               password="5glul9f3i4"
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/webauth"
+              connectionTimeout="10000"
+              idleTimeout="180000"
+              maxLifetime="180000"
+              leakDetectionThreshold="10000"
+              registerMbeans="true"
+              autoCommit="false"
               username="webauth"/>
 
     <!-- The process engine database -->
@@ -55,6 +61,12 @@
               password="2lCmFVW0J4"
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/processengine"
+              connectionTimeout="10000"
+              idleTimeout="180000"
+              maxLifetime="180000"
+              leakDetectionThreshold="10000"
+              registerMbeans="true"
+              autoCommit="false"
               username="processengine"/>
 
     <!-- The user task database from PEUserMessageHandler -->
@@ -65,6 +77,12 @@
               password="2lCmFVW0J4"
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/usertasks"
+              connectionTimeout="10000"
+              idleTimeout="180000"
+              maxLifetime="180000"
+              leakDetectionThreshold="10000"
+              registerMbeans="true"
+              autoCommit="false"
               username="processengine"/>
 
 

@@ -193,10 +193,6 @@
         <mime-type>application/x-hdf</mime-type>
     </mime-mapping>
     <mime-mapping>
-        <extension>hqx</extension>
-        <mime-type>application/mac-binhex40</mime-type>
-    </mime-mapping>
-    <mime-mapping>
         <extension>htc</extension>
         <mime-type>text/x-component</mime-type>
     </mime-mapping>
@@ -752,7 +748,7 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
-    <!-- XXXX From services -->
+    <!-- XX_XX From services -->
     <servlet>
         <servlet-name>messagingServlet</servlet-name>
         <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
@@ -765,7 +761,7 @@
         <url-pattern>/messaging/*</url-pattern>
     </servlet-mapping>
 
-    <!-- XXXX From PEUserMessageHandler -->
+    <!-- XX_XX From PEUserMessageHandler -->
 
 
     <servlet>
@@ -797,7 +793,7 @@
         <welcome-file>PEUserMessageHandler.html</welcome-file>
     </welcome-file-list>
 
-    <!-- XXXX From ProcessEngine -->
+    <!-- XX_XX From ProcessEngine -->
 
     <listener>
         <listener-class>nl.adaptivity.process.engine.servlet.PEContextListener</listener-class>
@@ -814,5 +810,9 @@
     </servlet-mapping>
 
 
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
 
 </web-app>

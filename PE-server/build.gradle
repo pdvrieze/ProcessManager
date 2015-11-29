@@ -1,11 +1,12 @@
 apply plugin: 'java'
 apply plugin: 'com.bmuschko.tomcat'
+apply plugin: 'idea'
 
 defaultTasks 'tomcatRun'
 
 version = '1.0.0'
 description = 'A project for running an embedded tomcat server that works.'
-group = ['util' ]
+//group = ['util' ]
 
 
 configurations {
@@ -24,6 +25,8 @@ dependencies {
     extraBootCp project(':DarwinJavaApi')
     extraBootCp project(':JavaCommonApi')
     extraBootCp project(':DarwinRealm')
+    // Todo dynamically determine version needed from -api version
+    extraBootCp 'org.slf4j:slf4j-simple:1.7.12'
 //    extraBootCp dbcpSpec
 
     tomcat 'mysql:mysql-connector-java:5.1.36'
@@ -39,6 +42,14 @@ dependencies {
     tomcat project(path: ':ProcessEngine')
 /*    tomcatRunWar ':ProcessEngine:tomcatExtClasses'*/
 /*    tomcatRun project(':ProcessEngine').tasks['war']*/
+}
+
+
+idea {
+    module {
+        scopes.PROVIDED.plus += [configurations.tomcat]
+        scopes.TEST.plus += [configurations.tomcat]
+    }
 }
 
 tomcat {
