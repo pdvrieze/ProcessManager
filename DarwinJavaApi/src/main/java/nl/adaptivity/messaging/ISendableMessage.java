@@ -4,6 +4,7 @@ import nl.adaptivity.io.Writable;
 
 import javax.activation.DataSource;
 
+import java.io.Reader;
 import java.util.Collection;
 import java.util.Map;
 
@@ -38,6 +39,8 @@ public interface ISendableMessage {
     String getValue();
 
   }
+
+  Reader getBodyReader();
 
   /**
    * What should be the destination of the message.
