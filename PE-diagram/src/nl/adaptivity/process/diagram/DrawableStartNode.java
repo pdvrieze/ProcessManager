@@ -18,6 +18,9 @@ public class DrawableStartNode extends ClientStartNode<DrawableProcessNode, Draw
   public static final String IDBASE = "start";
   private int mState = STATE_DEFAULT;
 
+  public DrawableStartNode(final DrawableProcessModel ownerModel) {
+    this(ownerModel, false);
+  }
 
   public DrawableStartNode(final DrawableProcessModel ownerModel, final boolean compat) {
     super(ownerModel, compat);

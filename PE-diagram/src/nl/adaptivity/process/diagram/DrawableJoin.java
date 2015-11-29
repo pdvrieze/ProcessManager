@@ -26,6 +26,10 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
 
   private final DrawableJoinSplitDelegate mDrawableJoinSplitDelegate;
 
+  public DrawableJoin(final DrawableProcessModel ownerModel) {
+    this(ownerModel, false);
+  }
+
   public DrawableJoin(final DrawableProcessModel ownerModel, final boolean compat) {
     super(ownerModel, compat);
     mDrawableJoinSplitDelegate = new DrawableJoinSplitDelegate();

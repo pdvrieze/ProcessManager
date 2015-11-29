@@ -11,8 +11,6 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 
 public interface DrawableProcessNode extends ClientProcessNode<DrawableProcessNode, DrawableProcessModel>, Drawable {
 
-  void setId(String id);
-
   void setLabel(String label);
 
   <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top);

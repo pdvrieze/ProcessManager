@@ -1,9 +1,9 @@
 package nl.adaptivity.process.diagram;
 
+import nl.adaptivity.diagram.Positioned;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import nl.adaptivity.diagram.Positioned;
 
 
 public class DiagramNode<T extends Positioned> implements Positioned {
@@ -140,6 +140,11 @@ public class DiagramNode<T extends Positioned> implements Positioned {
            (region.getLeft()<right) &&
            (region.getTop()<bottom) &&
            (region.getBottom()>top);
+  }
+
+  @Override
+  public boolean hasPos() {
+    return Double.isFinite(mX) && Double.isFinite(mY);
   }
 
   public List<DiagramNode<T>> getLeftNodes() {

@@ -38,6 +38,8 @@ public interface ClientProcessNode<T extends ClientProcessNode<T, M>, M extends 
 
   void setOwnerModel(M owner);
 
+  void setId(String id);
+
   @Nullable
   M getOwnerModel();
 

@@ -5,13 +5,11 @@ import nl.adaptivity.diagram.Bounded;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.DiagramNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.EndNode;
+import nl.adaptivity.process.processModel.ProcessModelBase;
+import nl.adaptivity.process.processModel.ProcessNodeSet;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlWriter;
-
-import javax.xml.XMLConstants;
 
 import java.util.*;
 
@@ -263,24 +261,6 @@ public abstract class ClientProcessModel<T extends ClientProcessNode<T, M>, M ex
         maxY = Math.max(n.getBottom(), maxY);
       }
     }
-  }
-
-  public void serialize(XmlWriter out) throws XmlException {
-    out.namespaceAttr(XMLConstants.NULL_NS_URI, NS_PM);
-    out.namespaceAttr("umh", NS_UMH);
-    out.namespaceAttr("jbi", NS_JBI);
-
-    out.startTag(NS_PM, "processModel", null);
-    if (getName() != null) {
-      out.attribute(null, "name", null, getName());
-    }
-    if (getUuid() != null) {
-      out.attribute(null, "uuid", null, getUuid().toString());
-    }
-    for(T node: getModelNodes()) {
-      node.serialize(out);
-    }
-    out.endTag(NS_PM, "processModel", null);
   }
 
   private List<DiagramNode<T>> toDiagramNodes(Collection<? extends T> modelNodes) {

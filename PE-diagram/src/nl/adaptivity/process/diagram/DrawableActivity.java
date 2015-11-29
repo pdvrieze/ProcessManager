@@ -20,6 +20,10 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   private int mState = STATE_DEFAULT;
   private static Rectangle _bounds;
 
+  public DrawableActivity(final DrawableProcessModel owner) {
+    this(owner, false);
+  }
+
   public DrawableActivity(final DrawableProcessModel owner, final boolean compat) {
     super(owner, compat);
   }

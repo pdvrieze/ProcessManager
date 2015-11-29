@@ -1,6 +1,8 @@
 package nl.adaptivity.process.diagram;
+
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
@@ -15,7 +17,7 @@ import java.util.*;
 
 public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode, DrawableProcessModel> implements Diagram {
 
-  private static class Factory implements DeserializationFactory<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
+  public static class Factory implements DeserializationFactory<DrawableProcessNode, DrawableProcessModel>, XmlDeserializerFactory<DrawableProcessModel>, SplitFactory<DrawableProcessNode, DrawableProcessModel> {
 
     @Override
     public DrawableProcessModel deserialize(final XmlReader in) throws XmlException {
@@ -211,13 +213,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     throw new UnsupportedOperationException("Diagrams can not be moved");
   }
 
-  private void ensureIds() {
-    for (DrawableProcessNode node: getModelNodes()) {
+  public void ensureIds() {
+    for (ClientProcessNode node: getModelNodes()) {
       ensureId(node);
     }
   }
 
-  private <T extends DrawableProcessNode> T ensureId(T node) {
+  private <T extends ClientProcessNode> T ensureId(T node) {
     if (node.getId()==null) {
       String idBase = node.getIdBase();
       String newId = idBase + idSeq++;
