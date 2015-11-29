@@ -1,17 +1,18 @@
-package nl.adaptivity.process.exec;
+package nl.adaptivity.process.engine.processModel;
 
-import java.sql.SQLException;
+import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.Transaction;
+import net.devrieze.util.db.DBTransaction;
+import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlWriter;
+import org.w3c.dom.Node;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import net.devrieze.util.Transaction;
-import org.w3c.dom.Node;
-
-import net.devrieze.util.HandleMap.HandleAware;
-import net.devrieze.util.db.DBTransaction;
-
-import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.engine.ProcessData;
+import java.sql.SQLException;
 
 
 /**
@@ -21,6 +22,29 @@ import nl.adaptivity.process.engine.ProcessData;
  * @param <V> The actual type of the implementing class.
  */
 public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends HandleAware<V> {
+
+  class Wrapper implements XmlSerializable {
+
+    private final DBTransaction mTransaction;
+    private IProcessNodeInstance mDelegate;
+
+    Wrapper(final DBTransaction transaction, IProcessNodeInstance delegate) {
+
+      mTransaction = transaction;
+      mDelegate = delegate;
+    }
+
+    @Override
+    public void serialize(final XmlWriter out) throws XmlException {
+      mDelegate.serialize(mTransaction, out);
+    }
+
+    public IProcessNodeInstance getDelegate() {
+      return mDelegate;
+    }
+  }
+
+  void serialize(Transaction transaction, XmlWriter out) throws XmlException;
 
   /**
    * Enumeration representing the various states a task can be in.
@@ -82,9 +106,8 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
   /**
    * Set the state of the task.
    *
-   * @param mNewState The new state of the task.
    * @param transaction
-   * @param newState
+   * @param newState The new state of the task.
    */
   void setState(Transaction transaction, TaskState newState) throws SQLException;
 
@@ -104,7 +127,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    *
    * @param messageService Service to use for communication of change of state.
    * @return <code>true</code> if this stage has completed and the task should
-   *         be {@link #startTask(IMessageService) started}.
+   *         be {@link #startTask(Transaction, IMessageService) started}.
    */
   <T> boolean takeTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
 
@@ -113,7 +136,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    *
    * @param messageService Service to use for communication of change of state.
    * @return <code>true</code> if the task has completed and
-   *         {@link #finishTask(Node)} should be called.
+   *         {@link #finishTask(Transaction, Node)}  should be called.
    */
   <T> boolean startTask(Transaction transaction, IMessageService<T, V> messageService) throws SQLException;
 
