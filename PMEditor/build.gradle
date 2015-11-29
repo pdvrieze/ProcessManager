@@ -5,8 +5,10 @@ description = 'Android interface with process model editor and task interface'
 
 dependencies {
     compile project(':PE-diagram')
+    compile project(':PE-common')
     compile project(':darwinlib')
-    compile fileTree(include: '*.jar', dir: 'libs')
+    compile project(':DarwinJavaApi')
+    compile project(':JavaCommonApi')
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:support-annotations:23.1.1'
     testCompile 'junit:junit:4.12'
@@ -39,8 +41,11 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             useJack false
+//            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),
+                    'proguard-project.txt'
         }
     }
 

@@ -39,7 +39,7 @@ public class TestPMParser {
   public void testParseSimple() throws XmlPullParserException {
     InputStream inputStream = getClass().getResourceAsStream("/processmodel.xml");
     XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
-    DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
+    DrawableProcessModel model = PMParser.parseProcessModelFallback(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
     checkModel1(model);
 
   }

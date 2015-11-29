@@ -98,6 +98,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     final DiagramView diagramView = mBinding.diagramView1;
     float scale = Math.min(diagramView.getWidth()/diagramBounds.width(),diagramView.getHeight()/diagramBounds.height());
     diagramView.setScale(scale);
+    scale = (float) diagramView.getScale();
 
     float w2 = diagramView.getWidth()/scale;
 

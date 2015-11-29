@@ -5,6 +5,7 @@ import android.os.Parcelable;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +31,7 @@ public class PMParcelable implements Parcelable {
   private ClientProcessModel<?, ?> mProcessModel;
 
   public PMParcelable(Parcel source) {
-    this(PMParser.parseProcessModel(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
+    this(PMParser.parseProcessModelFallback(readInputStream(source), PMEditor.NULL_LAYOUT_ALGORITHM, new LayoutAlgorithm<DrawableProcessNode>()));
   }
 
   public PMParcelable(ClientProcessModel<?, ?> processModel) {
@@ -62,7 +63,7 @@ public class PMParcelable implements Parcelable {
       } else {
         dest.writeInt(0);
       }
-    } catch (XmlPullParserException | IOException e) {
+    } catch (XmlException | XmlPullParserException | IOException e) {
       dest.writeInt(0);
       throw new RuntimeException(e);
     }

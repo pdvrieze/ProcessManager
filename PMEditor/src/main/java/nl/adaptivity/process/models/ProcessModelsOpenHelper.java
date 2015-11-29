@@ -1,12 +1,10 @@
 package nl.adaptivity.process.models;
 
-import java.io.CharArrayWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.UUID;
-
-import org.xmlpull.v1.XmlPullParserException;
-
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.BaseColumns;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -16,11 +14,13 @@ import nl.adaptivity.process.models.ProcessModelProvider.ProcessInstances;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.BaseColumns;
+import nl.adaptivity.xml.XmlException;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.CharArrayWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.UUID;
 
 
 @SuppressWarnings("boxing")
@@ -63,13 +63,13 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
       ContentValues cv = new ContentValues();
       InputStream in = mContext.getResources().openRawResource(R.raw.processmodel);
       final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
-      DrawableProcessModel model = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+      DrawableProcessModel model = PMParser.parseProcessModelFallback(in, layoutAlgorithm, layoutAlgorithm);
       model.setName(modelName);
       CharArrayWriter out = new CharArrayWriter();
       try {
         try {
           PMParser.serializeProcessModel(out, model);
-        } catch (IOException | XmlPullParserException e) {
+        } catch (IOException | XmlPullParserException | XmlException e) {
           throw new RuntimeException(e);
         }
       } finally {

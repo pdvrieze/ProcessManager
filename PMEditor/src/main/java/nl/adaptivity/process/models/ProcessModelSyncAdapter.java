@@ -274,6 +274,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
     return TAG_PROCESSMODELS;
   }
 
+  // XXX remove trailing slash if possible.
   @Override
   public URI getListUrl(URI base) {
     return base.resolve("processModels/");

@@ -15,6 +15,7 @@ import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
+import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.*;
@@ -404,7 +405,7 @@ public class ProcessModelProvider extends ContentProvider {
     CharArrayWriter out = new CharArrayWriter();
     try {
       PMParser.serializeProcessModel(out, processModel);
-    } catch (XmlPullParserException e) {
+    } catch (XmlPullParserException |XmlException e) {
       throw new IOException(e);
     }
     ContentProviderClient client = context.getContentResolver().acquireContentProviderClient(ProcessModels.CONTENT_ID_URI_BASE);

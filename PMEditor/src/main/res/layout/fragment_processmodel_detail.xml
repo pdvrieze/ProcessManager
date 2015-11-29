@@ -51,7 +51,8 @@
                 android:layout_marginRight="@dimen/default_margin"
                 android:layout_weight="1"
                 android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
-                app:editable="false" />
+                app:editable="false"
+                app:maxScale="3"/>
 
         <Button
                 android:id="@+id/btn_pm_clone"
@@ -75,7 +76,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/default_margin"
-                android:visibility="@{(data.isLoading || data.handle==null) ? View.GONE : View.VISIBLE}"
+                android:visibility="@{(data.isLoading || data.handle!=null) ? View.GONE : View.VISIBLE}"
                 android:text="@string/btn_pm_publish" />
 
         <Button

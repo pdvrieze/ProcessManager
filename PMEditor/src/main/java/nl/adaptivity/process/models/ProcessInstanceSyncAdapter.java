@@ -39,7 +39,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   private static final String TAG_PROCESSINSTANCES = "processInstances";
   private static final String TAG_PROCESSINSTANCE = "processInstance";
   private static final String TAG_HPROCESSINSTANCE = "instanceHandle";
-  private static final String TAG = ProcessInstanceSyncAdapter.class.getSimpleName();
+  private static final String TAG = "TaskSyncAdapter";
 
   public ProcessInstanceSyncAdapter() {
     super(ProcessInstances.CONTENT_ID_URI_BASE);

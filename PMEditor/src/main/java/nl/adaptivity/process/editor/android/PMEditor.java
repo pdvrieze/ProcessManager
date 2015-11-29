@@ -30,6 +30,7 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.editor.android.NodeEditDialogFragment.NodeEditListener;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.xml.XmlException;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -572,8 +573,9 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
             Class<?> nodeType = (Class<?>) event.getLocalState();
             Constructor<?> constructor;
             try {
-              constructor = nodeType.getConstructor();
-              DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance();
+              // TODO replace with factory
+              constructor = nodeType.getConstructor(DrawableProcessModel.class);
+              DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(mPm);
               float diagramX = diagramView1.toDiagramX(event.getX());
               float diagramY = diagramView1.toDiagramY(event.getY());
               final int gridSize = diagramView1.getGridSize();
@@ -583,7 +585,6 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
               }
               node.setX(diagramX);
               node.setY(diagramY);
-              mPm.addNode(node);
               diagramView1.invalidate();
               return true;
             } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -857,7 +858,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
             } finally {
               out.close();
             }
-          } catch (XmlPullParserException|IOException e) {
+          } catch (XmlException | XmlPullParserException|IOException e) {
             Log.e(TAG, "Failure to save process model on closure", e);
           }
         }

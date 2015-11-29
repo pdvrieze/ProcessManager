@@ -6,6 +6,7 @@
             <enum name="no_grid" value="0" />
         </attr>
         <attr name="editable" format="boolean" />
+        <attr name="maxScale" format="float" />
     </declare-styleable>
 
     <declare-styleable name="AutoCompletePreference" parent="EditTextPreference">

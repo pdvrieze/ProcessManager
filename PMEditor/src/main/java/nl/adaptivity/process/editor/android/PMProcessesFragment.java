@@ -209,7 +209,7 @@ public class PMProcessesFragment extends Fragment {
   public void doSaveFile(Writer out, ClientProcessModel<?, ?> processModel) throws IOException {
     try {
       PMParser.serializeProcessModel(out , processModel);
-    } catch (XmlPullParserException e) {
+    } catch (XmlPullParserException| XmlException e) {
       throw new IOException(e);
     }
   }
@@ -217,7 +217,7 @@ public class PMProcessesFragment extends Fragment {
   public void doSaveFile(OutputStream out, ClientProcessModel<?, ?> processModel) throws IOException {
     try {
       PMParser.serializeProcessModel(out , processModel);
-    } catch (XmlPullParserException e) {
+    } catch (XmlException | XmlPullParserException e) {
       throw new IOException(e);
     }
   }

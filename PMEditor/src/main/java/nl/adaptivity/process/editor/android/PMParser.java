@@ -5,6 +5,7 @@ import android.util.Log;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.clientProcessModel.ClientMessage;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.util.Identifiable;
@@ -14,7 +15,6 @@ import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 import javax.xml.XMLConstants;
@@ -31,22 +31,24 @@ public class PMParser {
 
   public static final String NS_PROCESSMODEL="http://adaptivity.nl/ProcessEngine/";
 
-  public static void serializeProcessModel(OutputStream out, ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException {
+  public static void serializeProcessModel(OutputStream out, ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
     XmlSerializer serializer = getSerializer(out);
-    serializeProcessModel(serializer, processModel);
+    AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
+    processModel.serialize(writer);
+    writer.close();
   }
 
-  public static void serializeProcessModel(Writer out, ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException {
+  public static void serializeProcessModel(Writer out, ClientProcessModel<?, ?> processModel) throws XmlPullParserException, IOException, XmlException {
     XmlSerializer serializer = getSerializer(out);
-    serializeProcessModel(serializer, processModel);
+    AndroidXmlWriter writer = new AndroidXmlWriter(serializer);
+    processModel.serialize(writer);
+    writer.close();
   }
 
-  private static XmlSerializer getSerializer() throws XmlPullParserException {
-    XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-    factory.setNamespaceAware(true);
-    final XmlSerializer serializer = factory.newSerializer();
+  private static BetterXmlSerializer getSerializer() throws XmlPullParserException {
+    final XmlSerializer serializer = new BetterXmlSerializer();
     serializer.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", false);
-    return serializer;
+    return (BetterXmlSerializer) serializer;
   }
 
   static XmlSerializer getSerializer(OutputStream out) throws XmlPullParserException, IOException {
@@ -69,7 +71,7 @@ public class PMParser {
     return serializer;
   }
 
-  private static void serializeProcessModel(XmlSerializer serializer, ClientProcessModel<?, ?> processModel) {
+  private static <T extends ClientProcessNode<T,M>, M extends ClientProcessModel<T,M>> void serializeProcessModel(XmlSerializer serializer, DrawableProcessModel processModel) {
     try {
       serializer.startDocument(null, null);
       serializer.ignorableWhitespace("\n");
@@ -81,6 +83,36 @@ public class PMParser {
   }
 
   public static DrawableProcessModel parseProcessModel(Reader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+    try {
+      return parseProcessModel(new AndroidXmlReader(in), simpleLayoutAlgorithm, advancedAlgorithm);
+    } catch (Exception e){
+      Log.e(PMEditor.class.getSimpleName(), e.getMessage(), e);
+      return null;
+    }
+  }
+
+  public static DrawableProcessModel parseProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+    try {
+      return parseProcessModel(new AndroidXmlReader(in, "UTF-8"), simpleLayoutAlgorithm, advancedAlgorithm);
+    } catch (Exception e){
+      Log.e(PMEditor.class.getSimpleName(), e.getMessage(), e);
+      return null;
+    }
+  }
+
+  public static DrawableProcessModel parseProcessModel(XmlReader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) throws XmlException {
+    DrawableProcessModel result = DrawableProcessModel.deserialize(in);
+    if (result.hasUnpositioned()) {
+      result.setLayoutAlgorithm(advancedAlgorithm);
+      result.layout();
+    } else {
+      result.setLayoutAlgorithm(simpleLayoutAlgorithm);
+    }
+    return result;
+  }
+
+  @Deprecated
+  public static DrawableProcessModel parseProcessModelFallback(Reader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     XmlReader parser;
     try {
       parser = new AndroidXmlReader(in);
@@ -88,10 +120,11 @@ public class PMParser {
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseProcessModel(parser, simpleLayoutAlgorithm, advancedAlgorithm);
+    return parseProcessModelFallback(parser, simpleLayoutAlgorithm, advancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(InputStream in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  @Deprecated
+  public static DrawableProcessModel parseProcessModelFallback(InputStream in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     XmlReader parser;
     try {
       parser = new AndroidXmlReader(in, "UTF-8");
@@ -99,10 +132,11 @@ public class PMParser {
       Log.e(PMEditor.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseProcessModel(parser, simpleLayoutAlgorithm, advancedAlgorithm);
+    return parseProcessModelFallback(parser, simpleLayoutAlgorithm, advancedAlgorithm);
   }
 
-  public static DrawableProcessModel parseProcessModel(XmlReader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
+  @Deprecated
+  public static DrawableProcessModel parseProcessModelFallback(XmlReader in, LayoutAlgorithm<DrawableProcessNode> simpleLayoutAlgorithm, LayoutAlgorithm<DrawableProcessNode> advancedAlgorithm) {
     try {
 
       if(in.nextTag()== START_ELEMENT && StringUtil.isEqual(NS_PROCESSMODEL, in.getNamespaceUri()) && StringUtil.isEqual("processModel", in.getLocalName())){

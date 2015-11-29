@@ -1,19 +1,5 @@
 package nl.adaptivity.process.editor.android;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.UUID;
-
-import nl.adaptivity.android.util.GetNameDialogFragment;
-import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter;
-import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ContentUris;
@@ -28,17 +14,26 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AbsListView;
+import android.view.*;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
+import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.UUID;
+
 
 /**
  * A list fragment representing a list of ProcessModels. This fragment also

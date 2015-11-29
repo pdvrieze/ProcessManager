@@ -282,7 +282,10 @@ public class DiagramView extends View implements OnZoomListener{
 
   private boolean mEditable = true;
 
+  private double mMaxScale;
+
   private static final int DEFAULT_GRID_SIZE=8;
+  private static final float DEFAULT_MAX_SCALE= (float) (2 * DENSITY);
 
   public DiagramView(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
@@ -311,11 +314,14 @@ public class DiagramView extends View implements OnZoomListener{
   public void init(AttributeSet attrs) {
     if (attrs==null) {
       mGridSize=DEFAULT_GRID_SIZE;
+      mMaxScale=DEFAULT_MAX_SCALE;
     } else {
       TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.DiagramView, 0, 0);
       try {
         mGridSize = a.getInteger(R.styleable.DiagramView_gridSize, DEFAULT_GRID_SIZE);
         mEditable = a.getBoolean(R.styleable.DiagramView_editable, true);
+        mMaxScale = a.getFloat(R.styleable.DiagramView_maxScale, Float.NaN)*DENSITY;
+        if (Double.isNaN(mMaxScale)) { mMaxScale = DEFAULT_MAX_SCALE; }
       } finally {
         a.recycle();
       }
@@ -355,6 +361,7 @@ public class DiagramView extends View implements OnZoomListener{
 
 
   public void setScale(double scale) {
+    scale = Math.min(mMaxScale, scale);
     if (mScale !=scale) {
       Compat.postInvalidateOnAnimation(this);
     }

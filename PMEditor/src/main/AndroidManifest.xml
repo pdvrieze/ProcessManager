@@ -18,6 +18,7 @@
                  android:supportsRtl="true"
                  android:label="@string/app_name"
                  android:theme="@style/AppTheme"
+                 android:name="nl.adaptivity.xml.XmlApplication"
                  tools:ignore="UnusedAttribute">
 
         <activity android:name="nl.adaptivity.process.editor.android.PMEditor"
