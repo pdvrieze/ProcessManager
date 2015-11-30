@@ -8,16 +8,23 @@
 
 package org.w3.soapEnvelope;
 
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.ExtXmlDeserializable;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**
@@ -40,17 +47,52 @@ import java.util.Map;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = Body.ELEMENTNAME, propOrder = { "any" })
-public class Body {
+public class Body implements ExtXmlDeserializable, XmlSerializable {
 
-  public static final String ELEMENTNAME = "Body";
-
-  @XmlAnyElement(lax = false)
-  protected List<Object> any;
+  public static final String ELEMENTLOCALNAME = "Body";
+  public static final QName ELEMENTNAME = new QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX);
 
   @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
+  private CompactFragment mContent;
+
+  public static Body deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new Body(), in);
+  }
+
+  @Override
+  public void deserializeChildren(final XmlReader in) throws XmlException {
+    mContent = XmlUtil.siblingsToFragment(in);
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    QName qname = new QName(StringUtil.toString(attributeNamespace), StringUtil.toString(attributeLocalName));
+    otherAttributes.put(qname, StringUtil.toString(attributeValue));
+    return true;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    // nothing
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, getElementName());
+    for(Entry<QName, String> attr:otherAttributes.entrySet()) {
+      XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
+    }
+    if (mContent!=null) {
+      mContent.serialize(out);
+    }
+    XmlUtil.writeEndElement(out, getElementName());
+  }
 
   /**
    * Gets the value of the any property.
@@ -69,11 +111,8 @@ public class Body {
    * Objects of the following type(s) are allowed in the list {@link Object }
    * {@link Element }
    */
-  public List<Object> getAny() {
-    if (any == null) {
-      any = new ArrayList<>();
-    }
-    return this.any;
+  public CompactFragment getBodyContent() {
+    return mContent;
   }
 
   /**

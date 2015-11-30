@@ -1,11 +1,12 @@
 package nl.adaptivity.messaging;
 
 import net.devrieze.util.InputStreamOutputStream;
-import nl.adaptivity.io.Writable;
 import nl.adaptivity.messaging.ISendableMessage.IHeader;
 import nl.adaptivity.util.activation.SourceDataSource;
 import nl.adaptivity.ws.soap.SoapHelper;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -295,17 +296,18 @@ public class DarwinMessenger implements IMessenger {
           }
         }
         try {
+          if (hasPayload) {
+            httpConnection.setRequestProperty("content-type", mMessage.getContentType()+"; charset=UTF-8");
+            try(final OutputStream out = httpConnection.getOutputStream()) {
+              Writer writer = new OutputStreamWriter(out, "UTF-8");
+              mMessage.getBodySource().writeTo(writer);
+            }
+          }
           httpConnection.connect();
         } catch (@NotNull final ConnectException e) {
           throw new MessagingException("Error connecting to " + destination, e);
         }
         try {
-          if (hasPayload) {
-            try(final OutputStream out = httpConnection.getOutputStream()) {
-              Writer writer = new OutputStreamWriter(out, httpConnection.getContentEncoding());
-              mMessage.getBodySource().writeTo(writer);
-            }
-          }
           mResponseCode = httpConnection.getResponseCode();
           if ((mResponseCode < 200) || (mResponseCode >= 400)) {
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -560,28 +562,27 @@ public class DarwinMessenger implements IMessenger {
     if (registeredEndpoint instanceof Endpoint) { // Direct delivery when we don't just have a descriptor.
       if ("application/soap+xml".equals(message.getContentType())) {
         final SoapMessageHandler handler = SoapMessageHandler.newInstance(registeredEndpoint);
-        final Source resultSource2;
-        Writable writable = message.getBodySource();
+        Source resultSource;
+        try {
+          resultSource = handler.processMessage(XmlStreaming.newReader(message.getBodyReader()), message.getAttachments());
 
-        final MessageTask<T> resultfuture;
-        if (returnType.isAssignableFrom(SourceDataSource.class)) {
-          final CharArrayWriter caw = new CharArrayWriter();
-          try {
-            writable.writeTo(caw);
-          } catch (@NotNull final IOException e) {
-            throw new MessagingException(e);
+          final MessageTask<T> resultfuture;
+          if (returnType.isAssignableFrom(SourceDataSource.class)) {
+            resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", resultSource)));
+          } else {
+            final T resultval = SoapHelper.processResponse(returnType, returnContext, resultSource);
+            resultfuture = new MessageTask<>(resultval);
           }
-          resultfuture = new MessageTask<>(returnType.cast(new SourceDataSource("application/soap+xml", new StreamSource(new CharArrayReader(caw.toCharArray())))));
-        } else {
-          final T resultval = SoapHelper.processResponse(returnType, returnContext, writable);
-          resultfuture = new MessageTask<>(resultval);
+
+          //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
+          if (completionListener != null) {
+            completionListener.onMessageCompletion(resultfuture);
+          }
+          return resultfuture;
+        } catch (RuntimeException | XmlException e) {
+          return new MessageTask<T>(e);
         }
 
-        //        resultfuture = new MessageTask<T>(JAXB.unmarshal(resultSource, pReturnType));
-        if (completionListener != null) {
-          completionListener.onMessageCompletion(resultfuture);
-        }
-        return resultfuture;
       }
     }
 

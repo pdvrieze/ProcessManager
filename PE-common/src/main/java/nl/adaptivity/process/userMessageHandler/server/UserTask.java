@@ -2,7 +2,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.HandleMap.HandleAware;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 
 import java.security.Principal;
 import java.util.List;

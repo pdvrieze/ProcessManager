@@ -4,6 +4,7 @@ import net.devrieze.util.PrefixMap;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.util.HttpMessage;
+import nl.adaptivity.xml.XmlException;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.TransformerException;
@@ -53,11 +54,11 @@ public class RestMessageHandler {
     final RestMethodWrapper method = getMethodFor(pMethod, pRequest);
 
     if (method != null) {
-      method.unmarshalParams(pRequest);
-      method.exec();
       try {
+        method.unmarshalParams(pRequest);
+        method.exec();
         method.marshalResult(pResponse);
-      } catch (final TransformerException e) {
+      } catch (final XmlException | TransformerException e) {
         throw new IOException(e);
       }
       return true;
@@ -217,7 +218,7 @@ public class RestMessageHandler {
       param = pCondition;
       value = null;
     }
-    final String val = pRequest.getPost(param);
+    final String val = pRequest.getPosts(param);
     return (val != null) && ((value == null) || value.equals(val));
   }
 
@@ -236,57 +237,57 @@ public class RestMessageHandler {
     return (val != null) && ((value == null) || value.equals(val));
   }
 
-  private static boolean pathFits(final Map<String, String> pParamMatch, final String pPath, final String pPathInfo) {
+  private static boolean pathFits(final Map<String, String> paramMatch, final String pattern, final String query) {
     int i = 0;
     int j = 0;
-    while (i < pPath.length()) {
-      if (j >= pPathInfo.length()) {
+    while (i < pattern.length()) {
+      if (j >= query.length()) {
         return false;
       }
-      final char c = pPath.charAt(i);
-      if ((c == '$') && (pPath.length() > (i + 1)) && (pPath.charAt(i + 1) == '{')) {
+      final char c = pattern.charAt(i);
+      if ((c == '$') && (pattern.length() > (i + 1)) && (pattern.charAt(i + 1) == '{')) {
         i += 2;
         final int k = i;
-        while ((i < pPath.length()) && (pPath.charAt(i) != '}')) {
+        while ((i < pattern.length()) && (pattern.charAt(i) != '}')) {
           ++i;
         }
-        if (i >= pPath.length()) {
+        if (i >= pattern.length()) {
           // Not valid parameter, treat like no parameter
           i -= 2;
-          if (c != pPathInfo.charAt(j)) {
+          if (c != query.charAt(j)) {
             return false;
           }
         } else {
-          final String paramName = pPath.substring(k, i);
+          final String paramName = pattern.substring(k, i);
           final String paramValue;
-          if (pPath.length() > (i + 1)) {
-            final char delim = pPath.charAt(i + 1);
+          if (pattern.length() > (i + 1)) {
+            final char delim = pattern.charAt(i + 1);
             final int l = j;
-            while ((j < pPathInfo.length()) && (pPathInfo.charAt(j) != delim)) {
+            while ((j < query.length()) && (query.charAt(j) != delim)) {
               ++j;
             }
-            if (j >= pPathInfo.length()) {
+            if (j >= query.length()) {
               return false;
             }
-            paramValue = pPathInfo.substring(l, j);
+            paramValue = query.substring(l, j);
           } else {
-            paramValue = pPathInfo.substring(j);
-            j= pPathInfo.length();
+            paramValue = query.substring(j);
+            j= query.length();
           }
-          pParamMatch.put(paramName, paramValue);
+          paramMatch.put(paramName, paramValue);
         }
       } else {
-        if (c != pPathInfo.charAt(j)) {
+        if (c != query.charAt(j)) {
           return false;
         }
-        if ((c == '$') && (pPath.length() > (i + 1)) && (pPath.charAt(i + 1) == '$')) {
+        if ((c == '$') && (pattern.length() > (i + 1)) && (pattern.charAt(i + 1) == '$')) {
           ++i;
         }
       }
       ++i;
       ++j;
     }
-    return j >= pPathInfo.length();
+    return j+1==query.length() ? query.charAt(j)=='/' : j >= query.length();
   }
 
   public static boolean canHandle(final Class<?> pClass) {

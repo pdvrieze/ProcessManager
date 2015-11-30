@@ -16,7 +16,7 @@ public abstract class AbstractXmlReader implements XmlReader {
   @Override
   public void require(final EventType type, final CharSequence namespace, final CharSequence name) throws XmlException {
     if (getEventType()!= type) {
-      throw new XmlException("Unexpected event type");
+      throw new XmlException("Unexpected event type Found:"+getEventType()+" expected "+type);
     }
     if (namespace!=null) {
       if (! StringUtil.isEqual(namespace, getNamespaceUri())) {

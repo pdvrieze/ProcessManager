@@ -8,20 +8,28 @@
 
 package org.w3.soapEnvelope;
 
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyAttribute;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
+import java.util.Map.Entry;
 
 
 /**
@@ -47,16 +55,69 @@ import org.w3c.dom.Element;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = Header.ELEMENTNAME, propOrder = { "any" })
-public class Header {
+@XmlType(name = Header.ELEMENTLOCALNAME, propOrder = { "any" })
+public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
-  public static final String ELEMENTNAME = "Header";
+  public static final String ELEMENTLOCALNAME = "Header";
+  public static final QName ELEMENTNAME = new QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX);
 
   @XmlAnyElement(lax = false)
-  protected List<Object> any;
+  protected List<Node> any;
 
   @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
+
+  public static Header deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new Header(), in);
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    getAny().add(XmlUtil.childToNode(in));
+    return true;
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    if (XmlUtil.isXmlWhitespace(elementText)) { return true; }
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    try {
+      Document doc = dbf.newDocumentBuilder().newDocument();
+      getAny().add(doc.createTextNode(elementText.toString()));
+    } catch (ParserConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+    return true;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    QName qname = new QName(StringUtil.toString(attributeNamespace), StringUtil.toString(attributeLocalName));
+    otherAttributes.put(qname, StringUtil.toString(attributeValue));
+    return true;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    // nothing
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, getElementName());
+    for(Entry<QName, String> attr:otherAttributes.entrySet()) {
+      XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
+    }
+    for(Node n: getAny()) {
+      XmlUtil.writeChild(out, n);
+    }
+    XmlUtil.writeEndElement(out, getElementName());
+  }
 
   /**
    * Gets the value of the any property.
@@ -75,7 +136,7 @@ public class Header {
    * Objects of the following type(s) are allowed in the list {@link Object }
    * {@link Element }
    */
-  public List<Object> getAny() {
+  public List<Node> getAny() {
     if (any == null) {
       any = new ArrayList<>();
     }

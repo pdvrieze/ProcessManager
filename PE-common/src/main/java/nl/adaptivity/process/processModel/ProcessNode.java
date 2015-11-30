@@ -21,6 +21,8 @@ public interface ProcessNode<T extends ProcessNode<T, M>, M extends ProcessModel
     R visitEndNode(EndNode<?, ?> endNode);
   }
 
+  void setId(String id);
+
   @Nullable
   M getOwnerModel();
 

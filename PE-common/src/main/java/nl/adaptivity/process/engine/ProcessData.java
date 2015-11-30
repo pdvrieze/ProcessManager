@@ -1,11 +1,9 @@
 package nl.adaptivity.process.engine;
 
 import net.devrieze.util.Named;
-import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
@@ -16,25 +14,20 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stax.StAXResult;
+import javax.xml.namespace.QName;
 
 import java.util.List;
 
 
-@XmlJavaTypeAdapter(XmlSerializable.JAXBAdapter.class)
 /** Class to represent data attached to process instances. */
-public class ProcessData implements Named/*, XmlSerializable*/ {
+@XmlJavaTypeAdapter(XmlSerializable.JAXBAdapter.class)
+public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable {
 
-  private final String mName;
-  private final CompactFragment mValue;
-  private final boolean mIsNodeList = false;
+  public static final String ELEMENTLOCALNAME = "value";
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
+
+  private String mName;
+  private CompactFragment mValue;
 
 // Object Initialization
 
@@ -46,7 +39,6 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
   public ProcessData(final String name, final Node value) throws XmlException {
     this(name, toCompactFragment(value));
   }
-// Object Initialization end
 
   public ProcessData(final String name, final CompactFragment value) {
     mName = name;
@@ -59,6 +51,50 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     this(name, (value==null || value.getLength()<=1)? toNode(value) : XmlUtil.toDocFragment(value));
   }
 
+  @SuppressWarnings("deprecation")
+  @Deprecated
+  public ProcessData(final String name, final List<Node> value) throws XmlException {
+    this(name, XmlUtil.toDocFragment(value));
+  }
+
+  private ProcessData() {}
+
+  // Object Initialization end
+  public static ProcessData deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new ProcessData(), in);
+  }
+
+  @Override
+  public void deserializeChildren(final XmlReader in) throws XmlException {
+    mValue = XmlUtil.siblingsToFragment(in);
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    if (StringUtil.isEqual("name", attributeLocalName)) {
+      mName=attributeValue.toString();
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    // nothing
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  public void serialize(@NotNull final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlUtil.writeAttribute(out, "name", mName);
+    mValue.serialize(out);
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
+  }
+
   public DocumentFragment getContentFragment() throws XmlException {
     return XmlUtil.childrenToDocumentFragment(getContentStream());
   }
@@ -68,17 +104,12 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     return XmlUtil.nodeToFragment(value);
   }
 
+
   @Nullable
   private static Node toNode(@Nullable final NodeList value) {
     if (value==null|| value.getLength()==0) { return null; }
     assert value.getLength()==1;
     return value.item(0);
-  }
-
-  @SuppressWarnings("deprecation")
-  @Deprecated
-  public ProcessData(final String name, final List<Node> value) throws XmlException {
-    this(name, XmlUtil.toDocFragment(value));
   }
 
 
@@ -87,7 +118,6 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
   public Named newWithName(final String name) {
     return new ProcessData(name, mValue);
   }
-
 
   @Override
   public String getName() {
@@ -134,55 +164,6 @@ public class ProcessData implements Named/*, XmlSerializable*/ {
     } else if (!mValue.equals(other.mValue))
       return false;
     return true;
-  }
-
-  public void serialize(@NotNull final XmlWriter out) throws XmlException {
-    if (out.getNamespaceContext().getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
-      out.startTag(null, "value", Constants.PROCESS_ENGINE_NS_PREFIX);
-      out.namespaceAttr(Constants.PROCESS_ENGINE_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
-    } else {
-      out.startTag(Constants.PROCESS_ENGINE_NS, null, "value");
-    }
-    final XmlWriter strippedout = XmlUtil.stripMetatags(out);
-
-    try {
-      strippedout.attribute(null, "name", null, mName);
-      XmlUtil.serialize(getContentStream(), strippedout);
-    } finally {
-      out.endTag(null, null, null);
-    }
-  }
-
-  private void serializeNodeList(@NotNull final XMLStreamWriter out) throws XMLStreamException {
-    final NodeList nodelist = (NodeList) mValue;
-    try {
-      final Transformer transformer = TransformerFactory
-          .newInstance()
-          .newTransformer();
-      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-
-      for(int i = 0; i<nodelist.getLength(); ++i) {
-        transformer.transform(new DOMSource(nodelist.item(i)), new StAXResult(out));
-      }
-    } catch (@NotNull final TransformerException e) {
-      throw new XMLStreamException(e);
-    }
-  }
-
-  private void serializeDocumentFragment2(@NotNull final XMLStreamWriter out) throws XMLStreamException {
-    final DocumentFragment nodelist = (DocumentFragment) mValue;
-    try {
-      final Transformer transformer = TransformerFactory
-              .newInstance()
-              .newTransformer();
-      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-
-      for (Node n=nodelist.getFirstChild(); n!=null; n= nodelist.getNextSibling()) {
-        transformer.transform(new DOMSource(n), new StAXResult(out));
-      }
-    } catch (@NotNull final TransformerException e) {
-      throw new XMLStreamException(e);
-    }
   }
 
 }

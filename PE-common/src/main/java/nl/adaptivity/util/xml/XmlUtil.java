@@ -139,9 +139,10 @@ public final class XmlUtil {
     }
   }
 
-  public static final int OMIT_XMLDECL = 1;
-  private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
-  private static final StreamFilter SUBSTREAM_FILTER = new StreamFilter() {
+  private static class SubstreamStreamFilter implements StreamFilter {
+
+    private static final StreamFilter SUBSTREAM_FILTER = new SubstreamStreamFilter();
+
     @Override
     public boolean accept(@NotNull final XMLStreamReader reader) {
       switch (reader.getEventType()) {
@@ -154,8 +155,12 @@ public final class XmlUtil {
           return true;
       }
     }
-  };
-  private static final EventFilter SUBEVENTS_FILTER = new EventFilter() {
+  }
+
+  private static class SubstreamEventFilter implements EventFilter {
+
+    private static final EventFilter SUBEVENTS_FILTER = new SubstreamEventFilter();
+
     @Override
     public boolean accept(@NotNull final XMLEvent event) {
       switch (event.getEventType()) {
@@ -168,7 +173,10 @@ public final class XmlUtil {
           return true;
       }
     }
-  };
+  }
+
+  public static final int OMIT_XMLDECL = 1;
+  private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
 
 
   private XmlUtil() {
@@ -184,6 +192,14 @@ public final class XmlUtil {
       root = document.createElementNS(outerName.getNamespaceURI(), outerName.getPrefix() + ':' + outerName.getLocalPart());
     }
     return root;
+  }
+
+  public static Reader toReader(final XmlSerializable serializable) throws XmlException {
+    CharArrayWriter buffer = new CharArrayWriter();
+    XmlWriter writer = XmlStreaming.newWriter(buffer);
+    serializable.serialize(writer);
+    writer.close();
+    return new CharArrayReader(buffer.toCharArray());
   }
 
   public static void writeEndElement(final XmlWriter out, final QName predelemname) throws XmlException {
@@ -336,13 +352,23 @@ public final class XmlUtil {
     return null;
   }
 
+  public static void serialize(final XmlSerializable serializable, final Writer writer) throws XmlException {
+    XmlWriter out = XmlStreaming.newWriter(writer, true);
+    serializable.serialize(out);
+    out.close();
+  }
+
   public static void serialize(final Node in, @NotNull final XMLStreamWriter out) throws XMLStreamException {
     serialize(new StAXSource(createXMLStreamReader(XMLInputFactory.newFactory(), new DOMSource(in))), out);
   }
 
   public static void serialize(@NotNull final StAXSource in, @NotNull final XMLStreamWriter out) throws
           XMLStreamException {
-    serialize(createXMLEventWriter(XMLOutputFactory.newFactory(), out), createXMLEventReader(XMLInputFactory.newFactory(), in));
+    serialize(createXMLEventReader(XMLInputFactory.newFactory(), in), createXMLEventWriter(XMLOutputFactory.newFactory(), out));
+  }
+
+  public static void serialize(final Node in, @NotNull final XmlWriter out) throws XmlException {
+    serialize(XmlStreaming.newReader(new DOMSource(in)), out);
   }
 
   public static void serialize(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
@@ -352,7 +378,7 @@ public final class XmlUtil {
     }
   }
 
-  public static void serialize(@NotNull final XMLEventWriter out, final XMLEventReader in) throws XMLStreamException {
+  public static void serialize(final XMLEventReader in, @NotNull final XMLEventWriter out) throws XMLStreamException {
     out.add(in);
   }
 
@@ -515,7 +541,7 @@ public final class XmlUtil {
   public static XMLStreamReader filterSubstream(final XMLStreamReader streamReader) throws
           XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return xif.createFilteredReader(streamReader, SUBSTREAM_FILTER);
+    return xif.createFilteredReader(streamReader, SubstreamStreamFilter.SUBSTREAM_FILTER);
   }
 
   /**
@@ -530,7 +556,7 @@ public final class XmlUtil {
 
   public static XMLEventReader filterSubstream(final XMLEventReader xMLEventReader) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newFactory();
-    return xif.createFilteredReader(xMLEventReader, SUBEVENTS_FILTER);
+    return xif.createFilteredReader(xMLEventReader, SubstreamEventFilter.SUBEVENTS_FILTER);
   }
 
   @NotNull
@@ -787,6 +813,26 @@ public final class XmlUtil {
     return documentFragment;
   }
 
+
+  public static Node childToNode(final XmlReader in) throws XmlException {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    Document doc;
+    try {
+      doc = dbf.newDocumentBuilder().newDocument();
+    } catch (@NotNull final ParserConfigurationException e) {
+      throw new XmlException(e);
+    }
+    final DocumentFragment documentFragment = doc.createDocumentFragment();
+    XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
+    writeCurrentEvent(in, out);
+    if (in.getEventType()== EventType.START_ELEMENT) {
+      writeElementContent(null, in, out);
+    }
+    return documentFragment.getFirstChild();
+  }
+
+
   public static char[] siblingsToCharArray(final XMLStreamReader in) throws XMLStreamException {
     return siblingsToFragment(in).getContent();
   }
@@ -810,7 +856,9 @@ public final class XmlUtil {
    * @throws XmlException
    */
   public static CompactFragment readerToFragment(final XmlReader in) throws XmlException {
+    XmlUtil.skipPreamble(in);
     if (in.hasNext()) {
+      in.require(EventType.START_ELEMENT, null, null);
       in.next();
       return siblingsToFragment(in);
     }
@@ -826,6 +874,7 @@ public final class XmlUtil {
   @NotNull
   public static CompactFragment siblingsToFragment(final XmlReader in) throws XmlException {
     CharArrayWriter caw = new CharArrayWriter();
+    if (in.getEventType()==null && in.hasNext()) { in.next(); }
 
     final String startLocation = in.getLocationInfo();
     try {
@@ -1041,6 +1090,7 @@ public final class XmlUtil {
   }
 
   public static boolean isIgnorable(final EventType type) {
+    if (type==null) { return true; } // Before start, means ignore the "current event"
     switch (type) {
       case COMMENT:
       case START_DOCUMENT:
@@ -1058,6 +1108,10 @@ public final class XmlUtil {
     if (child!=null) {
       child.serialize(out);
     }
+  }
+
+  public static void writeChild(XmlWriter out, final Node in) throws XmlException {
+    serialize(in, out);
   }
 
   public static void writeChildren(final XmlWriter out, @Nullable final Iterable<? extends XmlSerializable> children) throws
@@ -1119,9 +1173,21 @@ public final class XmlUtil {
     }
   }
 
+  public static void writeAttribute(@NotNull final XmlWriter out, final QName name, @Nullable final String value) throws XmlException {
+    if (value!=null) {
+      out.attribute(name.getNamespaceURI(), name.getLocalPart(), name.getPrefix(), value);
+    }
+  }
+
   public static void writeAttribute(@NotNull final XmlWriter out, final String name, final double value) throws XmlException {
     if (! Double.isNaN(value)) {
       out.attribute(null, name, null, Double.toString(value));
+    }
+  }
+
+  public static void writeAttribute(@NotNull final XmlWriter out, final String name, final long value) throws XmlException {
+    if (! Double.isNaN(value)) {
+      out.attribute(null, name, null, Long.toString(value));
     }
   }
 
@@ -1262,6 +1328,11 @@ public final class XmlUtil {
         break;
       }
     }
+  }
+
+  private static void writeElementContent(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws
+                                                                                                                                                            XmlException {
+    writeElementContent(new HashMap<String, String>(), in, out);
   }
 
   private static void writeElementContent(@Nullable final Map<String, String> missingNamespaces, @NotNull final XmlReader in, @NotNull final XmlWriter out) throws

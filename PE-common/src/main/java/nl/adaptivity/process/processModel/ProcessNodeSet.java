@@ -178,7 +178,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     public boolean add(@NotNull final V object) {
       final String name = object.getId();
 
-      if (containsKey(name)) {
+      if (name==null) {
+        if (mStore.contains(object)) {
+          return false;
+        }
+      } else if (containsKey(name)) {
         return false;
       }
 

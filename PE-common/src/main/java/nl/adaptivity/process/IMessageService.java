@@ -3,10 +3,9 @@ package nl.adaptivity.process;
 import java.sql.SQLException;
 
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 
 import nl.adaptivity.messaging.EndpointDescriptor;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IXmlMessage;
 
 

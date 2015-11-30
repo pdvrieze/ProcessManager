@@ -11,6 +11,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,6 +57,10 @@ public class SendableSoapSource implements ISendableMessage, Writable {
   @Override
   public Writable getBodySource() {
     return this;
+  }
+
+  public Reader getBodyReader() {
+    return Sources.toReader(mMessage);
   }
 
   @Override

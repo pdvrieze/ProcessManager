@@ -86,7 +86,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   }
 
   protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
-    out.attribute(null, "id", null, getId());
+    XmlUtil.writeAttribute(out, "id", getId());
     XmlUtil.writeAttribute(out, "label", getLabel());
     XmlUtil.writeAttribute(out, "x", getX());
     XmlUtil.writeAttribute(out, "y", getY());
@@ -500,6 +500,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   public String toString() {
     String name = getClass().getSimpleName();
+    if (name.endsWith("Impl")) {
+      name = name.substring(0, name.length()-4);
+    }
     if (name.endsWith("Node")) {
       name = name.substring(0, name.length()-4);
     }

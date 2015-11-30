@@ -1,12 +1,19 @@
 package nl.adaptivity.ws.soap;
 
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Tripple;
 import net.devrieze.util.Types;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.util.xml.CompactFragment;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
@@ -14,6 +21,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.*;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
@@ -207,25 +215,107 @@ public class SoapHelper {
     return wrapper;
   }
 
-  public static <T> T processResponse(final Class<T> pClass, Class<?>[] pContext, final Writable pContent) {
-    // XXX get rid of JAXB here if possible
-    final Envelope env = JAXB.unmarshal(new WritableReader(pContent), Envelope.class);
-    final List<Object> elements = env.getBody().getAny();
-    if (elements.size() != 1) {
-      return null;
-    }
-    final Element wrapper = (Element) elements.get(0);
-    if (wrapper.getFirstChild() == null) {
-      return null; // Must be void method
-    }
-    final LinkedHashMap<String, Node> results = getParamMap(wrapper);
-    return pClass.cast(unMarshalNode(null, pClass, pContext, results.get(RESULT)));
+  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Source source) throws XmlException {
+    XmlReader in = XmlStreaming.newReader(source);
+    Envelope env = Envelope.deserialize(in);
+    return processResponse(resultType, context, env);
   }
 
-  static LinkedHashMap<String, Node> getParamMap(final Node bodyParamRoot) {
-    LinkedHashMap<String, Node> params;
+  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Envelope env) {
+    final CompactFragment bodyContent = env.getBody().getBodyContent();
+    try {
+      XmlReader reader = XMLFragmentStreamReader.from(bodyContent);
+      while (reader.hasNext()) {
+        switch(reader.next()) {
+          case TEXT:
+            if (!XmlUtil.isXmlWhitespace(reader.getText())) {
+              throw new XmlException("Unexpected text content");
+            }
+          case IGNORABLE_WHITESPACE:
+            break; // whitespace is ignored
+          case START_ELEMENT: {
+            LinkedHashMap<String, Node> params = unmarshalWrapper(reader);
+            // This is the parameter wrapper
+            return unMarshalNode(null, resultType, context, params.get(RESULT));
+          }
+          default:
+            XmlUtil.unhandledEvent(reader);
+        }
+      }
+      return null; // no nodes
+    } catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Writable pContent) {
+    // XXX get rid of JAXB here if possible
+    final Envelope env = JAXB.unmarshal(new WritableReader(pContent), Envelope.class);
+    return processResponse(resultType, context, env);
+//    if (bodyContent.size() != 1) {
+//      return null;
+//    }
+//    final Element wrapper = (Element) bodyContent.get(0);
+//    if (wrapper.getFirstChild() == null) {
+//      return null; // Must be void method
+//    }
+//    final LinkedHashMap<String, Node> results = getParamMap(wrapper);
+//    return resultType.cast(unMarshalNode(null, resultType, pContext, results.get(RESULT)));
+  }
+
+  static <T> LinkedHashMap<String, Node> unmarshalWrapper(final XmlReader reader) throws XmlException {
+    reader.require(EventType.START_ELEMENT, null, null);
+    LinkedHashMap<String, Node> params = new LinkedHashMap<>();
+    QName wrapperName = reader.getName();
+    QName returnName = null;
+    while (reader.hasNext() && reader.getEventType()!= EventType.END_ELEMENT) {
+      switch (reader.next()) {
+        case TEXT:
+          if (!XmlUtil.isXmlWhitespace(reader.getText())) {
+            throw new XmlException("Unexpected text content");
+          }
+        case IGNORABLE_WHITESPACE:
+          break; // whitespace is ignored
+        case START_ELEMENT: {
+          if (XmlUtil.isElement(reader, "http://www.w3.org/2003/05/soap-rpc", "result")) {
+            String s = StringUtil.toString(XmlUtil.readSimpleElement(reader));
+            final int i = s.indexOf(':');
+            if (i >= 0) {
+              returnName = new QName(reader.getNamespaceUri(s.substring(0,i)),s.substring(i + 1));
+            } else {
+              String ns = reader.getNamespaceUri(XMLConstants.DEFAULT_NS_PREFIX);
+              if (ns==null || ns.isEmpty()) {
+                returnName = new QName(s);
+              } else {
+                returnName = new QName(ns, s);
+              }
+            }
+            if (params.containsKey(returnName)) {
+              params.put(RESULT, params.remove(returnName));
+            }
+
+          } else if ((returnName != null) && XmlUtil.isElement(reader, returnName)) {
+            params.put(RESULT, XmlUtil.childToNode(reader));
+          } else {
+            params.put(reader.getLocalName().toString(), XmlUtil.childToNode(reader));
+          }
+          break;
+        }
+        default:
+          XmlUtil.unhandledEvent(reader);
+          // This is the parameter wrapper
+      }
+    }
+
+
+    reader.require(EventType.END_ELEMENT, wrapperName.getNamespaceURI(), wrapperName.getLocalPart());
+    return params;
+  }
+
+
+  private static LinkedHashMap<String, Node> getParamMap(final Node bodyParamRoot) {
+    LinkedHashMap<String, Node> params = new LinkedHashMap<>();
     {
-      params = new LinkedHashMap<>();
 
       Node child = bodyParamRoot.getFirstChild();
       String returnName = null;
@@ -260,17 +350,13 @@ public class SoapHelper {
       return Collections.emptyMap();
     }
     final LinkedHashMap<String, Node> result = new LinkedHashMap<>();
-    for (final Object o : pHeader.getAny()) {
-      if (o instanceof Node) {
-        final Node n = (Node) o;
-        result.put(n.getLocalName(), n);
-      }
-
+    for (final Node node : pHeader.getAny()) {
+        result.put(node.getLocalName(), node);
     }
     return result;
   }
 
-  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) {
+  static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) throws XmlException {
     final Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
     Object result;
     if ((value != null) && (!pClass.isInstance(value))) {

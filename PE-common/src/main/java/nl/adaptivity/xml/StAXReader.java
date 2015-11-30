@@ -1,6 +1,7 @@
 package nl.adaptivity.xml;
 
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,7 @@ public class StAXReader extends AbstractXmlReader {
   private static final EventType[] DELEGATE_TO_LOCAL;
 
   private static final int[] LOCAL_TO_DELEGATE;
+  private boolean mFixWhitespace = false;
 
   static {
     DELEGATE_TO_LOCAL = new EventType[16];
@@ -206,7 +208,7 @@ public class StAXReader extends AbstractXmlReader {
   public EventType next() throws XmlException {
     try {
       if (mDelegate.hasNext()) {
-        return updateDepth(DELEGATE_TO_LOCAL[mDelegate.next()]);
+        return updateDepth(fixWhitespace(DELEGATE_TO_LOCAL[mDelegate.next()]));
       } else {
         return null;
       }
@@ -218,10 +220,21 @@ public class StAXReader extends AbstractXmlReader {
   @Override
   public EventType nextTag() throws XmlException {
     try {
-      return updateDepth(DELEGATE_TO_LOCAL[mDelegate.nextTag()]);
+      return updateDepth(fixWhitespace(DELEGATE_TO_LOCAL[mDelegate.nextTag()]));
     } catch (XMLStreamException e) {
       throw new XmlException(e);
     }
+  }
+
+  private EventType fixWhitespace(final EventType eventType) {
+    if (eventType==EventType.TEXT) {
+      if (XmlUtil.isXmlWhitespace(mDelegate.getText())) {
+        mFixWhitespace = true;
+        return EventType.IGNORABLE_WHITESPACE;
+      }
+    }
+    mFixWhitespace = false;
+    return eventType;
   }
 
   private EventType updateDepth(final EventType eventType) {
@@ -302,7 +315,7 @@ public class StAXReader extends AbstractXmlReader {
 
   @Override
   public EventType getEventType() {
-    return DELEGATE_TO_LOCAL[mDelegate.getEventType()];
+    return mFixWhitespace ? EventType.IGNORABLE_WHITESPACE : DELEGATE_TO_LOCAL[mDelegate.getEventType()];
   }
 
   @Override

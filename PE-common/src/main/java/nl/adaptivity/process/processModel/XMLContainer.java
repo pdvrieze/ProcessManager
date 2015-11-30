@@ -20,7 +20,7 @@ import java.util.TreeMap;
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-public abstract class XMLContainer implements ExtXmlDeserializable {
+public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializable {
 
   private static final SimpleNamespaceContext BASE_NS_CONTEXT = new SimpleNamespaceContext(new String[]{""}, new String[]{""});
 

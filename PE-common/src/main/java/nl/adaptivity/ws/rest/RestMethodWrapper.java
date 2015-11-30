@@ -2,18 +2,19 @@ package nl.adaptivity.ws.rest;
 
 import net.devrieze.util.Annotations;
 import net.devrieze.util.JAXBCollectionWrapper;
+import net.devrieze.util.ReaderInputStream;
 import net.devrieze.util.Types;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.HttpMessage;
-import nl.adaptivity.util.HttpMessage.Body;
 import nl.adaptivity.util.activation.Sources;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.StAXWriter;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlStreaming;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -44,24 +45,20 @@ import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Map;
 
 
-public abstract class RestMethodWrapper {
+public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper {
 
 
 
   private static class Java6RestMethodWrapper extends RestMethodWrapper {
 
-    protected final Object mOwner;
-
-    private final Method mMethod;
-
     public Java6RestMethodWrapper(Object pOwner, Method pMethod) {
-      mOwner = pOwner;
-      mMethod = pMethod;
+      super(pOwner, pMethod);
     }
 
     @Override
@@ -128,6 +125,7 @@ public abstract class RestMethodWrapper {
     private final Class<?> mDeclaringClass;
 
     public Java8RestMethodWrapper(Object pOwner, Method pMethod) {
+      super(pOwner, pMethod);
       try {
         mMethodHandle = MethodHandles.lookup().unreflect(pMethod).bindTo(pOwner);
         mParameterAnnotations = pMethod.getParameterAnnotations();
@@ -195,10 +193,6 @@ public abstract class RestMethodWrapper {
 
   private Map<String, String> mPathParams;
 
-  protected Object[] mParams;
-
-  protected Object mResult;
-
   private boolean mContentTypeSet = false;
 
   private static class HasMethodHandleHelper {
@@ -215,6 +209,10 @@ public abstract class RestMethodWrapper {
     }
   }
 
+  protected RestMethodWrapper(final Object owner, final Method method) {
+    super(owner, method);
+  }
+
   public static RestMethodWrapper get(final Object pOwner, final Method pMethod) {
     // Make it work with private methods and
     pMethod.setAccessible(true);
@@ -229,7 +227,7 @@ public abstract class RestMethodWrapper {
     mPathParams = pPathParams;
   }
 
-  public void unmarshalParams(final HttpMessage pHttpMessage) {
+  public void unmarshalParams(final HttpMessage pHttpMessage) throws XmlException {
     if (mParams != null) {
       throw new IllegalStateException("Parameters have already been unmarshalled");
     }
@@ -276,7 +274,7 @@ public abstract class RestMethodWrapper {
     }
   }
 
-  private Object getParam(final Class<?> pClass, final String pName, final ParamType pType, final String pXpath, final HttpMessage pMessage) {
+  private Object getParam(final Class<?> pClass, final String pName, final ParamType pType, final String pXpath, final HttpMessage pMessage) throws XmlException {
     Object result = null;
     switch (pType) {
       case GET:
@@ -317,7 +315,7 @@ public abstract class RestMethodWrapper {
     // XXX generizice this and share the same approach to unmarshalling in ALL code
     // TODO support collection/list parameters
     if ((result != null) && (!pClass.isInstance(result))) {
-      if (Types.isPrimitive(pClass) || ((Types.isPrimitiveWrapper(pClass)) && (result instanceof String))) {
+      if ((Types.isPrimitive(pClass) || (Types.isPrimitiveWrapper(pClass))) && (result instanceof String)) {
         result = Types.parsePrimitive(pClass, ((String) result));
       } else if (Enum.class.isAssignableFrom(pClass)) {
         @SuppressWarnings({ "rawtypes" })
@@ -342,13 +340,10 @@ public abstract class RestMethodWrapper {
     return result;
   }
 
-  private static Object getBody(final Class<?> pClass, final HttpMessage pMessage) {
-    Body body = pMessage.getBody();
+  private static Object getBody(final Class<?> pClass, final HttpMessage pMessage) throws XmlException {
+    CompactFragment body = pMessage.getBody();
     if (body!=null) {
-      if (body.getElements().size()==1) {
-        return body.getElements().get(0);
-      }
-      return body;
+      return XmlUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(body));
     } else {
       return getAttachment(pClass, null, pMessage);
     }
@@ -359,19 +354,11 @@ public abstract class RestMethodWrapper {
     return coerceSource(pClass, source);
   }
 
-  private static Object coerceBody(final Class<?> pTargetType, final String name, final Body pBody) {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    try {
-      Sources.writeToStream(new DOMSource(pBody.getElements().get(0)), baos);
-    } catch (TransformerException e) {
-      throw new RuntimeException(e);
-    }
-    final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    baos.reset(); baos=null;
+  private static Object coerceBody(final Class<?> pTargetType, final String name, final CompactFragment pBody) {
     DataSource dataSource = new DataSource() {
       @Override
       public InputStream getInputStream() throws IOException {
-        return bais;
+        return new ReaderInputStream(Charset.forName("UTF-8"), new CharArrayReader(pBody.getContent()));
       }
 
       @Override
@@ -423,26 +410,35 @@ public abstract class RestMethodWrapper {
   }
 
   private static Object getParamPost(final String pName, final HttpMessage pMessage) {
-    return pMessage.getPost(pName);
+    return pMessage.getPosts(pName);
   }
 
-  private static <T> T getParamXPath(final Class<T> pClass, final String pXpath, final Body pBody) {
+  private static <T> T getParamXPath(final Class<T> pClass, final String pXpath, final CompactFragment pBody) throws XmlException {
     // TODO Avoid JAXB where possible, use XMLDeserializer instead
-    final boolean jaxb = !CharSequence.class.isAssignableFrom(pClass);
+    final boolean string = CharSequence.class.isAssignableFrom(pClass);
     Node match;
-    for (final Node n : pBody.getElements()) {
+    DocumentFragment fragment = XmlUtil.childrenToDocumentFragment(XMLFragmentStreamReader.from(pBody));
+    for (Node n = fragment.getFirstChild(); n!=null; n = n.getNextSibling()) {
       match = xpathMatch(n, pXpath);
       if (match != null) {
-        if (jaxb) {
-          return JAXB.unmarshal(new DOMSource(match), pClass);
+        if (! string) {
+          XmlDeserializer deserializer = pClass.getAnnotation(XmlDeserializer.class);
+          if (deserializer!=null) {
+            try {
+              XmlDeserializerFactory<?> factory = deserializer.value().newInstance();
+              factory.deserialize(XmlStreaming.newReader(new DOMSource(n)));
+            } catch (InstantiationException | IllegalAccessException e) {
+              throw new RuntimeException(e);
+            }
+          } else {
+            return JAXB.unmarshal(new DOMSource(match), pClass);
+          }
         } else {
           return pClass.cast(nodeToString(match));
         }
       }
     }
-    // TODO Implement more
-    throw new UnsupportedOperationException("Not yet implemented");
-
+    return null;
   }
 
   private static String nodeToString(final Node pNode) {
@@ -526,17 +522,23 @@ public abstract class RestMethodWrapper {
 
   protected abstract Class<?> getDeclaringClass();
 
-  public abstract void exec();
-
   /**
    * @deprecated use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored
    */
   @Deprecated
-  public void marshalResult(@SuppressWarnings("unused") final HttpMessage pRequest, final HttpServletResponse pResponse) throws TransformerException, IOException {
+  public void marshalResult(@SuppressWarnings("unused") final HttpMessage pRequest, final HttpServletResponse pResponse) throws TransformerException, IOException, XmlException {
     marshalResult(pResponse);
   }
 
-  public void marshalResult(final HttpServletResponse pResponse) throws TransformerException, IOException {
+  public void marshalResult(final HttpServletResponse pResponse) throws TransformerException, IOException, XmlException {
+    if (mResult instanceof XmlSerializable) {
+      // By default don't use JAXB
+      setContentType(pResponse, "text/xml");
+      OutputStreamWriter writer = new OutputStreamWriter(pResponse.getOutputStream(), pResponse.getCharacterEncoding());
+      XmlUtil.serialize((XmlSerializable) mResult, writer);
+      writer.close();
+      return;
+    }
     final XmlRootElement xmlRootElement = mResult == null ? null : mResult.getClass().getAnnotation(XmlRootElement.class);
     if (xmlRootElement != null) {
       try {

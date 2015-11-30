@@ -83,7 +83,10 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
   @Override
   protected final void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
     super.serializeAttributes(out);
-    out.attribute(null, ATTR_PREDECESSOR, null, getPredecessor().getId());
+    Identifiable predecessor = getPredecessor();
+    if (predecessor!=null) {
+      XmlUtil.writeAttribute(out, ATTR_PREDECESSOR, predecessor.getId());
+    }
     XmlUtil.writeAttribute(out, "name", getName());
   }
 

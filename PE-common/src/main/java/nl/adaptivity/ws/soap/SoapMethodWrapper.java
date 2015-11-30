@@ -1,12 +1,19 @@
 package nl.adaptivity.ws.soap;
 
 import net.devrieze.util.Annotations;
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Tripple;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.ws.WsMethodWrapper;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.w3.soapEnvelope.Body;
 import org.w3.soapEnvelope.Envelope;
@@ -33,21 +40,12 @@ import java.util.*;
 import java.util.logging.Logger;
 
 
-public class SoapMethodWrapper {
+public class SoapMethodWrapper extends WsMethodWrapper {
 
   public static final URI SOAP_ENCODING = URI.create(ProcessConsts.Soap.SOAP_ENCODING_NS);
 
-  private final Object mOwner;
-
-  private final Method mMethod;
-
-  private Object[] mParams;
-
-  private Object mResult;
-
   public SoapMethodWrapper(final Object owner, final Method method) {
-    mOwner = owner;
-    mMethod = method;
+    super(owner, method);
   }
 
   public void unmarshalParams(@NotNull final Source source, final Map<String, DataSource> attachments) {
@@ -65,7 +63,11 @@ public class SoapMethodWrapper {
     processSoapHeader(envelope.getHeader());
     final URI es = envelope.getEncodingStyle();
     if ((es == null) || es.equals(SOAP_ENCODING)) {
-      processSoapBody(envelope, attachments);
+      try {
+        processSoapBody(envelope, attachments);
+      } catch (XmlException e) {
+        throw new MessagingFormatException("Failure to process message body", e);
+      }
     } else {
       throw new MessagingFormatException("Ununderstood message body");
     }
@@ -84,16 +86,23 @@ public class SoapMethodWrapper {
     /* For now just ignore headers, i.e. none understood */
   }
 
-  private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) {
+  private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
     final Body body = envelope.getBody();
-    if (body.getAny().size() != 1) {
+    XmlReader reader = XMLFragmentStreamReader.from(body.getBodyContent());
+    reader.nextTag();
+    assertRootNode(reader);
+
+
+    final LinkedHashMap<String, Node> params = SoapHelper.unmarshalWrapper(reader);
+    reader.require(EventType.END_ELEMENT, null, null);
+    if (reader.hasNext()) { reader.next(); }
+    while ( reader.hasNext() && XmlUtil.isIgnorable(reader.getEventType())) { reader.next(); }
+    if (reader.getEventType()== EventType.START_ELEMENT) {
       throw new MessagingFormatException("Multiple body elements not expected");
     }
-    final Node root = (Node) body.getAny().get(0);
-    assertRootNode(root);
 
-    final LinkedHashMap<String, Node> params = SoapHelper.getParamMap(root);
     final Map<String, Node> headers = SoapHelper.getHeaderMap(envelope.getHeader());
+    // TODO verify no unsupported headers that must be supported
 
     final Class<?>[] parameterTypes = mMethod.getParameterTypes();
     final Annotation[][] parameterAnnotations = mMethod.getParameterAnnotations();
@@ -131,38 +140,22 @@ public class SoapMethodWrapper {
     }
   }
 
-  private void assertRootNode(@NotNull final Node root) {
+  private void assertRootNode(@NotNull final XmlReader reader) throws XmlException {
     final WebMethod wm = mMethod.getAnnotation(WebMethod.class);
     if ((wm == null) || wm.operationName().equals("")) {
-      if (!root.getLocalName().equals(mMethod.getName())) {
+      if (!StringUtil.isEqual(reader.getLocalName(),mMethod.getName())) {
         throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     } else {
-      if (!root.getLocalName().equals(wm.operationName())) {
+      if (!StringUtil.isEqual(reader.getLocalName(), wm.operationName())) {
         throw new MessagingFormatException("Root node does not correspond to operation name");
       }
     }
     final WebService ws = mMethod.getDeclaringClass().getAnnotation(WebService.class);
     if (!((ws == null) || ws.targetNamespace().equals(""))) {
-      if (!ws.targetNamespace().equals(root.getNamespaceURI())) {
+      if (!StringUtil.isEqual(ws.targetNamespace(), reader.getNamespaceUri())) {
         throw new MessagingFormatException("Root node does not correspond to operation namespace");
       }
-    }
-  }
-
-  public void exec() {
-    if (mParams == null) {
-      throw new IllegalArgumentException("Argument unmarshalling has not taken place yet");
-    }
-    try {
-      mResult = mMethod.invoke(mOwner, mParams);
-    } catch (@NotNull final IllegalArgumentException e) {
-      throw new MessagingException(e);
-    } catch (@NotNull final IllegalAccessException e) {
-      throw new MessagingException(e);
-    } catch (@NotNull final InvocationTargetException e) {
-      final Throwable cause = e.getCause();
-      throw new MessagingException(cause != null ? cause : e);
     }
   }
 
@@ -170,9 +163,7 @@ public class SoapMethodWrapper {
     response.setContentType("application/soap+xml");
     try {
       Sources.writeToStream(source, response.getOutputStream());
-    } catch (@NotNull final TransformerException e) {
-      throw new MessagingException(e);
-    } catch (@NotNull final IOException e) {
+    } catch (@NotNull final TransformerException | IOException e) {
       throw new MessagingException(e);
     }
   }

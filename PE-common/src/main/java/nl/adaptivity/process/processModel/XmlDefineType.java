@@ -13,7 +13,7 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -165,7 +165,8 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
       try {
         final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
 
-        final CompactFragment transformed = XmlUtil.readerToFragment(transformer.createFilter(getBodyStreamReader()));
+        XmlReader reader = transformer.createFilter(getBodyStreamReader());
+        final CompactFragment transformed = XmlUtil.siblingsToFragment(reader);
         return new ProcessData(getName(), transformed);
 
       } catch (@NotNull final XmlException e) {

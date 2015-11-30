@@ -2,7 +2,7 @@ package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.util.xml.Namespace;
 import nl.adaptivity.util.xml.XmlSerializable;
 import org.jetbrains.annotations.Nullable;

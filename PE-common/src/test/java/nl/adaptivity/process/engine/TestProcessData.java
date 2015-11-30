@@ -335,11 +335,11 @@ public class TestProcessData {
 
   @Test
   public void testRoundTripProcessModel1_ac1_result1() throws Exception {
-    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final ProcessModelImpl xpm = getProcessModel("testModel2.xml");
     {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
-      final ExecutableProcessNode ac1 = xpm.getNodes().get(1);
+      final ExecutableProcessNode ac1 = ((ProcessNodeSet<ExecutableProcessNode>) xpm.getModelNodes()).get(1);
       assertEquals("ac1", ac1.getId());
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
 
@@ -405,11 +405,11 @@ public class TestProcessData {
 
   @Test
   public void testSerializeResult1() throws IOException, SAXException, XmlException {
-    final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
+    final ProcessModel pm = getProcessModel("testModel2.xml");
 
     final CharArrayWriter caw = new CharArrayWriter();
     final XmlWriter xsw = XmlStreaming.newWriter(caw);
-    final XmlResultType result = (XmlResultType) xpm.getNodes().get(1).getResults().iterator().next();
+    final XmlResultType result = (XmlResultType) ((ProcessNodeSet<ExecutableProcessNode>)pm.getModelNodes()).get(1).getResults().iterator().next();
     result.serialize(xsw);
     xsw.close();
     final String control = "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>";
@@ -424,8 +424,8 @@ public class TestProcessData {
   public void testSerializeResult2() throws IOException, SAXException, XmlException {
     final XmlResultType result;
     {
-      final XmlProcessModel xpm = new XmlProcessModel(getProcessModel("testModel2.xml"));
-      final Iterator<? extends IXmlResultType> iterator = xpm.getNodes().get(1).getResults().iterator();
+      final ProcessModelImpl xpm = getProcessModel("testModel2.xml");
+      final Iterator<? extends IXmlResultType> iterator = xpm.getNode("ac1").getResults().iterator();
       assertNotNull(iterator.next());
       result = (XmlResultType) iterator.next();
     }

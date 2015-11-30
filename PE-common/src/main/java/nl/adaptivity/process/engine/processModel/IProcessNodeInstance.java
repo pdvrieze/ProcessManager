@@ -1,11 +1,10 @@
 package nl.adaptivity.process.engine.processModel;
 
 import net.devrieze.util.HandleMap.HandleAware;
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.Node;
@@ -22,27 +21,6 @@ import java.sql.SQLException;
  * @param <V> The actual type of the implementing class.
  */
 public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends HandleAware<V> {
-
-  class Wrapper implements XmlSerializable {
-
-    private final DBTransaction mTransaction;
-    private IProcessNodeInstance mDelegate;
-
-    Wrapper(final DBTransaction transaction, IProcessNodeInstance delegate) {
-
-      mTransaction = transaction;
-      mDelegate = delegate;
-    }
-
-    @Override
-    public void serialize(final XmlWriter out) throws XmlException {
-      mDelegate.serialize(mTransaction, out);
-    }
-
-    public IProcessNodeInstance getDelegate() {
-      return mDelegate;
-    }
-  }
 
   void serialize(Transaction transaction, XmlWriter out) throws XmlException;
 
@@ -93,7 +71,17 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
     /**
      * Signifies that the task has been cancelled (but not through a failure).
      */
-    Cancelled
+    Cancelled;
+
+    public static TaskState fromString(CharSequence string) {
+      String lowerCase = StringUtil.toLowerCase(string);
+      for(TaskState candidate: values()) {
+        if (lowerCase.equals(candidate.name().toLowerCase())) {
+          return candidate;
+        }
+      }
+      return null;
+    }
   }
 
   /**

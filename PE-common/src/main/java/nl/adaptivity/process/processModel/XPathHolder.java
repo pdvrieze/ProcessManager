@@ -22,6 +22,8 @@ import javax.xml.xpath.XPathFactory;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public abstract class XPathHolder extends XMLContainer {
@@ -186,7 +188,7 @@ public abstract class XPathHolder extends XMLContainer {
         xpath.setNamespaceContext(namespaceContext);
         xpath.compile(path.toString());
       } catch (@NotNull final XPathExpressionException e) {
-        throw new RuntimeException(e);
+        Logger.getLogger(XPathHolder.class.getSimpleName()).log(Level.WARNING, "The path used is not valid");
       }
     }
   }

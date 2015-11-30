@@ -105,6 +105,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
 
   @Override
   public void serialize(@NotNull final XmlWriter out) throws XmlException {
+    ensureIds();
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     XmlUtil.writeAttribute(out, "name", getName());
     XmlUtil.writeAttribute(out, "owner", mOwner==null ? null : mOwner.getName());
@@ -120,8 +121,47 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
     XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
+  public void ensureIds() {
+    Set<String> ids = new HashSet<>();
+    List<ProcessNode<?,?>> unnamedNodes = new ArrayList<>();
+    for(ProcessNode<?,?> node: getModelNodes()) {
+      String id = node.getId();
+      if (id==null) {
+        unnamedNodes.add(node);
+      } else {
+        ids.add(id);
+      }
+    }
+    Map<String, Integer> startCounts = new HashMap<>();
+    for(ProcessNode<?,?> unnamed: unnamedNodes) {
+      String idBase = unnamed.getIdBase();
+      int startCount = getOrDefault(startCounts, idBase, 1);
+      for(String id=idBase+Integer.toString(startCount);
+          ids.contains(id);
+          id=idBase+Integer.toString(startCount)) {
+        ++startCount;
+      }
+      unnamed.setId(idBase+Integer.toString(startCount));
+      startCounts.put(idBase, startCount+1);
+    }
+  }
+
+  private static int getOrDefault(final Map<String, Integer> map, final String key, final int defaultValue) {
+    final Integer val = map.get(key);
+    return val == null ? defaultValue : val.intValue();
+  }
+
   public T removeNode(final int nodePos) {
     return mProcessNodes.remove(nodePos);
+  }
+
+  public boolean hasUnpositioned() {
+    for(ProcessNode<?,?> node: getModelNodes()) {
+      if (! node.hasPos()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static <T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> M deserialize(final DeserializationFactory<T, M> factory, final M processModel, final XmlReader in) throws
@@ -315,7 +355,8 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
    * Normalize the process model. By default this may do nothing.
    * @return The model (this).
    */
-  public ProcessModelBase<T, M> normalize(SplitFactory<T, M> splitFactory) {
+  public M normalize(SplitFactory<? extends T, M> splitFactory) {
+    ensureIds();
     // Make all nodes directly refer to other nodes.
     for(T childNode: mProcessNodes) {
       childNode.resolveRefs();
@@ -334,7 +375,7 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
         childNode.addSuccessor(newSplit);
       }
     }
-    return this;
+    return this.asM();
   }
 
   @SuppressWarnings("unchecked")

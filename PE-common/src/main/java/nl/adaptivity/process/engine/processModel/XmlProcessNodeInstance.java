@@ -8,22 +8,19 @@
 
 package nl.adaptivity.process.engine.processModel;
 
-import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.namespace.QName;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,11 +76,6 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
       mPredecessors = new ArrayList<>();
     }
     return mPredecessors;
-  }
-
-  public ProcessNodeInstance toExecutableNodeInstance(final Transaction transaction, ProcessInstance processInstance) throws SQLException {
-    ExecutableProcessNode node = processInstance.getProcessModel().getNode(getNodeId());
-    return new ProcessNodeInstance(transaction, node, processInstance, mState);
   }
 
   @Override

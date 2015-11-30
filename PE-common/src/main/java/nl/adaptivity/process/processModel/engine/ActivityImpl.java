@@ -3,7 +3,7 @@ package nl.adaptivity.process.processModel.engine;
 import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;

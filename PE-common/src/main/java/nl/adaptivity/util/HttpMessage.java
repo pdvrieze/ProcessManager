@@ -2,24 +2,30 @@ package nl.adaptivity.util;
 
 import net.devrieze.util.Iterators;
 import net.devrieze.util.Streams;
+import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.*;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
+import javax.xml.namespace.QName;
 
 import java.io.*;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.security.Principal;
 import java.util.*;
 import java.util.Map.Entry;
@@ -29,25 +35,22 @@ import java.util.Map.Entry;
 @XmlRootElement(name = "httpMessage", namespace = HttpMessage.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "HttpMessage", namespace = HttpMessage.NAMESPACE)
-public class HttpMessage {
+@XmlDeserializer(HttpMessage.Factory.class)
+public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
+
+  public static class Factory implements XmlDeserializerFactory<HttpMessage> {
+
+    @Override
+    public HttpMessage deserialize(final XmlReader in) throws XmlException {
+      return HttpMessage.deserialize(in);
+    }
+  }
 
   public static final String NAMESPACE = "http://adaptivity.nl/HttpMessage";
 
-
-  @XmlType(name = "Body", namespace = HttpMessage.NAMESPACE)
-  @XmlAccessorType(XmlAccessType.NONE)
-  public static class Body {
-
-    @XmlAnyElement(lax = false)
-    List<Object> elements;
-
-    @NotNull
-    public List<Node> getElements() {
-      @SuppressWarnings("unchecked")
-      final List<Node> result = (List<Node>) ((List<?>) elements);
-      return result;
-    }
-  }
+  public static final String ELEMENTLOCALNAME = "httpMessage";
+  public static final QName ELEMENTNAME=new QName(NAMESPACE, ELEMENTLOCALNAME, "http");
+  private static final QName BODYELEMENTNAME =new QName(NAMESPACE, "Body", "http");
 
   @XmlAccessorType(XmlAccessType.NONE)
   public static class ByteContentDataSource implements DataSource {
@@ -119,11 +122,27 @@ public class HttpMessage {
 
   }
 
-  public static class QueryIterator implements Iterator<Query> {
-
-    private final Iterator<Entry<String, String>> mIterator;
-
+  private static class QueryIterator extends PairBaseIterator<Query> {
     public QueryIterator(final Iterator<Entry<String, String>> iterator) {
+      super(iterator);
+    }
+
+    protected Query newItem() {return new Query(mIterator.next());}
+  }
+
+  private static class PostIterator extends PairBaseIterator<Post> {
+    public PostIterator(final Iterator<Entry<String, String>> iterator) {
+      super(iterator);
+    }
+
+    protected Post newItem() {return new Post(mIterator.next());}
+  }
+
+  public static abstract class PairBaseIterator<T extends PairBase> implements Iterator<T> {
+
+    protected final Iterator<Entry<String, String>> mIterator;
+
+    public PairBaseIterator(final Iterator<Entry<String, String>> iterator) {
       mIterator = iterator;
     }
 
@@ -134,12 +153,15 @@ public class HttpMessage {
 
     @NotNull
     @Override
-    public Query next() {
+    public T next() {
       if (mIterator == null) {
         throw new NoSuchElementException();
       }
-      return new Query(mIterator.next());
+      return newItem();
     }
+
+    @NotNull
+    protected abstract T newItem();
 
     @Override
     public void remove() {
@@ -151,19 +173,89 @@ public class HttpMessage {
 
   }
 
-  @XmlType(name = "Query", namespace = HttpMessage.NAMESPACE)
-  @XmlAccessorType(XmlAccessType.NONE)
-  public static class Query {
+  public static class Query extends PairBase {
+    private static final QName ELEMENTNAME =new QName(NAMESPACE, "query", "http");
+
+    protected Query() {
+    }
+
+    public Query(@NotNull final Entry<String, String> entry) {
+      super(entry);
+    }
+
+    public static Query deserialize(XmlReader in) throws XmlException {
+      return XmlUtil.deserializeHelper(new Query(), in);
+    }
+
+    @Override
+    public QName getElementName() {
+      return ELEMENTNAME;
+    }
+
+  }
+
+  public static class Post extends PairBase {
+    private static final QName ELEMENTNAME =new QName(NAMESPACE, "post", "http");
+
+    protected Post() {
+    }
+
+    public Post(@NotNull final Entry<String, String> entry) {
+      super(entry);
+    }
+
+    public static Query deserialize(XmlReader in) throws XmlException {
+      return XmlUtil.deserializeHelper(new Query(), in);
+    }
+
+    @Override
+    public QName getElementName() {
+      return ELEMENTNAME;
+    }
+
+  }
+
+  public static abstract class PairBase implements XmlSerializable, SimpleXmlDeserializable {
 
     private String mKey;
 
     private String mValue;
 
-    protected Query() {}
+    protected PairBase() {}
 
-    public Query(@NotNull final Entry<String, String> entry) {
+    protected PairBase(@NotNull final Entry<String, String> entry) {
       mKey = entry.getKey();
       mValue = entry.getValue();
+    }
+
+    @Override
+    public boolean deserializeChild(final XmlReader in) throws XmlException {
+      return false;
+    }
+
+    @Override
+    public boolean deserializeChildText(final CharSequence elementText) {
+      mValue = mValue==null ? elementText.toString() : mValue+elementText.toString();
+      return true;
+    }
+
+    @Override
+    public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+      if ("name".equals(attributeLocalName)) { mKey = StringUtil.toString(attributeValue); return true; }
+      return false;
+    }
+
+    @Override
+    public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+      /* Do nothing. */
+    }
+
+    @Override
+    public void serialize(final XmlWriter out) throws XmlException {
+      XmlUtil.writeStartElement(out, getElementName());
+      XmlUtil.writeAttribute(out, "name", mKey);
+      if (mValue!=null) { out.text(mValue); }
+      XmlUtil.writeEndElement(out, getElementName());
     }
 
     public void setKey(final String key) {
@@ -204,7 +296,7 @@ public class HttpMessage {
       if (getClass() != obj.getClass()) {
         return false;
       }
-      final Query other = (Query) obj;
+      final PairBase other = (PairBase) obj;
       if (mKey == null) {
         if (other.mKey != null) {
           return false;
@@ -224,16 +316,44 @@ public class HttpMessage {
 
   }
 
-  public static class QueryMapCollection extends AbstractCollection<Query> {
+  public static class QueryCollection extends PairBaseCollection<Query> {
 
-    private Map<String, String> mMap;
+    public QueryCollection(final Map<String, String> map) {
+      super(map);
+    }
 
-    public QueryMapCollection(final Map<String, String> map) {
+    @NotNull
+    @Override
+    public Iterator<Query> iterator() {
+      if (mMap == null) { return Collections.emptyIterator(); }
+      return new QueryIterator(mMap.entrySet().iterator());
+    }
+  }
+
+  public static class PostCollection extends PairBaseCollection<Post> {
+
+    public PostCollection(final Map<String, String> map) {
+      super(map);
+    }
+
+    @NotNull
+    @Override
+    public Iterator<Post> iterator() {
+      if (mMap == null) { return Collections.emptyIterator(); }
+      return new PostIterator(mMap.entrySet().iterator());
+    }
+  }
+
+  public static abstract class PairBaseCollection<T extends PairBase> extends AbstractCollection<T> {
+
+    protected Map<String, String> mMap;
+
+    public PairBaseCollection(final Map<String, String> map) {
       mMap = map;
     }
 
     @Override
-    public boolean add(@NotNull final Query e) {
+    public boolean add(@NotNull final PairBase e) {
       if (mMap == null) {
         mMap = new HashMap<>();
       }
@@ -249,8 +369,8 @@ public class HttpMessage {
 
     @Override
     public boolean contains(final Object o) {
-      if (o instanceof Query) {
-        final Query q = (Query) o;
+      if (o instanceof PairBase) {
+        final PairBase q = (PairBase) o;
         final String match = mMap.get(q.getKey());
         return ((match == null) && (q.getValue() == null)) || ((q.getValue() != null) && q.getValue().equals(match));
       } else {
@@ -264,15 +384,6 @@ public class HttpMessage {
         return true;
       }
       return mMap.isEmpty();
-    }
-
-    @NotNull
-    @Override
-    public Iterator<Query> iterator() {
-      if (mMap == null) {
-        return new QueryIterator(null);
-      }
-      return new QueryIterator(mMap.entrySet().iterator());
     }
 
     @Override
@@ -301,11 +412,13 @@ public class HttpMessage {
 
   }
 
+  private static final Charset DEFAULT_CHARSSET = Charset.forName("UTF-8");
+
   private Map<String, String> mQueries;
 
   private Map<String, String> mPost;
 
-  private Body mBody;
+  private CompactFragment mBody;
 
   private Collection<ByteContentDataSource> mByteContent;
 
@@ -317,13 +430,17 @@ public class HttpMessage {
 
   private String mContentType;
 
-  @Nullable private String mCharacterEncoding;
+  @Nullable private Charset mCharacterEncoding;
 
   @NotNull private final Map<String, List<String>> mHeaders;
 
   private Map<String, DataSource> mAttachments;
 
   private Principal mUserPrincipal;
+
+  private HttpMessage() {
+    mHeaders = new HashMap<>();
+  }
 
   public HttpMessage(@NotNull final HttpServletRequest request) throws IOException {
     mHeaders = getHeaders(request);
@@ -356,7 +473,7 @@ public class HttpMessage {
             if (j >= 0) {
               final String paramName = param.substring(0, j).trim();
               if (paramName.equals("charset")) {
-                mCharacterEncoding = param.substring(j + 1).trim();
+                mCharacterEncoding = Charset.forName(param.substring(j + 1).trim());
               }
             }
 
@@ -364,33 +481,95 @@ public class HttpMessage {
         }
       }
       if (mCharacterEncoding == null) {
-        mCharacterEncoding = request.getCharacterEncoding();
+        mCharacterEncoding = getCharacterEncoding(request);
       }
       if (mCharacterEncoding == null) {
-        mCharacterEncoding = "UTF-8";
+        mCharacterEncoding = DEFAULT_CHARSSET;
       }
       final boolean isMultipart = (mContentType != null) && mContentType.startsWith("multipart/");
       if ("application/x-www-form-urlencoded".equals(mContentType)) {
-        mPost = toQueries(getBody(request).toString(mCharacterEncoding));
+        mPost = toQueries(new String(getBody(request)));
       } else if (isMultipart) {
         mAttachments = HttpRequest.parseMultipartFormdata(request.getInputStream(), HttpRequest.mimeType(request.getContentType()), null);
       } else {
         @SuppressWarnings("resource")
-        final ByteArrayOutputStream baos = getBody(request);
+        final byte[] bytes = getBody(request);
 
         final Document xml;
 
-        xml = XmlUtil.tryParseXml(new ByteArrayInputStream(baos.toByteArray()));
+        xml = XmlUtil.tryParseXml(new InputStreamReader(new ByteArrayInputStream(bytes), mCharacterEncoding));
         if (xml == null) {
-          addByteContent(baos.toByteArray(), request.getContentType());
+          addByteContent(bytes, request.getContentType());
         } else {
-          mBody = new Body();
-          mBody.elements = new ArrayList<>(1);
-          mBody.elements.add(xml.getDocumentElement());
+          CharsetDecoder decoder = mCharacterEncoding.newDecoder();
+          CharBuffer buffer = decoder.decode(ByteBuffer.wrap(bytes));
+          char[] chars = null;
+          if (buffer.hasArray()) {
+            chars = buffer.array();
+            if (chars.length>buffer.limit()) {
+              chars=null;
+            }
+          }
+          if (chars==null) {
+            chars = new char[buffer.limit()];
+            buffer.get(chars);
+          }
+
+          mBody = new CompactFragment(Collections.<Namespace>emptyList(), chars);
         }
 
       }
     }
+  }
+
+  protected Charset getCharacterEncoding(final @NotNull HttpServletRequest request) {
+    String name = request.getCharacterEncoding();
+    if (name==null) { return DEFAULT_CHARSSET; }
+    return Charset.forName(request.getCharacterEncoding());
+  }
+
+  private static HttpMessage deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new HttpMessage(), in);
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    return false;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    // do nothing
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlUtil.writeAttribute(out, "user", mUserPrincipal.getName());
+    XmlUtil.writeChildren(out, getQueries());
+    XmlUtil.writeChildren(out, getPosts());
+    if (mBody!=null) {
+      XmlUtil.writeStartElement(out, BODYELEMENTNAME);
+      mBody.serialize(out);
+      XmlUtil.writeEndElement(out, BODYELEMENTNAME);
+    }
+
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
   /*
@@ -465,7 +644,7 @@ public class HttpMessage {
 
 
   @NotNull
-  private static ByteArrayOutputStream getBody(@NotNull final HttpServletRequest request) throws IOException {
+  private static byte[] getBody(@NotNull final HttpServletRequest request) throws IOException {
     final ByteArrayOutputStream baos;
     {
       final int contentLength = request.getContentLength();
@@ -478,7 +657,7 @@ public class HttpMessage {
         }
       }
     }
-    return baos;
+    return baos.toByteArray();
   }
 
   private void addByteContent(final byte[] byteArray, final String contentType) {
@@ -495,7 +674,7 @@ public class HttpMessage {
   }
 
   @Nullable
-  public String getPost(final String name) {
+  public String getPosts(final String name) {
     if (mPost != null) {
       String result = mPost.get(name);
       if ((result == null) && (mAttachments != null)) {
@@ -503,6 +682,7 @@ public class HttpMessage {
         if (source != null) {
           try {
             result = Streams.toString(new InputStreamReader(source.getInputStream(), "UTF-8"));
+            return result;
           } catch (@NotNull final UnsupportedEncodingException e) {
             throw new RuntimeException(e);
           } catch (@NotNull final IOException e) {
@@ -520,7 +700,7 @@ public class HttpMessage {
     if (result != null) {
       return result;
     }
-    return getPost(name);
+    return getPosts(name);
   }
 
   @Nullable
@@ -545,24 +725,24 @@ public class HttpMessage {
     if (mQueries == null) {
       mQueries = new HashMap<>();
     }
-    return new QueryMapCollection(mQueries);
+    return new QueryCollection(mQueries);
   }
 
   @NotNull
   @XmlElement(name = "post", namespace = HttpMessage.NAMESPACE)
-  public Collection<Query> getPost() {
+  public Collection<Post> getPosts() {
     if (mPost == null) {
       mPost = new HashMap<>();
     }
-    return new QueryMapCollection(mPost);
+    return new PostCollection(mPost);
   }
 
   @XmlElement(name = "body", namespace = HttpMessage.NAMESPACE)
-  public Body getBody() {
+  public CompactFragment getBody() {
     return mBody;
   }
 
-  public void setBody(final Body body) {
+  public void setBody(final CompactFragment body) {
     mBody = body;
   }
 
@@ -622,20 +802,13 @@ public class HttpMessage {
   }
 
   @Nullable
-  public String getCharacterEncoding() {
+  public Charset getCharacterEncoding() {
     return mCharacterEncoding;
   }
 
   @Nullable
-  public Source getContent() {
-    final List<Node> elements = mBody.getElements();
-    if (elements.size() == 0) {
-      return null;
-    }
-    if (elements.size() > 1) {
-      throw new IllegalStateException("");
-    }
-    return new DOMSource(elements.get(0));
+  public XmlReader getContent() throws XmlException {
+    return XMLFragmentStreamReader.from(mBody);
   }
 
   @XmlAttribute(name = "user")

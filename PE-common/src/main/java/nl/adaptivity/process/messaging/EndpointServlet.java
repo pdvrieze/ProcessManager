@@ -119,12 +119,12 @@ public class EndpointServlet extends HttpServlet {
           if (!SoapMessageHandler.isSoapMessage(request)) {
             final RestMessageHandler restHandler = getRestMessageHandler();
             if (!restHandler.processRequest(method, message, response)) {
-              getLogger().warning("Error processing rest request");
+              getLogger().warning("Error processing rest request "+request.getRequestURI());
             }
           } else {
             final SoapMessageHandler soapHandler = getSoapMessageHandler();
             if (!soapHandler.processRequest(message, response)) {
-              getLogger().warning("Error processing soap request");
+              getLogger().warning("Error processing soap request "+request.getRequestURI());
             }
           }
         } catch (@NotNull final MessagingException e) {

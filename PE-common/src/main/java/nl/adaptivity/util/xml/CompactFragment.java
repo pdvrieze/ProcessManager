@@ -1,11 +1,11 @@
 package nl.adaptivity.util.xml;
 
-import nl.adaptivity.io.Writable;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -14,7 +14,7 @@ import java.util.Collections;
  * A class representing an xml fragment compactly.
  * Created by pdvrieze on 06/11/15.
  */
-public class CompactFragment implements Writable {
+public class CompactFragment implements XmlSerializable {
 
   private final SimpleNamespaceContext namespaces;
   private final char[] content;
@@ -29,9 +29,16 @@ public class CompactFragment implements Writable {
     this(Collections.<Namespace>emptyList(), string.toCharArray());
   }
 
-  @Override
-  public void writeTo(final Writer destination) throws IOException {
+  public CompactFragment(final CompactFragment orig) {
+    namespaces = SimpleNamespaceContext.from(orig.namespaces);
+    content = orig.content;
+  }
 
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlReader in = XMLFragmentStreamReader.from(this);
+    XmlUtil.serialize(in, out);
+    in.close();
   }
 
   public SimpleNamespaceContext getNamespaces() {

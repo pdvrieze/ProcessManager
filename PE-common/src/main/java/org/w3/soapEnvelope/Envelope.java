@@ -8,20 +8,20 @@
 
 package org.w3.soapEnvelope;
 
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
 
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyAttribute;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
+import java.util.Map.Entry;
 
 
 /**
@@ -46,26 +46,95 @@ import javax.xml.namespace.QName;
  * </pre>
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = Envelope.ELEMENTNAME, propOrder = { "header", "body" })
-@XmlRootElement(name = Envelope.ELEMENTNAME, namespace = Envelope.NAMESPACE)
-public class Envelope {
+@XmlType(name = Envelope.ELEMENTLOCALNAME, propOrder = { "header", "body" })
+@XmlRootElement(name = Envelope.ELEMENTLOCALNAME, namespace = Envelope.NAMESPACE)
+@XmlDeserializer(Envelope.Factory.class)
+public class Envelope implements SimpleXmlDeserializable, XmlSerializable{
+
+  public static class Factory implements XmlDeserializerFactory<Envelope> {
+
+    @Override
+    public Envelope deserialize(final XmlReader in) throws XmlException {
+      return Envelope.deserialize(in);
+    }
+  }
 
   public static final String NAMESPACE = "http://www.w3.org/2003/05/soap-envelope";
 
-  public static final String ELEMENTNAME = "Envelope";
+  public static final String ELEMENTLOCALNAME = "Envelope";
+
+  public static final String PREFIX = "env";
+
+  public static final QName ELEMENTNAME = new QName(NAMESPACE, ELEMENTLOCALNAME, PREFIX);
 
   public static final String MIMETYPE = "application/soap+xml";
 
-  @XmlElement(name = Header.ELEMENTNAME)
+  @XmlElement(name = Header.ELEMENTLOCALNAME)
   protected Header header;
 
-  @XmlElement(name = Body.ELEMENTNAME, required = true)
+  @XmlElement(name = Body.ELEMENTLOCALNAME, required = true)
   protected Body body;
 
   @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
   private URI encodingStyle;
+
+  public static Envelope deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new Envelope(), in);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    // ignore
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    if (StringUtil.isEqual("encodingStyle", attributeLocalName)) {
+      setEncodingStyle(URI.create(StringUtil.toString(attributeValue)));
+      return true;
+    }
+    QName qname = new QName(StringUtil.toString(attributeNamespace), StringUtil.toString(attributeLocalName));
+    otherAttributes.put(qname, StringUtil.toString(attributeValue));
+    return true;
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    if (StringUtil.isEqual(NAMESPACE,in.getNamespaceUri())) {
+      if (StringUtil.isEqual(Header.ELEMENTLOCALNAME, in.getLocalName())) {
+        setHeader(Header.deserialize(in));
+        return true;
+      } else if (StringUtil.isEqual(Body.ELEMENTLOCALNAME, in.getLocalName())) {
+        setBody(Body.deserialize(in));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, getElementName());
+    XmlUtil.writeAttribute(out, "encodingStyle", encodingStyle.toString());
+    for(Entry<QName, String> attr:otherAttributes.entrySet()) {
+      XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
+    }
+    XmlUtil.writeChild(out, header);
+    XmlUtil.writeChild(out, body);
+    XmlUtil.writeEndElement(out, getElementName());
+  }
 
   /**
    * Gets the value of the header property.

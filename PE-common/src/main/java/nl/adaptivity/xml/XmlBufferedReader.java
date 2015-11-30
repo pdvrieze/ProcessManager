@@ -229,7 +229,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   @Override
   public EventType getEventType() throws XmlException {
-    return mCurrent.getEventType();
+    return mCurrent==null ? null : mCurrent.getEventType();
   }
 
   @Override

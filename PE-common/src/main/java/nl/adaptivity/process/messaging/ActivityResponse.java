@@ -9,7 +9,7 @@
 package nl.adaptivity.process.messaging;
 
 import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.ws.soap.SoapHelper;
 import org.jetbrains.annotations.NotNull;
 

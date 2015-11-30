@@ -112,18 +112,6 @@ public class XmlProcessModel {
     return result;
   }
 
-  @NotNull
-  public ProcessModelImpl toProcessModel() {
-    if (nodes instanceof ArrayList) {
-      final List<ExecutableProcessNode> filtered = filter(nodes, ExecutableProcessNode.class);
-      if (nodes.size()!=filtered.size()) {
-        nodes.clear();
-        nodes.addAll(filtered);
-      }
-    }
-    return new ProcessModelImpl(this);
-  }
-
   public void setName(final String name) {
     this.name = name;
   }

@@ -81,6 +81,7 @@ public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeseri
 
   @NotNull
   public static XmlMessage get(final IXmlMessage message) {
+    if (message==null) { return null; }
     if (message instanceof XmlMessage) { return (XmlMessage) message; }
     return new XmlMessage(message.getService(),
                           message.getEndpoint(),

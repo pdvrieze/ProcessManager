@@ -2,7 +2,7 @@ package nl.adaptivity.process.processModel.engine;
 
 import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.StartNode;
 import nl.adaptivity.process.processModel.StartNodeBase;
 import nl.adaptivity.process.processModel.XmlResultType;
