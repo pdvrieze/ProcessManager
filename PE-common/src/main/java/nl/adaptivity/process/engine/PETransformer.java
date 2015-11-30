@@ -66,6 +66,7 @@ public class PETransformer {
           case START_ELEMENT:
             peekStartElement(results, (StartElementEvent) event);
             break;
+          case IGNORABLE_WHITESPACE:
           case TEXT: {
             TextEvent text = (TextEvent) event;
             if (isIgnorableWhiteSpace(text)) {
