@@ -66,16 +66,20 @@ public class PETransformer {
           case START_ELEMENT:
             peekStartElement(results, (StartElementEvent) event);
             break;
-          case IGNORABLE_WHITESPACE:
           case TEXT: {
             TextEvent text = (TextEvent) event;
-            if (isIgnorableWhiteSpace(text)) {
-              if (! mRemoveWhitespace) {
-                results.add(event);
-              }
-              doPeek(results); //peek again, as sometimes whitespace needs to be stripped to add attributes
+            if (!isIgnorableWhiteSpace(text)) {
+              results.add(event);
               break;
             }
+            // fall through if ignorable
+          }
+          case IGNORABLE_WHITESPACE: {
+            if (! mRemoveWhitespace) {
+              results.add(event);
+            }
+            doPeek(results); //peek again, as sometimes whitespace needs to be stripped to add attributes
+            break;
           } // fall through if not whitespace
           default:
             results.add(event);
