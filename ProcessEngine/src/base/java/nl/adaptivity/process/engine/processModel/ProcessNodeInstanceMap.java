@@ -11,7 +11,7 @@ import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.util.xml.CompactFragment;
@@ -106,9 +106,9 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
       ProcessNodeInstance result;
       if (node instanceof JoinImpl) {
-        result =  new JoinInstance((JoinImpl) node, processInstance, state);
+        result =  new JoinInstance(connection, (JoinImpl) node, processInstance, state);
       } else {
-        result = new ProcessNodeInstance(node, processInstance, state);
+        result = new ProcessNodeInstance(connection, node, processInstance, state);
       }
       result.setHandle(handle);
       return result;
@@ -142,7 +142,11 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
               while(resultset.next()) {
                 String name = resultset.getString(1);
                 String data = resultset.getString(2);
-                results.add(new ProcessData(name, new CompactFragment(data)));
+                if (FAILURE_CAUSE.equals(name) && (element.getState()==TaskState.Failed||element.getState()==TaskState.FailRetry)) {
+                  element.setFailureCause(data);
+                } else {
+                  results.add(new ProcessData(name, new CompactFragment(data)));
+                }
               }
             }
           }
@@ -243,6 +247,8 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
   }
 
+  private static final String FAILURE_CAUSE = "failureCause";
+
   static void postStore(final DBTransaction connection, final long handle, final ProcessNodeInstance oldValue, final ProcessNodeInstance element) throws
           SQLException {
     if (oldValue!=null) { // update
@@ -274,6 +280,12 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
         String value = new String(data.getContent().getContent());
         statement.setString(3, value);
 
+        statement.addBatch();
+      }
+      if ((element.getState()==TaskState.Failed|| element.getState()==TaskState.FailRetry) && element.getFailureCause()!=null) {
+        statement.setLong(1, handle);
+        statement.setString(2, FAILURE_CAUSE);
+        statement.setString(3, element.getFailureCause().getLocalizedMessage());
         statement.addBatch();
       }
       statement.executeBatch();

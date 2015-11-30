@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.HandleMap.ComparableHandle;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.HandleMap.HandleAware;
@@ -10,9 +11,12 @@ import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.engine.*;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
+import nl.adaptivity.process.processModel.engine.JoinImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
@@ -26,7 +30,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import java.io.Serializable;
 import java.security.Principal;
 import java.sql.SQLException;
 import java.util.*;
@@ -34,7 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class ProcessInstance implements Serializable, HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
+public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObject, XmlSerializable {
 
   public enum State {
     NEW,
@@ -124,7 +127,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
   private long mHandle;
 
-  private final ProcessEngine mEngine;
+  private final ProcessEngine mEngine;// XXX actually introduce a generic parameter for transactions
 
   private List<ProcessData> mInputs = new ArrayList<>();
 
@@ -229,6 +232,18 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       transaction.commit();
       mEngine.finishInstance(transaction, this);
     }
+  }
+
+  public ProcessNodeInstance getNodeInstance(final Transaction transaction, final Identifiable pred) throws SQLException {
+    for (Handle<? extends ProcessNodeInstance> handle: CollectionUtil.combine(mEndResults, mFinishedNodes, mThreads)) {
+      ProcessNodeInstance instance = mEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
+      if (pred.getId().equals(instance.getNode().getId())) {
+        return instance;
+      }
+      ProcessNodeInstance result = instance.getPredecessor(transaction, pred.getId());
+      if (result!=null) { return result; }
+    }
+    return null;
   }
 
   private int getFinishedCount() {
@@ -370,7 +385,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
 
     final List<ProcessNodeInstance> startedTasks = new ArrayList<>(predecessor.getNode().getSuccessors().size());
     for (final Identifiable successorNode : predecessor.getNode().getSuccessors()) {
-      final ProcessNodeInstance instance = getProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
+      final ProcessNodeInstance instance = createProcessNodeInstance(transaction, predecessor, mProcessModel.getNode(successorNode));
       if (instance instanceof JoinInstance && mThreads.contains(instance)) {
         continue;
       } else {
@@ -386,7 +401,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     }
   }
 
-  private ProcessNodeInstance getProcessNodeInstance(Transaction transaction, final ProcessNodeInstance predecessor, final ExecutableProcessNode node) throws SQLException {
+  private ProcessNodeInstance createProcessNodeInstance(Transaction transaction, final ProcessNodeInstance predecessor, final ExecutableProcessNode node) throws SQLException {
     if (node instanceof JoinImpl) {
       final JoinImpl join = (JoinImpl) node;
       if (mJoins == null) {
@@ -471,7 +486,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
     if(out.getPrefix(Constants.PROCESS_ENGINE_NS)==null) {
       out.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.PROCESS_ENGINE_NS);
     }
-    out.startTag(Constants.PROCESS_ENGINE_NS, null, "processInstance");
+    out.startTag(Constants.PROCESS_ENGINE_NS, "processInstance", null);
     try {
       out.attribute(null, "handle", null, Long.toString(mHandle));
       out.attribute(null, "name", null, mName);
@@ -479,54 +494,54 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
       out.attribute(null, "owner", null, mOwner.getName());
       out.attribute(null, "state", null, mState.name());
 
-      out.startTag(Constants.PROCESS_ENGINE_NS, null, "inputs");
+      out.startTag(Constants.PROCESS_ENGINE_NS, "inputs", null);
       try {
         for(ProcessData input:mInputs) {
           input.serialize(out);
         }
       } finally {
-        out.endTag(Constants.PROCESS_ENGINE_NS, null, "inputs");
+        out.endTag(Constants.PROCESS_ENGINE_NS, "inputs", null);
       }
 
-      out.startTag(Constants.PROCESS_ENGINE_NS, null, "outputs");
+      out.startTag(Constants.PROCESS_ENGINE_NS, "outputs", null);
       try {
         for(ProcessData output:mOutputs) {
           output.serialize(out);
         }
       } finally {
-        out.endTag(Constants.PROCESS_ENGINE_NS, null, "outputs");
+        out.endTag(Constants.PROCESS_ENGINE_NS, "outputs", null);
       }
 
       try(Transaction transaction = getEngine().startTransaction()) {
 
         if (mThreads.size() > 0) {
           try {
-            out.startTag(Constants.PROCESS_ENGINE_NS, null, "active");
+            out.startTag(Constants.PROCESS_ENGINE_NS, "active", null);
             for (Handle<? extends ProcessNodeInstance> active : mThreads) {
               writeActiveNodeRef(transaction, out, active);
             }
           } finally {
-            out.endTag(Constants.PROCESS_ENGINE_NS, null, "active");
+            out.endTag(Constants.PROCESS_ENGINE_NS, "active", null);
           }
         }
         if (mFinishedNodes.size() > 0) {
           try {
-            out.startTag(Constants.PROCESS_ENGINE_NS, null, "finished");
+            out.startTag(Constants.PROCESS_ENGINE_NS, "finished", null);
             for (Handle<? extends ProcessNodeInstance> finished : mFinishedNodes) {
               writeActiveNodeRef(transaction, out, finished);
             }
           } finally {
-            out.endTag(Constants.PROCESS_ENGINE_NS, null, "finished");
+            out.endTag(Constants.PROCESS_ENGINE_NS, "finished", null);
           }
         }
         if (mEndResults.size() > 0) {
           try {
-            out.startTag(Constants.PROCESS_ENGINE_NS, null, "endresults");
+            out.startTag(Constants.PROCESS_ENGINE_NS, "endresults", null);
             for (Handle<? extends ProcessNodeInstance> result : mEndResults) {
               writeResultNodeRef(transaction, out, result);
             }
           } finally {
-            out.endTag(Constants.PROCESS_ENGINE_NS, null, "endresults");
+            out.endTag(Constants.PROCESS_ENGINE_NS, "endresults", null);
           }
         }
         transaction.commit();
@@ -534,7 +549,7 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
         throw new XmlException(e);
       }
     } finally {
-      out.endTag(Constants.PROCESS_ENGINE_NS, null, "processInstance");
+      out.endTag(Constants.PROCESS_ENGINE_NS, "processInstance", null);
     }
 
   }
@@ -542,31 +557,31 @@ public class ProcessInstance implements Serializable, HandleAware<ProcessInstanc
   private void writeActiveNodeRef(Transaction transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
           XmlException, SQLException {
     ProcessNodeInstance nodeInstance = getEngine().getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
-    out.startTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
+    out.startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null);
     try {
       writeNodeRefCommon(out, nodeInstance);
     } finally{
-      out.endTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
+      out.endTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null);
     }
   }
 
   private void writeResultNodeRef(Transaction transaction, XmlWriter out, Handle<? extends ProcessNodeInstance> handleNodeInstance) throws
           XmlException, SQLException {
     ProcessNodeInstance nodeInstance = getEngine().getNodeInstance(transaction, handleNodeInstance, SecurityProvider.SYSTEMPRINCIPAL);
-    out.startTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
+    out.startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null);
     try {
       writeNodeRefCommon(out, nodeInstance);
-      out.startTag(Constants.PROCESS_ENGINE_NS, null, "results");
+      out.startTag(Constants.PROCESS_ENGINE_NS, "results", null);
       try {
         List<ProcessData> results = nodeInstance.getResults();
         for(ProcessData result:results) {
           result.serialize(out);
         }
       } finally {
-        out.endTag(Constants.PROCESS_ENGINE_NS, null, "results");
+        out.endTag(Constants.PROCESS_ENGINE_NS, "results", null);
       }
     } finally{
-      out.endTag(Constants.PROCESS_ENGINE_NS, null, "nodeinstance");
+      out.endTag(Constants.PROCESS_ENGINE_NS, "nodeinstance", null);
     }
   }
 

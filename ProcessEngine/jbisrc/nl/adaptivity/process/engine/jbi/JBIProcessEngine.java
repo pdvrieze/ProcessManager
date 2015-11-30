@@ -1,62 +1,5 @@
 package nl.adaptivity.process.engine.jbi;
 
-import java.io.CharArrayWriter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.MissingResourceException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.activation.DataHandler;
-import javax.jbi.JBIException;
-import javax.jbi.component.Component;
-import javax.jbi.component.ComponentContext;
-import javax.jbi.component.ComponentLifeCycle;
-import javax.jbi.component.ServiceUnitManager;
-import javax.jbi.messaging.DeliveryChannel;
-import javax.jbi.messaging.ExchangeStatus;
-import javax.jbi.messaging.MessageExchange;
-import javax.jbi.messaging.MessageExchangeFactory;
-import javax.jbi.messaging.MessagingException;
-import javax.jbi.messaging.NormalizedMessage;
-import javax.jbi.messaging.RobustInOnly;
-import javax.jbi.servicedesc.ServiceEndpoint;
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebService;
-import javax.jws.WebParam.Mode;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.Namespace;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-
 import net.devrieze.util.HandleMap;
 import nl.adaptivity.jbi.util.EndPointDescriptor;
 import nl.adaptivity.process.IMessageService;
@@ -72,16 +15,48 @@ import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
-import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
+import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.ws.rest.RestMessageHandler;
 import nl.adaptivity.ws.soap.SoapMessageHandler;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
+import javax.activation.DataHandler;
+import javax.jbi.JBIException;
+import javax.jbi.component.Component;
+import javax.jbi.component.ComponentContext;
+import javax.jbi.component.ComponentLifeCycle;
+import javax.jbi.component.ServiceUnitManager;
+import javax.jbi.messaging.*;
+import javax.jbi.servicedesc.ServiceEndpoint;
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.jws.WebParam.Mode;
+import javax.jws.WebService;
+import javax.xml.bind.JAXB;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.*;
+import javax.xml.stream.events.*;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+
+import java.io.CharArrayWriter;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URI;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @WebService(targetNamespace=JBIProcessEngine.PROCESS_ENGINE_NS)
 public class JBIProcessEngine implements Component, Runnable, IMessageService<JBIProcessEngine.JBIMessage, ProcessNodeInstance> {
@@ -557,14 +532,9 @@ public class JBIProcessEngine implements Component, Runnable, IMessageService<JB
   @RestMethod(method=HttpMethod.POST, path="/processModels")
   public ProcessModelRefs postProcessModel(@RestParam(name="processUpload", type=ParamType.ATTACHMENT) DataHandler attachment) throws IOException {
 
-    XmlProcessModel pm;
-    try {
-      pm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
-    } catch (IOException e) {
-      throw e;
-    }
+    ProcessModelImpl pm = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
     if (pm!=null) {
-      mProcessEngine.addProcessModel(pm.toProcessModel());
+      mProcessEngine.addProcessModel(pm);
     }
 
     return getProcesModelRefs();

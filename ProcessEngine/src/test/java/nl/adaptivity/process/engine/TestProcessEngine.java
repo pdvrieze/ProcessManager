@@ -10,7 +10,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;

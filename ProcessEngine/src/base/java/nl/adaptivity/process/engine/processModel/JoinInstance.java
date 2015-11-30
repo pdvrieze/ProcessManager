@@ -1,15 +1,14 @@
 package nl.adaptivity.process.engine.processModel;
 
-import java.sql.SQLException;
-import java.util.Collection;
-
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
+
+import java.sql.SQLException;
+import java.util.Collection;
 
 
 public class JoinInstance extends ProcessNodeInstance {
@@ -31,8 +30,8 @@ public class JoinInstance extends ProcessNodeInstance {
    * @param node
    * @param processInstance
    */
-  JoinInstance(JoinImpl node, ProcessInstance processInstance, TaskState state) {
-    super(node, processInstance, state);
+  JoinInstance(Transaction transaction, JoinImpl node, ProcessInstance processInstance, TaskState state) throws SQLException {
+    super(transaction, node, processInstance, state);
   }
 
   private int mComplete = 0;

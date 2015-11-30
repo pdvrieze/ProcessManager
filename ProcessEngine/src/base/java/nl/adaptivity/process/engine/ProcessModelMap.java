@@ -1,5 +1,17 @@
 package nl.adaptivity.process.engine;
 
+import net.devrieze.util.CachingDBHandleMap;
+import net.devrieze.util.StringCache;
+import net.devrieze.util.TransactionFactory;
+import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl.Factory;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlStreaming;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.security.Principal;
@@ -9,23 +21,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.sql.DataSource;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.util.JAXBSource;
-
-import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.StringCache;
-import net.devrieze.util.TransactionFactory;
-import net.devrieze.util.db.AbstractElementFactory;
-import net.devrieze.util.db.DBTransaction;
-import net.devrieze.util.security.SimplePrincipal;
-
-import nl.adaptivity.process.processModel.XmlProcessModel;
-import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
-import nl.adaptivity.util.activation.Sources;
 
 
 public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
@@ -94,8 +89,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
       try(Reader modelReader = row.getCharacterStream(mColNoModel)) {
         long handle = row.getLong(mColNoHandle);
 
-        XmlProcessModel xmlModel = JAXB.unmarshal(modelReader, XmlProcessModel.class);
-        ProcessModelImpl result = xmlModel.toProcessModel();
+        ProcessModelImpl result = ProcessModelImpl.deserialize(new Factory(), XmlStreaming.newReader(modelReader));
 
         result.setHandle(handle);
         result.cacheStrings(mStringCache);
@@ -103,7 +97,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
           result.setOwner(owner);
         }
         return result;
-      } catch (IOException e) {
+      } catch (IOException | XmlException e) {
         throw new SQLException(e);
       }
     }
@@ -146,23 +140,17 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     public int setStoreParams(PreparedStatement statement, ProcessModelImpl element, int offset) throws SQLException {
       statement.setString(offset, element.getOwner().getName());
 
-      JAXBSource jbs;
-      try {
-        JAXBContext jbc = JAXBContext.newInstance(XmlProcessModel.class);
-        XmlProcessModel xmlModel = new XmlProcessModel(element);
-        jbs = new JAXBSource(jbc, xmlModel);
-      } catch (JAXBException e) {
-        throw new RuntimeException(e);
-      }
       if (_supports_set_character_stream) {
         try {
-          statement.setCharacterStream(offset + 1, Sources.toReader(jbs));
+          statement.setCharacterStream(offset + 1, XmlUtil.toReader(element));
           return 2;
         } catch (AbstractMethodError|UnsupportedOperationException e) {
           _supports_set_character_stream =false;
+        } catch (XmlException e) {
+          throw new RuntimeException(e);
         }
       }
-      statement.setString(offset + 1, Sources.toString(jbs));
+      statement.setString(offset + 1, XmlUtil.toString(element));
       return 2;
     }
 

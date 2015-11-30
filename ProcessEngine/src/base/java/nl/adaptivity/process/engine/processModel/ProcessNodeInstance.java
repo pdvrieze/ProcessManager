@@ -1,35 +1,25 @@
 package nl.adaptivity.process.engine.processModel;
 
 import net.devrieze.util.HandleMap.Handle;
+import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
-import nl.adaptivity.process.exec.XmlProcessNodeInstance;
-import nl.adaptivity.process.exec.XmlProcessNodeInstance.Body;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.Namespace;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMResult;
 
 import java.io.CharArrayWriter;
 import java.sql.SQLException;
@@ -40,12 +30,21 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+@XmlDeserializer(ProcessNodeInstance.Factory.class)
 public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInstance>, SecureObject {
+
+  public static class Factory implements XmlDeserializerFactory<XmlProcessNodeInstance> {
+
+    @Override
+    public XmlProcessNodeInstance deserialize(final XmlReader in) throws XmlException {
+      return XmlProcessNodeInstance.deserialize(in);
+    }
+  }
+
 
   private final ExecutableProcessNode mNode;
 
-  private List<ProcessData> mResults = new ArrayList<>();
+  private final List<ProcessData> mResults = new ArrayList<>();
 
   private Collection<Handle<? extends ProcessNodeInstance>> mPredecessors;
 
@@ -85,10 +84,40 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  ProcessNodeInstance(ExecutableProcessNode node, ProcessInstance processInstance, TaskState state) {
+  ProcessNodeInstance(final Transaction transaction, ExecutableProcessNode node, ProcessInstance processInstance, TaskState state) throws SQLException {
     mNode = node;
     mProcessInstance = processInstance;
     mState = state;
+    mPredecessors = resolvePredecessors(transaction, processInstance, node);
+    if (((mPredecessors == null) || (mPredecessors.size()==0)) && !(node instanceof StartNode)) {
+      throw new NullPointerException("Non-start-node process node instances need predecessors");
+    }
+  }
+
+  public ProcessNodeInstance(final Transaction transaction, final ProcessEngine<?> processEngine, final XmlProcessNodeInstance nodeInstance) throws SQLException {
+    this(transaction, processEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(nodeInstance.getProcessInstance()),SecurityProvider.SYSTEMPRINCIPAL)
+                                   .getProcessModel().getNode(nodeInstance.getNodeId()), processEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(nodeInstance.getProcessInstance()), SecurityProvider.SYSTEMPRINCIPAL), nodeInstance.getState());
+  }
+
+  private Collection<Handle<? extends ProcessNodeInstance>> resolvePredecessors(final Transaction transaction, final ProcessInstance processInstance, final ExecutableProcessNode node) throws SQLException {
+    List<Handle<? extends ProcessNodeInstance>> result = new ArrayList<>();
+    for (Identifiable pred : node.getPredecessors()) {
+      result.add(processInstance.getNodeInstance(transaction, pred));
+    }
+    return result;
+  }
+
+  public void setFailureCause(final String failureCause) {
+    mFailureCause = new Exception(failureCause);
+    mFailureCause.setStackTrace(new StackTraceElement[0]); // wipe the stacktrace, it is irrelevant
+  }
+
+  public static ProcessNodeInstance deserialize(final Transaction transaction, final ProcessEngine<?> processEngine, XmlReader in) throws XmlException {
+    try {
+      return new ProcessNodeInstance(transaction, processEngine, XmlProcessNodeInstance.deserialize(in));
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public <T extends Transaction> void tickle(final Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService) {
@@ -127,7 +156,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   public List<ProcessData> getDefines(Transaction transaction) throws SQLException {
     ArrayList<ProcessData> result = new ArrayList<>();
-    for(IXmlDefineType define: (Collection<? extends IXmlDefineType>) mNode.getDefines()) {
+    for(IXmlDefineType define: mNode.getDefines()) {
       ProcessData data = define.apply(transaction, this);
       result.add(data);
     }
@@ -245,7 +274,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   @Override
   public void failTask(Transaction transaction, final Throwable cause) throws SQLException {
     mFailureCause = cause;
-    setState(transaction, TaskState.Failed);
+    setState(transaction, mState==TaskState.Pending ? TaskState.FailRetry : TaskState.Failed);
   }
 
   @Override
@@ -282,14 +311,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @NotNull
-  public CompactFragment instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final boolean removeWhitespace) throws
+  public WritableCompactFragment instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final boolean removeWhitespace) throws
           XmlException, SQLException {
     CharArrayWriter caw = new CharArrayWriter();
 
     XmlWriter writer = XmlStreaming.newWriter(caw, true);
     instantiateXmlPlaceholders(transaction, in, writer, removeWhitespace);
     writer.close();
-    return new CompactFragment(Collections.<Namespace>emptyList(), caw.toCharArray());
+    return new WritableCompactFragment(Collections.<Namespace>emptyList(), caw.toCharArray());
   }
 
   private static Logger getLogger() {
@@ -297,7 +326,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     return logger;
   }
 
-  public XmlProcessNodeInstance toXmlNode(Transaction transaction) throws SQLException {
+  public XmlProcessNodeInstance toSerializable(final Transaction transaction) throws SQLException, XmlException {
     XmlProcessNodeInstance xmlNodeInst = new XmlProcessNodeInstance();
     xmlNodeInst.setState(mState);
     xmlNodeInst.setHandle(mHandle);
@@ -307,23 +336,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
       IXmlMessage message = act.getMessage();
       try {
         XmlReader in = XMLFragmentStreamReader.from(message.getMessageBody());
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        Document document = dbf.newDocumentBuilder().newDocument();
-        final DOMResult transformResult = new DOMResult(document);
-
-        XmlWriter out = XmlStreaming.newWriter(transformResult);
-
-        instantiateXmlPlaceholders(transaction, in, out, true /** TODO should this be stripped? */);
-        xmlNodeInst.setBody(new Body(document.getDocumentElement())); // XXX don't use DOM anymore.
-      } catch (ParserConfigurationException | XmlException e) {
+        xmlNodeInst.setBody(instantiateXmlPlaceholders(transaction, in, true));
+      } catch (XmlException e) {
         getLogger().log(Level.WARNING, "Error processing body", e);
         throw new RuntimeException(e);
       }
     }
 
-    xmlNodeInst.setProcessinstance(mProcessInstance.getHandle());
+    xmlNodeInst.setProcessInstance(mProcessInstance.getHandle());
 
     xmlNodeInst.setNodeId(mNode.getId());
 
@@ -337,6 +357,35 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     xmlNodeInst.setResults(getResults());
 
     return xmlNodeInst;
+  }
+
+  public void serialize(final Transaction transaction, final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, XmlProcessNodeInstance.ELEMENTNAME);
+    if (mState!=null) { XmlUtil.writeAttribute(out, "state", mState.name()); }
+    if (mProcessInstance!=null) { XmlUtil.writeAttribute(out, "processinstance", mProcessInstance.getHandle()); }
+    if (mHandle!=-1) { XmlUtil.writeAttribute(out, "handle", mHandle); }
+    if (mNode!=null) { XmlUtil.writeAttribute(out, "nodeid", mNode.getId()); }
+    if (mPredecessors!=null) {
+      for (Handle<? extends ProcessNodeInstance> predecessor: mPredecessors) {
+        XmlUtil.writeSimpleElement(out, XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME, Long.toString(predecessor.getHandle()));
+      }
+    }
+    if (mResults!=null) {
+      for (ProcessData result: mResults) {
+        result.serialize(out);
+      }
+    }
+    if (mNode instanceof Activity) {
+      XmlUtil.writeStartElement(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
+      XmlReader in = XMLFragmentStreamReader.from(((Activity) mNode).getMessage().getMessageBody());
+      try {
+        instantiateXmlPlaceholders(transaction, in, out, true);
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+      XmlUtil.writeEndElement(out, XmlProcessNodeInstance.BODY_ELEMENTNAME);
+    }
+    XmlUtil.writeEndElement(out, XmlProcessNodeInstance.ELEMENTNAME);
   }
 
 }

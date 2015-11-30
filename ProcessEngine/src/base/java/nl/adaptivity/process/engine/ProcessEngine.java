@@ -14,7 +14,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl.ExecutableSplitFactory;
 import org.w3c.dom.Document;
@@ -333,8 +333,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return result;
   }
 
-  public ProcessInstance getProcessInstance(T transaction, Handle<? extends ProcessInstance> handle, Principal user) throws SQLException {
-    ProcessInstance instance = getInstances().get(transaction, handle);
+  public ProcessInstance getProcessInstance(Transaction transaction, Handle<? extends ProcessInstance> handle, Principal user) throws SQLException {
+    ProcessInstance instance = getInstances().get((T) transaction, handle); // XXX no generics needed
     mSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, user, instance);
     return instance;
   }

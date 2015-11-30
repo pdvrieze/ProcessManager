@@ -8,19 +8,19 @@ import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
+import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.exec.XmlProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
-import nl.adaptivity.process.processModel.XmlProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Constants;
@@ -48,7 +48,6 @@ import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
@@ -58,6 +57,7 @@ import javax.xml.transform.Source;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.security.Principal;
@@ -145,6 +145,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     @Override
     public Writable getBodySource() {
       return this;
+    }
+
+    @Override
+    public Reader getBodyReader() {
+      return new WritableReader(mData); // XXX see if there's a better way
     }
 
     public String getContentType() {
@@ -465,7 +470,20 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     assert instance.getHandle()>=0;
     message.setHandle(transaction, instance);
 
-    MessagingRegistry.sendMessage(message, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(message.getHandle()), message.getOwner()), DataSource.class, new Class<?>[0]);
+    Future<DataSource> result = MessagingRegistry.sendMessage(message, new MessagingCompletionListener(Handles.<ProcessNodeInstance>handle(message.getHandle()), message.getOwner()), DataSource.class, new Class<?>[0]);
+    if (result.isCancelled()) { return false; }
+    if (result.isDone()) {
+      try {
+        result.get();
+      } catch (ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof RuntimeException) { throw (RuntimeException) cause; }
+        if (cause instanceof SQLException) { throw (SQLException) cause; }
+        throw new RuntimeException(cause);
+      } catch (InterruptedException e) {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -506,11 +524,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
-  public XmlProcessModel getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
+  public ProcessModelImpl getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
     try (DBTransaction transaction = mProcessEngine.startTransaction()){
       Handle<ProcessModelImpl> handle1 = Handles.<ProcessModelImpl>handle(handle);
       mProcessEngine.invalidateModelCache(handle1);
-      return transaction.commit(new XmlProcessModel(mProcessEngine.getProcessModel(transaction, handle1, user)));
+      return transaction.commit(mProcessEngine.getProcessModel(transaction, handle1, user));
     } catch (final NullPointerException e) {
       throw (FileNotFoundException) new FileNotFoundException("Process handle invalid").initCause(e);
     } catch (SQLException e) {
@@ -520,20 +538,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
-  public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException {
+  public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    XmlProcessModel xmlpm;
-    try {
-      xmlpm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
-    } catch (final IOException e) {
-      throw e;
-    }
-    if (xmlpm != null) {
-      final ProcessModelImpl processModel = xmlpm.toProcessModel();
+    ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+    if (processModel != null) {
       processModel.setHandle(handle);
-      if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
-        throw new AssertionError("Process model sizes don't match");
-      }
+
       try (DBTransaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(mProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), processModel, user));
       } catch (SQLException e) {
@@ -545,19 +555,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
-  public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException {
+  public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
     if (owner==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    XmlProcessModel xmlpm;
-    try {
-      xmlpm = JAXB.unmarshal(attachment.getInputStream(), XmlProcessModel.class);
-    } catch (final IOException e) {
-      throw e;
-    }
-    if (xmlpm != null) {
-      final ProcessModelImpl processModel = xmlpm.toProcessModel();
-      if (xmlpm.getNodes().size()!=processModel.getModelNodes().size()) {
-        throw new AssertionError("Process model sizes don't match");
-      }
+    ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+    if (processModel != null) {
+
       try (DBTransaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));
       } catch (SQLException e) {
@@ -658,8 +660,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @WebMethod(operationName="getProcessNodeInstance")
   public XmlProcessNodeInstance getProcessNodeInstanceSoap(
           @WebParam(name="handle", mode=Mode.IN) final long handle,
-          @WebParam(name="user", mode=Mode.IN) final Principal user) throws FileNotFoundException, SQLException
-  {
+          @WebParam(name="user", mode=Mode.IN) final Principal user) throws FileNotFoundException, SQLException, XmlException {
     return getProcessNodeInstance(handle, user);
   }
 
@@ -668,13 +669,12 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           @RestParam(name = "handle", type = ParamType.VAR)
               final long handle,
           @RestParam(type = ParamType.PRINCIPAL)
-              final Principal user) throws FileNotFoundException, SQLException
-  {
+              final Principal user) throws FileNotFoundException, SQLException, XmlException {
     Handle<? extends ProcessNodeInstance> handle1 = new HProcessNodeInstance(handle);
     try (DBTransaction transaction = mProcessEngine.startTransaction()){
       final ProcessNodeInstance result = mProcessEngine.getNodeInstance(transaction, handle1, user);
       if (result==null) { throw new FileNotFoundException(); }
-      return transaction.commit(result.toXmlNode(transaction));
+      return transaction.commit(result.toSerializable(transaction));
     }
   }
 
@@ -746,8 +746,8 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
             final Document domResult = XmlUtil.tryParseXml(result.getInputStream());
             Element rootNode = domResult.getDocumentElement();
             // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
-            if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTNAME.equals(rootNode.getLocalName())) {
-              final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTNAME);
+            if (Envelope.NAMESPACE.equals(rootNode.getNamespaceURI()) && Envelope.ELEMENTLOCALNAME.equals(rootNode.getLocalName())) {
+              final Element header = XmlUtil.getFirstChild(rootNode, Envelope.NAMESPACE, org.w3.soapEnvelope.Header.ELEMENTLOCALNAME);
               if (header != null) {
                 rootNode = XmlUtil.getFirstChild(header, Constants.PROCESS_ENGINE_NS, ActivityResponse.ELEMENTNAME);
               }
