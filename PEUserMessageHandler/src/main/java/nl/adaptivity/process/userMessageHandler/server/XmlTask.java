@@ -4,14 +4,19 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -25,7 +30,16 @@ import java.util.logging.Logger;
 
 @XmlRootElement(name = "task")
 @XmlAccessorType(XmlAccessType.NONE)
-public class XmlTask implements UserTask<XmlTask> {
+@XmlDeserializer(XmlTask.Factory.class)
+public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
+
+  public static class Factory implements XmlDeserializerFactory<XmlTask> {
+
+    @Override
+    public XmlTask deserialize(final XmlReader in) throws XmlException {
+      return XmlTask.deserialize(in);
+    }
+  }
 
   private long mHandle = -1L;
 
@@ -60,6 +74,53 @@ public class XmlTask implements UserTask<XmlTask> {
     this.mEndPoint = null;
     this.mOwner = task.getOwner();
     this.mItems = new ArrayList<>(XmlItem.get(task.getItems()));
+  }
+
+  public static XmlTask deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new XmlTask(), in);
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    if (XmlUtil.isElement(in, Constants.USER_MESSAGE_HANDLER_NS, "item")) {
+      if (mItems==null) { mItems = new ArrayList<>(); }
+      mItems.add(XmlItem.deserialize(in));
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    switch (attributeLocalName.toString()) {
+      case "state": mState = TaskState.valueOf(attributeValue.toString()); return true;
+      case "handle": mHandle = Long.parseLong(attributeValue.toString()); return true;
+      case "remotehandle": mHandle = Long.parseLong(attributeNamespace.toString()); return true;
+      case "instancehandle": mInstanceHandle = Long.parseLong(attributeNamespace.toString()); return true;
+      case "summary": mSummary = attributeValue.toString(); return true;
+      case "owner": mOwner = new SimplePrincipal(attributeValue.toString()); return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+
+  }
+
+  @Override
+  public QName getElementName() {
+    return null;
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+
   }
 
   @XmlAttribute
@@ -104,7 +165,7 @@ public class XmlTask implements UserTask<XmlTask> {
 
   private Node createResult() {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);;
+    dbf.setNamespaceAware(true);
     Document document;
     try {
       document = dbf.newDocumentBuilder().newDocument();
@@ -238,7 +299,7 @@ public class XmlTask implements UserTask<XmlTask> {
     if (mHandle != other.mHandle)
       return false;
     if (mItems == null || mItems.isEmpty()) {
-      if (other.mItems != null && ! mItems.isEmpty())
+      if (other.mItems != null && ! other.mItems.isEmpty())
         return false;
     } else if (!mItems.equals(other.mItems))
       return false;

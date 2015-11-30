@@ -1,27 +1,20 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import nl.adaptivity.messaging.Descriptor;
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.messaging.EndpointDescriptorImpl;
+import nl.adaptivity.process.messaging.ActivityResponse;
+import nl.adaptivity.process.messaging.GenericEndpoint;
+import nl.adaptivity.process.util.Constants;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
-import javax.servlet.ServletConfig;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
-import nl.adaptivity.messaging.*;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.messaging.ActivityResponse;
-import nl.adaptivity.process.messaging.GenericEndpoint;
-import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.ws.soap.SoapSeeAlso;
+import java.net.URI;
 
 
 /*@XmlSeeAlso(XmlTask.class)*/

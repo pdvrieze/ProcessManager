@@ -5,7 +5,7 @@ import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;

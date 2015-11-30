@@ -5,8 +5,7 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.ReaderInputStream;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import org.junit.Assert;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -19,7 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
 import java.io.IOException;
-import java.io.StringBufferInputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.Charset;

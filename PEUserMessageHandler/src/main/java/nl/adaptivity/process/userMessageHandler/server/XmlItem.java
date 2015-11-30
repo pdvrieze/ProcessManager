@@ -1,28 +1,102 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
+import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
+
+import javax.xml.bind.annotation.*;
+import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
-import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
-import nl.adaptivity.process.util.Constants;
-
-@XmlRootElement(name="item")
+@XmlRootElement(name= XmlItem.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
-public class XmlItem implements TaskItem{
+@XmlDeserializer(XmlItem.Factory.class)
+public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializable {
+
+  public class Factory implements XmlDeserializerFactory<XmlItem> {
+
+    @Override
+    public XmlItem deserialize(final XmlReader in) throws XmlException {
+      return XmlItem.deserialize(in);
+    }
+  }
+
+  public static final String ELEMENTLOCALNAME = "item";
+  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, "umh");
+  private static final QName OPTION_ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "option", "umh");
+
   private String mName;
   private String mLabel;
   private String mType;
   private String mValue;
   private String mParams;
   private List<String> mOptions;
+
+  public static XmlItem deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new XmlItem(), in);
+  }
+
+  @Override
+  public boolean deserializeChild(final XmlReader in) throws XmlException {
+    if (XmlUtil.isElement(in, OPTION_ELEMENTNAME)) {
+      if (mOptions==null) { mOptions = new ArrayList<>(); }
+      mOptions.add(StringUtil.toString(XmlUtil.readSimpleElement(in)));
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public boolean deserializeChildText(final CharSequence elementText) {
+    return false;
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    switch (attributeLocalName.toString()) {
+      case "name": mName = attributeValue.toString(); return true;
+      case "label": mLabel = attributeValue.toString(); return true;
+      case "params": mParams = attributeValue.toString(); return true;
+      case "type": mType = attributeValue.toString(); return true;
+      case "value": mValue = attributeValue.toString(); return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
+    // do nothing
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlUtil.writeAttribute(out, "name", mName);
+    XmlUtil.writeAttribute(out, "label", mLabel);
+    XmlUtil.writeAttribute(out, "params", mParams);
+    XmlUtil.writeAttribute(out, "type", mType);
+    XmlUtil.writeAttribute(out, "value", mValue);
+    if (mOptions!=null) {
+      for(String option:mOptions) {
+        XmlUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
+      }
+    }
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
+  }
 
   @Override
   @XmlAttribute(name="name")

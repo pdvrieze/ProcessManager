@@ -1,5 +1,24 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.CachingDBHandleMap;
+import net.devrieze.util.TransactionFactory;
+import net.devrieze.util.db.AbstractElementFactory;
+import net.devrieze.util.db.DBTransaction;
+import net.devrieze.util.security.SecurityProvider;
+import nl.adaptivity.messaging.MessagingException;
+import nl.adaptivity.process.client.ServletProcessEngineClient;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
+import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.w3.soapEnvelope.Envelope;
+
+import javax.xml.bind.JAXBException;
+
 import java.io.FileNotFoundException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,30 +30,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import javax.sql.DataSource;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.transform.dom.DOMSource;
-
-import net.devrieze.util.TransactionFactory;
-import org.w3.soapEnvelope.Body;
-import org.w3.soapEnvelope.Envelope;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.db.AbstractElementFactory;
-import net.devrieze.util.db.DBTransaction;
-import net.devrieze.util.security.SecurityProvider;
-
-import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.exec.XmlProcessNodeInstance;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
-import nl.adaptivity.process.util.Constants;
-import nl.adaptivity.util.activation.Sources;
 
 
 public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
@@ -89,7 +84,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
         try{
           Future<XmlProcessNodeInstance> future = ServletProcessEngineClient.getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL, null, XmlTask.class, Envelope.class);
           instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS, TimeUnit.MILLISECONDS);
-          if (instance.getState()==TaskState.Complete) {
+          if (instance==null || instance.getState()==TaskState.Complete) {
             return null; // Delete from the database, this can't be redone.
           }
         } catch (ExecutionException|MessagingException e) {
@@ -109,30 +104,30 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
           }
           throw e;
         }
-      } catch (JAXBException | InterruptedException | ExecutionException | TimeoutException e) {
-        throw new RuntimeException(e);
-      }
-      for(Object bodyElem: instance.getBody().getAny()) {
-        if (bodyElem instanceof JAXBElement<?>) {
-          bodyElem = ((JAXBElement<?>) bodyElem).getValue();
-        }
-        if (bodyElem instanceof Envelope) {
-          Envelope envelope = (Envelope) bodyElem;
 
-          Body body = envelope.getBody();
-          Element operation = (Element) body.getAny().get(0);
-          for(Node elem=operation.getFirstChild(); elem!=null; elem=elem.getNextSibling()) {
-            if (Constants.USER_MESSAGE_HANDLER_NS.equals(elem.getNamespaceURI()) &&
-                "taskParam".equals(elem.getLocalName())) {
+        if (instance.getBody()!=null) {
+          XmlReader reader = XMLFragmentStreamReader.from(instance.getBody());
+          while (reader.hasNext() && reader.getEventType() != EventType.END_ELEMENT) {
+            switch (reader.next()) {
+              case START_ELEMENT:
+                if (XmlUtil.isElement(reader, Constants.USER_MESSAGE_HANDLER_NS, "taskParam"))  {
+                  reader.nextTag();
+                  XmlTask result = XmlTask.deserialize(reader);
+                  result.setInstanceHandle(instance.getHandle());
+                  result.setHandle(handle);
+                  result.setState(instance.getState());
+                  return result;
 
-              XmlTask result = JAXB.unmarshal(Sources.toReader(new DOMSource(elem.getFirstChild().cloneNode(true))), XmlTask.class);
-              result.setInstanceHandle(instance.getProcessinstance());
-              result.setHandle(handle);
-              result.setState(instance.getState());
-              return result;
+                }
+
+
+              default:
+                XmlUtil.unhandledEvent(reader);
             }
           }
         }
+      } catch (JAXBException | InterruptedException | ExecutionException | TimeoutException | XmlException e) {
+        throw new RuntimeException(e);
       }
       return null;
     }

@@ -3,7 +3,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
-import nl.adaptivity.process.exec.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.ws.soap.SoapSeeAlso;

@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import net.devrieze.util.db.DBTransaction;
 
 import nl.adaptivity.messaging.MessagingRegistry;
-import nl.adaptivity.process.exec.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
