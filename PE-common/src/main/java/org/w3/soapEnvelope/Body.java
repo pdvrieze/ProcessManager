@@ -15,6 +15,7 @@ import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -62,7 +63,9 @@ public class Body implements ExtXmlDeserializable, XmlSerializable {
 
   @Override
   public void deserializeChildren(final XmlReader in) throws XmlException {
-    mContent = XmlUtil.siblingsToFragment(in);
+    if( in.next() != EventType.END_ELEMENT) { // first child
+      if (in.hasNext()) mContent = XmlUtil.siblingsToFragment(in);
+    }
   }
 
   @Override
