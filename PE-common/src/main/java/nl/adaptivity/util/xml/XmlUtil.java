@@ -1052,7 +1052,7 @@ public final class XmlUtil {
       case CDSECT:
       case TEXT:
         if (!in.isWhitespace()) {
-          throw new XmlException("Content found where not expected ["+in.getLocationInfo()+"]");
+          throw new XmlException("Content found where not expected ["+in.getLocationInfo()+"] Text:'"+in.getText()+"'");
         }
         break;
       case COMMENT:
