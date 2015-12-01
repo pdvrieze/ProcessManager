@@ -24,6 +24,9 @@
         </descriptors>
         <webroots>
           <root url="file://$MODULE_DIR$/src/main/webapp" relative="/" />
+          <root url="file://$MODULE_DIR$/build/gwt/draftOut/peusermessagehandler" relative="/peusermessagehandler" />
+          <root url="file://$MODULE_DIR$/build/gwt/draftOut/WEB-INF" relative="/WEB-INF" />
+          <root url="file://$MODULE_DIR$/build/gwt/draftOut/darwinjs" relative="/darwinjs" />
           <root url="file://$MODULE_DIR$/build/generated-images/images" relative="/images" />
         </webroots>
         <sourceRoots>
@@ -62,8 +65,8 @@
     <output-test url="file://$MODULE_DIR$/build/classes/test" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/api/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/api/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/api/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/build/genResources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
@@ -91,6 +94,7 @@
     <orderEntry type="library" exported="" name="asm-3.3.1" level="project" />
     <orderEntry type="library" exported="" scope="RUNTIME" name="gwt-servlet-2.6.1" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="junit-4.12" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="xmlunit-1.6" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="hamcrest-core-1.3" level="project" />
   </component>
 </module>

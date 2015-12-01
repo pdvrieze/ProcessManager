@@ -28,7 +28,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@XmlRootElement(name = "task")
+@XmlRootElement(name = XmlTask.ELEMENTLOCALNAME)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlDeserializer(XmlTask.Factory.class)
 public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
@@ -40,6 +40,9 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
       return XmlTask.deserialize(in);
     }
   }
+
+  public static final String ELEMENTLOCALNAME = "task";
+  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, "umh");
 
   private long mHandle = -1L;
 
@@ -100,8 +103,8 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     switch (attributeLocalName.toString()) {
       case "state": mState = TaskState.valueOf(attributeValue.toString()); return true;
       case "handle": mHandle = Long.parseLong(attributeValue.toString()); return true;
-      case "remotehandle": mHandle = Long.parseLong(attributeNamespace.toString()); return true;
-      case "instancehandle": mInstanceHandle = Long.parseLong(attributeNamespace.toString()); return true;
+      case "remotehandle": mHandle = Long.parseLong(attributeValue.toString()); return true;
+      case "instancehandle": mInstanceHandle = Long.parseLong(attributeValue.toString()); return true;
       case "summary": mSummary = attributeValue.toString(); return true;
       case "owner": mOwner = new SimplePrincipal(attributeValue.toString()); return true;
     }
@@ -115,12 +118,20 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
 
   @Override
   public QName getElementName() {
-    return null;
+    return ELEMENTNAME;
   }
 
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
-
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    if (mState!=null) { XmlUtil.writeAttribute(out, "state", mState.name()); }
+    if (mHandle>=0) { XmlUtil.writeAttribute(out, "handle", mHandle); }
+    if (mRemoteHandle>=0) { XmlUtil.writeAttribute(out, "remotehandle", mRemoteHandle); }
+    if (mInstanceHandle>=0) { XmlUtil.writeAttribute(out, "instancehandle", mInstanceHandle); }
+    XmlUtil.writeAttribute(out, "summary", mSummary);
+    if (mOwner!=null) { XmlUtil.writeAttribute(out, "owner", mOwner.getName()); }
+    XmlUtil.writeChildren(out, mItems);
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
   @XmlAttribute
