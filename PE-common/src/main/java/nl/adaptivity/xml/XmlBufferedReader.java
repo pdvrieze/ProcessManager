@@ -7,7 +7,6 @@ import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlEvent.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
 
@@ -64,7 +63,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
    *  Get the next event to add to the queue. Children can override this to customize the events that are added to the
    *  peek buffer. Normally this method is only called when the peek buffer is empty.
    */
-  @Nullable
+  @NotNull
   protected List<XmlEvent> doPeek() throws XmlException {
     if (mDelegate.hasNext()) {
       mDelegate.next(); // Don't forget to actually read the next element
