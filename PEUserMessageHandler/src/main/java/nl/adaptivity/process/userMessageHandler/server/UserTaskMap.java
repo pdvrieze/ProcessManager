@@ -96,7 +96,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
           if (f.getCause() instanceof FileNotFoundException) {
             return null; // No such task exists
           } else if (f.getCause() instanceof RuntimeException){
-            throw (RuntimeException) f;
+            throw (RuntimeException) f.getCause();
           } else if (f instanceof ExecutionException) {
             throw (ExecutionException) f;
           } else if (f instanceof MessagingException) {
