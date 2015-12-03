@@ -157,7 +157,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
         verifiedNewState = updateRemoteTaskState(newState, user).get();
       }
       mState = verifiedNewState;
-    } catch (final JAXBException | MessagingException e) {
+    } catch (final XmlException | JAXBException | MessagingException e) {
       Logger.getLogger(getClass().getCanonicalName()).throwing("XmlTask", "setState", e);
     } catch (final InterruptedException e) {
       Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e);
@@ -166,11 +166,11 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     }
   }
 
-  private Future<TaskState> updateRemoteTaskState(final TaskState state, final Principal user) throws JAXBException, MessagingException {
+  private Future<TaskState> updateRemoteTaskState(final TaskState state, final Principal user) throws JAXBException, MessagingException, XmlException {
     return ServletProcessEngineClient.updateTaskState(mRemoteHandle, state, user, null);
   }
 
-  private Future<TaskState> finishRemoteTask(final Principal user) throws JAXBException, MessagingException {
+  private Future<TaskState> finishRemoteTask(final Principal user) throws JAXBException, MessagingException, XmlException {
     return ServletProcessEngineClient.finishTask(mRemoteHandle, createResult(), user, null); // Ignore completion???
   }
 
