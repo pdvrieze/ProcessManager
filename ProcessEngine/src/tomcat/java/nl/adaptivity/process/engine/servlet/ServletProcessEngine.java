@@ -144,7 +144,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
     @Override
     public Writable getBodySource() {
-      return this;
+      return mData;
     }
 
     @Override
