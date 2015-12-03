@@ -74,7 +74,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
   }
 
   private void ensureNoUnunderstoodHeaders(@NotNull @SuppressWarnings("unused") final Envelope envelope) {
-    if (envelope.getHeader().getAny().size()>0) {
+    if (envelope.getHeader()!=null && envelope.getHeader().getAny().size()>0) {
       throw new MessagingFormatException("Soap header not understood");
     }
   }

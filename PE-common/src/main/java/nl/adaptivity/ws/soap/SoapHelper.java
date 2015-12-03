@@ -264,6 +264,7 @@ public class SoapHelper {
   }
 
   static <T> LinkedHashMap<String, Node> unmarshalWrapper(final XmlReader reader) throws XmlException {
+    XmlUtil.skipPreamble(reader);
     reader.require(EventType.START_ELEMENT, null, null);
     LinkedHashMap<String, Node> params = new LinkedHashMap<>();
     QName wrapperName = reader.getName();
@@ -296,8 +297,12 @@ public class SoapHelper {
 
           } else if ((returnName != null) && XmlUtil.isElement(reader, returnName)) {
             params.put(RESULT, XmlUtil.childToNode(reader));
+            reader.require(EventType.END_ELEMENT, returnName.getNamespaceURI(), returnName.getLocalPart());
+            reader.next();
           } else {
             params.put(reader.getLocalName().toString(), XmlUtil.childToNode(reader));
+            reader.require(EventType.END_ELEMENT, null, null);
+            reader.next();
           }
           break;
         }
