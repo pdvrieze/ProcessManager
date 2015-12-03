@@ -269,6 +269,7 @@ public final class MessagingSoapClientGenerator {
     imports.put("Arrays", "java.util.Arrays");
     imports.put("JAXBElement", "javax.xml.bind.JAXBElement");
     imports.put("JAXBException", "javax.xml.bind.JAXBException");
+    imports.put("XmlException", "nl.adaptivity.xml.XmlException");
     imports.put("QName", "javax.xml.namespace.QName");
     imports.put("Source", "javax.xml.transform.Source");
     imports.put("Tripple", "net.devrieze.util.Tripple");
@@ -444,9 +445,9 @@ public final class MessagingSoapClientGenerator {
     }
     final SoapSeeAlso seeAlso = Annotations.getAnnotation(method.getAnnotations(), SoapSeeAlso.class);
     if (seeAlso == null) {
-      out.write(", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {\n");
+      out.write(", CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {\n");
     } else {
-      out.write(", CompletionListener completionListener) throws JAXBException {\n");
+      out.write(", CompletionListener completionListener) throws JAXBException, XmlException {\n");
     }
     {
       int paramNo = 0;
