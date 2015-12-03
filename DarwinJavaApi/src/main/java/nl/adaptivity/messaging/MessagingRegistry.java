@@ -260,8 +260,8 @@ public final class MessagingRegistry {
           mCommandQueue.add(new RegisterEndpointCommand(endPoint, service, target));
           return new SimpleEndpointDescriptor(service, endPoint, target);
         }
+        return mRealMessenger.registerEndpoint(service, endPoint, target);
       }
-      return mRealMessenger.registerEndpoint(service, endPoint, target);
     }
 
     @Override
@@ -278,8 +278,8 @@ public final class MessagingRegistry {
           });
           return;
         }
+        mRealMessenger.registerEndpoint(endpoint);
       }
-      mRealMessenger.registerEndpoint(endpoint);
     }
 
     @Override
@@ -290,8 +290,8 @@ public final class MessagingRegistry {
           mCommandQueue.add(future);
           return future;
         }
+        return mRealMessenger.sendMessage(message, completionListener, returnType, returnTypeContext);
       }
-      return mRealMessenger.sendMessage(message, completionListener, returnType, returnTypeContext);
     }
 
     @Override
