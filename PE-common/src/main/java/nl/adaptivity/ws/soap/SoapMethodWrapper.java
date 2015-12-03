@@ -222,7 +222,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     }
     try {
       return SoapHelper.createMessage(new QName(mMethod.getName() + "Response"), headers, params);
-    } catch (@NotNull final JAXBException e) {
+    } catch (@NotNull final XmlException | JAXBException e) {
       throw new MessagingException(e);
     }
   }

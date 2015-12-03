@@ -56,7 +56,7 @@ public class SendableSoapSource implements ISendableMessage, Writable {
   @NotNull
   @Override
   public Writable getBodySource() {
-    return this;
+    return mMessage==null ? null : this;
   }
 
   public Reader getBodyReader() {

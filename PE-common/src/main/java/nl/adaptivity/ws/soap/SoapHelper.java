@@ -9,11 +9,13 @@ import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
+import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlWriter;
 import org.w3.soapEnvelope.Envelope;
 import org.w3.soapEnvelope.Header;
 import org.w3c.dom.Document;
@@ -29,6 +31,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
 import java.lang.reflect.Method;
@@ -51,7 +54,7 @@ public class SoapHelper {
 
   private SoapHelper() {}
 
-  public static Source createMessage(final QName pOperationName, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException {
+  public static Source createMessage(final QName pOperationName, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException, XmlException {
     return createMessage(pOperationName, null, pParams);
   }
 
@@ -66,7 +69,7 @@ public class SoapHelper {
    * @return a Source that encapsulates the message.
    * @throws JAXBException
    */
-  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException {
+  public static Source createMessage(final QName pOperationName, final List<?> pHeaders, final List<Tripple<String, ? extends Class<?>, ?>> pParams) throws JAXBException, XmlException {
     DocumentBuilder db;
     {
       final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -157,7 +160,7 @@ public class SoapHelper {
     return message;
   }
 
-  private static Element addParam(final Element pMessage, final Tripple<String, ? extends Class<?>, ?> pParam) throws JAXBException {
+  private static Element addParam(final Element pMessage, final Tripple<String, ? extends Class<?>, ?> pParam) throws JAXBException, XmlException {
     final Document ownerDoc = pMessage.getOwnerDocument();
     String prefix;
     if ((pMessage.getPrefix() != null) && (pMessage.getPrefix().length() > 0)) {
@@ -182,6 +185,10 @@ public class SoapHelper {
       // don't add anything
     } else if (Types.isPrimitive(paramType) || Types.isPrimitiveWrapper(paramType)) {
       wrapper.appendChild(ownerDoc.createTextNode(pParam.getElem3().toString()));
+    } else if (XmlSerializable.class.isAssignableFrom(paramType)) {
+      XmlWriter xmlWriter = XmlStreaming.newWriter(new DOMResult(wrapper));
+      ((XmlSerializable) pParam.getElem3()).serialize(xmlWriter);
+      xmlWriter.close();
     } else if (Collection.class.isAssignableFrom(paramType)) {
       final Collection<?> params = (Collection<?>) pParam.getElem3();
       final Set<Class<?>> paramTypes = new HashSet<>();
@@ -269,7 +276,7 @@ public class SoapHelper {
     LinkedHashMap<String, Node> params = new LinkedHashMap<>();
     QName wrapperName = reader.getName();
     QName returnName = null;
-    while (reader.hasNext() && reader.getEventType()!= EventType.END_ELEMENT) {
+    outer: while (reader.hasNext()) {
       switch (reader.next()) {
         case TEXT:
           if (!XmlUtil.isXmlWhitespace(reader.getText())) {
@@ -298,14 +305,14 @@ public class SoapHelper {
           } else if ((returnName != null) && XmlUtil.isElement(reader, returnName)) {
             params.put(RESULT, XmlUtil.childToNode(reader));
             reader.require(EventType.END_ELEMENT, returnName.getNamespaceURI(), returnName.getLocalPart());
-            reader.next();
           } else {
             params.put(reader.getLocalName().toString(), XmlUtil.childToNode(reader));
             reader.require(EventType.END_ELEMENT, null, null);
-            reader.next();
           }
           break;
         }
+        case END_ELEMENT:
+          break outer;
         default:
           XmlUtil.unhandledEvent(reader);
           // This is the parameter wrapper
@@ -362,7 +369,8 @@ public class SoapHelper {
   }
 
   static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) throws XmlException {
-    final Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
+    Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
+    while (value !=null && value instanceof Text && (((Text) value).isElementContentWhitespace()))  { value = value.getNextSibling(); }
     Object result;
     if ((value != null) && (!pClass.isInstance(value))) {
       if (Types.isPrimitive(pClass) || (Types.isPrimitiveWrapper(pClass))) {
@@ -385,7 +393,7 @@ public class SoapHelper {
           throw new UnsupportedOperationException("Can not unmarshal other strings than to string or stringbuilder");
         }
       } else {
-        if (value.getNextSibling() != null) {
+        if (value.getNextSibling() != null && (value.getNextSibling() instanceof Element)) {
           throw new UnsupportedOperationException("Collection parameters not yet supported");
         }
         try {

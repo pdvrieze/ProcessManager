@@ -258,7 +258,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
     }
     if (mBody!=null) {
       XmlUtil.writeStartElement(out, BODY_ELEMENTNAME);
-      mBody.serialize(out);
+      mBody.serialize(XmlUtil.stripMetatags(out));
       XmlUtil.writeEndElement(out, BODY_ELEMENTNAME);
     }
     XmlUtil.writeEndElement(out, ELEMENTNAME);

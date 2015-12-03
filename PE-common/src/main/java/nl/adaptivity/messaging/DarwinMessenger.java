@@ -301,6 +301,7 @@ public class DarwinMessenger implements IMessenger {
             try(final OutputStream out = httpConnection.getOutputStream()) {
               Writer writer = new OutputStreamWriter(out, "UTF-8");
               mMessage.getBodySource().writeTo(writer);
+              writer.close();
             }
           }
           httpConnection.connect();
@@ -579,7 +580,7 @@ public class DarwinMessenger implements IMessenger {
             completionListener.onMessageCompletion(resultfuture);
           }
           return resultfuture;
-        } catch (RuntimeException | XmlException e) {
+        } catch (Exception e) {
           return new MessageTask<T>(e);
         }
 

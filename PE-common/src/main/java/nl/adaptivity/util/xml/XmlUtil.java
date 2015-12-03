@@ -893,7 +893,7 @@ public final class XmlUtil {
           }
           writeElementContent(missingNamespaces, in, out); // writes the children and end tag
           out.close();
-        } else if (type==XmlStreaming.TEXT) {
+        } else if (type==XmlStreaming.TEXT || type==XmlStreaming.IGNORABLE_WHITESPACE || type==XmlStreaming.CDATA) {
           caw.append(xmlEncode(in.getText().toString()));
         }
       }
