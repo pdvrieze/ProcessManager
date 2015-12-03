@@ -25,6 +25,7 @@ import nl.adaptivity.messaging.SendableSoapSource;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.userMessageHandler.server.UserTask;
 import nl.adaptivity.ws.soap.SoapHelper;
+import nl.adaptivity.xml.XmlException;
 
 @SuppressWarnings("all")
 public class InternalEndpointClient {
@@ -35,7 +36,7 @@ public class InternalEndpointClient {
 
   private InternalEndpointClient() { }
 
-  public static Future<ActivityResponse<Boolean>> postTask(EndpointDescriptorImpl repliesParam, UserTask<?> taskParam, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException {
+  public static Future<ActivityResponse<Boolean>> postTask(EndpointDescriptorImpl repliesParam, UserTask<?> taskParam, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
     final Tripple<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl> param0 = Tripple.<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl>tripple("repliesParam", EndpointDescriptorImpl.class, repliesParam);
     final Tripple<String, Class<UserTask>, UserTask<?>> param1 = Tripple.<String, Class<UserTask>, UserTask<?>>tripple("taskParam", UserTask.class, taskParam);
 
