@@ -881,7 +881,8 @@ public final class XmlUtil {
 
       final TreeMap<String, String> missingNamespaces = new TreeMap<>();
       GatheringNamespaceContext gatheringContext = null;
-      int initialDepth = in.getDepth();
+      // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
+      int initialDepth = in.getDepth() - (in.getEventType()==EventType.START_ELEMENT ? 1 : 0);
       for(EventType type = in.getEventType(); type!=XmlStreaming.END_DOCUMENT && type!=XmlStreaming.END_ELEMENT && in.getDepth()>=initialDepth; type = (in.hasNext()? in.next(): null)) {
         if (type==XmlStreaming.START_ELEMENT) {
           XmlWriter out = XmlStreaming.newWriter(caw);
