@@ -117,25 +117,29 @@ public final class XmlUtil {
     }
   }
 
-  private static class SubstreamFilter extends XmlDelegatingReader {
+  private static class SubstreamFilter extends XmlBufferedReader {
 
     public SubstreamFilter(final XmlReader delegate) {
       super(delegate);
     }
 
+    @NotNull
     @Override
-    public EventType next() throws XmlException {
-      EventType eventType = super.next();
-      if (eventType==null) { return null; }
-      switch (eventType) {
-        case START_DOCUMENT:
-        case PROCESSING_INSTRUCTION:
-        case DOCDECL:
-          return next();
-        case END_DOCUMENT:
-          return null;
+    protected List<XmlEvent> doPeek() throws XmlException {
+      List<XmlEvent> events = super.doPeek();
+      for (Iterator<XmlEvent> it = events.iterator(); it.hasNext();) {
+        XmlEvent event = it.next();
+        EventType eventType = event.getEventType();
+        switch (eventType) {
+          case START_DOCUMENT:
+          case PROCESSING_INSTRUCTION:
+          case DOCDECL:
+          case END_DOCUMENT:
+            it.remove();
+            break;
+        }
       }
-      return eventType;
+      return events;
     }
   }
 
@@ -192,6 +196,32 @@ public final class XmlUtil {
       root = document.createElementNS(outerName.getNamespaceURI(), outerName.getPrefix() + ':' + outerName.getLocalPart());
     }
     return root;
+  }
+
+  public static String getPrefix(final Node node, final String namespaceURI) {
+    if (node==null) { return null; }
+    if (node instanceof Element) {
+      NamedNodeMap attrs = node.getAttributes();
+      for (int i=0; i<attrs.getLength(); ++i) {
+        Attr attr = (Attr) attrs.item(i);
+        if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attr.getNamespaceURI()) && attr.getValue().equals(namespaceURI)) {
+          return attr.getName();
+        }
+      }
+    }
+    String prefix = getPrefix(node.getParentNode(), namespaceURI);
+    if (node.hasAttributes()&& prefix!=null) {
+      if (prefix.isEmpty()) {
+        if (node.getAttributes().getNamedItem(XMLConstants.XMLNS_ATTRIBUTE) != null) {
+          return null;
+        }
+      } else {
+        if (node.getAttributes().getNamedItemNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, prefix) != null) {
+          return null;
+        }
+      }
+    }
+    return prefix;
   }
 
   public static Reader toReader(final XmlSerializable serializable) throws XmlException {
@@ -371,10 +401,27 @@ public final class XmlUtil {
     serialize(XmlStreaming.newReader(new DOMSource(in)), out);
   }
 
+  /**
+   * Serialize the inputstream to the outputstream. Not that it will ignore document level events if the outputstream is not at depth 0
+   * @param in The inputstream
+   * @param out the outputsream
+   * @throws XmlException
+   */
   public static void serialize(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
     while (in.hasNext()) {
-      in.next();
-      writeCurrentEvent(in, out);
+      EventType eventType = in.next();
+      if (eventType==null) { break; }
+      switch (eventType) {
+        case START_DOCUMENT:
+        case PROCESSING_INSTRUCTION:
+        case DOCDECL:
+        case END_DOCUMENT:
+          if (out.getDepth()>0) {
+            break; // ignore
+          } // otherwise fallthrough
+        default:
+          writeCurrentEvent(in, out);
+      }
     }
   }
 
@@ -557,6 +604,10 @@ public final class XmlUtil {
   public static XMLEventReader filterSubstream(final XMLEventReader xMLEventReader) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newFactory();
     return xif.createFilteredReader(xMLEventReader, SubstreamEventFilter.SUBEVENTS_FILTER);
+  }
+
+  public static XmlWriter filterSubstream(final XmlWriter streamWriter) {
+    return stripMetatags(streamWriter);
   }
 
   @NotNull
@@ -752,6 +803,7 @@ public final class XmlUtil {
     return new StAXMetaStripper(out);
   }
 
+  @Deprecated
   @NotNull
   public static XmlWriter stripMetatags(final XmlWriter out) {
     return new MetaStripper(out);
@@ -889,7 +941,7 @@ public final class XmlUtil {
           writeCurrentEvent(in, out); // writes the start tag
           for(String prefix: undeclaredPrefixes(in, out)) {
             if (! missingNamespaces.containsKey(prefix)) {
-              missingNamespaces.put(prefix, in.getNamespaceContext().getNamespaceURI(prefix));
+              missingNamespaces.put(prefix, in.getNamespaceUri(prefix));
             }
           }
           writeElementContent(missingNamespaces, in, out); // writes the children and end tag
@@ -1345,7 +1397,7 @@ public final class XmlUtil {
         if (missingNamespaces!=null) {
           for (String prefix : undeclaredPrefixes(in, out)) {
             if (!missingNamespaces.containsKey(prefix)) {
-              missingNamespaces.put(prefix, in.getNamespaceContext().getNamespaceURI(prefix));
+              missingNamespaces.put(prefix, in.getNamespaceUri(prefix));
             }
           }
         }
