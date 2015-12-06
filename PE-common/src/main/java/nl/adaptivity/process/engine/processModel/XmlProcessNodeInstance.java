@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-
+@XmlDeserializer(XmlProcessNodeInstance.Factory.class)
 public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcessNodeInstance>,*/ SimpleXmlDeserializable, XmlSerializable {
 
   public static class Factory implements XmlDeserializerFactory<XmlProcessNodeInstance> {
