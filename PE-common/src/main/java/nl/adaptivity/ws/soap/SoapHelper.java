@@ -7,10 +7,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.MessagingException;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
@@ -34,6 +31,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.*;
@@ -45,6 +43,23 @@ import java.util.*;
  * @author Paul de Vrieze
  */
 public class SoapHelper {
+
+  public static class XmlDeserializationHelper {
+    public static boolean isDeserializable(Class<?> clazz) {
+      return clazz.getAnnotation(XmlDeserializer.class)!=null;
+    }
+
+    public static <T> T deserialize(Class<T> pClass, Node value) throws XmlException {
+      XmlDeserializer deserializer = pClass.getAnnotation(XmlDeserializer.class);
+      try {
+        XmlDeserializerFactory<?> factory = deserializer.value().newInstance();
+        return pClass.cast(factory.deserialize(XmlStreaming.newReader(new DOMSource(value))));
+      } catch (InstantiationException | IllegalAccessException e) {
+        throw new XmlException(e);
+      }
+
+    }
+  }
 
   public static final String SOAP_ENVELOPE_NS = "http://www.w3.org/2003/05/soap-envelope";
 
@@ -169,10 +184,17 @@ public class SoapHelper {
       prefix = "";
     }
     if (pParam.getElem1() == RESULT) { // We need to create the wrapper that refers to the actual result.
-      final Element wrapper = ownerDoc.createElementNS(SOAP_RPC_RESULT.getNamespaceURI(), "rpc:" + SOAP_RPC_RESULT.getLocalPart());
+      String rpcprefix = XmlUtil.getPrefix(pMessage, SOAP_RPC_RESULT.getNamespaceURI());
+      final Element wrapper;
+      if (rpcprefix == null) {
+        wrapper = ownerDoc.createElementNS(SOAP_RPC_RESULT.getNamespaceURI(), "rpc:" + SOAP_RPC_RESULT.getLocalPart());
+        wrapper.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:rpc", SOAP_RPC_RESULT.getNamespaceURI());
+      } else {
+        wrapper = ownerDoc.createElementNS(SOAP_RPC_RESULT.getNamespaceURI(), rpcprefix+":" + SOAP_RPC_RESULT.getLocalPart());
+      }
       pMessage.appendChild(wrapper);
 
-      wrapper.appendChild(ownerDoc.createTextNode(prefix + ((CharSequence) pParam.getElem3()).toString()));
+      wrapper.appendChild(ownerDoc.createTextNode(prefix + pParam.getElem3().toString()));
       return wrapper;
     }
 
@@ -393,39 +415,68 @@ public class SoapHelper {
           throw new UnsupportedOperationException("Can not unmarshal other strings than to string or stringbuilder");
         }
       } else {
-        if (value.getNextSibling() != null && (value.getNextSibling() instanceof Element)) {
-          throw new UnsupportedOperationException("Collection parameters not yet supported");
-        }
+        Class<?> helper = null;
+        boolean deserializable;
         try {
-          JAXBContext context;
-
-          if (pClass.isInterface()) {
-            context = newJAXBContext(pMethod, Arrays.asList(pContext));
-          } else {
-            List<Class<?>> list = new ArrayList<>(1+(pContext==null ? 0 : pContext.length));
-            list.add(pClass);
-            if (pContext!=null) { list.addAll(Arrays.asList(pContext)); }
-            context = newJAXBContext(pMethod, list);
-          }
-          final Unmarshaller um = context.createUnmarshaller();
-          if (pClass.isInterface()) {
-            if (value instanceof Text) {
-              result = ((Text) value).getData();
+          helper = Class.forName(XmlDeserializationHelper.class.getName(), true, pClass.getClassLoader());
+          Method isDeserializable = helper.getMethod("isDeserializable", Class.class);
+          Object invoke = isDeserializable.invoke(null, pClass);
+          deserializable = ((Boolean) invoke).booleanValue();
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
+          throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+        }
+        if (deserializable) {
+          try {
+            result = helper.getMethod("deserialize", Class.class, Node.class).invoke(null, pClass, value);
+          } catch (IllegalAccessException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
+          } catch (InvocationTargetException e) {
+            if (e.getCause()instanceof XmlException) {
+              throw (XmlException) e.getCause();
+            } else if (e.getCause() instanceof RuntimeException) {
+              throw (RuntimeException) e.getCause();
             } else {
-              result = um.unmarshal(value);
-
-              if (result instanceof JAXBElement) {
-                result = ((JAXBElement<?>) result).getValue();
-              }
+              throw new RuntimeException(e);
             }
-          } else {
-            final JAXBElement<?> umresult;
-            umresult = um.unmarshal(value, pClass);
-            result = umresult.getValue();
           }
+        } else {
 
-        } catch (final JAXBException e) {
-          throw new MessagingException(e);
+          if (value.getNextSibling() != null && (value.getNextSibling() instanceof Element)) {
+            throw new UnsupportedOperationException("Collection parameters not yet supported");
+          }
+          try {
+            JAXBContext context;
+
+            if (pClass.isInterface()) {
+              context = newJAXBContext(pMethod, Arrays.asList(pContext));
+            } else {
+              List<Class<?>> list = new ArrayList<>(1 + (pContext == null ? 0 : pContext.length));
+              list.add(pClass);
+              if (pContext != null) { list.addAll(Arrays.asList(pContext)); }
+              context = newJAXBContext(pMethod, list);
+            }
+            final Unmarshaller um = context.createUnmarshaller();
+            if (pClass.isInterface()) {
+              if (value instanceof Text) {
+                result = ((Text) value).getData();
+              } else {
+                result = um.unmarshal(value);
+
+                if (result instanceof JAXBElement) {
+                  result = ((JAXBElement<?>) result).getValue();
+                }
+              }
+            } else {
+              final JAXBElement<?> umresult;
+              umresult = um.unmarshal(value, pClass);
+              result = umresult.getValue();
+            }
+
+          } catch (final JAXBException e) {
+            throw new MessagingException(e);
+          }
         }
       }
     } else {
