@@ -58,22 +58,22 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
   private final String[] mStrings;
 
-  public SimpleNamespaceContext(@NotNull final Map<String, String> prefixMap) {
+  public SimpleNamespaceContext(@NotNull final Map<? extends CharSequence, ? extends CharSequence> prefixMap) {
     mStrings = new String[prefixMap.size()*2];
     int i=0;
-    for(final Entry<String, String> entry: prefixMap.entrySet()) {
-      mStrings[(i*2)] = entry.getKey();
-      mStrings[(i*2+1)] = entry.getValue();
+    for(final Entry<? extends CharSequence, ? extends CharSequence> entry: prefixMap.entrySet()) {
+      mStrings[(i*2)] = entry.getKey().toString();
+      mStrings[(i*2+1)] = entry.getValue().toString();
       ++i;
     }
   }
 
-  public SimpleNamespaceContext(@NotNull final String[] prefixes, @NotNull final String[] namespaces) {
+  public SimpleNamespaceContext(@NotNull final CharSequence[] prefixes, @NotNull final CharSequence[] namespaces) {
     assert prefixes.length==namespaces.length;
     mStrings = new String[prefixes.length*2];
     for(int i=0; i<prefixes.length; ++i) {
-      mStrings[(i*2)] = prefixes[i];
-      mStrings[(i*2+1)] = namespaces[i];
+      mStrings[(i*2)] = prefixes[i].toString();
+      mStrings[(i*2+1)] = namespaces[i].toString();
     }
   }
 
@@ -87,14 +87,14 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
       mStrings = new String[len*2];
       int i=0;
       for(final Namespace ns:namespaces) {
-        mStrings[i++] = ns.getPrefix();
-        mStrings[i++] = ns.getNamespaceURI();
+        mStrings[i++] = ns.getPrefix().toString();
+        mStrings[i++] = ns.getNamespaceURI().toString();
       }
     } else {
       final ArrayList<String> intermediate = new ArrayList<>();
       for(final Namespace ns: namespaces) {
-        intermediate.add(ns.getPrefix());
-        intermediate.add(ns.getNamespaceURI());
+        intermediate.add(ns.getPrefix().toString());
+        intermediate.add(ns.getNamespaceURI().toString());
       }
       mStrings = intermediate.toArray(new String[intermediate.size()]);
     }
