@@ -62,7 +62,7 @@ public interface XmlWriter {
 
   void endDocument() throws XmlException;
 
-  void endTag(CharSequence namespace, CharSequence name, CharSequence prefix) throws XmlException;
+  void endTag(CharSequence namespace, CharSequence localName, CharSequence prefix) throws XmlException;
 
   NamespaceContext getNamespaceContext();
 

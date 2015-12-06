@@ -51,9 +51,9 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     mDelegate.namespaceAttr(namespacePrefix, namespaceUri);
   }
 
-  public void endTag(final CharSequence namespace, final CharSequence name, final CharSequence prefix) throws
+  public void endTag(final CharSequence namespace, final CharSequence localName, final CharSequence prefix) throws
           XmlException {
-    mDelegate.endTag(namespace, name, prefix);
+    mDelegate.endTag(namespace, localName, prefix);
   }
 
   public int getDepth() {

@@ -73,7 +73,7 @@ public class StAXWriter extends AbstractXmlWriter {
   }
 
   @Override
-  public void endTag(final CharSequence namespace, final CharSequence name, final CharSequence prefix) throws
+  public void endTag(final CharSequence namespace, final CharSequence localName, final CharSequence prefix) throws
           XmlException {
     // TODO add verifying assertions
     try {
@@ -91,6 +91,7 @@ public class StAXWriter extends AbstractXmlWriter {
 
   @Override
   public void endDocument() throws XmlException {
+    assert getDepth()==0; // Don't write this until really the end of the document
     try {
       mDelegate.writeEndDocument();
     } catch (XMLStreamException e) {
