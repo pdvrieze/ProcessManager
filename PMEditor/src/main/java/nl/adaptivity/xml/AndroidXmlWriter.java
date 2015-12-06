@@ -207,10 +207,10 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
   }
 
   @Override
-  public void endTag(final CharSequence namespace, @NonNull final CharSequence name, final CharSequence prefix) throws
+  public void endTag(final CharSequence namespace, @NonNull final CharSequence localName, final CharSequence prefix) throws
           XmlException {
     try {
-      mWriter.endTag(StringUtil.toString(namespace), StringUtil.toString(name));
+      mWriter.endTag(StringUtil.toString(namespace), StringUtil.toString(localName));
       mNamespaceHolder.decDepth();
     } catch (IOException e) {
       throw new XmlException(e);
