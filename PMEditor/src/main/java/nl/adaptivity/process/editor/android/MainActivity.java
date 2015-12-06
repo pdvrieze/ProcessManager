@@ -105,9 +105,8 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
     @Override
     protected Account doInBackground(URI... params) {
-      Account[] accounts = AuthenticatedWebClient.ensureAccount(mContext, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
-      if (accounts!=null && accounts.length>0) {
-        Account account = accounts[0];
+      Account account = AuthenticatedWebClient.ensureAccount(mContext, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
+      if (account!=null) {
         ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
         AccountManager accountManager = AccountManager.get(mContext);
         AccountManagerCallback<Bundle> callback = new AccountManagerCallback<Bundle>() {
@@ -215,8 +214,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
         @Override
         protected Account doInBackground(URI... params) {
-          Account[] accounts = AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
-          return accounts == null || accounts.length==0 ? null : accounts[0];
+          return AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
         }
 
         @Override
