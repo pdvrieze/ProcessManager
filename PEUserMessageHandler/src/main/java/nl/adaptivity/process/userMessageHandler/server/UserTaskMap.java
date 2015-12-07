@@ -44,7 +44,41 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
 
 
+  private static class PostTaskFactory implements nl.adaptivity.util.xml.XmlDeserializerFactory<XmlTask> {
+
+    @Override
+    public XmlTask deserialize(final XmlReader in) throws XmlException {
+      XmlUtil.skipPreamble(in);
+
+      in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask");
+
+      XmlTask result = null;
+      while (in.hasNext() && in.next() != EventType.END_ELEMENT) {
+        switch (in.getEventType()) {
+          case START_ELEMENT:
+            if ("taskParam".equals(in.getLocalName())) {
+              in.next(); // Go to the contents
+              result = XmlTask.deserialize(in);
+              in.nextTag();
+              in.require(EventType.END_ELEMENT, null, "taskParam");
+            } else {
+              XmlUtil.skipElement(in);
+              in.require(EventType.END_ELEMENT, null, null);
+            }
+            break;
+          default:
+            XmlUtil.unhandledEvent(in);
+        }
+      }
+      in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask");
+
+      return result;
+    }
+  }
+
+
   private static final class UserTaskFactory extends AbstractElementFactory<XmlTask> {
+
 
     private static final int TASK_LOOKUP_TIMEOUT_MILIS = 1;
     private static final String QUERY_GET_DATA_FOR_TASK = "SELECT "+COL_NAME+", "+COL_DATA+" FROM "+TABLEDATA+" WHERE "+COL_HANDLE+" = ?";
@@ -107,24 +141,8 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
 
         if (instance.getBody()!=null) {
           XmlReader reader = XMLFragmentStreamReader.from(instance.getBody());
-          while (reader.hasNext() && reader.getEventType() != EventType.END_ELEMENT) {
-            switch (reader.next()) {
-              case START_ELEMENT:
-                if (XmlUtil.isElement(reader, Constants.USER_MESSAGE_HANDLER_NS, "taskParam"))  {
-                  reader.nextTag();
-                  XmlTask result = XmlTask.deserialize(reader);
-                  result.setInstanceHandle(instance.getHandle());
-                  result.setHandle(handle);
-                  result.setState(instance.getState());
-                  return result;
-
-                }
-
-
-              default:
-                XmlUtil.unhandledEvent(reader);
-            }
-          }
+          Envelope<XmlTask> env = Envelope.deserialize(reader, new PostTaskFactory());
+          return env.getBody().getBodyContent();
         }
       } catch (JAXBException | InterruptedException | ExecutionException | TimeoutException | XmlException e) {
         throw new RuntimeException(e);
