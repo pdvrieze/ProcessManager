@@ -49,6 +49,7 @@ public class PETransformer {
     }
 
 
+    @NotNull
     @Override
     public List<XmlEvent> doPeek() throws XmlException {
       final List<XmlEvent> results = new ArrayList<>(1);

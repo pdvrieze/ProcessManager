@@ -246,11 +246,11 @@ public class SoapHelper {
 
   public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Source source) throws XmlException {
     XmlReader in = XmlStreaming.newReader(source);
-    Envelope env = Envelope.deserialize(in);
+    Envelope<CompactFragment> env = Envelope.deserialize(in);
     return processResponse(resultType, context, env);
   }
 
-  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Envelope env) {
+  private static <T> T processResponse(final Class<T> resultType, final Class<?>[] context, final Envelope<CompactFragment> env) {
     final CompactFragment bodyContent = env.getBody().getBodyContent();
     try {
       XmlReader reader = XMLFragmentStreamReader.from(bodyContent);
@@ -277,19 +277,9 @@ public class SoapHelper {
     }
   }
 
-  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Writable pContent) {
-    // XXX get rid of JAXB here if possible
-    final Envelope env = JAXB.unmarshal(new WritableReader(pContent), Envelope.class);
+  public static <T> T processResponse(final Class<T> resultType, Class<?>[] context, final Writable pContent) throws XmlException {
+    final Envelope<CompactFragment> env = Envelope.deserialize(XmlStreaming.newReader(new WritableReader(pContent)));
     return processResponse(resultType, context, env);
-//    if (bodyContent.size() != 1) {
-//      return null;
-//    }
-//    final Element wrapper = (Element) bodyContent.get(0);
-//    if (wrapper.getFirstChild() == null) {
-//      return null; // Must be void method
-//    }
-//    final LinkedHashMap<String, Node> results = getParamMap(wrapper);
-//    return resultType.cast(unMarshalNode(null, resultType, pContext, results.get(RESULT)));
   }
 
   static <T> LinkedHashMap<String, Node> unmarshalWrapper(final XmlReader reader) throws XmlException {

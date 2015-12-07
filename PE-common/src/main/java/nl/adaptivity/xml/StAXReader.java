@@ -134,6 +134,7 @@ public class StAXReader extends AbstractXmlReader {
     try {
       mDelegate.require(LOCAL_TO_DELEGATE[type.ordinal()], StringUtil.toString(namespace), StringUtil.toString(name));
     } catch (XMLStreamException e) {
+
       throw new XmlException(e);
     }
 

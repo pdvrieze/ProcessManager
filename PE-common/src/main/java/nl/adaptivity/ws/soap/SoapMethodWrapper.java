@@ -8,6 +8,7 @@ import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.MessagingFormatException;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.util.activation.Sources;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.ws.WsMethodWrapper;
@@ -86,8 +87,8 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     /* For now just ignore headers, i.e. none understood */
   }
 
-  private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
-    final Body body = envelope.getBody();
+  private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<CompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
+    final Body<CompactFragment> body = envelope.getBody();
     XmlReader reader = XMLFragmentStreamReader.from(body.getBodyContent());
     reader.nextTag();
     assertRootNode(reader);

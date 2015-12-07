@@ -198,6 +198,15 @@ public final class XmlUtil {
     return root;
   }
 
+  public static void skipElement(final XmlReader in) throws XmlException {
+    in.require(EventType.START_ELEMENT, null, null);
+    while (in.hasNext() && in.next()!=EventType.END_ELEMENT) {
+      if (in.getEventType()==EventType.START_ELEMENT) {
+        skipElement(in);
+      }
+    }
+  }
+
   public static String getPrefix(final Node node, final String namespaceURI) {
     if (node==null) { return null; }
     if (node instanceof Element) {
@@ -1418,7 +1427,7 @@ public final class XmlUtil {
     // Nothing to configure for now
   }
 
-  private static boolean isXmlWhitespace(@NotNull final char[] data) {
+  public static boolean isXmlWhitespace(@NotNull final char[] data) {
     for(int i=data.length-1; i>=0; --i) {
       final char c = data[i];
       if (!(c==0xA || c==0x9 || c==0xd || c==' ')) {

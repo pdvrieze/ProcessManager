@@ -68,7 +68,9 @@ public class XmlBufferedReader extends AbstractXmlReader {
     if (mDelegate.hasNext()) {
       mDelegate.next(); // Don't forget to actually read the next element
       XmlEvent event = XmlEvent.from(mDelegate);
-      return Collections.singletonList(event);
+      ArrayList<XmlEvent> result = new ArrayList<>(1);
+      result.add(event);
+      return result;
     }
     return Collections.emptyList();
   }

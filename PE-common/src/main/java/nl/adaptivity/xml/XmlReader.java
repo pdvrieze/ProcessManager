@@ -54,10 +54,12 @@ public interface XmlReader {
 
   int getNamespaceEnd() throws XmlException;
 
+  @NotNull
   CharSequence getNamespacePrefix(int i) throws XmlException;
 
   void close() throws XmlException;
 
+  @NotNull
   CharSequence getNamespaceUri(int i) throws XmlException;
 
   @Nullable CharSequence getNamespacePrefix(CharSequence namespaceUri) throws XmlException;

@@ -9,12 +9,10 @@
 package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.ExtXmlDeserializable;
-import nl.adaptivity.util.xml.XmlSerializable;
-import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
@@ -48,39 +46,41 @@ import java.util.Map.Entry;
  * &lt;/complexType>
  * </pre>
  */
-public class Body implements ExtXmlDeserializable, XmlSerializable {
+public class Body<T extends XmlSerializable> implements XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "Body";
   public static final QName ELEMENTNAME = new QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX);
 
   @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
-  private CompactFragment mContent;
+  private T mContent;
 
-  public static Body deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new Body(), in);
+  public static <T extends XmlSerializable> Body<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyFactory) throws XmlException {
+    final Body<T> result = new Body<T>();
+    XmlUtil.skipPreamble(in);
+    assert XmlUtil.isElement(in, result.getElementName()): "Expected " + result.getElementName() + " but found " + in.getLocalName();
+    for(int i = in.getAttributeCount() - 1; i >= 0; --i) {
+      result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+    }
+    result.deserializeChildren(in, bodyFactory);
+    if (XmlUtil.class.desiredAssertionStatus()) {
+      in.require(XmlStreaming.END_ELEMENT, result.getElementName().getNamespaceURI(), result.getElementName().getLocalPart());
+    }
+    return result;
   }
 
-  @Override
-  public void deserializeChildren(final XmlReader in) throws XmlException {
+  public void deserializeChildren(final XmlReader in, XmlDeserializerFactory<T> bodyFactory) throws XmlException {
     if( in.next() != EventType.END_ELEMENT) { // first child
-      if (in.hasNext()) mContent = XmlUtil.siblingsToFragment(in);
+      if (in.hasNext()) mContent = bodyFactory.deserialize(in);
     }
   }
 
-  @Override
   public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     QName qname = new QName(StringUtil.toString(attributeNamespace), StringUtil.toString(attributeLocalName));
     otherAttributes.put(qname, StringUtil.toString(attributeValue));
     return true;
   }
 
-  @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
-    // nothing
-  }
-
-  @Override
   public QName getElementName() {
     return ELEMENTNAME;
   }
@@ -114,7 +114,7 @@ public class Body implements ExtXmlDeserializable, XmlSerializable {
    * Objects of the following type(s) are allowed in the list {@link Object }
    * {@link Element }
    */
-  public CompactFragment getBodyContent() {
+  public T getBodyContent() {
     return mContent;
   }
 

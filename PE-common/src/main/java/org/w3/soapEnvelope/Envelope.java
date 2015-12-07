@@ -12,6 +12,8 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,12 +51,12 @@ import java.util.Map.Entry;
 @XmlType(name = Envelope.ELEMENTLOCALNAME, propOrder = { "header", "body" })
 @XmlRootElement(name = Envelope.ELEMENTLOCALNAME, namespace = Envelope.NAMESPACE)
 @XmlDeserializer(Envelope.Factory.class)
-public class Envelope implements SimpleXmlDeserializable, XmlSerializable{
+public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
   public static class Factory implements XmlDeserializerFactory<Envelope> {
 
     @Override
-    public Envelope deserialize(final XmlReader in) throws XmlException {
+    public Envelope<?> deserialize(final XmlReader in) throws XmlException {
       return Envelope.deserialize(in);
     }
   }
@@ -73,28 +75,45 @@ public class Envelope implements SimpleXmlDeserializable, XmlSerializable{
   protected Header header;
 
   @XmlElement(name = Body.ELEMENTLOCALNAME, required = true)
-  protected Body body;
+  protected Body<T> body;
 
   @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
   private URI encodingStyle;
 
-  public static Envelope deserialize(final XmlReader in) throws XmlException {
-    return XmlUtil.deserializeHelper(new Envelope(), in);
+  public static Envelope<CompactFragment> deserialize(final XmlReader in) throws XmlException {
+    return deserialize(in, new CompactFragment.Factory());
   }
 
-  @Override
+  public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
+    final Envelope<T> result = new Envelope<T>();
+    XmlUtil.skipPreamble(in);
+    final QName elementName = result.getElementName();
+    assert XmlUtil.isElement(in, elementName): "Expected " + elementName + " but found " + in.getLocalName();
+    for(int i = in.getAttributeCount() - 1; i >= 0; --i) {
+      result.deserializeAttribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), in.getAttributeValue(i));
+    }
+    EventType event = null;
+    loop: while (in.hasNext() && event != XmlStreaming.END_ELEMENT) {
+      switch ((event = in.next())) {
+        case START_ELEMENT:
+          if (result.deserializeChild(in, bodyDeserializer)) {
+            continue loop;
+          }
+          XmlUtil.unhandledEvent(in);
+          break;
+        default:
+          XmlUtil.unhandledEvent(in);
+      }
+    }
+    return result;
+  }
+
   public QName getElementName() {
     return ELEMENTNAME;
   }
 
-  @Override
-  public void onBeforeDeserializeChildren(final XmlReader in) throws XmlException {
-    // ignore
-  }
-
-  @Override
   public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     if (StringUtil.isEqual("encodingStyle", attributeLocalName)) {
       setEncodingStyle(URI.create(StringUtil.toString(attributeValue)));
@@ -105,19 +124,13 @@ public class Envelope implements SimpleXmlDeserializable, XmlSerializable{
     return true;
   }
 
-  @Override
-  public boolean deserializeChildText(final CharSequence elementText) {
-    return false;
-  }
-
-  @Override
-  public boolean deserializeChild(final XmlReader in) throws XmlException {
+  public boolean deserializeChild(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
     if (StringUtil.isEqual(NAMESPACE,in.getNamespaceUri())) {
       if (StringUtil.isEqual(Header.ELEMENTLOCALNAME, in.getLocalName())) {
         setHeader(Header.deserialize(in));
         return true;
       } else if (StringUtil.isEqual(Body.ELEMENTLOCALNAME, in.getLocalName())) {
-        setBody(Body.deserialize(in));
+        setBody(Body.deserialize(in, bodyDeserializer));
         return true;
       }
     }
@@ -159,7 +172,7 @@ public class Envelope implements SimpleXmlDeserializable, XmlSerializable{
    *
    * @return possible object is {@link Body }
    */
-  public Body getBody() {
+  public Body<T> getBody() {
     return body;
   }
 
@@ -168,7 +181,7 @@ public class Envelope implements SimpleXmlDeserializable, XmlSerializable{
    *
    * @param value allowed object is {@link Body }
    */
-  public void setBody(final Body value) {
+  public void setBody(final Body<T> value) {
     this.body = value;
   }
 

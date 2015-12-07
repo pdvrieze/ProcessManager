@@ -104,7 +104,7 @@ public class SoapMessageHandler {
 
   @NotNull
   public Source processMessage(final XmlReader source, final Map<String, DataSource> pAttachments) throws XmlException {
-    final Envelope envelope = Envelope.deserialize(source);
+    final Envelope<CompactFragment> envelope = Envelope.deserialize(source);
     XmlReader reader = XMLFragmentStreamReader.from(envelope.getBody().getBodyContent());
     loop: while(reader.hasNext()) {
       switch (reader.next()) {

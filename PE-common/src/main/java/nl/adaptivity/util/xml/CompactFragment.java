@@ -16,6 +16,18 @@ import java.util.Collections;
  */
 public class CompactFragment implements XmlSerializable {
 
+  public static class Factory implements XmlDeserializerFactory<CompactFragment> {
+
+    @Override
+    public CompactFragment deserialize(final XmlReader in) throws XmlException {
+      return CompactFragment.deserialize(in);
+    }
+  }
+
+  public static CompactFragment deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.siblingsToFragment(in);
+  }
+
   private final SimpleNamespaceContext namespaces;
   private final char[] content;
 
