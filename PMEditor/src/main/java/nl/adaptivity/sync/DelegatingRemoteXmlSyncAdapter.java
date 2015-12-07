@@ -72,7 +72,9 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
     for(ISyncAdapterDelegate delegate: mDelegates) {
       for(Phases phase:Phases.values()) {
         try {
+          /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" STARTING phase "+phase); //}
           phase.execute(this, delegate, provider, syncResult);
+          /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" FINISHED phase "+phase); //}
         } catch (IllegalStateException|XmlPullParserException e) {
           syncResult.stats.numParseExceptions++;
           Log.e(TAG, "Error parsing list", e);

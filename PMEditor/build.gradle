@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 
-version = '1.0.0'
+version = '0.5.1'
 description = 'Android interface with process model editor and task interface'
 
 dependencies {
@@ -46,6 +46,7 @@ android {
 //            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                     'proguard-project.txt'
+            versionNameSuffix "-debug"
         }
     }
 

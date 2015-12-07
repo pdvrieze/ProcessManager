@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.PostRequest;
+import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
@@ -348,7 +349,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   public URI getSyncSource() {
     if (mBase==null) {
       SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-      String prefBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "https://darwin.bournemouth.ac.uk/PEUserMessageHandler/UserMessageService");
+      String prefBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, BuildConfig.DEBUG ? "http://10.0.0.2:8080/ProcessEngine" : "https://darwin.bournemouth.ac.uk/ProcessEngine");
       if (prefBase.endsWith("/")) {
         if (prefBase.endsWith("ProcessEngine/")) {
           prefBase = prefBase.substring(0, prefBase.length()-14);

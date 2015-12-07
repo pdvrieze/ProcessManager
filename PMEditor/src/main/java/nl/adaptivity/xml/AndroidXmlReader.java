@@ -3,6 +3,7 @@ package nl.adaptivity.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -196,19 +197,21 @@ public class AndroidXmlReader extends AbstractXmlReader {
     }
   }
 
+  @NotNull
   @Override
   public String getNamespaceUri(final int pos) throws XmlException {
     try {
-      return mReader.getNamespaceUri(pos);
+      return nullToEmpty(mReader.getNamespaceUri(pos));
     } catch (XmlPullParserException e) {
       throw new XmlException(e);
     }
   }
 
+  @NotNull
   @Override
   public String getNamespacePrefix(final int pos) throws XmlException {
     try {
-      return mReader.getNamespacePrefix(pos);
+      return nullToEmpty(mReader.getNamespacePrefix(pos));
     } catch (XmlPullParserException e) {
       throw new XmlException(e);
     }
@@ -282,13 +285,17 @@ public class AndroidXmlReader extends AbstractXmlReader {
       String[] prefixes = new String[nsCount];
       String[] uris = new String[nsCount];
       for(int i=0; i<nsCount; ++i) {
-        prefixes[i] = mReader.getNamespacePrefix(i);
-        uris[i] = mReader.getNamespaceUri(i);
+        prefixes[i] = nullToEmpty(mReader.getNamespacePrefix(i));
+        uris[i] = nullToEmpty(mReader.getNamespaceUri(i));
       }
       return new SimpleNamespaceContext(prefixes, uris);
     } catch (XmlPullParserException e) {
       throw new XmlException(e);
     }
+  }
+
+  private String nullToEmpty(final String namespaceUri) {
+    return namespaceUri==null ? "" : namespaceUri;
   }
 
   @Override

@@ -202,32 +202,25 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     getSupportActionBar().setHomeButtonEnabled(true);
 
     showDrawerItem(getInitialDrawerItem());
-    AccountManager am = AccountManager.get(this);
-    Account[] accounts = am.getAccountsByType(AuthenticatedWebClient.ACCOUNT_TYPE);
-    if (accounts.length==0) {
-      Bundle options = new Bundle(1);
-      URI authbase = getAuthBase(this);
-      options.putString(AuthenticatedWebClient.KEY_AUTH_BASE, authbase.toString());
-      am.addAccount(AuthenticatedWebClient.ACCOUNT_TYPE, AuthenticatedWebClient.ACCOUNT_TOKEN_TYPE, null, options, this, null, null);
-    } else {
-      AsyncTask<URI, Void, Account> task = new AsyncTask<URI, Void, Account> () {
+    AsyncTask<URI, Void, Account> task = new AsyncTask<URI, Void, Account> () {
 
-        @Override
-        protected Account doInBackground(URI... params) {
-          return AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
-        }
+      @Override
+      protected Account doInBackground(URI... params) {
+        return AuthenticatedWebClient.ensureAccount(MainActivity.this, params[0], ENSURE_ACCOUNT_REQUEST_CODE);
+      }
 
-        @Override
-        protected void onPostExecute(Account result) {
-          mAccount = result;
-          for(String authority: mPendingSyncs) {
+      @Override
+      protected void onPostExecute(Account result) {
+        mAccount = result;
+        if (mAccount!=null) {
+          for (String authority : mPendingSyncs) {
             requestSync(mAccount, authority, true);
           }
         }
+      }
 
-      };
-      task.execute(getAuthBase(MainActivity.this));
-    }
+    };
+    task.execute(getAuthBase(MainActivity.this));
   }
 
   @Override
@@ -253,6 +246,13 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
   @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode== ENSURE_ACCOUNT_REQUEST_CODE && resultCode==RESULT_OK) {
+      String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+      AuthenticatedWebClient.storeUsedAccount(MainActivity.this, accountName);
+      mAccount = AuthenticatedWebClient.getAccount(AccountManager.get(this), this, getAuthBase(this));
+      requestSync(mAccount, ProcessModelProvider.AUTHORITY, true);
+      requestSync(mAccount, TaskProvider.AUTHORITY, true);
+    }
     // XXX Make this actually do something on account selection.
   }
 
