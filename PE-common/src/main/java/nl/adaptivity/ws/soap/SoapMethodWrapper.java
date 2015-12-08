@@ -37,6 +37,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.security.Principal;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -84,7 +85,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
   private void processSoapHeader(@SuppressWarnings("unused") final Header header) {
     // TODO Auto-generated method stub
     //
-    /* For now just ignore headers, i.e. none understood */
+    /* For now just ignore headers, i.e. none understood. Principal is recorded but not handled */
   }
 
   private void processSoapBody(@NotNull final org.w3.soapEnvelope.Envelope<CompactFragment> envelope, @SuppressWarnings("unused") final Map<String, DataSource> attachments) throws XmlException {
@@ -123,7 +124,15 @@ public class SoapMethodWrapper extends WsMethodWrapper {
       }
       final Node value;
       if ((annotation != null) && annotation.header()) {
-        value = headers.remove(name);
+        if (parameterTypes[i].isAssignableFrom(Principal.class) && envelope.getHeader().getPrincipal()!=null) {
+          mParams[i] = envelope.getHeader().getPrincipal();
+          continue; //Finish the parameter, we don't need to unmarshal
+        } else if (parameterTypes[i].isAssignableFrom(String.class) && envelope.getHeader().getPrincipal()!=null) {
+          mParams[i] = envelope.getHeader().getPrincipal().getName();
+          continue;
+        } else {
+          value = headers.remove(name);
+        }
       } else {
         value = params.remove(name);
       }
