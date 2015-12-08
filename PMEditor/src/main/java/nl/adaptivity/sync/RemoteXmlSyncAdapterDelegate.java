@@ -32,6 +32,7 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
 
   public interface DelegatingResources {
+    Context getContext();
     AuthenticatedWebClient getWebClient();
     URI getSyncSource();
     XmlPullParser newPullParser() throws XmlPullParserException;

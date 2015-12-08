@@ -4,11 +4,9 @@ import android.content.*;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.PostRequest;
-import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
@@ -34,6 +32,7 @@ import java.util.*;
 
 import static nl.adaptivity.process.tasks.UserTask.NS_TASKS;
 import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
+
 
 @SuppressWarnings("boxing")
 public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
@@ -67,7 +66,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   public ContentValuesProvider updateItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri,
                                                   int syncState, SyncResult syncresult) throws RemoteException, IOException,
       XmlPullParserException {
-    UserTask task = TaskProvider.getTask(getContext(), itemuri);
+    UserTask task = TaskProvider.getTask(delegator.getContext(), itemuri);
     PostRequest request;
     final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
     factory.setNamespaceAware(true);
@@ -348,8 +347,9 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   @Override
   public URI getSyncSource() {
     if (mBase==null) {
-      SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-      String prefBase = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, BuildConfig.DEBUG ? "http://10.0.0.2:8080/ProcessEngine" : "https://darwin.bournemouth.ac.uk/ProcessEngine");
+      String prefBase = SettingsActivity.getSyncSource(getContext()).toString();
+
+
       if (prefBase.endsWith("/")) {
         if (prefBase.endsWith("ProcessEngine/")) {
           prefBase = prefBase.substring(0, prefBase.length()-14);
@@ -366,5 +366,13 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     return mBase;
   }
 
+  @Override
+  public String getListSelection() {
+    return null;
+  }
 
+  @Override
+  public String[] getListSelectionArgs() {
+    return new String[0];
+  }
 }
