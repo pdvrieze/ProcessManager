@@ -324,7 +324,16 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
         final Enum<?> tmpResult = Enum.valueOf(clazz, result.toString());
         result = tmpResult;
       } else if (result instanceof Node) {
-        result = JAXB.unmarshal(new DOMSource((Node) result), pClass);
+        XmlDeserializer factory = pClass.getAnnotation(XmlDeserializer.class);
+        if (factory!=null) {
+          try {
+            result = factory.value().newInstance().deserialize(XmlStreaming.newReader(new DOMSource((Node) result)));
+          } catch (IllegalAccessException | InstantiationException e) {
+            throw new XmlException(e);
+          }
+        } else {
+          result = JAXB.unmarshal(new DOMSource((Node) result), pClass);
+        }
       } else {
         final String s = result.toString();
         // Only wrap when we don't start with <

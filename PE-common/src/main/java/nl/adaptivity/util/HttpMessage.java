@@ -497,6 +497,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
         final Document xml;
 
+        // TODO don't create a DOM tree here
         xml = XmlUtil.tryParseXml(new InputStreamReader(new ByteArrayInputStream(bytes), mCharacterEncoding));
         if (xml == null) {
           addByteContent(bytes, request.getContentType());
