@@ -2,6 +2,7 @@ package nl.adaptivity.process.editor.android;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -11,12 +12,9 @@ import android.os.Bundle;
 import android.preference.*;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import nl.adaptivity.android.preference.AutoCompletePreference;
-import nl.adaptivity.process.editor.android.R;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.List;
 
 
@@ -201,6 +199,20 @@ public class SettingsActivity extends PreferenceActivity {
     // Trigger the listener immediately with the preference's
     // current value.
     sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, PreferenceManager.getDefaultSharedPreferences(preference.getContext()).getString(preference.getKey(), ""));
+  }
+
+  public static URI getSyncSource(Context context) {
+    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    if (prefs.contains(SettingsActivity.PREF_SYNC_SOURCE)) {
+      String sync_source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, "");
+      if (! (sync_source.charAt(sync_source.length()-1)=='/')) {
+        sync_source = sync_source+'/';
+        prefs.edit().putString(SettingsActivity.PREF_SYNC_SOURCE, sync_source).apply();
+      }
+      return URI.create(sync_source);
+    }
+    return URI.create(context.getString(R.string.default_sync_location));
+
   }
 
   /**
