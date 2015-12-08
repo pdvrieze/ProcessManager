@@ -6,15 +6,14 @@ import net.devrieze.util.Transaction;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SecurityProvider;
-import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.io.WritableReader;
 import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
@@ -690,11 +689,6 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
     }
-  }
-
-  @WebMethod(operationName = "finishTask")
-  public TaskState finishTaskSoap(@WebParam(name = "handle", mode = Mode.IN) final long handle, @WebParam(name = "payload", mode = Mode.IN) final Node payload, @WebParam(name = "principal", mode = Mode.IN, header = true) final String user) {
-    return finishTask(handle, payload, new SimplePrincipal(user));
   }
 
   @WebMethod(operationName = "finishTask")
