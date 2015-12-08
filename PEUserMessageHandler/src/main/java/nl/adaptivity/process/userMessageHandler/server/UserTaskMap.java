@@ -145,6 +145,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
           XmlTask task = env.getBody().getBodyContent();
           task.setHandle(handle);
           task.setRemoteHandle(remoteHandle);
+          task.setState(instance.getState());
           return task;
         }
       } catch (JAXBException | InterruptedException | ExecutionException | TimeoutException | XmlException e) {
