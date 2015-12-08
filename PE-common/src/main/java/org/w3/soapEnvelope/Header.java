@@ -9,6 +9,8 @@
 package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
+import net.devrieze.util.security.SimplePrincipal;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -60,6 +62,9 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "Header";
   public static final QName ELEMENTNAME = new QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX);
+  public static final String PRINCIPALLOCALNAME = "principal";
+  public static final QName PRINCIPALQNAME = new QName(Engine.NAMESPACE, "principal", Engine.NSPREFIX);
+
 
   @XmlAnyElement(lax = false)
   protected List<Node> any;
@@ -67,13 +72,20 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
   @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
+  private SimplePrincipal mPrincipal = null;
+
   public static Header deserialize(final XmlReader in) throws XmlException {
     return XmlUtil.deserializeHelper(new Header(), in);
   }
 
   @Override
   public boolean deserializeChild(final XmlReader in) throws XmlException {
-    getAny().add(XmlUtil.childToNode(in));
+    if (XmlUtil.isElement(in, PRINCIPALQNAME)) {
+      // XXX make sure this is secure
+      mPrincipal = new SimplePrincipal(XmlUtil.readSimpleElement(in).toString());
+    } else {
+      getAny().add(XmlUtil.childToNode(in));
+    }
     return true;
   }
 
@@ -113,6 +125,9 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
       XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
     }
+    if (mPrincipal!=null) {
+      XmlUtil.writeSimpleElement(out, PRINCIPALQNAME, mPrincipal.toString());
+    }
     for(Node n: getAny()) {
       XmlUtil.writeChild(out, n);
     }
@@ -141,6 +156,10 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
       any = new ArrayList<>();
     }
     return this.any;
+  }
+
+  public SimplePrincipal getPrincipal() {
+    return mPrincipal;
   }
 
   /**
