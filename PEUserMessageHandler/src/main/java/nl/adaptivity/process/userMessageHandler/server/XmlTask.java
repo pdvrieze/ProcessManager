@@ -103,7 +103,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     switch (attributeLocalName.toString()) {
       case "state": mState = TaskState.valueOf(attributeValue.toString()); return true;
       case "handle": mHandle = Long.parseLong(attributeValue.toString()); return true;
-      case "remotehandle": mHandle = Long.parseLong(attributeValue.toString()); return true;
+      case "remotehandle": mRemoteHandle = Long.parseLong(attributeValue.toString()); return true;
       case "instancehandle": mInstanceHandle = Long.parseLong(attributeValue.toString()); return true;
       case "summary": mSummary = attributeValue.toString(); return true;
       case "owner": mOwner = new SimplePrincipal(attributeValue.toString()); return true;
