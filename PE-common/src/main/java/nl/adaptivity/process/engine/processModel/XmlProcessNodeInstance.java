@@ -83,11 +83,14 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
     if (XmlUtil.isElement(in, Engine.NAMESPACE, "predecessor")) {
       if (mPredecessors == null) { mPredecessors = new ArrayList<>(); }
       mPredecessors.add(Long.parseLong(XmlUtil.readSimpleElement(in).toString()));
+      return true;
     } else if (XmlUtil.isElement(in, Engine.NAMESPACE, "body")) {
       mBody = XmlUtil.readerToFragment(in);
+      return true;
     } else if (XmlUtil.isElement(in, ProcessData.ELEMENTNAME)) {
       if (mResults==null) { mResults = new ArrayList<>(); }
       mResults.add(ProcessData.deserialize(in));
+      return true;
     }
     return false;
   }
@@ -115,7 +118,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
 
   @Override
   public QName getElementName() {
-    return null;
+    return ELEMENTNAME;
   }
 
   /**
