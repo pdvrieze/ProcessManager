@@ -6,6 +6,7 @@ import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +67,9 @@ public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable
 
   @Override
   public void deserializeChildren(final XmlReader in) throws XmlException {
-    mValue = XmlUtil.siblingsToFragment(in);
+    if ( in.next() != EventType.END_ELEMENT ) {
+      mValue = XmlUtil.siblingsToFragment(in);
+    }
   }
 
   @Override
