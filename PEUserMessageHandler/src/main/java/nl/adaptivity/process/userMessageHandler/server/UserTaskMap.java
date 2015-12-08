@@ -142,7 +142,10 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
         if (instance.getBody()!=null) {
           XmlReader reader = XMLFragmentStreamReader.from(instance.getBody());
           Envelope<XmlTask> env = Envelope.deserialize(reader, new PostTaskFactory());
-          return env.getBody().getBodyContent();
+          XmlTask task = env.getBody().getBodyContent();
+          task.setHandle(handle);
+          task.setRemoteHandle(remoteHandle);
+          return task;
         }
       } catch (JAXBException | InterruptedException | ExecutionException | TimeoutException | XmlException e) {
         throw new RuntimeException(e);
