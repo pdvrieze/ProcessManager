@@ -2,12 +2,14 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.InputStreamOutputStream;
-import net.devrieze.util.MemHandleMap;
 import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.MemTransactionedHandleMap;
+import nl.adaptivity.process.StubTransaction;
+import nl.adaptivity.process.StubTransactionFactory;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
@@ -27,8 +29,8 @@ import nl.adaptivity.xml.XmlWriter;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -43,16 +45,13 @@ import javax.xml.transform.dom.DOMSource;
 
 import java.io.*;
 import java.net.URI;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static junit.framework.Assert.assertEquals;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.*;
-
+import static org.testng.AssertJUnit.*;
 
 /**
  * Created by pdvrieze on 18/08/15.
@@ -99,124 +98,12 @@ public class TestProcessEngine {
     }
   }
 
-  private static class StubTransaction implements Transaction {
-
-    @Override
-    public void close() { }
-
-    @Override
-    public void commit() throws SQLException { }
-
-    @Override
-    public void rollback() throws SQLException {
-      System.err.println("Rollback needed (but not supported on the stub");
-    }
-
-    @Override
-    public <T> T commit(final T value) throws SQLException {
-      return value;
-    }
-  }
-
-  private static class StubTransactionFactory implements net.devrieze.util.TransactionFactory<StubTransaction> {
-
-    private StubTransaction mTransaction = new StubTransaction();
-
-    @Override
-    public StubTransaction startTransaction() {
-      return mTransaction;
-    }
-
-
-    @Override
-    public Connection getConnection() throws SQLException {
-      throw new UnsupportedOperationException("No connections in the stub");
-    }
-
-    @Override
-    public boolean isValidTransaction(final StubTransaction transaction) {
-      return mTransaction==transaction;
-    }
-  }
-
-  private class MemTransactionedHandleMap<T> extends MemHandleMap<T> implements net.devrieze.util.TransactionedHandleMap<T,StubTransaction> {
-
-    @Override
-    public long put(final StubTransaction transaction, final T value) throws SQLException {
-      return put(value);
-    }
-
-    @Override
-    public T get(final StubTransaction transaction, final long handle) throws SQLException {
-      return get(handle);
-    }
-
-    @Override
-    public T get(final StubTransaction transaction, final Handle<? extends T> handle) throws SQLException {
-      return get(handle);
-    }
-
-    @Override
-    public T castOrGet(final StubTransaction transaction, final Handle<? extends T> handle) throws SQLException {
-      return get(handle);
-    }
-
-    @Override
-    public T set(final StubTransaction transaction, final long handle, final T value) throws SQLException {
-      return set(handle, value);
-    }
-
-    @Override
-    public T set(final StubTransaction transaction, final Handle<? extends T> handle, final T value) throws
-            SQLException {
-      return set(handle, value);
-    }
-
-    @Override
-    public Iterable<T> iterable(final StubTransaction transaction) {
-      return this;
-    }
-
-    @Override
-    public boolean contains(final StubTransaction transaction, final Object o) throws SQLException {
-      return contains(o);
-    }
-
-    @Override
-    public boolean contains(final StubTransaction transaction, final Handle<? extends T> handle) throws SQLException {
-      return contains(handle);
-    }
-
-    @Override
-    public boolean contains(final StubTransaction transaction, final long handle) throws SQLException {
-      return contains(handle);
-    }
-
-    @Override
-    public boolean remove(final StubTransaction transaction, final Handle<? extends T> object) throws SQLException {
-      return remove(object);
-    }
-
-    @Override
-    public boolean remove(final StubTransaction transaction, final long handle) throws SQLException {
-      return remove(handle);
-    }
-
-    @Override
-    public void invalidateCache(final Handle<? extends T> handle) { /* No-op */ }
-
-    @Override
-    public void clear(final StubTransaction transaction) throws SQLException {
-      clear();
-    }
-  }
-
   private static DocumentBuilder _documentBuilder;
 
   ProcessEngine mProcessEngine;
   private StubMessageService mStubMessageService;
   private final EndpointDescriptor mLocalEndpoint = new EndpointDescriptorImpl(QName.valueOf("processEngine"),"processEngine", URI.create("http://localhost/"));
-  private net.devrieze.util.TransactionFactory<nl.adaptivity.process.engine.TestProcessEngine.StubTransaction> mStubTransactionFactory;
+  private StubTransactionFactory mStubTransactionFactory;
   private SimplePrincipal mPrincipal;
 
   public TestProcessEngine() {
@@ -258,8 +145,9 @@ public class TestProcessEngine {
     }
   }
 
-  @Before
+  @BeforeMethod
   public void beforeTest() {
+    mStubMessageService.clear();
     mProcessEngine = ProcessEngine.newTestInstance(mStubMessageService, mStubTransactionFactory, new MemTransactionedHandleMap<ProcessModelImpl>(), new MemTransactionedHandleMap<ProcessInstance>(), new MemTransactionedHandleMap<ProcessNodeInstance>());
   }
 

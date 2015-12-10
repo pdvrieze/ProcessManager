@@ -94,7 +94,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  public ProcessNodeInstance(final Transaction transaction, final ProcessEngine<?> processEngine, final XmlProcessNodeInstance nodeInstance) throws SQLException {
+  public ProcessNodeInstance(final Transaction transaction, final ProcessEngine processEngine, final XmlProcessNodeInstance nodeInstance) throws SQLException {
     this(transaction, processEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(nodeInstance.getProcessInstance()),SecurityProvider.SYSTEMPRINCIPAL)
                                    .getProcessModel().getNode(nodeInstance.getNodeId()), processEngine.getProcessInstance(transaction, Handles.<ProcessInstance>handle(nodeInstance.getProcessInstance()), SecurityProvider.SYSTEMPRINCIPAL), nodeInstance.getState());
   }
@@ -112,7 +112,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     mFailureCause.setStackTrace(new StackTraceElement[0]); // wipe the stacktrace, it is irrelevant
   }
 
-  public static ProcessNodeInstance deserialize(final Transaction transaction, final ProcessEngine<?> processEngine, XmlReader in) throws XmlException {
+  public static ProcessNodeInstance deserialize(final Transaction transaction, final ProcessEngine processEngine, XmlReader in) throws XmlException {
     try {
       return new ProcessNodeInstance(transaction, processEngine, XmlProcessNodeInstance.deserialize(in));
     } catch (SQLException e) {

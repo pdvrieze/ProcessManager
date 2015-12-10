@@ -2,6 +2,7 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.StringCache;
+import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
@@ -84,7 +85,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
     }
 
     @Override
-    public ProcessModelImpl create(DBTransaction connection, ResultSet row) throws SQLException {
+    public ProcessModelImpl create(Transaction connection, ResultSet row) throws SQLException {
       Principal owner = new SimplePrincipal(mStringCache.lookup(row.getString(mColNoOwner)));
       try(Reader modelReader = row.getCharacterStream(mColNoModel)) {
         long handle = row.getLong(mColNoHandle);
@@ -172,7 +173,7 @@ public class ProcessModelMap extends CachingDBHandleMap<ProcessModelImpl> {
 
   }
 
-  public ProcessModelMap(TransactionFactory<?> transactionFactory, StringCache stringCache) {
+  public ProcessModelMap(TransactionFactory transactionFactory, StringCache stringCache) {
     super(transactionFactory, new ProcessModelFactory(stringCache));
   }
 

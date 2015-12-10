@@ -1,9 +1,6 @@
 package nl.adaptivity.process.engine.processModel;
 
-import net.devrieze.util.CachingDBHandleMap;
-import net.devrieze.util.Handles;
-import net.devrieze.util.StringCache;
-import net.devrieze.util.TransactionFactory;
+import net.devrieze.util.*;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
@@ -17,6 +14,7 @@ import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.util.xml.CompactFragment;
 
 import java.sql.*;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -92,7 +90,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
     }
 
     @Override
-    public ProcessNodeInstance create(DBTransaction connection, ResultSet row) throws SQLException {
+    public ProcessNodeInstance create(Transaction connection, ResultSet row) throws SQLException {
       HProcessInstance hProcessInstance = new HProcessInstance(row.getLong(mColNoHProcessInstance));
       ProcessInstance processInstance = mProcessEngine.getProcessInstance(connection, hProcessInstance, SecurityProvider.SYSTEMPRINCIPAL);
 

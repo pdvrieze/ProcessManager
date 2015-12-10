@@ -89,8 +89,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     }
 
     @Override
-    public boolean isValidTransaction(final DBTransaction transaction) {
-      return transaction.providerEquals(mDBResource);
+    public boolean isValidTransaction(final Transaction transaction) {
+      return transaction instanceof  DBTransaction && ((DBTransaction) transaction).providerEquals(mDBResource);
     }
   }
 
@@ -111,13 +111,13 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
   private final StringCache mStringCache = new StringCacheImpl();
-  private final TransactionFactory<T> mTransactionFactory;
+  private final TransactionFactory<? extends T> mTransactionFactory;
 
-  private TransactionedHandleMap<ProcessInstance,T> mInstanceMap;
+  private TransactionedHandleMap<ProcessInstance, T> mInstanceMap;
 
   private TransactionedHandleMap<ProcessNodeInstance, T> mNodeInstanceMap = null;
 
-  private TransactionedHandleMap<ProcessModelImpl,T> mProcessModels = null;
+  private TransactionedHandleMap<ProcessModelImpl, T> mProcessModels = null;
 
   private final IMessageService<?, ProcessNodeInstance> mMessageService;
 
@@ -129,13 +129,13 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @param messageService The service to use for actual sending of messages by
    *          activities.
    */
-  protected ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService, TransactionFactory<T> transactionFactory) {
+  protected ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService, TransactionFactory transactionFactory) {
     mMessageService = messageService;
     mTransactionFactory = transactionFactory;
   }
 
-  public static ProcessEngine<DBTransaction> newInstance(final IMessageService<?, ProcessNodeInstance> messageService) {
-    ProcessEngine<DBTransaction> pe = new ProcessEngine<DBTransaction>(messageService, new MyDBTransactionFactory());
+  public static ProcessEngine newInstance(final IMessageService<?, ProcessNodeInstance> messageService) {
+    ProcessEngine pe = new ProcessEngine(messageService, new MyDBTransactionFactory());
     pe.mInstanceMap = new ProcessInstanceMap(pe.mTransactionFactory, pe);
     pe.mNodeInstanceMap = new ProcessNodeInstanceMap(pe.mTransactionFactory, pe, pe.mStringCache);
     pe.mProcessModels = new ProcessModelMap(pe.mTransactionFactory, pe.mStringCache);
@@ -150,7 +150,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @param processNodeInstances
    */
   private ProcessEngine(final IMessageService<?, ProcessNodeInstance> messageService,
-                        TransactionFactory<T> transactionFactory,
+                        TransactionFactory transactionFactory,
                         TransactionedHandleMap<ProcessModelImpl, T> processModels,
                         TransactionedHandleMap<ProcessInstance, T> processInstances,
                         TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
@@ -174,10 +174,10 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   }
 
   static <T extends Transaction>  ProcessEngine<T> newTestInstance(final IMessageService<?, ProcessNodeInstance> messageService,
-                                                                   TransactionFactory<T> transactionFactory,
-                                                                   TransactionedHandleMap<ProcessModelImpl, T> processModels,
-                                                                   TransactionedHandleMap<ProcessInstance, T> processInstances,
-                                                                   TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
+                                                                TransactionFactory transactionFactory,
+                                                                TransactionedHandleMap<ProcessModelImpl, T> processModels,
+                                                                TransactionedHandleMap<ProcessInstance, T> processInstances,
+                                                                TransactionedHandleMap<ProcessNodeInstance, T> processNodeInstances) {
     return new ProcessEngine<T>(messageService, transactionFactory, processModels, processInstances, processNodeInstances);
   }
 
@@ -185,6 +185,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * Get all process models loaded into the engine.
    *
    * @return The list of process models.
+   * @param transaction
    */
   public Iterable<? extends ProcessModelImpl> getProcessModels(T transaction) {
     return getProcessModels().iterable(transaction);
@@ -193,6 +194,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   /**
    * Add a process model to the engine.
    *
+   *
+   * @param transaction
    * @param pm The process model to add.
    * @return The processModel to add.
    * @throws SQLException
@@ -219,7 +222,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return The processModel.
    * @throws SQLException
    */
-  public ProcessModelImpl getProcessModel(T transaction, final Handle<ProcessModelImpl> handle, final Principal user) throws SQLException {
+  public ProcessModelImpl getProcessModel(T transaction, final Handle<? extends ProcessModelImpl> handle, final Principal user) throws SQLException {
     final ProcessModelImpl result = getProcessModels().get(transaction, handle);
     result.normalize(new ExecutableSplitFactory());
     if (result != null) {
@@ -312,7 +315,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
 
       // TODO Hack to use the db backed implementation here
       @SuppressWarnings("raw")
-      TransactionedHandleMap<ProcessModelImpl,T> tmp = (TransactionedHandleMap) new ProcessModelMap(mTransactionFactory, mStringCache);
+      TransactionedHandleMap<ProcessModelImpl, T> tmp = (TransactionedHandleMap) new ProcessModelMap(mTransactionFactory, mStringCache);
       mProcessModels = tmp;
     }
     return mProcessModels;
@@ -333,8 +336,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     return result;
   }
 
-  public ProcessInstance getProcessInstance(Transaction transaction, Handle<? extends ProcessInstance> handle, Principal user) throws SQLException {
-    ProcessInstance instance = getInstances().get((T) transaction, handle); // XXX no generics needed
+  public ProcessInstance getProcessInstance(T transaction, Handle<? extends ProcessInstance> handle, Principal user) throws SQLException {
+    ProcessInstance instance = getInstances().get(transaction, handle); // XXX no generics needed
     mSecurityProvider.ensurePermission(Permissions.VIEW_INSTANCE, user, instance);
     return instance;
   }
@@ -577,6 +580,8 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
   /**
    * Handle the fact that this task has been cancelled.
    *
+   *
+   * @param transaction
    * @param handle
    * @throws SQLException
    */

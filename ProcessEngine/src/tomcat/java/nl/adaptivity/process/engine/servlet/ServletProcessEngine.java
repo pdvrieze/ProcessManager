@@ -3,7 +3,6 @@ package nl.adaptivity.process.engine.servlet;
 import net.devrieze.util.HandleMap.Handle;
 import net.devrieze.util.Handles;
 import net.devrieze.util.Transaction;
-import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.PermissionDeniedException;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.io.Writable;
@@ -34,6 +33,7 @@ import nl.adaptivity.xml.XmlReader;
 import org.apache.catalina.ServerFactory;
 import org.apache.catalina.Service;
 import org.apache.catalina.connector.Connector;
+import org.jetbrains.annotations.TestOnly;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,7 +68,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class ServletProcessEngine extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
+public class ServletProcessEngine<T extends Transaction> extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
 
 
   private static final long serialVersionUID = -6277449163953383974L;
@@ -376,7 +376,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   }
 
-  private ProcessEngine<DBTransaction> mProcessEngine;
+  private ProcessEngine mProcessEngine;
 
   private EndpointDescriptorImpl mLocalEndPoint;
 
@@ -397,6 +397,11 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @Override
   public String getServletInfo() {
     return "ServletProcessEngine";
+  }
+
+  @TestOnly
+  protected void init(final ProcessEngine engine) {
+    mProcessEngine = engine;
   }
 
   @Override
@@ -509,7 +514,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public ProcessModelRefs getProcesModelRefs() {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       final Iterable<? extends ProcessModelImpl> processModels = mProcessEngine.getProcessModels(transaction);
       final ProcessModelRefs list = new ProcessModelRefs();
       for (final ProcessModelImpl pm : processModels) {
@@ -524,7 +529,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.GET, path = "/processModels/${handle}")
   public ProcessModelImpl getProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws FileNotFoundException {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       Handle<ProcessModelImpl> handle1 = Handles.<ProcessModelImpl>handle(handle);
       mProcessEngine.invalidateModelCache(handle1);
       return transaction.commit(mProcessEngine.getProcessModel(transaction, handle1, user));
@@ -543,7 +548,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     if (processModel != null) {
       processModel.setHandle(handle);
 
-      try (DBTransaction transaction = mProcessEngine.startTransaction()){
+      try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(mProcessEngine.updateProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), processModel, user));
       } catch (SQLException e) {
         getLogger().log(Level.WARNING, "Error updating process model", e);
@@ -559,7 +564,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
     if (processModel != null) {
 
-      try (DBTransaction transaction = mProcessEngine.startTransaction()){
+      try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));
       } catch (SQLException e) {
         getLogger().log(Level.WARNING, "Error adding process model", e);
@@ -577,7 +582,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.DELETE, path = "/processModels/${handle}")
   public void deleteProcess(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       if (! mProcessEngine.removeProcessModel(transaction, Handles.<ProcessModelImpl>handle(handle), user)) {
         throw new HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist");
       }
@@ -604,7 +609,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
          @RestParam(name = "name", type = ParamType.QUERY) final String name,
          @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
          @RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
       return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ProcessModelImpl>handle(handle), name, uuid, null));
     } catch (SQLException e) {
@@ -616,7 +621,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
   @RestMethod(method = HttpMethod.GET, path = "/processInstances")
   @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
   public Collection<? extends ProcessInstanceRef> getProcesInstanceRefs(@RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       final Iterable<ProcessInstance> processInstances = mProcessEngine.getOwnedProcessInstances(transaction, owner);
       final Collection<ProcessInstanceRef> list = new ArrayList<>();
       for (final ProcessInstance pi : processInstances) {
@@ -632,7 +637,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.GET, path= "/processInstances/${handle}")
   public ProcessInstance getProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       return transaction.commit(mProcessEngine.getProcessInstance(transaction, new HProcessInstance(handle), user));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error getting process instance", e);
@@ -648,7 +653,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.DELETE, path= "/processInstances/${handle}")
   public ProcessInstance cancelProcessInstance(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       return transaction.commit(mProcessEngine.cancelInstance(transaction, new HProcessInstance(handle), user));
     } catch (SQLException e) {
       getLogger().log(Level.WARNING, "Error cancelling process intance", e);
@@ -670,7 +675,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
           @RestParam(type = ParamType.PRINCIPAL)
               final Principal user) throws FileNotFoundException, SQLException, XmlException {
     Handle<? extends ProcessNodeInstance> handle1 = new HProcessNodeInstance(handle);
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       final ProcessNodeInstance result = mProcessEngine.getNodeInstance(transaction, handle1, user);
       if (result==null) { throw new FileNotFoundException(); }
       return transaction.commit(result.toSerializable(transaction));
@@ -684,7 +689,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
   public TaskState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "state", type = ParamType.QUERY) final TaskState newState, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       return transaction.commit(mProcessEngine.updateTaskState(transaction, Handles.<ProcessNodeInstance>handle(handle), newState, user));
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -703,7 +708,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
         @RestParam(type = ParamType.PRINCIPAL)
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         final Principal user) {
-    try (DBTransaction transaction = mProcessEngine.startTransaction()){
+    try (Transaction transaction = mProcessEngine.startTransaction()){
       return transaction.commit(mProcessEngine.finishTask(transaction, Handles.<ProcessNodeInstance> handle(handle), payload, user));
     } catch (SQLException e) {
       throw new HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e);
@@ -721,14 +726,14 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
     // XXX do this better
     try {
       if (future.isCancelled()) {
-        try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+        try (Transaction transaction = mProcessEngine.startTransaction()) {
           mProcessEngine.cancelledTask(transaction, handle, owner);
           transaction.commit();
         }
       } else {
         try {
           final DataSource result = future.get();
-          try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+          try (Transaction transaction = mProcessEngine.startTransaction()) {
             ProcessNodeInstance inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
             assert inst.getState()==TaskState.Pending;
             if (inst.getState()==TaskState.Pending) {
@@ -750,7 +755,7 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
               // If we receive an ActivityResponse, treat that specially.
               if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
                 final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
-                try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+                try (Transaction transaction = mProcessEngine.startTransaction()) {
                   final TaskState taskState = TaskState.valueOf(taskStateAttr);
                   mProcessEngine.updateTaskState(transaction, handle, taskState, owner);
                   transaction.commit();
@@ -758,14 +763,14 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
                 } catch (final NullPointerException e) {
                   // ignore
                 } catch (final IllegalArgumentException e) {
-                  try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+                  try (Transaction transaction = mProcessEngine.startTransaction()) {
                     mProcessEngine.errorTask(transaction, handle, e, owner);
                     transaction.commit();
                   }
                 }
               }
             } else {
-              try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+              try (Transaction transaction = mProcessEngine.startTransaction()) {
                 // XXX By default assume that we have finished the task
                 mProcessEngine.finishedTask(transaction, handle, result, owner);
                 transaction.commit();
@@ -780,13 +785,13 @@ public class ServletProcessEngine extends EndpointServlet implements IMessageSer
 
         } catch (final ExecutionException e) {
           getLogger().log(Level.INFO, "Task " + handle + ": Error in messaging", e.getCause());
-          try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+          try (Transaction transaction = mProcessEngine.startTransaction()) {
             mProcessEngine.errorTask(transaction, handle, e.getCause(), owner);
             transaction.commit();
           }
         } catch (final InterruptedException e) {
           getLogger().log(Level.INFO, "Task " + handle + ": Interrupted", e);
-          try (DBTransaction transaction = mProcessEngine.startTransaction()) {
+          try (Transaction transaction = mProcessEngine.startTransaction()) {
             mProcessEngine.cancelledTask(transaction, handle, owner);
             transaction.commit();
           }

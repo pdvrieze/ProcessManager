@@ -2,6 +2,7 @@ package nl.adaptivity.process.engine;
 
 import net.devrieze.util.CachingDBHandleMap;
 import net.devrieze.util.Handles;
+import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
@@ -10,7 +11,6 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.util.xml.CompactFragment;
 
@@ -134,10 +134,10 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
     }
 
     @Override
-    public ProcessInstance create(DBTransaction connection, ResultSet row) throws SQLException {
+    public ProcessInstance create(Transaction transaction, ResultSet row) throws SQLException {
       Principal owner = new SimplePrincipal(row.getString(mColNoOwner));
-      Handle<ProcessModel> hProcessModel = Handles.handle(row.getLong(mColNoHProcessModel));
-      ProcessModelImpl processModel = mProcessEngine.getProcessModel(connection, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
+      Handle<ProcessModelImpl> hProcessModel = Handles.handle(row.getLong(mColNoHProcessModel));
+      ProcessModelImpl processModel = mProcessEngine.getProcessModel(transaction, hProcessModel, SecurityProvider.SYSTEMPRINCIPAL);
       String instancename = row.getString(mColNoName);
       long piHandle = row.getLong(mColNoHandle);
       ProcessInstance.State state = toState(row.getString(mColNoState));
@@ -295,7 +295,7 @@ public class ProcessInstanceMap extends CachingDBHandleMap<ProcessInstance> {
 
   }
 
-  public ProcessInstanceMap(TransactionFactory<?> transactionFactory, ProcessEngine processEngine) {
+  public ProcessInstanceMap(TransactionFactory transactionFactory, ProcessEngine processEngine) {
     super(transactionFactory, new ProcessInstanceElementFactory(processEngine));
   }
 
