@@ -166,7 +166,7 @@ public class SoapMessageHandler {
 
   private static PrefixMap<Method> createCacheElem(final Class<?> pClass) {
     final PrefixMap<Method> result = new PrefixMap<>();
-    final Method[] methods = pClass.getDeclaredMethods();
+    final Method[] methods = pClass.getMethods();
 
     for (final Method m : methods) {
       final WebMethod annotation = m.getAnnotation(WebMethod.class);
