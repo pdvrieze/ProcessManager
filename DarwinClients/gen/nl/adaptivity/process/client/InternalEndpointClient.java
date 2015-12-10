@@ -40,7 +40,7 @@ public class InternalEndpointClient {
     final Tripple<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl> param0 = Tripple.<String, Class<EndpointDescriptorImpl>, EndpointDescriptorImpl>tripple("repliesParam", EndpointDescriptorImpl.class, repliesParam);
     final Tripple<String, Class<UserTask>, UserTask<?>> param1 = Tripple.<String, Class<UserTask>, UserTask<?>>tripple("taskParam", UserTask.class, taskParam);
 
-    Source message = SoapHelper.createMessage(new QName(""), Arrays.asList(param0, param1));
+    Source message = SoapHelper.createMessage(new QName(""), Arrays.<Tripple<String, ? extends Class<?>, ?>>asList(param0, param1));
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
