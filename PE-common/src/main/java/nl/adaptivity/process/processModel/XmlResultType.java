@@ -95,7 +95,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
       if (getPath() == null || ".".equals(getPath())) {
         processData = new ProcessData(getName(), XmlUtil.nodeToFragment(payload));
       } else {
-        processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(payload, XPathConstants.NODESET)));
+        processData = new ProcessData(getName(), XmlUtil.nodeListToFragment((NodeList) getXPath().evaluate(XmlUtil.ensureAttached(payload), XPathConstants.NODESET)));
       }
       final char[] content = getContent();
       if (content!=null && content.length>0) {

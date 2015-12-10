@@ -198,6 +198,30 @@ public final class XmlUtil {
     return root;
   }
 
+  public static Node ensureAttached(final Node node) {
+    if (node==null) { return null; }
+    if (node instanceof Document || node instanceof DocumentFragment) {
+      return node;
+    }
+    if (isAttached(node)) {
+      return node;
+    }
+    DocumentFragment frag = node.getOwnerDocument().createDocumentFragment();
+    frag.appendChild(node.cloneNode(true));
+    return frag;
+  }
+
+  public static boolean isAttached(final Node node) {
+    if (node instanceof Document || node instanceof DocumentFragment) {
+      return true;
+    }
+    Node docElem = node.getOwnerDocument().getDocumentElement();
+    for(Node n = node; n!=null; n=n.getParentNode()) {
+      if (docElem.isSameNode(n)) { return true; }
+    }
+    return false;
+  }
+
   public static void skipElement(final XmlReader in) throws XmlException {
     in.require(EventType.START_ELEMENT, null, null);
     while (in.hasNext() && in.next()!=EventType.END_ELEMENT) {
