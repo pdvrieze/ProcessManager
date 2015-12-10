@@ -4,7 +4,9 @@ import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Engine;
-import nl.adaptivity.process.processModel.engine.*;
+import nl.adaptivity.process.processModel.engine.EndNodeImpl;
+import nl.adaptivity.process.processModel.engine.IProcessModelRef;
+import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -70,6 +72,22 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
 
   public ProcessModelBase(final Collection<? extends T> processNodes) {
     mProcessNodes=ProcessNodeSet.processNodeSet(processNodes);
+  }
+
+  /**
+   * Copy constructor, but generics mean that the right type of child needs to be provided as parameter
+   * @param basepm The base process model
+   * @param modelNodes The "converted" model nodes.
+   */
+  protected ProcessModelBase(final ProcessModelBase<?, ?> basepm, final Collection<? extends T> modelNodes) {
+    setModelNodes(modelNodes);
+    setName(basepm.getName());
+    setHandle(basepm.getHandle());
+    setOwner(basepm.getOwner());
+    setRoles(basepm.getRoles());
+    setUuid(basepm.getUuid());
+    setImports(basepm.getImports());
+    setExports(basepm.getExports());
   }
 
   public boolean deserializeChild(final DeserializationFactory<T, M> factory, @NotNull final XmlReader in) throws XmlException {
@@ -144,6 +162,14 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
       unnamed.setId(idBase+Integer.toString(startCount));
       startCounts.put(idBase, startCount+1);
     }
+  }
+
+  public void setImports(@NotNull final Collection<? extends IXmlResultType> imports) {
+    mImports = ProcessNodeBase.toExportableResults(imports);
+  }
+
+  public void setExports(@NotNull final Collection<? extends IXmlDefineType> exports) {
+    mExports = ProcessNodeBase.toExportableDefines(exports);
   }
 
   private static int getOrDefault(final Map<String, Integer> map, final String key, final int defaultValue) {

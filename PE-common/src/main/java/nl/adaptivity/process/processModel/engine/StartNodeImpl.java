@@ -34,6 +34,10 @@ public class StartNodeImpl extends StartNodeBase<ExecutableProcessNode, ProcessM
     }
   }
 
+  public StartNodeImpl(final StartNode<?, ?> orig) {
+    super(orig);
+  }
+
   @NotNull
   public static StartNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {

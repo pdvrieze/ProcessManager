@@ -8,6 +8,7 @@ import net.devrieze.util.security.SecurityProvider;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
 import nl.adaptivity.util.xml.XmlDeserializer;
@@ -24,8 +25,7 @@ import java.util.*;
 
 
 /**
- * A class representing a process model. This is too complex to directly support
- * JAXB serialization, so the {@link ProcessModelXmlAdapter} does that.
+ * A class representing a process model.
  *
  * @author Paul de Vrieze
  */
@@ -77,7 +77,48 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
     }
   }
 
-  private int mEndNodeCount;
+  private volatile int mEndNodeCount = -1;
+
+  public ProcessModelImpl(final ProcessModelBase<?, ?> basepm) {
+    super(basepm, toExecutableNodes(basepm.getModelNodes()));
+  }
+
+  private static Collection<? extends ExecutableProcessNode> toExecutableNodes(final Collection<? extends ProcessNode<?,?>> modelNodes) {
+    List<ExecutableProcessNode> result = new ArrayList<>();
+    for(ProcessNode<?,?> node: modelNodes) {
+      result.add(node.visit(new Visitor<ExecutableProcessNode>() {
+        @Override
+        public ExecutableProcessNode visitStartNode(final StartNode<?, ?> startNode) {
+          return new StartNodeImpl(startNode);
+        }
+
+        @Override
+        public ExecutableProcessNode visitActivity(final Activity<?, ?> activity) {
+          return new ActivityImpl(activity);
+        }
+
+        @Override
+        public ExecutableProcessNode visitSplit(final Split<?, ?> split) {
+          return new SplitImpl(split);
+        }
+
+        @Override
+        public ExecutableProcessNode visitJoin(final Join<?, ?> join) {
+          return new JoinImpl(join);
+        }
+
+        @Override
+        public ExecutableProcessNode visitEndNode(final EndNode<?, ?> endNode) {
+          return new EndNodeImpl(endNode);
+        }
+      }));
+    }
+    return result;
+  }
+
+  public static ProcessModelImpl from(final ProcessModelBase<?, ?> basepm) {
+    return new ProcessModelImpl(basepm);
+  }
 
   @NotNull
   public static ProcessModelImpl deserialize(@NotNull final XmlReader in) throws XmlException {
@@ -88,8 +129,6 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
   public static ProcessModelImpl deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
     return ProcessModelBase.deserialize(factory, new ProcessModelImpl(Collections.<ExecutableProcessNode>emptyList()), in);
   }
-
-  private static final long serialVersionUID = -4199223546188994559L;
 
   /**
    * A class handle purely used for caching and special casing the DarwinPrincipal class.
@@ -110,12 +149,6 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
    */
   public ProcessModelImpl(final Collection<? extends ExecutableProcessNode> processNodes) {
     super(processNodes);
-    int endNodeCount=0;
-    for(final ExecutableProcessNode node:getModelNodes()) {
-      node.setOwnerModel(this);
-      if (node instanceof EndNodeImpl) { ++endNodeCount; }
-    }
-    mEndNodeCount = endNodeCount;
   }
 
   /**
@@ -179,6 +212,15 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
      * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
      */
   public int getEndNodeCount() {
+    if (mEndNodeCount<0) {
+      int endNodeCount = 0;
+      for (final ExecutableProcessNode node : getModelNodes()) {
+        node.setOwnerModel(this);
+        if (node instanceof EndNodeImpl) { ++endNodeCount; }
+      }
+      mEndNodeCount = endNodeCount;
+    }
+
     return mEndNodeCount;
   }
 

@@ -38,6 +38,10 @@ public class JoinImpl extends JoinBase<ExecutableProcessNode, ProcessModelImpl> 
     }
   }
 
+  public JoinImpl(final Join<?, ?> orig) {
+    super(orig);
+  }
+
   @NotNull
   public static JoinImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {

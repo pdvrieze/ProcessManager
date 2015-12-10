@@ -216,8 +216,10 @@ public final class XmlUtil {
       return true;
     }
     Node docElem = node.getOwnerDocument().getDocumentElement();
-    for(Node n = node; n!=null; n=n.getParentNode()) {
-      if (docElem.isSameNode(n)) { return true; }
+    if (docElem!=null) {
+      for (Node n = node; n != null; n = n.getParentNode()) {
+        if (docElem.isSameNode(n)) { return true; }
+      }
     }
     return false;
   }

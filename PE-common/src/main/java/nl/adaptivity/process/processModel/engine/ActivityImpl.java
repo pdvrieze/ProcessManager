@@ -64,6 +64,10 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
    */
   public ActivityImpl(final ProcessModelImpl  ownerModel) {super(ownerModel);}
 
+  public ActivityImpl(final Activity<?, ?> orig) {
+    super(orig);
+  }
+
   @Override
   protected void serializeCondition(final XmlWriter out) throws XmlException {
     XmlUtil.writeChild(out, mCondition);

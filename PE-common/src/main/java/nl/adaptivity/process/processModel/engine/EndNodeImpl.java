@@ -33,6 +33,10 @@ public class EndNodeImpl extends EndNodeBase<ExecutableProcessNode, ProcessModel
     }
   }
 
+  public EndNodeImpl(final EndNode<?, ?> orig) {
+    super(orig);
+  }
+
   @NotNull
   public static EndNodeImpl deserialize(final ProcessModelImpl ownerModel, @NotNull final XmlReader in) throws
           XmlException {

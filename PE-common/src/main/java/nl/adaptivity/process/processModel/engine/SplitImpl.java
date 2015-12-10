@@ -4,6 +4,7 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.IllegalProcessModelException;
+import nl.adaptivity.process.processModel.Split;
 import nl.adaptivity.process.processModel.SplitBase;
 import nl.adaptivity.util.xml.XmlDeserializer;
 import nl.adaptivity.util.xml.XmlDeserializerFactory;
@@ -35,6 +36,10 @@ public class SplitImpl extends SplitBase<ExecutableProcessNode, ProcessModelImpl
 
   public SplitImpl(final ProcessModelImpl  ownerModel) {
     super(ownerModel);
+  }
+
+  public SplitImpl(final Split<?, ?> orig) {
+    super(orig);
   }
 
   @NotNull
