@@ -486,7 +486,7 @@ public final class MessagingSoapClientGenerator {
       out.write("Arrays.asList(new JAXBElement<String>(new QName(\"http://adaptivity.nl/ProcessEngine/\",\"principal\"), String.class, "
           + principalName + ".getName())), ");
     }
-    out.write("Arrays.asList(");
+    out.write("Arrays.<Tripple<String, ? extends Class<?>, ?>>asList(");
     for (int i = 0; i < params.size(); ++i) {
       if (i > 0) {
         out.write(", ");
