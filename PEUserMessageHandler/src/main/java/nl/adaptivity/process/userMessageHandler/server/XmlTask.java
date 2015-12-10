@@ -11,9 +11,10 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
@@ -174,7 +175,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     return ServletProcessEngineClient.finishTask(mRemoteHandle, createResult(), user, null); // Ignore completion???
   }
 
-  private Node createResult() {
+  private DocumentFragment createResult() {
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     Document document;
@@ -183,8 +184,10 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     } catch (ParserConfigurationException e) {
       throw new RuntimeException(e);
     }
+    DocumentFragment fragment = document.createDocumentFragment();
 
     Element outer = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "result");
+    outer.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", Constants.USER_MESSAGE_HANDLER_NS);
     for(XmlItem item: getItems()) {
       if (! "label".equals(item.getType())) {
         Element inner = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "value");
@@ -196,7 +199,8 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
       }
     }
 
-    return outer;
+    fragment.appendChild(outer);
+    return fragment;
   }
 
   @XmlAttribute(name = "handle")
