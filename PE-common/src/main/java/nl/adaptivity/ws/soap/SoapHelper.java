@@ -434,7 +434,7 @@ public class SoapHelper {
         } else {
 
           if (value.getNextSibling() != null && (value.getNextSibling() instanceof Element)) {
-            throw new UnsupportedOperationException("Collection parameters not yet supported");
+            throw new UnsupportedOperationException("Collection parameters not yet supported: "+pMethod.toGenericString()+" found: '"+XmlUtil.toString(value.getNextSibling())+"' in "+XmlUtil.toString(value.getParentNode()));
           }
           try {
             JAXBContext context;
