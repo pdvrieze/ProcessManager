@@ -108,7 +108,7 @@ public class TestSoapHelper {
   @Test
   public void testUnmarshalSoapResponse() throws Exception {
     Envelope env = Envelope.deserialize(XmlStreaming.newReader(new StringReader(SOAP_RESPONSE1)));
-    CompactFragment bodyContent = env.getBody().getBodyContent();
+    CompactFragment bodyContent = (CompactFragment) env.getBody().getBodyContent();
     assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());
   }
 
@@ -146,7 +146,7 @@ public class TestSoapHelper {
     dbf.setNamespaceAware(true);
     Document doc = dbf.newDocumentBuilder().parse(new InputSource(new StringReader(SOAP_RESPONSE1)));
     Envelope env = Envelope.deserialize(XmlStreaming.newReader(new DOMSource(doc)));
-    CompactFragment bodyContent = env.getBody().getBodyContent();
+    CompactFragment bodyContent = (CompactFragment) env.getBody().getBodyContent();
     XMLUnit.setIgnoreWhitespace(true);
     XMLUnit.setIgnoreAttributeOrder(true);
     assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent.getContentString());

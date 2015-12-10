@@ -41,10 +41,7 @@ import javax.xml.xpath.*;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -339,7 +336,15 @@ public class TestProcessData {
     {
       final CharArrayWriter caw = new CharArrayWriter();
       final XmlWriter xsw = XmlStreaming.newWriter(caw);
-      final ExecutableProcessNode ac1 = ((ProcessNodeSet<ExecutableProcessNode>) xpm.getModelNodes()).get(1);
+
+      final ExecutableProcessNode ac1;
+      {
+        Collection<? extends ExecutableProcessNode> modelNodes = xpm.getModelNodes();
+        Iterator<? extends ExecutableProcessNode> it = modelNodes.iterator();
+        it.next();
+        ac1 = it.next();
+      }
+
       assertEquals("ac1", ac1.getId());
       final List<? extends IXmlResultType> ac1Results = new ArrayList<>(ac1.getResults());
 
@@ -405,11 +410,19 @@ public class TestProcessData {
 
   @Test
   public void testSerializeResult1() throws IOException, SAXException, XmlException {
-    final ProcessModel pm = getProcessModel("testModel2.xml");
+    final ProcessModel<?, ?> pm = getProcessModel("testModel2.xml");
 
     final CharArrayWriter caw = new CharArrayWriter();
     final XmlWriter xsw = XmlStreaming.newWriter(caw);
-    final XmlResultType result = (XmlResultType) ((ProcessNodeSet<ExecutableProcessNode>)pm.getModelNodes()).get(1).getResults().iterator().next();
+
+    final XmlResultType result;
+    {
+      Collection<? extends ProcessNode<?, ?>> modelNodes = pm.getModelNodes();
+      Iterator<? extends ProcessNode<?, ?>> it = modelNodes.iterator();
+      it.next();
+      result = (XmlResultType) it.next().getResults().iterator().next();
+    }
+
     result.serialize(xsw);
     xsw.close();
     final String control = "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>";
