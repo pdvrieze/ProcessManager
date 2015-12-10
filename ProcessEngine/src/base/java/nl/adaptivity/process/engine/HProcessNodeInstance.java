@@ -1,32 +1,48 @@
 package nl.adaptivity.process.engine;
 
-import java.io.Serializable;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
-
-import net.devrieze.util.HandleMap.Handle;
+import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 
+import javax.xml.bind.annotation.XmlValue;
+import javax.xml.namespace.QName;
 
-@XmlRootElement(name = "instanceHandle")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class HProcessNodeInstance implements Handle<ProcessNodeInstance>, Serializable {
+@XmlDeserializer(HProcessNodeInstance.Factory.class)
+public final class HProcessNodeInstance extends XmlHandle<ProcessNodeInstance> {
 
+  public static class Factory implements XmlDeserializerFactory<HProcessNodeInstance> {
 
-  private static final long serialVersionUID = 8151525146116141232L;
+    @Override
+    public HProcessNodeInstance deserialize(final XmlReader in) throws XmlException {
+      return HProcessNodeInstance.deserialize(in);
+    }
+  }
+
+  public static final java.lang.String ELEMENTLOCALNAME = "nodeInstanceHandle";
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   @XmlValue
   private long mHandle;
 
   public HProcessNodeInstance() {
-    setHandle(-1);
+    super(-1);
   }
 
   public HProcessNodeInstance(final long handle) {
-    setHandle(handle);
+    super(handle);
+  }
+
+  private static HProcessNodeInstance deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new HProcessNodeInstance(), in);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override

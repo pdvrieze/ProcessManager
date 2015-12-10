@@ -1,31 +1,43 @@
 package nl.adaptivity.process.engine;
 
-import java.io.Serializable;
+import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
+import javax.xml.namespace.QName;
 
-import net.devrieze.util.HandleMap.Handle;
+@XmlDeserializer(HProcessInstance.Factory.class)
+public final class HProcessInstance extends XmlHandle {
 
+  public static class Factory implements XmlDeserializerFactory<HProcessInstance> {
 
-@XmlRootElement(name = "instanceHandle")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class HProcessInstance implements Handle<ProcessInstance>, Serializable {
+    @Override
+    public HProcessInstance deserialize(final XmlReader in) throws XmlException {
+      return HProcessInstance.deserialize(in);
+    }
+  }
 
-
-  private static final long serialVersionUID = 8151525146116141232L;
-
-  @XmlValue
-  private long mHandle;
+  public static final java.lang.String ELEMENTLOCALNAME = "instanceHandle";
+  public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
 
   public HProcessInstance() {
-    setHandle(-1);
+    super(-1);
   }
 
   public HProcessInstance(final long handle) {
-    setHandle(handle);
+    super(handle);
+  }
+
+  private static HProcessInstance deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new HProcessInstance(), in);
+  }
+
+  @Override
+  public QName getElementName() {
+    return ELEMENTNAME;
   }
 
   @Override
@@ -36,15 +48,6 @@ public final class HProcessInstance implements Handle<ProcessInstance>, Serializ
   @Override
   public int hashCode() {
     return (int) getHandle();
-  }
-
-  @Override
-  public long getHandle() {
-    return mHandle;
-  }
-
-  public void setHandle(final long handle) {
-    mHandle = handle;
   }
 
 }

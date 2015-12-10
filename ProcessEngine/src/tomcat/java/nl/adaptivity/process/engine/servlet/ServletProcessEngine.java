@@ -18,6 +18,7 @@ import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.EndpointServlet;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.processModel.IXmlMessage;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.ProcessModelRefs;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
@@ -543,8 +544,13 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}")
   public ProcessModelRef updateProcessModel(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal user) throws IOException, XmlException {
-    if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
+    return updateProcessModel(handle, processModel, user);
+  }
+
+  @WebMethod(operationName = "updateProcessModel")
+  public ProcessModelRef updateProcessModel(final @WebParam(name="handle") long handle, @WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final  @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(type = ParamType.PRINCIPAL) Principal user) throws FileNotFoundException {
+    if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     if (processModel != null) {
       processModel.setHandle(handle);
 
@@ -560,10 +566,14 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @RestMethod(method = HttpMethod.POST, path = "/processModels")
   public ProcessModelRef postProcessModel(@RestParam(name = "processUpload", type = ParamType.ATTACHMENT) final DataHandler attachment, @RestParam(type = ParamType.PRINCIPAL) final Principal owner) throws IOException, XmlException {
-    if (owner==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     ProcessModelImpl processModel = XmlUtil.deSerialize(attachment.getInputStream(), ProcessModelImpl.class);
-    if (processModel != null) {
+    return postProcessModel(processModel, owner);
+  }
 
+  @WebMethod(operationName = "postProcessModel")
+  public ProcessModelRef postProcessModel(@WebParam(name = "processModel", mode = Mode.IN) final ProcessModelBase processModel, final @RestParam(type = ParamType.PRINCIPAL) @WebParam(name = "principal", mode = Mode.IN, header = true) Principal owner) {
+    if (owner==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    if (processModel != null) {
       try (Transaction transaction = mProcessEngine.startTransaction()){
         return transaction.commit(ProcessModelRef.get(mProcessEngine.addProcessModel(transaction, processModel, owner)));
       } catch (SQLException e) {
@@ -603,12 +613,13 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    * @param owner The owner of the process instance. (Who started it).
    * @return
    */
+  @WebMethod
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
-  public HProcessInstance startProcess(
-         @RestParam(name = "handle", type = ParamType.VAR) final long handle,
-         @RestParam(name = "name", type = ParamType.QUERY) final String name,
-         @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
-         @RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
+  public XmlHandle<?> startProcess(
+         @WebParam(name="handle") @RestParam(name = "handle", type = ParamType.VAR) final long handle,
+         @WebParam(name="name") @RestParam(name = "name", type = ParamType.QUERY) final String name,
+         @WebParam(name="uuid") @RestParam(name = "uuid", type = ParamType.QUERY) final String uUID,
+         @WebParam(name="owner", header = true) @RestParam(type = ParamType.PRINCIPAL) final Principal owner) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
       UUID uuid = uUID==null ? UUID.randomUUID() : UUID.fromString(uUID);
       return transaction.commit(mProcessEngine.startProcess(transaction, owner, Handles.<ProcessModelImpl>handle(handle), name, uuid, null));

@@ -15,6 +15,7 @@ import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl.ExecutableSplitFactory;
 import org.w3c.dom.Document;
@@ -196,18 +197,20 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    *
    *
    * @param transaction
-   * @param pm The process model to add.
+   * @param basepm The process model to add.
    * @return The processModel to add.
    * @throws SQLException
    */
-  public IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> addProcessModel(T transaction, final ProcessModelImpl pm, final Principal user) throws SQLException {
+  public IProcessModelRef<ExecutableProcessNode, ProcessModelImpl> addProcessModel(T transaction, final ProcessModelBase<?, ?> basepm, final Principal user) throws SQLException {
     mSecurityProvider.ensurePermission(Permissions.ADD_MODEL, user);
 
-    if (pm.getOwner() == null) {
-      pm.setOwner(user);
-    } else if (!user.getName().equals(pm.getOwner().getName())) {
-      mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, pm.getOwner());
+    if (basepm.getOwner() == null) {
+      basepm.setOwner(user);
+    } else if (!user.getName().equals(basepm.getOwner().getName())) {
+      mSecurityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, basepm.getOwner());
     }
+    final ProcessModelImpl pm;
+    pm = ProcessModelImpl.from(basepm);
 
     pm.cacheStrings(mStringCache);
     UUID uuid = pm.getUuid();
@@ -250,7 +253,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     }
   }
 
-  public ProcessModelRef updateProcessModel(T transaction, Handle<? extends ProcessModelImpl> handle, ProcessModelImpl processModel, Principal user) throws FileNotFoundException, SQLException {
+  public ProcessModelRef updateProcessModel(T transaction, Handle<? extends ProcessModelImpl> handle, ProcessModelBase<?,?> processModel, Principal user) throws FileNotFoundException, SQLException {
     ProcessModelImpl oldModel = getProcessModels().get(transaction, handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel);
     mSecurityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel);
@@ -263,7 +266,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     if(! (handle!=null && getProcessModels().contains(transaction, handle))) {
       throw new FileNotFoundException("The process model with handle "+handle+" could not be found");
     }
-    getProcessModels().set(transaction, handle, processModel);
+    getProcessModels().set(transaction, handle, processModel instanceof ProcessModelImpl? (ProcessModelImpl) processModel : ProcessModelImpl.from(processModel));
     return ProcessModelRef.get(processModel.getRef());
   }
 
