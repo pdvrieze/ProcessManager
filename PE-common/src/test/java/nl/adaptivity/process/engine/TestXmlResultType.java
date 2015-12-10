@@ -10,12 +10,15 @@ import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -56,6 +59,19 @@ public class TestXmlResultType {
     final XPathExpression expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()");
     final Document testData = getDB().parse(new InputSource(new StringReader("<umh:result xmlns:umh='"+Constants.USER_MESSAGE_HANDLER_NS+"'><umh:value name='user'>Paul</umh:value></umh:result>")));
     assertEquals("Paul", expr.evaluate(testData));
+  }
+
+  @Test
+  public void testXPathNS2() throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
+    final XPath xPath = XPathFactory.newInstance().newXPath();
+    final Map<String, String> prefixMap = new TreeMap<>();
+    prefixMap.put("ns1", Constants.USER_MESSAGE_HANDLER_NS);
+    xPath.setNamespaceContext(new SimpleNamespaceContext(prefixMap));
+    final XPathExpression expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()");
+    final Document testData = getDB().parse(new InputSource(new StringReader("<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                                                                             "  <value name=\"user\">Some test value</value>\n" +
+                                                                             "</result>")));
+    assertEquals("Some test value", expr.evaluate(testData));
   }
 
   private DocumentBuilder getDB() throws ParserConfigurationException {
@@ -126,6 +142,38 @@ public class TestXmlResultType {
     assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
                                                                           .getNamespaceURI("umh"));
     assertEquals("foo", testHolder.getName());
+  }
+
+  @Test
+  public void testTaskResult() throws Exception {
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document document = db.newDocument();
+    Document expected = db.parse(new InputSource(new StringReader("<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                                                                  "  <value name=\"user\">Some test value</value>\n" +
+                                                                  "</result>")));
+
+    Element outer = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "result");
+    outer.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", Constants.USER_MESSAGE_HANDLER_NS);
+    Element inner = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "value");
+    inner.setAttribute("name", "user");
+    inner.setTextContent("Some test value");
+    outer.appendChild(inner);
+    DocumentFragment frag = document.createDocumentFragment();
+//    frag.appendChild(outer);
+    document.appendChild(outer);
+
+    XMLUnit.setIgnoreWhitespace(true);
+//    XMLAssert.assertXMLEqual(expected, document);
+
+    final XPath xPath = XPathFactory.newInstance().newXPath();
+    final Map<String, String> prefixMap = new TreeMap<>();
+    prefixMap.put("ns1", Constants.USER_MESSAGE_HANDLER_NS);
+    xPath.setNamespaceContext(new SimpleNamespaceContext(prefixMap));
+    final XPathExpression expr = xPath.compile("./ns1:result/ns1:value[@name='user']/text()");
+    assertEquals("Some test value", expr.evaluate(outer));
+
   }
 
 }
