@@ -1,8 +1,8 @@
 package nl.adaptivity.process.userMessageHandler.client;
 
-public class ProcessModelRef {
+public class UserProcessModelRef {
 
-  public ProcessModelRef(final String handle, final String name) {
+  public UserProcessModelRef(final String handle, final String name) {
     this.handle = handle;
     this.name = name;
   }

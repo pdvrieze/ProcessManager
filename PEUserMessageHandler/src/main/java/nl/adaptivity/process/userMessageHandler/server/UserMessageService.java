@@ -1,6 +1,8 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
+import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
+import net.devrieze.util.TransactionedHandleMap;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissionDeniedException;
@@ -19,7 +21,7 @@ import java.util.Collection;
 import java.util.concurrent.Future;
 
 
-public class UserMessageService implements CompletionListener<Boolean /*<TODO Placeholder type*/> {
+public class UserMessageService<T extends Transaction> implements CompletionListener<Boolean /*<TODO Placeholder type*/> {
 
   private static class MyDBTransactionFactory implements TransactionFactory<DBTransaction> {
     private final Context mContext;
@@ -62,8 +64,8 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
     }
 
     @Override
-    public boolean isValidTransaction(final DBTransaction transaction) {
-      return transaction.providerEquals(mDBResource);
+    public boolean isValidTransaction(final Transaction transaction) {
+      return (transaction instanceof DBTransaction) &&  ((DBTransaction) transaction).providerEquals(mDBResource);
     }
   }
 
@@ -74,20 +76,28 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
 
   private static class InstantiationHelper {
 
-    public static final UserMessageService INSTANCE = new UserMessageService();
+    public static final UserMessageService INSTANCE = UserMessageService.getInstance();
 
   }
 
-  private UserTaskMap mTasks;
-  private TransactionFactory<DBTransaction> mTransactionFactory = new MyDBTransactionFactory();
+  private final TransactionedHandleMap<XmlTask, T> mTasks;
+  private final TransactionFactory<T> mTransactionFactory;
 
-  public UserMessageService() {
+  private UserMessageService(TransactionFactory<T> transactionFactory, TransactionedHandleMap<XmlTask, T> taskMap) {
+    mTransactionFactory = transactionFactory;
+    mTasks = taskMap;
   }
 
-  private UserTaskMap getTasks() {
-    if (mTasks==null) {
-      mTasks = new UserTaskMap(mTransactionFactory);
-    }
+  public static UserMessageService<DBTransaction> newInstance() {
+    MyDBTransactionFactory transactionFactory = new MyDBTransactionFactory();
+    return new UserMessageService<DBTransaction>(transactionFactory, new UserTaskMap(transactionFactory));
+  }
+
+  public static <T extends Transaction> UserMessageService<T> newTestInstance(final TransactionFactory<T> transactionFactory, final TransactionedHandleMap<XmlTask, T> taskMap) {
+    return new UserMessageService<>(transactionFactory, taskMap);
+  }
+
+  private TransactionedHandleMap<XmlTask, T> getTasks() {
     return mTasks;
   }
 
@@ -95,7 +105,7 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
     return getTasks().put(task) >= 0;
   }
 
-  public Collection<XmlTask> getPendingTasks(DBTransaction transaction) {
+  public Collection<XmlTask> getPendingTasks(T transaction) {
     final Iterable<XmlTask> tasks = getTasks().iterable(transaction);
     ArrayList<XmlTask> result = new ArrayList<>();
     for(XmlTask task:tasks) {
@@ -109,11 +119,19 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
   }
 
   public TaskState finishTask(final long handle, final Principal user) {
-    if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    final UserTask<?> task = getTask(handle);
+    try (T transaction = mTransactionFactory.startTransaction()) {
+      return finishTask(transaction, handle, user);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public TaskState finishTask(final T transaction, final long handle, final Principal user) throws SQLException {
+    if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
+    final XmlTask task = mTasks.get(transaction, handle);
     task.setState(TaskState.Complete, user);
     if ((task.getState() == TaskState.Complete) || (task.getState() == TaskState.Failed)) {
-      getTasks().remove(task);
+      mTasks.remove(transaction, task);
     }
     return task.getState();
   }
@@ -128,7 +146,7 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
     return TaskState.Taken;
   }
 
-  public XmlTask updateTask(DBTransaction transaction, long handle, XmlTask partialNewTask, Principal user) throws SQLException {
+  public XmlTask updateTask(T transaction, long handle, XmlTask partialNewTask, Principal user) throws SQLException {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     // This needs to be a copy otherwise the cache will interfere with the changes
     XmlTask currentTask;
@@ -173,7 +191,7 @@ public class UserMessageService implements CompletionListener<Boolean /*<TODO Pl
     //
   }
 
-  public DBTransaction newTransaction() throws SQLException {
+  public T newTransaction() throws SQLException {
     return mTransactionFactory.startTransaction();
   }
 

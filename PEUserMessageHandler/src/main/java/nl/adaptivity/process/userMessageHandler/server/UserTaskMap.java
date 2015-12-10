@@ -1,7 +1,9 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.CachingDBHandleMap;
+import net.devrieze.util.Transaction;
 import net.devrieze.util.TransactionFactory;
+import net.devrieze.util.TransactionedHandleMap;
 import net.devrieze.util.db.AbstractElementFactory;
 import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
@@ -32,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
-public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
+public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements TransactionedHandleMap<XmlTask, DBTransaction> {
 
 
   public static final String TABLE = "usertasks";
@@ -109,7 +111,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> {
     }
 
     @Override
-    public XmlTask create(DBTransaction connection, ResultSet resultSet) throws SQLException {
+    public XmlTask create(Transaction connection, ResultSet resultSet) throws SQLException {
       long handle = resultSet.getLong(mColNoHandle);
       long remoteHandle = resultSet.getLong(mColNoRemoteHandle);
 

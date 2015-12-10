@@ -53,12 +53,16 @@ public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements
 
   }
 
-  private final UserMessageService mService;
+  private final UserMessageService<?> mService;
 
   private URI mURI;
 
   public InternalEndpointImpl() {
-    mService = UserMessageService.getInstance();
+    this(UserMessageService.getInstance());
+  }
+
+  public InternalEndpointImpl(UserMessageService<?> service) {
+    mService = service;
   }
 
   @Override
