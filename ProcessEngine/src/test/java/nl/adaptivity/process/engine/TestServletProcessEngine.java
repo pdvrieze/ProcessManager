@@ -8,11 +8,13 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.servlet.ServletProcessEngine;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 
+import java.net.URI;
+
 
 /**
  * Created by pdvrieze on 09/12/15.
  */
-public class TestServletProcessEngine extends ServletProcessEngine{
+public class TestServletProcessEngine extends ServletProcessEngine {
 
   private final MemTransactionedHandleMap<ProcessModelImpl> mProcessModels;
   private final MemTransactionedHandleMap<ProcessInstance> mProcessInstances;
@@ -36,5 +38,10 @@ public class TestServletProcessEngine extends ServletProcessEngine{
 
   public TransactionFactory getTransactionFactory() {
     return mTransactionFactory;
+  }
+
+  @Override
+  public void setLocalEndpoint(final URI localURL) {
+    super.setLocalEndpoint(localURL);
   }
 }

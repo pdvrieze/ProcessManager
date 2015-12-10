@@ -822,7 +822,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
     // We know our config, don't do anything.
   }
 
-  void setLocalEndpoint(URI localURL) {
+  protected void setLocalEndpoint(URI localURL) {
     mLocalEndPoint = new EndpointDescriptorImpl(getServiceName(), getEndpointName(), localURL);
   }
 
