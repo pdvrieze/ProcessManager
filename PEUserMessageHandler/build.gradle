@@ -165,13 +165,16 @@ dependencies {
     compile 'com.google.gwt:gwt-user:2.6.1'
     compile project(':DarwinClients')
 
-    testCompile 'junit:junit:4.12'
+    testCompile 'org.testng:testng:6.9.9'
     testCompile 'xmlunit:xmlunit:1.6'
     testCompile project(path: ':PE-common', configuration:'providedCompile')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
 
 }
 
+test {
+    useTestNG()
+}
 
 idea {
     module {
