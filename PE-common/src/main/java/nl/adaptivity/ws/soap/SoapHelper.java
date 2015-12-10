@@ -382,7 +382,7 @@ public class SoapHelper {
 
   static <T> T unMarshalNode(final Method pMethod, final Class<T> pClass, final Class<?>[] pContext, final Node pAttrWrapper) throws XmlException {
     Node value = pAttrWrapper == null ? null : pAttrWrapper.getFirstChild();
-    while (value !=null && value instanceof Text && (((Text) value).isElementContentWhitespace()))  { value = value.getNextSibling(); }
+    while (value !=null && value instanceof Text && XmlUtil.isXmlWhitespace(((Text) value).getData()))  { value = value.getNextSibling(); }
     Object result;
     if ((value != null) && (!pClass.isInstance(value))) {
       if (Types.isPrimitive(pClass) || (Types.isPrimitiveWrapper(pClass))) {
