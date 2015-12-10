@@ -14,9 +14,9 @@ import nl.adaptivity.xml.XmlStreaming.XmlStreamingFactory;
 import nl.adaptivity.xml.XmlWriter;
 import org.custommonkey.xmlunit.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
 import org.mockito.InOrder;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,10 +46,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.*;
+import static org.testng.AssertJUnit.*;
+
 
 
 /**
@@ -142,6 +143,11 @@ public class TestProcessData {
     return TestProcessData.class.getResourceAsStream("/nl/adaptivity/process/engine/test/"+name);
   }
 
+  @BeforeMethod
+  private static void init() {
+    XmlStreaming.setFactory(null); // make sure to have the default factory
+  }
+
   @NotNull
   private static ProcessModelImpl getProcessModel(final String name) throws IOException,
           XmlException {
@@ -156,13 +162,6 @@ public class TestProcessData {
         throw new RuntimeException(e);
       }
     }
-  }
-
-  @Before
-  public void setUp() throws ParserConfigurationException {
-    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    final DocumentBuilder db = dbf.newDocumentBuilder();
   }
 
   @Test
@@ -491,6 +490,7 @@ public class TestProcessData {
 
   private static <T extends XmlSerializable> String testRoundTrip(final String expected, final XmlReader actual, @NotNull final Class<T> target, final boolean ignoreNs) throws
           InstantiationException, IllegalAccessException, XmlException {
+    assertNotNull(actual);
     @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
     final T obj = factory.deserialize(actual);
     final CharArrayWriter caw = new CharArrayWriter();
