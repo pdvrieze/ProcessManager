@@ -6,6 +6,7 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,19 +14,25 @@ import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.android.util.SelectableCursorAdapter;
+import nl.adaptivity.android.util.SelectableCursorAdapter.SelectableViewHolder;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.editor.android.ProcessModelListFragment.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.ui.model.ModelListItemBinding;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
@@ -60,18 +67,23 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   private static final int DLG_NEW_PM_NAME = 2;
 
-  /**
-   * The current activated item position. Only used on tablets.
-   */
-  private int mActivatedPosition = AdapterView.INVALID_POSITION;
+  static final class PMCursorAdapter extends SelectableCursorAdapter<PMCursorAdapter.PMViewHolder> {
 
-  private static final class PMCursorAdapter extends CursorAdapter {
+    class PMViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
+
+      final ModelListItemBinding binding;
+
+      public PMViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
+        super(inflater.inflate(R.layout.modellist_item, parent, false));
+        binding = DataBindingUtil.bind(itemView);
+      }
+    }
 
     private LayoutInflater mInflater;
     private int mNameColumn;
 
     private PMCursorAdapter(Context context, Cursor c) {
-      super(context, c, 0);
+      super(context, c);
       mInflater = LayoutInflater.from(context);
       updateNameColumn(c);
     }
@@ -97,19 +109,15 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-      return mInflater.inflate(R.layout.modellist_item, parent, false);
+    public void onBindViewHolder(final PMViewHolder viewHolder, final Cursor cursor) {
+      super.onBindViewHolder(viewHolder, cursor);
+      viewHolder.binding.setName(mNameColumn>=0 ? cursor.getString(mNameColumn): null);
+      viewHolder.binding.executePendingBindings();
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-      TextView modelName = (TextView) view.findViewById(R.id.model_name);
-      if (cursor!=null && mNameColumn>=0) {
-        final String name = cursor.getString(mNameColumn);
-        modelName.setText(name!=null ? name : "<Unnamed>");
-      } else {
-        modelName.setText("<Unnamed>");
-      }
+    public PMViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
+      return new PMViewHolder(mInflater, parent);
     }
   }
 
@@ -156,20 +164,14 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (mActivatedPosition != AdapterView.INVALID_POSITION) {
+    if (mAdapter!=null && mAdapter.getSelection() != RecyclerView.NO_POSITION) {
       // Serialize and persist the activated item position.
-      outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
+      outState.putInt(STATE_ACTIVATED_POSITION, mAdapter.getSelection());
     }
   }
 
   private void setActivatedPosition(int position) {
-    if (position == AdapterView.INVALID_POSITION) {
-      getListView().setItemChecked(mActivatedPosition, false);
-    } else {
-      getListView().setItemChecked(position, true);
-    }
-
-    mActivatedPosition = position;
+    mAdapter.setSelection(position);
   }
 
 

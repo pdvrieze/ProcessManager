@@ -6,7 +6,7 @@
               android:divider="?android:attr/dividerHorizontal"
               android:orientation="horizontal"
               android:showDividers="middle"
-              tools:context="nl.adaptivity.process.tasks.android.TaskListOuterFragment">
+              tools:context="nl.adaptivity.process.ui.task.TaskListOuterFragment">
 
     <!--
         This layout is a two-pane layout for the ProcessModels

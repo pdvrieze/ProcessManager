@@ -1,4 +1,4 @@
-package nl.adaptivity.process.tasks.android;
+package nl.adaptivity.process.ui.task;
 
 import java.util.NoSuchElementException;
 

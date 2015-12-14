@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+      xmlns:android="http://schemas.android.com/apk/res/android"
+      tools:context="nl.adaptivity.process.ui.main.OverviewActivity">
+
+    <group android:checkableBehavior="single">
+        <item
+                android:id="@+id/nav_home"
+                android:icon="@drawable/ic_nav_home"
+                android:title="@string/menu_home" />
+        <item
+                android:id="@+id/nav_tasks"
+                android:icon="@drawable/ic_nav_tasks"
+                android:title="@string/menu_tasks" />
+        <item
+                android:id="@+id/nav_models"
+                android:icon="@drawable/ic_nav_models"
+                android:title="@string/nav_models" />
+    </group>
+
+    <item android:title="@string/nav_group_other">
+        <menu>
+            <item
+                    android:id="@+id/nav_share"
+                    android:icon="@drawable/ic_menu_share"
+                    android:title="Share"
+                    android:visible="false"/>
+            <item
+                    android:id="@+id/nav_settings"
+                    android:icon="@drawable/ic_nav_settings"
+                    android:title="@string/nav_settings" />
+        </menu>
+    </item>
+
+</menu>

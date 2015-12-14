@@ -9,15 +9,15 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 
 
-public class MasterListFragment extends ListFragment {
+public class MasterListFragment extends RecyclerFragment {
 
   public MasterListFragment() {
     Log.i(MasterListFragment.class.getSimpleName(), "Creating a new instanceo of "+getClass().getSimpleName());
   }
 
   public interface Callbacks {
-    public void onItemSelected(int row, long id);
-    public boolean isTwoPane();
+    void onItemSelected(int row, long id);
+    boolean isTwoPane();
   }
 
   /**
@@ -44,9 +44,6 @@ public class MasterListFragment extends ListFragment {
   public void onActivityCreated(Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     getCallbacks();
-    if (mCallbacks.isTwoPane()) {
-      getListView().setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-    }
   }
 
   @Override

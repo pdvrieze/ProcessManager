@@ -29,9 +29,9 @@ import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.tasks.android.TaskDetailFragment.TaskDetailCallbacks;
-import nl.adaptivity.process.tasks.android.TaskListOuterFragment;
-import nl.adaptivity.process.tasks.android.TaskListOuterFragment.TaskListCallbacks;
+import nl.adaptivity.process.ui.task.TaskDetailFragment.TaskDetailCallbacks;
+import nl.adaptivity.process.ui.task.TaskListOuterFragment;
+import nl.adaptivity.process.ui.task.TaskListOuterFragment.TaskListCallbacks;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 
 import java.io.IOException;

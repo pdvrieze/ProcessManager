@@ -1,32 +1,36 @@
-package nl.adaptivity.process.tasks.android;
+package nl.adaptivity.process.ui.task;
 
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.tasks.android.TaskDetailFragment.TaskDetailCallbacks;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.ActionBar;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import nl.adaptivity.process.editor.android.R;
+
 
 /**
- * An activity representing a single ProcessModel detail screen. This activity
- * is only used on handset devices. On tablet-size devices, item details are
- * presented side-by-side with a list of items in a
- * {@link TaskListOuterFragment}.
- * <p>
- * This activity is mostly just a 'shell' activity containing nothing more than
- * a {@link TaskDetailFragment}.
- *
+ * An activity representing a single Taskk detail screen. This
+ * activity is only used narrow width devices. On tablet-size devices,
+ * item details are presented side-by-side with a list of items
+ * in a {@link TaskListFragment}.
  */
-public class TaskDetailActivity extends FragmentActivity implements TaskDetailCallbacks {
+public class TaskDetailActivity extends AppCompatActivity {
+
+  private nl.adaptivity.process.ui.task.ActivityTaskDetailBinding mBinding;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_task_detail);
+    mBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
+    setSupportActionBar(mBinding.detailToolbar);
 
     // Show the Up button in the action bar.
-    getActionBar().setDisplayHomeAsUpEnabled(true);
+    ActionBar actionBar = getSupportActionBar();
+    if (actionBar != null) {
+      actionBar.setDisplayHomeAsUpEnabled(true);
+    }
 
     // savedInstanceState is non-null when there is fragment state
     // saved from previous configurations of this activity
@@ -42,12 +46,12 @@ public class TaskDetailActivity extends FragmentActivity implements TaskDetailCa
       // using a fragment transaction.
       Bundle arguments = new Bundle();
       arguments.putLong(TaskDetailFragment.ARG_ITEM_ID,
-          getIntent().getLongExtra(TaskDetailFragment.ARG_ITEM_ID,-1));
+                        getIntent().getLongExtra(TaskDetailFragment.ARG_ITEM_ID,-1));
       TaskDetailFragment fragment = new TaskDetailFragment();
       fragment.setArguments(arguments);
       getSupportFragmentManager().beginTransaction()
-          .add(R.id.task_detail_container, fragment)
-          .commit();
+                                 .add(R.id.task_detail_container, fragment)
+                                 .commit();
     }
   }
 
@@ -66,10 +70,5 @@ public class TaskDetailActivity extends FragmentActivity implements TaskDetailCa
       return true;
     }
     return super.onOptionsItemSelected(item);
-  }
-
-  @Override
-  public void dismissTaskDetails() {
-    finish();
   }
 }

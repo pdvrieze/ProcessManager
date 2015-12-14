@@ -1,30 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/modellist_item"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="?android:attr/activatedBackgroundIndicator"
-    android:minHeight="?android:attr/listPreferredItemHeight"
-    android:orientation="vertical" >
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
 
-    <TextView
-        android:id="@+id/model_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/half_margin"
-        android:layout_marginRight="@dimen/half_margin"
-        android:layout_marginTop="@dimen/half_margin"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+    <data class="nl.adaptivity.process.ui.task.TaskListItemBinding">
+        <variable name="summary" type="java.lang.CharSequence" />
+    </data>
 
-    <TextView
-        android:id="@+id/model_extra"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/half_margin"
-        android:layout_marginLeft="@dimen/default_margin"
-        android:layout_marginRight="@dimen/default_margin"
-        android:layout_marginTop="@dimen/half_margin"
-        android:gravity="top|start"
-        android:visibility="gone" />
+    <LinearLayout
+            android:id="@+id/modellist_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?android:attr/activatedBackgroundIndicator"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:orientation="vertical">
 
-</LinearLayout>
+        <TextView
+                android:id="@+id/model_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/half_margin"
+                android:layout_marginRight="@dimen/half_margin"
+                android:layout_marginTop="@dimen/half_margin"
+                android:text="@{summary ?? @string/unnamed_task}"
+                tools:text="@string/unnamed_task"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <TextView
+                android:id="@+id/model_extra"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/half_margin"
+                android:layout_marginLeft="@dimen/default_margin"
+                android:layout_marginRight="@dimen/default_margin"
+                android:layout_marginTop="@dimen/half_margin"
+                android:gravity="top|start"
+                android:visibility="gone" />
+
+    </LinearLayout>
+</layout>

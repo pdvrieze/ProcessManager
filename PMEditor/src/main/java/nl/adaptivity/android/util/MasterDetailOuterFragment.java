@@ -1,5 +1,6 @@
 package nl.adaptivity.android.util;
 
+import android.support.v7.widget.RecyclerView;
 import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.process.editor.android.R;
 import android.content.Intent;
@@ -52,23 +53,14 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   }
 
   /**
-   * Callback method from {@link ProcessModelListFragment.Callbacks} indicating
+   * Callback method from {@link MasterListFragment.Callbacks} indicating
    * that the item with the given ID was selected.
    */
   @Override
   public void onItemSelected(int row, long itemId) {
     if (mTwoPane) {
-      final ListView listView = mListFragment.getListView();
-      {
-        int oldCheckedItem = listView.getCheckedItemPosition();
-        if (oldCheckedItem!=AdapterView.INVALID_POSITION) {
-          listView.setItemChecked(oldCheckedItem, false);
-        }
-      }
+      final RecyclerView recyclerView = mListFragment.getRecyclerView();
       if (itemId>=0) {
-        if (row!=AdapterView.INVALID_POSITION) {
-          listView.setItemChecked(row, true);
-        }
         // In two-pane mode, show the detail view in this activity by
         // adding or replacing the detail fragment using a
         // fragment transaction.

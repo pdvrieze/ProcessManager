@@ -1,35 +1,33 @@
-package nl.adaptivity.process.tasks.android;
+package nl.adaptivity.process.ui.task;
 
-import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.process.editor.android.MainActivity;
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.tasks.data.TaskProvider;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.Cursor;
+import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.CursorAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.support.v7.widget.RecyclerView;
+import android.view.*;
+import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.android.util.SelectableCursorAdapter;
+import nl.adaptivity.process.editor.android.MainActivity;
+import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.tasks.data.TaskProvider;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
+import nl.adaptivity.process.ui.task.TaskListItemBinding;
+
 
 /**
- * A list fragment representing a list of ProcessModels. This fragment also
- * supports tablet devices by allowing list items to be given an 'activated'
- * state upon selection. This helps indicate which item is currently being
- * viewed in a {@link TaskDetailFragment}.
+ * An activity representing a list of Taskks. This activity
+ * has different presentations for handset and tablet-size devices. On
+ * handsets, the activity presents a list of items, which when touched,
+ * lead to a {@link TaskDetailActivity} representing
+ * item details. On tablets, the activity presents the list of items and
+ * item details side-by-side using two vertical panes.
  * <p>
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
@@ -46,20 +44,37 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
   private static final String TAG = TaskListFragment.class.getSimpleName();
 
-  /**
-   * The current activated item position. Only used on tablets.
-   */
-  private int mActivatedPosition = AdapterView.INVALID_POSITION;
+  public final class TaskCursorAdapter extends nl.adaptivity.android.util.SelectableCursorAdapter<TaskListFragment.TaskCursorAdapter.TaskCursorViewHolder> {
 
-  private static final class TaskCursorAdapter extends CursorAdapter {
+    public final class TaskCursorViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
+
+      public final TaskListItemBinding binding;
+
+      public TaskCursorViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
+        super(inflater.inflate(R.layout.tasklist_item, parent, false));
+        binding =  DataBindingUtil.bind(itemView);
+      }
+    }
 
     private LayoutInflater mInflater;
     private int mSummaryColIdx;
 
     private TaskCursorAdapter(Context context, Cursor c) {
-      super(context, c, 0);
+      super(context, c);
       mInflater = LayoutInflater.from(context);
       updateColIdxs(c);
+    }
+
+    @Override
+    public void onBindViewHolder(final TaskCursorViewHolder viewHolder, final Cursor cursor) {
+      super.onBindViewHolder(viewHolder, cursor);
+      viewHolder.binding.setSummary(mSummaryColIdx>=0 ? cursor.getString(mSummaryColIdx): null);
+      viewHolder.binding.executePendingBindings();
+    }
+
+    @Override
+    public TaskCursorViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
+      return new TaskCursorViewHolder(mInflater, parent);
     }
 
     private void updateColIdxs(Cursor c) {
@@ -83,19 +98,9 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-      return mInflater.inflate(R.layout.tasklist_item, parent, false);
-    }
-
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-      TextView tvSummary = (TextView) view.findViewById(R.id.model_name);
-      if (cursor!=null && mSummaryColIdx>=0) {
-        final String summary = cursor.getString(mSummaryColIdx);
-        tvSummary.setText(summary!=null ? summary : "<Unnamed>");
-      } else {
-        tvSummary.setText("<Unnamed>");
-      }
+    public void onClickView(final View v, final int adapterPosition) {
+      super.onClickView(v, adapterPosition); // keep the selection event recorded
+      doOnItemSelected(adapterPosition, getItemId(adapterPosition));
     }
   }
 
@@ -112,6 +117,9 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     super.onCreate(savedInstanceState);
     getLoaderManager().initLoader(TASKLISTLOADERID, null, this);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
+    if (savedInstanceState!=null && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
+      mAdapter.setSelection(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
+    }
     setListAdapter(mAdapter);
 
     setHasOptionsMenu(true);
@@ -130,32 +138,16 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
   }
 
   @Override
-  public void onListItemClick(ListView listView, View view, int position, long id) {
-    super.onListItemClick(listView, view, position, id);
-
-    long modelid = mAdapter.getItemId(position);
-    // Notify the active callbacks interface (the activity, if the
-    // fragment is attached to one) that an item has been selected.
-    doOnItemSelected(position, modelid);
-  }
-
-  @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (mActivatedPosition != ListView.INVALID_POSITION) {
+    if (mAdapter != null && mAdapter.getSelection() != RecyclerView.NO_POSITION) {
       // Serialise and persist the activated item position.
-      outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
+      outState.putInt(STATE_ACTIVATED_POSITION, mAdapter.getSelection());
     }
   }
 
   private void setActivatedPosition(int position) {
-    if (position == ListView.INVALID_POSITION) {
-      getListView().setItemChecked(mActivatedPosition, false);
-    } else {
-      getListView().setItemChecked(position, true);
-    }
-
-    mActivatedPosition = position;
+    mAdapter.setSelection(position);
   }
 
 
