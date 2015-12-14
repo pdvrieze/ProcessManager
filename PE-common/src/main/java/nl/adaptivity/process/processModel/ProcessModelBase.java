@@ -232,7 +232,6 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
 
   @Nullable
   @Override
-  @XmlAttribute(name="uuid")
   public UUID getUuid() {
     return mUuid;
   }

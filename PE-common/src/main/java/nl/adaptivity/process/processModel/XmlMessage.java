@@ -52,9 +52,6 @@ import java.net.URI;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "Message")
-@XmlRootElement(name= XmlMessage.ELEMENTLOCALNAME)
 @XmlDeserializer(XmlMessage.Factory.class)
 public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeserializable {
 

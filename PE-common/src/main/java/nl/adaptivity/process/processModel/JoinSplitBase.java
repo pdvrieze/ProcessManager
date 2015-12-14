@@ -44,13 +44,11 @@ public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends Proce
   }
 
   @Override
-  @XmlAttribute(required = true)
   public int getMax() {
     return mMax;
   }
 
   @Override
-  @XmlAttribute(required = true)
   public int getMin() {
     return mMin;
   }

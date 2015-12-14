@@ -362,10 +362,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
      * @see nl.adaptivity.process.processModel.ProcessNode#getId()
      */
   @Override
-  @XmlAttribute
-  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-  @XmlID
-  @XmlSchemaType(name = "ID")
   public String getId() {
     return mId;
   }
@@ -381,8 +377,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   }
 
   @Override
-  @XmlAttribute
-  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   public String getLabel() {
     return mLabel;
   }
@@ -396,7 +390,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     notifyChange();
   }
 
-  @XmlAttribute(name="x")
   @Override
   public double getX() {
     return mX;
@@ -411,7 +404,6 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     notifyChange();
   }
 
-  @XmlAttribute(name="y")
   @Override
   public double getY() {
     return mY;
