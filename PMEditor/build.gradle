@@ -9,19 +9,22 @@ dependencies {
     compile project(':darwinlib')
     compile project(':DarwinJavaApi')
     compile project(':JavaCommonApi')
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:support-annotations:23.1.1'
     testCompile 'junit:junit:4.12'
     testCompile project(path: ':PE-common', configuration: 'testJarConfig')
 //    testCompile 'org.robolectric:robolectric:3.0'
     testCompile 'net.sf.kxml:kxml2:2.3.0'
 //    testLocalCompile project(':PE-diagram')
 //    testLocalCompile project(':darwinlib')
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:support-annotations:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:support-v4:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
 }
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion '23.0.2'
 
     defaultConfig {
         minSdkVersion 11

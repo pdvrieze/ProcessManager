@@ -18,18 +18,12 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
-import android.widget.CursorAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
-import nl.adaptivity.android.util.SelectableCursorAdapter.SelectableViewHolder;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
-import nl.adaptivity.process.editor.android.ProcessModelListFragment.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.ModelListItemBinding;
@@ -67,7 +61,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   private static final int DLG_NEW_PM_NAME = 2;
 
-  static final class PMCursorAdapter extends SelectableCursorAdapter<PMCursorAdapter.PMViewHolder> {
+  final class PMCursorAdapter extends SelectableCursorAdapter<PMCursorAdapter.PMViewHolder> {
 
     class PMViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
 
@@ -85,10 +79,11 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     private PMCursorAdapter(Context context, Cursor c) {
       super(context, c);
       mInflater = LayoutInflater.from(context);
-      updateNameColumn(c);
+      updateColumnIndices(c);
+      setHasStableIds(true);
     }
 
-    private void updateNameColumn(Cursor c) {
+    private void updateColumnIndices(Cursor c) {
       if (c==null) {
         mNameColumn = -1;
       } else {
@@ -104,7 +99,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     @Override
     public Cursor swapCursor(Cursor newCursor) {
       final Cursor result = super.swapCursor(newCursor);
-      updateNameColumn(newCursor);
+      updateColumnIndices(newCursor);
       return result;
     }
 
@@ -118,6 +113,12 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     @Override
     public PMViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
       return new PMViewHolder(mInflater, parent);
+    }
+
+    @Override
+    public void onClickView(final View v, final int adapterPosition) {
+      super.onClickView(v, adapterPosition);
+      doOnItemSelected(adapterPosition, getItemId(adapterPosition));
     }
   }
 
@@ -149,16 +150,6 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
       setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
     }
-  }
-
-  @Override
-  public void onListItemClick(ListView listView, View view, int position, long id) {
-    super.onListItemClick(listView, view, position, id);
-
-    long modelid = mAdapter.getItemId(position);
-    // Notify the active callbacks interface (the activity, if the
-    // fragment is attached to one) that an item has been selected.
-    doOnItemSelected(position, modelid);
   }
 
   @Override
@@ -198,8 +189,8 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         startActivity(settingsIntent);
         return true;
       }
-      case R.id.ac_sync: {
-        MainActivity.requestSyncProcessModelList(getActivity(), true);
+      case R.id.ac_sync_models: {
+        ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
         return true;
       }
     }

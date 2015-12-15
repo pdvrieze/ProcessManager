@@ -24,20 +24,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
-import android.support.v7.widget.RecyclerView.OnItemTouchListener;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.*;
 
 /**
  * Static library support version of the framework's {@link android.app.ListFragment}.
@@ -154,20 +147,6 @@ public class RecyclerFragment extends Fragment {
     mRecyclerView = null;
     mListShown = false;
     super.onDestroyView();
-  }
-
-  /**
-   * This method will be called when an item in the list is selected.
-   * Subclasses should override. Subclasses can call
-   * getListView().getItemAtPosition(position) if they need to access the
-   * data associated with the selected item.
-   *
-   * @param l The ListView where the click happened
-   * @param v The view that was clicked within the ListView
-   * @param position The position of the view in the list
-   * @param id The row id of the item that was clicked
-   */
-  public void onListItemClick(ListView l, View v, int position, long id) {
   }
 
   /**

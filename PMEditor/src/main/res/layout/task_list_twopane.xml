@@ -34,7 +34,8 @@
                                                 android:layout_marginRight="16dp"
                                                 app:layoutManager="LinearLayoutManager"
                                                 tools:context="nl.adaptivity.process.ui.task.TaskListFragment"
-                                                tools:listitem="@layout/task_list_content" />
+                                                tools:listitem="@layout/task_list_content"
+                                                android:background="@android:drawable/alert_light_frame" />
 
         <FrameLayout
                 android:id="@+id/task_detail_container"

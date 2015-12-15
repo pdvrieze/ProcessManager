@@ -3,14 +3,11 @@ package nl.adaptivity.process.editor.android;
 import android.accounts.*;
 import android.app.Activity;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.NavUtils;
 import android.support.v4.widget.DrawerLayout;
@@ -27,6 +24,7 @@ import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.editor.android.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.ui.task.TaskDetailFragment.TaskDetailCallbacks;
@@ -137,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         if (mContext instanceof MainActivity) {
           ((MainActivity)mContext).mAccount = account;
         }
-        requestSync(account, mAuthority, mExpedited);
+        ProviderHelper.requestSync(account, mAuthority, mExpedited);
       }
     }
   }
@@ -214,13 +212,13 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
         mAccount = result;
         if (mAccount!=null) {
           for (String authority : mPendingSyncs) {
-            requestSync(mAccount, authority, true);
+            ProviderHelper.requestSync(mAccount, authority, true);
           }
         }
       }
 
     };
-    task.execute(getAuthBase(MainActivity.this));
+    task.execute(ProviderHelper.getAuthBase(this));
   }
 
   @Override
@@ -249,9 +247,9 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
     if (requestCode== ENSURE_ACCOUNT_REQUEST_CODE && resultCode==RESULT_OK) {
       String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
       AuthenticatedWebClient.storeUsedAccount(MainActivity.this, accountName);
-      mAccount = AuthenticatedWebClient.getAccount(AccountManager.get(this), this, getAuthBase(this));
-      requestSync(mAccount, ProcessModelProvider.AUTHORITY, true);
-      requestSync(mAccount, TaskProvider.AUTHORITY, true);
+      mAccount = AuthenticatedWebClient.getAccount(AccountManager.get(this), this, ProviderHelper.getAuthBase(this));
+      ProviderHelper.requestSync(mAccount, ProcessModelProvider.AUTHORITY, true);
+      ProviderHelper.requestSync(mAccount, TaskProvider.AUTHORITY, true);
     }
     // XXX Make this actually do something on account selection.
   }
@@ -348,56 +346,10 @@ public class MainActivity extends AppCompatActivity implements OnItemClickListen
 
   public void requestSync(final String authority, boolean expedited) {
     if (mAccount!=null) {
-      requestSync(mAccount, authority, expedited);
+      ProviderHelper.requestSync(mAccount, authority, expedited);
     } else if (expedited){
       mPendingSyncs.add(authority);
     }
-  }
-
-  public static void requestSyncProcessModelList(Account account, boolean expedited) {
-    requestSync(account, ProcessModelProvider.AUTHORITY, expedited);
-  }
-
-  public static void requestSyncTaskList(Account account, boolean expedited) {
-    requestSync(account, TaskProvider.AUTHORITY, expedited);
-  }
-
-  private static void requestSync(Account account, final String authority, boolean expedited) {
-    if (account!=null) {
-      Bundle extras = new Bundle(1);
-      extras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-      extras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, expedited);
-      ContentResolver.requestSync(account, authority, extras );
-    }
-  }
-
-  public static void requestSyncProcessModelList(Activity context, boolean expedited) {
-    requestSync(context, ProcessModelProvider.AUTHORITY, expedited);
-  }
-
-  public static void requestSyncTaskList(Activity context, boolean expedited) {
-    requestSync(context, TaskProvider.AUTHORITY, expedited);
-  }
-
-  private static void requestSync(Activity context, final String authority, boolean expedited) {
-    if (context instanceof MainActivity) {
-      ((MainActivity) context).requestSync(authority, expedited);
-    }
-    URI authbase = getAuthBase(context);
-    if (authbase!=null) {
-      (new SyncTask(context, authority, expedited)).execute(authbase);
-    }
-  }
-
-  private static String getSyncSource(Context context) {
-    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    String source = prefs.getString(SettingsActivity.PREF_SYNC_SOURCE, null);
-    return source;
-  }
-
-  private static URI getAuthBase(Context context) {
-    final String source = getSyncSource(context);
-    return source == null ? null : AuthenticatedWebClient.getAuthBase(source);
   }
 
   @Override

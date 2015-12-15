@@ -6,6 +6,7 @@
               android:divider="?android:attr/dividerHorizontal"
               android:orientation="horizontal"
               android:showDividers="middle"
+              android:id="@+id/outer_task_list"
               tools:context="nl.adaptivity.process.ui.task.TaskListOuterFragment">
 
     <!--

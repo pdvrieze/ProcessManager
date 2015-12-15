@@ -1,5 +1,7 @@
 package nl.adaptivity.process.tasks.data;
 
+import android.accounts.Account;
+import android.app.Activity;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -7,6 +9,7 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
@@ -172,6 +175,14 @@ public class TaskProvider extends ContentProvider {
         return new UriHelper(u, netNotify);
       }
     }
+  }
+
+  public static void requestSyncTaskList(Account account, boolean expedited) {
+    ProviderHelper.requestSync(account, AUTHORITY, expedited);
+  }
+
+  public static void requestSyncTaskList(Activity context, boolean expedited) {
+    ProviderHelper.requestSync(context, AUTHORITY, expedited);
   }
 
   private static String[] appendArg(String[] args, String arg) {

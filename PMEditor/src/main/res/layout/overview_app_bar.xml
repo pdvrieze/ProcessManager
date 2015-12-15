@@ -25,12 +25,12 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <fragment android:layout_width="match_parent"
+        <FrameLayout android:layout_width="match_parent"
                   android:layout_height="match_parent"
-                  android:id="@+id/overviewFragment"
-                  android:name="nl.adaptivity.process.ui.task.TaskListFragment"
+                  android:id="@+id/overview_container"
+                  app:layout_behavior="@string/appbar_scrolling_view_behavior"
                   tools:layout="@layout/fragment_task_list">
-        </fragment>
+        </FrameLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 </layout>

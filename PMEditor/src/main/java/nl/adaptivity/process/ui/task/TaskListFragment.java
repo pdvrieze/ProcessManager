@@ -14,15 +14,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.*;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
-import nl.adaptivity.process.editor.android.MainActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
-import nl.adaptivity.process.ui.task.TaskListItemBinding;
 
 
 /**
- * An activity representing a list of Taskks. This activity
+ * An activity representing a list of Tasks. This activity
  * has different presentations for handset and tablet-size devices. On
  * handsets, the activity presents a list of items, which when touched,
  * lead to a {@link TaskDetailActivity} representing
@@ -48,7 +46,7 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
     public final class TaskCursorViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
 
-      public final TaskListItemBinding binding;
+      public final nl.adaptivity.process.ui.task.TaskListItemBinding binding;
 
       public TaskCursorViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
         super(inflater.inflate(R.layout.tasklist_item, parent, false));
@@ -61,6 +59,7 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
     private TaskCursorAdapter(Context context, Cursor c) {
       super(context, c);
+      setHasStableIds(true);
       mInflater = LayoutInflater.from(context);
       updateColIdxs(c);
     }
@@ -69,7 +68,7 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     public void onBindViewHolder(final TaskCursorViewHolder viewHolder, final Cursor cursor) {
       super.onBindViewHolder(viewHolder, cursor);
       viewHolder.binding.setSummary(mSummaryColIdx>=0 ? cursor.getString(mSummaryColIdx): null);
-      viewHolder.binding.executePendingBindings();
+//      viewHolder.binding.executePendingBindings();
     }
 
     @Override
@@ -161,8 +160,8 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-      case R.id.ac_sync: {
-        MainActivity.requestSyncTaskList(getActivity(), true);
+      case R.id.ac_sync_tasks: {
+        TaskProvider.requestSyncTaskList(getActivity(), true);
         return true;
       }
     }

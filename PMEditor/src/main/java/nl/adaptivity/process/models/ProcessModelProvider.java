@@ -1,5 +1,7 @@
 package nl.adaptivity.process.models;
 
+import android.accounts.Account;
+import android.app.Activity;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +10,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import nl.adaptivity.android.util.ContentProviderHelper;
+import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -153,6 +156,14 @@ public class ProcessModelProvider extends ContentProvider {
         return new UriHelper(u, netNotify);
       }
     }
+  }
+
+  public static void requestSyncProcessModelList(Account account, boolean expedited) {
+    ProviderHelper.requestSync(account, AUTHORITY, expedited);
+  }
+
+  public static void requestSyncProcessModelList(Activity context, boolean expedited) {
+    ProviderHelper.requestSync(context, AUTHORITY, expedited);
   }
 
   private static String[] appendArg(String[] args, String arg) {

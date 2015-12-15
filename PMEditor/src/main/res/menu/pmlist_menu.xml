@@ -17,8 +17,8 @@
             android:icon="@drawable/ic_action_import"
             android:title="@string/ac_import"></item>
     <item
-            android:id="@+id/ac_sync"
-            android:title="@string/menu_ac_sync"></item>
+            android:id="@+id/ac_sync_models"
+            android:title="@string/menu_ac_sync_pm"></item>
 
 
 </menu>

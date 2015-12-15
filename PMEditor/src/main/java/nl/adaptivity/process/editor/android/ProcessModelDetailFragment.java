@@ -242,7 +242,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     final ContentResolver contentResolver = getActivity().getContentResolver();
     contentResolver.update(itemUri, cv, null, null);
     mBinding.btnPmPublish.setEnabled(false);
-    MainActivity.requestSyncProcessModelList(getActivity(), true);
+    ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
   }
 
   @Override
@@ -269,7 +269,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       ContentValues cv = new ContentValues(1);
       cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER));
       result = getActivity().getContentResolver().update(uri, cv , null, null)>0;
-      MainActivity.requestSyncProcessModelList(getActivity(), true);
+      ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
     }
     if (result && mCallbacks!=null) {
       mCallbacks.onProcessModelSelected(-1);

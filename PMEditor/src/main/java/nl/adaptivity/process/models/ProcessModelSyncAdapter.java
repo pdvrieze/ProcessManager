@@ -191,6 +191,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
   private ContentValuesProvider postToServer(DelegatingResources delegator, final URI url, String model, SyncResult syncResult) throws
           IOException, XmlPullParserException {
     PostRequest post = new PostRequest(url, model);
+    post.setContentType("text/xml; charset=utf-8");
     HttpURLConnection response = delegator.getWebClient().execute(post);
     try {
       int status = response.getResponseCode();
@@ -198,7 +199,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
         XmlPullParser parser = delegator.newPullParser();
         final InputStream content = response.getInputStream();
         try {
-          parser.setInput(content, "UTF8");
+          parser.setInput(content, "UTF-8");
 
           parser.nextTag(); // Skip document start etc.
           ContentValuesProvider values = parseItem(parser);
