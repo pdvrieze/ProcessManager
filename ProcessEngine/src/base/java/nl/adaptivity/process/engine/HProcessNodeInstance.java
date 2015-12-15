@@ -8,7 +8,6 @@ import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 
-import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 
 @XmlDeserializer(HProcessNodeInstance.Factory.class)
@@ -24,9 +23,6 @@ public final class HProcessNodeInstance extends XmlHandle<ProcessNodeInstance> {
 
   public static final java.lang.String ELEMENTLOCALNAME = "nodeInstanceHandle";
   public static final QName ELEMENTNAME = new QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX);
-
-  @XmlValue
-  private long mHandle;
 
   public HProcessNodeInstance() {
     super(-1);
@@ -53,15 +49,6 @@ public final class HProcessNodeInstance extends XmlHandle<ProcessNodeInstance> {
   @Override
   public int hashCode() {
     return (int) getHandle();
-  }
-
-  @Override
-  public long getHandle() {
-    return mHandle;
-  }
-
-  public void setHandle(final long handle) {
-    mHandle = handle;
   }
 
 }
