@@ -76,7 +76,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
 
   private static class InstantiationHelper {
 
-    public static final UserMessageService INSTANCE = UserMessageService.getInstance();
+    public static final UserMessageService INSTANCE = UserMessageService.newDBInstance();
 
   }
 
@@ -88,7 +88,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     mTasks = taskMap;
   }
 
-  public static UserMessageService<DBTransaction> newInstance() {
+  public static UserMessageService<DBTransaction> newDBInstance() {
     MyDBTransactionFactory transactionFactory = new MyDBTransactionFactory();
     return new UserMessageService<DBTransaction>(transactionFactory, new UserTaskMap(transactionFactory));
   }

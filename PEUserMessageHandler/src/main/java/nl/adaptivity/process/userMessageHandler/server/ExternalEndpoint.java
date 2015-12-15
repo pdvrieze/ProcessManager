@@ -9,6 +9,7 @@ import nl.adaptivity.rest.annotations.RestMethod;
 import nl.adaptivity.rest.annotations.RestMethod.HttpMethod;
 import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.servlet.ServletConfig;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -40,7 +41,7 @@ public class ExternalEndpoint implements GenericEndpoint {
     this(UserMessageService.getInstance());
   }
 
-  public ExternalEndpoint(UserMessageService<?> service) {
+  public ExternalEndpoint(@NotNull UserMessageService<?> service) {
     mService = service;
   }
 
