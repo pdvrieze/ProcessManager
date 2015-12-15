@@ -50,11 +50,19 @@ public abstract class XmlHandle<T> implements Handle<T>, XmlSerializable, Simple
   }
 
   @Override
-  public long getHandle() {
+  public final long getHandle() {
     return mHandle;
   }
 
-  public void setHandle(final long handle) {
+  public final void setHandle(final long handle) {
     mHandle = handle;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append('{');
+    sb.append(mHandle);
+    sb.append('}');
+    return sb.toString();
   }
 }
