@@ -31,10 +31,10 @@ public class DrawableJoinSplitDelegate {
   }
 
   @Nullable
-  public static Drawable getItemAt(JoinSplit<?,?> elem, double x, double y) {
+  public static Drawable getItemAt(DrawableJoinSplit elem, double x, double y) {
     final double realradiusX = (DrawableProcessModel.JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2;
     final double realradiusY = (DrawableProcessModel.JOINHEIGHT + DrawableJoinSplit.STROKEEXTEND) / 2;
-    return ((Math.abs(x - elem.getX()) <= realradiusX) && (Math.abs(y - elem.getY()) <= realradiusY)) ? null : null;
+    return ((Math.abs(x - elem.getX()) <= realradiusX) && (Math.abs(y - elem.getY()) <= realradiusY)) ? elem : null;
   }
 
   public int getState() {
