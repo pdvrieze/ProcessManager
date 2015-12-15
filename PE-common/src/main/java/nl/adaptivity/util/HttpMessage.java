@@ -420,7 +420,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   private CompactFragment mBody;
 
-  private Collection<ByteContentDataSource> mByteContent;
+  private List<ByteContentDataSource> mByteContent;
 
   private String mRequestPath;
 
@@ -747,7 +747,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     mBody = body;
   }
 
-  public Collection<ByteContentDataSource> getByteContent() {
+  public List<ByteContentDataSource> getByteContent() {
     if (mByteContent == null) {
       mByteContent = new ArrayList<>();
     }

@@ -262,7 +262,11 @@ public abstract class RestMethodWrapper extends nl.adaptivity.ws.WsMethodWrapper
               }
             }
             if (attachmentCount==1) {
-              mParams[i] = coerceBody(parameterTypes[i], name, pHttpMessage.getBody());
+              if (pHttpMessage.getBody()!=null) {
+                mParams[i] = coerceBody(parameterTypes[i], name, pHttpMessage.getBody());
+              } else if (pHttpMessage.getByteContent().size()==1){
+                mParams[i] = coerceSource(parameterTypes[i], pHttpMessage.getByteContent().get(0));
+              }
               break;
             }
           } // explicit fallthrough if the special case does not apply. getBody mangles the outer value though.
