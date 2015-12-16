@@ -40,7 +40,7 @@
             </intent-filter>
         </activity>
         <activity
-                android:name=".ProcessModelDetailActivity"
+                android:name="nl.adaptivity.process.ui.model.ProcessModelDetailActivity"
                 android:label="@string/title_processmodel_detail"
                 android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
                 tools:ignore="UnusedAttribute">

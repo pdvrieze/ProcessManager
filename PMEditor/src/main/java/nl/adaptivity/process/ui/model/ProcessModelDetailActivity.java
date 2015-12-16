@@ -1,11 +1,12 @@
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.process.ui.model;
 
 import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.process.editor.android.MainActivity;
+import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;

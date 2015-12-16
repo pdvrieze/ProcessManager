@@ -3,6 +3,6 @@
     android:id="@+id/processmodel_detail_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailActivity"
+    tools:context="nl.adaptivity.process.ui.model.ProcessModelDetailActivity"
              tools:layout="@layout/fragment_processmodel_detail"
     tools:ignore="MergeRootFrame" />

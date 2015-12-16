@@ -1,4 +1,4 @@
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.process.ui.model;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -19,6 +19,7 @@ import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
+import nl.adaptivity.process.editor.android.*;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.process.editor.android.databinding.FragmentProcessmodelDetailBinding;
 import nl.adaptivity.process.models.ProcessModelHolder;

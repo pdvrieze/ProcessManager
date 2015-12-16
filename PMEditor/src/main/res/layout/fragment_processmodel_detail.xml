@@ -40,7 +40,7 @@
                 android:textIsSelectable="true"
                 android:text="@{data.name ?? @string/text_load_pm_error}"
                 android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
-                tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
+                tools:context="nl.adaptivity.process.ui.model.ProcessModelDetailFragment" />
 
         <nl.adaptivity.diagram.android.DiagramView
                 android:id="@+id/diagramView1"

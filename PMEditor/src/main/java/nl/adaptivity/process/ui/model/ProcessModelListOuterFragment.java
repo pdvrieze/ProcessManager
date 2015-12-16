@@ -1,4 +1,4 @@
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.process.ui.model;
 
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import android.app.Activity;
@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import nl.adaptivity.process.editor.android.R;
+
 
 /**
  * An activity representing a list of ProcessModels. This activity has different

@@ -34,7 +34,7 @@
 				android:layout_marginBottom="@dimen/default_margin"
 				android:gravity="center"
 				android:textIsSelectable="true"
-				tools:context="nl.adaptivity.process.editor.android.ProcessModelDetailFragment" />
+				tools:context="nl.adaptivity.process.ui.model.ProcessModelDetailFragment" />
 
 			<TextView
 				android:id="@+id/task_state"

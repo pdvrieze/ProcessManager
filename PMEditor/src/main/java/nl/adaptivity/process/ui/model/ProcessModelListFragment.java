@@ -1,4 +1,4 @@
-package nl.adaptivity.process.editor.android;
+package nl.adaptivity.process.ui.model;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -24,6 +24,10 @@ import nl.adaptivity.android.util.SelectableCursorAdapter;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
+import nl.adaptivity.process.editor.android.PMEditor;
+import nl.adaptivity.process.editor.android.PMParser;
+import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.ModelListItemBinding;
