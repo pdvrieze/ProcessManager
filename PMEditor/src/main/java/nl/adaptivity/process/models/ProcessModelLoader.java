@@ -70,4 +70,9 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
     return new ProcessModelHolder(processModel, handle);
   }
 
+  @Override
+  protected void onAbandon() {
+    getContext().getContentResolver().unregisterContentObserver(mObserver);
+  }
+
 }

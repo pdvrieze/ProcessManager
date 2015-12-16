@@ -60,4 +60,8 @@ public class TaskLoader extends AsyncTaskLoader<UserTask> {
     return task;
   }
 
+  @Override
+  protected void onAbandon() {
+    getContext().getContentResolver().unregisterContentObserver(mObserver);
+  }
 }
