@@ -45,6 +45,11 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
+  public String getLabel() {
+    return null;
+  }
+
+  @Override
   public boolean isReadOnly() {
     return true;
   }

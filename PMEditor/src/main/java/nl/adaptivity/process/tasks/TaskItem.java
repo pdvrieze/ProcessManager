@@ -126,6 +126,8 @@ public abstract class TaskItem {
 
   public abstract String getValue();
 
+  public abstract String getLabel();
+
   protected String getDBType() {
     return getType().toString();
   }
@@ -157,7 +159,7 @@ public abstract class TaskItem {
   public void serialize(XmlSerializer serializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
     serializer.startTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
     if (getName()!=null) { serializer.attribute(null, "name", getName()); }
-    if (getValue()!=null) { serializer.attribute(null, "label", getValue()); }
+    if (getLabel()!=null) { serializer.attribute(null, "label", getLabel()); }
     if (getDBType()!=null) { serializer.attribute(null, "type", getDBType()); }
     if (getValue()!=null) { serializer.attribute(null, "value", getValue()); }
     if (serializeOptions) {

@@ -37,7 +37,6 @@ import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
 @SuppressWarnings("boxing")
 public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 
-
   private static class TaskCVProvider implements ContentValuesProvider {
 
     private final ContentValues mContentValues;
@@ -92,6 +91,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     } else {
       request = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())+"?state="+task.getState()),"");
     }
+    request.setContentType("text/xml; charset=utf-8");
     HttpURLConnection result = delegator.getWebClient().execute(request);
     try {
       int resultCode = result.getResponseCode();

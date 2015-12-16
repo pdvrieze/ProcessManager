@@ -100,11 +100,11 @@ public class AutoCompletePreference extends DialogPreference {
   }
 
   public AutoCompletePreference(Context context, AttributeSet attrs) {
-    this(context, attrs, android.R.attr.editTextPreferenceStyle);
+    this(context, attrs, android.R.attr.editTextPreferenceStyle, 0);
   }
 
   public AutoCompletePreference(Context context) {
-    this(context, null);
+    this(context, null, android.R.attr.editTextPreferenceStyle, 0);
   }
 
   /**

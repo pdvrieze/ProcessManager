@@ -110,6 +110,15 @@
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
         </activity>
+        <activity
+                android:name="nl.adaptivity.process.ui.main.SettingsActivity"
+                android:label="@string/title_activity_settings"
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+                >
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
+        </activity>
     </application>
 
 </manifest>

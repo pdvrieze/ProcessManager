@@ -28,7 +28,6 @@ import nl.adaptivity.process.ui.model.ProcessModelDetailFragment;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.task.TaskDetailFragment.TaskDetailCallbacks;
