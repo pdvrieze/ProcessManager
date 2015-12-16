@@ -11,6 +11,7 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.*;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
@@ -36,7 +37,7 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
    * The serialization (saved instance state) Bundle key representing the
    * activated item position. Only used on tablets.
    */
-  private static final String STATE_ACTIVATED_POSITION = "activated_position";
+  private static final String STATE_ACTIVATED_ID = "activated_id";
 
   private static final int TASKLISTLOADERID = 3;
 
@@ -58,7 +59,7 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     private int mSummaryColIdx;
 
     private TaskCursorAdapter(Context context, Cursor c) {
-      super(context, c);
+      super(context, c, false);
       setHasStableIds(true);
       mInflater = LayoutInflater.from(context);
       updateColIdxs(c);
@@ -116,9 +117,6 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     super.onCreate(savedInstanceState);
     getLoaderManager().initLoader(TASKLISTLOADERID, null, this);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
-    if (savedInstanceState!=null && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-      mAdapter.setSelection(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
-    }
     setListAdapter(mAdapter);
 
     setHasOptionsMenu(true);
@@ -131,22 +129,26 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
     // Restore the previously serialized activated item position.
     if (savedInstanceState != null
-        && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-      setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
+        && savedInstanceState.containsKey(STATE_ACTIVATED_ID)) {
+      setActivatedId(savedInstanceState.getLong(STATE_ACTIVATED_ID));
     }
   }
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (mAdapter != null && mAdapter.getSelection() != RecyclerView.NO_POSITION) {
+    if (mAdapter != null && mAdapter.getSelectedPos() != RecyclerView.NO_POSITION) {
       // Serialise and persist the activated item position.
-      outState.putInt(STATE_ACTIVATED_POSITION, mAdapter.getSelection());
+      outState.putLong(STATE_ACTIVATED_ID, mAdapter.getSelectedId());
     }
   }
 
-  private void setActivatedPosition(int position) {
-    mAdapter.setSelection(position);
+  private void setActivatedId(long itemId) {
+    ViewHolder vh = getRecyclerView().findViewHolderForItemId(itemId);
+    if (vh!=null) {
+      mAdapter.setSelection(vh.getAdapterPosition());
+    }
+    mAdapter.setSelectedItem(itemId);
   }
 
 

@@ -15,6 +15,7 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
@@ -55,7 +56,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
    * The serialization (saved instance state) Bundle key representing the
    * activated item position. Only used on tablets.
    */
-  private static final String STATE_ACTIVATED_POSITION = "activated_position";
+  private static final String STATE_ACTIVATED_ID = "activated_id";
 
   private static final int LOADERID = 3;
 
@@ -81,7 +82,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     private int mNameColumn;
 
     private PMCursorAdapter(Context context, Cursor c) {
-      super(context, c);
+      super(context, c, false);
       mInflater = LayoutInflater.from(context);
       updateColumnIndices(c);
       setHasStableIds(true);
@@ -152,22 +153,27 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
     // Restore the previously serialized activated item position.
     if (savedInstanceState != null
-        && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
-      setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
+        && savedInstanceState.containsKey(STATE_ACTIVATED_ID)) {
+      setActivatedId(savedInstanceState.getLong(STATE_ACTIVATED_ID));
     }
   }
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    if (mAdapter!=null && mAdapter.getSelection() != RecyclerView.NO_POSITION) {
+    if (mAdapter!=null && mAdapter.getSelectedId() != RecyclerView.NO_ID) {
       // Serialize and persist the activated item position.
-      outState.putInt(STATE_ACTIVATED_POSITION, mAdapter.getSelection());
+      outState.putLong(STATE_ACTIVATED_ID, mAdapter.getSelectedId());
     }
   }
 
-  private void setActivatedPosition(int position) {
-    mAdapter.setSelection(position);
+  private void setActivatedId(long id) {
+    ViewHolder vh = getRecyclerView().findViewHolderForItemId(id);
+    if (vh!=null) {
+      mAdapter.setSelectedItem(vh.getAdapterPosition());
+    } else {
+      mAdapter.setSelectedItem(id);
+    }
   }
 
 

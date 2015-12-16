@@ -88,6 +88,26 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
     return 0;
   }
 
+  /**
+   * Get the current position of the item with the given itemId. Unlike {@link RecyclerView#findViewHolderForItemId(long)}
+   * this method will search the entire cursor. In cases of long lists, it may be advantageous to use
+   * that method if there is a good chance the item is actually currently visible. If the adapter
+   * does not have stable ids, using this function may be surprising.
+   * @param itemId The id of the item to find.
+   * @return The position of the item with the given id.
+   */
+  public int getItemPos(final long itemId) {
+    if (mDataValid && mCursor != null) {
+      for(boolean valid = mCursor.moveToFirst(); valid; mCursor.moveToNext()) {
+        if (mCursor.getLong(mRowIdColumn)==itemId) {
+          return mCursor.getPosition();
+        }
+      }
+    }
+    return RecyclerView.NO_POSITION;
+  }
+
+
   @Override
   public int getItemCount() {
     if (mDataValid && mCursor != null) {
