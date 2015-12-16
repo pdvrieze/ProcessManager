@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.*;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
@@ -38,6 +39,7 @@ import java.util.UUID;
  */
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
 
+  private static final String TAG = "ProcModelDetailFrag";
   public interface Callbacks {
     void onProcessModelSelected(long processModelId);
 
@@ -147,6 +149,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   @Override
   public void onLoadFinished(Loader<ProcessModelHolder> loader, ProcessModelHolder data) {
+    Log.d(TAG, "onLoadFinished: ");
     mBinding.processmodelDetailSpinner.setVisibility(View.GONE);
     mBinding.setData(data);
 

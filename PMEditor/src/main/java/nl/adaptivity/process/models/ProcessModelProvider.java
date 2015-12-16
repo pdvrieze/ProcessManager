@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
+import net.devrieze.util.Tupple;
 import nl.adaptivity.android.util.ContentProviderHelper;
 import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
@@ -301,7 +302,7 @@ public class ProcessModelProvider extends ContentProvider {
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
-    return ContentProviderHelper.createPipe(this, mDbHelper, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode);
+    return ContentProviderHelper.createPipe(this, mDbHelper, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
   }
 
   @Override
@@ -333,7 +334,14 @@ public class ProcessModelProvider extends ContentProvider {
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
+    notifyPMStreamChangeIfNeeded(id, helper, values);
     return notify(helper, id);
+  }
+
+  public void notifyPMStreamChangeIfNeeded(final long id, final UriHelper helper, final ContentValues values) {
+    if (ProcessModelsOpenHelper.TABLE_NAME.equals(helper.mTable) && values.containsKey(ProcessModels.COLUMN_MODEL)) {
+      getContext().getContentResolver().notifyChange(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id), null, helper.mNetNotify);
+    }
   }
 
   private Uri notify(UriHelper helper, long id) {
@@ -381,6 +389,7 @@ public class ProcessModelProvider extends ContentProvider {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     final int result = db.update(helper.mTable, values, selection, selectionArgs);
     if (result>0 && helper.hasNotifyableColumns(values)) {
+      notifyPMStreamChangeIfNeeded(helper.mId, helper, values);
       getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify);
     }
     return result;
@@ -402,7 +411,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static ProcessModel<?, ?> getProcessModelForHandle(Context context, long handle) {
+  public static Tupple<ProcessModel<?, ?>, Long> getProcessModelForHandle(Context context, long handle) {
     try {
       final ContentResolver contentResolver = context.getContentResolver();
       Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
@@ -412,7 +421,7 @@ public class ProcessModelProvider extends ContentProvider {
         Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
         InputStream in = contentResolver.openInputStream(uri);
         try{
-          return getProcessModel(in);
+          return Tupple.<ProcessModel<?, ?>, Long>tupple(getProcessModel(in), id);
         } finally {
           in.close();
         }

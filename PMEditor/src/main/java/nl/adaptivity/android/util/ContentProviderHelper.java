@@ -1,6 +1,9 @@
 package nl.adaptivity.android.util;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -9,6 +12,7 @@ import android.provider.BaseColumns;
 import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import java.io.*;
@@ -78,11 +82,15 @@ public class ContentProviderHelper {
 
   private static class ProcessModelReadThread extends ProcessModelThread {
 
+    private Context mContext;
     private final String mSyncStateColumn;
+    private boolean mNotifyNet;
 
-    public ProcessModelReadThread(SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, ParcelFileDescriptor parcelFileDescriptor) {
+    public ProcessModelReadThread(final Context context, SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, ParcelFileDescriptor parcelFileDescriptor, final boolean notifyNet) {
       super(dbHelper, table, column, id, parcelFileDescriptor);
+      mContext = context;
       mSyncStateColumn = syncStateColumn;
+      mNotifyNet = notifyNet;
     }
 
     @Override
@@ -123,6 +131,9 @@ public class ContentProviderHelper {
           } finally {
             db.endTransaction();
           }
+          final ContentResolver contentResolver = mContext.getContentResolver();
+          contentResolver.notifyChange(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, mId), null, mNotifyNet);
+          contentResolver.notifyChange(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_URI_BASE, mId), null, mNotifyNet);
         } else {
           Compat.closeWithError(mFileDescriptor, "Empty process model provided. This is not valid");
         }
@@ -134,7 +145,7 @@ public class ContentProviderHelper {
 
   }
 
-  public static ParcelFileDescriptor createPipe(ProcessModelProvider processModelProvider, SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, String mode) {
+  public static ParcelFileDescriptor createPipe(ProcessModelProvider processModelProvider, SQLiteOpenHelper dbHelper, String table, String column, long id, String syncStateColumn, String mode, final boolean notifyNet) {
     final boolean readMode;
     switch  (mode) {
       case "r":
@@ -168,7 +179,7 @@ public class ContentProviderHelper {
       th = new ProcessModelWriteThread(dbHelper, table, column, id, pair[1]);
       th.run();
     } else {
-      th = new ProcessModelReadThread(dbHelper, table, column, id, syncStateColumn, pair[0]);
+      th = new ProcessModelReadThread(processModelProvider.getContext(), dbHelper, table, column, id, syncStateColumn, pair[0], notifyNet);
       th.start();
     }
 
