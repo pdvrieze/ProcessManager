@@ -1,6 +1,7 @@
 package nl.adaptivity.sync;
 
 import android.content.ContentProviderClient;
+import android.content.ContentProviderOperation;
 import android.content.OperationApplicationException;
 import android.content.SyncResult;
 import android.net.Uri;
@@ -14,6 +15,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.UUID;
 
 
@@ -39,7 +41,7 @@ public interface ISimpleSyncDelegate {
    * @throws IOException
    * @category Hooks
    */
-  boolean doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws RemoteException, OperationApplicationException, IOException;
+  Collection<ContentProviderOperation> doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws RemoteException, OperationApplicationException, IOException;
 
   /**
    * Hook for that should be used by subclasses to delete an item on the server.

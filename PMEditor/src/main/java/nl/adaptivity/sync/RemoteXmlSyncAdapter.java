@@ -15,15 +15,24 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
   }
 
   public interface ContentValuesProvider {
+    /** The values that need to be stored in the database for the item. */
     public ContentValues getContentValues();
+
+    /** Indicate whether the value has further details to parse. This allows different sync state depending on update
+     * or new.
+     * @return true if details need to be synced.
+     */
+    public boolean syncDetails();
   }
 
   public static class SimpleContentValuesProvider implements ContentValuesProvider {
 
     private final ContentValues mContentValues;
+    private final boolean mSyncDetails;
 
-    public SimpleContentValuesProvider(ContentValues contentValues) {
+    public SimpleContentValuesProvider(ContentValues contentValues, boolean syncDetails) {
       mContentValues = contentValues;
+      mSyncDetails = syncDetails;
     }
 
     @Override
@@ -31,6 +40,9 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
       return mContentValues;
     }
 
+    public boolean syncDetails() {
+      return mSyncDetails;
+    }
   }
 
   public static class CVPair implements Comparable<CVPair> {
@@ -55,7 +67,8 @@ public abstract class RemoteXmlSyncAdapter extends DelegatingRemoteXmlSyncAdapte
   public static final int SYNC_UPDATE_SERVER = 1;
   public static final int SYNC_UPTODATE = 0;
   public static final int SYNC_PENDING = 2;
-  public static final int SYNC_DETAILSPENDING = 3;
+  public static final int SYNC_NEWDETAILSPENDING = 3;
+  public static final int SYNC_DETAILUPDATEPENDING = 8;
   public static final int SYNC_UPDATE_SERVER_PENDING = 4;
   public static final int SYNC_UPDATE_SERVER_DETAILSPENDING = 5;
 

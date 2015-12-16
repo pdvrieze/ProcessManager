@@ -1,6 +1,7 @@
 package nl.adaptivity.process.models;
 
 import android.content.ContentProviderClient;
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.SyncResult;
 import android.database.Cursor;
@@ -27,6 +28,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.Collections;
 
 import static nl.adaptivity.sync.RemoteXmlSyncAdapter.SYNC_UPTODATE;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
@@ -125,7 +128,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
           ContentValues cv = new ContentValues(2);
           cv.put(ProcessInstances.COLUMN_HANDLE, handle);
           cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
-          ContentValuesProvider values = new SimpleContentValuesProvider(cv);
+          ContentValuesProvider values = new SimpleContentValuesProvider(cv, false);
           ++syncResult.stats.numUpdates;
           return values;
         } finally {
@@ -184,7 +187,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
 
         ContentValues cv = new ContentValues(1);
         cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
-        return new SimpleContentValuesProvider(cv);
+        return new SimpleContentValuesProvider(cv, false);
       }
     } finally {
       urlConnection.disconnect();
@@ -220,12 +223,12 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
     result.put(ProcessInstances.COLUMN_NAME, name);
     result.put(ProcessInstances.COLUMN_UUID, uuid);
     result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE); // No details at this stage
-    return new SimpleContentValuesProvider(result);
+    return new SimpleContentValuesProvider(result, false);
   }
 
   @Override
-  public boolean doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws RemoteException, IOException {
-    return true; // We don't do details yet.
+  public Collection<ContentProviderOperation> doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws RemoteException, IOException {
+    return Collections.emptyList();
   }
 
   @Override

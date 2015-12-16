@@ -1,9 +1,6 @@
 package nl.adaptivity.process.models;
 
-import android.content.ContentProviderClient;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.SyncResult;
+import android.content.*;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
@@ -24,6 +21,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
@@ -46,7 +45,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
 // Object Initialization end
 
   @Override
-  public boolean doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws
+  public Collection<ContentProviderOperation> doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws
           RemoteException, IOException {
     long handle;
     if (pair != null && pair.mCV.getContentValues().containsKey(ProcessModels.COLUMN_HANDLE)) {
@@ -84,15 +83,15 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
         ContentValues cv = new ContentValues(2);
         cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE);
         cv.put(ProcessModels.COLUMN_MODEL, out.toString());
-        return provider.update(ProcessModels.CONTENT_ID_URI_BASE.buildUpon()
+        return Collections.singletonList(ContentProviderOperation.newUpdate(ProcessModels.CONTENT_ID_URI_BASE.buildUpon()
                                                                 .appendPath(Long.toString(id))
                                                                 .encodedFragment("nonetnotify")
-                                                                .build(), cv, null, null) > 0;
+                                                                .build()).withValues(cv).build());
       }
     } finally {
       response.disconnect();
     }
-    return false;
+    return Collections.emptyList();
   }
 
   @Override
@@ -133,7 +132,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
 
           ContentValues cv = new ContentValues(1);
           cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
-          return new SimpleContentValuesProvider(cv);
+          return new SimpleContentValuesProvider(cv, false);
         } finally {
           ins.close();
         }
@@ -202,7 +201,7 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
           parser.setInput(content, "UTF-8");
 
           parser.nextTag(); // Skip document start etc.
-          ContentValuesProvider values = parseItem(parser);
+          ContentValuesProvider values = parseItem(parser); // We already have a local model if posting
           return values;
         } finally {
           content.close();
@@ -247,8 +246,8 @@ public class ProcessModelSyncAdapter extends RemoteXmlSyncAdapterDelegate implem
     result.put(ProcessModels.COLUMN_HANDLE, handle);
     result.put(ProcessModels.COLUMN_NAME, name);
     result.put(ProcessModels.COLUMN_UUID, uuid.toString());
-    result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_DETAILSPENDING);
-    return new SimpleContentValuesProvider(result);
+    result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE); // should be overridden by caller
+    return new SimpleContentValuesProvider(result, true);
   }
 
   private static UUID toUUID(final String val) {

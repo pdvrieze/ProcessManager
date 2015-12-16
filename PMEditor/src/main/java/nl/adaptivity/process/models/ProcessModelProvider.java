@@ -56,6 +56,24 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String[] BASE_PROJECTION = new String[] { BaseColumns._ID, COLUMN_HANDLE, COLUMN_NAME };
     public static final String SELECT_HANDLE = COLUMN_HANDLE+" = ?";
 
+    /**
+     * Check that the values contain columns that need notification of updates.
+     * @param values
+     * @return true if notification is needed.
+     */
+    private static boolean hasNotifyableColumns(final ContentValues values) {
+      for (String key: values.keySet()) {
+        switch (key) {
+          case COLUMN_SYNCSTATE:
+          case COLUMN_UUID:
+          case COLUMN_HANDLE:
+            break; // These are not user visible
+          default:
+            return true;
+        }
+      }
+      return false;
+    }
   }
 
   public static class ProcessInstances implements XmlBaseColumns {
@@ -80,6 +98,20 @@ public class ProcessModelProvider extends ContentProvider {
 
     public static final String[] BASE_PROJECTION = new String[] { BaseColumns._ID, COLUMN_HANDLE, COLUMN_PMHANDLE, COLUMN_NAME };
     public static final String SELECT_HANDLE = COLUMN_HANDLE+" = ?";
+
+    public static boolean hasNotifyableColumns(final ContentValues values) {
+      for (String key: values.keySet()) {
+        switch (key) {
+          case COLUMN_SYNCSTATE:
+          case COLUMN_UUID:
+          case COLUMN_HANDLE:
+            break; // These are not user visible
+          default:
+            return true;
+        }
+      }
+      return false;
+    }
   }
 
   private static enum QueryTarget{
@@ -131,6 +163,17 @@ public class ProcessModelProvider extends ContentProvider {
       mId = id;
       mNetNotify = netNotify;
       mTable = u==QueryTarget.PROCESSINSTANCE|| u==QueryTarget.PROCESSINSTANCES ? ProcessModelsOpenHelper.TABLE_INSTANCES_NAME: ProcessModelsOpenHelper.TABLE_NAME;
+    }
+
+    public boolean hasNotifyableColumns(final ContentValues values) {
+      switch (mTarget) {
+        case PROCESSMODEL:
+        case PROCESSMODELS:
+        case PROCESSMODELCONTENT:
+          return ProcessModels.hasNotifyableColumns(values);
+        default:
+          return ProcessInstances.hasNotifyableColumns(values);
+      }
     }
 
     static UriHelper parseUri(Uri query) {
@@ -337,7 +380,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     final int result = db.update(helper.mTable, values, selection, selectionArgs);
-    if (result>0) {
+    if (result>0 && helper.hasNotifyableColumns(values)) {
       getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify);
     }
     return result;

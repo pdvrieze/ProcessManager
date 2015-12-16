@@ -53,6 +53,10 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       return mContentValues;
     }
 
+    @Override
+    public boolean syncDetails() {
+      return mItems.size()>0;
+    }
   }
 
   private static final String TAG = TaskSyncAdapter.class.getSimpleName();
@@ -98,7 +102,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
         parser.setInput(inputStream, contentEncoding);
         try {
           parser.nextTag(); // Make sure to forward the task.
-          return parseItem(parser);
+          return parseItem(parser); // Always an update
         } finally {
           inputStream.close();
         }
@@ -129,12 +133,12 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  public boolean doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long taskId, CVPair pair) throws RemoteException, OperationApplicationException, IOException {
+  public Collection<ContentProviderOperation> doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long taskId, CVPair pair) throws RemoteException, OperationApplicationException, IOException {
     ArrayList<ContentProviderOperation> batch = new ArrayList<>();
     // TODO support transactions
     boolean updated = false;
     if (pair==null) {
-      return false;
+      return Collections.emptyList();
     }
     List<GenericItem> items = ((TaskCVProvider) pair.mCV).mItems;
 
@@ -213,8 +217,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
         .newUpdate(Tasks.CONTENT_ID_URI_BASE.buildUpon().appendEncodedPath(Long.toString(taskId)).encodedFragment("nonetnotify").build())
         .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE)
         .build());
-    provider.applyBatch(batch);
-    return updated;
+    return batch;
   }
 
   private static void addOptionsToBatch(List<ContentProviderOperation> batch, int previousResult, List<String> options) {
@@ -311,11 +314,11 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 
     ContentValues result = new ContentValues(6);
     in.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASK);
-    result.put(Tasks.COLUMN_SYNCSTATE, hasItems ? SYNC_DETAILSPENDING : SYNC_UPTODATE);
     result.put(Tasks.COLUMN_HANDLE, handle);
     result.put(Tasks.COLUMN_SUMMARY, summary);
     result.put(Tasks.COLUMN_OWNER, owner);
     result.put(Tasks.COLUMN_STATE, state);
+    result.put(Tasks.COLUMN_SYNCSTATE, SYNC_UPTODATE);
     return new TaskCVProvider(result, items);
   }
 

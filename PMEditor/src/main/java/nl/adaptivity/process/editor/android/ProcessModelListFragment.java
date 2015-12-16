@@ -98,6 +98,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
     @Override
     public Cursor swapCursor(Cursor newCursor) {
+      Log.d(TAG, "Swapping processmodel cursor");
       final Cursor result = super.swapCursor(newCursor);
       updateColumnIndices(newCursor);
       return result;
@@ -250,7 +251,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, XmlBaseColumns.COLUMN_SYNCSTATE+" IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DETAILSPENDING+ " )", null, null);
+    return new CursorLoader(getActivity(), ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME}, XmlBaseColumns.COLUMN_SYNCSTATE+" IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " +XmlBaseColumns.COLUMN_SYNCSTATE+" != "+RemoteXmlSyncAdapter.SYNC_NEWDETAILSPENDING+ " )", null, null);
   }
 
   @Override
