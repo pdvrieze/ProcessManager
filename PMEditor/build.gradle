@@ -15,16 +15,22 @@ dependencies {
     testCompile 'net.sf.kxml:kxml2:2.3.0'
 //    testLocalCompile project(':PE-diagram')
 //    testLocalCompile project(':darwinlib')
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:support-annotations:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile "com.android.support:appcompat-v7:${androidCompatVersion}"
+    compile "com.android.support:support-annotations:${androidCompatVersion}"
+    compile "com.android.support:design:${androidCompatVersion}"
+    compile "com.android.support:support-v4:${androidCompatVersion}"
+    compile "com.android.support:recyclerview-v7:${androidCompatVersion}"
+}
+
+ext {
+    if (! has('androidCompatVersion') ) { androidCompatVersion = '23.1.1' }
+    if (! has('androidPluginVersion') ) { androidPluginVersion = '1.5.0' }
+    if (! has('androidBuildToolsVersion') ) { androidBuildToolsVersion = '23.0.2' }
 }
 
 android {
     compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    buildToolsVersion "${androidBuildToolsVersion}"
 
     defaultConfig {
         minSdkVersion 11
