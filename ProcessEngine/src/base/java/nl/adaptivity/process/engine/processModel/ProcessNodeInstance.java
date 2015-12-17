@@ -48,7 +48,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
 
   private Collection<Handle<? extends ProcessNodeInstance>> mPredecessors;
 
-  private TaskState mState = TaskState.Pending;
+  private NodeInstanceState mState = NodeInstanceState.Pending;
 
   private long mHandle = -1;
 
@@ -84,7 +84,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     }
   }
 
-  ProcessNodeInstance(final Transaction transaction, ExecutableProcessNode node, ProcessInstance processInstance, TaskState state) throws SQLException {
+  ProcessNodeInstance(final Transaction transaction, ExecutableProcessNode node, ProcessInstance processInstance, NodeInstanceState state) throws SQLException {
     mNode = node;
     mProcessInstance = processInstance;
     mState = state;
@@ -195,12 +195,12 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   }
 
   @Override
-  public TaskState getState() {
+  public NodeInstanceState getState() {
     return mState;
   }
 
   @Override
-  public void setState(Transaction transaction, final TaskState newState) throws SQLException {
+  public void setState(Transaction transaction, final NodeInstanceState newState) throws SQLException {
     if ((mState != null) && (mState.compareTo(newState) > 0)) {
       throw new IllegalArgumentException("State can only be increased (was:" + mState + " new:" + newState);
     }
@@ -223,7 +223,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     try {
       final boolean result = mNode.provideTask(transaction, messageService, this);
       if (result) { // the task must be automatically taken. Mostly this is false and we don't set the state.
-        setState(transaction, TaskState.Sent);
+        setState(transaction, NodeInstanceState.Sent);
       }
       return result;
     } catch (RuntimeException e) {
@@ -238,14 +238,14 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   @Override
   public <U> boolean takeTask(Transaction transaction, final IMessageService<U, ProcessNodeInstance> messageService) throws SQLException {
     final boolean result = mNode.takeTask(messageService, this);
-    setState(transaction, TaskState.Taken);
+    setState(transaction, NodeInstanceState.Taken);
     return result;
   }
 
   @Override
   public <U> boolean startTask(Transaction transaction, final IMessageService<U, ProcessNodeInstance> messageService) throws SQLException {
     final boolean startTask = mNode.startTask(messageService, this);
-    setState(transaction, TaskState.Started);
+    setState(transaction, NodeInstanceState.Started);
     return startTask;
   }
 
@@ -254,12 +254,12 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
     for(IXmlResultType resultType: (Collection<? extends IXmlResultType>) getNode().getResults()) {
       mResults.add(resultType.apply(resultPayload));
     } //TODO ensure this is stored
-    setState(transaction, TaskState.Complete);// This triggers a database store. So do it after setting the results
+    setState(transaction, NodeInstanceState.Complete);// This triggers a database store. So do it after setting the results
   }
 
   @Override
   public void cancelTask(Transaction transaction) throws SQLException {
-    setState(transaction, TaskState.Cancelled);
+    setState(transaction, NodeInstanceState.Cancelled);
   }
 
   @Override
@@ -274,13 +274,13 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   @Override
   public void failTask(Transaction transaction, final Throwable cause) throws SQLException {
     mFailureCause = cause;
-    setState(transaction, mState==TaskState.Pending ? TaskState.FailRetry : TaskState.Failed);
+    setState(transaction, mState == NodeInstanceState.Pending ? NodeInstanceState.FailRetry : NodeInstanceState.Failed);
   }
 
   @Override
   public void failTaskCreation(Transaction transaction, final Throwable cause) throws SQLException {
     mFailureCause = cause;
-    setState(transaction, TaskState.FailRetry);
+    setState(transaction, NodeInstanceState.FailRetry);
   }
 
   /** package internal method for use when retrieving from the database.
@@ -300,7 +300,7 @@ public class ProcessNodeInstance implements IProcessNodeInstance<ProcessNodeInst
   public void instantiateXmlPlaceholders(final Transaction transaction, final XmlReader in, final XmlWriter out, final boolean removeWhitespace) throws
           XmlException, SQLException {
     List<ProcessData> defines = getDefines(transaction);
-    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, mState== TaskState.Complete), removeWhitespace);
+    PETransformer transformer = PETransformer.create(new ProcessNodeInstanceContext(this, defines, mState == NodeInstanceState.Complete), removeWhitespace);
     transformer.transform(in, XmlUtil.stripMetatags(out));
   }
 

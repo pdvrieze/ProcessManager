@@ -17,7 +17,7 @@ public class JoinInstance extends ProcessNodeInstance {
     super(node, predecessors, processInstance);
     for (final Handle<? extends ProcessNodeInstance> hpredecessor : predecessors) {
       ProcessNodeInstance predecessor = processInstance.getEngine().getNodeInstance(transaction, hpredecessor, SecurityProvider.SYSTEMPRINCIPAL);
-      if (predecessor.getState() == TaskState.Complete) {
+      if (predecessor.getState() == NodeInstanceState.Complete) {
         mComplete += 1;
       } else {
         mSkipped += 1;
@@ -30,7 +30,7 @@ public class JoinInstance extends ProcessNodeInstance {
    * @param node
    * @param processInstance
    */
-  JoinInstance(Transaction transaction, JoinImpl node, ProcessInstance processInstance, TaskState state) throws SQLException {
+  JoinInstance(Transaction transaction, JoinImpl node, ProcessInstance processInstance, NodeInstanceState state) throws SQLException {
     super(transaction, node, processInstance, state);
   }
 
@@ -62,7 +62,7 @@ public class JoinInstance extends ProcessNodeInstance {
   public boolean addPredecessor(Transaction transaction, final ProcessNodeInstance predecessor) throws SQLException {
     if (canAddNode(transaction)) {
       getDirectPredecessors().add(predecessor);
-      if (predecessor.getState() == TaskState.Complete) {
+      if (predecessor.getState() == NodeInstanceState.Complete) {
         mComplete += 1;
       } else {
         mSkipped += 1;
@@ -73,7 +73,7 @@ public class JoinInstance extends ProcessNodeInstance {
   }
 
   public boolean isFinished() {
-    return (getState() == TaskState.Complete) || (getState() == TaskState.Failed);
+    return (getState() == NodeInstanceState.Complete) || (getState() == NodeInstanceState.Failed);
   }
 
   @Override
@@ -107,7 +107,7 @@ public class JoinInstance extends ProcessNodeInstance {
     boolean canAdd = false;
     for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
       ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
-      if ((directSuccessor.getState() == TaskState.Started) || (directSuccessor.getState() == TaskState.Complete)) {
+      if ((directSuccessor.getState() == NodeInstanceState.Started) || (directSuccessor.getState() == NodeInstanceState.Complete)) {
         canAdd = false;
         break;
       }
@@ -124,7 +124,7 @@ public class JoinInstance extends ProcessNodeInstance {
     boolean canAdd = false;
     for (final Handle<? extends ProcessNodeInstance> hDirectSuccessor : directSuccessors) {
       ProcessNodeInstance directSuccessor = getProcessInstance().getEngine().getNodeInstance(transaction, hDirectSuccessor, SecurityProvider.SYSTEMPRINCIPAL);
-      if ((directSuccessor.getState() == TaskState.Started) || (directSuccessor.getState() == TaskState.Complete)) {
+      if ((directSuccessor.getState() == NodeInstanceState.Started) || (directSuccessor.getState() == NodeInstanceState.Complete)) {
         canAdd = false;
         break;
       }

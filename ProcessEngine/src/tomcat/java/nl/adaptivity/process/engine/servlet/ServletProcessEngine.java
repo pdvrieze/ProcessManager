@@ -11,7 +11,7 @@ import nl.adaptivity.messaging.*;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.*;
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.messaging.ActivityResponse;
@@ -694,12 +694,12 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   }
 
   @WebMethod(operationName = "updateTaskState")
-  public TaskState updateTaskStateSoap(@WebParam(name = "handle", mode = Mode.IN) final long handle, @WebParam(name = "state", mode = Mode.IN) final TaskState newState, @WebParam(name = "user", mode = Mode.IN) final Principal user) {
+  public NodeInstanceState updateTaskStateSoap(@WebParam(name = "handle", mode = Mode.IN) final long handle, @WebParam(name = "state", mode = Mode.IN) final NodeInstanceState newState, @WebParam(name = "user", mode = Mode.IN) final Principal user) {
     return updateTaskState(handle, newState, user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state" })
-  public TaskState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "state", type = ParamType.QUERY) final TaskState newState, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+  public NodeInstanceState updateTaskState(@RestParam(name = "handle", type = ParamType.VAR) final long handle, @RestParam(name = "state", type = ParamType.QUERY) final NodeInstanceState newState, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     try (Transaction transaction = mProcessEngine.startTransaction()){
       return transaction.commit(mProcessEngine.updateTaskState(transaction, Handles.<ProcessNodeInstance>handle(handle), newState, user));
     } catch (SQLException e) {
@@ -709,7 +709,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @WebMethod(operationName = "finishTask")
   @RestMethod(method = HttpMethod.POST, path = "/tasks/${handle}", query = { "state=Complete" })
-  public TaskState finishTask(
+  public NodeInstanceState finishTask(
         @WebParam(name = "handle", mode = Mode.IN)
         @RestParam(name = "handle", type = ParamType.VAR)
         final long handle,
@@ -746,9 +746,9 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
           final DataSource result = future.get();
           try (Transaction transaction = mProcessEngine.startTransaction()) {
             ProcessNodeInstance inst = mProcessEngine.getNodeInstance(transaction, handle, SecurityProvider.SYSTEMPRINCIPAL);
-            assert inst.getState()==TaskState.Pending;
-            if (inst.getState()==TaskState.Pending) {
-              inst.setState(transaction, TaskState.Sent);
+            assert inst.getState() == NodeInstanceState.Pending;
+            if (inst.getState() == NodeInstanceState.Pending) {
+              inst.setState(transaction, NodeInstanceState.Sent);
             }
             transaction.commit();
           }
@@ -767,8 +767,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
               if (Constants.PROCESS_ENGINE_NS.equals(rootNode.getNamespaceURI()) && ActivityResponse.ELEMENTNAME.equals(rootNode.getLocalName())) {
                 final String taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE);
                 try (Transaction transaction = mProcessEngine.startTransaction()) {
-                  final TaskState taskState = TaskState.valueOf(taskStateAttr);
-                  mProcessEngine.updateTaskState(transaction, handle, taskState, owner);
+                  final NodeInstanceState nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr);
+                  mProcessEngine.updateTaskState(transaction, handle, nodeInstanceState, owner);
                   transaction.commit();
                   return;
                 } catch (final NullPointerException e) {

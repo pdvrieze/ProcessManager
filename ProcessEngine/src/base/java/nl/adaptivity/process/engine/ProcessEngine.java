@@ -14,7 +14,7 @@ import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.processModel.engine.ProcessNodeImpl.ExecutableSplitFactory;
@@ -490,7 +490,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @return
    * @throws SQLException
    */
-  public TaskState updateTaskState(T transaction, final Handle<ProcessNodeInstance> handle, final TaskState newState, final Principal user) throws SQLException {
+  public NodeInstanceState updateTaskState(T transaction, final Handle<ProcessNodeInstance> handle, final NodeInstanceState newState, final Principal user) throws SQLException {
     final ProcessNodeInstance task = getNodeInstances().get(transaction, handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance pi = task.getProcessInstance();
@@ -522,7 +522,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
     }
   }
 
-  public TaskState finishTask(T transaction, final Handle<ProcessNodeInstance> handle, final Node payload, final Principal user) throws SQLException {
+  public NodeInstanceState finishTask(T transaction, final Handle<ProcessNodeInstance> handle, final Node payload, final Principal user) throws SQLException {
     final ProcessNodeInstance task = getNodeInstances().get(handle);
     mSecurityProvider.ensurePermission(SecureObject.Permissions.UPDATE, user, task);
     final ProcessInstance pi = task.getProcessInstance();
@@ -589,7 +589,7 @@ public class ProcessEngine<T extends Transaction> /* implements IProcessEngine *
    * @throws SQLException
    */
   public void cancelledTask(T transaction, final Handle<ProcessNodeInstance> handle, final Principal user) throws SQLException {
-    updateTaskState(transaction, handle, TaskState.Cancelled, user);
+    updateTaskState(transaction, handle, NodeInstanceState.Cancelled, user);
   }
 
   public void errorTask(T transaction, final Handle<ProcessNodeInstance> handle, final Throwable cause, final Principal user) throws SQLException {

@@ -8,7 +8,7 @@ import nl.adaptivity.process.engine.HProcessInstance;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.ProcessEngine;
 import nl.adaptivity.process.engine.ProcessInstance;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
 import nl.adaptivity.util.xml.CompactFragment;
@@ -100,7 +100,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
       long handle = row.getLong(mColNoHandle);
 
       final String sState = row.getString(mColNoState);
-      TaskState state = sState==null ? null : TaskState.valueOf(sState);
+      NodeInstanceState state = sState == null ? null : NodeInstanceState.valueOf(sState);
 
       ProcessNodeInstance result;
       if (node instanceof JoinImpl) {
@@ -140,7 +140,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
               while(resultset.next()) {
                 String name = resultset.getString(1);
                 String data = resultset.getString(2);
-                if (FAILURE_CAUSE.equals(name) && (element.getState()==TaskState.Failed||element.getState()==TaskState.FailRetry)) {
+                if (FAILURE_CAUSE.equals(name) && (element.getState() == NodeInstanceState.Failed || element.getState() == NodeInstanceState.FailRetry)) {
                   element.setFailureCause(data);
                 } else {
                   results.add(new ProcessData(name, new CompactFragment(data)));
@@ -280,7 +280,7 @@ public class ProcessNodeInstanceMap extends CachingDBHandleMap<ProcessNodeInstan
 
         statement.addBatch();
       }
-      if ((element.getState()==TaskState.Failed|| element.getState()==TaskState.FailRetry) && element.getFailureCause()!=null) {
+      if ((element.getState() == NodeInstanceState.Failed || element.getState() == NodeInstanceState.FailRetry) && element.getFailureCause() != null) {
         statement.setLong(1, handle);
         statement.setString(2, FAILURE_CAUSE);
         statement.setString(3, element.getFailureCause().getLocalizedMessage());

@@ -11,7 +11,7 @@ import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
@@ -355,7 +355,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
   }
 
   public synchronized void finishTask(Transaction transaction, final IMessageService<?, ProcessNodeInstance> messageService, final ProcessNodeInstance node, final Node resultPayload) throws SQLException {
-    if (node.getState()==TaskState.Complete) {
+    if (node.getState() == NodeInstanceState.Complete) {
       throw new IllegalStateException("Task was already complete");
     }
     node.finishTask(transaction, resultPayload);
@@ -589,7 +589,7 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     out.attribute(null, "nodeid", null, nodeInstance.getNode().getId());
     out.attribute(null, "handle", null, Long.toString(nodeInstance.getHandle()));
     out.attribute(null, "state", null, nodeInstance.getState().toString());
-    if (nodeInstance.getState()==TaskState.Failed) {
+    if (nodeInstance.getState() == NodeInstanceState.Failed) {
       final Throwable failureCause = nodeInstance.getFailureCause();
       final String value = failureCause==null? "<unknown>" : failureCause.getClass().getName()+": "+failureCause.getMessage();
       out.attribute(null, "failureCause", null, value);

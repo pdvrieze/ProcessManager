@@ -12,7 +12,7 @@ import nl.adaptivity.process.StubTransaction;
 import nl.adaptivity.process.StubTransactionFactory;
 import nl.adaptivity.process.engine.ProcessInstance.State;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.processModel.IXmlMessage;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
@@ -213,9 +213,9 @@ public class TestProcessEngine {
     assertEquals(0, processInstance.getResults().size());
 
     ProcessNodeInstance taskNode = mProcessEngine.getNodeInstance(transaction, mStubMessageService.mMessageNodes.get(0), mPrincipal);
-    assertEquals(TaskState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
+    assertEquals(NodeInstanceState.Pending, taskNode.getState()); // Our messenger does not do delivery notification
 
-    assertEquals(TaskState.Complete, mProcessEngine.finishTask(transaction, taskNode, null, mPrincipal));
+    assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, taskNode, null, mPrincipal));
     assertEquals(0, processInstance.getActive().size());
     assertEquals(2, processInstance.getFinished().size());
     assertEquals(1, processInstance.getResults().size());
@@ -240,7 +240,7 @@ public class TestProcessEngine {
 
     mStubMessageService.clear(); // (Process the message)
     assertEquals(0, ac1.getResults().size());
-    assertEquals(TaskState.Complete,mProcessEngine.finishTask(transaction, ac1, getDocument("testModel2_response1.xml"), mPrincipal));
+    assertEquals(NodeInstanceState.Complete, mProcessEngine.finishTask(transaction, ac1, getDocument("testModel2_response1.xml"), mPrincipal));
     assertEquals(2, ac1.getResults().size());
     ProcessData result1 = ac1.getResults().get(0);
     ProcessData result2 = ac1.getResults().get(1);
