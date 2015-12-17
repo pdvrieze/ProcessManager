@@ -9,7 +9,7 @@ import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
@@ -120,7 +120,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
         try{
           Future<XmlProcessNodeInstance> future = ServletProcessEngineClient.getProcessNodeInstance(remoteHandle, SecurityProvider.SYSTEMPRINCIPAL, null, XmlTask.class, Envelope.class);
           instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS, TimeUnit.MILLISECONDS);
-          if (instance==null || instance.getState()==TaskState.Complete) {
+          if (instance==null || instance.getState() == NodeInstanceState.Complete) {
             return null; // Delete from the database, this can't be redone.
           }
         } catch (ExecutionException|MessagingException e) {

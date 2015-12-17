@@ -2,7 +2,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.MessagingRegistry;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.messaging.GenericEndpoint;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.rest.annotations.RestMethod;
@@ -117,17 +117,17 @@ public class ExternalEndpoint implements GenericEndpoint {
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
-  public IProcessNodeInstance.TaskState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+  public NodeInstanceState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.startTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
-  public IProcessNodeInstance.TaskState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+  public NodeInstanceState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.takeTask(Long.parseLong(handle), user);
   }
 
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
-  public IProcessNodeInstance.TaskState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
+  public NodeInstanceState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.finishTask(Long.parseLong(handle), user);
   }
 

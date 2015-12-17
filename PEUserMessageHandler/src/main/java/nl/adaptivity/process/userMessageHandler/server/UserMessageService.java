@@ -7,7 +7,7 @@ import net.devrieze.util.db.DBTransaction;
 import net.devrieze.util.db.DbSet;
 import net.devrieze.util.security.PermissionDeniedException;
 import nl.adaptivity.messaging.CompletionListener;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -118,7 +118,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return getTasks().get(handle);
   }
 
-  public TaskState finishTask(final long handle, final Principal user) {
+  public NodeInstanceState finishTask(final long handle, final Principal user) {
     try (T transaction = mTransactionFactory.startTransaction()) {
       return finishTask(transaction, handle, user);
     } catch (SQLException e) {
@@ -126,11 +126,11 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     }
   }
 
-  public TaskState finishTask(final T transaction, final long handle, final Principal user) throws SQLException {
+  public NodeInstanceState finishTask(final T transaction, final long handle, final Principal user) throws SQLException {
     if (user == null) { throw new PermissionDeniedException("There is no user associated with this request"); }
     final XmlTask task = mTasks.get(transaction, handle);
-    task.setState(TaskState.Complete, user);
-    if ((task.getState() == TaskState.Complete) || (task.getState() == TaskState.Failed)) {
+    task.setState(NodeInstanceState.Complete, user);
+    if ((task.getState() == NodeInstanceState.Complete) || (task.getState() == NodeInstanceState.Failed)) {
       mTasks.remove(transaction, task);
     }
     return task.getState();
@@ -140,10 +140,10 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return getTasks().get(handle);
   }
 
-  public TaskState takeTask(final long handle, final Principal user) {
+  public NodeInstanceState takeTask(final long handle, final Principal user) {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    getTask(handle).setState(TaskState.Taken, user);
-    return TaskState.Taken;
+    getTask(handle).setState(NodeInstanceState.Taken, user);
+    return NodeInstanceState.Taken;
   }
 
   public XmlTask updateTask(T transaction, long handle, XmlTask partialNewTask, Principal user) throws SQLException {
@@ -171,10 +171,10 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return currentTask;
   }
 
-  public TaskState startTask(final long handle, final Principal user) {
+  public NodeInstanceState startTask(final long handle, final Principal user) {
     if (user==null) { throw new PermissionDeniedException("There is no user associated with this request"); }
-    getTask(handle).setState(TaskState.Started, user);
-    return TaskState.Taken;
+    getTask(handle).setState(NodeInstanceState.Started, user);
+    return NodeInstanceState.Taken;
   }
 
   public static UserMessageService getInstance() {

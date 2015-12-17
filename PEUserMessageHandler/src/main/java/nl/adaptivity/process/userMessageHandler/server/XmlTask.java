@@ -4,7 +4,7 @@ import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.client.ServletProcessEngineClient;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
@@ -51,7 +51,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
 
   private long mInstanceHandle = -1L;
 
-  TaskState mState = TaskState.Sent;
+  NodeInstanceState mState = NodeInstanceState.Sent;
 
   private String mSummary;
 
@@ -102,7 +102,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   @Override
   public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     switch (attributeLocalName.toString()) {
-      case "state": mState = TaskState.valueOf(attributeValue.toString()); return true;
+      case "state": mState = NodeInstanceState.valueOf(attributeValue.toString()); return true;
       case "handle": mHandle = Long.parseLong(attributeValue.toString()); return true;
       case "remotehandle": mRemoteHandle = Long.parseLong(attributeValue.toString()); return true;
       case "instancehandle": mInstanceHandle = Long.parseLong(attributeValue.toString()); return true;
@@ -137,22 +137,22 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
 
   @XmlAttribute
   @Override
-  public TaskState getState() {
+  public NodeInstanceState getState() {
     return mState;
   }
 
-  void setState(TaskState state) {
+  void setState(NodeInstanceState state) {
     mState = state;
   }
 
   @Override
-  public void setState(final TaskState newState, final Principal user) {
+  public void setState(final NodeInstanceState newState, final Principal user) {
     try {
-      TaskState verifiedNewState;
-      if (newState == TaskState.Complete) {
+      NodeInstanceState verifiedNewState;
+      if (newState == NodeInstanceState.Complete) {
         verifiedNewState = finishRemoteTask(user).get();
         //          newState = TaskState.Complete; // Use server state instead.
-      } else if (newState == TaskState.Acknowledged) {
+      } else if (newState == NodeInstanceState.Acknowledged) {
         verifiedNewState = newState; // Just shortcircuit. This is just record keeping
       } else {
         verifiedNewState = updateRemoteTaskState(newState, user).get();
@@ -167,11 +167,11 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     }
   }
 
-  private Future<TaskState> updateRemoteTaskState(final TaskState state, final Principal user) throws JAXBException, MessagingException, XmlException {
+  private Future<NodeInstanceState> updateRemoteTaskState(final NodeInstanceState state, final Principal user) throws JAXBException, MessagingException, XmlException {
     return ServletProcessEngineClient.updateTaskState(mRemoteHandle, state, user, null);
   }
 
-  private Future<TaskState> finishRemoteTask(final Principal user) throws JAXBException, MessagingException, XmlException {
+  private Future<NodeInstanceState> finishRemoteTask(final Principal user) throws JAXBException, MessagingException, XmlException {
     return ServletProcessEngineClient.finishTask(mRemoteHandle, createResult(), user, null); // Ignore completion???
   }
 
