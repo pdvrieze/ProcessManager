@@ -1,7 +1,7 @@
 package nl.adaptivity.process.models;
 
 import android.content.Context;
-import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.sync.DelegatingRemoteXmlSyncAdapter;
 
 import java.net.URI;

@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.databinding.ActivityTaskDetailBinding;
 
 
 /**
@@ -18,7 +19,7 @@ import nl.adaptivity.process.editor.android.R;
  */
 public class TaskDetailActivity extends AppCompatActivity {
 
-  private nl.adaptivity.process.ui.task.ActivityTaskDetailBinding mBinding;
+  private ActivityTaskDetailBinding mBinding;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

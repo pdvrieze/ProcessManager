@@ -7,7 +7,7 @@ import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.PostRequest;
-import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.data.TaskProvider.Items;
@@ -79,7 +79,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       serializer.setOutput(writer);
       serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, NS_TASKS);
       serializer.startTag(NS_TASKS, TAG_TASK);
-      serializer.attribute(null, "state", task.getState());
+      serializer.attribute(null, "state", task.getState().getAttrValue());
       for(TaskItem item: task.getItems()) {
         if (! item.isReadOnly()) {
           item.serialize(serializer, false);

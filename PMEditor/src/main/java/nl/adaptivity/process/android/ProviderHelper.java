@@ -11,8 +11,8 @@ import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.AsyncCallableTask;
-import nl.adaptivity.process.editor.android.SettingsActivity;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 
 import java.io.IOException;
 import java.net.URI;

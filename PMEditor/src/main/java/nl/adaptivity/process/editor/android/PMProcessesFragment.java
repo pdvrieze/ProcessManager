@@ -21,6 +21,7 @@ import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.svg.SVGCanvas;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.xml.AndroidXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -282,7 +283,7 @@ public class PMProcessesFragment extends Fragment {
 
   private void requestSaveFile(final String type, final int request) {
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-    if (prefs.getBoolean(SettingsActivity.PREF_KITKATFILE, true) && Build.VERSION.SDK_INT>=Build.VERSION_CODES.KITKAT) {
+    if (prefs.getBoolean(SettingsActivity.PREF_KITKATFILE, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       startKitkatSaveActivity(type, request);
     } else {
       Intent intent = new Intent("org.openintents.action.PICK_FILE");

@@ -22,6 +22,7 @@ import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.editor.android.*;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.process.editor.android.databinding.*;
 import nl.adaptivity.process.editor.android.databinding.FragmentProcessmodelDetailBinding;
 import nl.adaptivity.process.models.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelLoader;

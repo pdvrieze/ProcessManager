@@ -24,12 +24,13 @@ import nl.adaptivity.android.util.AsyncCallableTask;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.android.ProviderHelper.SyncCallable;
+import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.databinding.ActivityOverviewBinding;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment.ProcessModelListCallbacks;
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.models.ProcessModelProvider;
-import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.task.TaskDetailFragment.TaskDetailCallbacks;
 import nl.adaptivity.process.ui.task.TaskListOuterFragment;
 import nl.adaptivity.process.ui.task.TaskListOuterFragment.TaskListCallbacks;
@@ -65,7 +66,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
 
   private Account mAccount;
 
-  private nl.adaptivity.process.ui.main.ActivityOverviewBinding mBinding;
+  private ActivityOverviewBinding mBinding;
   private CharSequence mTitle;
   private TitleFragment mActiveFragment;
   private ActionBarDrawerToggle mDrawerToggle;

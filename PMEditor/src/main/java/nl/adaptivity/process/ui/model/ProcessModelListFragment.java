@@ -28,10 +28,10 @@ import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMEditor;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.editor.android.SettingsActivity;
+import nl.adaptivity.process.editor.android.databinding.ModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.ui.model.ModelListItemBinding;
+import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
@@ -70,10 +70,10 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
     class PMViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
 
-      final ModelListItemBinding binding;
+      final ModelListitemBinding binding;
 
       public PMViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
-        super(inflater.inflate(R.layout.modellist_item, parent, false));
+        super(inflater.inflate(R.layout.model_listitem, parent, false));
         binding = DataBindingUtil.bind(itemView);
       }
     }

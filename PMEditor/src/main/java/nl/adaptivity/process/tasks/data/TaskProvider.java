@@ -12,6 +12,7 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.UserTask.TaskState;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import org.xmlpull.v1.XmlPullParserException;
@@ -424,7 +425,7 @@ public class TaskProvider extends ContentProvider {
       itemCursor.close();
     }
 
-    return new UserTask(summary, handle, owner, state, items);
+    return new UserTask(summary, handle, owner, TaskState.fromString(state), items);
   }
 
   private static TaskItem getItem(ContentResolver contentResolver, ItemCols itemCols, Cursor cursor) {
@@ -464,8 +465,8 @@ public class TaskProvider extends ContentProvider {
     updateTaskValues(operations, taskId, oldTask, updatedTask);
 
     ContentValues newValues = new ContentValues(3);
-    if(!StringUtil.isEqual(oldTask.getState(), updatedTask.getState())) {
-      newValues.put(Tasks.COLUMN_STATE, updatedTask.getState());
+    if(oldTask.getState()!=updatedTask.getState()) {
+      newValues.put(Tasks.COLUMN_STATE, updatedTask.getState().getAttrValue());
     }
     if(!StringUtil.isEqual(oldTask.getSummary(), updatedTask.getSummary())) {
       newValues.put(Tasks.COLUMN_SUMMARY, updatedTask.getSummary());

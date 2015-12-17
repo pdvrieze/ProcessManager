@@ -2,9 +2,15 @@ package nl.adaptivity.process.ui.task;
 
 import java.util.NoSuchElementException;
 
+import android.databinding.BindingAdapter;
+import android.databinding.DataBindingUtil;
+import android.databinding.ViewDataBinding;
+import android.support.annotation.StringRes;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.databinding.FragmentTaskDetailBinding;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.UserTask.TaskState;
 import nl.adaptivity.process.tasks.data.TaskLoader;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.app.Activity;
@@ -49,27 +55,16 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   private static final int LOADER_TASKITEM = 0;
 
-  private static final String TASK_COMPLETTE = "Complete";
-
-  private TextView mTVSummary;
-
-  private ProgressBar mSpinner;
 
   private long mTaskId;
-
-  private UserTask mUserTask;
-
-  private LinearLayout mDetailView;
-
-  private TextView mTVState;
-
-  private LinearLayout mTaskItemContainer;
 
   private int mTaskItemFirstIndex;
 
   private int mTaskItemLastIndex = -1;
 
   private TaskDetailCallbacks mCallbacks;
+  private FragmentTaskDetailBinding mBinding;
+  private LinearLayout mTaskItemContainer;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -100,33 +95,25 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    View rootView = inflater.inflate(R.layout.fragment_task_detail, container, false);
-    mSpinner = (ProgressBar) rootView.findViewById(R.id.task_detail_spinner);
-    mDetailView = (LinearLayout) rootView.findViewById(R.id.task_detail);
-    mSpinner.setVisibility(View.VISIBLE);
-    mDetailView.setVisibility(View.GONE);
+    mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_detail, container, false);
+    mBinding.setLoading(true);
 
-
-    mTVSummary = (TextView) mDetailView.findViewById(R.id.task_name);
-    mTVState = (TextView) mDetailView.findViewById(R.id.task_state);
-
-    mTaskItemContainer = (LinearLayout) mDetailView.findViewById(R.id.task_below_items).getParent();
+    mTaskItemContainer = (LinearLayout) mBinding.taskBelowItems.getParent();
     for(int i=mTaskItemContainer.getChildCount()-1; i>=0; --i) {
       if (mTaskItemContainer.getChildAt(i).getId()==R.id.task_below_items) {
         mTaskItemFirstIndex = i;
       }
     }
-
-    mDetailView.findViewById(R.id.btn_task_complete).setOnClickListener(this);
-    return rootView;
+    mBinding.btnTaskComplete.setOnClickListener(this);
+    return mBinding.getRoot();
   }
 
   @Override
   public void onPause() {
     super.onPause();
-    if (mUserTask!=null) {
+    if (mBinding.getTask()!=null) {
       try {
-        TaskProvider.updateValuesAndState(getActivity(), mTaskId, mUserTask);
+        TaskProvider.updateValuesAndState(getActivity(), mTaskId, mBinding.getTask());
       } catch (NoSuchElementException e) {
         Log.w(TaskDetailFragment.class.getSimpleName(), "The task no longer exists", e);
       } catch (RemoteException | OperationApplicationException e) {
@@ -145,11 +132,10 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   @Override
   public void onLoadFinished(Loader<UserTask> loader, UserTask data) {
+    mBinding.setLoading(false);
     if (data==null) { onLoaderReset(loader); return;}
-    mSpinner.setVisibility(View.GONE);
-    mDetailView.setVisibility(View.VISIBLE);
-    mTVSummary.setText(data.getSummary());
-    mTVState.setText(data.getState());
+    mBinding.setTask(data);
+
     int viewPos = mTaskItemFirstIndex;
     if (mTaskItemLastIndex>mTaskItemFirstIndex) {
       mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
@@ -163,19 +149,15 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
       ++viewPos;
     }
     mTaskItemLastIndex = mTaskItemFirstIndex+data.getItems().size();
-    mUserTask = data;
   }
 
   @Override
   public void onLoaderReset(Loader<UserTask> loader) {
-    mTVSummary.setText(null);
-    mTVState.setText(null);
+    mBinding.setTask(null);
     if (mTaskItemLastIndex>mTaskItemFirstIndex) {
       mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
     }
     mTaskItemLastIndex=-1;
-    mUserTask = null;
-
   }
 
   @Override
@@ -187,24 +169,13 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   private void onCompleteTaskClicked() {
-    mUserTask.setState(TASK_COMPLETTE);
+    mBinding.getTask().setState(TaskState.Complete);
     if (mCallbacks!=null) {
       mCallbacks.dismissTaskDetails();
     }
   }
 
-  @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//    pInflater.inflate(R.menu.pm_detail_menu, pMenu);
-    super.onCreateOptionsMenu(menu, inflater);
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    return super.onOptionsItemSelected(item);
-  }
-
   public UserTask getUserTask() {
-    return mUserTask;
+    return mBinding.getTask();
   }
 }

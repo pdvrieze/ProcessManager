@@ -20,6 +20,7 @@ dependencies {
     compile "com.android.support:design:${androidCompatVersion}"
     compile "com.android.support:support-v4:${androidCompatVersion}"
     compile "com.android.support:recyclerview-v7:${androidCompatVersion}"
+    compile "com.android.support:cardview-v7:${androidCompatVersion}"
 }
 
 ext {

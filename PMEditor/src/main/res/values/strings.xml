@@ -61,5 +61,12 @@
     <string name="model_unnamed"><![CDATA[<Unnamed>]]></string>
     <string name="title_editor">PMI Editor</string>
     <string name="pref_title_account">Account</string>
-
+    <string name="task_title_format">%1$d: %2$s</string>
+    <string name="taskstate_available">Available</string>
+    <string name="taskstate_taken">Accepted</string>
+    <string name="taskstate_started">Started</string>
+    <string name="taskstate_complete">Finished</string>
+    <string name="taskstate_failed">Failed</string>
+    <string name="taskstate_cancelled">Cancelled</string>
+    <string name="taskstate_missing">&lt;unknown state&gt;</string>
 </resources>
