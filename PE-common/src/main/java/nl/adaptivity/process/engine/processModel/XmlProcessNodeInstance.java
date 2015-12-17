@@ -10,7 +10,7 @@ package nl.adaptivity.process.engine.processModel;
 
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -53,7 +53,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   @XmlAttribute(name = "handle", required = true)
   protected long mHandle = -1L;
 
-  @Nullable private TaskState mState;
+  @Nullable private NodeInstanceState mState;
 
   private long mProcessInstance = -1;
 
@@ -103,7 +103,7 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   @Override
   public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
     switch (attributeLocalName.toString()) {
-      case "state": mState = TaskState.valueOf(attributeValue.toString()); return true;
+      case "state": mState = NodeInstanceState.valueOf(attributeValue.toString()); return true;
       case "processinstance": mProcessInstance = Long.parseLong(attributeValue.toString()); return true;
       case "handle":mHandle =  Long.parseLong(attributeValue.toString()); return true;
       case "nodeid": mNodeId = attributeValue.toString(); return true;
@@ -166,23 +166,23 @@ public class XmlProcessNodeInstance implements /*IProcessNodeInstance<XmlProcess
   /**
    * Sets the value of the state property.
    *
-   * @param value allowed object is {@link TaskState }
+   * @param value allowed object is {@link NodeInstanceState }
    */
   public void setStateXml(@Nullable final String value) {
     if (value == null) {
       mState = null;
     } else {
-      mState = TaskState.valueOf(value);
+      mState = NodeInstanceState.valueOf(value);
     }
   }
 
 
   @Nullable
-  public TaskState getState() {
+  public NodeInstanceState getState() {
     return mState;
   }
 
-  public void setState(final TaskState state) {
+  public void setState(final NodeInstanceState state) {
     mState = state;
   }
 

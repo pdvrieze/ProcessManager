@@ -9,7 +9,7 @@
 package nl.adaptivity.process.messaging;
 
 import nl.adaptivity.process.ProcessConsts;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.ws.soap.SoapHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,7 +73,7 @@ public class ActivityResponse<T> {
 
 
   @XmlTransient
-  private TaskState mTaskState;
+  private NodeInstanceState mNodeInstanceState;
 
   /** Default constructor for jaxb use */
   protected ActivityResponse() {}
@@ -81,12 +81,12 @@ public class ActivityResponse<T> {
   /**
    * Create a new ActivityResponse.
    *
-   * @param taskState The state of the task requested.
+   * @param nodeInstanceState The state of the task requested.
    * @param returnType The actual return type of the method.
    * @param returnValue The value to return.
    */
-  protected ActivityResponse(final TaskState taskState, final Class<T> returnType, final T returnValue) {
-    mTaskState = taskState;
+  protected ActivityResponse(final NodeInstanceState nodeInstanceState, final Class<T> returnType, final T returnValue) {
+    mNodeInstanceState = nodeInstanceState;
     mReturnType = returnType;
     mReturnValue = returnValue;
   }
@@ -94,24 +94,24 @@ public class ActivityResponse<T> {
   /**
    * Static helper factory for creating a new ActivityResponse.
    *
-   * @param taskState The state of the task requested.
+   * @param nodeInstanceState The state of the task requested.
    * @param returnType The actual return type of the method.
    * @param returnValue The value to return.
    * @return
    */
   @NotNull
-  public static <V> ActivityResponse<V> create(final TaskState taskState, final Class<V> returnType, final V returnValue) {
-    return new ActivityResponse<>(taskState, returnType, returnValue);
+  public static <V> ActivityResponse<V> create(final NodeInstanceState nodeInstanceState, final Class<V> returnType, final V returnValue) {
+    return new ActivityResponse<>(nodeInstanceState, returnType, returnValue);
   }
 
   /**
    * Gets the value of the taskState property.
    *
-   * @return the name of the {@link TaskState}
+   * @return the name of the {@link NodeInstanceState}
    */
   @XmlAttribute(name = ATTRTASKSTATE)
   public String getTaskStateString() {
-    return mTaskState.name();
+    return mNodeInstanceState.name();
   }
 
   /**
@@ -119,8 +119,8 @@ public class ActivityResponse<T> {
    *
    * @return the task state.
    */
-  public TaskState getTaskState() {
-    return mTaskState;
+  public NodeInstanceState getNodeInstanceState() {
+    return mNodeInstanceState;
   }
 
   /**
@@ -129,16 +129,16 @@ public class ActivityResponse<T> {
    * @param value the new task state.
    */
   public void setTaskStateString(final String value) {
-    mTaskState = TaskState.valueOf(value);
+    mNodeInstanceState = NodeInstanceState.valueOf(value);
   }
 
   /**
    * Sets the value of the taskState property.
    *
-   * @param taskState the new task state.
+   * @param nodeInstanceState the new task state.
    */
-  public void setTaskState(final TaskState taskState) {
-    mTaskState = taskState;
+  public void setNodeInstanceState(final NodeInstanceState nodeInstanceState) {
+    mNodeInstanceState = nodeInstanceState;
   }
 
   /**

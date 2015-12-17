@@ -30,7 +30,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @author Paul de Vrieze
    */
   @XmlRootElement(name = "taskState", namespace = "http://adaptivity.nl/userMessageHandler")
-  enum TaskState {
+  enum NodeInstanceState {
     /**
      * Initial task state. The instance has been created, but has not been successfully sent to a receiver.
      */
@@ -73,9 +73,9 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
      */
     Cancelled;
 
-    public static TaskState fromString(CharSequence string) {
+    public static NodeInstanceState fromString(CharSequence string) {
       String lowerCase = StringUtil.toLowerCase(string);
-      for(TaskState candidate: values()) {
+      for(NodeInstanceState candidate: values()) {
         if (lowerCase.equals(candidate.name().toLowerCase())) {
           return candidate;
         }
@@ -89,7 +89,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    *
    * @return the state.
    */
-  TaskState getState();
+  NodeInstanceState getState();
 
   /**
    * Set the state of the task.
@@ -97,7 +97,7 @@ public interface IProcessNodeInstance<V extends IProcessNodeInstance<V>> extends
    * @param transaction
    * @param newState The new state of the task.
    */
-  void setState(Transaction transaction, TaskState newState) throws SQLException;
+  void setState(Transaction transaction, NodeInstanceState newState) throws SQLException;
 
   /**
    * Called by the processEngine so indicate starting of the task.

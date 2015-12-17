@@ -2,7 +2,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.HandleMap.HandleAware;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 
 import java.security.Principal;
 import java.util.List;
@@ -27,9 +27,9 @@ public interface UserTask<T extends UserTask<T>> extends HandleAware<T> {
 
   }
 
-  TaskState getState();
+  NodeInstanceState getState();
 
-  void setState(TaskState newState, Principal user);
+  void setState(NodeInstanceState newState, Principal user);
 
   void setEndpoint(EndpointDescriptorImpl endPoint);
 
