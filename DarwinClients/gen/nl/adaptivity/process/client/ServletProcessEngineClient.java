@@ -24,7 +24,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.messaging.SendableSoapSource;
 import nl.adaptivity.process.engine.XmlHandle;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.TaskState;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.processModel.ProcessModelBase;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
@@ -42,7 +42,7 @@ public class ServletProcessEngineClient {
 
   private ServletProcessEngineClient() { }
 
-  public static Future<TaskState> finishTask(long handle, Node payload, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
+  public static Future<NodeInstanceState> finishTask(long handle, Node payload, Principal principal, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
     final Tripple<String, Class<Node>, Node> param1 = Tripple.<String, Class<Node>, Node>tripple("payload", Node.class, payload);
 
@@ -50,7 +50,7 @@ public class ServletProcessEngineClient {
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class, jaxbcontext);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, NodeInstanceState.class, jaxbcontext);
   }
 
   public static Future<XmlProcessNodeInstance> getProcessNodeInstance(long handle, Principal user, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
@@ -97,16 +97,16 @@ public class ServletProcessEngineClient {
     return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, ProcessModelRef.class, jaxbcontext);
   }
 
-  public static Future<TaskState> updateTaskState(long handle, TaskState state, Principal user, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
+  public static Future<NodeInstanceState> updateTaskState(long handle, NodeInstanceState state, Principal user, CompletionListener completionListener, Class<?>... jaxbcontext) throws JAXBException, XmlException {
     final Tripple<String, Class<Long>, Long> param0 = Tripple.<String, Class<Long>, Long>tripple("handle", long.class, handle);
-    final Tripple<String, Class<TaskState>, TaskState> param1 = Tripple.<String, Class<TaskState>, TaskState>tripple("state", TaskState.class, state);
+    final Tripple<String, Class<NodeInstanceState>, NodeInstanceState> param1 = Tripple.<String, Class<NodeInstanceState>, NodeInstanceState>tripple("state", NodeInstanceState.class, state);
     final Tripple<String, Class<Principal>, Principal> param2 = Tripple.<String, Class<Principal>, Principal>tripple("user", Principal.class, user);
 
     Source message = SoapHelper.createMessage(new QName("updateTaskState"), Arrays.<Tripple<String, ? extends Class<?>, ?>>asList(param0, param1, param2));
 
     EndpointDescriptor endpoint = new EndpointDescriptorImpl(SERVICE, ENDPOINT, LOCATION);
 
-    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, TaskState.class, jaxbcontext);
+    return (Future) MessagingRegistry.sendMessage(new SendableSoapSource(endpoint, message), completionListener, NodeInstanceState.class, jaxbcontext);
   }
 
 }
