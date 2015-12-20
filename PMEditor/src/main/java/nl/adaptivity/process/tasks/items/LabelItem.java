@@ -54,4 +54,8 @@ public class LabelItem extends TaskItem {
     return true;
   }
 
+  @Override
+  public boolean canComplete() {
+    return true; // labels don't stop completion
+  }
 }

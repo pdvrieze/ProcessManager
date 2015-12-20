@@ -127,4 +127,8 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
     }
   }
 
+  @Override
+  public boolean canComplete() {
+    return getValue()!=null;
+  }
 }

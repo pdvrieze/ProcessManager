@@ -53,4 +53,8 @@ public class TextItem extends TextLabeledItem {
     return Type.TEXT;
   }
 
+  @Override
+  public boolean canComplete() {
+    return getValue()!=null;
+  }
 }

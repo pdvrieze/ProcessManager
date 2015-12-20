@@ -69,4 +69,7 @@
     <string name="taskstate_failed">Failed</string>
     <string name="taskstate_cancelled">Cancelled</string>
     <string name="taskstate_missing">&lt;unknown state&gt;</string>
+    <string name="btn_task_accept">Accept</string>
+    <string name="btn_task_cancel">Cancel task</string>
+
 </resources>

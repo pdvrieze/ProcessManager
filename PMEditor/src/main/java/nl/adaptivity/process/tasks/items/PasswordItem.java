@@ -10,8 +10,6 @@ import android.widget.TextView;
 
 public class PasswordItem extends TextLabeledItem {
 
-  private String mValue;
-
   public PasswordItem(String name, String label, String value) {
     super(name, label, value);
   }
@@ -31,7 +29,7 @@ public class PasswordItem extends TextLabeledItem {
   @Override
   protected void updateDetailView(View detail) {
     TextView textview = (TextView) detail;
-    textview.setText(mValue);
+    textview.setText(getValue());
     Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {
       textview.removeTextChangedListener((TextWatcher) tag);
@@ -40,4 +38,8 @@ public class PasswordItem extends TextLabeledItem {
     textview.setTag(this);
   }
 
+  @Override
+  public boolean canComplete() {
+    return getValue()!=null;
+  }
 }

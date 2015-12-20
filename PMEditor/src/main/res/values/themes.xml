@@ -1,7 +1,11 @@
+<resources>
 
-    <resources>
-        <style name="AppTheme" parent="AppTheme.Base"></style>
-        <style name="AppTheme.Base" parent="Theme.AppCompat.Light">
-            <!--<item name="windowActionBar">false</item>-->
-        </style>
-    </resources>
+    <style name="AppTheme" parent="AppTheme.Base">
+        <item name="iconButtonStyle">@style/Widget.IconButton</item>
+
+    </style>
+
+    <style name="AppTheme.Base" parent="Theme.AppCompat.Light">
+        <!--This one is different for different systems-->
+    </style>
+</resources>

@@ -27,7 +27,7 @@ public class UserTask {
      * the task has been claimed and others can not claim it anymore (unless
      * released again).
      */
-    Taken("Taken", R.string.taskstate_taken, R.drawable.decorator_taskstate_accepted, STATE_AVAILABLE|STATE_EDITABLE),
+    Taken("Taken", R.string.taskstate_taken, R.drawable.decorator_taskstate_accepted, STATE_EDITABLE),
     /**
      * Signifies that work on the task has actually started.
      */
@@ -156,6 +156,14 @@ public class UserTask {
 
   public void setItems(List<TaskItem> items) {
     mItems = items;
+  }
+
+  public boolean canComplete() {
+    if (! mState.isEditable()) { return false; }
+    for (TaskItem item:mItems) {
+      if (! item.canComplete()) { return false; }
+    }
+    return true;
   }
 
   public static List<UserTask> parseTasks(InputStream in) throws XmlPullParserException, IOException {

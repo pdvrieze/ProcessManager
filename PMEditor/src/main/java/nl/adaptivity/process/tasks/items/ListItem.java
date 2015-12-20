@@ -68,4 +68,8 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
     setValue(null);
   }
 
+  @Override
+  public boolean canComplete() {
+    return getValue()!=null;
+  }
 }

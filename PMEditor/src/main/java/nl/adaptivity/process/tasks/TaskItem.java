@@ -112,6 +112,8 @@ public abstract class TaskItem {
     mName = name;
   }
 
+  public abstract boolean canComplete();
+
   public String getName() {
     return mName;
   }
