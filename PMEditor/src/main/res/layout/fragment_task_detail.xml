@@ -47,7 +47,7 @@
                         android:layout_marginLeft="2dp"
                         android:layout_marginRight="2dp"
                         android:layout_marginTop="2dp"
-                        android:layout_marginBottom="@dimen/default_margin"
+                        android:layout_marginBottom="2dp"
                         >
 
                     <nl.adaptivity.android.widget.IconButton
@@ -121,8 +121,8 @@
                                   android:layout_height="wrap_content"
                                   android:orientation="vertical"
                                   android:paddingTop="8dp"
-                                  android:paddingLeft="@dimen/default_margin"
-                                  android:paddingRight="@dimen/default_margin"
+                                  android:paddingLeft="0dp"
+                                  android:paddingRight="0dp"
                                   android:paddingBottom="8dp">
 
                         <nl.adaptivity.android.widget.IconButton
@@ -139,7 +139,7 @@
                                       android:layout_marginLeft="@dimen/default_margin"
                                       android:textSize="16sp"
                                       app:role="title"
-                                      style="?android:attr/textAppearanceButton"
+                                      style="@style/TextAppearance.IconButton.Label"
                                       android:text="@string/btn_task_accept"></TextView>
                         </nl.adaptivity.android.widget.IconButton>
 
@@ -155,7 +155,7 @@
                                       android:layout_height="wrap_content"
                                       android:layout_marginLeft="@dimen/default_margin"
                                       android:textSize="16sp"
-                                      style="?android:attr/textAppearanceButton"
+                                      style="@style/TextAppearance.IconButton.Label"
                                       android:text="@string/btn_task_complete"></TextView>
                         </nl.adaptivity.android.widget.IconButton>
 
@@ -171,7 +171,7 @@
                                       android:layout_height="wrap_content"
                                       android:layout_marginLeft="@dimen/default_margin"
                                       android:textSize="16sp"
-                                      style="?android:attr/textAppearanceButton"
+                                      style="@style/TextAppearance.IconButton.Label"
                                       android:text="@string/btn_task_cancel"></TextView>
                         </nl.adaptivity.android.widget.IconButton>
 
