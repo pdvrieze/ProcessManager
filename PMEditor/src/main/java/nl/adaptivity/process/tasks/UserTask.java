@@ -211,7 +211,7 @@ public class UserTask extends BaseObservable {
 
   public void setState(TaskState state) {
     boolean oldCanComplete = isCompleteable();
-    setDirty(Util.equals(mState, state), BR.state);
+    setDirty(! Util.equals(mState, state), BR.state);
     mState = state;
     if (oldCanComplete != isCompleteable()) {
       notifyPropertyChanged(BR.completeable);
