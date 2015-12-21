@@ -3,18 +3,13 @@ package nl.adaptivity.android.widget;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.support.annotation.ColorInt;
-import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -22,7 +17,6 @@ import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import nl.adaptivity.process.editor.android.BuildConfig;
 import nl.adaptivity.process.editor.android.R;
 
@@ -346,9 +340,9 @@ public class IconButton extends ViewGroup {
   }
 
   private void applyDrawableTint() {
+    mIconDrawable.setState(getDrawableState());
     if (mDrawableTint != null && (mDrawableTint.isStateful() || mDrawableTint.getDefaultColor() != 0)) {
       DrawableCompat.setTintList(mIconDrawable, mDrawableTint);
-      mIconDrawable.setState(getDrawableState());
     }
   }
 
