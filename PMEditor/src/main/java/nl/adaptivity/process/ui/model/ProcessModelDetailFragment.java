@@ -20,9 +20,11 @@ import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
-import nl.adaptivity.process.editor.android.*;
+import nl.adaptivity.process.editor.android.BaseProcessAdapter;
+import nl.adaptivity.process.editor.android.PMEditor;
+import nl.adaptivity.process.editor.android.PMProcessesFragment;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
-import nl.adaptivity.process.editor.android.databinding.*;
+import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentProcessmodelDetailBinding;
 import nl.adaptivity.process.models.ProcessModelHolder;
 import nl.adaptivity.process.models.ProcessModelLoader;
@@ -35,7 +37,7 @@ import java.util.UUID;
 
 /**
  * A fragment representing a single ProcessModel detail screen. This fragment is
- * either contained in a {@link MainActivity} in two-pane mode (on
+ * either contained in a {@link nl.adaptivity.process.ui.main.OverviewActivity} in two-pane mode (on
  * tablets) or a {@link ProcessModelDetailActivity} on handsets.
  */
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {

@@ -1,9 +1,5 @@
 package nl.adaptivity.process.ui.model;
 
-import nl.adaptivity.android.util.GetNameDialogFragment;
-import nl.adaptivity.process.editor.android.MainActivity;
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.models.ProcessModelProvider;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -11,12 +7,17 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Toast;
+import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.ui.main.OverviewActivity;
+
 
 /**
  * An activity representing a single ProcessModel detail screen. This activity
  * is only used on handset devices. On tablet-size devices, item details are
  * presented side-by-side with a list of items in a
- * {@link ProcessModelListActivity}.
+ * {@link ProcessModelListOuterFragment}.
  * <p>
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link ProcessModelDetailFragment}.
@@ -68,7 +69,7 @@ public class ProcessModelDetailActivity extends AppCompatActivity implements Pro
       //
       // http://developer.android.com/design/patterns/navigation.html#up-vs-back
       //
-      NavUtils.navigateUpTo(this, new Intent(this, MainActivity.class));
+      NavUtils.navigateUpTo(this, new Intent(this, OverviewActivity.class));
       return true;
     }
     return super.onOptionsItemSelected(item);
