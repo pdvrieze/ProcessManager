@@ -65,7 +65,7 @@ public abstract class LabeledItem extends TaskItem {
     return mDirty;
   }
 
-  protected void setDirty(boolean dirty) {
+  public void setDirty(boolean dirty) {
     if (mDirty!=dirty) {
       mDirty = dirty;
       notifyPropertyChanged(BR.dirty);
