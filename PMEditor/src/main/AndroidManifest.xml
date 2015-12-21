@@ -31,15 +31,6 @@
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
         </activity>
         <activity
-                android:name=".MainActivity"
-                android:label="@string/title_main">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
                 android:name="nl.adaptivity.process.ui.model.ProcessModelDetailActivity"
                 android:label="@string/title_processmodel_detail"
                 android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
