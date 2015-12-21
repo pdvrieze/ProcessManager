@@ -58,4 +58,23 @@ public class LabelItem extends TaskItem {
   public boolean canComplete() {
     return true; // labels don't stop completion
   }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    if (!super.equals(o)) { return false; }
+
+    LabelItem labelItem = (LabelItem) o;
+
+    return mValue != null ? mValue.equals(labelItem.mValue) : labelItem.mValue == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (mValue != null ? mValue.hashCode() : 0);
+    return result;
+  }
 }

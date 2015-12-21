@@ -14,6 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
 import android.widget.FrameLayout;
+import nl.adaptivity.util.Util;
+
 
 public class GenericItem extends LabeledItem implements TextWatcher, OnClickListener {
 
@@ -130,5 +132,26 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   @Override
   public boolean canComplete() {
     return getValue()!=null;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    if (!super.equals(o)) { return false; }
+
+    GenericItem that = (GenericItem) o;
+
+    if (mType != null ? !mType.equals(that.mType) : that.mType != null) { return false; }
+    return mOptions != null ? mOptions.equals(that.mOptions) : that.mOptions == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (mType != null ? mType.hashCode() : 0);
+    result = 31 * result + (mOptions != null ? mOptions.hashCode() : 0);
+    return result;
   }
 }

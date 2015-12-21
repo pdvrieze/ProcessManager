@@ -76,4 +76,24 @@ public abstract class LabeledItem extends TaskItem {
 
   protected abstract void updateDetailView(View detail);
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    if (!super.equals(o)) { return false; }
+
+    LabeledItem that = (LabeledItem) o;
+
+    if (mLabel != null ? !mLabel.equals(that.mLabel) : that.mLabel != null) { return false; }
+    return mValue != null ? mValue.equals(that.mValue) : that.mValue == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (mLabel != null ? mLabel.hashCode() : 0);
+    result = 31 * result + (mValue != null ? mValue.hashCode() : 0);
+    return result;
+  }
 }

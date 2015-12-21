@@ -57,4 +57,27 @@ public class TextItem extends TextLabeledItem {
   public boolean canComplete() {
     return getValue()!=null;
   }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    if (!super.equals(o)) { return false; }
+
+    TextItem textItem = (TextItem) o;
+
+    if (mSuggestions != null ? !mSuggestions.equals(textItem.mSuggestions) : textItem.mSuggestions != null) {
+      return false;
+    }
+    return mSuggestionAdapter != null ? mSuggestionAdapter.equals(textItem.mSuggestionAdapter) : textItem.mSuggestionAdapter == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (mSuggestions != null ? mSuggestions.hashCode() : 0);
+    result = 31 * result + (mSuggestionAdapter != null ? mSuggestionAdapter.hashCode() : 0);
+    return result;
+  }
 }

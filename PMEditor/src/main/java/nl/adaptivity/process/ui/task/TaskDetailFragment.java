@@ -111,9 +111,10 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   @Override
   public void onPause() {
     super.onPause();
-    if (mBinding.getTask()!=null) {
+    final UserTask task = mBinding.getTask();
+    if (task != null && task.isDirty()) {
       try {
-        TaskProvider.updateValuesAndState(getActivity(), mTaskId, mBinding.getTask());
+        TaskProvider.updateValuesAndState(getActivity(), mTaskId, task);
       } catch (NoSuchElementException e) {
         Log.w(TaskDetailFragment.class.getSimpleName(), "The task no longer exists", e);
       } catch (RemoteException | OperationApplicationException e) {
@@ -165,13 +166,35 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     switch (v.getId()) {
       case R.id.btn_task_complete:
         onCompleteTaskClicked();
+        break;
+      case R.id.btn_task_accept:
+        onAcceptTaskClicked();
+        break;
+      case R.id.btn_task_cancel:
+        onCancelTaskClicked();
+        break;
     }
   }
 
   private void onCompleteTaskClicked() {
     mBinding.getTask().setState(TaskState.Complete);
     if (mCallbacks!=null) {
-      mCallbacks.dismissTaskDetails();
+      mCallbacks.dismissTaskDetails(); // should trigger save
+    }
+  }
+
+  private void onAcceptTaskClicked() {
+    final UserTask task = mBinding.getTask();
+    task.setState(TaskState.Taken);
+    if (task.isDirty()) {
+      TaskProvider.updateTaskState(getActivity(), mTaskId, task.getState());
+    }
+  }
+
+  private void onCancelTaskClicked() {
+    mBinding.getTask().setState(TaskState.Complete);
+    if (mCallbacks!=null) {
+      mCallbacks.dismissTaskDetails(); // should trigger save
     }
   }
 

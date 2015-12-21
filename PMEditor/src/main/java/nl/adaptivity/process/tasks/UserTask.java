@@ -4,6 +4,7 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
 import android.util.Log;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.util.Util;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 public class UserTask {
@@ -102,6 +104,7 @@ public class UserTask {
   private String mOwner;
   private TaskState mState;
   private List<TaskItem> mItems;
+  private boolean mDirty = false;
 
   public UserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
     mSummary = summary;
@@ -117,6 +120,7 @@ public class UserTask {
 
 
   public void setSummary(String summary) {
+    mDirty = mDirty || ! Util.equals(mSummary, summary);
     mSummary = summary;
   }
 
@@ -137,6 +141,7 @@ public class UserTask {
 
 
   public void setOwner(String owner) {
+    mDirty = mDirty || ! Util.equals(mOwner, owner);
     mOwner = owner;
   }
 
@@ -147,6 +152,7 @@ public class UserTask {
 
 
   public void setState(TaskState state) {
+    mDirty = mDirty || ! Util.equals(mState, state);
     mState = state;
   }
 
@@ -157,6 +163,7 @@ public class UserTask {
 
 
   public void setItems(List<TaskItem> items) {
+    mDirty = mDirty || ! Util.listEquals(mItems, items);
     mItems = items;
   }
 
@@ -166,6 +173,14 @@ public class UserTask {
       if (! item.canComplete()) { return false; }
     }
     return true;
+  }
+
+  public boolean isDirty() {
+    if (mDirty) return true;
+    for(TaskItem i: mItems) {
+      if (i.isDirty()) return true;
+    }
+    return false;
   }
 
   public static List<UserTask> parseTasks(InputStream in) throws XmlPullParserException, IOException {

@@ -72,4 +72,23 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
   public boolean canComplete() {
     return getValue()!=null;
   }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    if (!super.equals(o)) { return false; }
+
+    ListItem listItem = (ListItem) o;
+
+    return mOptions != null ? mOptions.equals(listItem.mOptions) : listItem.mOptions == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (mOptions != null ? mOptions.hashCode() : 0);
+    return result;
+  }
 }

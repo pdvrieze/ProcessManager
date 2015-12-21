@@ -460,6 +460,15 @@ public class TaskProvider extends ContentProvider {
     return UserTask.parseTasks(in);
   }
 
+  public static int updateTaskState(Context context, long taskId, TaskState newState) {
+    Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, taskId);
+    final ContentResolver contentResolver = context.getContentResolver();
+    ContentValues values = new ContentValues(2);
+    values.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
+    values.put(Tasks.COLUMN_STATE, newState.getAttrValue());
+    return contentResolver.update(taskUri, values, null, null); // no additional where needed
+  }
+
   public static void updateValuesAndState(Context context, long taskId, UserTask updatedTask) throws RemoteException, OperationApplicationException {
     ArrayList<ContentProviderOperation> operations = new ArrayList<>();
     Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, taskId);

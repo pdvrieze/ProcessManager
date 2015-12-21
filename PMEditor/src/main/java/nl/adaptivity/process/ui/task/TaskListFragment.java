@@ -246,7 +246,6 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
   private void updateSyncState() {
     Account storedAccount = AuthenticatedWebClient.getStoredAccount(getActivity());
-    Log.d(TAG, "updateSyncState() called (storedAccount="+storedAccount+")");
     if (storedAccount==null) {
       mSwipeRefresh.setRefreshing(false);
     } else {
@@ -254,7 +253,6 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
       final boolean syncPending = TaskProvider.isSyncPending(storedAccount);
       if (syncActive || (!syncPending)) { mManualSync= false; }
       boolean sync = syncActive || mManualSync;
-      Log.d(TAG, "updateSyncState: setRefreshing(active:"+syncActive+", pending:"+syncPending+", manual:"+mManualSync+")");
       mSwipeRefresh.setRefreshing(sync);
     }
   }
