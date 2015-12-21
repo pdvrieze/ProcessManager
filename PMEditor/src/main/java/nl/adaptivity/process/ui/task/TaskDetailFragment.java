@@ -1,8 +1,9 @@
 package nl.adaptivity.process.ui.task;
 
-import android.app.Activity;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.OperationApplicationException;
+import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,16 +11,15 @@ import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentTaskDetailBinding;
-import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.UserTask.TaskState;
 import nl.adaptivity.process.tasks.data.TaskLoader;
@@ -35,7 +35,7 @@ import java.util.NoSuchElementException;
 public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, TaskDetailHandler {
 
   public interface TaskDetailCallbacks {
-    public void dismissTaskDetails();
+    void dismissTaskDetails();
   }
 
   /**
@@ -49,13 +49,8 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   private long mTaskId;
 
-  private int mTaskItemFirstIndex;
-
-  private int mTaskItemLastIndex = -1;
-
   private TaskDetailCallbacks mCallbacks;
   private FragmentTaskDetailBinding mBinding;
-  private LinearLayout mTaskItemContainer;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -74,10 +69,10 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    if (activity instanceof TaskDetailCallbacks) {
-      mCallbacks = (TaskDetailCallbacks) activity;
+  public void onAttach(Context context) {
+    super.onAttach(context);
+    if (context instanceof TaskDetailCallbacks) {
+      mCallbacks = (TaskDetailCallbacks) context;
     } else {
       mCallbacks = null;
     }
@@ -88,15 +83,19 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
                            Bundle savedInstanceState) {
     mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_task_detail, container, false);
     mBinding.setLoading(true);
-
-    mTaskItemContainer = (LinearLayout) mBinding.taskBelowItems.getParent();
-    for(int i=mTaskItemContainer.getChildCount()-1; i>=0; --i) {
-      if (mTaskItemContainer.getChildAt(i).getId()==R.id.task_below_items) {
-        mTaskItemFirstIndex = i;
-      }
-    }
     mBinding.setHandler(this);
+    mBinding.taskDetail.setLayoutManager(new LinearLayoutManager(getContext()));
     return mBinding.getRoot();
+  }
+
+  @BindingAdapter({"app:usertask"})
+  public static void bindTaskItemAdapter(RecyclerView view, UserTask task) {
+    if (view.getAdapter() instanceof TaskItemAdapter) {
+      TaskItemAdapter adapter = (TaskItemAdapter) view.getAdapter();
+      adapter.setUserTask(task);
+    } else {
+      view.setAdapter(new TaskItemAdapter(task));
+    }
   }
 
   @Override
@@ -127,29 +126,11 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     mBinding.setLoading(false);
     if (data==null) { onLoaderReset(loader); return;}
     mBinding.setTask(data);
-
-    int viewPos = mTaskItemFirstIndex;
-    if (mTaskItemLastIndex>mTaskItemFirstIndex) {
-      mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
-    }
-    LayoutInflater inflater = LayoutInflater.from(getActivity());
-    for(TaskItem item: data.getItems()) {
-      View taskView = item.createView(inflater, mTaskItemContainer);
-
-      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, 0f);
-      mTaskItemContainer.addView(taskView, viewPos, params);
-      ++viewPos;
-    }
-    mTaskItemLastIndex = mTaskItemFirstIndex+data.getItems().size();
   }
 
   @Override
   public void onLoaderReset(Loader<UserTask> loader) {
     mBinding.setTask(null);
-    if (mTaskItemLastIndex>mTaskItemFirstIndex) {
-      mTaskItemContainer.removeViews(mTaskItemFirstIndex, mTaskItemLastIndex-mTaskItemFirstIndex);
-    }
-    mTaskItemLastIndex=-1;
   }
 
   @Override

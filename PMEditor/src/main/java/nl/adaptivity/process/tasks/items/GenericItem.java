@@ -1,24 +1,21 @@
 package nl.adaptivity.process.tasks.items;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import android.content.Context;
 import android.databinding.Bindable;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableList;
-import nl.adaptivity.process.editor.android.BR;
-import nl.adaptivity.process.editor.android.R;
-import android.content.Context;
+import android.databinding.ViewDataBinding;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Filter;
-import android.widget.FrameLayout;
-import nl.adaptivity.util.Util;
+import nl.adaptivity.process.editor.android.BR;
+import nl.adaptivity.process.editor.android.databinding.TaskitemGenericBinding;
+
+import java.util.List;
 
 
 public class GenericItem extends LabeledItem implements TextWatcher, OnClickListener {
@@ -100,18 +97,13 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
   @Override
-  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
-    View view = inflater.inflate(R.layout.taskitem_detail_generic, parent, false);
-    updateDetailView(view);
-    return view;
-  }
-
-  @Override
-  protected void updateDetailView(View detail) {
-    AutoCompleteTextView textview = (AutoCompleteTextView) detail.findViewById(R.id.taskitem_detail_text_text);
+  public void updateView(ViewDataBinding binding) {
+    TaskitemGenericBinding b = (TaskitemGenericBinding) binding;
+    b.setTaskitem(this);
+    AutoCompleteTextView textview = b.taskitemDetailTextText;
     textview.setText(getValue());
     textview.setThreshold(1);
-    textview.setAdapter(new ComboAdapter(detail.getContext(), mOptions));
+    textview.setAdapter(new ComboAdapter(textview.getContext(), mOptions));
     Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {
       textview.removeTextChangedListener((TextWatcher) tag);

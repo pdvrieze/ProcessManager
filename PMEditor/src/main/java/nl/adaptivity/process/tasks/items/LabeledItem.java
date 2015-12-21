@@ -2,13 +2,7 @@ package nl.adaptivity.process.tasks.items;
 
 import android.databinding.Bindable;
 import nl.adaptivity.process.editor.android.BR;
-import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.TaskItem;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.TextView;
 
 
 public abstract class LabeledItem extends TaskItem {
@@ -71,31 +65,6 @@ public abstract class LabeledItem extends TaskItem {
       notifyPropertyChanged(BR.dirty);
     }
   }
-
-  @Override
-  public View createView(LayoutInflater inflater, ViewGroup parent) {
-    View view = inflater.inflate(R.layout.taskitem_labeled, parent, false);
-    TextView labelView = (TextView) view.findViewById(R.id.taskitem_labeled_label);
-    labelView.setText(mLabel);
-    FrameLayout detailContainer = (FrameLayout) view.findViewById(R.id.taskitem_labeled_detail);
-    View detail = createDetailView(inflater, detailContainer);
-    detailContainer.removeAllViews();
-    detailContainer.addView(detail);
-    return view;
-  }
-
-  protected abstract View createDetailView(LayoutInflater inflater, FrameLayout parent);
-
-  @Override
-  public void updateView(View view) {
-    TextView labelView = (TextView) view.findViewById(R.id.taskitem_labeled_label);
-    labelView.setText(mLabel);
-    FrameLayout detailContainer = (FrameLayout) view.findViewById(R.id.taskitem_labeled_detail);
-    View detail = detailContainer.getChildAt(0);
-    updateDetailView(detail);
-  }
-
-  protected abstract void updateDetailView(View detail);
 
   @Override
   public boolean equals(final Object o) {

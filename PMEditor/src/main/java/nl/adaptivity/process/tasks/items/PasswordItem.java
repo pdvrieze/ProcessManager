@@ -1,11 +1,9 @@
 package nl.adaptivity.process.tasks.items;
 
-import nl.adaptivity.process.editor.android.R;
+import android.databinding.ViewDataBinding;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.TextView;
+import nl.adaptivity.process.editor.android.databinding.TaskitemPasswordBinding;
 
 
 public class PasswordItem extends TextLabeledItem {
@@ -20,15 +18,10 @@ public class PasswordItem extends TextLabeledItem {
   }
 
   @Override
-  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
-    View view = inflater.inflate(R.layout.taskitem_detail_password, parent, false);
-    updateDetailView(view);
-    return view;
-  }
-
-  @Override
-  protected void updateDetailView(View detail) {
-    TextView textview = (TextView) detail;
+  public void updateView(ViewDataBinding binding) {
+    TaskitemPasswordBinding b = (TaskitemPasswordBinding) binding;
+    b.setTaskitem(this);
+    TextView textview = b.taskitemDetailTextText;
     textview.setText(getValue());
     Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {

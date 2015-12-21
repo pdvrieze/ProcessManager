@@ -1,15 +1,12 @@
 package nl.adaptivity.process.tasks.items;
 
-import java.util.List;
-
+import android.databinding.ViewDataBinding;
+import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import nl.adaptivity.process.editor.android.R;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.TextView;
+import nl.adaptivity.process.editor.android.databinding.TaskitemTextBinding;
+
+import java.util.List;
 
 
 public class TextItem extends TextLabeledItem {
@@ -23,19 +20,14 @@ public class TextItem extends TextLabeledItem {
   }
 
   @Override
-  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
-    View view = inflater.inflate(R.layout.taskitem_detail_text, parent, false);
-    updateDetailView(view);
-    return view;
-  }
-
-  @Override
-  protected void updateDetailView(View detail) {
-    AutoCompleteTextView textview = (AutoCompleteTextView) detail;
+  public void updateView(ViewDataBinding binding) {
+    TaskitemTextBinding b = (TaskitemTextBinding) binding;
+    b.setTaskitem(this);
+    AutoCompleteTextView textview = (AutoCompleteTextView) b.taskitemDetailTextText;
     textview.setText(getValue());
     if (mSuggestions!=null && mSuggestions.size()>0) {
       if (mSuggestionAdapter == null) {
-        mSuggestionAdapter = new ArrayAdapter<String>(detail.getContext(), android.R.layout.simple_dropdown_item_1line, mSuggestions);
+        mSuggestionAdapter = new ArrayAdapter<String>(textview.getContext(), android.R.layout.simple_dropdown_item_1line, mSuggestions);
       }
       textview.setAdapter(mSuggestionAdapter);
     }

@@ -1,9 +1,8 @@
 package nl.adaptivity.process.tasks;
 
 import android.databinding.*;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.support.annotation.LayoutRes;
+import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.items.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -11,13 +10,12 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class TaskItem extends BaseObservable {
 
   public enum Type {
-    LABEL("label") {
+    LABEL("label", R.layout.taskitem_label) {
 
       @Override
       public TaskItem create(String name, String label, String value, List<String> options) {
@@ -25,14 +23,14 @@ public abstract class TaskItem extends BaseObservable {
       }
     },
 
-    GENERIC("generic") {
+    GENERIC("generic", R.layout.taskitem_generic) {
 
       @Override
       public TaskItem create(String name, String label, String value, List<String> options) {
         return new GenericItem(name, label, "generic", value, options);
       }
     },
-    TEXT("text") {
+    TEXT("text", R.layout.taskitem_text) {
 
       @Override
       public TaskItem create(String name, String label, String value, List<String> options) {
@@ -40,7 +38,7 @@ public abstract class TaskItem extends BaseObservable {
       }
 
     },
-    LIST("list") {
+    LIST("list", R.layout.taskitem_list) {
 
       @Override
       public TaskItem create(String name, String label, String value, List<String> options) {
@@ -48,7 +46,7 @@ public abstract class TaskItem extends BaseObservable {
       }
 
     },
-    PASSWORD("password") {
+    PASSWORD("password", R.layout.taskitem_password) {
 
       @Override
       public TaskItem create(String name, String label, String value, List<String> options) {
@@ -59,9 +57,11 @@ public abstract class TaskItem extends BaseObservable {
 
     ;
     private String mStr;
+    @LayoutRes public final int layoutId;
 
-    Type(String str) {
+    Type(String str, @LayoutRes int layoutId) {
       mStr = str;
+      this.layoutId = layoutId;
     }
 
     public abstract TaskItem create(String name, String label, String value, List<String> options);
@@ -155,9 +155,7 @@ public abstract class TaskItem extends BaseObservable {
     return (Factory<GenericItem>) (Factory)Factories.GENERIC_FACTORY;
   }
 
-  public abstract View createView(LayoutInflater inflater, ViewGroup parent);
-
-  public abstract void updateView(View v);
+  public abstract void updateView(ViewDataBinding v);
 
   public abstract boolean isReadOnly();
 

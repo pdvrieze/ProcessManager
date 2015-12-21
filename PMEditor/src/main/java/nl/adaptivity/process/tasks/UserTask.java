@@ -161,6 +161,11 @@ public class UserTask extends BaseObservable {
   }
 
   @Bindable
+  public boolean isEditable() {
+    return mState==null ? false :mState.isEditable();
+  }
+
+  @Bindable
   public String getSummary() {
     return mSummary;
   }
@@ -211,12 +216,15 @@ public class UserTask extends BaseObservable {
 
   public void setState(TaskState state) {
     boolean oldCanComplete = isCompleteable();
+    boolean oldEditable = isEditable();
     setDirty(! Util.equals(mState, state), BR.state);
     mState = state;
     if (oldCanComplete != isCompleteable()) {
       notifyPropertyChanged(BR.completeable);
     }
-
+    if (oldEditable!=isEditable()) {
+      notifyPropertyChanged(BR.editable);
+    }
   }
 
   @Bindable

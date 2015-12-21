@@ -1,11 +1,8 @@
 package nl.adaptivity.process.tasks.items;
 
-import nl.adaptivity.process.editor.android.R;
+import android.databinding.ViewDataBinding;
+import nl.adaptivity.process.editor.android.databinding.TaskitemLabelBinding;
 import nl.adaptivity.process.tasks.TaskItem;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 
 public class LabelItem extends TaskItem {
@@ -23,15 +20,8 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
-  public View createView(LayoutInflater inflater, ViewGroup parent) {
-    TextView view = (TextView) inflater.inflate(R.layout.taskitem_label, parent, false);
-    view.setText(mValue);
-    return view;
-  }
-
-  @Override
-  public void updateView(View v) {
-    ((TextView) v).setText(mValue);
+  public void updateView(ViewDataBinding binding) {
+    ((TaskitemLabelBinding) binding).setTaskitem(this);
   }
 
   @Override

@@ -7,4 +7,5 @@
     <color name="primary_dark_material_light">#33691e</color>
     <color name="iconbutton_title_primary">#000000</color>
     <color name="iconbutton_title_disabled">#808080</color>
+    <color name="disabledBg">#d0d0d0</color>
 </resources>

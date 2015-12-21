@@ -7,6 +7,7 @@
         <import type="android.view.View" />
 
         <import type="nl.adaptivity.process.tasks.UserTask" />
+
         <import type="nl.adaptivity.process.ui.task.TaskDetailHandler" />
 
         <variable name="task"
@@ -14,8 +15,9 @@
 
         <variable name="loading"
                   type="boolean" />
+
         <variable name="handler"
-                  type="TaskDetailHandler"/>
+                  type="TaskDetailHandler" />
 
     </data>
 
@@ -87,30 +89,15 @@
                     </nl.adaptivity.android.widget.IconButton>
                 </android.support.v7.widget.CardView>
 
-                <ScrollView
-                        android:id="@+id/task_detail_scroller"
+                <android.support.v7.widget.RecyclerView
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_gravity="fill"
-                        android:fillViewport="true"
-                        android:layout_weight="1">
-
-                    <LinearLayout
-                            android:id="@+id/task_detail"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="@dimen/default_margin">
-
-                        <View
-                                android:id="@+id/task_below_items"
-                                android:layout_width="match_parent"
-                                android:layout_height="0dp"
-                                android:layout_weight="1"
-                                />
-
-                    </LinearLayout>
-                </ScrollView>
+                        android:layout_weight="1"
+                        android:id="@+id/task_detail"
+                        app:usertask="@{task}"
+                        android:background="@{task.editable ? @android:color/transparent : @color/disabledBg}"
+                        />
 
                 <android.support.v7.widget.CardView
                         android:layout_width="match_parent"

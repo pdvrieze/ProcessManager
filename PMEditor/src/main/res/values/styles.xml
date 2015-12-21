@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="TaskitemContainer.Base">
+        <item name="android:paddingLeft">@dimen/default_margin</item>
+        <item name="android:paddingRight">@dimen/default_margin</item>
+        <item name="android:layout_marginBottom">@dimen/half_margin</item>
+        <item name="android:layout_marginTop">@dimen/half_margin</item>
+        <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
 
+    </style>
+    <style name="TaskitemContainer" parent="TaskitemContainer.Base" />
     <style name="Widget.IconButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:background">@drawable/bg_iconbutton</item>
         <item name="android:paddingLeft">8dp</item>
         <item name="android:paddingStart" tools:targetApi="jelly_bean_mr1">8dp</item>
         <item name="android:paddingRight">8dp</item>

@@ -1,16 +1,15 @@
 package nl.adaptivity.process.tasks.items;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import nl.adaptivity.process.editor.android.R;
-import android.view.LayoutInflater;
+import android.databinding.ViewDataBinding;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.FrameLayout;
 import android.widget.Spinner;
+import nl.adaptivity.process.editor.android.databinding.TaskitemListBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ListItem extends LabeledItem implements OnItemSelectedListener {
@@ -28,15 +27,10 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
   }
 
   @Override
-  protected View createDetailView(LayoutInflater inflater, FrameLayout parent) {
-    View view = inflater.inflate(R.layout.taskitem_detail_list, parent, false);
-    updateDetailView(view);
-    return view;
-  }
-
-  @Override
-  protected void updateDetailView(View detail) {
-    Spinner view = (Spinner) detail;
+  public void updateView(ViewDataBinding binding) {
+    TaskitemListBinding b = (TaskitemListBinding) binding;
+    b.setTaskitem(this);
+    Spinner view = b.taskitemDetailList;
     String value = getValue();
     int index = AdapterView.INVALID_POSITION;
     if (value!=null) {
@@ -52,7 +46,7 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
         }
       }
     }
-    view.setAdapter(mOptions==null ? null : new ArrayAdapter<>(detail.getContext(), android.R.layout.simple_dropdown_item_1line, mOptions));
+    view.setAdapter(mOptions==null ? null : new ArrayAdapter<>(view.getContext(), android.R.layout.simple_dropdown_item_1line, mOptions));
     view.setSelection(index, false);
 
     view.setOnItemSelectedListener(this);
