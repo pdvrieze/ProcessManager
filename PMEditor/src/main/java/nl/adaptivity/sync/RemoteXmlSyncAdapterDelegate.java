@@ -156,7 +156,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
         operations.addAll(mActualDelegate.doUpdateItemDetails(delegator, provider, id, pair));
         ContentProviderResult[] applyResult = provider.applyBatch(operations);
         for(ContentProviderResult result: applyResult) {
-          syncResult.stats.numUpdates+=result.count;
+          syncResult.stats.numUpdates+=result.count==null ? 0 : result.count;
         }
       }
     } finally {
@@ -293,8 +293,10 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     for(ContentValuesProvider remoteItem: remoteItems) {
       // These are new items.
       final ContentValues itemCv = remoteItem.getContentValues();
-      if (!itemCv.containsKey(colSyncstate)) {
+      if (remoteItem.syncDetails()) {
         itemCv.put(colSyncstate, SYNC_NEWDETAILSPENDING);
+      } else if (!itemCv.containsKey(colSyncstate)) {
+        itemCv.put(colSyncstate, SYNC_UPTODATE);
       }
       operations.add(ContentProviderOperation
           .newInsert(mListContentUri)

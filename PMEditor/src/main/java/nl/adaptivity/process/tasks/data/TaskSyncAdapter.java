@@ -70,7 +70,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
                                                   int syncState, SyncResult syncresult) throws RemoteException, IOException,
       XmlPullParserException {
     UserTask task = TaskProvider.getTask(delegator.getContext(), itemuri);
-    PostRequest request;
+    PostRequest postRequest;
     final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
     factory.setNamespaceAware(true);
     if (! task.getItems().isEmpty()) {
@@ -87,12 +87,12 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       }
       serializer.endTag(NS_TASKS, TAG_TASK);
       serializer.flush();
-      request = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())), writer.toString());
+      postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())), writer.toString());
     } else {
-      request = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())+"?state="+task.getState()),"");
+      postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())+"?state="+task.getState()),"");
     }
-    request.setContentType("text/xml; charset=utf-8");
-    HttpURLConnection result = delegator.getWebClient().execute(request);
+    postRequest.setContentType("text/xml; charset=utf-8");
+    HttpURLConnection result = delegator.getWebClient().execute(postRequest);
     try {
       int resultCode = result.getResponseCode();
       if (resultCode >= 200 && resultCode < 400) {
