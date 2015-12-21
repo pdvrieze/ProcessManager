@@ -30,11 +30,11 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="26.506384"
-     inkscape:cx="10.4224"
-     inkscape:cy="9.0133662"
+     inkscape:zoom="9.3714219"
+     inkscape:cx="15.212977"
+     inkscape:cy="7.0026387"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="svg2"
      width="744.09449px"
      height="1052.3622px"
      showgrid="true"
@@ -77,26 +77,26 @@
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(0,-29.022666)">
-    <path
-       inkscape:connector-curvature="0"
-       style="fill:#000000"
-       d="m 3,32.022666 0,18 18,0 0,-18 -18,0 z m 9,1.367187 0.365234,0.632813 6.634766,0 0,11.490234 1.449219,2.509766 -1.449219,0 -12.6171875,0 -1.3828125,0 -1.4492188,0 L 5,45.5129 5,34.022666 l 6.634766,0 L 12,33.389853 Z"
-       id="rect5400" />
+     id="layer1">
     <path
        style="fill:#000000"
-       d="m 12,34.888672 -7.1503906,12.384766 1.5332031,0 12.7675785,0 L 12,34.888672 Z m 0,3.539062 4.085938,7.076172 -8.1718755,0 L 12,38.427734 Z"
+       d="M 0,0 0,24 24,24 24,0 0,0 Z M 12,1.3457031 12.376953,2 22,2 22,18.667969 23.505859,21.275391 22,21.275391 22,22 2,22 l 0,-0.724609 -1.50585938,0 L 2,18.666016 2,2 11.621094,2 12,1.3457031 Z"
+       id="rect5400"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:#000000"
+       d="m 12,2.847264 -10.2068396,17.678658 2.1885738,0 18.2251048,0 L 12,2.847264 Z M 12,7.899105 17.83248,18 6.1675199,18 12,7.899105 Z"
        id="path7696"
        inkscape:connector-curvature="0" />
     <path
        style="fill:#000000"
-       d="m 11.25,39.767578 0,3.5 1.5,0 0,-3.5 -1.5,0 z"
+       d="m 11,10.5 0,4.493217 2,0 L 13,10.5 Z"
        id="path7699"
-       inkscape:connector-curvature="0" />
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccc" />
     <path
        style="fill:#000000"
-       d="m 12.75,44.36478 a 0.75,0.75 0 0 1 -0.75,0.75 0.75,0.75 0 0 1 -0.75,-0.75 0.75,0.75 0 0 1 0.75,-0.75 0.75,0.75 0 0 1 0.75,0.75 z"
+       d="m 13,16.456153 a 0.99999998,0.99999998 0 0 1 -1,0.999999 0.99999998,0.99999998 0 0 1 -1,-0.999999 0.99999998,0.99999998 0 0 1 1,-1 0.99999998,0.99999998 0 0 1 1,1 z"
        id="path7701"
        inkscape:connector-curvature="0" />
   </g>
