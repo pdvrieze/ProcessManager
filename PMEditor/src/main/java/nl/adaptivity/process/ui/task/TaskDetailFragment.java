@@ -1,21 +1,9 @@
 package nl.adaptivity.process.ui.task;
 
-import java.util.NoSuchElementException;
-
-import android.databinding.BindingAdapter;
-import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
-import android.support.annotation.StringRes;
-import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.editor.android.databinding.FragmentTaskDetailBinding;
-import nl.adaptivity.process.tasks.TaskItem;
-import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.UserTask.TaskState;
-import nl.adaptivity.process.tasks.data.TaskLoader;
-import nl.adaptivity.process.tasks.data.TaskProvider;
 import android.app.Activity;
 import android.content.ContentUris;
 import android.content.OperationApplicationException;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -24,24 +12,27 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
+import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.databinding.FragmentTaskDetailBinding;
+import nl.adaptivity.process.tasks.TaskItem;
+import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.UserTask.TaskState;
+import nl.adaptivity.process.tasks.data.TaskLoader;
+import nl.adaptivity.process.tasks.data.TaskProvider;
+
+import java.util.NoSuchElementException;
 
 /**
  * A fragment representing a single ProcessModel detail screen. This fragment is
  * either contained in a {@link TaskListOuterFragment} in two-pane mode (on
  * tablets) or a {@link TaskDetailActivity} on handsets.
  */
-public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, OnClickListener {
+public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, TaskDetailHandler {
 
   public interface TaskDetailCallbacks {
     public void dismissTaskDetails();
@@ -104,7 +95,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
         mTaskItemFirstIndex = i;
       }
     }
-    mBinding.btnTaskComplete.setOnClickListener(this);
+    mBinding.setHandler(this);
     return mBinding.getRoot();
   }
 
@@ -162,43 +153,35 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public void onClick(View v) {
-    switch (v.getId()) {
-      case R.id.btn_task_complete:
-        onCompleteTaskClicked();
-        break;
-      case R.id.btn_task_accept:
-        onAcceptTaskClicked();
-        break;
-      case R.id.btn_task_cancel:
-        onCancelTaskClicked();
-        break;
-    }
-  }
-
-  private void onCompleteTaskClicked() {
-    mBinding.getTask().setState(TaskState.Complete);
-    if (mCallbacks!=null) {
-      mCallbacks.dismissTaskDetails(); // should trigger save
-    }
-  }
-
-  private void onAcceptTaskClicked() {
+  public void onAcceptClick(final View v) {
     final UserTask task = mBinding.getTask();
+    boolean initialDirty = task.isDirty();
     task.setState(TaskState.Taken);
-    if (task.isDirty()) {
+    if (initialDirty) {
+      try {
+        TaskProvider.updateValuesAndState(getActivity(), mTaskId, task);
+      } catch (RemoteException | OperationApplicationException e) {
+        throw new RuntimeException(e);
+      }
+    } else if (task.isDirty()) {
       TaskProvider.updateTaskState(getActivity(), mTaskId, task.getState());
     }
   }
 
-  private void onCancelTaskClicked() {
+  @Override
+  public void onCancelClick(final View v) {
     mBinding.getTask().setState(TaskState.Complete);
     if (mCallbacks!=null) {
       mCallbacks.dismissTaskDetails(); // should trigger save
     }
   }
 
-  public UserTask getUserTask() {
-    return mBinding.getTask();
+  @Override
+  public void onCompleteClick(final View v) {
+    mBinding.getTask().setState(TaskState.Complete);
+    if (mCallbacks!=null) {
+      mCallbacks.dismissTaskDetails(); // should trigger save
+    }
   }
+
 }

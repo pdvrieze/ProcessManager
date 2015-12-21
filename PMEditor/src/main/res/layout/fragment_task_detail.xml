@@ -7,12 +7,15 @@
         <import type="android.view.View" />
 
         <import type="nl.adaptivity.process.tasks.UserTask" />
+        <import type="nl.adaptivity.process.ui.task.TaskDetailHandler" />
 
         <variable name="task"
                   type="UserTask" />
 
         <variable name="loading"
                   type="boolean" />
+        <variable name="handler"
+                  type="TaskDetailHandler"/>
 
     </data>
 
@@ -57,7 +60,6 @@
                             app:iconRes="@{task.state.decoratorId}"
                             app:iconTint="@null"
                             tools:iconSrc="@drawable/decorator_taskstate_failed"
-                            tools:enabled="false"
                             >
 
                         <TextView
@@ -132,6 +134,7 @@
                                 android:enabled="@{task.state.available}"
                                 app:iconSrc="@drawable/decorator_taskstate_accepted"
                                 tools:enabled="false"
+                                android:onClick="@{handler.onAcceptClick}"
                                 >
 
                             <TextView android:layout_width="match_parent"
@@ -147,7 +150,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="48dp"
                                 android:id="@+id/btn_task_complete"
-                                android:enabled="@{task.canComplete}"
+                                android:enabled="@{task.completeable}"
+                                android:onClick="@{handler.onCompleteClick}"
                                 app:iconSrc="@drawable/decorator_taskstate_completed"
                                 >
 
@@ -164,6 +168,7 @@
                                 android:layout_height="48dp"
                                 android:id="@+id/btn_task_cancel"
                                 android:orientation="horizontal"
+                                android:onClick="@{handler.onCancelClick}"
                                 app:iconSrc="@drawable/decorator_taskstate_cancelled"
                                 >
 
