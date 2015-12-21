@@ -82,15 +82,12 @@ public class UserTask {
     }
 
     public static TaskState fromString(String state) {
-      Log.d(TAG, "TaskState.fromString: (\""+state+"\")");
       if (state==null) { return null; }
       for(TaskState candidate: values()) {
         if (state.equalsIgnoreCase(candidate.mAttrValue)) {
-          Log.d(TAG, "TaskState.fromString() returned: " + candidate);
           return candidate;
         }
       }
-      Log.d(TAG, "TaskState.fromString() returned: null");
       return null;
     }
   }

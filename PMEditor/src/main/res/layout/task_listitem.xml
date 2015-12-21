@@ -14,10 +14,14 @@
             android:layout_height="wrap_content"
             android:background="?android:attr/activatedBackgroundIndicator"
             android:minHeight="?android:attr/listPreferredItemHeight"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingLeft="8dp"
+            android:paddingStart="8dp"
+            android:paddingRight="8dp"
+            android:paddingEnd="8dp">
 
         <ImageView
-                android:layout_width="40dp"
+                android:layout_width="32dp"
                 android:layout_height="match_parent"
                 android:id="@+id/task_state_decorator"
                 app:drawableRes="@{taskStateDrawable}"

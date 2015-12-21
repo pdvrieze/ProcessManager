@@ -146,7 +146,6 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     setHasOptionsMenu(true);
   }
 
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);

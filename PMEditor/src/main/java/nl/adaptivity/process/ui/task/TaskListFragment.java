@@ -1,7 +1,10 @@
 package nl.adaptivity.process.ui.task;
 
+import android.accounts.Account;
 import android.annotation.TargetApi;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SyncStatusObserver;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
@@ -10,9 +13,14 @@ import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.util.Log;
 import android.view.*;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
 import nl.adaptivity.process.editor.android.R;
@@ -34,7 +42,7 @@ import nl.adaptivity.process.editor.android.databinding.*;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class TaskListFragment extends MasterListFragment implements LoaderCallbacks<Cursor> {
+public class TaskListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, OnRefreshListener {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -120,6 +128,10 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
   }
 
   private TaskCursorAdapter mAdapter;
+  private SwipeRefreshLayout mSwipeRefresh;
+  private SyncStatusObserver mSyncObserver;
+  private Object mSyncObserverHandle;
+  private boolean mManualSync;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -137,15 +149,51 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     setHasOptionsMenu(true);
   }
 
+  @Override
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.refreshablerecyclerview, container, false);
+  }
+
   @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
+    getRecyclerView().setLayoutManager(new LinearLayoutManager(getActivity()));
+    mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefresh);
+    mSwipeRefresh.setOnRefreshListener(this);
 
     // Restore the previously serialized activated item position.
     if (savedInstanceState != null
         && savedInstanceState.containsKey(STATE_ACTIVATED_ID)) {
       setActivatedId(savedInstanceState.getLong(STATE_ACTIVATED_ID));
+    }
+    mSyncObserver = new SyncStatusObserver() {
+
+      @Override
+      public void onStatusChanged(final int which) {
+        getActivity().runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            updateSyncState();
+          }
+        });
+      }
+    };
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    mSyncObserver.onStatusChanged(0); // trigger status sync
+    mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    if (mSyncObserverHandle!=null) {
+      ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
+      mSyncObserverHandle=null;
     }
   }
 
@@ -178,11 +226,37 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.ac_sync_tasks: {
-        TaskProvider.requestSyncTaskList(getActivity(), true);
+        doManualRefresh();
         return true;
       }
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void onRefresh() {
+    TaskProvider.requestSyncTaskList(getActivity(), true);
+    mManualSync=true;
+  }
+
+  private void doManualRefresh() {
+    onRefresh();
+    updateSyncState();
+  }
+
+  private void updateSyncState() {
+    Account storedAccount = AuthenticatedWebClient.getStoredAccount(getActivity());
+    Log.d(TAG, "updateSyncState() called (storedAccount="+storedAccount+")");
+    if (storedAccount==null) {
+      mSwipeRefresh.setRefreshing(false);
+    } else {
+      final boolean syncActive = TaskProvider.isSyncActive(storedAccount);
+      final boolean syncPending = TaskProvider.isSyncPending(storedAccount);
+      if (syncActive || (!syncPending)) { mManualSync= false; }
+      boolean sync = syncActive || mManualSync;
+      Log.d(TAG, "updateSyncState: setRefreshing(active:"+syncActive+", pending:"+syncPending+", manual:"+mManualSync+")");
+      mSwipeRefresh.setRefreshing(sync);
+    }
   }
 
   @Override
