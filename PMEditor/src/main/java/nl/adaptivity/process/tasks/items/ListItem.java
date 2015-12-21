@@ -69,7 +69,7 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
   }
 
   @Override
-  public boolean canComplete() {
+  public boolean isCompleteable() {
     return getValue()!=null;
   }
 

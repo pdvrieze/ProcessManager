@@ -1,5 +1,6 @@
 package nl.adaptivity.process.tasks;
 
+import android.databinding.*;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class TaskItem {
+public abstract class TaskItem extends BaseObservable {
 
   public enum Type {
     LABEL("label") {
@@ -112,8 +113,10 @@ public abstract class TaskItem {
     mName = name;
   }
 
-  public abstract boolean canComplete();
+  @Bindable
+  public abstract boolean isCompleteable();
 
+  @Bindable
   public String getName() {
     return mName;
   }
@@ -124,10 +127,15 @@ public abstract class TaskItem {
 
   public abstract Type getType();
 
+  @Bindable
   public abstract boolean isDirty();
 
+  public abstract void setDirty(boolean dirty);
+
+  @Bindable
   public abstract String getValue();
 
+  @Bindable
   public abstract String getLabel();
 
   protected String getDBType() {
@@ -154,8 +162,8 @@ public abstract class TaskItem {
   public abstract boolean isReadOnly();
 
   /** Default implementation of getOptions() that returns the empty list. */
-  protected List<String> getOptions() {
-    return Collections.emptyList();
+  protected ObservableList<String> getOptions() {
+    return new ObservableArrayList<>();
   }
 
   public void serialize(XmlSerializer serializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {

@@ -40,6 +40,11 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
+  public void setDirty(final boolean dirty) {
+    if (dirty) { throw new IllegalArgumentException("Labels cannot be dirty"); }
+  }
+
+  @Override
   public String getValue() {
     return mValue;
   }
@@ -55,7 +60,7 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
-  public boolean canComplete() {
+  public boolean isCompleteable() {
     return true; // labels don't stop completion
   }
 

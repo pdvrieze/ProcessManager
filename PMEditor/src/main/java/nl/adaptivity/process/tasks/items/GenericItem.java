@@ -3,6 +3,10 @@ package nl.adaptivity.process.tasks.items;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.databinding.Bindable;
+import android.databinding.ObservableArrayList;
+import android.databinding.ObservableList;
+import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import android.content.Context;
 import android.text.Editable;
@@ -44,7 +48,7 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
   private String mType;
-  private List<String> mOptions;
+  private ObservableList<String> mOptions;
 
   private static class ComboAdapter extends ArrayAdapter<String> {
     private List<String> mOriginal;
@@ -64,7 +68,10 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   public GenericItem(String name, String label, String type, String value, List<String> options) {
     super(name, label, value);
     mType = type;
-    mOptions = options==null ? null : new ArrayList<>(options);
+    mOptions = new ObservableArrayList<>();
+    if (options!=null && options.size()>0) {
+      mOptions.addAll(options);
+    }
   }
 
   @Override
@@ -78,14 +85,18 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
     return mType;
   }
 
-
-  public List<String> getOptions() {
+  @Bindable
+  public ObservableList<String> getOptions() {
     return mOptions;
   }
 
 
   public void setOptions(List<String> options) {
-    mOptions = options==null ? null : new ArrayList<>(options);
+    mOptions = new ObservableArrayList<>();
+    if (options!=null && options.size()>0) {
+      mOptions.addAll(options);
+    }
+    notifyPropertyChanged(BR.options);
   }
 
   @Override
@@ -130,7 +141,7 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
   @Override
-  public boolean canComplete() {
+  public boolean isCompleteable() {
     return getValue()!=null;
   }
 

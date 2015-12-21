@@ -39,7 +39,7 @@ public class PasswordItem extends TextLabeledItem {
   }
 
   @Override
-  public boolean canComplete() {
+  public boolean isCompleteable() {
     return getValue()!=null;
   }
 }

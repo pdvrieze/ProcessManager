@@ -1,5 +1,7 @@
 package nl.adaptivity.process.tasks.items;
 
+import android.databinding.Bindable;
+import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.TaskItem;
 import android.view.LayoutInflater;
@@ -21,23 +23,35 @@ public abstract class LabeledItem extends TaskItem {
     setLabel(label);
   }
 
+  @Bindable
   public String getLabel() {
     return mLabel;
   }
 
   public void setLabel(String label) {
     mLabel = label;
+    notifyPropertyChanged(BR.label);
   }
 
   public void setValue(String value) {
+    boolean dirty = false;
     if (mValue==null) {
-      if (value!=null) { mDirty = true; }
+      if (value!=null) { dirty = true; }
     } else if (! mValue.equals(value)) {
-      mDirty = true;
+      dirty = true;
     }
+    boolean oldCanComplete = isCompleteable();
     mValue = value;
+    if (dirty) {
+      notifyPropertyChanged(BR.value);
+      setDirty(true);
+      if (oldCanComplete != isCompleteable()) {
+        notifyPropertyChanged(BR.completeable);
+      }
+    }
   }
 
+  @Bindable
   public final String getValue() {
     return mValue;
   }
@@ -49,6 +63,13 @@ public abstract class LabeledItem extends TaskItem {
 
   public boolean isDirty() {
     return mDirty;
+  }
+
+  protected void setDirty(boolean dirty) {
+    if (mDirty!=dirty) {
+      mDirty = dirty;
+      notifyPropertyChanged(BR.dirty);
+    }
   }
 
   @Override

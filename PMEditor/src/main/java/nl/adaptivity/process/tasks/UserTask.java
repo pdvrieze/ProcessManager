@@ -1,8 +1,15 @@
 package nl.adaptivity.process.tasks;
 
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+import android.databinding.ObservableArrayList;
+import android.databinding.ObservableList;
+import android.databinding.ObservableList.OnListChangedCallback;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
 import android.util.Log;
+import net.devrieze.util.CollectionUtil;
+import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.util.Util;
 import org.xmlpull.v1.XmlPullParser;
@@ -13,10 +20,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
-public class UserTask {
+public class UserTask extends BaseObservable {
 
   private static final String TAG = "UserTask";
   private static final int STATE_EDITABLE=1;
@@ -99,11 +105,49 @@ public class UserTask {
   public static final String TAG_TASK = "task";
   public static final String TAG_ITEM = "item";
   public static final String TAG_OPTION = "option";
+  private final OnListChangedCallback mChangeCallback = new OnListChangedCallback() {
+
+    @Override
+    public void onChanged(final ObservableList sender) {
+      if (sender==mItems) {
+        setDirty(true, BR.items);
+      }
+    }
+
+    @Override
+    public void onItemRangeChanged(final ObservableList sender, final int positionStart, final int itemCount) {
+      if (sender==mItems) {
+        setDirty(true, BR.items);
+      }
+    }
+
+    @Override
+    public void onItemRangeInserted(final ObservableList sender, final int positionStart, final int itemCount) {
+      if (sender==mItems) {
+        setDirty(true, BR.items);
+      }
+    }
+
+    @Override
+    public void onItemRangeMoved(final ObservableList sender, final int fromPosition, final int toPosition, final int itemCount) {
+      if (sender==mItems) {
+        setDirty(true, BR.items);
+      }
+    }
+
+    @Override
+    public void onItemRangeRemoved(final ObservableList sender, final int positionStart, final int itemCount) {
+      if (sender==mItems) {
+        setDirty(true, BR.items);
+      }
+    }
+  };
+
   private String mSummary;
   private long mHandle;
   private String mOwner;
   private TaskState mState;
-  private List<TaskItem> mItems;
+  private ObservableArrayList<TaskItem> mItems;
   private boolean mDirty = false;
 
   public UserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
@@ -111,16 +155,29 @@ public class UserTask {
     mHandle = handle;
     mOwner = owner;
     mState = state;
-    mItems = items;
+    mItems = new ObservableArrayList<>();
+    mItems.addAll(items);
+    mItems.addOnListChangedCallback(mChangeCallback);
   }
 
+  @Bindable
   public String getSummary() {
     return mSummary;
   }
 
+  private void setDirty(boolean dirty, int fieldId) {
+    boolean oldDirty = mDirty;
+    mDirty = mDirty || dirty;
+    if (dirty) {
+      notifyPropertyChanged(fieldId);
+      if (! oldDirty) {
+        notifyPropertyChanged(BR.dirty);
+      }
+    }
+  }
 
   public void setSummary(String summary) {
-    mDirty = mDirty || ! Util.equals(mSummary, summary);
+    setDirty(! Util.equals(mSummary, summary), BR.summary);
     mSummary = summary;
   }
 
@@ -135,46 +192,58 @@ public class UserTask {
   }
 
 
+  @Bindable
   public String getOwner() {
     return mOwner;
   }
 
 
   public void setOwner(String owner) {
-    mDirty = mDirty || ! Util.equals(mOwner, owner);
+    setDirty(! Util.equals(mOwner, owner), BR.owner);
     mOwner = owner;
   }
 
-
+  @Bindable
   public TaskState getState() {
     return mState;
   }
 
 
   public void setState(TaskState state) {
-    mDirty = mDirty || ! Util.equals(mState, state);
+    boolean oldCanComplete = isCompleteable();
+    setDirty(Util.equals(mState, state), BR.state);
     mState = state;
+    if (oldCanComplete != isCompleteable()) {
+      notifyPropertyChanged(BR.completeable);
+    }
+
   }
 
-
-  public List<TaskItem> getItems() {
+  @Bindable
+  public ObservableList<TaskItem> getItems() {
     return mItems;
   }
 
 
   public void setItems(List<TaskItem> items) {
-    mDirty = mDirty || ! Util.listEquals(mItems, items);
-    mItems = items;
+    // No need to check for dirtyness, the list will do that itself.
+    if (items==null || items.isEmpty()) {
+      mItems.clear();
+    } else {
+      CollectionUtil.mergeLists(mItems, items);
+    }
   }
 
-  public boolean canComplete() {
+  @Bindable
+  public boolean isCompleteable() {
     if (! mState.isEditable()) { return false; }
     for (TaskItem item:mItems) {
-      if (! item.canComplete()) { return false; }
+      if (! item.isCompleteable()) { return false; }
     }
     return true;
   }
 
+  @Bindable
   public boolean isDirty() {
     if (mDirty) return true;
     for(TaskItem i: mItems) {
