@@ -56,7 +56,7 @@ public class UserTask {
       mAttrValue = attrValue;
       mLabelId = labelId;
       mDecoratorId = decoratorId;
-      mState=0;
+      mState=state;
     }
 
     public String getAttrValue() {
@@ -73,8 +73,13 @@ public class UserTask {
       return mDecoratorId;
     }
 
-    public boolean isEditable() { return (mState& STATE_EDITABLE)!=0; }
-    public boolean isAvailable() { return (mState& STATE_EDITABLE)!=0; }
+    public boolean isEditable() {
+      return (mState& STATE_EDITABLE)!=0;
+    }
+
+    public boolean isAvailable() {
+      return (mState& STATE_AVAILABLE)!=0;
+    }
 
     public static TaskState fromString(String state) {
       Log.d(TAG, "TaskState.fromString: (\""+state+"\")");
