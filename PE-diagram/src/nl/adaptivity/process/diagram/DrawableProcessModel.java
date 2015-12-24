@@ -85,6 +85,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   private Rectangle mBounds = new Rectangle(0, 0, 0, 0);
   private int mState = STATE_DEFAULT;
   private int idSeq=0;
+  private boolean mFavourite;
 
   private DrawableProcessModel() {
     super();
@@ -102,6 +103,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     setVertSeparation(DEFAULT_VERT_SEPARATION);
     ensureIds();
     layout();
+  }
+
+  public boolean isFavourite() {
+    return mFavourite;
+  }
+
+  public void setFavourite(final boolean favourite) {
+    mFavourite = favourite;
   }
 
   @NotNull
