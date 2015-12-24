@@ -1,5 +1,6 @@
 package nl.adaptivity.process.models;
 
+import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.processModel.ProcessModel;
 
 /**
@@ -7,7 +8,7 @@ import nl.adaptivity.process.processModel.ProcessModel;
  */
 public class ProcessModelHolder {
 
-  public final ProcessModel<?, ?> model;
+  public final DrawableProcessModel model;
   public final Long handle;
   private final boolean mLoading;
 
@@ -17,7 +18,7 @@ public class ProcessModelHolder {
     this.handle = null;
   }
 
-  public ProcessModelHolder(ProcessModel<?, ?> model, Long handle) {
+  public ProcessModelHolder(DrawableProcessModel model, Long handle) {
     mLoading = false;
     this.model = model;
     this.handle = handle;
@@ -29,5 +30,13 @@ public class ProcessModelHolder {
 
   public boolean isLoading() {
     return mLoading;
+  }
+
+  public boolean isFavourite() {
+    return model==null ? false : model.isFavourite();
+  }
+
+  public void setFavourite(final boolean favourite) {
+    model.setFavourite(favourite);
   }
 }

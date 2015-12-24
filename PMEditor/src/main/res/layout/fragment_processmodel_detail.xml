@@ -1,7 +1,7 @@
 <!--suppress AndroidDomInspection -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
@@ -28,19 +28,45 @@
                 android:layout_gravity="center"
                 android:layout_marginBottom="@dimen/default_margin"
                 android:visibility="@{data.isLoading ? View.VISIBLE : View.GONE}"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                tools:visibility="gone" />
 
-        <TextView
-                android:id="@+id/processmodel_name"
-                style="?android:attr/textAppearanceLarge"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/default_margin"
-                android:gravity="center"
-                android:textIsSelectable="true"
-                android:text="@{data.name ?? @string/text_load_pm_error}"
-                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
-                tools:context="nl.adaptivity.process.ui.model.ProcessModelDetailFragment" />
+        <android.support.v7.widget.CardView android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            app:cardElevation="2dp"
+                                            android:layout_marginLeft="2dp"
+                                            android:layout_marginRight="2dp"
+                                            android:layout_marginTop="2dp"
+                                            android:layout_marginBottom="@dimen/default_margin">
+
+            <LinearLayout android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="horizontal">
+
+                <TextView
+                        android:id="@+id/processmodel_name"
+                        style="?android:attr/textAppearanceLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textIsSelectable="true"
+                        android:text="@{data.name ?? @string/text_load_pm_error}"
+                        tools:text="&lt;Model name&gt;"
+                        android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="36dp" />
+
+                <CheckBox
+                        android:id="@+id/checkbox_favourite"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:button="@drawable/ic_star_36dp"
+                        android:layout_gravity="center_vertical"
+                        android:checked="@{data.favourite}"
+                        />
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
 
         <nl.adaptivity.diagram.android.DiagramView
                 android:id="@+id/diagramView1"
@@ -52,7 +78,7 @@
                 android:layout_weight="1"
                 android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
                 app:editable="false"
-                app:maxScale="3"/>
+                app:maxScale="3" />
 
         <Button
                 android:id="@+id/btn_pm_clone"

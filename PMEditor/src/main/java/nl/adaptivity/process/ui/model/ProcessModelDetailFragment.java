@@ -144,6 +144,21 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   }
 
   @Override
+  public void onPause() {
+    super.onPause();
+    if (mModelHandle!=null) {
+      final boolean checked = mBinding.checkboxFavourite.isChecked();
+      if (checked != mBinding.getData().isFavourite()) {
+        mBinding.getData().setFavourite(mBinding.checkboxFavourite.isChecked());
+        Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, mProcessModelId);
+        ContentValues cv = new ContentValues(1);
+        cv.put(ProcessModels.COLUMN_FAVOURITE, checked);
+        getActivity().getContentResolver().update(uri, cv, null, null);
+      }
+    }
+  }
+
+  @Override
   public Loader<ProcessModelHolder> onCreateLoader(int id, Bundle args) {
     mProcessModelId = args.getLong(ARG_ITEM_ID);
     Uri uri = ContentUris.withAppendedId(ProcessModelProvider.ProcessModels.CONTENT_ID_STREAM_BASE,mProcessModelId);

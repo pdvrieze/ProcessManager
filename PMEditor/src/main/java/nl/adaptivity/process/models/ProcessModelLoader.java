@@ -1,16 +1,14 @@
 package nl.adaptivity.process.models;
 
 import android.content.ContentResolver;
-import android.support.v4.content.Loader;
 import net.devrieze.util.Tupple;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.processModel.ProcessModel;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.content.AsyncTaskLoader;
-import nl.adaptivity.process.tasks.UserTask;
 
 
 public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
@@ -45,10 +43,10 @@ public class ProcessModelLoader extends AsyncTaskLoader<ProcessModelHolder> {
   @Override
   public ProcessModelHolder loadInBackground() {
     Long handle = mHandle>=0 ? Long.valueOf(mHandle) : null;
-    final ProcessModel<?, ?> processModel;
+    final DrawableProcessModel processModel;
     final long id;
     if (handle!=null) {
-      final Tupple<ProcessModel<?, ?>, Long> tupple = ProcessModelProvider.getProcessModelForHandle(getContext(), mHandle);
+      final Tupple<DrawableProcessModel, Long> tupple = ProcessModelProvider.getProcessModelForHandle(getContext(), mHandle);
       processModel = tupple.getElem1();
       id = tupple.getElem2();
     } else {

@@ -13,10 +13,10 @@ import net.devrieze.util.Tupple;
 import nl.adaptivity.android.util.ContentProviderHelper;
 import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMParser;
-import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.xml.XmlException;
@@ -40,6 +40,7 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_MODEL = "model";
     public static final String COLUMN_UUID = "uuid";
+    public static final String COLUMN_FAVOURITE = "favourite";
 
     private static final String SCHEME = "content://";
 
@@ -58,8 +59,8 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String SELECT_HANDLE = COLUMN_HANDLE+" = ?";
 
     /**
-     * Check that the values contain columns that need notification of updates.
-     * @param values
+     * Check that the values contain columns that need (client) notification of updates. Either server or client
+     * @param values The values
      * @return true if notification is needed.
      */
     private static boolean hasNotifyableColumns(final ContentValues values) {
@@ -68,6 +69,19 @@ public class ProcessModelProvider extends ContentProvider {
           case COLUMN_SYNCSTATE:
           case COLUMN_UUID:
           case COLUMN_HANDLE:
+            break; // These are not user visible
+          default:
+            return true;
+        }
+      }
+      return false;
+    }
+
+    private static boolean hasServerNotifyableColumns(final ContentValues values) {
+      for (String key: values.keySet()) {
+        switch (key) {
+          case COLUMN_SYNCSTATE:
+          case COLUMN_FAVOURITE:
             break; // These are not user visible
           default:
             return true;
@@ -172,8 +186,22 @@ public class ProcessModelProvider extends ContentProvider {
         case PROCESSMODELS:
         case PROCESSMODELCONTENT:
           return ProcessModels.hasNotifyableColumns(values);
-        default:
+        case PROCESSINSTANCE:
+        case PROCESSINSTANCES:
           return ProcessInstances.hasNotifyableColumns(values);
+        default:
+          throw new IllegalStateException("The given target is unknown");
+      }
+    }
+
+    public boolean hasServerNotifyableColumns(final ContentValues values) {
+      switch (mTarget) {
+        case PROCESSMODEL:
+        case PROCESSMODELS:
+        case PROCESSMODELCONTENT:
+          return ProcessModels.hasServerNotifyableColumns(values);
+        default:
+          return hasNotifyableColumns(values);
       }
     }
 
@@ -333,10 +361,9 @@ public class ProcessModelProvider extends ContentProvider {
 
   @Override
   public Uri insert(Uri uri, ContentValues values) {
-    if (! values.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
-      values.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
-    }
     UriHelper helper = UriHelper.parseUri(uri);
+    addSyncstateIfNeeded(helper, values);
+
     if (helper.mId>=0) {
       values.put(BaseColumns._ID, Long.valueOf(helper.mId));
     }
@@ -344,6 +371,27 @@ public class ProcessModelProvider extends ContentProvider {
     long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
     notifyPMStreamChangeIfNeeded(id, helper, values);
     return notify(helper, id);
+  }
+
+  private void addSyncstateIfNeeded(final UriHelper helper, final ContentValues values) {
+    boolean needsSync = isSyncStateNeeded(helper, values);
+    if (needsSync) {
+      values.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
+    }
+
+  }
+
+  private boolean isSyncStateNeeded(final UriHelper helper, final ContentValues values) {
+    boolean needsSync = false;
+    if (! values.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
+      if (ProcessModelsOpenHelper.TABLE_NAME.equals(helper.mTable)) {
+        needsSync = ProcessModels.hasServerNotifyableColumns(values);
+      } else {
+        needsSync = true;
+      }
+
+    }
+    return needsSync;
   }
 
   public void notifyPMStreamChangeIfNeeded(final long id, final UriHelper helper, final ContentValues values) {
@@ -386,6 +434,7 @@ public class ProcessModelProvider extends ContentProvider {
   @Override
   public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     UriHelper helper = UriHelper.parseUri(uri);
+    addSyncstateIfNeeded(helper, values);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = BaseColumns._ID+" = ?";
@@ -398,7 +447,7 @@ public class ProcessModelProvider extends ContentProvider {
     final int result = db.update(helper.mTable, values, selection, selectionArgs);
     if (result>0 && helper.hasNotifyableColumns(values)) {
       notifyPMStreamChangeIfNeeded(helper.mId, helper, values);
-      getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify);
+      getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify && helper.hasServerNotifyableColumns(values));
     }
     return result;
   }
@@ -419,17 +468,18 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static Tupple<ProcessModel<?, ?>, Long> getProcessModelForHandle(Context context, long handle) {
+  public static Tupple<DrawableProcessModel, Long> getProcessModelForHandle(Context context, long handle) {
     try {
       final ContentResolver contentResolver = context.getContentResolver();
-      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
+      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID, ProcessModels.COLUMN_FAVOURITE }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
       try {
         if (! idresult.moveToFirst()) { return null; }
-        long id = idresult.getLong(1); // only one column
+        long id = idresult.getLong(1); // first column
+        boolean favourite = idresult.getInt(2)!=0;
         Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
         InputStream in = contentResolver.openInputStream(uri);
         try{
-          return Tupple.<ProcessModel<?, ?>, Long>tupple(getProcessModel(in), id);
+          return Tupple.tupple(getProcessModel(in, favourite), id);
         } finally {
           in.close();
         }
@@ -441,12 +491,27 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static ProcessModel<?, ?> getProcessModelForId(Context context, long id) {
+  public static DrawableProcessModel getProcessModelForId(Context context, long id) {
     Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
     return getProcessModel(context, uri);
   }
 
-  public static ProcessModel<?, ?> getProcessModel(Context context, Uri uri) {
+  public static DrawableProcessModel getProcessModel(Context context, Uri uri) {
+    final ContentResolver contentResolver = context.getContentResolver();
+    Cursor cursor = contentResolver.query(uri, new String[] {ProcessModels.COLUMN_FAVOURITE}, null, null, null);
+    try {
+      if (cursor.moveToFirst()) {
+        boolean favourite = cursor.getInt(cursor.getColumnIndex(ProcessModels.COLUMN_FAVOURITE))!=0;
+        return getProcessModel(context, uri, favourite);
+      } else { // no such model
+        return null;
+      }
+    } finally {
+      cursor.close();
+    }
+  }
+
+  public static DrawableProcessModel getProcessModel(Context context, Uri uri, final boolean favourite) {
     try {
       InputStream in;
       if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())||
@@ -458,7 +523,7 @@ public class ProcessModelProvider extends ContentProvider {
         in = URI.create(uri.toString()).toURL().openStream();
       }
       try {
-        return getProcessModel(new BufferedInputStream(in));
+        return getProcessModel(new BufferedInputStream(in), favourite);
       } finally {
         in.close();
       }
@@ -467,9 +532,11 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static ProcessModel<?, ?> getProcessModel(InputStream in) {
+  private static DrawableProcessModel getProcessModel(InputStream in, boolean favourite) {
     final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
-    return PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+    final DrawableProcessModel drawableProcessModel = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
+    drawableProcessModel.setFavourite(favourite);
+    return drawableProcessModel;
   }
 
   public static Uri newProcessModel(Context context, ClientProcessModel<?, ?> processModel) throws IOException {
@@ -485,6 +552,9 @@ public class ProcessModelProvider extends ContentProvider {
       values.put(ProcessModels.COLUMN_NAME, processModel.getName());
       values.put(ProcessModels.COLUMN_MODEL, out.toString());
       values.put(ProcessModels.COLUMN_UUID, processModel.getUuid().toString());
+      if (processModel instanceof DrawableProcessModel) {
+        values.put(ProcessModels.COLUMN_FAVOURITE, ((DrawableProcessModel) processModel).isFavourite());
+      }
       try {
         return client.insert(ProcessModels.CONTENT_ID_URI_BASE, values);
       } catch (RemoteException e) {

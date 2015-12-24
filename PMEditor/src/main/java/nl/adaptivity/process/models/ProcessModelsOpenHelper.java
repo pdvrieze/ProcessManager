@@ -29,13 +29,14 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   static final String TABLE_NAME = "processModels";
   static final String TABLE_INSTANCES_NAME = "processInstances";
   private static final String DB_NAME = "processmodels.db";
-  private static final int DB_VERSION = 5;
+  private static final int DB_VERSION = 6;
   private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       ProcessModels.COLUMN_HANDLE +" LONG," +
       ProcessModels.COLUMN_NAME + " TEXT," +
       ProcessModels.COLUMN_MODEL + " TEXT," +
       ProcessModels.COLUMN_UUID + " TEXT, " +
+      ProcessModels.COLUMN_FAVOURITE+ " INT," +
       ProcessModels.COLUMN_SYNCSTATE+ " INT )";
   private static final String SQL_CREATE_TABLE_INSTANCES = "CREATE TABLE " + TABLE_INSTANCES_NAME + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
@@ -90,21 +91,35 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     db.beginTransaction();
     try {
-      if (newVersion==5 && oldVersion==3) {
-        db.execSQL(SQL_CREATE_TABLE_INSTANCES);
-      } else if (newVersion==5 && oldVersion==4) {
-        db.execSQL("ALTER TABLE "+TABLE_INSTANCES_NAME+" ADD COLUMN "+ProcessInstances.COLUMN_UUID+" TEXT");
-        db.delete(TABLE_INSTANCES_NAME, XmlBaseColumns.COLUMN_SYNCSTATE+"="+RemoteXmlSyncAdapter.SYNC_UPTODATE,null);
+      if (newVersion==6 && (oldVersion==5 || upgradeTo5(db, oldVersion, newVersion))) {
+        db.execSQL("ALTER TABLE "+TABLE_NAME+" ADD COLUMN "+ProcessModels.COLUMN_FAVOURITE+" INTEGER");
       } else {
-        db.execSQL("DROP TABLE IF EXISTS "+TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS "+TABLE_INSTANCES_NAME);
-        onCreate(db);
+        recreateDB(db);
       }
 
       db.setTransactionSuccessful();
     } finally {
       db.endTransaction();
     }
+  }
+
+  private static boolean upgradeTo5(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+    if (newVersion>=5 && oldVersion==3) {
+      db.execSQL(SQL_CREATE_TABLE_INSTANCES);
+      return true;
+    } else if (newVersion>=5 && oldVersion==4) {
+      db.execSQL("ALTER TABLE "+TABLE_INSTANCES_NAME+" ADD COLUMN "+ProcessInstances.COLUMN_UUID+" TEXT");
+      db.delete(TABLE_INSTANCES_NAME, XmlBaseColumns.COLUMN_SYNCSTATE+"="+RemoteXmlSyncAdapter.SYNC_UPTODATE,null);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private void recreateDB(final SQLiteDatabase db) {
+    db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+    db.execSQL("DROP TABLE IF EXISTS "+TABLE_INSTANCES_NAME);
+    onCreate(db);
   }
 
   @Override
