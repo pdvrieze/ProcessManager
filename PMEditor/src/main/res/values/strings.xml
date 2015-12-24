@@ -37,7 +37,7 @@
     <string name="title_main">Process Manager</string>
     <string name="title_tasklist">Tasks</string>
     <string name="btn_task_complete">Complete task</string>
-    <string name="lbl_ac_task_detail">Task Details</string>
+    <string name="lbl_ac_task_detail">Task details</string>
     <string name="menu_ac_reset">Reset</string>
     <string name="menu_ac_sync_tasks">Sync tasks</string>
     <string name="menu_ac_sync_pm">Sync models</string>
@@ -71,5 +71,6 @@
     <string name="taskstate_missing">&lt;unknown state&gt;</string>
     <string name="btn_task_accept">Accept</string>
     <string name="btn_task_cancel">Cancel task</string>
+    <string name="hint_mark_pm_favourite">Mark favourite</string>
 
 </resources>

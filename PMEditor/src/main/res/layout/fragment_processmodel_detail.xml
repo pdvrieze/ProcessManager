@@ -64,6 +64,7 @@
                         android:button="@drawable/ic_star_36dp"
                         android:layout_gravity="center_vertical"
                         android:checked="@{data.favourite}"
+                        android:hint="@string/hint_mark_pm_favourite"
                         />
             </LinearLayout>
         </android.support.v7.widget.CardView>
