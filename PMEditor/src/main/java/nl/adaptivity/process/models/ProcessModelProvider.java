@@ -202,6 +202,14 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
+  public static boolean isSyncActive(final Account account) {
+    return ContentResolver.isSyncActive(account, AUTHORITY);
+  }
+
+  public static boolean isSyncPending(final Account account) {
+    return ContentResolver.isSyncPending(account, AUTHORITY);
+  }
+
   public static void requestSyncProcessModelList(Account account, boolean expedited) {
     ProviderHelper.requestSync(account, AUTHORITY, expedited);
   }

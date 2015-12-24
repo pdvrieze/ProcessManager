@@ -1,10 +1,9 @@
 package nl.adaptivity.process.ui.model;
 
+import android.accounts.Account;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ContentUris;
-import android.content.Context;
-import android.content.Intent;
+import android.content.*;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
@@ -14,12 +13,17 @@ import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
@@ -31,6 +35,7 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.ModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
@@ -50,7 +55,7 @@ import java.util.UUID;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, nl.adaptivity.android.util.GetNameDialogFragment.Callbacks {
+public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -129,6 +134,10 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   private PMCursorAdapter mAdapter;
+  private SwipeRefreshLayout mSwipeRefresh;
+  private SyncStatusObserver mSyncObserver;
+  private Object mSyncObserverHandle;
+  private boolean mManualSync;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -142,13 +151,33 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     getLoaderManager().initLoader(LOADERID, null, this);
     mAdapter = new PMCursorAdapter(getActivity(), null);
     setListAdapter(mAdapter);
+    mSyncObserver = new SyncStatusObserver() {
+
+      @Override
+      public void onStatusChanged(final int which) {
+        getActivity().runOnUiThread(new Runnable() {
+          @Override
+          public void run() {
+            updateSyncState();
+          }
+        });
+      }
+    };
 
     setHasOptionsMenu(true);
   }
 
   @Override
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.refreshablerecyclerview, container, false);
+  }
+
+  @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
+    getRecyclerView().setLayoutManager(new LinearLayoutManager(getActivity()));
+    mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefresh);
+    mSwipeRefresh.setOnRefreshListener(this);
 
     // Restore the previously serialized activated item position.
     if (savedInstanceState != null
@@ -163,6 +192,46 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     if (mAdapter!=null && mAdapter.getSelectedId() != RecyclerView.NO_ID) {
       // Serialize and persist the activated item position.
       outState.putLong(STATE_ACTIVATED_ID, mAdapter.getSelectedId());
+    }
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    mSyncObserver.onStatusChanged(0); // trigger status sync
+    mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    if (mSyncObserverHandle!=null) {
+      ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
+      mSyncObserverHandle=null;
+    }
+  }
+
+  @Override
+  public void onRefresh() {
+    ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
+    mManualSync=true;
+  }
+
+  private void doManualRefresh() {
+    onRefresh();
+    updateSyncState();
+  }
+
+  private void updateSyncState() {
+    Account storedAccount = AuthenticatedWebClient.getStoredAccount(getActivity());
+    if (storedAccount==null) {
+      mSwipeRefresh.setRefreshing(false);
+    } else {
+      final boolean syncActive = ProcessModelProvider.isSyncActive(storedAccount);
+      final boolean syncPending = ProcessModelProvider.isSyncPending(storedAccount);
+      if (syncActive || (!syncPending)) { mManualSync= false; }
+      boolean sync = syncActive || mManualSync;
+      mSwipeRefresh.setRefreshing(sync);
     }
   }
 
