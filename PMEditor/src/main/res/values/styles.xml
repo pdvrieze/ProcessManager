@@ -8,6 +8,7 @@
         <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
 
     </style>
+    <style name="TextAppearance.Overview.Title" parent="TextAppearance.AppCompat.Title"></style>
     <style name="TaskitemContainer" parent="TaskitemContainer.Base" />
     <style name="Widget.IconButton" parent="Widget.AppCompat.Button.Borderless">
         <item name="android:background">@drawable/bg_iconbutton</item>

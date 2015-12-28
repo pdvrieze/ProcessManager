@@ -5,41 +5,36 @@ import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.view.View;
-import android.view.View.OnClickListener;
-import nl.adaptivity.android.util.SelectableCursorAdapter.SelectableViewHolder;
+import nl.adaptivity.android.util.ClickableCursorAdapter.ClickableViewHolder;
 
 
 /**
  * Class that allows selection state to be maintained in a recyclerview.
  */
-public abstract class SelectableCursorAdapter<VH extends SelectableViewHolder> extends CursorRecyclerViewAdapter<VH> {
+public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> extends ClickableCursorAdapter<VH> {
 
-  public abstract class SelectableViewHolder extends ViewHolder implements OnClickListener {
+  public interface OnSelectionListener {
 
-    public SelectableViewHolder(final View itemView) {
-      super(itemView);
-      itemView.setOnClickListener(this);
-    }
-
-    public void onClick(final View v) {
-      onClickView(v, getAdapterPosition());
-    }
+    void onSelectionChanged(SelectableCursorAdapter<?> adapter);
   }
 
   private int mSelectionPos = RecyclerView.NO_POSITION;
   private long mSelectionId = RecyclerView.NO_ID;
   private final boolean mAllowUnselection;
+  private boolean mSelectionEnabled = true;
+  private OnSelectionListener mOnSelectionListener;
 
   public SelectableCursorAdapter(final Context context, final Cursor cursor, final boolean allowUnselection) {super(context, cursor);
     mAllowUnselection = allowUnselection;
   }
 
-  public void onClickView(final View v, final int adapterPosition) {
-    setSelection(adapterPosition);
+  @Override
+  public void onClickView(final ViewHolder viewHolder) {
+    if (mSelectionEnabled) {
+      setSelection(viewHolder.getAdapterPosition());
+    }
   }
 
-  @Override
   @CallSuper
   public void onBindViewHolder(final VH viewHolder, final Cursor cursor) {
 //    viewHolder.itemView.setSelected(viewHolder.getAdapterPosition()==mSelection);
@@ -81,10 +76,12 @@ public abstract class SelectableCursorAdapter<VH extends SelectableViewHolder> e
         // unselect
         mSelectionPos = RecyclerView.NO_POSITION;
         mSelectionId = RecyclerView.NO_ID;
+        if (mOnSelectionListener != null) { mOnSelectionListener.onSelectionChanged(this); }
       }
     } else {
       mSelectionPos = position;
       mSelectionId = itemId;
+      if (mOnSelectionListener != null) { mOnSelectionListener.onSelectionChanged(this); }
       if (position!=RecyclerView.NO_POSITION) {
         notifyItemChanged(position);
       }
@@ -93,5 +90,21 @@ public abstract class SelectableCursorAdapter<VH extends SelectableViewHolder> e
 
   public boolean isAllowUnselection() {
     return mAllowUnselection;
+  }
+
+  public OnSelectionListener getOnSelectionListener() {
+    return mOnSelectionListener;
+  }
+
+  public void setOnSelectionListener(final OnSelectionListener onSelectionListener) {
+    mOnSelectionListener = onSelectionListener;
+  }
+
+  public boolean isSelectionEnabled() {
+    return mSelectionEnabled;
+  }
+
+  public void setSelectionEnabled(final boolean enabled) {
+    mSelectionEnabled = enabled;
   }
 }

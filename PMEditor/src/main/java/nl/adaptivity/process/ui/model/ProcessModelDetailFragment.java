@@ -9,6 +9,7 @@ import android.databinding.DataBindingUtil;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
@@ -33,6 +34,8 @@ import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.UUID;
 
 /**

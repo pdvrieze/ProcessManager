@@ -72,5 +72,15 @@
     <string name="btn_task_accept">Accept</string>
     <string name="btn_task_cancel">Cancel task</string>
     <string name="hint_mark_pm_favourite">Mark favourite</string>
+    <string name="title_overview_fragment">PMI Overview</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_overview_pending_tasks">Pending tasks</string>
+    <string name="title_overview_favourite_models">Start favourite model</string>
+    <string name="lbl_no_pending_tasks">No pending tasks</string>
+    <string name="lbl_no_quick_models">There are no favourite, executable models</string>
+    <string name="lbl_overview_tasklist_error">Error loading tasks</string>
+    <string name="lbl_overview_modellist_error">Error loading models</string>
 
 </resources>

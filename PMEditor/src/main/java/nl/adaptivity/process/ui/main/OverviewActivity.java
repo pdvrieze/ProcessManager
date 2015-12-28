@@ -28,6 +28,7 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.ActivityOverviewBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider;
+import nl.adaptivity.process.ui.main.OverviewFragment.OverviewCallbacks;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment.ProcessModelListCallbacks;
@@ -41,8 +42,7 @@ import java.util.concurrent.Future;
 
 
 public class OverviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
-                                                                   TaskListCallbacks,
-                                                                   ProcessModelListCallbacks,
+                                                                   OverviewCallbacks,
                                                                    GetNameDialogFragment.Callbacks,
                                                                    ProcessModelDetailFragment.Callbacks,
                                                                    TaskDetailCallbacks {
@@ -126,6 +126,9 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     };
     task.execute(ProviderHelper.getAuthBase(this));
 
+    // Go by default to the home fragment.
+    onNavigationItemSelected(R.id.nav_home);
+
   }
 
   private TitleFragment getActiveFragment() {
@@ -173,7 +176,8 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
   private boolean onNavigationItemSelected(@IdRes final int id) {
     switch (id) {
       case R.id.nav_home:
-        // Handle the camera action
+        mActiveFragment = OverviewFragment.newInstance();
+        getSupportFragmentManager().beginTransaction().replace(R.id.overview_container, mActiveFragment).commit();
         break;
       case R.id.nav_tasks: {
         mActiveFragment = new TaskListOuterFragment();

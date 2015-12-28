@@ -34,6 +34,7 @@
         <android.support.v7.widget.CardView android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             app:cardElevation="2dp"
+                                            app:cardCornerRadius="2dp"
                                             android:layout_marginLeft="2dp"
                                             android:layout_marginRight="2dp"
                                             android:layout_marginTop="2dp"
@@ -64,7 +65,7 @@
                         android:button="@drawable/ic_star_36dp"
                         android:layout_gravity="center_vertical"
                         android:checked="@{data.favourite}"
-                        android:hint="@string/hint_mark_pm_favourite"
+                        android:contentDescription="@string/hint_mark_pm_favourite"
                         />
             </LinearLayout>
         </android.support.v7.widget.CardView>
@@ -79,7 +80,8 @@
                 android:layout_weight="1"
                 android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
                 app:editable="false"
-                app:maxScale="3" />
+                app:maxScale="3"
+                android:focusable="false"/>
 
         <Button
                 android:id="@+id/btn_pm_clone"

@@ -3,32 +3,23 @@ package nl.adaptivity.process.ui.task;
 import android.accounts.Account;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.SyncStatusObserver;
-import android.database.Cursor;
-import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.BaseColumns;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.util.Log;
 import android.view.*;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
+import nl.adaptivity.android.util.SelectableCursorAdapter.OnSelectionListener;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.editor.android.databinding.TaskListitemBinding;
-import nl.adaptivity.process.tasks.UserTask.TaskState;
 import nl.adaptivity.process.tasks.data.TaskProvider;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.editor.android.databinding.*;
+import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
 
 
 /**
@@ -42,7 +33,7 @@ import nl.adaptivity.process.editor.android.databinding.*;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class TaskListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, OnRefreshListener {
+public class TaskListFragment extends MasterListFragment implements OnRefreshListener, OnSelectionListener {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -54,84 +45,12 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
 
   private static final String TAG = TaskListFragment.class.getSimpleName();
 
-  public final class TaskCursorAdapter extends nl.adaptivity.android.util.SelectableCursorAdapter<TaskListFragment.TaskCursorAdapter.TaskCursorViewHolder> {
-
-    public final class TaskCursorViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
-
-      public final TaskListitemBinding binding;
-
-      public TaskCursorViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
-        super(inflater.inflate(R.layout.task_listitem, parent, false));
-        binding =  DataBindingUtil.bind(itemView);
-      }
-    }
-
-    private LayoutInflater mInflater;
-    private int mSummaryColIdx;
-    private int mStateColIdx;
-
-    private TaskCursorAdapter(Context context, Cursor c) {
-      super(context, c, false);
-      setHasStableIds(true);
-      mInflater = LayoutInflater.from(context);
-      updateColIdxs(c);
-    }
-
-    @Override
-    public void onBindViewHolder(final TaskCursorViewHolder viewHolder, final Cursor cursor) {
-      super.onBindViewHolder(viewHolder, cursor);
-      viewHolder.binding.setSummary(mSummaryColIdx>=0 ? cursor.getString(mSummaryColIdx): null);
-      final int drawableId;
-      if (mStateColIdx>=0) {
-        String s = cursor.getString(mStateColIdx);
-        TaskState state = TaskState.fromString(s);
-        drawableId = state==null ? -1 : state.getDecoratorId();
-      } else {
-        drawableId = -1;
-      }
-      viewHolder.binding.setTaskStateDrawable(drawableId);
-//      viewHolder.binding.executePendingBindings();
-    }
-
-    @Override
-    public TaskCursorViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
-      return new TaskCursorViewHolder(mInflater, parent);
-    }
-
-    private void updateColIdxs(Cursor c) {
-      if (c==null) {
-        mSummaryColIdx = -1;
-        mStateColIdx = -1;
-      } else {
-        mSummaryColIdx = c.getColumnIndex(Tasks.COLUMN_SUMMARY);
-        mStateColIdx = c.getColumnIndex(Tasks.COLUMN_STATE);
-      }
-    }
-
-    @Override
-    public void changeCursor(Cursor cursor) {
-      super.changeCursor(cursor);
-    }
-
-    @Override
-    public Cursor swapCursor(Cursor newCursor) {
-      final Cursor result = super.swapCursor(newCursor);
-      updateColIdxs(newCursor);
-      return result;
-    }
-
-    @Override
-    public void onClickView(final View v, final int adapterPosition) {
-      super.onClickView(v, adapterPosition); // keep the selection event recorded
-      doOnItemSelected(adapterPosition, getItemId(adapterPosition));
-    }
-  }
-
   private TaskCursorAdapter mAdapter;
   private SwipeRefreshLayout mSwipeRefresh;
   private SyncStatusObserver mSyncObserver;
   private Object mSyncObserverHandle;
   private boolean mManualSync;
+  private ListCursorLoaderCallbacks mTaskLoaderCallbacks;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
@@ -142,9 +61,11 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    getLoaderManager().initLoader(TASKLISTLOADERID, null, this);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
+    mAdapter.setOnSelectionListener(this);
     setListAdapter(mAdapter);
+    mTaskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), mAdapter);
+    getLoaderManager().initLoader(TASKLISTLOADERID, null, mTaskLoaderCallbacks);
 
     setHasOptionsMenu(true);
   }
@@ -206,6 +127,11 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
     }
   }
 
+  @Override
+  public void onSelectionChanged(final SelectableCursorAdapter<?> adapter) {
+    doOnItemSelected(adapter.getSelectedPos(), adapter.getSelectedId());
+  }
+
   private void setActivatedId(long itemId) {
     ViewHolder vh = getRecyclerView().findViewHolderForItemId(itemId);
     if (vh!=null) {
@@ -255,23 +181,5 @@ public class TaskListFragment extends MasterListFragment implements LoaderCallba
       boolean sync = syncActive || mManualSync;
       mSwipeRefresh.setRefreshing(sync);
     }
-  }
-
-  @Override
-  public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-    return new CursorLoader(getActivity(), TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY, Tasks.COLUMN_STATE}, Tasks.COLUMN_STATE+"!='Complete'", null, null);
-  }
-
-  @Override
-  public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-    if (data!=null) {
-      mAdapter.changeCursor(data);
-    }
-  }
-
-  @Override
-  public void onLoaderReset(Loader<Cursor> loader) {
-    mAdapter.changeCursor(null);
   }
 }

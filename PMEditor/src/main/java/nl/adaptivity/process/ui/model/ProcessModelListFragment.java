@@ -1,13 +1,10 @@
 package nl.adaptivity.process.ui.model;
 
 import android.accounts.Account;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.*;
 import android.database.Cursor;
-import android.databinding.DataBindingUtil;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -26,16 +23,15 @@ import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.android.util.SelectableCursorAdapter;
+import nl.adaptivity.android.util.SelectableCursorAdapter.OnSelectionListener;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
 import nl.adaptivity.process.editor.android.PMEditor;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.editor.android.databinding.ModelListitemBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
@@ -55,7 +51,7 @@ import java.util.UUID;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener {
+public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener, OnSelectionListener {
 
   /**
    * The serialization (saved instance state) Bundle key representing the
@@ -70,68 +66,6 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   private static final String TAG = ProcessModelListFragment.class.getSimpleName();
 
   private static final int DLG_NEW_PM_NAME = 2;
-
-  final class PMCursorAdapter extends SelectableCursorAdapter<PMCursorAdapter.PMViewHolder> {
-
-    class PMViewHolder extends SelectableCursorAdapter.SelectableViewHolder {
-
-      final ModelListitemBinding binding;
-
-      public PMViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
-        super(inflater.inflate(R.layout.model_listitem, parent, false));
-        binding = DataBindingUtil.bind(itemView);
-      }
-    }
-
-    private LayoutInflater mInflater;
-    private int mNameColumn;
-
-    private PMCursorAdapter(Context context, Cursor c) {
-      super(context, c, false);
-      mInflater = LayoutInflater.from(context);
-      updateColumnIndices(c);
-      setHasStableIds(true);
-    }
-
-    private void updateColumnIndices(Cursor c) {
-      if (c==null) {
-        mNameColumn = -1;
-      } else {
-        mNameColumn = c.getColumnIndex(ProcessModels.COLUMN_NAME);
-      }
-    }
-
-    @Override
-    public void changeCursor(Cursor cursor) {
-      super.changeCursor(cursor);
-    }
-
-    @Override
-    public Cursor swapCursor(Cursor newCursor) {
-      Log.d(TAG, "Swapping processmodel cursor");
-      final Cursor result = super.swapCursor(newCursor);
-      updateColumnIndices(newCursor);
-      return result;
-    }
-
-    @Override
-    public void onBindViewHolder(final PMViewHolder viewHolder, final Cursor cursor) {
-      super.onBindViewHolder(viewHolder, cursor);
-      viewHolder.binding.setName(mNameColumn>=0 ? cursor.getString(mNameColumn): null);
-      viewHolder.binding.executePendingBindings();
-    }
-
-    @Override
-    public PMViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
-      return new PMViewHolder(mInflater, parent);
-    }
-
-    @Override
-    public void onClickView(final View v, final int adapterPosition) {
-      super.onClickView(v, adapterPosition);
-      doOnItemSelected(adapterPosition, getItemId(adapterPosition));
-    }
-  }
 
   private PMCursorAdapter mAdapter;
   private SwipeRefreshLayout mSwipeRefresh;
@@ -150,6 +84,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     super.onCreate(savedInstanceState);
     getLoaderManager().initLoader(LOADERID, null, this);
     mAdapter = new PMCursorAdapter(getActivity(), null);
+    mAdapter.setOnSelectionListener(this);
     setListAdapter(mAdapter);
     mSyncObserver = new SyncStatusObserver() {
 
@@ -184,6 +119,14 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         && savedInstanceState.containsKey(STATE_ACTIVATED_ID)) {
       setActivatedId(savedInstanceState.getLong(STATE_ACTIVATED_ID));
     }
+  }
+
+  @Override
+  public void onSelectionChanged(final SelectableCursorAdapter<?> adapter) {
+    if (adapter.getSelectedId()!=RecyclerView.NO_ID) {
+      doOnItemSelected(adapter.getSelectedPos(), adapter.getSelectedId());
+    }
+
   }
 
   @Override
