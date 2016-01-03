@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="DynspanGridLayoutManager">
+        <attr name="minSpanWidth" format="dimension"/>
+    </declare-styleable>
     <declare-styleable name="IconButton">
         <attr name="iconPadding" format="dimension"/>
         <attr name="iconWidth" format="dimension"/>
