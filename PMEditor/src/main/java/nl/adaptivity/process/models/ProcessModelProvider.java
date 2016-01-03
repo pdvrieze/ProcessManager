@@ -34,6 +34,8 @@ public class ProcessModelProvider extends ContentProvider {
 
   public static class ProcessModels implements XmlBaseColumns {
 
+    public static final String COLUMN_INSTANCECOUNT = "instancecount";
+
     private ProcessModels(){}
 
     public static final String COLUMN_HANDLE="handle";
@@ -135,10 +137,16 @@ public class ProcessModelProvider extends ContentProvider {
     PROCESSMODELCONTENT(ProcessModels.CONTENT_ID_STREAM_PATTERN),
     PROCESSINSTANCES(ProcessInstances.CONTENT_URI),
     PROCESSINSTANCE(ProcessInstances.CONTENT_ID_URI_PATTERN),
-    ;
+    PROCESSMODELSEXT,
+    PROCESSMODELEXT;
 
-    private String path;
-    private Uri baseUri;
+    private final String path;
+    private final Uri baseUri;
+
+    private QueryTarget() {
+      baseUri=null;
+      path=null;
+    }
 
     private QueryTarget(Uri uri) {
       baseUri = Uri.fromParts(uri.getScheme(), uri.getAuthority()+'/'+uri.getPath(), null);
@@ -158,9 +166,11 @@ public class ProcessModelProvider extends ContentProvider {
     static {
       _uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
       for(QueryTarget u:QueryTarget.values()) {
-        String path = u.path;
-        if (path.startsWith("/")) { path = path.substring(1); }
-        _uriMatcher.addURI(AUTHORITY, path, u.ordinal() );
+        if (u.path!=null) {
+          String path = u.path;
+          if (path.startsWith("/")) { path = path.substring(1); }
+          _uriMatcher.addURI(AUTHORITY, path, u.ordinal());
+        }
       }
     }
 
@@ -177,7 +187,24 @@ public class ProcessModelProvider extends ContentProvider {
       mTarget = u;
       mId = id;
       mNetNotify = netNotify;
-      mTable = u==QueryTarget.PROCESSINSTANCE|| u==QueryTarget.PROCESSINSTANCES ? ProcessModelsOpenHelper.TABLE_INSTANCES_NAME: ProcessModelsOpenHelper.TABLE_NAME;
+      switch (u) {
+        case PROCESSINSTANCE:
+        case PROCESSINSTANCES:
+          mTable = ProcessModelsOpenHelper.TABLE_INSTANCES_NAME;
+          break;
+        case PROCESSMODEL:
+        case PROCESSMODELCONTENT:
+        case PROCESSMODELS:
+          mTable =ProcessModelsOpenHelper.TABLE_NAME;
+          break;
+        case PROCESSMODELEXT:
+        case PROCESSMODELSEXT:
+          mTable = ProcessModelsOpenHelper.VIEW_NAME_PROCESSMODELEXT;
+          break;
+        default:
+          throw new IllegalArgumentException("Unsupported query target "+u);
+      }
+
     }
 
     public boolean hasNotifyableColumns(final ContentValues values) {
@@ -205,7 +232,11 @@ public class ProcessModelProvider extends ContentProvider {
       }
     }
 
-    static UriHelper parseUri(Uri query) {
+    public static UriHelper parseUri(final Uri uri) {
+      return parseUri(uri, null);
+    }
+
+    static UriHelper parseUri(Uri query, final String[] projection) {
       boolean netNotify;
       if ("nonetnotify".equals(query.getFragment())) {
         query = query.buildUpon().encodedFragment(null).build();
@@ -219,7 +250,9 @@ public class ProcessModelProvider extends ContentProvider {
 
       switch (u) {
       case PROCESSMODEL:
-        return new UriHelper(u, ContentUris.parseId(query), netNotify);
+        return new UriHelper(isColumnInProjection(ProcessModels.COLUMN_INSTANCECOUNT, projection) ? QueryTarget.PROCESSMODELEXT : u, ContentUris.parseId(query), netNotify);
+      case PROCESSMODELS:
+        return new UriHelper(isColumnInProjection(ProcessModels.COLUMN_INSTANCECOUNT, projection) ? QueryTarget.PROCESSMODELSEXT: u, netNotify);
       case PROCESSMODELCONTENT:
         return new UriHelper(u, ContentUris.parseId(query), netNotify);
       case PROCESSINSTANCE:
@@ -343,7 +376,7 @@ public class ProcessModelProvider extends ContentProvider {
 
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-    UriHelper helper = UriHelper.parseUri(uri);
+    UriHelper helper = UriHelper.parseUri(uri, projection);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = BaseColumns._ID+" = ?";
@@ -354,9 +387,18 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
-    final Cursor result = db.query(helper.mTable, projection, selection, selectionArgs, null, null, sortOrder);
+    final Cursor result;
+    result = db.query(helper.mTable, projection, selection, selectionArgs, null, null, sortOrder);
     result.setNotificationUri(getContext().getContentResolver(), uri);
     return result;
+  }
+
+  private static boolean isColumnInProjection(final String column, final String[] projection) {
+    if (projection==null) { return false; }
+    for (String elem:projection) {
+      if(column.equalsIgnoreCase(elem)) return true;
+    }
+    return false;
   }
 
   @Override

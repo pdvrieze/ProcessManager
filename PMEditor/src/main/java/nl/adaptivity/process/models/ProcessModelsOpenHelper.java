@@ -29,7 +29,8 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   static final String TABLE_NAME = "processModels";
   static final String TABLE_INSTANCES_NAME = "processInstances";
   private static final String DB_NAME = "processmodels.db";
-  private static final int DB_VERSION = 6;
+  public static final String VIEW_NAME_PROCESSMODELEXT = "processModelsExt";
+  private static final int DB_VERSION = 7;
   private static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
       BaseColumns._ID+" INTEGER PRIMARY KEY," +
       ProcessModels.COLUMN_HANDLE +" LONG," +
@@ -46,6 +47,19 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
       ProcessInstances.COLUMN_UUID + " TEXT," +
       ProcessInstances.COLUMN_SYNCSTATE+ " INT )";
 
+  private static final String SQL_CREATE_VIEW_MODELS_EXT = "CREATE VIEW " +VIEW_NAME_PROCESSMODELEXT + " AS SELECT m." +
+                                                           BaseColumns._ID + ", m." +
+                                                           ProcessModels.COLUMN_HANDLE + ", m." +
+                                                           ProcessModels.COLUMN_NAME + ", m." +
+                                                           ProcessModels.COLUMN_MODEL + ", m." +
+                                                           ProcessModels.COLUMN_UUID + ", m." +
+                                                           ProcessModels.COLUMN_FAVOURITE + ", m." +
+                                                           ProcessModels.COLUMN_SYNCSTATE + ", COUNT( i." +
+                                                           BaseColumns._ID + ") AS "+ ProcessModels.COLUMN_INSTANCECOUNT+" FROM " +
+                                                           TABLE_NAME+ " AS m LEFT JOIN "+ TABLE_INSTANCES_NAME+ " AS i ON ( m." +
+                                                           BaseColumns._ID+" = i."+ ProcessInstances.COLUMN_PMHANDLE+" ) GROUP BY m." +
+                                                           BaseColumns._ID+
+                                                           ";";
   private static final boolean CREATE_DEFAULT_MODEL = false;
 
   private Context mContext;
@@ -59,6 +73,8 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   public void onCreate(SQLiteDatabase db) {
     db.execSQL(SQL_CREATE_TABLE);
     db.execSQL(SQL_CREATE_TABLE_INSTANCES);
+    db.execSQL(SQL_CREATE_VIEW_MODELS_EXT);
+
     if (CREATE_DEFAULT_MODEL) {
       final String modelName = mContext.getString(R.string.example_1_name);
       ContentValues cv = new ContentValues();
@@ -91,8 +107,10 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     db.beginTransaction();
     try {
-      if (newVersion==6 && (oldVersion==5 || upgradeTo5(db, oldVersion, newVersion))) {
-        db.execSQL("ALTER TABLE "+TABLE_NAME+" ADD COLUMN "+ProcessModels.COLUMN_FAVOURITE+" INTEGER");
+      if (newVersion==6 && oldVersion==7) {
+        db.execSQL("DROP VIEW "+VIEW_NAME_PROCESSMODELEXT+";");
+      } else if (oldVersion==6 || upgradeTo6(db, oldVersion, newVersion)) {
+        db.execSQL(SQL_CREATE_VIEW_MODELS_EXT);
       } else {
         recreateDB(db);
       }
@@ -100,6 +118,15 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
       db.setTransactionSuccessful();
     } finally {
       db.endTransaction();
+    }
+  }
+
+  private static boolean upgradeTo6(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+    if (oldVersion==5 || upgradeTo5(db, oldVersion, newVersion)) {
+      db.execSQL("ALTER TABLE "+TABLE_NAME+" ADD COLUMN "+ProcessModels.COLUMN_FAVOURITE+" INTEGER");
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -119,6 +146,7 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
   private void recreateDB(final SQLiteDatabase db) {
     db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
     db.execSQL("DROP TABLE IF EXISTS "+TABLE_INSTANCES_NAME);
+    db.execSQL("DROP VIEW IF EXISTS "+VIEW_NAME_PROCESSMODELEXT);
     onCreate(db);
   }
 
