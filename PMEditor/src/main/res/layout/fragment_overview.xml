@@ -58,10 +58,12 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:visibility="@{tasklistState==F.LIST_STATE_LOADED ? View.VISIBLE : View.GONE}"
-                                app:layoutManager="android.support.v7.widget.GridLayoutManager"
-                                app:spanCount="3"
+                                app:layoutManager="nl.adaptivity.android.util.DynspanGridLayoutManager"
+                                app:minSpanWidth="@dimen/fragment_overview_min_col_width"
+                                app:spanCount="2"
                                 tools:visibility="visible"
-                                android:id="@+id/overview_task_list" />
+                                android:id="@+id/overview_task_list"
+                                tools:listitem="@layout/overview_task_listitem" />
 
                         <ProgressBar
                                 android:layout_width="wrap_content"
@@ -79,7 +81,8 @@
                                 android:text="@string/lbl_no_pending_tasks"
                                 android:gravity="center"
                                 android:visibility="@{(tasklistState==F.LIST_STATE_EMPTY||tasklistState==F.LIST_STATE_ERROR) ? View.VISIBLE : View.GONE}"
-                                android:id="@+id/overview_task_alttext" />
+                                android:id="@+id/overview_task_alttext"
+                                />
 
 
                     </FrameLayout>
@@ -124,8 +127,10 @@
                                 android:layout_height="match_parent"
                                 android:id="@+id/overview_model_list"
                                 android:visibility="@{modellistState==F.LIST_STATE_LOADED ? View.VISIBLE : View.GONE}"
-                                app:layoutManager="android.support.v7.widget.GridLayoutManager"
-                                app:spanCount="3"/>
+                                app:layoutManager="nl.adaptivity.android.util.DynspanGridLayoutManager"
+                                app:minSpanWidth="@dimen/fragment_overview_min_col_width"
+                                app:spanCount="2"
+                                tools:listitem="@layout/overview_model_listitem" />
 
                         <ProgressBar
                                 android:layout_width="wrap_content"

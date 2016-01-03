@@ -4,9 +4,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.LayoutInflater;
@@ -15,12 +17,16 @@ import android.view.ViewGroup;
 import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentOverviewBinding;
-import nl.adaptivity.process.ui.model.PMCursorAdapter;
+import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.ui.model.OverviewPMCursorAdapter;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.ui.model.ProcessModelLoaderCallbacks;
 import nl.adaptivity.process.ui.task.TaskCursorAdapter;
 import nl.adaptivity.process.ui.task.TaskListOuterFragment.TaskListCallbacks;
 import nl.adaptivity.process.ui.task.TaskLoaderCallbacks;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -98,10 +104,16 @@ public class OverviewFragment extends TitleFragment {
       }
     };
 
-    PMCursorAdapter pmAdapter = new PMCursorAdapter(getActivity(), null);
+    OverviewPMCursorAdapter pmAdapter = new OverviewPMCursorAdapter(getActivity(), null);
     pmAdapter.setSelectionEnabled(false);
     mBinding.overviewModelList.setAdapter(pmAdapter);
     mPMLoaderCallbacks = new ProcessModelLoaderCallbacks(getActivity(), pmAdapter) {
+
+      @Override
+      public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
+        return new CursorLoader(mContext, ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME, ProcessModels.COLUMN_INSTANCECOUNT}, XmlBaseColumns.COLUMN_SYNCSTATE + " IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE + " != " + RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " + XmlBaseColumns.COLUMN_SYNCSTATE + " != " + RemoteXmlSyncAdapter.SYNC_NEWDETAILSPENDING + " )", null, null);
+      }
+
       @Override
       public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
         super.onLoadFinished(loader, data);
@@ -146,8 +158,8 @@ public class OverviewFragment extends TitleFragment {
   }
 
   @Override
-  public void onStart() {
-    super.onStart();
+  public void onResume() {
+    super.onResume();
     updateLayoutManagerColumnCount();
   }
 
@@ -155,12 +167,12 @@ public class OverviewFragment extends TitleFragment {
     int minColWidth = getResources().getDimensionPixelSize(R.dimen.fragment_overview_min_col_width);
     {
       GridLayoutManager taskGlm = (GridLayoutManager) mBinding.overviewTaskList.getLayoutManager();
-      int taskWidth = mBinding.overviewTaskList.getWidth();
+      int taskWidth = ((ViewGroup)mBinding.overviewTaskList.getParent()).getWidth();
       taskGlm.setSpanCount(Math.max(1,taskWidth / minColWidth));
     }
     {
       GridLayoutManager modelGlm = (GridLayoutManager) mBinding.overviewModelList.getLayoutManager();
-      int modelWidth = mBinding.overviewModelList.getWidth();
+      int modelWidth = ((ViewGroup)mBinding.overviewModelList.getParent()).getWidth();
       modelGlm.setSpanCount(Math.max(1,modelWidth / minColWidth));
     }
   }
