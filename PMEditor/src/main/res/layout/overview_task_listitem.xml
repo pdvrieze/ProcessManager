@@ -17,7 +17,7 @@
             android:id="@+id/modellist_item"
             android:layout_width="@dimen/fragment_overview_min_col_width"
             android:layout_height="wrap_content"
-            android:background="?android:attr/activatedBackgroundIndicator"
+            android:background="@drawable/grid_bg"
             android:minHeight="?android:attr/listPreferredItemHeight"
             android:orientation="vertical"
             android:paddingLeft="8dp"

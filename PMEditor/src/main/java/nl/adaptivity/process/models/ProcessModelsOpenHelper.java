@@ -57,8 +57,8 @@ public class ProcessModelsOpenHelper extends SQLiteOpenHelper {
                                                            ProcessModels.COLUMN_SYNCSTATE + ", COUNT( i." +
                                                            BaseColumns._ID + ") AS "+ ProcessModels.COLUMN_INSTANCECOUNT+" FROM " +
                                                            TABLE_NAME+ " AS m LEFT JOIN "+ TABLE_INSTANCES_NAME+ " AS i ON ( m." +
-                                                           BaseColumns._ID+" = i."+ ProcessInstances.COLUMN_PMHANDLE+" ) GROUP BY m." +
-                                                           BaseColumns._ID+
+                                                           ProcessModels.COLUMN_HANDLE+" = i."+ ProcessInstances.COLUMN_PMHANDLE+" ) GROUP BY m." +
+                                                           ProcessModels.COLUMN_HANDLE+
                                                            ";";
   private static final boolean CREATE_DEFAULT_MODEL = false;
 

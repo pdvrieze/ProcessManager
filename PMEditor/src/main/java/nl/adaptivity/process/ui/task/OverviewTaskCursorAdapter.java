@@ -7,32 +7,34 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import nl.adaptivity.android.util.ClickableCursorAdapter;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.databinding.OverviewTaskListitemBinding;
 import nl.adaptivity.process.editor.android.databinding.TaskListitemBinding;
 import nl.adaptivity.process.tasks.UserTask.TaskState;
+import nl.adaptivity.process.ui.task.OverviewTaskCursorAdapter.OverviewTaskCursorViewHolder;
 import nl.adaptivity.process.ui.task.TaskCursorAdapter.TaskCursorViewHolder;
 
 
 /**
  * Created by pdvrieze on 28/12/15.
  */
-public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorViewHolder> {
+public final class OverviewTaskCursorAdapter extends BaseTaskCursorAdapter<OverviewTaskCursorViewHolder> {
 
-  public final class TaskCursorViewHolder extends ClickableCursorAdapter<TaskCursorViewHolder>.ClickableViewHolder {
+  public final class OverviewTaskCursorViewHolder extends ClickableCursorAdapter<OverviewTaskCursorViewHolder>.ClickableViewHolder {
 
-    public final TaskListitemBinding binding;
+    public final OverviewTaskListitemBinding binding;
 
-    public TaskCursorViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
-      super(inflater.inflate(R.layout.task_listitem, parent, false));
+    public OverviewTaskCursorViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
+      super(inflater.inflate(R.layout.overview_task_listitem, parent, false));
       binding = DataBindingUtil.bind(itemView);
     }
   }
 
-  public TaskCursorAdapter(Context context, Cursor c) {
+  public OverviewTaskCursorAdapter(Context context, Cursor c) {
     super(context, c, false);
   }
 
   @Override
-  public void onBindViewHolder(final TaskCursorViewHolder viewHolder, final Cursor cursor) {
+  public void onBindViewHolder(final OverviewTaskCursorViewHolder viewHolder, final Cursor cursor) {
     super.onBindViewHolder(viewHolder, cursor);
     viewHolder.binding.setSummary(mSummaryColIdx >= 0 ? cursor.getString(mSummaryColIdx) : null);
     final int drawableId;
@@ -48,8 +50,8 @@ public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorVie
   }
 
   @Override
-  public TaskCursorViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
-    return new TaskCursorViewHolder(mInflater, parent);
+  public OverviewTaskCursorViewHolder onCreateViewHolder(final ViewGroup parent, final int viewType) {
+    return new OverviewTaskCursorViewHolder(mInflater, parent);
   }
 
 }

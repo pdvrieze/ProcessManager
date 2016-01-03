@@ -14,9 +14,9 @@ import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
 /**
  * Created by pdvrieze on 28/12/15.
  */
-public class TaskLoaderCallbacks extends ListCursorLoaderCallbacks<TaskCursorAdapter> {
+public class TaskLoaderCallbacks extends ListCursorLoaderCallbacks<BaseTaskCursorAdapter> {
 
-  public TaskLoaderCallbacks(final Context context, final TaskCursorAdapter adapter) {
+  public TaskLoaderCallbacks(final Context context, final BaseTaskCursorAdapter adapter) {
     super(context, adapter);
   }
 

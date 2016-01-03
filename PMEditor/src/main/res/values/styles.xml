@@ -8,6 +8,22 @@
         <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
 
     </style>
+    <style name="OverviewCard">
+
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:paddingLeft">@dimen/default_margin</item>
+        <item name="android:paddingStart" tools:ignore="NewApi">@dimen/default_margin</item>
+        <item name="android:paddingRight">@dimen/default_margin</item>
+        <item name="android:paddingEnd" tools:ignore="NewApi">@dimen/default_margin</item>
+        <item name="android:paddingBottom">@dimen/default_margin</item>
+        <item name="android:paddingTop">@dimen/default_margin</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+    <style name="OverviewCard.Ellipsis">
+        <item name="android:paddingBottom">@dimen/half_margin</item>
+        <item name="android:paddingTop">@dimen/half_margin</item>
+    </style>
     <style name="TextAppearance.Overview.Title" parent="TextAppearance.AppCompat.Title"></style>
     <style name="TaskitemContainer" parent="TaskitemContainer.Base" />
     <style name="Widget.IconButton" parent="Widget.AppCompat.Button.Borderless">
@@ -52,4 +68,5 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 </resources>

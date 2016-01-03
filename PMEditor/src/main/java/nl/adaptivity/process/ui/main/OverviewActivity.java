@@ -9,6 +9,12 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.IdRes;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.NavigationView.OnNavigationItemSelectedListener;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentManager.BackStackEntry;
+import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -22,6 +28,7 @@ import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.AsyncCallableTask;
 import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
 import nl.adaptivity.process.android.ProviderHelper;
 import nl.adaptivity.process.android.ProviderHelper.SyncCallable;
 import nl.adaptivity.process.editor.android.R;
@@ -41,11 +48,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 
-public class OverviewActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener,
+public class OverviewActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
                                                                    OverviewCallbacks,
-                                                                   GetNameDialogFragment.Callbacks,
+                                                                   Callbacks,
                                                                    ProcessModelDetailFragment.Callbacks,
-                                                                   TaskDetailCallbacks {
+                                                                   TaskDetailCallbacks, OnBackStackChangedListener {
 
   private final class SyncTask extends AsyncCallableTask<Account, SyncCallable> {
 
@@ -75,6 +82,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    getSupportFragmentManager().addOnBackStackChangedListener(this);
     mTitle = getTitle();
     mBinding = DataBindingUtil.setContentView(this, R.layout.activity_overview);
     setSupportActionBar(mBinding.overviewAppBar.toolbar);
@@ -86,10 +94,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
       @Override
       public void onDrawerClosed(View drawerView) {
         super.onDrawerClosed(drawerView);
-        CharSequence title = getActiveFragment()==null ? getTitle() : getActiveFragment().getTitle(OverviewActivity.this);
-        ActionBar ab = getSupportActionBar();
-        if(ab!=null) { ab.setTitle(title); }
-        invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+        finishSettingFragment();
       }
 
       /** Called when a drawer has settled in a completely open state. */
@@ -126,8 +131,44 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     };
     task.execute(ProviderHelper.getAuthBase(this));
 
-    // Go by default to the home fragment.
-    onNavigationItemSelected(R.id.nav_home);
+    // Go by default to the home fragment. Don't add it to the back stack.
+    onNavigationItemSelected(R.id.nav_home, false);
+
+  }
+
+  @Override
+  protected void onDestroy() {
+    getSupportFragmentManager().removeOnBackStackChangedListener(this);
+    super.onDestroy();
+
+  }
+
+  private void finishSettingFragment() {
+    CharSequence title = getActiveFragment() == null ? getTitle() : getActiveFragment().getTitle(OverviewActivity.this);
+    ActionBar ab = getSupportActionBar();
+    if(ab!=null) { ab.setTitle(title); }
+    invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+  }
+
+  @Override
+  public void onBackStackChanged() {
+    final FragmentManager fm = getSupportFragmentManager();
+    Fragment currentFragment = fm.findFragmentById(R.id.overview_container);
+    int navId=-1;
+    if (currentFragment instanceof OverviewFragment) {
+      navId = R.id.nav_home;
+    } else if (currentFragment instanceof ProcessModelListOuterFragment) {
+      navId = R.id.nav_models;
+    } else if (currentFragment instanceof TaskListOuterFragment) {
+      navId = R.id.nav_tasks;
+    }
+    if (currentFragment instanceof TitleFragment) {
+      mActiveFragment = (TitleFragment) currentFragment;
+    }
+    if (navId>=0) {
+      mBinding.navView.setCheckedItem(navId);
+    }
+    finishSettingFragment();
 
   }
 
@@ -170,27 +211,57 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
     // Handle navigation view item clicks here.
     int id = item.getItemId();
 
-    return onNavigationItemSelected(id);
+    return onNavigationItemSelected(id, false);
   }
 
-  private boolean onNavigationItemSelected(@IdRes final int id) {
+  @Override
+  public void showTasksFragment() {
+    mBinding.navView.setCheckedItem(R.id.nav_tasks);
+    onNavigationItemSelected(R.id.nav_tasks, true);
+    finishSettingFragment();
+  }
+
+  @Override
+  public void showModelsFragment() {
+    mBinding.navView.setCheckedItem(R.id.nav_models);
+    onNavigationItemSelected(R.id.nav_models, true);
+    finishSettingFragment();
+  }
+
+  private boolean onNavigationItemSelected(@IdRes final int id, boolean addToBackstack) {
     switch (id) {
       case R.id.nav_home:
-        mActiveFragment = OverviewFragment.newInstance();
-        getSupportFragmentManager().beginTransaction().replace(R.id.overview_container, mActiveFragment).commit();
+        if (! (mActiveFragment instanceof OverviewFragment)) {
+
+          mActiveFragment = OverviewFragment.newInstance();
+          final FragmentManager fragmentManager = getSupportFragmentManager();
+          final FragmentTransaction transaction = fragmentManager.beginTransaction()
+                                                                             .replace(R.id.overview_container, mActiveFragment, "home");
+          // don't add it to the backstack if there is no child visible yet.
+          if (addToBackstack) { transaction.addToBackStack("home"); }
+          transaction.commit();
+        }
         break;
       case R.id.nav_tasks: {
-        mActiveFragment = new TaskListOuterFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.overview_container, mActiveFragment).commit();
-
+        if (!(mActiveFragment instanceof TaskListOuterFragment)) {
+          mActiveFragment = new TaskListOuterFragment();
+          final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
+                                                                         .replace(R.id.overview_container, mActiveFragment, "tasks");
+          if (addToBackstack) { transaction.addToBackStack("tasks"); }
+          transaction.commit();
+        }
         break;
       }
       case R.id.nav_models: {
-        mActiveFragment = new ProcessModelListOuterFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.overview_container, mActiveFragment).commit();
-      }
-
+        if (!(mActiveFragment instanceof ProcessModelListOuterFragment)) {
+          mActiveFragment = new ProcessModelListOuterFragment();
+          final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
+                                                                        .replace(R.id.overview_container, mActiveFragment, "models");
+          if (addToBackstack) { transaction.addToBackStack("models"); }
+          transaction.commit();
+        }
         break;
+      }
       case R.id.nav_share:
 
         break;
@@ -241,7 +312,7 @@ public class OverviewActivity extends AppCompatActivity implements NavigationVie
   @Override
   public void onProcessModelSelected(final long processModelId) {
     mBinding.navView.setCheckedItem(R.id.nav_models);
-    onNavigationItemSelected(R.id.nav_models);
+    onNavigationItemSelected(R.id.nav_models, true);
     if (mActiveFragment instanceof ProcessModelListOuterFragment) {
         ProcessModelListOuterFragment fragment = (ProcessModelListOuterFragment) mActiveFragment;
         fragment.onProcessModelSelected(processModelId);
