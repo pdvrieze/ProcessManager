@@ -8,9 +8,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
-import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
-import nl.adaptivity.process.ui.task.TaskCursorAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
@@ -18,9 +16,9 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 /**
  * Created by pdvrieze on 28/12/15.
  */
-public class ProcessModelLoaderCallbacks extends ListCursorLoaderCallbacks<PMCursorAdapter> {
+public class ProcessModelLoaderCallbacks extends ListCursorLoaderCallbacks<BasePMCursorAdapter> {
 
-  public ProcessModelLoaderCallbacks(final Context context, final PMCursorAdapter adapter) {
+  public ProcessModelLoaderCallbacks(final Context context, final BasePMCursorAdapter adapter) {
     super(context, adapter);
   }
 
