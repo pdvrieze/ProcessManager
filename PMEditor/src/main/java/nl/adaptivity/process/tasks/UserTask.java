@@ -118,14 +118,13 @@ public class UserTask extends BaseObservable {
     public void onItemRangeChanged(final ObservableList sender, final int positionStart, final int itemCount) {
       if (sender==mItems) {
         setDirty(true, BR.items);
+        notifyPropertyChanged(BR.completeable);
       }
     }
 
     @Override
     public void onItemRangeInserted(final ObservableList sender, final int positionStart, final int itemCount) {
-      if (sender==mItems) {
-        setDirty(true, BR.items);
-      }
+      onItemRangeChanged(sender, positionStart, itemCount);
     }
 
     @Override
@@ -139,6 +138,7 @@ public class UserTask extends BaseObservable {
     public void onItemRangeRemoved(final ObservableList sender, final int positionStart, final int itemCount) {
       if (sender==mItems) {
         setDirty(true, BR.items);
+        notifyPropertyChanged(BR.completeable);
       }
     }
   };
@@ -147,7 +147,7 @@ public class UserTask extends BaseObservable {
   private long mHandle;
   private String mOwner;
   private TaskState mState;
-  private ObservableArrayList<TaskItem> mItems;
+  private ObservableList<TaskItem> mItems;
   private boolean mDirty = false;
 
   public UserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
@@ -249,6 +249,17 @@ public class UserTask extends BaseObservable {
       if (! item.isCompleteable()) { return false; }
     }
     return true;
+  }
+
+  /**
+   * Method that can be used to trigger completeability checks that trigger change notifications.
+   */
+  public boolean checkCompleteable(boolean oldValue) {
+    boolean newValue = isCompleteable();
+    if (newValue != oldValue) {
+      notifyPropertyChanged(BR.completeable);
+    }
+    return newValue;
   }
 
   @Bindable

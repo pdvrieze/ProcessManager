@@ -70,11 +70,15 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
 
   private UserTask mUserTask;
   private LayoutInflater mInflater;
-  private OnPropertyChangedCallback mOnPropertyChangedCallback = new OnPropertyChangedCallback() {
+  private boolean mCompletable = false;
+
+  private final OnPropertyChangedCallback mOnPropertyChangedCallback = new OnPropertyChangedCallback() {
     @Override
     public void onPropertyChanged(final Observable sender, final int propertyId) {
       if (propertyId == BR.editable) {
         notifyItemRangeChanged(0, getItemCount()); // All items changed
+      } else if (propertyId==BR.completeable && sender instanceof TaskItem) {
+        mCompletable = mUserTask.checkCompleteable(mCompletable);
       }
     }
   };
@@ -86,6 +90,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
   public TaskItemAdapter(UserTask userTask) {
     mUserTask = userTask;
     if (userTask!=null) {
+      mCompletable = userTask.isCompleteable();
       userTask.getItems().addOnListChangedCallback(mListChangeCallback);
     }
   }
@@ -128,7 +133,13 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
 
   @Override
   public void onBindViewHolder(final TaskItemHolder holder, final int position) {
+    int oldPos = holder.getOldPosition();
+    if (oldPos>=0) {
+      TaskItem oldItem = mUserTask.getItems().get(oldPos);
+      oldItem.removeOnPropertyChangedCallback(mOnPropertyChangedCallback);
+    }
     TaskItem item = mUserTask.getItems().get(position);
+    item.addOnPropertyChangedCallback(mOnPropertyChangedCallback);
     item.updateView(holder.binding);
     holder.binding.setVariable(BR.editable, mUserTask.isEditable());
     holder.binding.executePendingBindings();

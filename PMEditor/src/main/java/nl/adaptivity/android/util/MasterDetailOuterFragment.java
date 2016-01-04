@@ -1,17 +1,18 @@
 package nl.adaptivity.android.util;
 
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import nl.adaptivity.android.compat.TitleFragment;
-import android.content.Intent;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import nl.adaptivity.android.compat.TitleFragment;
 
 
 public abstract class MasterDetailOuterFragment extends TitleFragment implements MasterListFragment.Callbacks {
@@ -45,11 +46,19 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         mListFragment = (MasterListFragment) existingListFragment;
       }
     }
-    if (savedInstanceState!=null) {
-      Bundle args = new Bundle(getArguments());
+
+    return result;
+  }
+
+  @Override
+  @CallSuper
+  public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+    if (savedInstanceState==null) {
+      Bundle args = getArguments();
       if (args!=null && args.containsKey(ARG_ITEM_ID)) {
         long itemId = args.getLong(ARG_ITEM_ID);
-        Log.d(TAG, "onCreateView: processing itemId arg: "+itemId);
+        Log.d(TAG, "onCreateView: processing itemId arg: " + itemId);
         if (mTwoPane) {
           Fragment detailFragment = createDetailFragment(itemId);
           getChildFragmentManager().beginTransaction().replace(mDetailContainerId, detailFragment).commit();
@@ -60,8 +69,6 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         }
       }
     }
-
-    return result;
   }
 
   @Override

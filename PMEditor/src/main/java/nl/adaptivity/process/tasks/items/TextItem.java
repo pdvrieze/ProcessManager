@@ -47,7 +47,7 @@ public class TextItem extends TextLabeledItem {
 
   @Override
   public boolean isCompleteable() {
-    return getValue()!=null;
+    return getValue()!=null && getValue().length()>0;
   }
 
   @Override
