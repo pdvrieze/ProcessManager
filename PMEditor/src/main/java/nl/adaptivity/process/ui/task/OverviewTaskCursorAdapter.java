@@ -5,13 +5,11 @@ import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import nl.adaptivity.android.util.ClickableCursorAdapter;
+import nl.adaptivity.android.recyclerview.ClickableCursorAdapter;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.OverviewTaskListitemBinding;
-import nl.adaptivity.process.editor.android.databinding.TaskListitemBinding;
 import nl.adaptivity.process.tasks.UserTask.TaskState;
 import nl.adaptivity.process.ui.task.OverviewTaskCursorAdapter.OverviewTaskCursorViewHolder;
-import nl.adaptivity.process.ui.task.TaskCursorAdapter.TaskCursorViewHolder;
 
 
 /**

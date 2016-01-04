@@ -1,28 +1,18 @@
-package nl.adaptivity.android.util;
+package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.View;
 import android.view.View.OnClickListener;
-import nl.adaptivity.android.util.ClickableCursorAdapter.ClickableViewHolder;
+import nl.adaptivity.android.recyclerview.ClickableCursorAdapter.ClickableViewHolder;
+import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
 
 
 /**
  * Created by pdvrieze on 28/12/15.
  */
-public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> extends CursorRecyclerViewAdapter<VH> {
-
-  public interface OnItemClickListener {
-
-    /**
-     * Callback to handle item clicks. This method can stop processing of the click by returning true.
-     * @param adapter The adapter that caused the event
-     * @param viewHolder The underlying viewHolder for the event.
-     * @return true if the click has been absorbed, false if not.
-     */
-    boolean onClickItem(ClickableCursorAdapter<?> adapter, ViewHolder viewHolder);
-  }
+public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> extends CursorRecyclerViewAdapter<VH> implements ClickableAdapter {
 
   public abstract class ClickableViewHolder extends ViewHolder implements OnClickListener {
 
@@ -46,12 +36,15 @@ public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> ext
     }
   }
 
+  @Override
   public void onClickView(ViewHolder viewHolder) {};
 
+  @Override
   public OnItemClickListener getOnItemClickListener() {
     return mItemClickListener;
   }
 
+  @Override
   public void setOnItemClickListener(final OnItemClickListener itemClickListener) {
     mItemClickListener = itemClickListener;
   }

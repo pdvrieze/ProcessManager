@@ -34,6 +34,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import nl.adaptivity.android.recyclerview.SelectableAdapter;
+
 
 /**
  * Static library support version of the framework's {@link android.app.ListFragment}.
@@ -170,4 +172,12 @@ public class RecyclerFragment extends Fragment {
     }
     mHandler.post(mRequestFocus);
   }
+
+
+  public void setCheckedId(final long itemId) {
+    if (mAdapter instanceof SelectableAdapter) {
+      ((SelectableAdapter) mAdapter).setSelectedItem(itemId);
+    }
+  }
+
 }

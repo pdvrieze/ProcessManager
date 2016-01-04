@@ -1,22 +1,17 @@
-package nl.adaptivity.android.util;
+package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
-import nl.adaptivity.android.util.ClickableCursorAdapter.ClickableViewHolder;
+import nl.adaptivity.android.recyclerview.ClickableCursorAdapter.ClickableViewHolder;
 
 
 /**
  * Class that allows selection state to be maintained in a recyclerview.
  */
-public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> extends ClickableCursorAdapter<VH> {
-
-  public interface OnSelectionListener {
-
-    void onSelectionChanged(SelectableCursorAdapter<?> adapter);
-  }
+public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> extends ClickableCursorAdapter<VH> implements nl.adaptivity.android.recyclerview.SelectableAdapter {
 
   private int mSelectionPos = RecyclerView.NO_POSITION;
   private long mSelectionId = RecyclerView.NO_ID;
@@ -45,14 +40,17 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
     }
   }
 
+  @Override
   public long getSelectedId() {
     return mSelectionId;
   }
 
+  @Override
   public int getSelectedPos() {
     return mSelectionPos;
   }
 
+  @Override
   public void setSelection(final int position) {
     final long itemId = getItemId(position);
     setSelection(position, itemId);
@@ -63,6 +61,7 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
    * to find the id.
    * @param itemId
    */
+  @Override
   public void setSelectedItem(final long itemId) {
     setSelection(getItemPos(itemId), itemId);
   }
@@ -88,22 +87,27 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
     }
   }
 
+  @Override
   public boolean isAllowUnselection() {
     return mAllowUnselection;
   }
 
+  @Override
   public OnSelectionListener getOnSelectionListener() {
     return mOnSelectionListener;
   }
 
+  @Override
   public void setOnSelectionListener(final OnSelectionListener onSelectionListener) {
     mOnSelectionListener = onSelectionListener;
   }
 
+  @Override
   public boolean isSelectionEnabled() {
     return mSelectionEnabled;
   }
 
+  @Override
   public void setSelectionEnabled(final boolean enabled) {
     mSelectionEnabled = enabled;
   }

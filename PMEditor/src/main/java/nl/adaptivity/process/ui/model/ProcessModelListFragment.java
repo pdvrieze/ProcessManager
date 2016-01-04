@@ -2,7 +2,10 @@ package nl.adaptivity.process.ui.model;
 
 import android.accounts.Account;
 import android.app.Activity;
-import android.content.*;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Intent;
+import android.content.SyncStatusObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,11 +22,11 @@ import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.recyclerview.SelectableAdapter;
+import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
 import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
 import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.android.util.SelectableCursorAdapter;
-import nl.adaptivity.android.util.SelectableCursorAdapter.OnSelectionListener;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -122,7 +125,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   @Override
-  public void onSelectionChanged(final SelectableCursorAdapter<?> adapter) {
+  public void onSelectionChanged(final SelectableAdapter adapter) {
     if (adapter.getSelectedId()!=RecyclerView.NO_ID) {
       doOnItemSelected(adapter.getSelectedPos(), adapter.getSelectedId());
     }

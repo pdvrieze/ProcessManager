@@ -743,7 +743,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
     ImageView v = new ImageView(this);
     v.setLayoutParams(lp);
-    v.setImageDrawable(new DrawableDrawable(positionNode(node), theme));
+    v.setImageDrawable(new DrawableDrawable(positionNode(node), theme, true));
     v.setOnTouchListener(mItemDragListener);
     v.setOnDragListener(mItemDragListener);
     v.setTag(node.getClass());

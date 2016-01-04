@@ -1,4 +1,4 @@
-package nl.adaptivity.android.util;
+package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -72,17 +72,5 @@ public class DynspanGridLayoutManager extends GridLayoutManager {
 
     }
 
-  }
-
-  @Override
-  public void setMeasuredDimension(final int widthSize, final int heightSize) {
-    if (mMinSpanWidth > 0) {
-      int oldSpanCount = getSpanCount();
-      int newSpanCount = Math.max(1,widthSize/mMinSpanWidth);
-      if (oldSpanCount!=newSpanCount) {
-        setSpanCount(newSpanCount);
-      }
-    }
-    super.setMeasuredDimension(widthSize, heightSize);
   }
 }

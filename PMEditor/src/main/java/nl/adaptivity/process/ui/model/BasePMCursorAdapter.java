@@ -5,16 +5,13 @@ import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
 import android.support.annotation.LayoutRes;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import nl.adaptivity.android.util.ClickableCursorAdapter;
-import nl.adaptivity.android.util.SelectableCursorAdapter;
-import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.android.recyclerview.ClickableCursorAdapter;
+import nl.adaptivity.android.recyclerview.SelectableCursorAdapter;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.BasePMCursorAdapter.BasePMViewHolder;
-import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 
 
 /**
@@ -33,6 +30,10 @@ public abstract class BasePMCursorAdapter<VH extends BasePMViewHolder> extends S
     private BasePMViewHolder(final B binding) {
       super(binding.getRoot());
       this.binding = binding;
+    }
+
+    public B getBinding() {
+      return binding;
     }
   }
 

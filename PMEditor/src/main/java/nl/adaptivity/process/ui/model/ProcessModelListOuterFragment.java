@@ -108,7 +108,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  protected ProcessModelDetailFragment createDetailFragment(int row, long itemId) {
+  protected ProcessModelDetailFragment createDetailFragment(long itemId) {
     ProcessModelDetailFragment fragment = new ProcessModelDetailFragment();
     Bundle arguments = new Bundle();
     arguments.putLong(ProcessModelDetailFragment.ARG_ITEM_ID, itemId);
@@ -117,7 +117,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   @Override
-  protected Intent getDetailIntent(int row, long itemId) {
+  protected Intent getDetailIntent(long itemId) {
     Intent detailIntent = new Intent(getActivity(), ProcessModelDetailActivity.class);
     detailIntent.putExtra(ProcessModelDetailFragment.ARG_ITEM_ID, itemId);
     return detailIntent;

@@ -1,5 +1,6 @@
 package nl.adaptivity.process.ui.task;
 
+import android.support.annotation.Nullable;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.editor.android.R;
@@ -32,6 +33,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
 
     void requestSyncTaskList(boolean immediate);
 
+    void onShowTask(long taskId);
   }
 
 
@@ -47,13 +49,37 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   private boolean mTwoPane;
   private TaskListCallbacks mCallbacks;
 
+  public void showTask(final long taskId) {
+    onItemSelected(taskId, true);
+  }
+
+  public static TaskListOuterFragment newInstance(final long taskId) {
+    TaskListOuterFragment result = new TaskListOuterFragment();
+    Bundle args = new Bundle(1);
+    args.putLong(TaskDetailFragment.ARG_ITEM_ID, taskId);
+    result.setArguments(args);
+    return result;
+  }
+
+  @Override
+  public void onCreate(@Nullable final Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    Bundle args = getArguments();
+    // If we have an argument, go there immediately
+    if (args!=null && args.containsKey(TaskDetailFragment.ARG_ITEM_ID)) {
+      final long taskId = args.getLong(TaskDetailFragment.ARG_ITEM_ID);
+      getListFragment().setCheckedId(taskId);
+      onItemSelected(taskId, false);
+    }
+  }
+
   @Override
   protected MasterListFragment createListFragment() {
     return new TaskListFragment();
   }
 
   @Override
-  protected TaskDetailFragment createDetailFragment(int row, long itemId) {
+  protected TaskDetailFragment createDetailFragment(long itemId) {
     TaskDetailFragment fragment = new TaskDetailFragment();
     Bundle arguments = new Bundle();
     arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, itemId);
@@ -62,7 +88,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  protected Intent getDetailIntent(int row, long itemId) {
+  protected Intent getDetailIntent(long itemId) {
     Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
     intent.putExtra(TaskDetailFragment.ARG_ITEM_ID, itemId);
     return intent;

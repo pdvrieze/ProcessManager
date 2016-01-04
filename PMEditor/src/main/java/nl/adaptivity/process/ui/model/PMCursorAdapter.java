@@ -2,18 +2,10 @@ package nl.adaptivity.process.ui.model;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.databinding.DataBindingUtil;
-import android.databinding.ViewDataBinding;
-import android.support.annotation.LayoutRes;
-import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import nl.adaptivity.android.util.ClickableCursorAdapter;
-import nl.adaptivity.android.util.SelectableCursorAdapter;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.ModelListitemBinding;
-import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 
 

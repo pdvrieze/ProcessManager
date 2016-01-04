@@ -133,6 +133,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
 
     // Go by default to the home fragment. Don't add it to the back stack.
     onNavigationItemSelected(R.id.nav_home, false);
+    mBinding.navView.setCheckedItem(R.id.nav_home);
 
   }
 
@@ -226,6 +227,16 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
     mBinding.navView.setCheckedItem(R.id.nav_models);
     onNavigationItemSelected(R.id.nav_models, true);
     finishSettingFragment();
+  }
+
+  @Override
+  public void onShowTask(final long taskId) {
+    if (mActiveFragment instanceof TaskListOuterFragment) {
+      ((TaskListOuterFragment)mActiveFragment).showTask(taskId);
+    } else {
+      mActiveFragment = TaskListOuterFragment.newInstance(taskId);
+      getSupportFragmentManager().beginTransaction().replace(R.id.overview_container, mActiveFragment).addToBackStack("task").commit();
+    }
   }
 
   private boolean onNavigationItemSelected(@IdRes final int id, boolean addToBackstack) {

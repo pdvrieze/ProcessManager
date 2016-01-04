@@ -11,19 +11,22 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import nl.adaptivity.android.compat.TitleFragment;
+import nl.adaptivity.android.recyclerview.ClickableAdapter;
+import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentOverviewBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.OverviewPMCursorAdapter;
+import nl.adaptivity.process.ui.model.OverviewPMCursorAdapter.OverviewPMViewHolder;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.ui.model.ProcessModelLoaderCallbacks;
 import nl.adaptivity.process.ui.task.OverviewTaskCursorAdapter;
-import nl.adaptivity.process.ui.task.TaskCursorAdapter;
 import nl.adaptivity.process.ui.task.TaskListOuterFragment.TaskListCallbacks;
 import nl.adaptivity.process.ui.task.TaskLoaderCallbacks;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
@@ -41,7 +44,7 @@ import java.lang.annotation.RetentionPolicy;
  * Use the {@link OverviewFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OverviewFragment extends TitleFragment {
+public class OverviewFragment extends TitleFragment implements OnItemClickListener {
 
   private static final int LOADER_TASKS = 1;
   private static final int LOADER_MODELS = 2;
@@ -94,6 +97,7 @@ public class OverviewFragment extends TitleFragment {
     mBinding.setFragment(this);
     OverviewTaskCursorAdapter taskAdapter = new OverviewTaskCursorAdapter(getActivity(), null);
     taskAdapter.setSelectionEnabled(false);
+    taskAdapter.setOnItemClickListener(this);
     mBinding.overviewTaskList.setAdapter(taskAdapter);
     mTaskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), taskAdapter) {
       @Override
@@ -112,12 +116,13 @@ public class OverviewFragment extends TitleFragment {
 
     OverviewPMCursorAdapter pmAdapter = new OverviewPMCursorAdapter(getActivity(), null);
     pmAdapter.setSelectionEnabled(false);
+    pmAdapter.setOnItemClickListener(this);
     mBinding.overviewModelList.setAdapter(pmAdapter);
     mPMLoaderCallbacks = new ProcessModelLoaderCallbacks(getActivity(), pmAdapter) {
 
       @Override
       public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
-        return new CursorLoader(mContext, ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME, ProcessModels.COLUMN_INSTANCECOUNT}, ProcessModels.COLUMN_FAVOURITE + " != 0 AND (" + XmlBaseColumns.COLUMN_SYNCSTATE + " IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE + " != " + RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " + XmlBaseColumns.COLUMN_SYNCSTATE + " != " + RemoteXmlSyncAdapter.SYNC_NEWDETAILSPENDING + " ))", null, null);
+        return new CursorLoader(mContext, ProcessModelProvider.ProcessModels.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, ProcessModels.COLUMN_NAME, ProcessModels.COLUMN_INSTANCECOUNT, ProcessModels.COLUMN_MODEL}, ProcessModels.COLUMN_FAVOURITE + " != 0 AND (" + XmlBaseColumns.COLUMN_SYNCSTATE + " IS NULL OR ( " + XmlBaseColumns.COLUMN_SYNCSTATE + " != " + RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER + " AND " + XmlBaseColumns.COLUMN_SYNCSTATE + " != " + RemoteXmlSyncAdapter.SYNC_NEWDETAILSPENDING + " ))", null, null);
       }
 
       @Override
@@ -198,6 +203,16 @@ public class OverviewFragment extends TitleFragment {
   @Override
   public CharSequence getTitle(final Context context) {
     return context.getResources().getString(R.string.title_overview_fragment);
+  }
+
+  @Override
+  public boolean onClickItem(final ClickableAdapter adapter, final ViewHolder viewHolder) {
+    if (viewHolder instanceof OverviewPMCursorAdapter.OverviewPMViewHolder) {
+      mCallbacks.onInstantiateModel(viewHolder.getItemId(), ((OverviewPMViewHolder)viewHolder).getBinding().getName().toString()+" instance");
+    } else if (viewHolder instanceof OverviewTaskCursorAdapter.OverviewTaskCursorViewHolder) {
+      mCallbacks.onShowTask(viewHolder.getItemId());
+    }
+    return false;
   }
 
   /**

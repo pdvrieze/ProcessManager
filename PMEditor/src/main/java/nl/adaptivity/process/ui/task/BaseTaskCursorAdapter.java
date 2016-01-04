@@ -4,15 +4,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.view.LayoutInflater;
-import nl.adaptivity.android.util.ClickableCursorAdapter.ClickableViewHolder;
+import nl.adaptivity.android.recyclerview.SelectableCursorAdapter;
+import nl.adaptivity.android.recyclerview.ClickableCursorAdapter.ClickableViewHolder;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
-import nl.adaptivity.process.ui.task.TaskCursorAdapter.TaskCursorViewHolder;
 
 
 /**
  * Created by pdvrieze on 03/01/16.
  */
-public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> extends nl.adaptivity.android.util.SelectableCursorAdapter<VH> {
+public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> extends SelectableCursorAdapter<VH> {
 
   protected LayoutInflater mInflater;
   protected int mSummaryColIdx;

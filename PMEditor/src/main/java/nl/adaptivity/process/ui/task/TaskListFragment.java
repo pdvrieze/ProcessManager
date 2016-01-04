@@ -13,12 +13,11 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.*;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.recyclerview.SelectableAdapter;
+import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.android.util.SelectableCursorAdapter;
-import nl.adaptivity.android.util.SelectableCursorAdapter.OnSelectionListener;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
-import nl.adaptivity.process.editor.android.databinding.*;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
 
 
@@ -128,7 +127,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   }
 
   @Override
-  public void onSelectionChanged(final SelectableCursorAdapter<?> adapter) {
+  public void onSelectionChanged(final SelectableAdapter adapter) {
     doOnItemSelected(adapter.getSelectedPos(), adapter.getSelectedId());
   }
 
