@@ -12,6 +12,7 @@ import android.util.DisplayMetrics;
 
 public class DrawableDrawable extends Drawable implements Cloneable {
 
+  public static final float DEFAULT_SCALE = Resources.getSystem().getDisplayMetrics().density * 160 / 96;
   private nl.adaptivity.diagram.Drawable mImage;
   private Theme<AndroidStrategy, AndroidPen, AndroidPath> mTheme;
   private double mScale;
@@ -20,8 +21,7 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   public DrawableDrawable(nl.adaptivity.diagram.Drawable image, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final boolean autoScale) {
     mTheme = theme;
     mImage = image;
-    DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
-    mScale = dm.density*160/96;
+    mScale = DEFAULT_SCALE;
     mAutoscale = autoScale;
   }
 
@@ -105,14 +105,16 @@ public class DrawableDrawable extends Drawable implements Cloneable {
 
   @Override
   public int getIntrinsicWidth() {
-    Rectangle bounds = mImage.getBounds();
-    return (int) (Math.ceil(bounds.right()*mScale)-Math.floor(bounds.left*mScale));
+    final Rectangle bounds = mImage.getBounds();
+    final double scale = mAutoscale ? DEFAULT_SCALE : this.mScale;
+    return (int) (Math.ceil(bounds.right()*scale)-Math.floor(bounds.left*scale));
   }
 
   @Override
   public int getIntrinsicHeight() {
-    Rectangle bounds = mImage.getBounds();
-    return (int) (Math.ceil(bounds.bottom()*mScale)-Math.floor(bounds.top*mScale));
+    final Rectangle bounds = mImage.getBounds();
+    final double scale = mAutoscale ? DEFAULT_SCALE : this.mScale;
+    return (int) (Math.ceil(bounds.bottom()*scale)-Math.floor(bounds.top*scale));
   }
 
   public double getScale() {
