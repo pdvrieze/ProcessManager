@@ -39,6 +39,12 @@ public class AndroidCanvas implements IAndroidCanvas {
       mScale = scale;
     }
 
+    private OffsetCanvas(double xOffset, double yOffset, double scale) {
+      mXOffset = xOffset;
+      mYOffset = yOffset;
+      mScale = scale;
+    }
+
     @Override
     public IAndroidCanvas childCanvas(Rectangle area, double scale) {
       return new OffsetCanvas(this, area, scale);
@@ -49,6 +55,10 @@ public class AndroidCanvas implements IAndroidCanvas {
       return new OffsetCanvas(this, scale);
     }
 
+    @Override
+    public IAndroidCanvas translate(final double x, final double y) {
+      return new OffsetCanvas(mXOffset-x, mYOffset-y, mScale);
+    }
 
     private AndroidPen scalePen(AndroidPen pen) {
       return pen.scale(mScale);
@@ -286,6 +296,11 @@ public class AndroidCanvas implements IAndroidCanvas {
   @Override
   public IAndroidCanvas scale(double scale) {
     return new OffsetCanvas(scale);
+  }
+
+  @Override
+  public IAndroidCanvas translate(final double left, final double right) {
+    return new OffsetCanvas(-left, -right, 1);
   }
 
   @Override

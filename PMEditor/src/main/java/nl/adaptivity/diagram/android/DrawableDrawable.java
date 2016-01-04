@@ -15,19 +15,21 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   private nl.adaptivity.diagram.Drawable mImage;
   private Theme<AndroidStrategy, AndroidPen, AndroidPath> mTheme;
   private double mScale;
+  private boolean mAutoscale;
 
-  public DrawableDrawable(nl.adaptivity.diagram.Drawable image, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme) {
+  public DrawableDrawable(nl.adaptivity.diagram.Drawable image, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, final boolean autoScale) {
     mTheme = theme;
     mImage = image;
     DisplayMetrics dm = Resources.getSystem().getDisplayMetrics();
     mScale = dm.density*160/96;
+    mAutoscale = autoScale;
   }
 
   @SuppressWarnings("CloneDoesntCallSuperClone")
   @Override
   public DrawableDrawable clone() {
     if (getClass()==DrawableDrawable.class) {
-      return new DrawableDrawable(mImage.clone(), mTheme);
+      return new DrawableDrawable(mImage.clone(), mTheme, mAutoscale);
     }
     throw new RuntimeException(new CloneNotSupportedException());
   }
@@ -35,7 +37,11 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   @Override
   public void draw(Canvas canvas) {
     if (mImage!=null) {
-      AndroidCanvas androidCanvas =  new AndroidCanvas(canvas, mTheme);
+      IAndroidCanvas androidCanvas =  new AndroidCanvas(canvas, mTheme);
+      if (mAutoscale) { // if autoscaling, also adjust the position to the bounds
+        Rectangle bounds = mImage.getBounds();
+        androidCanvas=androidCanvas.translate(-bounds.left, -bounds.top);
+      }
       mImage.draw(androidCanvas.scale(mScale), null);
     }
   }
@@ -89,6 +95,15 @@ public class DrawableDrawable extends Drawable implements Cloneable {
   }
 
   @Override
+  public void setBounds(final int left, final int top, final int right, final int bottom) {
+    super.setBounds(left, top, right, bottom);
+    if (mAutoscale) {
+      Rectangle imgBounds = mImage.getBounds();
+      mScale= Math.min((right - left) / imgBounds.width, (bottom - top) / imgBounds.height);
+    }
+  }
+
+  @Override
   public int getIntrinsicWidth() {
     Rectangle bounds = mImage.getBounds();
     return (int) (Math.ceil(bounds.right()*mScale)-Math.floor(bounds.left*mScale));
@@ -104,8 +119,20 @@ public class DrawableDrawable extends Drawable implements Cloneable {
     return mScale;
   }
 
+  /**
+   * Set the scale to use for drawing. This automatically disables autoscaling.
+   * @param scale The new scale.
+   */
   public void setScale(double scale) {
     mScale = scale;
+    mAutoscale = false;
   }
 
+  public boolean isAutoscale() {
+    return mAutoscale;
+  }
+
+  public void setAutoscale(final boolean autoscale) {
+    mAutoscale = autoscale;
+  }
 }
