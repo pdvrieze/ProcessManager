@@ -75,7 +75,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:visibility="@{tasklistState==F.LIST_STATE_LOADED ? View.VISIBLE : View.GONE}"
-                                app:layoutManager="nl.adaptivity.android.util.DynspanGridLayoutManager"
+                                app:layoutManager="nl.adaptivity.android.recyclerview.DynspanGridLayoutManager"
                                 app:minSpanWidth="@dimen/fragment_overview_min_col_width"
                                 app:spanCount="2"
                                 tools:visibility="visible"
@@ -158,7 +158,7 @@
                                 android:layout_height="match_parent"
                                 android:id="@+id/overview_model_list"
                                 android:visibility="@{modellistState==F.LIST_STATE_LOADED ? View.VISIBLE : View.GONE}"
-                                app:layoutManager="nl.adaptivity.android.util.DynspanGridLayoutManager"
+                                app:layoutManager="nl.adaptivity.android.recyclerview.DynspanGridLayoutManager"
                                 app:minSpanWidth="@dimen/fragment_overview_min_col_width"
                                 app:spanCount="2"
                                 tools:listitem="@layout/overview_model_listitem" />
