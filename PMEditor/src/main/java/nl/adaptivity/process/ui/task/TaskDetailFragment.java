@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentTaskDetailBinding;
 import nl.adaptivity.process.tasks.UserTask;
@@ -38,12 +39,6 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
     void dismissTaskDetails();
   }
 
-  /**
-   * The fragment argument representing the item ID that this fragment
-   * represents.
-   */
-  public static final String ARG_ITEM_ID = "item_id";
-
   private static final int LOADER_TASKITEM = 0;
 
 
@@ -62,7 +57,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    if (getArguments().containsKey(ARG_ITEM_ID)) {
+    if (getArguments().containsKey(MasterDetailOuterFragment.ARG_ITEM_ID)) {
       getLoaderManager().initLoader(LOADER_TASKITEM, getArguments(), this);
     }
 //    setHasOptionsMenu(true);
@@ -116,7 +111,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
 
   @Override
   public Loader<UserTask> onCreateLoader(int id, Bundle args) {
-    mTaskId = args.getLong(ARG_ITEM_ID);
+    mTaskId = args.getLong(MasterDetailOuterFragment.ARG_ITEM_ID);
     Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE, mTaskId);
     return new TaskLoader(getActivity(), uri);
   }

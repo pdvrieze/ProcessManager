@@ -17,6 +17,7 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
   protected LayoutInflater mInflater;
   protected int mSummaryColIdx;
   protected int mStateColIdx;
+  protected int mInstNameColIdx;
 
   public BaseTaskCursorAdapter(final Context context, final Cursor cursor, final boolean allowUnselection) {
     super(context, cursor, allowUnselection);
@@ -31,9 +32,11 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
     if (c == null) {
       mSummaryColIdx = -1;
       mStateColIdx = -1;
+      mInstNameColIdx = -1;
     } else {
       mSummaryColIdx = c.getColumnIndex(Tasks.COLUMN_SUMMARY);
       mStateColIdx = c.getColumnIndex(Tasks.COLUMN_STATE);
+      mInstNameColIdx = c.getColumnIndex(Tasks.COLUMN_INSTANCENAME);
     }
   }
 

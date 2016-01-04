@@ -1,4 +1,4 @@
-package nl.adaptivity.process.android;
+package nl.adaptivity.process.data;
 
 import android.accounts.*;
 import android.app.Activity;
@@ -120,5 +120,13 @@ public final class ProviderHelper {
     if (authbase!=null) {
       new AsyncCallableTask<Account, SyncCallable>().execute(new SyncCallable(context, authority, authbase, expedited));
     }
+  }
+
+  public static boolean isColumnInProjection(final String column, final String[] projection) {
+    if (projection==null) { return false; }
+    for (String elem:projection) {
+      if(column.equalsIgnoreCase(elem)) return true;
+    }
+    return false;
   }
 }

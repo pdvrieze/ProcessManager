@@ -22,6 +22,8 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentOverviewBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
+import nl.adaptivity.process.tasks.data.TaskProvider;
+import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.ui.model.OverviewPMCursorAdapter;
 import nl.adaptivity.process.ui.model.OverviewPMCursorAdapter.OverviewPMViewHolder;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment.ProcessModelListCallbacks;
@@ -101,6 +103,11 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
     mBinding.overviewTaskList.setAdapter(taskAdapter);
     mTaskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), taskAdapter) {
       @Override
+      public Loader<Cursor> onCreateLoader(final int id, final Bundle args) {
+        return new CursorLoader(mContext, TaskProvider.Tasks.CONTENT_ID_URI_BASE, new String[] {BaseColumns._ID, Tasks.COLUMN_SUMMARY, Tasks.COLUMN_STATE, Tasks.COLUMN_INSTANCENAME}, Tasks.COLUMN_STATE + "!='Complete'", null, null);
+      }
+
+      @Override
       public void onLoadFinished(final Loader<Cursor> loader, final Cursor data) {
         super.onLoadFinished(loader, data);
         if (data==null) {
@@ -139,10 +146,6 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
       }
     };
 
-    final LoaderManager loaderManager = getLoaderManager();
-    loaderManager.initLoader(LOADER_TASKS, null, mTaskLoaderCallbacks);
-    loaderManager.initLoader(LOADER_MODELS, null, mPMLoaderCallbacks);
-
 
     return mBinding.getRoot();
   }
@@ -172,6 +175,11 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   public void onResume() {
     super.onResume();
     updateLayoutManagerColumnCount();
+
+    final LoaderManager loaderManager = getLoaderManager();
+    loaderManager.initLoader(LOADER_TASKS, null, mTaskLoaderCallbacks);
+    loaderManager.initLoader(LOADER_MODELS, null, mPMLoaderCallbacks);
+
   }
 
   private void updateLayoutManagerColumnCount() {

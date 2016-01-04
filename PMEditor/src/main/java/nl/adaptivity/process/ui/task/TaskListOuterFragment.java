@@ -1,6 +1,7 @@
 package nl.adaptivity.process.ui.task;
 
 import android.support.annotation.Nullable;
+import android.view.View;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.editor.android.R;
@@ -55,22 +56,8 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
 
   public static TaskListOuterFragment newInstance(final long taskId) {
     TaskListOuterFragment result = new TaskListOuterFragment();
-    Bundle args = new Bundle(1);
-    args.putLong(TaskDetailFragment.ARG_ITEM_ID, taskId);
-    result.setArguments(args);
+    result.setArguments(addArgs(null, taskId));
     return result;
-  }
-
-  @Override
-  public void onCreate(@Nullable final Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    Bundle args = getArguments();
-    // If we have an argument, go there immediately
-    if (args!=null && args.containsKey(TaskDetailFragment.ARG_ITEM_ID)) {
-      final long taskId = args.getLong(TaskDetailFragment.ARG_ITEM_ID);
-      getListFragment().setCheckedId(taskId);
-      onItemSelected(taskId, false);
-    }
   }
 
   @Override
@@ -82,7 +69,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   protected TaskDetailFragment createDetailFragment(long itemId) {
     TaskDetailFragment fragment = new TaskDetailFragment();
     Bundle arguments = new Bundle();
-    arguments.putLong(TaskDetailFragment.ARG_ITEM_ID, itemId);
+    arguments.putLong(ARG_ITEM_ID, itemId);
     fragment.setArguments(arguments);
     return fragment;
   }
@@ -90,7 +77,7 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   @Override
   protected Intent getDetailIntent(long itemId) {
     Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
-    intent.putExtra(TaskDetailFragment.ARG_ITEM_ID, itemId);
+    intent.putExtra(ARG_ITEM_ID, itemId);
     return intent;
   }
 

@@ -1,7 +1,10 @@
 package nl.adaptivity.android.util;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import nl.adaptivity.android.compat.TitleFragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +16,8 @@ import android.view.ViewGroup;
 
 public abstract class MasterDetailOuterFragment extends TitleFragment implements MasterListFragment.Callbacks {
 
+  private static final String TAG = "MasterDetailOutFrag";
+  public static final String ARG_ITEM_ID = "item_id";
   private int mLayoutId;
   private int mListContainerId;
   private int mDetailContainerId;
@@ -26,20 +31,34 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public final View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View result = inflater.inflate(mLayoutId, container, false);
     if (result.findViewById(mListContainerId) != null) {
       mTwoPane = true;
     }
-
-    Fragment existingFragment = getChildFragmentManager().findFragmentById(mListContainerId);
-    if (existingFragment==null) {
-      mListFragment = createListFragment();
-      getChildFragmentManager().beginTransaction()
-                               .replace(mListContainerId, mListFragment)
-                               .commit();
-    } else {
-      mListFragment = (MasterListFragment) existingFragment;
+    {
+      Fragment existingListFragment = getChildFragmentManager().findFragmentById(mListContainerId);
+      if (existingListFragment == null) {
+        mListFragment = createListFragment();
+        getChildFragmentManager().beginTransaction().replace(mListContainerId, mListFragment).commit();
+      } else {
+        mListFragment = (MasterListFragment) existingListFragment;
+      }
+    }
+    if (savedInstanceState!=null) {
+      Bundle args = new Bundle(getArguments());
+      if (args!=null && args.containsKey(ARG_ITEM_ID)) {
+        long itemId = args.getLong(ARG_ITEM_ID);
+        Log.d(TAG, "onCreateView: processing itemId arg: "+itemId);
+        if (mTwoPane) {
+          Fragment detailFragment = createDetailFragment(itemId);
+          getChildFragmentManager().beginTransaction().replace(mDetailContainerId, detailFragment).commit();
+          mListFragment.setCheckedId(itemId);
+        } else {
+          startActivity(getDetailIntent(itemId));
+          getActivity().finish(); // Remove the current activity from the backstack, it will be the list container
+        }
+      }
     }
 
     return result;
@@ -104,6 +123,12 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
 
   protected abstract MasterListFragment createListFragment();
 
-
+  public static @NonNull Bundle addArgs(@Nullable Bundle args, long itemId) {
+    if (args==null) {
+      args = new Bundle(1);
+    }
+    args.putLong(ARG_ITEM_ID, itemId);
+    return args;
+  }
 
 }

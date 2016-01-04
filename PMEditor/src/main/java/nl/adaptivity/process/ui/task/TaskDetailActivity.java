@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.ActivityTaskDetailBinding;
 
@@ -46,8 +47,8 @@ public class TaskDetailActivity extends AppCompatActivity {
       // Create the detail fragment and add it to the activity
       // using a fragment transaction.
       Bundle arguments = new Bundle();
-      arguments.putLong(TaskDetailFragment.ARG_ITEM_ID,
-                        getIntent().getLongExtra(TaskDetailFragment.ARG_ITEM_ID,-1));
+      arguments.putLong(MasterDetailOuterFragment.ARG_ITEM_ID,
+                        getIntent().getLongExtra(MasterDetailOuterFragment.ARG_ITEM_ID, -1));
       TaskDetailFragment fragment = new TaskDetailFragment();
       fragment.setArguments(arguments);
       getSupportFragmentManager().beginTransaction()

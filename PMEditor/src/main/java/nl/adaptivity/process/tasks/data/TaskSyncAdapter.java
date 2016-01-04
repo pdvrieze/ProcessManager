@@ -301,6 +301,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     in.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
     String summary = in.getAttributeValue(null, "summary");
     long handle = Long.parseLong(in.getAttributeValue(null, "handle"));
+    long instHandle = Long.parseLong(in.getAttributeValue(null, "instancehandle"));
     String owner = in.getAttributeValue(null, "owner");
     String state = in.getAttributeValue(null, "state");
     boolean hasItems = false;
@@ -318,6 +319,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     result.put(Tasks.COLUMN_SUMMARY, summary);
     result.put(Tasks.COLUMN_OWNER, owner);
     result.put(Tasks.COLUMN_STATE, state);
+    result.put(Tasks.COLUMN_INSTANCEHANDLE, instHandle);
     result.put(Tasks.COLUMN_SYNCSTATE, SYNC_UPTODATE);
     return new TaskCVProvider(result, items);
   }

@@ -11,8 +11,9 @@ import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.Tupple;
 import nl.adaptivity.android.util.ContentProviderHelper;
-import nl.adaptivity.process.android.ProviderHelper;
+import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
+import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -190,16 +191,16 @@ public class ProcessModelProvider extends ContentProvider {
       switch (u) {
         case PROCESSINSTANCE:
         case PROCESSINSTANCES:
-          mTable = ProcessModelsOpenHelper.TABLE_INSTANCES_NAME;
+          mTable = DataOpenHelper.TABLE_NAME_INSTANCES;
           break;
         case PROCESSMODEL:
         case PROCESSMODELCONTENT:
         case PROCESSMODELS:
-          mTable =ProcessModelsOpenHelper.TABLE_NAME;
+          mTable = DataOpenHelper.TABLE_NAME_MODELS;
           break;
         case PROCESSMODELEXT:
         case PROCESSMODELSEXT:
-          mTable = ProcessModelsOpenHelper.VIEW_NAME_PROCESSMODELEXT;
+          mTable = DataOpenHelper.VIEW_NAME_PROCESSMODELEXT;
           break;
         default:
           throw new IllegalArgumentException("Unsupported query target "+u);
@@ -250,9 +251,9 @@ public class ProcessModelProvider extends ContentProvider {
 
       switch (u) {
       case PROCESSMODEL:
-        return new UriHelper(isColumnInProjection(ProcessModels.COLUMN_INSTANCECOUNT, projection) ? QueryTarget.PROCESSMODELEXT : u, ContentUris.parseId(query), netNotify);
+        return new UriHelper(ProviderHelper.isColumnInProjection(ProcessModels.COLUMN_INSTANCECOUNT, projection) ? QueryTarget.PROCESSMODELEXT : u, ContentUris.parseId(query), netNotify);
       case PROCESSMODELS:
-        return new UriHelper(isColumnInProjection(ProcessModels.COLUMN_INSTANCECOUNT, projection) ? QueryTarget.PROCESSMODELSEXT: u, netNotify);
+        return new UriHelper(ProviderHelper.isColumnInProjection(ProcessModels.COLUMN_INSTANCECOUNT, projection) ? QueryTarget.PROCESSMODELSEXT: u, netNotify);
       case PROCESSMODELCONTENT:
         return new UriHelper(u, ContentUris.parseId(query), netNotify);
       case PROCESSINSTANCE:
@@ -308,11 +309,11 @@ public class ProcessModelProvider extends ContentProvider {
     return true;
   }
 
-  private ProcessModelsOpenHelper mDbHelper;
+  private DataOpenHelper mDbHelper;
 
   @Override
   public boolean onCreate() {
-    mDbHelper = new ProcessModelsOpenHelper(getContext());
+    mDbHelper = new DataOpenHelper(getContext());
     return true;
   }
 
@@ -371,7 +372,7 @@ public class ProcessModelProvider extends ContentProvider {
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
-    return ContentProviderHelper.createPipe(this, mDbHelper, ProcessModelsOpenHelper.TABLE_NAME, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
+    return ContentProviderHelper.createPipe(this, mDbHelper, DataOpenHelper.TABLE_NAME_MODELS, ProcessModels.COLUMN_MODEL, helper.mId, ProcessModels.COLUMN_SYNCSTATE, mode, helper.mNetNotify);
   }
 
   @Override
@@ -391,14 +392,6 @@ public class ProcessModelProvider extends ContentProvider {
     result = db.query(helper.mTable, projection, selection, selectionArgs, null, null, sortOrder);
     result.setNotificationUri(getContext().getContentResolver(), uri);
     return result;
-  }
-
-  private static boolean isColumnInProjection(final String column, final String[] projection) {
-    if (projection==null) { return false; }
-    for (String elem:projection) {
-      if(column.equalsIgnoreCase(elem)) return true;
-    }
-    return false;
   }
 
   @Override
@@ -426,7 +419,7 @@ public class ProcessModelProvider extends ContentProvider {
   private boolean isSyncStateNeeded(final UriHelper helper, final ContentValues values) {
     boolean needsSync = false;
     if (! values.containsKey(XmlBaseColumns.COLUMN_SYNCSTATE)) {
-      if (ProcessModelsOpenHelper.TABLE_NAME.equals(helper.mTable)) {
+      if (DataOpenHelper.TABLE_NAME_MODELS.equals(helper.mTable)) {
         needsSync = ProcessModels.hasServerNotifyableColumns(values);
       } else {
         needsSync = true;
@@ -437,7 +430,7 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   public void notifyPMStreamChangeIfNeeded(final long id, final UriHelper helper, final ContentValues values) {
-    if (ProcessModelsOpenHelper.TABLE_NAME.equals(helper.mTable) && values.containsKey(ProcessModels.COLUMN_MODEL)) {
+    if (DataOpenHelper.TABLE_NAME_MODELS.equals(helper.mTable) && values.containsKey(ProcessModels.COLUMN_MODEL)) {
       getContext().getContentResolver().notifyChange(ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id), null, helper.mNetNotify);
     }
   }

@@ -35,6 +35,7 @@ public final class OverviewTaskCursorAdapter extends BaseTaskCursorAdapter<Overv
   public void onBindViewHolder(final OverviewTaskCursorViewHolder viewHolder, final Cursor cursor) {
     super.onBindViewHolder(viewHolder, cursor);
     viewHolder.binding.setSummary(mSummaryColIdx >= 0 ? cursor.getString(mSummaryColIdx) : null);
+    viewHolder.binding.setInstanceName(mInstNameColIdx>=0 ? cursor.getString(mInstNameColIdx): null);
     final int drawableId;
     if (mStateColIdx >= 0) {
       String s = cursor.getString(mStateColIdx);

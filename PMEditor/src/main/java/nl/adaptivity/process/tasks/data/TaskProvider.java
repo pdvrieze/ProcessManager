@@ -9,7 +9,8 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.android.ProviderHelper;
+import nl.adaptivity.process.data.ProviderHelper;
+import nl.adaptivity.process.data.DataOpenHelper;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.UserTask.TaskState;
@@ -58,6 +59,9 @@ public class TaskProvider extends ContentProvider {
 
   public static class Tasks implements BaseColumns {
 
+    public static final String COLUMN_INSTANCENAME = "instanceName";
+    public static final String COLUMN_INSTANCEHANDLE = "instanceHandle";
+
     private Tasks(){}
 
     public static final String COLUMN_HANDLE="handle";
@@ -105,12 +109,12 @@ public class TaskProvider extends ContentProvider {
   }
 
   private enum QueryTarget{
-    TASKS(Tasks.CONTENT_URI, TasksOpenHelper.TABLE_NAME_TASKS),
-    TASK(Tasks.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_TASKS),
-    TASKITEMS(TaskProvider.Items.CONTENT_ID_URI_BASE, TasksOpenHelper.TABLE_NAME_ITEMS),
-    TASKITEM(TaskProvider.Items.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_ITEMS),
-    TASKOPTIONS(Options.CONTENT_ID_URI_BASE, TasksOpenHelper.TABLE_NAME_OPTIONS),
-    TASKOPTION(Options.CONTENT_ID_URI_PATTERN, TasksOpenHelper.TABLE_NAME_OPTIONS);
+    TASKS(Tasks.CONTENT_URI, DataOpenHelper.TABLE_NAME_TASKS),
+    TASK(Tasks.CONTENT_ID_URI_PATTERN, DataOpenHelper.TABLE_NAME_TASKS),
+    TASKITEMS(TaskProvider.Items.CONTENT_ID_URI_BASE, DataOpenHelper.TABLE_NAME_ITEMS),
+    TASKITEM(TaskProvider.Items.CONTENT_ID_URI_PATTERN, DataOpenHelper.TABLE_NAME_ITEMS),
+    TASKOPTIONS(Options.CONTENT_ID_URI_BASE, DataOpenHelper.TABLE_NAME_OPTIONS),
+    TASKOPTION(Options.CONTENT_ID_URI_PATTERN, DataOpenHelper.TABLE_NAME_OPTIONS);
 
     private final String path;
     private final String table;
@@ -144,18 +148,22 @@ public class TaskProvider extends ContentProvider {
     final public String mTable;
     private boolean mNetNotify;
 
-    private UriHelper(QueryTarget u, boolean netNotify) {
-      this(u, -1, netNotify);
+    private UriHelper(QueryTarget u, boolean netNotify, boolean ext) {
+      this(u, -1, netNotify, ext);
     }
 
-    private UriHelper(QueryTarget u, long id, boolean netNotify) {
+    private UriHelper(QueryTarget u, long id, boolean netNotify, boolean ext) {
       mTarget = u;
       mId = id;
       mNetNotify = netNotify;
-      mTable = u.table;
+      mTable = ext && u.table==DataOpenHelper.TABLE_NAME_TASKS ? DataOpenHelper.VIEW_NAME_TASKSEXT : u.table;
     }
 
     static UriHelper parseUri(Uri query) {
+      return parseUri(query, null);
+    }
+
+    static UriHelper parseUri(Uri query, final String[] projection) {
       boolean netNotify;
       if ("nonetnotify".equals(query.getFragment())) {
         query = query.buildUpon().encodedFragment(null).build();
@@ -171,9 +179,9 @@ public class TaskProvider extends ContentProvider {
       case TASK:
       case TASKOPTION:
       case TASKITEM:
-        return new UriHelper(u, ContentUris.parseId(query), netNotify);
+        return new UriHelper(u, ContentUris.parseId(query), netNotify, ProviderHelper.isColumnInProjection(Tasks.COLUMN_INSTANCENAME, projection));
       default:
-        return new UriHelper(u, netNotify);
+        return new UriHelper(u, netNotify, ProviderHelper.isColumnInProjection(Tasks.COLUMN_INSTANCENAME, projection));
       }
     }
   }
@@ -223,11 +231,11 @@ public class TaskProvider extends ContentProvider {
     return true;
   }
 
-  private TasksOpenHelper mDbHelper;
+  private DataOpenHelper mDbHelper;
 
   @Override
   public boolean onCreate() {
-    mDbHelper = new TasksOpenHelper(getContext());
+    mDbHelper = new DataOpenHelper(getContext());
     return true;
   }
 
@@ -263,7 +271,7 @@ public class TaskProvider extends ContentProvider {
 
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-    UriHelper helper = UriHelper.parseUri(uri);
+    UriHelper helper = UriHelper.parseUri(uri, projection);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = BaseColumns._ID+" = ?";
@@ -308,23 +316,23 @@ public class TaskProvider extends ContentProvider {
         selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
         String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
                                     "SELECT " + Items._ID+
-                                    " FROM " + TasksOpenHelper.TABLE_NAME_ITEMS+
+                                    " FROM " + DataOpenHelper.TABLE_NAME_ITEMS+
                                     " WHERE " + Items.COLUMN_TASKID+" IN (" +
                                       " SELECT " + Tasks._ID+
-                                      " FROM " + TasksOpenHelper.TABLE_NAME_TASKS +
+                                      " FROM " + DataOpenHelper.TABLE_NAME_TASKS +
                                       " WHERE " + selection + " ) )";
-        db.delete(TasksOpenHelper.TABLE_NAME_OPTIONS, optionSelection, selectionArgs);
+        db.delete(DataOpenHelper.TABLE_NAME_OPTIONS, optionSelection, selectionArgs);
         String itemSelection = Items.COLUMN_TASKID+" IN (" +
               " SELECT " + Tasks._ID+
-              " FROM " + TasksOpenHelper.TABLE_NAME_TASKS +
+              " FROM " + DataOpenHelper.TABLE_NAME_TASKS +
               " WHERE " + selection + " )";
-        db.delete(TasksOpenHelper.TABLE_NAME_ITEMS, itemSelection, selectionArgs);
+        db.delete(DataOpenHelper.TABLE_NAME_ITEMS, itemSelection, selectionArgs);
       } else if (helper.mTarget==QueryTarget.TASKITEMS) {
         String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
             "SELECT " + Items._ID+
-            " FROM " + TasksOpenHelper.TABLE_NAME_ITEMS+
+            " FROM " + DataOpenHelper.TABLE_NAME_ITEMS+
             " WHERE " + selection + " )";
-        db.delete(TasksOpenHelper.TABLE_NAME_OPTIONS, optionSelection, selectionArgs);
+        db.delete(DataOpenHelper.TABLE_NAME_OPTIONS, optionSelection, selectionArgs);
       } else if (helper.mId>=0) {
         if (selection==null || selection.length()==0) {
           selection = Tasks._ID+" = ?";

@@ -5,8 +5,10 @@
         >
 
     <data>
-
+        <import type="android.view.View" />
         <variable name="summary"
+                  type="java.lang.CharSequence" />
+        <variable name="instanceName"
                   type="java.lang.CharSequence" />
 
         <variable name="taskStateDrawable"
@@ -61,7 +63,8 @@
                     android:textAppearance="?android:attr/textAppearanceSmall"
                     android:textColor="@color/colorPrimaryDark"
                     android:gravity="top|end"
-                    android:visibility="gone"
+                    android:visibility="@{instanceName!=null ? View.VISIBLE : View.GONE}"
+                    android:text="@{instanceName}"
                     tools:visibility="visible"
                     tools:text=".. days old" />
         </LinearLayout>
