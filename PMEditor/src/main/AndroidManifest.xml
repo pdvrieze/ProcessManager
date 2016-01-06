@@ -24,8 +24,7 @@
         <activity
                 android:name=".PMEditor"
                 android:label="@string/title_editor"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                tools:ignore="UnusedAttribute">
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
@@ -52,10 +51,6 @@
                 android:exported="false"
                 android:label="Tasks"
                 android:syncable="true" />
-
-        <activity
-                android:name=".SettingsActivity"
-                android:label="@string/title_activity_settings" />
 
         <service
                 android:name="nl.adaptivity.process.models.ProcessModelSyncService"
