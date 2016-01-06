@@ -39,9 +39,9 @@ public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorVie
     if (mStateColIdx >= 0) {
       String s = cursor.getString(mStateColIdx);
       TaskState state = TaskState.fromString(s);
-      drawableId = state == null ? -1 : state.getDecoratorId();
+      drawableId = state == null ? 0 : state.getDecoratorId();
     } else {
-      drawableId = -1;
+      drawableId = 0;
     }
     viewHolder.binding.setTaskStateDrawable(drawableId);
 //      viewHolder.binding.executePendingBindings();
