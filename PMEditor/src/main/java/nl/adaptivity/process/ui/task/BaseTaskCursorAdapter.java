@@ -41,11 +41,6 @@ public abstract class BaseTaskCursorAdapter<VH extends ClickableViewHolder> exte
   }
 
   @Override
-  public final void changeCursor(Cursor cursor) {
-    super.changeCursor(cursor);
-  }
-
-  @Override
   public final Cursor swapCursor(Cursor newCursor) {
     final Cursor result = super.swapCursor(newCursor);
     updateColIdxs(newCursor);

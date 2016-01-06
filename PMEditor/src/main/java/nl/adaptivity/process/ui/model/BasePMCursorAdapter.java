@@ -57,11 +57,6 @@ public abstract class BasePMCursorAdapter<VH extends BasePMViewHolder> extends S
   }
 
   @Override
-  public void changeCursor(Cursor cursor) {
-    super.changeCursor(cursor); // This will call swapCursor, so no new update of indices is needed
-  }
-
-  @Override
   public Cursor swapCursor(Cursor newCursor) {
     Log.d(TAG, "Swapping processmodel cursor");
     final Cursor result = super.swapCursor(newCursor);

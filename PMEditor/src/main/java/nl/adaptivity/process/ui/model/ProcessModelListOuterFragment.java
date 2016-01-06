@@ -49,8 +49,10 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   private ProcessModelListCallbacks mCallbacks;
 
   @Override
-  protected ProcessModelListFragment createListFragment() {
-    return new ProcessModelListFragment();
+  protected ProcessModelListFragment createListFragment(Bundle args) {
+    ProcessModelListFragment listFragment = new ProcessModelListFragment();
+    if (args!=null) { listFragment.setArguments(args); }
+    return listFragment;
   }
 
   @Override

@@ -1,14 +1,12 @@
 package nl.adaptivity.process.ui.task;
 
-import android.support.annotation.Nullable;
-import android.view.View;
-import nl.adaptivity.android.util.MasterDetailOuterFragment;
-import nl.adaptivity.android.util.MasterListFragment;
-import nl.adaptivity.process.editor.android.R;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
+import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.process.editor.android.R;
 
 
 /**
@@ -61,8 +59,10 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
   }
 
   @Override
-  protected MasterListFragment createListFragment() {
-    return new TaskListFragment();
+  protected MasterListFragment createListFragment(Bundle args) {
+    TaskListFragment taskListFragment = new TaskListFragment();
+    if (args!=null) { taskListFragment.setArguments(args); }
+    return taskListFragment;
   }
 
   @Override

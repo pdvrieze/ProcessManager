@@ -8,6 +8,7 @@ import android.databinding.ObservableList.OnListChangedCallback;
 import android.databinding.ViewDataBinding;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import nl.adaptivity.process.editor.android.BR;
@@ -21,6 +22,9 @@ import nl.adaptivity.process.tasks.UserTask;
  * Created by pdvrieze on 21/12/15.
  */
 public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
+
+  private static final String TAG = "TaskItemAdapter";
+
   public static class TaskItemHolder extends ViewHolder {
 
     private final ViewDataBinding binding;
@@ -96,6 +100,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
   }
 
   public void setUserTask(UserTask userTask) {
+    Log.d(TAG, "setUserTask() called with " + "userTask = [" + userTask + "]");
     if (mUserTask==userTask) { return; }
     if (mUserTask!=null) {
       mUserTask.getItems().removeOnListChangedCallback(mListChangeCallback);
@@ -103,9 +108,13 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
     }
     mUserTask = userTask;
     if (userTask!=null) {
+      mCompletable = userTask.isCompleteable();
       userTask.getItems().addOnListChangedCallback(mListChangeCallback);
       userTask.addOnPropertyChangedCallback(mOnPropertyChangedCallback);
+    } else {
+      mCompletable = false;
     }
+    notifyDataSetChanged();
   }
 
   @Override

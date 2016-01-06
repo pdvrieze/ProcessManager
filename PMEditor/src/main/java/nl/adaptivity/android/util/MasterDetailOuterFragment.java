@@ -40,7 +40,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
     {
       Fragment existingListFragment = getChildFragmentManager().findFragmentById(mListContainerId);
       if (existingListFragment == null) {
-        mListFragment = createListFragment();
+        mListFragment = createListFragment(getListArgumentsIfNeeded());
         getChildFragmentManager().beginTransaction().replace(mListContainerId, mListFragment).commit();
       } else {
         mListFragment = (MasterListFragment) existingListFragment;
@@ -48,6 +48,16 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
     }
 
     return result;
+  }
+
+  private Bundle getListArgumentsIfNeeded() {
+    Bundle args = getArguments();
+    if (args!=null && args.containsKey(ARG_ITEM_ID)) {
+      Bundle b = new Bundle(1);
+      b.putLong(ARG_ITEM_ID, args.getLong(ARG_ITEM_ID));
+      return b;
+    }
+    return null;
   }
 
   @Override
@@ -62,7 +72,6 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
         if (mTwoPane) {
           Fragment detailFragment = createDetailFragment(itemId);
           getChildFragmentManager().beginTransaction().replace(mDetailContainerId, detailFragment).commit();
-          mListFragment.setCheckedId(itemId);
         } else {
           startActivity(getDetailIntent(itemId));
           getActivity().finish(); // Remove the current activity from the backstack, it will be the list container
@@ -128,7 +137,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
 
   protected abstract Intent getDetailIntent(long itemId);
 
-  protected abstract MasterListFragment createListFragment();
+  protected abstract MasterListFragment createListFragment(@Nullable Bundle args);
 
   public static @NonNull Bundle addArgs(@Nullable Bundle args, long itemId) {
     if (args==null) {

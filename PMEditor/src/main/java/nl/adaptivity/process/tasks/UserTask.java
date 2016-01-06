@@ -151,6 +151,7 @@ public class UserTask extends BaseObservable {
   private boolean mDirty = false;
 
   public UserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
+    Log.d(TAG, "UserTask() called with " + "summary = [" + summary + "], handle = [" + handle + "], owner = [" + owner + "], state = [" + state + "], items = [" + items + "] -> " +toString() );
     mSummary = summary;
     mHandle = handle;
     mOwner = owner;
@@ -244,7 +245,7 @@ public class UserTask extends BaseObservable {
 
   @Bindable
   public boolean isCompleteable() {
-    if (! mState.isEditable()) { return false; }
+    if (mState ==null || (! mState.isEditable())) { return false; }
     for (TaskItem item:mItems) {
       if (! item.isCompleteable()) { return false; }
     }
@@ -312,4 +313,8 @@ public class UserTask extends BaseObservable {
     return new UserTask(summary, handle, owner, TaskState.fromString(state), items);
   }
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName()+"#"+System.identityHashCode(this);
+  }
 }

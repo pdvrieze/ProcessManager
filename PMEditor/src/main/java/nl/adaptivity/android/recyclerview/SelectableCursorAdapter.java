@@ -70,7 +70,7 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
     if (mSelectionPos != RecyclerView.NO_POSITION) {
       notifyItemChanged(mSelectionPos);
     }
-    if (mSelectionPos == position) {
+    if (position!=RecyclerView.NO_POSITION && mSelectionPos == position) {
       if (isAllowUnselection()) {
         // unselect
         mSelectionPos = RecyclerView.NO_POSITION;
@@ -85,6 +85,15 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
         notifyItemChanged(position);
       }
     }
+  }
+
+  @Override
+  public Cursor swapCursor(final Cursor newCursor) {
+    Cursor oldCursor = super.swapCursor(newCursor);
+    if (hasStableIds() && newCursor!=null && mSelectionId!=RecyclerView.NO_ID) {
+      setSelectedItem(mSelectionId);
+    }
+    return oldCursor;
   }
 
   @Override

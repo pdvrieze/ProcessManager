@@ -26,14 +26,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
 
 
@@ -174,7 +170,7 @@ public class RecyclerFragment extends Fragment {
   }
 
 
-  public void setCheckedId(final long itemId) {
+  public void setSelectedId(final long itemId) {
     if (mAdapter instanceof SelectableAdapter) {
       ((SelectableAdapter) mAdapter).setSelectedItem(itemId);
     }

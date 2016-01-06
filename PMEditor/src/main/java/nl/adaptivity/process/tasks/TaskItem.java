@@ -221,4 +221,10 @@ public abstract class TaskItem extends BaseObservable {
   public int hashCode() {
     return mName != null ? mName.hashCode() : 0;
   }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName()+"#"+System.identityHashCode(this);
+  }
+
 }

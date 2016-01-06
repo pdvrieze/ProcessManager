@@ -120,9 +120,9 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
 
   /**
    * Change the underlying cursor to a new cursor. If there is an existing cursor it will be
-   * closed.
+   * closed. This will use {@link #swapCursor(Cursor)} as delegate.
    */
-  public void changeCursor(Cursor cursor) {
+  public final void changeCursor(Cursor cursor) {
     Cursor old = swapCursor(cursor);
     if (old != null) {
       old.close();
@@ -144,11 +144,11 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
     }
     mCursor = newCursor;
     if (mCursor != null) {
+      mRowIdColumn = newCursor.getColumnIndexOrThrow("_id");
+      mDataValid = true;
       if (mDataSetObserver != null) {
         mCursor.registerDataSetObserver(mDataSetObserver);
       }
-      mRowIdColumn = newCursor.getColumnIndexOrThrow("_id");
-      mDataValid = true;
       notifyDataSetChanged();
     } else {
       mRowIdColumn = -1;

@@ -15,6 +15,7 @@ import android.view.*;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
+import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
@@ -61,6 +62,15 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mAdapter = new TaskCursorAdapter(getActivity(), null);
+
+    {
+      Bundle arguments = getArguments();
+      if (arguments != null && arguments.containsKey(MasterDetailOuterFragment.ARG_ITEM_ID)) {
+        long itemId = arguments.getLong(MasterDetailOuterFragment.ARG_ITEM_ID);
+        if (itemId>=0) { mAdapter.setSelectedItem(itemId); }
+      }
+    }
+
     mAdapter.setOnSelectionListener(this);
     setListAdapter(mAdapter);
     mTaskLoaderCallbacks = new TaskLoaderCallbacks(getActivity(), mAdapter);
