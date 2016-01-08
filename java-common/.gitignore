@@ -1,0 +1,7 @@
+/build
+/bin
+/cache
+/doc
+/testbin
+/*.jar
+*.iml

@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Puppy Crawl//DTD Check Configuration 1.1//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
+
+<module name="Checker">
+
+<!-- not cleanly supported yet
+    <module name="PackageHtml"/>
+    <module name="Translation"/>
+-->
+    <module name="TreeWalker">
+
+        <property name="tabWidth" value="2" />
+
+<!-- *********http://checkstyle.sourceforge.net/config_javadoc.html******** -->
+<!-- inheriting goes with {@inheritDoc} -->
+        <module name="JavadocType">
+            <property name="authorFormat" value="Paul de Vrieze"/>
+            <property name="scope" value="package"/>
+        </module>
+        <module name="JavadocMethod">
+            <property name="scope" value="package"/>
+            <property name="allowUndeclaredRTE" value="true"/>
+            <property name="allowThrowsTagsForSubclasses" value="true"/>
+        </module>
+        <module name="JavadocVariable">
+            <property name="scope" value="public"/>
+        </module>
+<!--
+-->
+<!-- *********http://checkstyle.sourceforge.net/config_naming.html********* -->
+<!--
+		<module name="AbstractClassName"/>
+-->
+        <module name="ConstantName">
+        	<property name="format" value="^_[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName">
+        	<property name="format" value="^a[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName">
+        	<property name="format" value="^p[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="StaticVariableName">
+        	<property name="format" value="^(__|s)[A-Z][a-zA-Z0-9]*$"/>
+	</module>
+        <module name="TypeName"/>
+
+<!-- *********http://checkstyle.sourceforge.net/config_header.html********* -->
+<!--
+        <module name="Header">
+          	<property name="headerFile" value="${checkstyle.header.file}"/>
+          	<property name="severity" value="info"/>
+        </module>
+-->
+
+<!-- *********http://checkstyle.sourceforge.net/config_import.html********* -->
+<!--
+        <module name="AvoidStarImport">
+        	<property name="excludes" value="java.io,java.net,java.util">
+        </module>
+-->
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+<!--
+		<module name="ImportOrder">
+			<property groups value="net.devrieze,java,javax,murlen"/>
+			<property name="separated" value="true"/>
+		</module>
+-->
+
+<!-- **********http://checkstyle.sourceforge.net/config_sizes.html********* -->
+<!--
+		<module name="ExecutableStatementCount">
+		    <property name="max" value="30"/>
+		    <property name="tokens" value="CTOR_DEF,METHOD_DEF"/>
+		</module>
+-->
+        <module name="FileLength"/>
+        <module name="LineLength">
+            <property name="ignorePattern" value="^ *\* *[^ ]+$"/>
+            <property name="max" value="136"/>
+        </module>
+        <module name="MethodLength"/>
+<!--
+		<module name="AnonInnerLength">
+      		<property name="max" value="15"/>
+		</module>
+-->
+        <module name="ParameterNumber"/>
+
+<!-- *******http://checkstyle.sourceforge.net/config_whitespace.html******* -->
+        <module name="EmptyForIteratorPad"/>
+        <module name="NoWhitespaceAfter">
+        	<property name="tokens" value="ARRAY_INIT, DEC, DOT, INC, BNOT, UNARY_MINUS, UNARY_PLUS"/>
+        </module>
+        <module name="NoWhitespaceBefore"/>
+        <module name="NoWhitespaceBefore">
+            <property name="tokens" value="DOT"/>
+            <property name="allowLineBreaks" value="true"/>
+        </module>
+        <module name="OperatorWrap"/>
+        <module name="OperatorWrap">
+            <property name="tokens" value="ASSIGN, DIV_ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, STAR_ASSIGN, MOD_ASSIGN, SR_ASSIGN, BSR_ASSIGN, SL_ASSIGN, BXOR_ASSIGN, BOR_ASSIGN, BAND_ASSIGN"/>
+            <property name="option" value="eol"/>
+        </module>
+        <module name="ParenPad"/>
+<!--
+        <module name="TypecastParenPad"/>
+-->
+		<module name="TabCharacter"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround">
+        	<!-- Don't check for curly braces so as to allow {} empty blocks -->
+        	<property name="tokens" value="ASSIGN, BAND, BAND_ASSIGN, BOR, BOR_ASSIGN, BSR, BSR_ASSIGN, BXOR, BXOR_ASSIGN, COLON, DIV, DIV_ASSIGN, EQUAL, GE, GT, LAND, LE, LITERAL_ASSERT, LITERAL_CATCH, LITERAL_DO, LITERAL_ELSE, LITERAL_FINALLY, LITERAL_FOR, LITERAL_IF, LITERAL_RETURN, LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, LOR, LT, MINUS, MINUS_ASSIGN, MOD, MOD_ASSIGN, NOT_EQUAL, PLUS, PLUS_ASSIGN, QUESTION, SL, SLIST, SL_ASSIGN, SR, SR_ASSIGN, STAR, STAR_ASSIGN"/>
+        </module>
+
+<!-- ********http://checkstyle.sourceforge.net/config_modifiers.html******* -->
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+
+<!-- *********http://checkstyle.sourceforge.net/config_blocks.html********* -->
+        <module name="EmptyBlock"/>
+        <module name="LeftCurly">
+            <property name="option" value="eol"/>
+        </module>
+        <module name="NeedBraces"/>
+        <module name="RightCurly">
+            <property name="option" value="same"/>
+        </module>
+<!--
+        <module name="AvoidNestedBlocks">
+        	<property name="allowInSwitchCase" value="true"/>
+        </module>
+-->
+        
+<!-- *********http://checkstyle.sourceforge.net/config_coding.html********* -->
+<!--
+		<module name="ArrayTrailingComma"/>
+		<module name="AvoidInlineConditionals"/>
+		<module name="CovariantEquals"/>
+-->
+		<module name="DoubleCheckedLocking"/>
+		<module name="EmptyStatement"/>
+	        <module name="EqualsHashCode"/>
+<!--
+		<module name="FinalLocalVariable"/>
+-->
+		<module name="HiddenField"/>
+		<module name="IllegalInstantiation">
+			<property name="classes" value="java.lang.Boolean"/>
+		</module>
+<!--
+		<module name="IllegalToken">
+			<property name="tokens" value="POST_INC, POST_DEC"/>
+		</module>
+		<module name="IllegalTokenText">
+		    <property name="tokens" value="STRING_LITERAL"/>
+		    <property name="format" value="a href"/>
+		</module>
+-->
+        <module name="InnerAssignment"/>
+		<!--module name="MagicNumber"/-->
+		<module name="MissingSwitchDefault"/>
+		<module name="RedundantThrows">
+		    <property name="allowUnchecked" value="true"/>
+		</module>
+		<module name="SimplifyBooleanExpression"/>
+		<module name="SimplifyBooleanReturn"/>
+<!--
+		<module name="StringLiteralEquality"/>
+		<module name="NestedIfDepth">
+			<property name="max" value="3"/>
+		</module>
+		<module name="NestedTryDepth">
+		    <property name="max" value="3"/>
+		</module>
+		<module name="SuperClone"/>
+		<module name="SuperFinalize"/>
+		<module name="IllegalCatch"/>
+		<module name="PackageDeclaration"/>
+		<module name="JUnitTestCase"/>
+		<module name="ReturnCount">
+		    <property name="max" value="5"/>
+		</module>
+		<module name="IllegalType"/>
+		<module name="DeclarationOrder"/>
+		<module name="ParameterAssignment"/>
+		<module name="ExplicitInitialization"/>
+-->
+		
+<!-- *********http://checkstyle.sourceforge.net/config_design.html********* -->
+		<module name="VisibilityModifier">
+		    <property name="protectedAllowed" value="true"/>
+		    <property name="publicMemberPattern" value="^__.*"/>
+		</module>
+		<module name="FinalClass"/>
+<!--
+		<module name="InterfaceIsType"/>
+-->
+		<module name="HideUtilityClassConstructor"/>
+<!--
+		<module name="DesignForExtension"/>
+		<module name="MutableException"/>
+		<module name="ThrowsCount">
+		    <property name="max" value="2"/>
+		</module>
+-->
+
+<!-- *********http://checkstyle.sourceforge.net/config_metrics.html******** -->
+<!--
+		<module name="CyclomaticComplexity"/>
+-->
+
+<!-- **********http://checkstyle.sourceforge.net/config_misc.html********** -->
+<!--
+		<module name="UncommentedMain">
+		    <property name="excludedClasses" value="\.Main$"/>
+		</module>
+-->
+		<module name="UpperEll"/>
+		<module name="ArrayTypeStyle"/>
+		<module name="FinalParameters"/>
+		<module name="Indentation">
+		    <property name="basicOffset" value="2"/>
+		    <property name="braceAdjustment" value="0"/>
+		    <property name="caseIndent" value="2"/>
+		</module>
+		
+    </module>
+
+<!-- *******http://checkstyle.sourceforge.net/config_duplicates.html******* -->
+<!--
+    <module name="StrictDuplicateCode"/>
+	<module name="JavadocStyle">
+        <property name="scope" value="package"/>
+	</module>
+-->
+</module>

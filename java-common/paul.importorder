@@ -1,0 +1,10 @@
+#Organize Import Order
+#Mon Jan 19 11:51:29 CET 2009
+6=net.devrieze
+5=net.devrieze.m
+4=m.lang
+3=\#org.objectweb.asm
+2=org
+1=javax
+0=java
+7=com

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	This configuration file was written by the eclipse-cs plugin configuration editor
+-->
+<!--
+Checkstyle-Configuration: Paul's default
+Description:
+My default checkstyle config
+-->
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.2//EN" "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+    <property name="severity" value="warning"/>
+    <module name="TreeWalker">
+        <module name="JavadocStyle"/>
+        <module name="AbstractClassName">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ConstantName">
+            <property name="format" value="^_?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName">
+            <property name="format" value="^a[A-Z0-9][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName">
+            <property name="format" value="^p[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="StaticVariableName">
+            <property name="format" value="^(__|s)[A-Z][a-zA-Z0-9]*$"/>
+        </module>
+        <module name="TypeName"/>
+        <module name="IllegalImport"/>
+        <module name="ImportOrder">
+            <property name="groups" value="java., javax.,junit., org., net.devrieze., nl.pronir.,"/>
+            <property name="separated" value="true"/>
+        </module>
+        <module name="RedundantImport"/>
+        <module name="AnonInnerLength"/>
+        <module name="ExecutableStatementCount">
+            <property name="max" value="60"/>
+            <property name="tokens" value="INSTANCE_INIT,STATIC_INIT,METHOD_DEF,CTOR_DEF"/>
+        </module>
+        <module name="FileLength"/>
+        <module name="ParameterNumber"/>
+        <module name="EmptyForInitializerPad">
+            <property name="option" value="space"/>
+        </module>
+        <module name="EmptyForIteratorPad">
+            <property name="option" value="space"/>
+        </module>
+        <module name="MethodParamPad"/>
+        <module name="ParenPad"/>
+        <module name="TabCharacter"/>
+        <module name="TypecastParenPad">
+            <property name="tokens" value="RPAREN,TYPECAST"/>
+        </module>
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+        <module name="AvoidNestedBlocks">
+            <property name="severity" value="ignore"/>
+            <property name="allowInSwitchCase" value="true"/>
+        </module>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+        </module>
+        <module name="LeftCurly"/>
+        <module name="NeedBraces"/>
+        <module name="RightCurly"/>
+        <module name="CovariantEquals"/>
+        <module name="DefaultComesLast"/>
+        <module name="DeclarationOrder">
+            <metadata name="com.atlassw.tools.eclipse.checkstyle.lastEnabledSeverity" value="info"/>
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="DoubleCheckedLocking"/>
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="FallThrough">
+            <property name="checkLastCaseGroup" value="true"/>
+        </module>
+        <module name="FinalLocalVariable"/>
+        <module name="HiddenField"/>
+        <module name="IllegalInstantiation">
+            <property name="classes" value="java.lang.Boolean,java.lang.Integer,java.lang.Double"/>
+        </module>
+        <module name="IllegalThrows"/>
+        <module name="IllegalToken">
+            <property name="tokens" value="EOF,SR_ASSIGN,SL_ASSIGN"/>
+        </module>
+        <module name="IllegalType">
+            <property name="severity" value="ignore"/>
+            <property name="tokens" value="METHOD_DEF,PARAMETER_DEF,VARIABLE_DEF"/>
+        </module>
+        <module name="InnerAssignment"/>
+        <module name="JUnitTestCase"/>
+        <module name="MagicNumber"/>
+        <module name="MissingSwitchDefault">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ModifiedControlVariable"/>
+        <module name="MultipleStringLiterals">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="PackageDeclaration"/>
+        <module name="ParameterAssignment"/>
+        <module name="ReturnCount">
+            <metadata name="com.atlassw.tools.eclipse.checkstyle.lastEnabledSeverity" value="info"/>
+            <property name="severity" value="ignore"/>
+            <property name="max" value="10"/>
+        </module>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
+        <module name="SuperClone">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="SuperFinalize"/>
+        <module name="ArrayTrailingComma"/>
+        <module name="UnnecessaryParentheses"/>
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor"/>
+        <module name="InterfaceIsType"/>
+        <module name="VisibilityModifier"/>
+        <module name="CyclomaticComplexity">
+            <property name="max" value="20"/>
+        </module>
+        <module name="JavaNCSS">
+            <metadata name="com.atlassw.tools.eclipse.checkstyle.lastEnabledSeverity" value="info"/>
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="NPathComplexity">
+            <metadata name="com.atlassw.tools.eclipse.checkstyle.lastEnabledSeverity" value="info"/>
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="ArrayTypeStyle"/>
+        <module name="FinalParameters">
+            <property name="tokens" value="METHOD_DEF,CTOR_DEF,LITERAL_CATCH"/>
+        </module>
+        <module name="Indentation">
+            <property name="severity" value="ignore"/>
+            <property name="basicOffset" value="2"/>
+            <property name="caseIndent" value="2"/>
+        </module>
+        <module name="UncommentedMain">
+            <property name="severity" value="ignore"/>
+        </module>
+        <module name="UpperEll"/>
+        <module name="JavadocType">
+            <property name="excludeScope" value="private"/>
+            <property name="scope" value="package"/>
+            <property name="authorFormat" value="Paul de Vrieze"/>
+            <property name="versionFormat" value="[0-9]+(\.[0-9]+)* +\$Revision: ?[0-9]* ?\$ *$"/>
+        </module>
+        <module name="NoWhitespaceAfter">
+            <property name="tokens" value="BNOT,DEC,DOT,INC,LNOT,UNARY_MINUS,UNARY_PLUS"/>
+        </module>
+        <module name="NoWhitespaceBefore">
+            <property name="tokens" value="SEMI,DOT,POST_DEC,POST_INC"/>
+        </module>
+        <module name="Regexp">
+            <metadata name="com.atlassw.tools.eclipse.checkstyle.comment" value="No trailing whitespace"/>
+            <property name="format" value=" +$"/>
+            <property name="message" value="Trailing whitespace is not allowed"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+        <module name="Regexp">
+            <metadata name="com.atlassw.tools.eclipse.checkstyle.comment" value="No duplicated spaces"/>
+            <property name="format" value="^(?&gt; ++(\* *)?)(?&gt;(?&gt;(?&gt;(?&gt; ?+[^ \n&quot;]+)+)|(?&gt; ?&quot;(([^\\&quot;\n]*+)(\\.)*+)*+&quot;))+)(?&gt; *\*)?+  +"/>
+            <property name="message" value="No duplicated spaces"/>
+            <property name="illegalPattern" value="true"/>
+        </module>
+    </module>
+    <module name="NewlineAtEndOfFile"/>
+</module>

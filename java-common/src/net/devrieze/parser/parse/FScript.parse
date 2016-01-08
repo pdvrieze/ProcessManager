@@ -1,0 +1,41 @@
+MAIN: STATEMENTS[], WS, eof;
+
+STATEMENTS[]: WS, STATEMENT, continue peek(WS, LINE);
+
+WS: while peek(or(13, 10, " ", "\t")) or(13, 10, " ", "\t");
+
+STATEMENT: WS, if peek(SYMBOL) {
+                 if peek(KEYWORD) KEYWORDSTATEMENT
+                 else {s=SYMBOL, if peek(a=ACCESSOR) 
+                     o=ACCESSOR(s)
+                   else
+                     o=s
+                 }
+
+
+STATEMENT: STATEMENTEOS;
+
+STATEMENTEOS: WS (SYMBOL | BLOCK |EOS);
+
+WS: [\0x13\0x10 \t']*;
+
+SYMBOL: KEYWORD | NSYMBOL;
+
+KEYWORD: "return" | "int" | "string" | "double" | "char" | "object" | "func"
+         "if" | "while" | "for" | "boolean";
+         
+NSYMBOL: ACCESSORSYMBOL
+
+ACCESSORSYMBOL: NAME ACCESSORS;
+ACCESSORS: (ARRAYACCESS | OBJECTACCESS | FUNCTIONACCESS)* 
+           (ARRAYACCESS ARRAYASSIGN? | OBJECTACCESS OBJECTASSIGN? | FUNCTIONACCESS)
+
+ARRAYACCESS: ARRAYACCESSOPEN EXPRESSION ARRAYACCESSCLOSE;
+
+OBJECTACCESS: OBJECTACCESSTOKEN NAME;
+
+FUNCTIONACCESS: FUNCTIONACCESSOPEN (EXPRESSION (FUNCTIONSEP EXPRESSION)*)? FUNCTIONACCESSCLOSE;
+
+ARRAYASSIGN: WS ASSIGN WS EXPRESSION WS EOS
+
+EXPRESSION

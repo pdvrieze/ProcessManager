@@ -1,8 +1,0 @@
-<root>
-  <item name='org.xmlpull.v1.XmlPullParser java.lang.String getNamespacePrefix(int)'>
-    <annotation name='org.jetbrains.annotations.Nullable' />
-  </item>
-  <item name='org.xmlpull.v1.XmlPullParser java.lang.String getNamespaceUri(int)'>
-    <annotation name='org.jetbrains.annotations.Nullable' />
-  </item>
-</root>

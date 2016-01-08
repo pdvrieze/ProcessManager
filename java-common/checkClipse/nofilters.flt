@@ -1,0 +1,19 @@
+# default filter file
+# example usage: 
+# careful: comment sign must be *first* in line
+# regular expressions are Apache RegExp-style.
+# Make sure to escape the escape character --> \\
+#
+# the path passed to the filter is exactly the one you see if you
+# open right-mouse --> properties --> Info --> File Path
+# e.g. /Checklipse/testsrc/testpackage/TestSrc.java
+# 
+
+# this file could be filtered with this expression:
+#/checkclipse/testsrc/de/mvmsoft/checkclipse/test/TestSrc.java
+
+# all files in the package should be filtered like this
+#/checkclipse/testsrc/de/mvmsoft/checkclipse/test1/.*
+
+
+

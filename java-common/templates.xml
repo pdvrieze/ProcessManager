@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><templates><template autoinsert="true" context="java" deleted="false" description="A block" enabled="true" name="block">{
+  ${line_selection}${cursor}
+}</template><template autoinsert="true" context="java" deleted="false" description="The start of an equals method" enabled="true" name="equals">if (this==${pOther:localVar(Object)}) { return true; }
+if (${pOther} == null || ${pOther}.getClass()!=${enclosing_type}.class) { return false; }
+${enclosing_type} other = (${enclosing_type}) ${pOther};
+${cursor}</template><template autoinsert="true" context="java" deleted="false" description="A function that can map an array from one type to the other" enabled="true" name="map">final ${a:return_type}[] ${result:newName(b)} = new ${a}[${c:localVar}.length];
+for (int i = ${result}.length - 1; i&gt;=0; --i) {
+  ${result}[i] = ${c}[i]${cursor};
+}
+return ${result};</template></templates>

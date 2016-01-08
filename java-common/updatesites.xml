@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookmarks>
+   <site name="phpeclipse" url="http://phpeclipse.sourceforge.net/update/releases" web="false" selected="false" local="false"/>
+   <site name="pydev" url="http://pydev.sf.net/updates/" web="false" selected="false" local="false"/>
+   <site name="webtools" url="http://download.eclipse.org/webtools/updates/" web="false" selected="false" local="false"/>
+   <site name="objectweb" url="http://download.forge.objectweb.org/eclipse-update/" web="false" selected="true" local="false"/>
+   <site name="Eclipse.org update site" url="http://update.eclipse.org/updates/3.0" web="false" selected="false" local="false"/>
+   <site name="EMF/SDO/XSD Secondary Update Site" url="http://download.eclipse.org/tools/emf/updates/" web="false" selected="false" local="false"/>
+   <site name="Subclipse update site" url="http://subclipse.tigris.org/update_1.0.x" web="false" selected="false" local="false"/>
+   <site name="Eclipse Checkstyle Plug-in Updates" url="http://eclipse-cs.sourceforge.net/update" web="false" selected="false" local="false"/>
+   <site name="Visual Editor update site" url="http://update.eclipse.org/tools/ve/updates/1.0/" web="false" selected="false" local="false"/>
+</bookmarks>
