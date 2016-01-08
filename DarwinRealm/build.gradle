@@ -1,0 +1,38 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+version = '1.1.0'
+description = 'A tomcat realm to work with the darwin authentication system'
+//group = 'serverclasspath'
+
+
+configurations {
+    providedCompile
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+        resources {
+            srcDir 'properties'
+        }
+        compileClasspath+=configurations.providedCompile
+    }
+
+}
+
+
+dependencies {
+    providedCompile "org.apache.tomcat:catalina:${tomcatVersion}"
+    runtime dbcpSpec
+
+    compile project(':DarwinCommon')
+    compile project(path: ':DarwinCommon', configuration:'providedCompile')
+
+}

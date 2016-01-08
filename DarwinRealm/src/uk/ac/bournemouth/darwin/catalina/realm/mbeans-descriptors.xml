@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<mbeans-descriptors>
+  <mbean      name="DarwinRealm"
+       description="Realm using CoyotePrincipal connected to a UserDatabase as a global JNDI resource supporting the darwin authentication system"
+            domain="Catalina"
+             group="Realm"
+             type="uk.ac.bournemouth.darwin.catalina.realm.DarwinRealm">
+    <attribute name="className"
+        description="Fully qualified class name of the managed object"
+               type="java.lang.String"
+          writeable="false"/>
+    <attribute name="resourceName"
+        description="The global JNDI name of the UserDatabase resource to use"
+               type="java.lang.String"/>
+  </mbean>
+</mbeans-descriptors>
