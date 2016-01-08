@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://adaptivity.nl/ProcessEngine/" xmlns:tns="http://adaptivity.nl/ProcessEngine/" elementFormDefault="qualified">
+
+    <element name="processNodeInstance" type="tns:XmlProcessNodeInstance"></element>
+
+    <complexType name="XmlProcessNodeInstance">
+    	<sequence>
+    		<element name="predecessor" type="long"></element>
+    		<element name="body">
+    			<complexType>
+    				<sequence>
+    					<any minOccurs="0" maxOccurs="unbounded"></any>
+    				</sequence>
+    			</complexType>
+    		</element>
+    	</sequence>
+    	<attribute name="handle" type="long" use="required"></attribute>
+    	<attribute name="state" type="string"></attribute>
+    	<attribute name="processinstance" type="long"></attribute>
+    </complexType>
+
+</schema>
