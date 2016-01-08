@@ -1,0 +1,6 @@
+[submodule "darwinlib"]
+	path = darwinlib
+	url = https://github.com/pdvrieze/darwinlib.git
+[submodule "android-auth"]
+	path = android-auth
+	url = https://github.com/pdvrieze/darwin-android-auth.git
