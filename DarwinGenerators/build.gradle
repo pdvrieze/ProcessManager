@@ -1,0 +1,37 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+//apply plugin: 'application'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+version='1.0.0'
+description = 'A generator for client code for services'
+//group = 'util'
+
+
+def mainClassName = 'nl.adaptivity.messaging.MessagingSoapClientGenerator'
+project.ext {
+    main=mainClassName
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class':mainClassName
+    }
+}
+
+dependencies {
+    compile project(':PE-common')
+    compile project(path: ':PE-common', configuration:'providedCompile')
+    compile 'org.mortbay.jetty:servlet-api-2.5:6.1.5'
+}
