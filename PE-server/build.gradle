@@ -1,0 +1,96 @@
+apply plugin: 'java'
+apply plugin: 'com.bmuschko.tomcat'
+apply plugin: 'idea'
+
+defaultTasks 'tomcatRun'
+
+version = '1.0.0'
+description = 'A project for running an embedded tomcat server that works.'
+//group = ['util' ]
+
+
+configurations {
+    extraBootCp {
+        description "This configuration allows for assembling all the jars for the boot classpath of catalina"
+    }
+}
+
+dependencies {
+    tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
+            "org.apache.tomcat:coyote:${tomcatVersion}",
+            "org.apache.tomcat:jasper:${tomcatVersion}"
+//    tomcat dbcpSpec
+
+    extraBootCp 'mysql:mysql-connector-java:5.1.36'
+    extraBootCp project(':DarwinJavaApi')
+    extraBootCp project(':JavaCommonApi')
+    extraBootCp project(':DarwinRealm')
+    // Todo dynamically determine version needed from -api version
+    extraBootCp 'org.slf4j:slf4j-simple:1.7.12'
+//    extraBootCp dbcpSpec
+
+    tomcat 'mysql:mysql-connector-java:5.1.36'
+    tomcat project(':DarwinJavaApi')
+    tomcat project(':JavaCommonApi')
+    tomcat project(':DarwinRealm')
+/*    tomcat project(path: ':ProcessEngine', configuration: 'tomcatExtCompile')
+    tomcat project(path: ':ProcessEngine', configuration: 'compile')
+    tomcat project(path: ':ProcessEngine', configuration: 'webCompile')*/
+//    tomcat project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
+    tomcat project(path: ':PEUserMessageHandler', configuration: 'runtime')
+    tomcat project(':DarwinServices')
+    tomcat project(path: ':ProcessEngine')
+/*    tomcatRunWar ':ProcessEngine:tomcatExtClasses'*/
+/*    tomcatRun project(':ProcessEngine').tasks['war']*/
+}
+
+
+idea {
+    module {
+        scopes.PROVIDED.plus += [configurations.tomcat]
+        scopes.TEST.plus += [configurations.tomcat]
+    }
+}
+
+tomcat {
+    contextPath='/'
+    daemon=false
+
+    users {
+        user {
+            username = 'pdvrieze'
+            password = 'secret'
+            roles = ['admin']
+        }
+    }
+}
+
+task assembleExtraBootCp(type: Copy) {
+    from configurations.extraBootCp
+    into "${buildDir}/bootClasspath"
+}
+
+tomcatRun() {
+    doFirst {
+//        webAppClasspath=webAppClasspath.plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
+        logger.lifecycle('Running Tomcat')
+        configurations.tomcat.allDependencies.each({ logger.debug("Dependency: $it")})
+//        sourceSets.main.compileClasspath.each({ println("CompileClasspath: $it") })
+        logger.info('');
+        tomcatClasspath.each({ logger.info("TomcatClasspath: $it")})
+        logger.info('')
+
+        System.setProperty('nl.adaptivity.messaging.localurl', 'http://localhost:8080')
+//	    systemProperties 'nl.adaptivity.messaging.baseurl': 'http://localhost:8080'
+    }
+
+}
+
+
+[tomcatRun, tomcatRunWar]*.webDefaultXml = file ('config/web.xml')
+[tomcatRun, tomcatRunWar]*.configFile = file ('config/context.xml')
+
+
+//artifacts {
+//    extraBootCp tasks.assembleExtraBootCp
+//}
