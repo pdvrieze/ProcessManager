@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://adaptivity.nl/ProcessEngine/" elementFormDefault="qualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://adaptivity.nl/ProcessEngine/">
+    <xsd:element name="processModel" type="tns:TProcessModel"></xsd:element>
+
+    <xsd:complexType name="TProcessModel">
+        <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="start" type="tns:StartNode"></xsd:element>
+            <xsd:element name="activity" type="tns:Activity"></xsd:element>
+            <xsd:element name="join" type="tns:Join"></xsd:element>
+            <xsd:element name="split" type="tns:Split"></xsd:element>
+            <xsd:element name="end" type="tns:EndNode"></xsd:element>
+        </xsd:choice>
+
+
+        <xsd:attribute name="name" type="xsd:string" use="required"></xsd:attribute>
+        <xsd:attribute name="owner" type="xsd:string"></xsd:attribute>
+        <xsd:attribute name="uuid" type="tns:uuid"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="StartNode">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessModelNode">
+
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="result" type="tns:ResultType" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+                </xsd:choice>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="Activity">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessModelNode">
+                <xsd:sequence>
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element name="define"
+                                     type="tns:DefineType">
+                        </xsd:element>
+                        <xsd:element name="result"
+                                     type="tns:ResultType">
+                        </xsd:element>
+                    </xsd:choice>
+                    <xsd:element name="message" type="tns:Message"
+                                 minOccurs="1" maxOccurs="1">
+                    </xsd:element>
+                    <xsd:element name="condition" type="xsd:string" maxOccurs="1" minOccurs="0"></xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="predecessor" type="xsd:IDREF" use="required">
+                </xsd:attribute>
+                <xsd:attribute name="name" type="xsd:string"
+                               use="optional">
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="EndNode">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessModelNode">
+                <xsd:sequence>
+                    <xsd:element name="define" type="tns:DefineType" minOccurs="0" maxOccurs="unbounded"></xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="predecessor" type="xsd:IDREF"
+                               use="required">
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="Join">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessModelNode">
+                <xsd:sequence minOccurs="1" maxOccurs="unbounded">
+                    <xsd:element name="predecessor" type="xsd:IDREF">
+                    </xsd:element>
+                </xsd:sequence>
+                <xsd:attribute name="min" type="xsd:int"
+                               use="required">
+                </xsd:attribute>
+                <xsd:attribute name="max" type="xsd:int" use="required"></xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="Split">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessModelNode">
+                <xsd:attribute name="predecessor" type="xsd:IDREF"
+                               use="required">
+                </xsd:attribute>
+                <xsd:attribute name="min" type="xsd:int"
+                               use="required">
+                </xsd:attribute>
+                <xsd:attribute name="max" type="xsd:int" use="required"></xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProcessModelNode" abstract="true">
+        <xsd:attribute name="id" type="xsd:ID"></xsd:attribute>
+        <xsd:attribute name="x" type="xsd:double" use="optional"></xsd:attribute>
+        <xsd:attribute name="y" type="xsd:double" use="optional"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="MessageType" mixed="true">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"></xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Message">
+        <xsd:sequence>
+            <xsd:any namespace="##any" minOccurs="1" maxOccurs="1"
+                     processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="serviceNS" type="xsd:string"
+                       use="optional">
+        </xsd:attribute>
+        <xsd:attribute name="endpoint" type="xsd:string"
+                       use="optional">
+        </xsd:attribute>
+        <xsd:attribute name="operation" type="xsd:string"
+                       use="optional">
+        </xsd:attribute>
+        <xsd:attribute name="serviceName" type="xsd:NCName"
+                       use="optional">
+        </xsd:attribute>
+        <xsd:attribute name="url" type="xsd:string" use="optional"></xsd:attribute>
+        <xsd:attribute name="method" type="xsd:string" use="optional"></xsd:attribute>
+        <xsd:attribute name="type" type="xsd:string" default="application/soap+xml"></xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="DefineType" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>A node that allows the definition of variables to be used in the message bodies of the
+                engine.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any maxOccurs="unbounded" minOccurs="0" processContents="lax"></xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="refnode" type="xsd:IDREF" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>A reference to the (indirect) predecessor from which to get the result
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="name" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>The name of the newly defined value</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="refname" type="xsd:string"
+                       use="optional">
+            <xsd:annotation>
+                <xsd:documentation>A reference to the actual name of the result from the predecessor to use. Mandatory if refnode is included.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="xpath" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>XPath query within the data to use as the actual value. This can be omitted in which
+                    case
+                    the value is the result of the processing of the body.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="ResultType">
+        <xsd:annotation>
+            <xsd:documentation>A node that allows the definition of variables as results of an activity
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any maxOccurs="unbounded" minOccurs="0" processContents="lax"></xsd:any>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>Name to store the result as</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="xpath" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>XPath query within the data to use for result</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:simpleType name="uuid">
+        <xsd:restriction base="xsd:string">
+            <xsd:length value="36" fixed="true" />
+            <xsd:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[8-9a-bA-B][0-9a-fA-F]{3}-[0-9a-fA-F]{12}" fixed="true" />
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

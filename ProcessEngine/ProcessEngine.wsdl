@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:pe="http://www.adaptivity.nl/ProcessEngine2/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="ProcessEngine"
+	xmlns:tns="http://adaptivity.nl/ProcessEngine/"
+	targetNamespace="http://adaptivity.nl/ProcessEngine/"
+	xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+	xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" 
+	xmlns:xsd1="http://adaptivity.nl/ProcessEngine/">
+    <wsdl:import namespace="http://adaptivity.nl/ProcessEngine/" location="ProcessEngine.xsd"></wsdl:import>
+    <wsdl:types>
+		</wsdl:types>
+  <wsdl:message name="startProcessRequest">
+    <wsdl:part name="processModel" type="tns:TProcessModel" />
+  </wsdl:message>
+  <wsdl:message name="startProcessResponse">
+    <wsdl:part name="instanceHandle" type="xsd:long" />
+  </wsdl:message>
+  <wsdl:message name="postMessageRequest">
+  	<wsdl:part name="message" type="tns:MessageType"></wsdl:part>
+  </wsdl:message>
+  <wsdl:portType name="SOAPProcessEngine">
+    <wsdl:operation name="startProcess">
+      <wsdl:input message="tns:startProcessRequest"/>
+      <wsdl:output message="tns:startProcessResponse"/>
+    </wsdl:operation>
+    <wsdl:operation name="postMessage">
+    	<wsdl:input message="tns:postMessageRequest"></wsdl:input>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ProcessEngineSOAP" type="tns:SOAPProcessEngine">
+  	<soap:binding style="document"
+  		transport="http://schemas.xmlsoap.org/soap/http" />
+  	<wsdl:operation name="startProcess">
+  		<soap:operation
+  			soapAction="http://adaptivity.nl/ProcessEngine/startProcess" />
+  		<wsdl:input>
+  			<soap:body use="literal" />
+  		</wsdl:input>
+  		<wsdl:output>
+  			<soap:body use="literal" />
+  		</wsdl:output>
+  	</wsdl:operation>
+  	<wsdl:operation name="postMessage">
+  		<soap:operation
+  			soapAction="http://adaptivity.nl/ProcessEngine/postMessage" />
+  		<wsdl:input>
+  			<soap:body use="literal" />
+  		</wsdl:input>
+  	</wsdl:operation>
+  </wsdl:binding>
+  
+  <wsdl:service name="ProcessEngine">
+    
+        <wsdl:port name="soap" binding="tns:ProcessEngineSOAP">
+        	<soap:address
+        		location="http://localhost:8192/ProcessEngine/" />
+        </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

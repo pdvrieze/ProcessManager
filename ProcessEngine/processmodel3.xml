@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<processModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://adaptivity.nl/ProcessEngine/ ProcessEngine.xsd"
+	xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:umh="http://adaptivity.nl/userMessageHandler"
+	xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" name="Simple data processing model">
+	<start id="start" />
+	<activity id="ac1" predecessor="start" name="ac1">
+		<result name="name" path="/values/user/text()" />
+		<result name="user"><user xmlns=""><fullname xmlns=""><jbi:value xpath="/values/user/text()" /></fullname></user></result>
+		<message serviceNS="http://adaptivity.nl/userMessageHandler"
+			serviceName="userMessageHandler" endpoint="internal" operation="postTask"
+			url="/PEUserMessageHandler/internal">
+			<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope"
+				encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+				<Body>
+					<postTask xmlns="http://adaptivity.nl/userMessageHandler">
+						<repliesParam>
+							<jbi:element value="endpoint" />
+						</repliesParam>
+						<taskParam>
+							<task summary="Task Foo">
+								<jbi:attribute name="remotehandle" value="handle" />
+								<jbi:attribute name="instancehandle" value="instancehandle" />
+								<jbi:attribute name="owner" value="owner" />
+								<item name="lbl1" type="label" value="Please enter some info for task foo" />
+								<item name="user" type="text" label="Your name" />
+							</task>
+						</taskParam>
+					</postTask>
+				</Body>
+			</Envelope>
+		</message>
+	</activity>
+	<activity id="ac2" predecessor="ac1" name="ac2">
+		<define name="mylabel" refnode="ac1" refname="name">
+			Hi <jbi:value xpath="." />. Welcome!
+		</define>
+		<message serviceNS="http://adaptivity.nl/userMessageHandler"
+			serviceName="userMessageHandler" endpoint="internal" operation="postTask"
+			url="/PEUserMessageHandler/internal">
+			<Envelope xmlns="http://www.w3.org/2003/05/soap-envelope"
+				encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+				<Body>
+					<postTask xmlns="http://adaptivity.nl/userMessageHandler">
+						<repliesParam>
+							<jbi:element value="endpoint" />
+						</repliesParam>
+						<taskParam>
+							<task summary="Task Bar">
+								<jbi:attribute name="remotehandle" value="handle" />
+								<jbi:attribute name="instancehandle" value="instancehandle" />
+								<jbi:attribute name="owner" value="owner" />
+								<item type="label">
+									<jbi:attribute name="value" value="mylabel" />
+								</item>
+							</task>
+						</taskParam>
+					</postTask>
+				</Body>
+			</Envelope>
+		</message>
+	</activity>
+	<end predecessor="ac2" id="end" />
+</processModel>

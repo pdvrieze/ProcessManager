@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<processModel xmlns="http://adaptivity.nl/ProcessEngine/" owner="pdvrieze" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad"
+              name="testModel 1">
+    <start id="start" x="NaN" y="NaN"/>
+    <activity name="ac2" predecessor="start" id="ac2" x="NaN" y="NaN">
+        <define name="mylabel">Hi! . Welcome!</define>
+        <message type="application/soap+xml" endpoint="internal" operation="postTask"
+                 serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler"
+                 url="/PEUserMessageHandler/internal">
+            <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope"
+                               xmlns="http://www.w3.org/2003/05/soap-envelope"
+                               xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                               xmlns:umh="http://adaptivity.nl/userMessageHandler"
+                               encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <Body>
+                    <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
+                        <repliesParam>
+                            <jbi:element value="endpoint"/>
+                        </repliesParam>
+                        <taskParam>
+                            <task summary="Task Bar">
+                                <jbi:attribute name="remotehandle" value="handle"/>
+                                <jbi:attribute name="instancehandle" value="instancehandle"/>
+                                <jbi:attribute name="owner" value="owner"/>
+                                <item type="label">
+                                    <jbi:attribute name="value" value="mylabel"/>
+                                </item>
+                            </task>
+                        </taskParam>
+                    </umh:postTask>
+                </Body>
+            </Envelope:Envelope>
+        </message>
+    </activity>
+    <end predecessor="ac2" id="end" x="NaN" y="NaN"/>
+</processModel>
