@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="DynspanGridLayoutManager">
+        <attr name="minSpanWidth" format="dimension"/>
+    </declare-styleable>
+    <declare-styleable name="IconButton">
+        <attr name="iconPadding" format="dimension"/>
+        <attr name="iconWidth" format="dimension"/>
+        <attr name="iconHeight" format="dimension"/>
+        <attr name="iconSrc" format="reference"/>
+        <attr name="iconTint" format="color|reference"/>
+    </declare-styleable>
+    <declare-styleable name="IconButtonLP" >
+        <attr name="role" format="integer">
+            <enum name="icon" value="0"/>
+            <enum name="title" value="1"/>
+            <enum name="subtitle" value="2"/>
+        </attr>
+    </declare-styleable>
+    <declare-styleable name="DiagramView">
+        <attr name="gridSize" format="integer" min="0">
+            <enum name="no_grid" value="0" />
+        </attr>
+        <attr name="editable" format="boolean" />
+        <attr name="maxScale" format="float" />
+    </declare-styleable>
+
+    <declare-styleable name="AutoCompletePreference" parent="EditTextPreference">
+        <attr name="candidates" format="reference"/>
+    </declare-styleable>
+
+    <declare-styleable name="AppTheme">
+        <attr name="iconButtonStyle" format="reference"/>
+    </declare-styleable>
+
+</resources>

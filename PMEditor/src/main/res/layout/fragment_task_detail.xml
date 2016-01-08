@@ -1,0 +1,177 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <import type="nl.adaptivity.process.tasks.UserTask" />
+
+        <import type="nl.adaptivity.process.ui.task.TaskDetailHandler" />
+
+        <variable name="task"
+                  type="UserTask" />
+
+        <variable name="loading"
+                  type="boolean" />
+
+        <variable name="handler"
+                  type="TaskDetailHandler" />
+
+    </data>
+
+    <android.support.v7.widget.CardView android:id="@+id/task_detail_frame"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="match_parent"
+                                        app:cardElevation="0dp"
+            >
+
+        <ProgressBar
+                android:id="@+id/task_detail_spinner"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:visibility="@{loading ? View.VISIBLE : View.GONE}" />
+
+        <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardElevation="2dp"
+                android:visibility="@{loading ? View.GONE : View.VISIBLE}"
+                android:layout_margin="2dp">
+
+            <LinearLayout android:layout_width="match_parent"
+                          android:layout_height="match_parent"
+                          android:orientation="vertical">
+
+                <android.support.v7.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardElevation="2dp"
+                        app:cardCornerRadius="2dp"
+                        android:layout_marginLeft="2dp"
+                        android:layout_marginRight="2dp"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="2dp"
+                        >
+
+                    <nl.adaptivity.android.widget.IconButton
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/Widget.IconButton.Title"
+                            app:iconRes="@{task.state.decoratorId}"
+                            app:iconTint="@null"
+                            tools:iconSrc="@drawable/decorator_taskstate_failed"
+                            >
+
+                        <TextView
+                                android:id="@+id/task_name"
+                                style="@style/TextAppearance.IconButton.Title"
+                                app:role="title"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="left"
+                                android:textIsSelectable="true"
+                                android:text="@{@string/task_title_format(task.handle,task.summary)}"
+                                tools:text='@string/task_title_format'
+                                tools:context="nl.adaptivity.process.ui.model.ProcessModelDetailFragment"
+                                tools:enabled="true"
+                                />
+
+                        <TextView
+                                android:id="@+id/task_state"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:textRes='@{task.state.labelId}'
+                                app:role="subtitle"
+                                style="@style/TextAppearance.IconButton.Subtitle"
+                                tools:text="task state" />
+                    </nl.adaptivity.android.widget.IconButton>
+                </android.support.v7.widget.CardView>
+
+                <android.support.v7.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_gravity="fill"
+                        android:layout_weight="1"
+                        android:id="@+id/task_detail"
+                        app:usertask="@{task}"
+                        android:background="@{task.editable ? @android:color/transparent : @color/disabledBg}"
+                        />
+
+                <android.support.v7.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:cardElevation="8dp"
+                        android:layout_marginTop="2dp"
+                        app:cardCornerRadius="2dp">
+
+                    <LinearLayout android:layout_width="match_parent"
+                                  android:layout_height="wrap_content"
+                                  android:orientation="vertical"
+                                  android:paddingTop="8dp"
+                                  android:paddingLeft="0dp"
+                                  android:paddingRight="0dp"
+                                  android:paddingBottom="8dp">
+
+                        <nl.adaptivity.android.widget.IconButton
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:id="@+id/btn_task_accept"
+                                android:enabled="@{task.state.available}"
+                                app:iconSrc="@drawable/decorator_taskstate_accepted"
+                                tools:enabled="false"
+                                android:onClick="@{handler.onAcceptClick}"
+                                >
+
+                            <TextView android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginLeft="@dimen/default_margin"
+                                      android:textSize="16sp"
+                                      app:role="title"
+                                      style="@style/TextAppearance.IconButton.Label"
+                                      android:text="@string/btn_task_accept"></TextView>
+                        </nl.adaptivity.android.widget.IconButton>
+
+                        <nl.adaptivity.android.widget.IconButton
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:id="@+id/btn_task_complete"
+                                android:enabled="@{task.completeable}"
+                                android:onClick="@{handler.onCompleteClick}"
+                                app:iconSrc="@drawable/decorator_taskstate_completed"
+                                >
+
+                            <TextView android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginLeft="@dimen/default_margin"
+                                      android:textSize="16sp"
+                                      style="@style/TextAppearance.IconButton.Label"
+                                      android:text="@string/btn_task_complete"></TextView>
+                        </nl.adaptivity.android.widget.IconButton>
+
+                        <nl.adaptivity.android.widget.IconButton
+                                android:layout_width="match_parent"
+                                android:layout_height="48dp"
+                                android:id="@+id/btn_task_cancel"
+                                android:orientation="horizontal"
+                                android:onClick="@{handler.onCancelClick}"
+                                app:iconSrc="@drawable/decorator_taskstate_cancelled"
+                                >
+
+                            <TextView android:layout_width="match_parent"
+                                      android:layout_height="wrap_content"
+                                      android:layout_marginLeft="@dimen/default_margin"
+                                      android:textSize="16sp"
+                                      style="@style/TextAppearance.IconButton.Label"
+                                      android:text="@string/btn_task_cancel"></TextView>
+                        </nl.adaptivity.android.widget.IconButton>
+
+                    </LinearLayout>
+                </android.support.v7.widget.CardView>
+            </LinearLayout>
+
+        </android.support.v7.widget.CardView>
+    </android.support.v7.widget.CardView>
+</layout>

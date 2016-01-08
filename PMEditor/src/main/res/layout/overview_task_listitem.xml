@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        >
+
+    <data>
+        <import type="android.view.View" />
+        <variable name="summary"
+                  type="java.lang.CharSequence" />
+        <variable name="instanceName"
+                  type="java.lang.CharSequence" />
+
+        <variable name="taskStateDrawable"
+                  type="int" />
+    </data>
+
+    <LinearLayout
+            android:id="@+id/modellist_item"
+            android:layout_width="@dimen/fragment_overview_min_col_width"
+            android:layout_height="wrap_content"
+            android:background="@drawable/grid_bg"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:orientation="vertical"
+            android:paddingLeft="8dp"
+            android:paddingStart="8dp"
+            android:paddingRight="8dp"
+            android:paddingEnd="8dp">
+
+        <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_horizontal"
+                android:id="@+id/task_state_decorator"
+                app:drawableRes="@{taskStateDrawable}"
+                tools:src="@drawable/decorator_taskstate_completed" />
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <TextView
+                    android:id="@+id/model_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/half_margin"
+                    android:layout_marginRight="@dimen/half_margin"
+                    android:layout_marginTop="@dimen/half_margin"
+                    android:text="@{summary ?? @string/unnamed_task}"
+                    android:gravity="center_horizontal"
+                    tools:text="@string/unnamed_task"
+                    android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                    android:id="@+id/model_extra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/half_margin"
+                    android:layout_marginLeft="@dimen/default_margin"
+                    android:layout_marginRight="@dimen/default_margin"
+                    android:layout_marginTop="@dimen/half_margin"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:gravity="top|end"
+                    android:visibility="@{instanceName!=null ? View.VISIBLE : View.GONE}"
+                    android:text="@{instanceName}"
+                    tools:visibility="visible"
+                    tools:text=".. days old" />
+        </LinearLayout>
+
+    </LinearLayout>
+</layout>

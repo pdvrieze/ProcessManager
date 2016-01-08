@@ -1,0 +1,119 @@
+<!--suppress AndroidDomInspection -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable name="data"
+                  type="nl.adaptivity.process.models.ProcessModelHolder"
+                  tools:ignore="MissingPrefix" />
+    </data>
+
+    <LinearLayout
+
+            android:id="@+id/processmodel_detail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/default_margin">
+
+        <ProgressBar
+                android:id="@+id/processmodel_detail_spinner"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:visibility="@{data.isLoading ? View.VISIBLE : View.GONE}"
+                android:layout_weight="1"
+                tools:visibility="gone" />
+
+        <android.support.v7.widget.CardView android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            app:cardElevation="2dp"
+                                            app:cardCornerRadius="2dp"
+                                            android:layout_marginLeft="2dp"
+                                            android:layout_marginRight="2dp"
+                                            android:layout_marginTop="2dp"
+                                            android:layout_marginBottom="@dimen/default_margin">
+
+            <LinearLayout android:layout_width="match_parent"
+                          android:layout_height="wrap_content"
+                          android:orientation="horizontal">
+
+                <TextView
+                        android:id="@+id/processmodel_name"
+                        style="?android:attr/textAppearanceLarge"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textIsSelectable="true"
+                        android:text="@{data.name ?? @string/text_load_pm_error}"
+                        tools:text="&lt;Model name&gt;"
+                        android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginLeft="36dp" />
+
+                <CheckBox
+                        android:id="@+id/checkbox_favourite"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:button="@drawable/ic_star_36dp"
+                        android:layout_gravity="center_vertical"
+                        android:checked="@{data.favourite}"
+                        android:contentDescription="@string/hint_mark_pm_favourite"
+                        />
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+        <nl.adaptivity.diagram.android.DiagramView
+                android:id="@+id/diagramView1"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:layout_marginLeft="@dimen/default_margin"
+                android:layout_marginRight="@dimen/default_margin"
+                android:layout_weight="1"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                app:editable="false"
+                app:maxScale="3"
+                android:focusable="false"/>
+
+        <Button
+                android:id="@+id/btn_pm_clone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:text="@string/btn_pm_clone"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                />
+
+        <Button
+                android:id="@+id/btn_pm_edit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
+                android:text="@string/btn_pm_edit" />
+
+        <Button
+                android:id="@+id/btn_pm_publish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/default_margin"
+                android:visibility="@{(data.isLoading || data.handle!=null) ? View.GONE : View.VISIBLE}"
+                android:text="@string/btn_pm_publish" />
+
+        <Button
+                android:id="@+id/btn_pm_exec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="@{(data.isLoading || data.handle==null) ? View.GONE : View.VISIBLE}"
+                android:text="@string/btn_pm_execute" />
+
+    </LinearLayout>
+</layout>

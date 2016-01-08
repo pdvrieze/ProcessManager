@@ -1,0 +1,932 @@
+package nl.adaptivity.diagram.android;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
+import android.graphics.*;
+import android.os.Build;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.os.Parcelable.Creator;
+import android.util.AttributeSet;
+import android.view.*;
+import android.view.GestureDetector.SimpleOnGestureListener;
+import android.view.ScaleGestureDetector.OnScaleGestureListener;
+import android.widget.ZoomButtonsController;
+import android.widget.ZoomButtonsController.OnZoomListener;
+import net.devrieze.util.Tupple;
+import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.diagram.Rectangle;
+import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.process.editor.android.BuildConfig;
+import nl.adaptivity.process.editor.android.R;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+public class DiagramView extends View implements OnZoomListener{
+
+
+
+  private static class DiagramViewStateCreator implements Creator<DiagramViewState> {
+
+    @Override
+    public DiagramViewState createFromParcel(Parcel source) {
+      return new DiagramViewState(source);
+    }
+
+    @Override
+    public DiagramViewState[] newArray(int size) {
+      return new DiagramViewState[size];
+    }
+
+  }
+
+  private static class DiagramViewState extends View.BaseSavedState {
+
+    @SuppressWarnings({ "unused", "hiding" })
+    public static final Parcelable.Creator<DiagramViewState> CREATOR = new DiagramViewStateCreator();
+
+    private double mOffsetX;
+    private double mOffsetY;
+    private double mScale;
+    private int mGridSize;
+
+    public DiagramViewState(DiagramView diagramView, Parcelable viewState) {
+      super(viewState);
+      mOffsetX = diagramView.mOffsetX;
+      mOffsetY = diagramView.mOffsetY;
+      mScale = diagramView.mScale;
+      mGridSize = diagramView.mGridSize;
+    }
+
+    public DiagramViewState(Parcel source) {
+      super(source);
+      mOffsetX = source.readDouble();
+      mOffsetY = source.readDouble();
+      mScale = source.readDouble();
+      mGridSize = source.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+      return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+      super.writeToParcel(dest, flags);
+      dest.writeDouble(mOffsetX);
+      dest.writeDouble(mOffsetY);
+      dest.writeDouble(mScale);
+      dest.writeInt(mGridSize);
+    }
+
+  }
+
+  private static final int INVALIDATE_MARGIN = 10;
+  private static final int CACHE_PADDING = 30;
+
+  public interface OnNodeClickListener {
+    public boolean onNodeClicked(DiagramView view, int touchedElement, MotionEvent event);
+  }
+
+  private final class MyGestureListener extends SimpleOnGestureListener {
+
+    private boolean mMoveItem = false;
+    private int mMoving = -1;
+    private double mOrigX;
+    private double mOrigY;
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+      if (isEditable()&& (mMoving>=0 || mMoveItem)) {
+        int touchedElement = mMoving>=0 ? mMoving: getTouchedElement(e1);
+        if (touchedElement>=0) {
+          if (mMoving <0) {
+            if (Math.max(Math.abs(distanceY),Math.abs(distanceX))>MIN_DRAG_DIST) {
+              mMoving = touchedElement;
+              mOrigX = mAdapter.getGravityX(touchedElement);
+              mOrigY = mAdapter.getGravityY(touchedElement);
+              // Cancel the selection on drag.
+              setSelection(-1);
+            }
+          }
+          if (mMoving>=0) {
+            LightView lv = mAdapter.getView(touchedElement);
+            if (mGridSize>0) {
+              double dX = (e2.getX()-e1.getX())/ mScale;
+              float newX = Math.round((mOrigX + dX)/mGridSize)*mGridSize;
+              double dY = (e2.getY()-e1.getY())/ mScale;
+              float newY = Math.round((mOrigY + dY)/mGridSize)*mGridSize;
+              lv.move((float)(newX- mAdapter.getGravityX(touchedElement)), (float) (newY- mAdapter.getGravityY(touchedElement)));
+            } else {
+              lv.move((float)(-distanceX/ mScale), (float) (-distanceY/ mScale));
+            }
+            invalidate();
+          }
+          return true;
+        }
+        return false;
+      } else {
+        double scale = getScale();
+        setOffsetX(getOffsetX()+(distanceX/scale));
+        setOffsetY(getOffsetY()+(distanceY/scale));
+        return true;
+      }
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+      int touchedElement = getTouchedElement(e);
+      if (touchedElement>=0) highlightTouch(touchedElement);
+    }
+
+    /**
+     * Allow for specifying whether the move is for a single item, or for the
+     * canvas.
+     *
+     * @param value <code>true</code> when the focus is an element,
+     *          <code>false</code> when not.
+     */
+    public void setMoveItem(boolean value) {
+      mMoveItem = value;
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+      try {
+        int touchedElement = getTouchedElement(e);
+        if (touchedElement>=0 && isEditable()) {
+          if (mAdapter.onNodeClickOverride(DiagramView.this, touchedElement, e)) {
+            return true;
+          }
+          if (mOnNodeClickListener!=null) {
+            if(mOnNodeClickListener.onNodeClicked(DiagramView.this, touchedElement, e)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      } finally {
+        mLastTouchedElement=0;
+      }
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent e) {
+      try {
+        return super.onSingleTapUp(e);
+      } finally {
+        mLastTouchedElement = 0;
+      }
+    }
+
+    public void actionFinished() {
+      mMoveItem = false;
+      mMoving = -1;
+    }
+
+
+  }
+
+  public static abstract class DiagramDrawable extends android.graphics.drawable.Drawable {
+
+    @Override
+    public final void draw(Canvas canvas) {
+      draw(canvas, 1d);
+    }
+
+    public abstract void draw(Canvas canvas, double scale);
+
+  }
+
+  public static final double DENSITY = Resources.getSystem().getDisplayMetrics().density;
+  private static final double MAXSCALE = 6d*DENSITY;
+  private static final double MINSCALE = 0.5d*DENSITY;
+  private static final float MIN_DRAG_DIST = (float) (8*DENSITY);
+  private DiagramAdapter<?,?> mAdapter;
+  private Paint mRed;
+  private Paint mTimePen;
+  private int mLastTouchedElement = -1;
+  private final Rect mMissingDiagramTextBounds = new Rect();
+  private String mMissingDiagramText;
+  private double mOffsetX = 0;
+  private double mOffsetY = 0;
+  private android.graphics.drawable.Drawable mOverlay;
+  private ZoomButtonsController mZoomController;
+  private final boolean mMultitouch;
+  private double mScale =DENSITY*160/96; // Use density of 96dpi for drawables
+  private GestureDetector mGestureDetector;
+  private ScaleGestureDetector mScaleGestureDetector;
+
+  private OnNodeClickListener mOnNodeClickListener = null;
+
+  private MyGestureListener mGestureListener = new MyGestureListener();
+
+  private OnScaleGestureListener mScaleGestureListener = new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+
+    // These points are relative to the diagram. They should end up at the focal
+    // point in canvas coordinates.
+    double mPreviousDiagramX;
+    double mPreviousDiagramY;
+
+
+    @Override
+    public boolean onScaleBegin(ScaleGestureDetector detector) {
+      double newScale = getScale()*detector.getScaleFactor();
+      mPreviousDiagramX = getOffsetX()+ detector.getFocusX()/newScale;
+      mPreviousDiagramY = getOffsetY()+ detector.getFocusY()/newScale;
+
+      return super.onScaleBegin(detector);
+    }
+
+
+    @Override
+    public boolean onScale(ScaleGestureDetector detector) {
+      double scaleAdjust = detector.getScaleFactor();
+      double newScale = getScale()*scaleAdjust;
+      if (newScale<=MAXSCALE && newScale>=MINSCALE) {
+        setScale(newScale);
+
+        double newDiagramX = detector.getFocusX()/newScale;
+        double newDiagramY = detector.getFocusY()/newScale;
+
+        setOffsetX(mPreviousDiagramX - newDiagramX);
+        setOffsetY(mPreviousDiagramY - newDiagramY);
+
+        return true;
+      }
+      return false;
+    }
+
+  };
+
+  private boolean mTouchActionOptimize = false;
+  private Bitmap mCacheBitmap;
+  private Canvas mCacheCanvas;
+  private Rectangle mCacheRect = new Rectangle(0d,0d,0d,0d);
+
+  private final Rect mBuildTimeBounds = new Rect();
+  private String mBuildTimeText;
+  private Rectangle mTmpRectangle = new Rectangle(0d, 0d, 0d, 0d);
+  private final RectF mTmpRectF = new RectF();
+  private final Rect mTmpRect = new Rect();
+  private int mGridSize;
+  private List<Tupple<Integer, RelativeLightView>> mDecorations = new ArrayList<>();
+  private Tupple<Integer,RelativeLightView> mTouchedDecoration = null;
+
+  private boolean mEditable = true;
+
+  private double mMaxScale;
+
+  private static final int DEFAULT_GRID_SIZE=8;
+  private static final float DEFAULT_MAX_SCALE= (float) (2 * DENSITY);
+
+  public DiagramView(Context context, AttributeSet attrs, int defStyle) {
+    super(context, attrs, defStyle);
+    mMultitouch = (isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    mGestureDetector = new GestureDetector(context, mGestureListener);
+    mScaleGestureDetector = new ScaleGestureDetector(context, mScaleGestureListener);
+    init(attrs);
+  }
+
+  public DiagramView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+    mMultitouch = (!isInEditMode()) &&(isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    mGestureDetector = new GestureDetector(context, mGestureListener);
+    mScaleGestureDetector = new ScaleGestureDetector(context, mScaleGestureListener);
+    init(attrs);
+  }
+
+  public DiagramView(Context context) {
+    super(context);
+    mMultitouch = (isNotEmulator()) && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT);
+    mGestureDetector = new GestureDetector(context, mGestureListener);
+    mScaleGestureDetector = new ScaleGestureDetector(context, mScaleGestureListener);
+    init(null);
+  }
+
+  public void init(AttributeSet attrs) {
+    if (attrs==null) {
+      mGridSize=DEFAULT_GRID_SIZE;
+      mMaxScale=DEFAULT_MAX_SCALE;
+    } else {
+      TypedArray a = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.DiagramView, 0, 0);
+      try {
+        mGridSize = a.getInteger(R.styleable.DiagramView_gridSize, DEFAULT_GRID_SIZE);
+        mEditable = a.getBoolean(R.styleable.DiagramView_editable, true);
+        mMaxScale = a.getFloat(R.styleable.DiagramView_maxScale, Float.NaN)*DENSITY;
+        if (Double.isNaN(mMaxScale)) { mMaxScale = DEFAULT_MAX_SCALE; }
+      } finally {
+        a.recycle();
+      }
+    }
+    setLayerType(LAYER_TYPE_SOFTWARE, null);
+  }
+
+  private static boolean isNotEmulator() {
+    return !"google_sdk".equals(Build.PRODUCT) && !"sdk_x86".equals(Build.PRODUCT) && !"sdk".equals(Build.PRODUCT);
+  }
+
+  public double getOffsetX() {
+    return mOffsetX;
+  }
+
+
+  public void setOffsetX(double offsetX) {
+    mOffsetX = offsetX;
+    Compat.postInvalidateOnAnimation(this);
+  }
+
+
+  public double getOffsetY() {
+    return mOffsetY;
+  }
+
+
+  public void setOffsetY(double offsetY) {
+    mOffsetY = offsetY;
+    Compat.postInvalidateOnAnimation(this);
+  }
+
+
+  public double getScale() {
+    return mScale;
+  }
+
+
+  public void setScale(double scale) {
+    scale = Math.min(mMaxScale, scale);
+    if (mScale !=scale) {
+      Compat.postInvalidateOnAnimation(this);
+    }
+    mScale = scale;
+  }
+
+
+  public int getGridSize() {
+    return mGridSize;
+  }
+
+
+  public void setGridSize(int gridSize) {
+    mGridSize = gridSize;
+  }
+
+  public DiagramAdapter<?,?> getAdapter() {
+    return mAdapter;
+  }
+
+  public void setAdapter(DiagramAdapter<?, ?> diagram) {
+    mAdapter = diagram;
+    updateZoomControlButtons();
+    postInvalidate();
+  }
+
+
+  public OnNodeClickListener getOnNodeClickListener() {
+    return mOnNodeClickListener;
+  }
+
+
+  public void setOnNodeClickListener(OnNodeClickListener nodeClickListener) {
+    mOnNodeClickListener = nodeClickListener;
+  }
+
+  protected void highlightTouch(int touchedElement) {
+    LightView lv = mAdapter.getView(touchedElement);
+    if (! lv.isTouched()) {
+      lv.setTouched(true);
+      invalidate(touchedElement);
+    }
+  }
+
+  /**
+   * Invalidate the item at the given position.
+   * @param position
+   */
+  private void invalidate(int position) {
+    LightView lv = mAdapter.getView(position);
+    invalidate(lv);
+  }
+
+  public void invalidate(LightView view) {
+    view.getBounds(mTmpRectF);
+    outset(mTmpRectF, INVALIDATE_MARGIN);
+    toCanvasRect(mTmpRectF, mTmpRect);
+    invalidate(mTmpRect);
+  }
+
+  private static void outset(RectF rect, float outset) {
+    rect.left-=outset;
+    rect.top-=outset;
+    rect.right+=outset;
+    rect.bottom+=outset;
+  }
+
+  private void toCanvasRect(RectF source, Rect dest) {
+    dest.left=(int) Math.floor(toCanvasX(source.left));
+    dest.top=(int) Math.floor(toCanvasY(source.top));
+    dest.right = (int) Math.ceil(toCanvasX(source.right));
+    dest.bottom = (int) Math.ceil(toCanvasY(source.bottom));
+  }
+
+  /**
+   * Get the element touched by the given event.
+   *
+   * @param event The event to analyse.
+   * @return The index of the touched element, or <code>-1</code> when none.
+   */
+  private int getTouchedElement(MotionEvent event) {
+    int idx = event.getActionIndex();
+    float x = event.getX(idx);
+    float diagX = toDiagramX(x);
+    float y = event.getY(idx);
+    float diagY = toDiagramY(y);
+
+
+//    final int pIdx = pE.getActionIndex();
+//    float canvX = pE.getX(pIdx);
+//    float canvY = pE.getY(pIdx);
+    if (mLastTouchedElement>=0) {
+      getItemBounds(mLastTouchedElement, mTmpRectF);
+      if (mTmpRectF.contains(diagX, diagY)) {
+        return mLastTouchedElement;
+      }
+    }
+    mLastTouchedElement = findTouchedElement(diagX, diagY);
+    return mLastTouchedElement;
+  }
+
+  protected int findTouchedElement(float diagX, float diagY) {
+    final int len = mAdapter.getCount();
+    for(int i=0;i < len ; ++i) {
+      getItemBounds(i, mTmpRectF);
+      if (mTmpRectF.contains(diagX, diagY)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  @Override
+  public void onDraw(Canvas canvas) {
+    if (mTouchActionOptimize) {
+      ensureValidCache();
+
+      mTmpRectF.left = (float) ((mCacheRect.left- mOffsetX)* mScale);
+      mTmpRectF.top = (float) ((mCacheRect.top- mOffsetY)* mScale);
+      mTmpRectF.right = (float) (mTmpRectF.left+mCacheRect.width* mScale);
+      mTmpRectF.bottom = (float) (mTmpRectF.top+mCacheRect.height* mScale);
+
+      canvas.drawBitmap(mCacheBitmap, null, mTmpRectF, null);
+    } else {
+
+      drawDiagram(canvas);
+
+      drawDecorations(canvas);
+
+      drawOverlay(canvas);
+
+      if (BuildConfig.DEBUG) {
+        drawDebugOverlay(canvas);
+      }
+
+    }
+  }
+
+  private void ensureValidCache() {
+    if (mCacheBitmap!=null) {
+      double oldScale = mCacheBitmap.getHeight()/mCacheRect.height;
+      final double scaleChange = mScale /oldScale;
+      if (scaleChange > 1.5 || scaleChange<0.34) {
+        mCacheBitmap=null; // invalidate
+        updateCacheRect(mCacheRect);
+      } else {
+        updateCacheRect(mTmpRectangle);
+        if (mTmpRectangle.left+CACHE_PADDING < mCacheRect.left ||
+            mTmpRectangle.top+CACHE_PADDING < mCacheRect.top ||
+            mTmpRectangle.right()-CACHE_PADDING < mCacheRect.right() ||
+            mTmpRectangle.bottom()-CACHE_PADDING < mCacheRect.bottom()) {
+          mCacheBitmap = null;
+          mCacheRect = mTmpRectangle;
+        }
+      }
+    } else {
+      updateCacheRect(mCacheRect); //cacherect is in screen scale
+    }
+    if (mCacheBitmap==null) {
+      mCacheBitmap = Bitmap.createBitmap((int) Math.ceil(mCacheRect.width* mScale), (int) Math.ceil(mCacheRect.height* mScale), Bitmap.Config.ARGB_8888);
+      mCacheCanvas = new Canvas(mCacheBitmap);
+      mCacheBitmap.eraseColor(0x00000000);
+
+      mCacheCanvas.translate((float)((mOffsetX - mCacheRect.left)* mScale), (float) ((mOffsetY - mCacheRect.top)* mScale));
+
+      drawDiagram(mCacheCanvas);
+      drawOverlay(mCacheCanvas);
+    }
+  }
+
+  private void drawDiagram(Canvas canvas) {
+    if (mAdapter !=null) {
+      LightView bg = mAdapter.getBackground();
+      Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = mAdapter.getTheme();
+      if (bg!=null) {
+        drawPositioned(canvas, theme, bg);
+      }
+
+      int len = mAdapter.getCount();
+      for(int i=0; i<len; i++) {
+        drawPositioned(canvas, theme, mAdapter.getView(i));
+      }
+
+      LightView overlay = mAdapter.getOverlay();
+      if (overlay!=null) {
+        drawPositioned(canvas, theme, overlay);
+      }
+    } else {
+      ensureMissingDiagramTextBounds();
+      canvas.drawText(mMissingDiagramText, (getWidth()-mMissingDiagramTextBounds.width())/2, (getHeight()-mMissingDiagramTextBounds.height())/2, getRedPen());
+    }
+  }
+
+  private void drawPositioned(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, LightView view) {
+    view.getBounds(mTmpRectF);
+    int save = canvas.save();
+    canvas.translate(toCanvasX(mTmpRectF.left), toCanvasY(mTmpRectF.top));
+    view.draw(canvas, theme, mScale);
+    canvas.restoreToCount(save);
+  }
+
+  private void drawDecorations(Canvas canvas) {
+    // TODO handle decoration touches
+    if (mAdapter !=null) {
+      mDecorations.clear();
+      Theme<AndroidStrategy, AndroidPen, AndroidPath> theme = mAdapter.getTheme();
+      int len = mAdapter.getCount();
+      for(int i=0; i<len; i++) {
+        final LightView lv = mAdapter.getView(i);
+        List<? extends RelativeLightView> decorations = mAdapter.getRelativeDecorations(i, mScale, lv.isSelected());
+        for(RelativeLightView decoration: decorations) {
+          mDecorations.add(Tupple.tupple(Integer.valueOf(i), decoration));
+          int savePos = canvas.save();
+          decoration.getBounds(mTmpRectF);
+          canvas.translate(toCanvasX(mTmpRectF.left), toCanvasY(mTmpRectF.top));
+          decoration.draw(canvas, theme, mScale);
+          canvas.restoreToCount(savePos);
+        }
+      }
+    }
+  }
+
+  public float toCanvasX(double x) {
+    return (float) ((x- mOffsetX)* mScale);
+  }
+
+  public float toCanvasY(double y) {
+    return (float) ((y- mOffsetY)* mScale);
+  }
+
+  public float toDiagramX(float x) {
+    return (float) (x/ mScale + mOffsetX);
+  }
+
+  public float toDiagramY(float y) {
+    return (float) (y/ mScale + mOffsetY);
+  }
+
+  private void getItemBounds(int pos, RectF rect) {
+    mAdapter.getView(pos).getBounds(rect);
+  }
+
+  private void drawOverlay(Canvas canvas) {
+    int canvasSave = canvas.save();
+    if (mOverlay!=null) {
+      final float scalef = (float) mScale;
+      canvas.scale(scalef, scalef);
+      if (mOverlay instanceof DiagramDrawable) {
+        ((DiagramDrawable) mOverlay).draw(canvas, mScale);
+      } else {
+        mOverlay.draw(canvas);
+      }
+    }
+    canvas.restoreToCount(canvasSave);
+  }
+
+  private void drawDebugOverlay(Canvas canvas) {
+    if (mBuildTimeText!=null) {
+      ensureBuildTimeTextBounds();
+
+      canvas.drawText(mBuildTimeText, getWidth() - mBuildTimeBounds.width()-20, getHeight()-20, mTimePen);
+    }
+  }
+
+  private void ensureBuildTimeTextBounds() {
+    if (mBuildTimeText==null) {
+      InputStream stream = getClass().getClassLoader().getResourceAsStream("nl/adaptivity/process/diagram/version.properties");
+      if (stream!=null) {
+        try {
+          Properties props = new Properties();
+          try {
+            props.load(stream);
+          } catch (IOException e) {
+            e.printStackTrace();
+            mBuildTimeText="";
+            mBuildTimeBounds.set(0, 0, 0, 0);
+            return;
+          }
+          mBuildTimeText = props.getProperty("buildtime");
+          if (mBuildTimeText!=null) {
+            mTimePen.getTextBounds(mBuildTimeText, 0, mBuildTimeText.length(), mBuildTimeBounds);
+          } else {
+            mBuildTimeText = "";
+            mBuildTimeBounds.set(0, 0, 0, 0);
+          }
+
+        } finally {
+          try {
+            stream.close();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    if (mTimePen==null) {
+      mTimePen = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+      mTimePen.setARGB(255, 0, 0, 31);
+      mTimePen.setTypeface(Typeface.DEFAULT);
+      mTimePen.setTextSize(25f);
+    }
+  }
+
+  private void ensureMissingDiagramTextBounds() {
+    if (mMissingDiagramText==null) {
+      mMissingDiagramText = getContext().getResources().getString(R.string.missing_diagram);
+      getRedPen().getTextBounds(mMissingDiagramText, 0, mMissingDiagramText.length(), mMissingDiagramTextBounds);
+    }
+  }
+
+  private Paint getRedPen() {
+    if (mRed==null) {
+      mRed = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+      mRed.setARGB(255, 255, 0, 0);
+      mRed.setTypeface(Typeface.DEFAULT);
+      mRed.setTextSize(50f);
+    }
+    return mRed;
+  }
+
+  private void updateCacheRect(Rectangle cacheRect) {
+    RectF diagrambounds = mTmpRectF;
+    mAdapter.getBounds(diagrambounds);
+    double diagLeft = Math.max(diagrambounds.left-1, mOffsetX -CACHE_PADDING);
+    double diagWidth = Math.min(diagrambounds.right-diagLeft+6, (getWidth()/ mScale) + (CACHE_PADDING*2));
+    double diagTop = Math.max(diagrambounds.top-1, mOffsetY -CACHE_PADDING);
+    double diagHeight = Math.min(diagrambounds.bottom-diagTop+6, (getHeight()/ mScale) + (CACHE_PADDING*2));
+    cacheRect.set(diagLeft, diagTop, diagWidth, diagHeight);
+  }
+
+  public void setOverlay(android.graphics.drawable.Drawable overlay) {
+    if (mOverlay!=null) {
+      invalidate(mOverlay.getBounds());
+    }
+    mOverlay = overlay;
+    if (overlay!=null) {
+      invalidate(overlay.getBounds());
+    }
+  }
+
+  @Override
+  public boolean onTouchEvent(MotionEvent event) {
+    int action = event.getActionMasked();
+    int touchedElement = -1;
+    int idx = event.getActionIndex();
+    float diagX = toDiagramX(event.getX(idx));
+    float diagY = toDiagramY(event.getY(idx));
+    if (action==MotionEvent.ACTION_DOWN) {
+
+      touchedElement = findTouchedElement(diagX, diagY);
+      if (touchedElement>=0) {
+        highlightTouch(touchedElement);
+        mGestureListener.setMoveItem(true);
+        if (mTouchedDecoration!=null) {
+          mTouchedDecoration.getElem2().setTouched(false);
+          invalidate(mTouchedDecoration.getElem2());
+          mTouchedDecoration =null;
+        }
+      } else {
+        if (mTouchedDecoration!=null) {
+          mTouchedDecoration.getElem2().getBounds(mTmpRectF);
+          if (! mTmpRectF.contains(diagX, diagY)) {
+            mTouchedDecoration.getElem2().setTouched(false);
+            invalidate(mTouchedDecoration.getElem2());
+            mTouchedDecoration = null;
+          }
+        }
+        if (mTouchedDecoration==null) {
+          for(Tupple<Integer,RelativeLightView> decoration: mDecorations) {
+            decoration.getElem2().getBounds(mTmpRectF);
+            if (mTmpRectF.contains(diagX, diagY)) {
+              mTouchedDecoration = decoration;
+              mTouchedDecoration.getElem2().setTouched(true);
+              invalidate(mTouchedDecoration.getElem2());
+              break;
+            }
+          }
+        }
+      }
+
+//    if (BuildConfig.DEBUG) {
+//    Debug.startMethodTracing();
+//  }
+//      mTouchActionOptimize  = true;
+//      ensureValidCache();
+    } else if (action==MotionEvent.ACTION_UP|| action==MotionEvent.ACTION_CANCEL) {
+      final int len = mAdapter.getCount();
+      for(int i=0; i<len ; ++i) {
+        LightView lv = mAdapter.getView(i);
+        lv.setTouched(false);
+      }
+
+      if (mTouchedDecoration!=null) {
+        mTouchedDecoration.getElem2().setTouched(false);
+        if (isEditable()) {
+          mTouchedDecoration.getElem2().getBounds(mTmpRectF);
+          if (mTmpRectF.contains(diagX, diagY)) {
+            mAdapter.onDecorationClick(this, mTouchedDecoration.getElem1().intValue(), mTouchedDecoration.getElem2());
+          } else {
+            mAdapter.onDecorationUp(this, mTouchedDecoration.getElem1().intValue(), mTouchedDecoration.getElem2(), diagX, diagY);
+          }
+        }
+
+        invalidate(mTouchedDecoration.getElem2());
+        mTouchedDecoration = null;
+      }
+
+      mTouchActionOptimize  = false;
+      mCacheBitmap = null; mCacheCanvas = null;
+      Compat.postInvalidateOnAnimation(this);
+//    if (BuildConfig.DEBUG) {
+//      Debug.stopMethodTracing();
+//    }
+      mGestureListener.actionFinished();
+//      mGestureListener.setMoveItem(false);
+    } else if (action==MotionEvent.ACTION_MOVE && mTouchedDecoration!=null && isEditable()) {
+      mAdapter.onDecorationMove(this, mTouchedDecoration.getElem1().intValue(), mTouchedDecoration.getElem2(), diagX, diagY);
+      return true;
+    }
+    boolean retVal = mScaleGestureDetector.onTouchEvent(event);
+    retVal = mGestureDetector.onTouchEvent(event) || retVal;
+    return retVal || super.onTouchEvent(event);
+  }
+
+
+
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
+  @Override
+  public boolean onGenericMotionEvent(MotionEvent event) {
+    int action = event.getActionMasked();
+    if (action==MotionEvent.ACTION_SCROLL) {
+      boolean zoomIn = Compat.isZoomIn(event);
+      onZoom(zoomIn);
+    }
+    return super.onGenericMotionEvent(event);
+  }
+
+  @Override
+  public void onVisibilityChanged(boolean visible) {
+    // Part of zoomcontroller
+    // ignore it
+  }
+
+
+
+  @Override
+  protected void onWindowVisibilityChanged(int visibility) {
+    if (visibility==View.VISIBLE) {
+      showZoomController();
+    } else {
+      dismissZoomController();
+    }
+
+    super.onWindowVisibilityChanged(visibility);
+  }
+
+  @Override
+  protected void onVisibilityChanged(View changedView, int visibility) {
+    if (mZoomController!=null) {
+      boolean show = visibility==View.VISIBLE;
+      if (show!=mZoomController.isVisible()) {
+        mZoomController.setVisible(show);
+        updateZoomControlButtons();
+      }
+    }
+  }
+
+  @Override
+  public void onZoom(boolean zoomIn) {
+    final double newScale;
+    if (zoomIn) {
+      newScale = getScale()*1.2;
+    } else {
+      newScale = getScale()/1.2;
+    }
+    setScale(newScale);
+    updateZoomControlButtons();
+  }
+
+  public void updateZoomControlButtons() {
+    if (mZoomController!=null) {
+      mZoomController.setZoomInEnabled(mAdapter !=null && (getScale()*1.2)<MAXSCALE);
+      mZoomController.setZoomOutEnabled(mAdapter !=null && (getScale()/1.2)>MINSCALE);
+    }
+  }
+
+  @Override
+  protected void onAttachedToWindow() {
+    super.onAttachedToWindow();
+//    showZoomController();
+  }
+
+  @Override
+  protected void onDetachedFromWindow() {
+    dismissZoomController();
+    super.onDetachedFromWindow();
+  }
+
+  private void showZoomController() {
+    if (mEditable && (! (mMultitouch || isInEditMode()))) {
+      if (mZoomController==null) { mZoomController = new ZoomButtonsController(this); }
+      mZoomController.setOnZoomListener(this);
+      mZoomController.setAutoDismissed(false);
+      if (!mZoomController.isVisible()) {
+        mZoomController.setVisible(getVisibility()==VISIBLE);
+      }
+      updateZoomControlButtons();
+    }
+  }
+
+  private void dismissZoomController() {
+    if (mZoomController!=null) {
+      mZoomController.setAutoDismissed(true);
+      mZoomController.setVisible(false);
+      ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).removeViewImmediate(mZoomController.getContainer());
+      mZoomController = null;
+    }
+  }
+
+  @Override
+  protected Parcelable onSaveInstanceState() {
+    return new DiagramViewState(this, super.onSaveInstanceState());
+  }
+
+  @Override
+  protected void onRestoreInstanceState(Parcelable state) {
+    if (!(state instanceof DiagramViewState)) {
+      super.onRestoreInstanceState(state);
+      return;
+    }
+    DiagramViewState diagramViewState = (DiagramViewState) state;
+    super.onRestoreInstanceState(diagramViewState.getSuperState());
+    mOffsetX = diagramViewState.mOffsetX;
+    mOffsetY = diagramViewState.mOffsetY;
+    mScale = diagramViewState.mScale;
+    mGridSize = diagramViewState.mGridSize;
+  }
+
+  public void setSelection(int position) {
+    // TODO handle more complicated selection.
+    int len = mAdapter.getCount();
+    for(int i=0; i<len; ++i) {
+      mAdapter.getView(i).setSelected(i==position);
+    }
+  }
+
+  public int getSelection() {
+    int len = mAdapter.getCount();
+    for(int i=0; i<len; ++i) {
+      if (mAdapter.getView(i).isSelected()) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+
+  public boolean isEditable() {
+    return mEditable;
+  }
+
+
+  public void setEditable(boolean editable) {
+    mEditable = editable;
+    dismissZoomController();
+  }
+
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <target name="-pre-build">
+    	<delete dir="bin/res/crunch" failonerror="false"/>
+    </target>
+	<target name="libjar" depends="-pre-build"/>
+</project>

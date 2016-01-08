@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            android:id="@+id/menu_add_pm"
+            android:title="@string/menu_add_pm"
+            android:titleCondensed="@string/menu_add_pm_cond"
+            app:showAsAction="ifRoom|withText"
+            android:icon="@drawable/ic_action_new"></item>
+    <item
+            android:id="@+id/menu_settings"
+            android:title="@string/menu_settings"
+            android:icon="@drawable/ic_action_settings"></item>
+    <item
+            android:id="@+id/ac_import"
+            app:showAsAction="ifRoom"
+            android:icon="@drawable/ic_action_import"
+            android:title="@string/ac_import"></item>
+    <item
+            android:id="@+id/ac_sync_models"
+            android:title="@string/menu_ac_sync_pm"></item>
+
+
+</menu>

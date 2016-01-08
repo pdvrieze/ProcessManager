@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <import type="nl.adaptivity.process.tasks.items.LabelItem" />
+
+        <variable name="taskitem"
+                  type="LabelItem" />
+
+        <variable name="editable"
+                  type="boolean" />
+    </data>
+
+    <TextView
+            style="@style/TaskitemContainer"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="start|center_vertical"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:text="@{taskitem.value}">
+
+    </TextView>
+</layout>

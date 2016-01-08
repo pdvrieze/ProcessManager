@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:id="@+id/ac_export"
+        android:title="@string/ac_export" android:icon="@drawable/ic_action_export">
+    </item>
+    <item
+        android:id="@+id/ac_export_svg"
+        android:title="@string/ac_export_svg">
+    </item>
+    <item
+        android:id="@+id/ac_share_pm"
+        android:title="@string/ac_share_pm">
+    </item>
+    <item
+        android:id="@+id/ac_share_pm_svg"
+        android:title="@string/ac_share_pm_svg">
+    </item>
+    
+</menu>

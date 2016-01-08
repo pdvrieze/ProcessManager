@@ -1,0 +1,11 @@
+<resources>
+
+    <style name="AppTheme" parent="AppTheme.Base">
+        <item name="iconButtonStyle">@style/Widget.IconButton</item>
+
+    </style>
+
+    <style name="AppTheme.Base" parent="Theme.AppCompat.Light">
+        <!--This one is different for different systems-->
+    </style>
+</resources>
