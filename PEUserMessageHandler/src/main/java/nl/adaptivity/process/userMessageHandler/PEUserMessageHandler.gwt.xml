@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module rename-to='peusermessagehandler'>
+  <!-- Inherit the core Web Toolkit stuff.                        -->
+  <inherits name='com.google.gwt.user.User'/>
+  <inherits name="com.google.gwt.xml.XML"/>
+
+  <!-- Inherit the default GWT style sheet.  You can change       -->
+  <!-- the theme of your GWT application by uncommenting          -->
+  <!-- any one of the following lines.                            -->
+  <inherits name='com.google.gwt.user.theme.standard.Standard'/>
+  <!-- <inherits name='com.google.gwt.user.theme.chrome.Chrome'/> -->
+  <!-- <inherits name='com.google.gwt.user.theme.dark.Dark'/>     -->
+
+  <!-- Other module inherits                                      -->
+  <inherits name="nl.adaptivity.gwt.base.Base"/>
+  <inherits name="nl.adaptivity.gwt.ext.Ext"/>
+
+  <add-linker name="xsiframe" />
+  <set-configuration-property name="devModeRedirectEnabled" value="true"/>
+
+  <!-- inherits name="pl.tecna.gwt.connectors.Connectors"/ -->
+
+  <!-- Specify the app entry point class.                         -->
+  <entry-point class='nl.adaptivity.process.userMessageHandler.client.PEUserMessageHandler'/>
+
+  <!-- Specify the paths for translatable code                    -->
+  <source path='client'/>
+
+</module>

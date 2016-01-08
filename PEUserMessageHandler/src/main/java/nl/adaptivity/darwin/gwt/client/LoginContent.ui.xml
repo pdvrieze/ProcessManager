@@ -1,0 +1,40 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui">
+	<ui:style>
+	</ui:style>
+  <form method="POST" acceptCharset='utf8' action='/accounts/login'>
+  <table style='border:none'>
+    <tr><td><label for='#username'>User name:</label></td><td><input name='username' ui:field="username" type='text'/></td></tr>
+    <tr><td><label for='#password'>Password:</label></td><td><input name='password' ui:field="password" type='password' /></td></tr>
+  </table><span style='margin-top:1em;float:right;'>
+    <input type='hidden' name="redirect" ui:field="redirect" value="/"/>
+    <input type='button' value='Cancel' ui:field="cancel"/>
+    <input type='submit' value='Log in' ui:field="login"/></span>
+  <div id='forgotpasswd'><a href='/accounts/resetpasswd'>Forgot password</a></div>
+  </form>
+<!-- 
+		<table style='border:none'>
+			<tr>
+				<td for='#username'>
+					<label>User name:</label>
+				</td>
+				<td>
+				  <input type="text" name="username" ui:field="username"></input>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<label for='#password'>Password:</label>
+				</td>
+				<td>
+					<input type="password" name="password" ui:field="password"></input>
+				</td>
+			</tr>
+		</table>
+		<span style='margin-top:1em;float:right;'>
+			<input type="submit" text="Log in" ui:field="login"></input>
+			<input type="submit" text="Cancel" ui:field="cancel"></input>
+		</span>
+	</div> -->
+</ui:UiBinder>

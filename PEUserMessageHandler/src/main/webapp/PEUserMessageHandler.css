@@ -1,0 +1,200 @@
+/** Add css rules here for your application. */
+
+/** Copy styles from the normal tab panel */
+/*.gwt-TabLayoutPanel*/ .gwt-TabLayoutPanelTab {
+  margin-left: 6px;
+  padding: 3px 6px 3px 6px;
+  cursor: pointer;
+  cursor: hand;
+  color: black;
+  font-weight: bold;
+  font-size: 12px;
+  text-align: center;
+  background: #d0e4f6;
+}
+/*.gwt-TabLayoutPanel*/ .gwt-TabLayoutPanelTab-selected {
+  cursor: default;
+  background: #92c1f0;
+} 
+/*.gwt-TabLayoutPanel*/ .gwt-TabLayoutPanelTab-disabled {
+  cursor: default;
+  color: #999999;
+}
+.gwt-TabLayoutPanelTabInner > div {
+  display: inline;
+}
+
+
+
+/** Example rules used by the template application (remove for your app) */
+.title {
+  font-size: 18px;
+  text-align: center;
+  margin: 2px;
+  color: blue;
+}
+
+body {
+  /* Work around a stupid hidden (put way too left div that ensures enough space, but puts a scrollbar on screen*/
+  overflow: hidden;
+}
+
+.sendButton {
+  display: block;
+  font-size: 16pt;
+}
+
+/** Most GWT widgets already have a style name defined */
+.gwt-DialogBox {
+  width: 400px;
+}
+
+.gwt-Button.inTabButton {
+  margin-bottom: 5px;
+}
+
+.gwt-TabPanelBottom {
+/*  overflow: auto !important; */
+}
+
+#xx-gwt {
+  margin: 7px;
+  text-align: center;
+}
+
+.tabContent {
+  width: 100%;
+  xmargin: 3px;
+  padding-right:3px;
+}
+
+.tabContent .gwt-Button{
+  width: 100%;
+}
+
+.mhList {
+  xwidth:200px;
+  xheight:300px;
+  height: 100%;
+  margin-bottom: 4px;
+}
+
+.fileForm {
+/*  border: 1px solid green;*/
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding-bottom: 4px;
+  padding-top: 4px;
+  overflow: hidden;
+}
+
+.leftSplitPanel {
+  padding-right: 2px;
+}
+
+.xx-dockPanel {
+  width: 100%;
+}
+
+#xx-gwt {
+  position: fixed;
+  top: 0px;
+  bottom: 0px;
+  right: 0px;
+  left: 0px;
+}
+
+.gwt-TabPanelBottom {
+  top: 0px;
+  bottom: 0px;
+  overflow: scroll;
+}
+
+.xxxtabPanel {
+  xpadding: 2px;
+  width: 100%;
+  xheight: 100%;
+  overflow: hidden;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.fullWidth .gwt-CheckBox {
+  float: right;
+}
+
+.bordered {
+  border: 1px solid red;
+}
+
+.StartNode {
+  width: 16px;
+  height: 16px; 
+}
+
+.EndNode {
+  width: 21px;
+  height: 21px;
+}
+
+.fileForm .gwt-Button {
+  margin-top: 5px;
+  float: right;
+}
+
+.autoscroll {
+  scroll: auto;
+}
+
+.LayoutPanel-HDragger {
+  cursor: move;
+  background: #91c0ef url(peusermessagehandler/gwt/standard/images/vborder.png) repeat-y;
+}
+
+.LayoutPanel-VDragger {
+  cursor: move;
+  background: #91c0ef url(peusermessagehandler/gwt/standard/images/hborder.png) repeat-x;
+}
+
+.blackHorizontalSplitPane .hsplitter {
+  background-image: none !important;
+  background-color: rgb(230,230,230) !important;
+}
+
+.ProcessEditPanel-canvas {
+  background-image: url("images/diagramBackground.png");
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+
+.sourceoptions {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.statusPanel {
+  padding: 2px 0px 2px 0px;
+  font-size: 15px;
+  text-align: center;
+}
+.statusPanel-left {
+  padding-left: 5px;
+  text-align: left;
+  float: left;
+}
+.statusPanel-right {
+  padding-right: 5px;
+  text-align: right;
+  float: right;
+  display: block;
+}
+
+.span {
+  display:inline;
+}
+
+.gwt-Label {
+  display:inline;
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:g="urn:import:com.google.gwt.user.client.ui">
+	<ui:style>
+		@external .dialog;
+		@external .centerContents;
+		@external .dlgTitle;
+		@external .dialogInner;
+		@external .dlgContent;
+
+    .dialog {}
+    .centerContents {}
+    .dlgTitle {}
+    .dialogInner {}
+    .dlgContent {}
+	</ui:style>
+	<g:FlowPanel stylePrimaryName="dialog centerContents">
+	  <g:FlowPanel stylePrimaryName="dialogOuter">
+	    <g:Label stylePrimaryName="dlgTitle" ui:field="dialogTitle">
+        Dialog Title
+      </g:Label>
+      <g:FlowPanel stylePrimaryName ="dialogInner centerContents">
+        <g:FlowPanel stylePrimaryName="dlgContent" ui:field="dialogContent">
+        </g:FlowPanel>
+      </g:FlowPanel>
+	  </g:FlowPanel>
+	</g:FlowPanel>
+	<!-- div class="dialog centerContents">
+
+		<div class="dialogOuter">
+				<h1 class="dlgTitle" ui:field="dialogTitle">Dialog Title</h1>
+
+				<div class="dialogInner centerContents">
+
+					<div class="dlgContent">
+						<g:FlowPanel styleName="dlgContent" ui:field="dialogContent"></g:FlowPanel>
+					</div>
+				</div>
+		</div>
+	</div-->
+</ui:UiBinder>

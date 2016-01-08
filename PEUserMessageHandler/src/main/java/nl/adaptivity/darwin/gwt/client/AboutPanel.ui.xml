@@ -1,0 +1,7 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder">
+	<p>
+	  Welcome to the Darwin server. This server functions as a research prototype as well
+	  as support for the Web Systems and Programming 2 units.
+	</p>
+</ui:UiBinder>

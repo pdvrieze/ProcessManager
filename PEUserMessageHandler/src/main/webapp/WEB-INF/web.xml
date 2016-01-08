@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+
+  <servlet>
+    <servlet-name>internalEndpointServlet</servlet-name>
+    <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
+    <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.InternalEndpointImpl</param-value></init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet>
+    <servlet-name>externalEndpointServlet</servlet-name>
+    <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
+    <init-param><param-name>endpoint</param-name><param-value>nl.adaptivity.process.userMessageHandler.server.ExternalEndpoint</param-value></init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>externalEndpointServlet</servlet-name>
+    <url-pattern>/UserMessageService/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>internalEndpointServlet</servlet-name>
+    <url-pattern>/internal</url-pattern>
+  </servlet-mapping>
+  
+  <!-- Default page to serve -->
+  <welcome-file-list>
+    <welcome-file>PEUserMessageHandler.html</welcome-file>
+  </welcome-file-list>
+
+</web-app>
