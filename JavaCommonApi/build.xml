@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="build">
+    <property name="version" value="1.1.0" />
+    <target name="javadoc">
+        <javadoc access="package" author="true" classpath="."
+            destdir="doc" doctitle="JavaCommonApi" nodeprecated="false"
+            nodeprecatedlist="false" noindex="false" nonavbar="false"
+            notree="false" packagenames="uk.ac.bournemouth.darwin.catalina.realm"
+            source="1.7" sourcepath="src" splitindex="true" use="true"
+            version="true">
+            <link href="http://download.oracle.com/javase/7/docs/api/" />
+        </javadoc>
+    </target>
+    <target name="build">
+        <mkdir dir="build" />
+        <javac srcdir="src" destdir="build" classpath="." debug="on"
+            source="1.7" target="1.7" />
+    </target>
+    <target name="release">
+        <mkdir dir="release" />
+        <javac srcdir="src" destdir="release" classpath="." debug="off"
+            source="1.7" target="1.7" />
+    </target>
+    <target name="debugjar" depends="build">
+        <jar destfile="JavaCommonApi-${version}.jar" basedir="build">
+        </jar>
+    </target>
+    <target name="jar" depends="release">
+        <jar destfile="JavaCommonApi-${version}.jar" basedir="release">
+        </jar>
+    </target>
+</project>
