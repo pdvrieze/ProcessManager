@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+version = '0.4'
+description = 'Service for data storage/access'
+//group = [ 'server', 'service' ]
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+    }
+
+}
