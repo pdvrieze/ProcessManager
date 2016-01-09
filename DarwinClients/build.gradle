@@ -24,7 +24,7 @@ description = 'A project for the automatically generated service clients for var
 
 //group = 'server'
 
-def genDir = new File(projectDir.absolutePath,'gen')
+def genDir = new File(projectDir,'gen')
 def genClasses = ['nl.adaptivity.process.userMessageHandler.server.InternalEndpoint' , 'nl.adaptivity.process.engine.servlet.ServletProcessEngine']
 
 configurations {
@@ -66,7 +66,7 @@ task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:tomcatEx
 
 //        cp.each({ println("classpath: $it");})
 
-        args '-package', 'nl.adaptivity.process.client', '-dstdir', genDir
+        args '-package', 'nl.adaptivity.process.client', '-dstdir', genDir.absolutePath
         genClasses.each {
             def y=it
             args y
@@ -107,7 +107,8 @@ idea {
     module {
         scopes.COMPILE.minus += [configurations.providedCompile]
         scopes.PROVIDED.plus += [configurations.providedCompile]
-	    generatedSourceDirs += file(genDir)
+        sourceDirs -= genDir
+        generatedSourceDirs += genDir
     }
 }
 
