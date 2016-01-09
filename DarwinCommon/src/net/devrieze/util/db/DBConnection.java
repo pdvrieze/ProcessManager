@@ -16,93 +16,28 @@
 
 package net.devrieze.util.db;
 
+import net.devrieze.util.StringCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import net.devrieze.util.StringCache;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import net.devrieze.util.StringCacheImpl;
 
 
+/**
+ * A class that helps with handling database operations and closing up afterwards. It keeps track of opened statements
+ * so they can be automatically closed.
+ */
 @SuppressWarnings("deprecation")
 public class DBConnection implements AutoCloseable {
-
-  public static class DBHelper {
-
-    @NotNull
-    private final DataSource mDataSource;
-    private StringCache mStringCache;
-
-    // Object Initialization
-    public DBHelper(@NotNull final DataSource dataSource) {
-      mDataSource = dataSource;
-    }
-
-    @NotNull
-    public static DBHelper getDbHelper(final String resourceName) throws SQLException {
-      final DataSource dataSource;
-      try {
-        dataSource = getDataSource(resourceName);
-      } catch (final NamingException e) {
-        throw new SQLException("Failure to link to database", e);
-      }
-      if (DBConnection.getLogger()
-                      .isLoggable(DBConnection.DETAIL_LOG_LEVEL)) { // Do this only when we log this is going to be output
-        final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        final StringBuilder message = new StringBuilder();
-        if (DEBUG) {
-          message.append("dbHelper invoked for ").append(resourceName).append(" from ");
-          for (int i = 2; (i < stackTraceElements.length) && (i < 7); ++i) {
-            if (i > 2) {
-              message.append(" -> ");
-            }
-            message.append(stackTraceElements[i]);
-          }
-          DBConnection.getLogger().log(DBConnection.DETAIL_LOG_LEVEL, message.toString());
-        }
-      }
-      return new DBHelper(dataSource);
-    }
-// Object Initialization end
-
-    // Property accessors start
-    @NotNull
-    public DBConnection getConnection() throws SQLException {
-      final DBConnection dbConnection = new DBConnection(mDataSource);
-      final StringCache mStringCache2 = mStringCache;
-      if (mStringCache2 != null) {
-        DBConnection.setStringCache(mStringCache2);
-      }
-      return dbConnection;
-    }
-
-    public void setStringCache(final StringCache stringCache) {
-      mStringCache = stringCache;
-    }
-// Property acccessors end
-
-  }
-
-  @Deprecated
-  static class DataSourceWrapper {
-
-    @NotNull
-    final DataSource mDataSource;
-
-    // Object Initialization
-    DataSourceWrapper(@NotNull final DataSource dataSource) {
-      mDataSource = dataSource;
-    }
-// Object Initialization end
-  }
 
   private interface Warnable {
 
@@ -111,55 +46,131 @@ public class DBConnection implements AutoCloseable {
     SQLWarning getWarnings() throws SQLException;
   }
 
+  /**
+   * The base class for any statement. It wraps a prepared statement.
+   */
   public interface DBStatement extends AutoCloseable {
 
+    /**
+     * Add a parameter to the statement.
+     * @param column The column index to add it to
+     * @param value The value to set
+     * @return This object, to allow for method chaining.
+     * @see PreparedStatement#setString(int, String)
+     */
     @NotNull
     DBStatement addParam(int column, String value);
 
+    /**
+     * Add a parameter to the statement.
+     * @param column The column index to add it to
+     * @param value The value to set
+     * @return This object, to allow for method chaining.
+     * @see PreparedStatement#setInt(int, int)
+     */
     @NotNull
     DBStatement addParam(int column, int value);
 
+    /**
+     * Add a parameter to the statement.
+     * @param column The column index to add it to
+     * @param value The value to set
+     * @return This object, to allow for method chaining.
+     * @see PreparedStatement#setLong(int, long)
+     */
     @NotNull
     DBStatement addParam(int column, long value);
 
+    /**
+     * Execute the query.
+     * @return The result of executing it.
+     * @throws SQLException Any thrown exception.
+     * @see PreparedStatement#execute()
+     */
     boolean exec() throws SQLException;
 
+    /**
+     * Execute the query, commmitting if there was no exception.
+     * @return The result of executing it.
+     * @throws SQLException Any thrown exception.
+     * @see PreparedStatement#execute
+     */
     boolean execCommit() throws SQLException;
 
+    /**
+     * Close the statement
+     * @see PreparedStatement#close()
+     */
     @Override
     void close();
 
-    void closeHelper();
+    /**
+     * Close the underlying connection.
+     */
+    void closeConnection();
 
     // Property accessors start
+
+    /**
+     * Get the string cache to use for this statement.
+     * @return The string cache.
+     */
     @NotNull
     StringCache getStringCache();
 // Property acccessors end
   }
 
+  /**
+   * A {@link DBStatement} representing an sql query (not manipulation etc.)
+   */
   public interface DBQuery extends DBStatement {
 
+    /**
+     * Execute the query.
+     *
+     * @return <code>true</code> if the query does not have any results, <code>false</code> if the query gives one or
+     * more results.
+     */
     boolean execQueryEmpty();
 
     /**
      * Add a parameter to the query.
+     *
      * @param column The column number to add the parameter
-     * @param value The value
+     * @param value  The value
      * @return the value of <code>this</code>
      */
     @NotNull
     @Override
     DBQuery addParam(int column, String value);
 
+    /**
+     * Execute the query.
+     *
+     * @return <code>false</code> if the query does not have any results, <code>true</code> if the query gives one or
+     * more results.
+     */
     boolean execQueryNotEmpty();
 
-    /** Execute the query and get the result set. */
+    /**
+     * Execute the query and get the result set.
+     *
+     * @return The resultset.
+     */
     ResultSet execQuery();
 
-    /** Execute the query and return the integer value */
+    /**
+     * Execute the query and return the integer value
+     *
+     * @return The resultset.
+     */
     Integer intQuery();
 
-    /** Execute the query and return the long value */
+    /**
+     * Execute the query and return the long value
+     *
+     * @return The resultset.
+     */
     Long longQuery();
 
     @NotNull
@@ -174,6 +185,9 @@ public class DBConnection implements AutoCloseable {
 
   }
 
+  /**
+   * A {@link DBStatement} representing an insert sql statement.
+   */
   public interface DBInsert extends DBStatement {
 
     @NotNull
@@ -192,13 +206,13 @@ public class DBConnection implements AutoCloseable {
       // Dud that doesn't do anything
     }
 
-    DBStatementImpl(@NotNull final String sQL, @Nullable final String errorMsg) throws SQLException {
+    DBStatementImpl(@NotNull final String sql, @Nullable final String errorMsg) throws SQLException {
       final Connection connection = mConnection;
       if (connection == null) {
         throw new SQLException("Committing closed connection");
       }
       try {
-        mSQLStatement = connection.prepareStatement(sQL);
+        mSQLStatement = connection.prepareStatement(sql);
       } finally {
         logWarnings("Preparing statement", connection);
       }
@@ -328,13 +342,13 @@ public class DBConnection implements AutoCloseable {
     }
 
     @Override
-    public void closeHelper() {
+    public void closeConnection() {
       DBConnection.this.close();
     }
 
   }
 
-  public class DBQueryImpl extends DBStatementImpl implements DBQuery {
+  private class DBQueryImpl extends DBStatementImpl implements DBQuery {
 
     List<ResultSet> mResultSets;
 
@@ -343,8 +357,8 @@ public class DBConnection implements AutoCloseable {
       super();
     }
 
-    public DBQueryImpl(@NotNull final String sQL, final String errorMsg) throws SQLException {
-      super(sQL, errorMsg);
+    public DBQueryImpl(@NotNull final String sql, final String errorMsg) throws SQLException {
+      super(sql, errorMsg);
       mResultSets = new ArrayList<>();
     }
 // Object Initialization end
@@ -520,8 +534,8 @@ public class DBConnection implements AutoCloseable {
 
 
     // Object Initialization
-    public DBInsertImpl(@NotNull final String sQL, final String errorMsg) throws SQLException {
-      super(sQL, errorMsg);
+    public DBInsertImpl(@NotNull final String sql, final String errorMsg) throws SQLException {
+      super(sql, errorMsg);
     }
 // Object Initialization end
 
@@ -533,13 +547,13 @@ public class DBConnection implements AutoCloseable {
 
   }
 
-  public static final boolean DEBUG = DBConnection.class.desiredAssertionStatus();
+  private static final boolean DEBUG = DBConnection.class.desiredAssertionStatus();
   private static final Level DETAIL_LOG_LEVEL = Level.FINE;
   private static final String LOGGER_NAME = "DBHelper";
   @NotNull
   private static StringCache _stringCache = StringCache.NOPCACHE;
   @Nullable
-  public String mErrorMsg;
+  private String mErrorMsg;
   @Nullable
   private Connection mConnection;
   @NotNull
@@ -573,6 +587,12 @@ public class DBConnection implements AutoCloseable {
     }
   }
 
+  /**
+   * Create a new connection object. This could have included caching, but that is better handled at lower level.
+   * There are many jdbc connection pooling libraries.
+   * @param dataSource The datasource to based the connection upon.
+   * @return The connection, or <code>null</code> if none.
+   */
   public static DBConnection newInstance(final DataSource dataSource) {
     try {
       return new DBConnection(dataSource);
@@ -591,28 +611,48 @@ public class DBConnection implements AutoCloseable {
     _stringCache = stringCache;
   }
 
+  /**
+   * Helper method to get a datasource for the given string that describes it.
+   * @param dbresource The string resource to look for.
+   * @return The DataSource.
+   * @throws NamingException When the resource could not be found
+   * @see InitialContext#lookup(String)
+   */
   public static DataSource getDataSource(final String dbresource) throws NamingException {
     final InitialContext initialContext = new InitialContext();
     return (DataSource) Objects.requireNonNull(initialContext.lookup(dbresource));
   }
 // Object Initialization end
 
+  /**
+   * Create a new query.
+   * @param sql The query string
+   * @return The object wrapping the prepared statement.
+   */
   @NotNull
-  public DBQuery makeQuery(@NotNull final String sQL) {
-    return makeQuery(sQL, null);
+  public DBQuery makeQuery(@NotNull final String sql) {
+    return makeQuery(sql, null);
   }
 
+
+  /**
+   * Create a new query.
+   *
+   * @param sql      The query string
+   * @param errorMsg The message to use if the query fails (normally after this method returned).
+   * @return The object wrapping the prepared statement.
+   */
   @NotNull
-  public DBQuery makeQuery(@NotNull final String sQL, @Nullable final String errorMsg) {
+  public DBQuery makeQuery(@NotNull final String sql, @Nullable final String errorMsg) {
     try {
-      return recordStatement(new DBQueryImpl(sQL, errorMsg));
+      return recordStatement(new DBQueryImpl(sql, errorMsg));
     } catch (final SQLException e) {
       logException("Failure to create prepared statement", e);
       throw new RuntimeException(e);
     }
   }
 
-  public static void logException(@Nullable final String msg, @NotNull final Throwable e) {
+  static void logException(@Nullable final String msg, @NotNull final Throwable e) {
     getLogger().log(Level.SEVERE, msg, e);
   }
 
@@ -622,21 +662,42 @@ public class DBConnection implements AutoCloseable {
     return statement;
   }
 
+
+  /**
+   * Create a new insert statement.
+   *
+   * @param sql      The query string
+   * @return The object wrapping the prepared statement.
+   * @throws SQLException When the creation fails
+   */
   @NotNull
-  public DBInsert makeInsert(@NotNull final String sQL) throws SQLException {
-    return makeInsert(sQL, null);
+  public DBInsert makeInsert(@NotNull final String sql) throws SQLException {
+    return makeInsert(sql, null);
   }
 
+  /**
+   * Create a new insert statement.
+   *
+   * @param sql      The query string
+   * @param errorMsg The message to use if the insert fails (normally after this method returned).
+   * @return The object wrapping the prepared statement.
+   * @throws SQLException When the creation fails
+   */
   @NotNull
-  public DBInsert makeInsert(@NotNull final String sQL, @Nullable final String errorMsg) throws SQLException {
+  public DBInsert makeInsert(@NotNull final String sql, @Nullable final String errorMsg) throws SQLException {
     try {
-      return recordStatement(new DBInsertImpl(sQL, errorMsg));
+      return recordStatement(new DBInsertImpl(sql, errorMsg));
     } catch (final SQLException e) {
       logException("Failure to create prepared statement", e);
       throw e;
     }
   }
 
+  /**
+   * Commit the current transaction
+   * @throws SQLException If the commit fails.
+   * @see Connection#commit()
+   */
   public void commit() throws SQLException {
     final Connection connection = this.mConnection;
     if (connection == null) {
@@ -651,6 +712,11 @@ public class DBConnection implements AutoCloseable {
     }
   }
 
+  /**
+   * Roll the transaction back.
+   * @throws SQLException When the rollback fails
+   * @see Connection#rollback()
+   */
   public void rollback() throws SQLException {
     final Connection connection = this.mConnection;
     if (connection == null) {
@@ -677,15 +743,15 @@ public class DBConnection implements AutoCloseable {
     getLogger().log(Level.WARNING, msg);
   }
 
-  public static void logWarnings(@NotNull final String message, @Nullable final Connection connection) {
+  private static void logWarnings(@NotNull final String message, @Nullable final Connection connection) {
     logWarnings(message, "connection", warnable(connection));
   }
 
-  public static void logWarnings(@NotNull final String message, @Nullable final Statement statement) {
+  private static void logWarnings(@NotNull final String message, @Nullable final Statement statement) {
     logWarnings(message, "statement", warnable(statement));
   }
 
-  public static void logWarnings(@NotNull final String message, @Nullable final ResultSet resultSet) {
+  private static void logWarnings(@NotNull final String message, @Nullable final ResultSet resultSet) {
     logWarnings(message, "resultSet", warnable(resultSet));
   }
 

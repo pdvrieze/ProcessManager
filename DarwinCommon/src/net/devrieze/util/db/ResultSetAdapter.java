@@ -246,10 +246,10 @@ public abstract class ResultSetAdapter<T> implements DBIterable<T>/*, Iterable<T
 
   public void closeAll() {
     final DBStatement statement = mStatement; //needed as closeStatement nulls this
-    if (statement!=null) {
-      statement.closeHelper();
-    }
     closeStatement();
+    if (statement!=null) {
+      statement.closeConnection();
+    }
   }
 
   @Nullable

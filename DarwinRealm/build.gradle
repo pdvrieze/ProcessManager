@@ -48,6 +48,7 @@ dependencies {
     providedCompile "org.apache.tomcat:catalina:${tomcatVersion}"
     runtime dbcpSpec
 
+    compile project(':DarwinJavaApi')
     compile project(':DarwinCommon')
     compile project(path: ':DarwinCommon', configuration:'providedCompile')
 

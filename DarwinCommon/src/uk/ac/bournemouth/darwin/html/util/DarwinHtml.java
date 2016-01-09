@@ -25,8 +25,19 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 
+/**
+ * Utility class that helps with writing html documents  that fit the darwin styles.
+ */
 public final class DarwinHtml {
 
+  /**
+   * Write an error message as html to the response. This method will also set the response status code.
+   *
+   * @param response The response to write the error to.
+   * @param status   The status code to set (and to reflect in the document).
+   * @param title    The title to use for the document.
+   * @param error    The exception that lead to the error.
+   */
   public static void writeError(@NotNull final HttpServletResponse response, final int status, @NotNull final String title, final Throwable error) {
     response.setStatus(status);
     response.setContentType("text/html");
