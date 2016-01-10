@@ -17,10 +17,10 @@
 package nl.adaptivity.process.editor.android;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Toast;
@@ -30,11 +30,10 @@ import nl.adaptivity.diagram.android.AndroidDrawableLightView;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.LightView;
 import nl.adaptivity.diagram.android.RelativeLightView;
+import nl.adaptivity.process.diagram.DrawableJoinSplit;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
-import nl.adaptivity.process.processModel.EndNode;
-import nl.adaptivity.process.processModel.IllegalProcessModelException;
-import nl.adaptivity.process.processModel.StartNode;
+import nl.adaptivity.process.processModel.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,13 +61,13 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   private DrawableProcessNode mCachedDecorationItem = null;
   private int mConnectingItem = -1;
 
-  public MyDiagramAdapter(Context context, DrawableProcessModel diagram) {
+  public MyDiagramAdapter(final Context context, final DrawableProcessModel diagram) {
     super (diagram);
     mContext = context;
   }
 
   @Override
-  public List<? extends RelativeLightView> getRelativeDecorations(int position, double scale, boolean selected) {
+  public List<? extends RelativeLightView> getRelativeDecorations(final int position, final double scale, final boolean selected) {
     if (! selected) {
 //      if (pPosition>=0) {
 //        DrawableProcessNode item = getItem(pPosition);
@@ -90,13 +89,13 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
       decorations = getDefaultDecorations(drawableProcessNode, scale);
     }
 
-    double centerX = drawableProcessNode.getX();
-    double topY = drawableProcessNode.getBounds().bottom()+DECORATION_VSPACING/scale;
+    final double centerX = drawableProcessNode.getX();
+    final double topY = drawableProcessNode.getBounds().bottom() + DECORATION_VSPACING / scale;
     layoutHorizontal(centerX, topY, scale, decorations);
     return Arrays.asList(decorations);
   }
 
-  private RelativeLightView[] getDefaultDecorations(DrawableProcessNode item, double scale) {
+  private RelativeLightView[] getDefaultDecorations(final DrawableProcessNode item, final double scale) {
     if (! item.equals(mCachedDecorationItem)) {
       mCachedDecorationItem = item;
       mCachedDecorations[0] = new RelativeLightView(new AndroidDrawableLightView(loadDrawable(R.drawable.ic_cont_delete), scale), BOTTOM| HGRAVITY);
@@ -106,7 +105,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     return mCachedDecorations;
   }
 
-  private RelativeLightView[] getStartDecorations(DrawableProcessNode item, double scale) {
+  private RelativeLightView[] getStartDecorations(final DrawableProcessNode item, final double scale) {
     if (! item.equals(mCachedDecorationItem)) {
       mCachedDecorationItem = item;
       // Assign to both caches to allow click to remain working.
@@ -116,7 +115,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     return mCachedStartDecorations;
   }
 
-  private RelativeLightView[] getEndDecorations(DrawableProcessNode item, double scale) {
+  private RelativeLightView[] getEndDecorations(final DrawableProcessNode item, final double scale) {
     if (! item.equals(mCachedDecorationItem)) {
       mCachedDecorationItem = item;
       // Assign to both caches to allow click to remain working.
@@ -125,26 +124,26 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     return mCachedEndDecorations;
   }
 
-  private static void layoutHorizontal(double centerX, double top, double scale, LightView[] decorations) {
+  private static void layoutHorizontal(final double centerX, final double top, final double scale, final LightView[] decorations) {
     if (decorations.length==0) { return; }
-    double hspacing = DECORATION_HSPACING/scale;
+    final double hspacing = DECORATION_HSPACING / scale;
     double totalWidth = -hspacing;
 
-    RectF bounds = new RectF();
-    for(LightView decoration: decorations) {
+    final RectF bounds = new RectF();
+    for(final LightView decoration: decorations) {
       decoration.getBounds(bounds);
       totalWidth+=bounds.width()+hspacing;
     }
     float leftF = (float) (centerX-totalWidth/2);
-    float topF = (float) top;
-    for(LightView decoration: decorations) {
+    final float topF = (float) top;
+    for(final LightView decoration: decorations) {
       decoration.setPos(leftF, topF);
       decoration.getBounds(bounds);
       leftF+=bounds.width()+hspacing;
     }
   }
 
-  private Drawable loadDrawable(int resId) {
+  private Drawable loadDrawable(final int resId) {
     // TODO get the button drawable out of the style.
     return new BackgroundDrawable(mContext, R.drawable.btn_context, resId);
   }
@@ -159,7 +158,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   }
 
   @Override
-  public void onDecorationClick(DiagramView view, int position, LightView decoration) {
+  public void onDecorationClick(final DiagramView view, final int position, final LightView decoration) {
     if (decoration==mCachedDecorations[0]) {
       removeNode(position);
       view.invalidate();
@@ -176,7 +175,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     }
   }
 
-  private void removeNode(int position) {
+  private void removeNode(final int position) {
     final DrawableProcessNode item = getItem(position);
     mViewCache.remove(item);
     getDiagram().removeNode(position);
@@ -185,22 +184,23 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     }
   }
 
-  private void doEditNode(int position) {
+  private void doEditNode(final int position) {
     if (mContext instanceof Activity) {
-      NodeEditDialogFragment frag = new NodeEditDialogFragment();
-      Bundle args = new Bundle(1);
-      args.putInt(NodeEditDialogFragment.NODE_POS, position);
-      frag.setArguments(args);
-      frag.show(((Activity)mContext).getFragmentManager(), "editNode");
+      final DrawableProcessNode node = getDiagram().getNode(position);
+      final DialogFragment fragment;
+      if (node instanceof DrawableJoinSplit) {
+        fragment = JoinSplitNodeEditDialogFragment.newInstance(position);
+      } else {
+        fragment = NodeEditDialogFragment.newInstance(position);
+      }
+      fragment.show(((Activity)mContext).getFragmentManager(), "editNode");
     }
-    // TODO Auto-generated method stub
-    //
   }
 
   @Override
-  public void onDecorationMove(DiagramView view, int position, RelativeLightView decoration, float x, float y) {
+  public void onDecorationMove(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
     if (decoration==mCachedDecorations[2]) {
-      DrawableProcessNode start = mCachedDecorationItem;
+      final DrawableProcessNode start = mCachedDecorationItem;
       final float x1 = (float) (start.getBounds().right()-DrawableProcessModel.STROKEWIDTH);
       final float y1 = (float) (start.getY());
       final float x2 = x;
@@ -217,7 +217,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   }
 
   @Override
-  public void onDecorationUp(DiagramView view, int position, RelativeLightView decoration, float x, float y) {
+  public void onDecorationUp(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
     if (decoration==mCachedDecorations[2]) {
       if (mOverlay instanceof LineView) {
         view.invalidate(mOverlay);
@@ -225,7 +225,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
       }
 
       DrawableProcessNode next=null;
-      for(DrawableProcessNode item: getDiagram().getModelNodes()) {
+      for(final DrawableProcessNode item: getDiagram().getModelNodes()) {
         if(item.getItemAt(x, y)!=null) {
           next = item;
           break;
@@ -238,15 +238,11 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   }
 
   @Override
-  public boolean onNodeClickOverride(DiagramView diagramView, int touchedElement, MotionEvent e) {
+  public boolean onNodeClickOverride(final DiagramView diagramView, final int touchedElement, final MotionEvent e) {
     if (mConnectingItem>=0) {
-      DrawableProcessNode prev = getItem(mConnectingItem);
-      DrawableProcessNode next = getItem(touchedElement);
-      if (prev.isPredecessorOf(next)) {
-        prev.removeSuccessor(next);
-      } else {
-        tryAddSuccessor(prev, next);
-      }
+      final DrawableProcessNode prev = getItem(mConnectingItem);
+      final DrawableProcessNode next = getItem(touchedElement);
+      tryAddSuccessor(prev, next);
       mConnectingItem=-1;
       mCachedDecorations[2].setActive(false);
       diagramView.invalidate();
@@ -255,18 +251,40 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
     return false;
   }
 
-  public void tryAddSuccessor(DrawableProcessNode prev, DrawableProcessNode next) {
-    if (prev.getSuccessors().size()<prev.getMaxSuccessorCount() &&
-        next.getPredecessors().size()<next.getMaxPredecessorCount()) {
-      try {
-        prev.addSuccessor(next);
-      } catch (IllegalProcessModelException e) {
-        Log.w(MyDiagramAdapter.class.getName(), e.getMessage(), e);
-        Toast.makeText(mContext, "These can not be connected", Toast.LENGTH_LONG).show();
-      }
+  public void tryAddSuccessor(final DrawableProcessNode prev, final DrawableProcessNode next) {
+    if (prev.isPredecessorOf(next)) {
+      prev.removeSuccessor(next);
     } else {
-      Toast.makeText(mContext, "These can not be connected", Toast.LENGTH_LONG).show();
-      // TODO Better errors
+
+      if (prev.getSuccessors().size() < prev.getMaxSuccessorCount() && next.getPredecessors().size() < next.getMaxPredecessorCount()) {
+        try {
+          if (prev instanceof Split) {
+            final Split split = (Split) prev;
+            if (split.getMin() >= split.getMax()) {
+              split.setMin(split.getMin()+1);
+            }
+            if (split.getMax() >= prev.getSuccessors().size()) {
+              split.setMax(split.getMax() + 1);
+            }
+          }
+          if (next instanceof Join) {
+            final Join join = (Join) next;
+            if (join.getMin() >= join.getMax()) {
+              join.setMin(join.getMin()+1);
+            }
+            if (join.getMax() >= prev.getPredecessors().size()) {
+              join.setMax(join.getMax() + 1);
+            }
+          }
+          prev.addSuccessor(next);
+        } catch (IllegalProcessModelException e) {
+          Log.w(MyDiagramAdapter.class.getName(), e.getMessage(), e);
+          Toast.makeText(mContext, "These can not be connected", Toast.LENGTH_LONG).show();
+        }
+      } else {
+        Toast.makeText(mContext, "These can not be connected", Toast.LENGTH_LONG).show();
+        // TODO Better errors
+      }
     }
   }
 

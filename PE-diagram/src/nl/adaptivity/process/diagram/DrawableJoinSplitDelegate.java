@@ -37,17 +37,31 @@ public class DrawableJoinSplitDelegate {
     mState = orig.mState;
   }
 
-  public void setLogicalPos(JoinSplitBase<?,?> elem, double left, double top) {
+  public void setLogicalPos(final JoinSplitBase<?,?> elem, final double left, final double top) {
     elem.setX(left + DrawableJoinSplit.REFERENCE_OFFSET_X);
     elem.setY(left + DrawableJoinSplit.REFERENCE_OFFSET_Y);
   }
 
-  public static Rectangle getBounds(JoinSplit<?,?> elem) {
+  public static boolean isOr(final JoinSplit<?,?> node) {
+    final int maxSiblings = node.getMaxPredecessorCount() == 1 ? node.getSuccessors().size() :node.getPredecessors().size();
+    return node.getMin()==1 && node.getMax()>=maxSiblings;
+  }
+
+  public static boolean isXor(final JoinSplit<?,?> node) {
+    return node.getMin()==1 && node.getMax() == 1;
+  }
+
+  public static boolean isAnd(final JoinSplit<?,?> node) {
+    final int maxSiblings = node.getMaxPredecessorCount() == 1 ? node.getSuccessors().size() :node.getPredecessors().size();
+    return node.getMin()==node.getMax() && node.getMin() >=maxSiblings;
+  }
+
+  public static Rectangle getBounds(final JoinSplit<?,?> elem) {
     return new Rectangle(elem.getX()-DrawableJoinSplit.REFERENCE_OFFSET_X, elem.getY()-DrawableJoinSplit.REFERENCE_OFFSET_Y, JOINHEIGHT+DrawableJoinSplit.STROKEEXTEND, JOINWIDTH+DrawableJoinSplit.STROKEEXTEND);
   }
 
   @Nullable
-  public static Drawable getItemAt(DrawableJoinSplit elem, double x, double y) {
+  public static Drawable getItemAt(final DrawableJoinSplit elem, final double x, final double y) {
     final double realradiusX = (DrawableProcessModel.JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2;
     final double realradiusY = (DrawableProcessModel.JOINHEIGHT + DrawableJoinSplit.STROKEEXTEND) / 2;
     return ((Math.abs(x - elem.getX()) <= realradiusX) && (Math.abs(y - elem.getY()) <= realradiusY)) ? elem : null;
@@ -57,11 +71,11 @@ public class DrawableJoinSplitDelegate {
     return mState;
   }
 
-  public void setState(int state) {
+  public void setState(final int state) {
     mState = state;
   }
 
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(JoinSplitBase<?,?> elem, Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(final JoinSplitBase<?,?> elem, final Canvas<S, PEN_T, PATH_T> canvas, final Rectangle clipBounds) {
     final S strategy = canvas.getStrategy();
     PATH_T path = mItems.getPath(strategy, 0);
     final double dx = DrawableProcessModel.JOINWIDTH / 2;
@@ -77,35 +91,35 @@ public class DrawableJoinSplitDelegate {
       mItems.setPath(strategy, 0, path);
     }
     if (elem.hasPos()) {
-      PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState & ~DrawableProcessModel.STATE_TOUCHED);
-      PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, mState);
+      final PEN_T linePen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState & ~DrawableProcessModel.STATE_TOUCHED);
+      final PEN_T bgPen = canvas.getTheme().getPen(ProcessThemeItems.BACKGROUND, mState);
 
       if ((mState & DrawableProcessModel.STATE_TOUCHED) != 0) {
-        PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, DrawableProcessModel.STATE_TOUCHED);
+        final PEN_T touchedPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, DrawableProcessModel.STATE_TOUCHED);
         canvas.drawPath(path, touchedPen, null);
       }
       canvas.drawPath(path, linePen, bgPen);
 
       if (elem.getOwnerModel() != null || elem.getMin() >= 0 || elem.getMax() >= 0) {
-        PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, mState);
-        String s = getMinMaxText(elem);
+        final PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMTEXT, mState);
+        final String s = getMinMaxText(elem);
 
         canvas.drawText(TextPos.DESCENT, hse + dx, -hse, s, Double.MAX_VALUE, textPen);
       }
     }
   }
 
-  public static String getMinMaxText(JoinSplitBase<?,?> elem) {
+  public static String getMinMaxText(final JoinSplitBase<?,?> elem) {
     if (DrawableJoinSplit.TEXT_DESC) {
-      if (elem.getMin() == 1 && elem.getMax() == 1) {
+      if (isXor(elem)) {
         return "xor";
-      } else if (elem.getMin() == 1 && elem.getMax() >= elem.getSuccessors().size()) {
+      } else if (isOr(elem)) {
         return "or";
-      } else if (elem.getMin() == elem.getMax() && elem.getMax() >= elem.getSuccessors().size()) {
+      } else if (isAnd(elem)) {
         return "and";
       }
     }
-    StringBuilder str = new StringBuilder();
+    final StringBuilder str = new StringBuilder();
     if (elem.getMin() < 0) {
       str.append("?...");
     } else if (elem.getMin() == elem.getMax()) {

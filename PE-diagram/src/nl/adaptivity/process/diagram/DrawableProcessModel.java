@@ -371,6 +371,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     for(DrawableProcessNode node:getModelNodes()) {
       node.draw(childCanvas.childCanvas(node.getBounds(), 1 ), null);
     }
+
+    for(DrawableProcessNode node:getModelNodes()) {
+      // TODO do something better with the left and top coordinates
+      node.drawLabel(childCanvas.childCanvas(node.getBounds(), 1 ), null, node.getX(), node.getY());
+    }
   }
 
   @Override

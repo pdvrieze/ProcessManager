@@ -148,4 +148,18 @@ public class DrawableJoin extends ClientJoinNode<DrawableProcessNode, DrawablePr
     return DrawableJoinSplitDelegate.getMinMaxText(this);
   }
 
+  @Override
+  public boolean isOr() {
+    return DrawableJoinSplitDelegate.isOr(this);
+  }
+
+  @Override
+  public boolean isXor() {
+    return DrawableJoinSplitDelegate.isXor(this);
+  }
+
+  @Override
+  public boolean isAnd() {
+    return DrawableJoinSplitDelegate.isAnd(this);
+  }
 }

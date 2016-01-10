@@ -44,7 +44,6 @@ import nl.adaptivity.diagram.android.DiagramView.DiagramDrawable;
 import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
-import nl.adaptivity.process.editor.android.NodeEditDialogFragment.NodeEditListener;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
 import nl.adaptivity.xml.XmlException;
 import org.jetbrains.annotations.NotNull;
@@ -586,26 +585,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
           return (v==diagramView1);
         case DragEvent.ACTION_DROP: {
           if (v==diagramView1) {
-            Class<?> nodeType = (Class<?>) event.getLocalState();
-            Constructor<?> constructor;
-            try {
-              // TODO replace with factory
-              constructor = nodeType.getConstructor(DrawableProcessModel.class);
-              DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(mPm);
-              float diagramX = diagramView1.toDiagramX(event.getX());
-              float diagramY = diagramView1.toDiagramY(event.getY());
-              final int gridSize = diagramView1.getGridSize();
-              if (gridSize>0) {
-                diagramX = Math.round(diagramX/gridSize)*gridSize;
-                diagramY = Math.round(diagramY/gridSize)*gridSize;
-              }
-              node.setX(diagramX);
-              node.setY(diagramY);
-              diagramView1.invalidate();
-              return true;
-            } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-              Log.e(PMEditor.class.getSimpleName(), "Failure to instantiate new node", e);
-            }
+            if (onItemDropped(event)) { return true; }
           }
           break;
         }
@@ -642,6 +622,35 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
       return false;
     }
 
+  }
+
+  /**
+   * Called in response to a drag-drop of items.
+   * @param event The corresponding event.
+   * @return <code>true</code> if handled succesfully.
+   */
+  private boolean onItemDropped(final DragEvent event) {
+    Class<?> nodeType = (Class<?>) event.getLocalState();
+    Constructor<?> constructor;
+    try {
+      // TODO replace with factory
+      constructor = nodeType.getConstructor(DrawableProcessModel.class);
+      DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(mPm);
+      float diagramX = diagramView1.toDiagramX(event.getX());
+      float diagramY = diagramView1.toDiagramY(event.getY());
+      final int gridSize = diagramView1.getGridSize();
+      if (gridSize>0) {
+        diagramX = Math.round(diagramX/gridSize)*gridSize;
+        diagramY = Math.round(diagramY/gridSize)*gridSize;
+      }
+      node.setX(diagramX);
+      node.setY(diagramY);
+      diagramView1.invalidate();
+      return true;
+    } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+      Log.e(PMEditor.class.getSimpleName(), "Failure to instantiate new node", e);
+    }
+    return false;
   }
 
   private class ItemShadowBuilder extends DragShadowBuilder {

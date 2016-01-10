@@ -37,4 +37,13 @@ public interface DrawableJoinSplit extends ClientJoinSplit<DrawableProcessNode, 
   double ARROWLEN = JOINWIDTH*0.15;
   double ARROWCONTROLRATIO=0.85;
 
+  /** Determine whether the node represents an or split. */
+  boolean isOr();
+
+  /** Determine whether the node represents an xor split. */
+  boolean isXor();
+
+  /** Determine whether the node represents an and split. */
+  boolean isAnd();
+
 }

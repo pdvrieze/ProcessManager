@@ -27,17 +27,17 @@ import java.lang.annotation.RetentionPolicy;
 
 public class RelativeLightView implements LightView {
 
-  @IntDef({DEFAULT, HGRAVITY, LEFT, RIGHT, VGRAVITY, TOP, BOTTOM})
+  @IntDef(flag=true, value={DEFAULT, HGRAVITY, LEFT, RIGHT, VGRAVITY, TOP, BOTTOM})
   @Retention(RetentionPolicy.SOURCE)
   public @interface LVGravity{}
 
   public static final int HGRAVITY=1;
-  public static final int LEFT=2;
-  public static final int RIGHT=4;
+  public static final int LEFT=1<<1;
+  public static final int RIGHT=1<<2;
   public static final int HMASK=HGRAVITY|LEFT|RIGHT;
-  public static final int VGRAVITY=8;
-  public static final int TOP=16;
-  public static final int BOTTOM=32;
+  public static final int VGRAVITY=1<<3;
+  public static final int TOP=1<<4;
+  public static final int BOTTOM=1<<5;
   public static final int VMASK=VGRAVITY|TOP|BOTTOM;
   public static final int DEFAULT=HGRAVITY|VGRAVITY;
 

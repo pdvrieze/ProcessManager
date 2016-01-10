@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:bind="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable name="node"
+                  type="nl.adaptivity.process.diagram.DrawableJoinSplit" />
+        <variable name="minMaxEnabled" type="boolean" />
+    </data>
+
+    <LinearLayout
+            style="@android:style/TextAppearance.Large"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+        <include layout="@layout/dlg_node_edit_common"
+                 bind:node="@{node}"
+                android:id="@+id/dlg_node_edit_common"/>
+
+        <RadioGroup
+                android:id="@+id/rg_minmax"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:layout_marginTop="16dp">
+
+            <RadioButton
+                    android:id="@+id/radioand"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:checked="true"
+                    android:checked="@{node.isAnd()}"
+                    android:text="@string/radio_and" />
+
+            <RadioButton
+                    android:id="@+id/radioor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{node.isOr()}"
+                    android:text="@string/radio_or" />
+
+            <RadioButton
+                    android:id="@+id/radioxor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{node.isXor()}"
+                    android:text="@string/radio_xor" />
+
+            <RadioButton
+                    android:id="@+id/radioother"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="@{! (node.isAnd() || node.isOr() || node.isXor())}"
+                    android:text="@string/radio_other" />
+        </RadioGroup>
+
+        <LinearLayout android:id="@+id/vg_minmax"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_marginTop="16dp"
+                      android:enabled="@{minMaxEnabled}"
+                      android:baselineAligned="false">
+
+            <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    >
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:labelFor="@id/np_min"
+                        android:text="@string/lbl_min" />
+
+                <NumberPicker
+                        android:id="@+id/np_min"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:enabled="@{minMaxEnabled}"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:labelFor="@id/np_max"
+                        android:text="@string/lbl_max" />
+
+                <NumberPicker
+                        android:id="@+id/np_max"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:enabled="@{minMaxEnabled}"
+                        android:layout_marginTop="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</layout>

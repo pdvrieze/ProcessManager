@@ -17,8 +17,6 @@
 package nl.adaptivity.process.editor.android;
 
 import android.annotation.SuppressLint;
-import nl.adaptivity.process.diagram.DrawableJoinSplit;
-import nl.adaptivity.process.diagram.DrawableProcessNode;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -26,31 +24,22 @@ import android.app.DialogFragment;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
-import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+import nl.adaptivity.process.diagram.DrawableJoinSplit;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
 
 
 public class NodeEditDialogFragment extends DialogFragment implements OnClickListener, OnValueChangeListener, OnCheckedChangeListener, OnEditorActionListener {
 
   private static final int MAX_MAX = 20;
-
-  public interface NodeEditListener {
-    public DrawableProcessNode getNode(int pos);
-    public void onNodeEdit(int pos);
-  }
 
   public static final String NODE_POS = "node_pos";
 
@@ -67,6 +56,14 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
   private NumberPicker mNpMax;
 
   private TextView mLblLabel;
+
+  public static NodeEditDialogFragment newInstance(final int position) {
+    NodeEditDialogFragment frag = new NodeEditDialogFragment();
+    Bundle args = new Bundle(1);
+    args.putInt(NODE_POS, position);
+    frag.setArguments(args);
+    return frag;
+  }
 
   @Override
   public void onAttach(Activity activity) {
@@ -171,9 +168,8 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
           DrawableJoinSplit jsnode = (DrawableJoinSplit) node;
           jsnode.setMin(mNpMin.getValue());
           jsnode.setMax(mNpMax.getValue());
-        } else {
-          node.setLabel(mEtLabel.getText().toString());
         }
+        node.setLabel(mEtLabel.getText().toString());
         listener.onNodeEdit(mPos);
       }
     }
