@@ -98,17 +98,23 @@ public class LWDrawableView implements LightView{
 
   /**
    * Craw this drawable onto an android canvas. The canvas has an ofset
-   * preapplied so the top left of the drawing is 0,0.
+   * preapplied so the top left of the drawing is 0,0. This method itself,
+   * just creates the canvas and passes the work to {@link #onDraw(IAndroidCanvas, Rectangle)}
    */
   @Override
-  public  void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
+  public final void draw(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, double scale) {
     if (mAndroidCanvas==null) {
       mAndroidCanvas=new AndroidCanvas(canvas, theme);
     } else {
       mAndroidCanvas.setCanvas(canvas);
     }
-    mItem.draw(mAndroidCanvas.scale(scale), null);
+    onDraw(mAndroidCanvas.scale(scale), null);
   }
+
+  protected void onDraw(final IAndroidCanvas androidCanvas, final Rectangle clipBounds) {
+    mItem.draw(androidCanvas, clipBounds);
+  }
+
 
   @Override
   public void move(float x, float y) {
@@ -120,4 +126,7 @@ public class LWDrawableView implements LightView{
     mItem.setPos(left, top);
   }
 
+  public Drawable getItem() {
+    return mItem;
+  }
 }

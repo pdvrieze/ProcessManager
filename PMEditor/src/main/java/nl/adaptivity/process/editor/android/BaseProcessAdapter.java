@@ -112,7 +112,7 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     if (result!=null) {
       return result;
     }
-    result = new LWDrawableView(item);
+    result = new LWProcessDrawableView(item);
     mViewCache.put(item, result);
     return result;
   }

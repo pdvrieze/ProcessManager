@@ -126,24 +126,25 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
       }
       canvas.drawFilledRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, bgPen);
       canvas.drawRoundRect(_bounds, ACTIVITYROUNDX, ACTIVITYROUNDY, linePen);
-
     }
   }
 
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
-    PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, mState);
-    String label = getLabel();
-    if (label==null) { label = getName(); }
-    if (label==null && getOwnerModel() != null) {
-      label='<'+getId()+'>';
-      textPen.setTextItalics(true);
-    } else if (label!=null) {
-      textPen.setTextItalics(false);
-    }
-    if (label!=null) {
-      double topCenter = ACTIVITYHEIGHT+STROKEWIDTH +textPen.getTextLeading()/2;
-      canvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
+    if (hasPos()) {
+      PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, mState);
+      String label = getLabel();
+      if (label == null) { label = getName(); }
+      if (label == null && getOwnerModel() != null) {
+        label = '<' + getId() + '>';
+        textPen.setTextItalics(true);
+      } else if (label != null) {
+        textPen.setTextItalics(false);
+      }
+      if (label != null) {
+        double topCenter = ACTIVITYHEIGHT + STROKEWIDTH + textPen.getTextLeading() / 2;
+        canvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
+      }
     }
   }
 
