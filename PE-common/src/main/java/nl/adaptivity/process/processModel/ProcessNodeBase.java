@@ -29,11 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import java.util.*;
 
@@ -442,7 +437,10 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   @Override
   public boolean isPredecessorOf(@NotNull final T node) {
     for (final Identifiable pred : node.getPredecessors()) {
-      if (getId().equals(pred.getId())) {
+      if (this==pred) {
+        return true;
+      }
+      if (getId()!=null && getId().equals(pred.getId())) {
         return true;
       }
       if (pred instanceof ProcessNode) {
