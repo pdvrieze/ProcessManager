@@ -751,7 +751,7 @@ public class DBConnection implements AutoCloseable {
     logWarnings(message, "statement", warnable(statement));
   }
 
-  private static void logWarnings(@NotNull final String message, @Nullable final ResultSet resultSet) {
+  static void logWarnings(@NotNull final String message, @Nullable final ResultSet resultSet) {
     logWarnings(message, "resultSet", warnable(resultSet));
   }
 
