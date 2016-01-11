@@ -547,8 +547,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   public void serialize(XmlWriter out) throws XmlException {
-    out.namespaceAttr(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
     out.startTag(SVG_NAMESPACE, "svg", null);
+    out.namespaceAttr(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
     out.attribute(null, "version", null, "1.1");
     out.attribute(null, "width", null, Double.toString(mBounds.width+mBounds.left*2));
     out.attribute(null, "height", null, Double.toString(mBounds.height+mBounds.top*2));
