@@ -29,7 +29,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.*;
 import android.view.View.DragShadowBuilder;
@@ -45,6 +44,7 @@ import nl.adaptivity.diagram.android.DiagramView.OnNodeClickListener;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.PMProvider;
+import nl.adaptivity.process.ui.main.ProcessBaseActivity;
 import nl.adaptivity.xml.XmlException;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
@@ -64,7 +64,7 @@ import java.util.concurrent.FutureTask;
 
 import static nl.adaptivity.diagram.Drawable.*;
 
-public class PMEditor extends AppCompatActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
+public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener, NodeEditListener, PMProvider {
 
 
   private static final String KEY_PROCESSMODEL = "processmodel";
@@ -946,6 +946,7 @@ public class PMEditor extends AppCompatActivity implements OnNodeClickListener, 
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
     if (resultCode==Activity.RESULT_OK) {
       // no results yet
     }

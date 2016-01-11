@@ -34,7 +34,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -61,16 +60,16 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 
-public class OverviewActivity extends AppCompatActivity implements OnNavigationItemSelectedListener,
-                                                                   OverviewCallbacks,
-                                                                   Callbacks,
-                                                                   ProcessModelDetailFragment.Callbacks,
-                                                                   TaskDetailCallbacks, OnBackStackChangedListener {
+public class OverviewActivity extends ProcessBaseActivity implements OnNavigationItemSelectedListener,
+                                                                     OverviewCallbacks,
+                                                                     Callbacks,
+                                                                     ProcessModelDetailFragment.Callbacks,
+                                                                     TaskDetailCallbacks, OnBackStackChangedListener {
 
   private final class SyncTask extends AsyncCallableTask<Account, SyncCallable> {
 
     @Override
-    protected void onPostExecute(Future<Account> accountf) {
+    protected void onPostExecute(final Future<Account> accountf) {
       try {
         mAccount = accountf.get();
       } catch (InterruptedException e) {
@@ -80,6 +79,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
       }
     }
   }
+
 
   private static final String TAG = "OverviewActivity";
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
@@ -92,29 +92,30 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
   private ActionBarDrawerToggle mDrawerToggle;
   private long mModelIdToInstantiate = -1L;
 
+
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getSupportFragmentManager().addOnBackStackChangedListener(this);
     mTitle = getTitle();
     mBinding = DataBindingUtil.setContentView(this, R.layout.activity_overview);
     setSupportActionBar(mBinding.overviewAppBar.toolbar);
 
-    DrawerLayout drawer = mBinding.overviewDrawer;
+    final DrawerLayout drawer = mBinding.overviewDrawer;
     mDrawerToggle = new ActionBarDrawerToggle(this, drawer, mBinding.overviewAppBar.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
 
       /** Called when a drawer has settled in a completely closed state. */
       @Override
-      public void onDrawerClosed(View drawerView) {
+      public void onDrawerClosed(final View drawerView) {
         super.onDrawerClosed(drawerView);
         finishSettingFragment();
       }
 
       /** Called when a drawer has settled in a completely open state. */
       @Override
-      public void onDrawerOpened(View drawerView) {
+      public void onDrawerOpened(final View drawerView) {
         super.onDrawerOpened(drawerView);
-        ActionBar ab = getSupportActionBar();
+        final ActionBar ab = getSupportActionBar();
         if(ab!=null) { ab.setTitle(mTitle); }
         invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
       }
@@ -122,18 +123,18 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
     };
     drawer.setDrawerListener(mDrawerToggle);
 
-    NavigationView navigationView = mBinding.navView;
+    final NavigationView navigationView = mBinding.navView;
     navigationView.setNavigationItemSelectedListener(this);
 
-    AsyncTask<URI, Void, Account> task = new AsyncTask<URI, Void, Account> () {
+    final AsyncTask<URI, Void, Account> task = new AsyncTask<URI, Void, Account> () {
 
       @Override
-      protected Account doInBackground(URI... params) {
-        return AuthenticatedWebClient.ensureAccount(OverviewActivity.this, params[0], ProviderHelper.ENSURE_ACCOUNT_REQUEST_CODE);
+      protected Account doInBackground(final URI... params) {
+        return AuthenticatedWebClient.ensureAccount(OverviewActivity.this, params[0], ProviderHelper.ENSURE_ACCOUNT_REQUEST_CODE, REQUEST_DOWNLOAD_AUTHENTICATOR);
       }
 
       @Override
-      protected void onPostExecute(Account result) {
+      protected void onPostExecute(final Account result) {
         mAccount = result;
         if (mAccount!=null) {
           ProviderHelper.requestSync(mAccount, ProcessModelProvider.AUTHORITY, true);
@@ -158,8 +159,8 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
   }
 
   private void finishSettingFragment() {
-    CharSequence title = getActiveFragment() == null ? getTitle() : getActiveFragment().getTitle(OverviewActivity.this);
-    ActionBar ab = getSupportActionBar();
+    final CharSequence title = getActiveFragment() == null ? getTitle() : getActiveFragment().getTitle(OverviewActivity.this);
+    final ActionBar ab = getSupportActionBar();
     if(ab!=null) { ab.setTitle(title); }
     invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
   }
@@ -167,7 +168,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
   @Override
   public void onBackStackChanged() {
     final FragmentManager fm = getSupportFragmentManager();
-    Fragment currentFragment = fm.findFragmentById(R.id.overview_container);
+    final Fragment currentFragment = fm.findFragmentById(R.id.overview_container);
     int navId=-1;
     if (currentFragment instanceof OverviewFragment) {
       navId = R.id.nav_home;
@@ -193,19 +194,24 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
   @Override
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
-    if (requestCode== ProviderHelper.ENSURE_ACCOUNT_REQUEST_CODE && resultCode==RESULT_OK) {
-      String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-      AuthenticatedWebClient.storeUsedAccount(this, accountName);
-      mAccount = new Account(accountName, AuthenticatedWebClient.ACCOUNT_TYPE);
-      ProviderHelper.requestSync(this, ProcessModelProvider.AUTHORITY, true);
-      ProviderHelper.requestSync(this, TaskProvider.AUTHORITY, true);
+    switch (requestCode) {
+      case ProviderHelper.ENSURE_ACCOUNT_REQUEST_CODE: {
+        if (resultCode == RESULT_OK) {
+          final String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+          AuthenticatedWebClient.storeUsedAccount(this, accountName);
+          mAccount = new Account(accountName, AuthenticatedWebClient.ACCOUNT_TYPE);
+          ProviderHelper.requestSync(this, ProcessModelProvider.AUTHORITY, true);
+          ProviderHelper.requestSync(this, TaskProvider.AUTHORITY, true);
+        }
+        break;
+      }
     }
-    // XXX Make this actually do something on account selection.
   }
+
 
   @Override
   public void onBackPressed() {
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer);
+    final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer);
     if (drawer.isDrawerOpen(GravityCompat.START)) {
       drawer.closeDrawer(GravityCompat.START);
     } else {
@@ -214,16 +220,16 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
   }
 
   @Override
-  protected void onPostCreate(Bundle savedInstanceState) {
+  protected void onPostCreate(final Bundle savedInstanceState) {
     super.onPostCreate(savedInstanceState);
     // Sync the toggle state after onRestoreInstanceState has occurred.
     mDrawerToggle.syncState();
   }
 
   @Override
-  public boolean onNavigationItemSelected(MenuItem item) {
+  public boolean onNavigationItemSelected(final MenuItem item) {
     // Handle navigation view item clicks here.
-    int id = item.getItemId();
+    final int id = item.getItemId();
 
     return onNavigationItemSelected(id, false);
   }
@@ -252,7 +258,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
     }
   }
 
-  private boolean onNavigationItemSelected(@IdRes final int id, boolean addToBackstack) {
+  private boolean onNavigationItemSelected(@IdRes final int id, final boolean addToBackstack) {
     switch (id) {
       case R.id.nav_home:
         if (! (mActiveFragment instanceof OverviewFragment)) {
@@ -290,20 +296,20 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
 
         break;
       case R.id.nav_settings: {
-        Intent intent = new Intent(this, SettingsActivity.class);
+        final Intent intent = new Intent(this, SettingsActivity.class);
         startActivity(intent);
         break;
       }
     }
 
-    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer);
+    final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer);
     drawer.closeDrawer(GravityCompat.START);
     return true;
   }
 
 
   @Override
-  public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String name) {
+  public void onNameDialogCompletePositive(final GetNameDialogFragment dialog, final int id, final String name) {
     try {
       ProcessModelProvider.instantiate(this, mModelIdToInstantiate, name);
     } catch (RemoteException e) {
@@ -312,7 +318,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
   }
 
   @Override
-  public void onNameDialogCompleteNegative(GetNameDialogFragment dialog, int id) {
+  public void onNameDialogCompleteNegative(final GetNameDialogFragment dialog, final int id) {
     mModelIdToInstantiate=-1L;
   }
 
@@ -338,7 +344,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
     mBinding.navView.setCheckedItem(R.id.nav_models);
     onNavigationItemSelected(R.id.nav_models, true);
     if (mActiveFragment instanceof ProcessModelListOuterFragment) {
-        ProcessModelListOuterFragment fragment = (ProcessModelListOuterFragment) mActiveFragment;
+        final ProcessModelListOuterFragment fragment = (ProcessModelListOuterFragment) mActiveFragment;
         fragment.onProcessModelSelected(processModelId);
     }
 
@@ -346,7 +352,7 @@ public class OverviewActivity extends AppCompatActivity implements OnNavigationI
 
   @Override
   public void dismissTaskDetails() {
-    TitleFragment af = getActiveFragment();
+    final TitleFragment af = getActiveFragment();
     if (af instanceof TaskListOuterFragment) {
       ((TaskListOuterFragment)af).onItemSelected(-1, -1);
     }

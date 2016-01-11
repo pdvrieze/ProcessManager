@@ -173,14 +173,17 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     }
   }
 
+  /**
+   * Called by the refresh view when a manual refresh is requested.
+   */
   @Override
   public void onRefresh() {
-    ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
-    mManualSync=true;
+    doManualRefresh();
   }
 
   private void doManualRefresh() {
-    onRefresh();
+    ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
+    mManualSync=true;
     updateSyncState();
   }
 
@@ -231,7 +234,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
         return true;
       }
       case R.id.ac_sync_models: {
-        ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
+        doManualRefresh();
         return true;
       }
     }

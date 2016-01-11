@@ -100,8 +100,8 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
       syncResult.stats.numIoExceptions++;
       return;
     }
-    try {
-      if (result != null) {
+    if (result != null) {
+      try {
         final int statusCode = result.getResponseCode();
         if (statusCode >= 200 && statusCode < 400) {
           InputStream content = result.getInputStream();
@@ -116,11 +116,11 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
           mUpdateList = null;
           syncResult.stats.numIoExceptions++;
         }
-      } else {
-        syncResult.stats.numAuthExceptions++;
+      } finally {
+        result.disconnect();
       }
-    } finally {
-      result.disconnect();
+    } else {
+      syncResult.stats.numAuthExceptions++;
     }
   }
 

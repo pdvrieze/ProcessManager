@@ -28,6 +28,7 @@ import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.AsyncCallableTask;
 import nl.adaptivity.process.models.ProcessModelProvider;
+import nl.adaptivity.process.ui.main.AuthenticatedActivity;
 import nl.adaptivity.process.ui.main.SettingsActivity;
 
 import java.io.IOException;
@@ -93,7 +94,7 @@ public final class ProviderHelper {
     @Override
     public Account call() throws Exception {
       final URI source = mAuthbase;
-      Account account = AuthenticatedWebClient.ensureAccount(mContext, source, ENSURE_ACCOUNT_REQUEST_CODE);
+      Account account = AuthenticatedWebClient.ensureAccount(mContext, source, ENSURE_ACCOUNT_REQUEST_CODE, AuthenticatedActivity.REQUEST_DOWNLOAD_AUTHENTICATOR);
       if (account!=null) {
         ContentResolver.setIsSyncable(account, ProcessModelProvider.AUTHORITY, 1);
         AccountManager accountManager = AccountManager.get(mContext);

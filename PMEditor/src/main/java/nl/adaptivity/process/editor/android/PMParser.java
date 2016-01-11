@@ -67,7 +67,7 @@ public class PMParser {
     return (BetterXmlSerializer) serializer;
   }
 
-  static XmlSerializer getSerializer(OutputStream out) throws XmlPullParserException, IOException {
+  public static XmlSerializer getSerializer(OutputStream out) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer();
     try {
       serializer.setOutput(out, "UTF-8");
@@ -77,7 +77,7 @@ public class PMParser {
     return serializer;
   }
 
-  static XmlSerializer getSerializer(Writer out) throws XmlPullParserException, IOException {
+  public static XmlSerializer getSerializer(Writer out) throws XmlPullParserException, IOException {
     XmlSerializer serializer = getSerializer();
     try {
       serializer.setOutput(out);

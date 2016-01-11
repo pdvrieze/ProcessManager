@@ -67,14 +67,14 @@ public class DataOpenHelper extends SQLiteOpenHelper {
                                                        Tasks.COLUMN_STATE + " TEXT," +
                                                        Tasks.COLUMN_INSTANCEHANDLE + " INT, " +
                                                        Tasks.COLUMN_SYNCSTATE + " INT )";
-  private static final String SQL_CREATE_ITEMS_TABLE = "CREATE TABLE " + TABLE_NAME_ITEMS + " (" +
+  private static final String SQL_CREATE_TABLE_ITEMS = "CREATE TABLE " + TABLE_NAME_ITEMS + " (" +
                                                        BaseColumns._ID + " INTEGER PRIMARY KEY," +
                                                        Items.COLUMN_TASKID + " INTEGER," +
                                                        Items.COLUMN_NAME + " TEXT," +
                                                        Items.COLUMN_LABEL + " TEXT," +
                                                        Items.COLUMN_TYPE + " TEXT," +
                                                        Items.COLUMN_VALUE + " TEXT )";
-  private static final String SQL_CREATE_OPTIONS_TABLE = "CREATE TABLE " + TABLE_NAME_OPTIONS + " (" +
+  private static final String SQL_CREATE_TABLE_OPTIONS = "CREATE TABLE " + TABLE_NAME_OPTIONS + " (" +
                                                          BaseColumns._ID + " INTEGER PRIMARY KEY," +
                                                          Options.COLUMN_ITEMID + " INTEGER," +
                                                          Options.COLUMN_VALUE + " TEXT )";
@@ -95,16 +95,16 @@ public class DataOpenHelper extends SQLiteOpenHelper {
                                                            ProcessInstances.COLUMN_UUID + " TEXT," +
                                                            ProcessInstances.COLUMN_SYNCSTATE + " INT )";
 
-  private static final String SQL_CREATE_TASKSEXT_VIEW = "CREATE VIEW " + VIEW_NAME_TASKSEXT+" AS SELECT t." +
+  private static final String SQL_CREATE_VIEW_TASKSEXT = "CREATE VIEW " + VIEW_NAME_TASKSEXT + " AS SELECT t." +
                                                          BaseColumns._ID + ", t." +
                                                          Tasks.COLUMN_HANDLE + ", t." +
                                                          Tasks.COLUMN_SUMMARY + ", t." +
                                                          Tasks.COLUMN_OWNER + ", t." +
                                                          Tasks.COLUMN_STATE + ", t." +
-                                                         Tasks.COLUMN_SYNCSTATE + ", i."+
-                                                         ProcessInstances.COLUMN_NAME +" AS "+Tasks.COLUMN_INSTANCENAME+" FROM "+
+                                                         Tasks.COLUMN_SYNCSTATE + ", i." +
+                                                         ProcessInstances.COLUMN_NAME + " AS " + Tasks.COLUMN_INSTANCENAME + " FROM " +
                                                          TABLE_NAME_TASKS + " AS t LEFT JOIN " +
-                                                         TABLE_NAME_INSTANCES + " AS i ON ( t."+Tasks.COLUMN_INSTANCEHANDLE+" = i."+ProcessInstances.COLUMN_HANDLE+" )";
+                                                         TABLE_NAME_INSTANCES + " AS i ON ( t." + Tasks.COLUMN_INSTANCEHANDLE + " = i." + ProcessInstances.COLUMN_HANDLE + " )";
           ;
 
   private static final String SQL_CREATE_VIEW_MODELS_EXT = "CREATE VIEW " + VIEW_NAME_PROCESSMODELEXT + " AS SELECT m." +
@@ -134,9 +134,10 @@ public class DataOpenHelper extends SQLiteOpenHelper {
     db.execSQL(SQL_CREATE_TABLE);
     db.execSQL(SQL_CREATE_TABLE_INSTANCES);
     db.execSQL(SQL_CREATE_VIEW_MODELS_EXT);
-    db.execSQL(SQL_CREATE_OPTIONS_TABLE);
-    db.execSQL(SQL_CREATE_ITEMS_TABLE);
     db.execSQL(SQL_CREATE_TASKS_TABLE);
+    db.execSQL(SQL_CREATE_TABLE_ITEMS);
+    db.execSQL(SQL_CREATE_TABLE_OPTIONS);
+    db.execSQL(SQL_CREATE_VIEW_TASKSEXT);
 
     if (CREATE_DEFAULT_MODEL) {
       final String modelName = mContext.getString(R.string.example_1_name);
@@ -190,10 +191,10 @@ public class DataOpenHelper extends SQLiteOpenHelper {
 
   private boolean upgradeTo8(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
     if (oldVersion==7 || upgradeTo7(db, oldVersion, newVersion)) {
-      db.execSQL(SQL_CREATE_OPTIONS_TABLE);
-      db.execSQL(SQL_CREATE_ITEMS_TABLE);
+      db.execSQL(SQL_CREATE_TABLE_OPTIONS);
+      db.execSQL(SQL_CREATE_TABLE_ITEMS);
       db.execSQL(SQL_CREATE_TASKS_TABLE);
-      db.execSQL(SQL_CREATE_TASKSEXT_VIEW);
+      db.execSQL(SQL_CREATE_VIEW_TASKSEXT);
       final File oldDatabasePath = mContext.getDatabasePath(TasksOpenHelper.DB_NAME);
       if(oldDatabasePath.exists()) {
         SQLiteDatabase tasksDb = new TasksOpenHelper(mContext).getReadableDatabase();
