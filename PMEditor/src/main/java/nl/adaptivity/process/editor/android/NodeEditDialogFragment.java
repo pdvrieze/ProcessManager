@@ -104,32 +104,9 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
     if (getActivity() instanceof NodeEditListener) {
       NodeEditListener listener = (NodeEditListener) getActivity();
       DrawableProcessNode node = listener.getNode(mPos);
-      if (node instanceof DrawableJoinSplit) {
-        setEditLabelEnabled(false);
-        setMinMaxEditEnabled(false);
-        DrawableJoinSplit jsnode = (DrawableJoinSplit) node;
-        int max = jsnode.getMaxPredecessorCount()==1 ? jsnode.getSuccessors().size() :jsnode.getPredecessors().size();
-        if (jsnode.getMin()==1) {
-          if (jsnode.getMax()==1) {
-            mRgMinMax.check(R.id.radioxor);
-          } else if (jsnode.getMax()>=max) {
-            mRgMinMax.check(R.id.radioor);
-          } else {
-            mRgMinMax.check(R.id.radioother);
-          }
-        } else if (jsnode.getMin()==jsnode.getMax()&& jsnode.getMin()>=max) {
-          mRgMinMax.check(R.id.radioand);
-        } else {
-          mRgMinMax.check(R.id.radioother);
-          mVgMinMax.setEnabled(true);
-        }
-        if (jsnode.getMin()>=0) { mNpMin.setValue(jsnode.getMin()); }
-        if (jsnode.getMax()>=1) { mNpMax.setValue(Math.max(jsnode.getMin(),Math.max(1,jsnode.getMax()))); }
-      } else {
-        mEtLabel.setText(node.getLabel());
-        mRgMinMax.setVisibility(View.GONE);
-        mVgMinMax.setVisibility(View.GONE);
-      }
+      mEtLabel.setText(node.getLabel());
+      mRgMinMax.setVisibility(View.GONE);
+      mVgMinMax.setVisibility(View.GONE);
     }
     if (mEtLabel.getVisibility()!=View.VISIBLE) {
       // Don't display the keyboard initially if we can't edit the label

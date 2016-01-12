@@ -30,6 +30,7 @@ import nl.adaptivity.diagram.android.AndroidDrawableLightView;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.diagram.android.LightView;
 import nl.adaptivity.diagram.android.RelativeLightView;
+import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableJoinSplit;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -190,6 +191,8 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
       final DialogFragment fragment;
       if (node instanceof DrawableJoinSplit) {
         fragment = JoinSplitNodeEditDialogFragment.newInstance(position);
+      } else if (node instanceof DrawableActivity) {
+        fragment = ActivityEditDialogFragment.newInstance(position);
       } else {
         fragment = NodeEditDialogFragment.newInstance(position);
       }

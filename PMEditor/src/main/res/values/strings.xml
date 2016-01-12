@@ -98,5 +98,10 @@
     <string name="lbl_no_quick_models">There are no favourite, executable models</string>
     <string name="lbl_overview_tasklist_error">Error loading tasks</string>
     <string name="lbl_overview_modellist_error">Error loading models</string>
+    <string name="lbl_ac_kind">Activity kind</string>
+    <string name="radio_ac_service">Web service invocation</string>
+    <string name="radio_ac_unspec">Unspecified</string>
+    <string name="radio_ac_human">Human interaction</string>
+    <string name="radio_ac_other">Other (expert only)</string>
 
 </resources>
