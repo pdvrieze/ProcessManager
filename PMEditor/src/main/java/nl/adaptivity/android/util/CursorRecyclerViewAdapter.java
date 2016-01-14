@@ -113,7 +113,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    * @return The position of the item with the given id.
    */
   public int getItemPos(final long itemId) {
-    if (mDataValid && mCursor != null) {
+    if (mDataValid && mCursor != null && itemId!=RecyclerView.NO_ID) {
       for(boolean valid = mCursor.moveToFirst(); valid; mCursor.moveToNext()) {
         if (mCursor.getLong(mRowIdColumn)==itemId) {
           return mCursor.getPosition();
