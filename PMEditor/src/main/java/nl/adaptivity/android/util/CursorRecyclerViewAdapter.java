@@ -114,7 +114,7 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
    */
   public int getItemPos(final long itemId) {
     if (mDataValid && mCursor != null && itemId!=RecyclerView.NO_ID) {
-      for(boolean valid = mCursor.moveToFirst(); valid; mCursor.moveToNext()) {
+      for(boolean valid = mCursor.moveToFirst(); valid; valid = mCursor.moveToNext()) {
         if (mCursor.getLong(mRowIdColumn)==itemId) {
           return mCursor.getPosition();
         }
