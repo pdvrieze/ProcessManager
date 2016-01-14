@@ -17,8 +17,12 @@
 package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
+import nl.adaptivity.process.ProcessConsts;
+import nl.adaptivity.process.ProcessConsts.Endpoints;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.userMessageHandler.server.UserTask;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -160,6 +164,17 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
     return result;
   }
 
+  public boolean isBodySpecified() {
+    return getMessage()!=null;
+  }
 
+  public boolean isUserTask() {
+    XmlMessage message = getMessage();
+    return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.equals(message.getEndpointDescriptor());
+  }
+
+  public boolean isService() {
+    return isBodySpecified() && ! isUserTask();
+  }
 
 }

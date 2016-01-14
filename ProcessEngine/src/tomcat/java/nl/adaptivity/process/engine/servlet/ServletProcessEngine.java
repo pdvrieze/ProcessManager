@@ -393,6 +393,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   }
 
+  public static final String SERVICE_LOCALNAME = "ProcessEngine";
+
   private ProcessEngine mProcessEngine;
 
   private EndpointDescriptorImpl mLocalEndPoint;
@@ -831,7 +833,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
   @Override
   public QName getServiceName() {
-    return new QName(Constants.PROCESS_ENGINE_NS, "ProcessEngine");
+    return new QName(Constants.PROCESS_ENGINE_NS, SERVICE_LOCALNAME);
   }
 
   @Override
@@ -842,6 +844,13 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
   @Override
   public URI getEndpointLocation() {
     return null;
+  }
+
+  @Override
+  public boolean isSameService(final EndpointDescriptor other) {
+    return Constants.PROCESS_ENGINE_NS.equals(other.getServiceName().getNamespaceURI()) &&
+           SERVICE_LOCALNAME.equals(other.getServiceName().getLocalPart()) &&
+           getEndpointName().equals(other.getEndpointName());
   }
 
   @Override

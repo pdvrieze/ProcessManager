@@ -76,6 +76,10 @@ public final class MessagingRegistry {
       return mEndpointLocation;
     }
 
+    @Override
+    public boolean isSameService(final EndpointDescriptor other) {
+      return mServiceName.equals(other.getServiceName()) && mEndpointName.equals(other.getEndpointName());
+    }
   }
 
   /**

@@ -48,4 +48,11 @@ public interface EndpointDescriptor {
    */
   URI getEndpointLocation();
 
+  /**
+   * Determine whether the service is the same. In other words, whether it has the same name and endpoint.
+   * @param other The service to compare with
+   * @return <code>true</code> if it is, <code>false</code> if it isn't.
+   */
+  boolean isSameService(EndpointDescriptor other);
+
 }

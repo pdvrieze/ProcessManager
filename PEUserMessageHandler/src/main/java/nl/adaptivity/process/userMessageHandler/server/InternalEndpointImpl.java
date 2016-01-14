@@ -19,6 +19,7 @@ package nl.adaptivity.process.userMessageHandler.server;
 import nl.adaptivity.messaging.CompletionListener;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.messaging.MessagingRegistry;
+import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.messaging.ActivityResponse;
 import nl.adaptivity.process.messaging.GenericEndpoint;
@@ -43,7 +44,7 @@ import java.util.logging.Logger;
 
 @XmlSeeAlso(XmlTask.class)
 @XmlAccessorType(XmlAccessType.NONE)
-public class InternalEndpointImpl extends InternalEndpoint.Descriptor implements GenericEndpoint, InternalEndpoint {
+public class InternalEndpointImpl extends UserTaskServiceDescriptor implements GenericEndpoint, InternalEndpoint {
 
   public class TaskUpdateCompletionListener implements CompletionListener<NodeInstanceState> {
 

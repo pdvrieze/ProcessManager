@@ -32,7 +32,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/lbl_label"
-                android:textAppearance="?android:attr/textAppearanceLarge"
                 android:labelFor="@id/et_node_label" />
 
         <EditText

@@ -15,9 +15,9 @@
   ~ see <http://www.gnu.org/licenses/>.
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:bind="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context="nl.adaptivity.process.editor.android.ActivityEditDialogFragment">
 
     <data>
@@ -28,87 +28,122 @@
     </data>
 
     <LinearLayout
-            style="@android:style/TextAppearance.Large"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp"
             >
 
-        <include layout="@layout/dlg_node_edit_common"
-                 bind:node="@{node}"
-                 android:id="@+id/dlg_node_edit_common" />
-
-        <TextView android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_marginTop="@dimen/default_margin"
-                  android:text="@string/lbl_ac_kind"
-                  android:labelFor="@+id/rg_ac_kind" />
-
-        <RadioGroup
-                android:id="@+id/rg_ac_kind"
+        <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="bottom"
-                android:layout_marginTop="@dimen/half_margin">
-            <LinearLayout android:layout_width="match_parent"
-                          android:layout_height="wrap_content">
+                app:cardElevation="2dp"
+                app:cardCornerRadius="2dp"
+                android:layout_margin="2dp"
+                >
 
-                <RadioButton
-                        android:id="@+id/radio_ac_human"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/radio_ac_human" />
+            <include layout="@layout/dlg_node_edit_common"
+                     android:layout_margin="@dimen/default_margin"
+                     android:layout_width="match_parent"
+                     android:layout_height="wrap_content"
+                     bind:node="@{node}"
+                     android:id="@+id/dlg_node_edit_common" />
+        </android.support.v7.widget.CardView>
 
-                <android.support.v4.widget.Space
-                        android:layout_width="0px"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
+        <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardElevation="2dp"
+                app:cardCornerRadius="2dp"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="2dp"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="@dimen/default_margin"
+                >
 
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/ic_arrow_forward_24dp"
-                        android:id="@+id/editAcHuman"
-                        app:enabled="@{false}"/>
-            </LinearLayout>
-            <LinearLayout android:layout_width="match_parent"
-                          android:layout_height="wrap_content">
-
-            <RadioButton
-                    android:id="@+id/radio_ac_service"
-                    android:layout_width="wrap_content"
+            <nl.adaptivity.android.graphics.RadioButtonHelper
+                    android:id="@+id/rbh_ac_kind"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/radio_ac_service" />
+                    >
 
-                <android.support.v4.widget.Space
-                        android:layout_width="0px"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1" />
 
-                <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/ic_arrow_forward_24dp"
-                        android:id="@+id/editAcService"
-                        app:enabled="@{true}"/>
-            </LinearLayout>
+                <LinearLayout android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:layout_margin="@dimen/default_margin"
+                              android:orientation="vertical">
 
-            <RadioButton
-                    android:id="@+id/radio_ac_unspecified"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:checked="true"
-                    android:text="@string/radio_ac_unspec" />
+                    <TextView android:layout_width="match_parent"
+                              android:layout_height="wrap_content"
+                              android:text="@string/lbl_ac_kind"
+                              android:labelFor="@+id/rg_ac_kind"
+                              android:layout_marginBottom="@dimen/half_margin" />
 
-            <RadioButton
-                    android:id="@+id/radio_ac_other"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/radio_ac_other" />
-        </RadioGroup>
+                    <LinearLayout android:layout_width="match_parent"
+                                  android:layout_height="wrap_content">
+
+                        <RadioButton
+                                android:id="@+id/radio_ac_human"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/radio_ac_human"
+                                android:checked="@{node.isUserTask}"
+                                />
+
+                        <android.support.v4.widget.Space
+                                android:layout_width="0px"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1" />
+
+                        <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_arrow_forward_24dp"
+                                android:id="@+id/editAcHuman" />
+                    </LinearLayout>
+
+                    <LinearLayout android:layout_width="match_parent"
+                                  android:layout_height="wrap_content">
+
+                        <RadioButton
+                                android:id="@+id/radio_ac_service"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:checked="@{node.isService}"
+                                android:text="@string/radio_ac_service" />
+
+                        <android.support.v4.widget.Space
+                                android:layout_width="0px"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1" />
+
+                        <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_arrow_forward_24dp"
+                                android:id="@+id/editAcService"
+                                app:enabled="@{true}" />
+                    </LinearLayout>
+
+                    <RadioButton
+                            android:id="@+id/radio_ac_unspecified"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="@{! node.isBodySpecified}"
+                            tools:checked="true"
+                            android:text="@string/radio_ac_unspec" />
+
+                    <RadioButton
+                            android:id="@+id/radio_ac_other"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/radio_ac_other" />
+                </LinearLayout>
+            </nl.adaptivity.android.graphics.RadioButtonHelper>
+
+        </android.support.v7.widget.CardView>
 
 
     </LinearLayout>

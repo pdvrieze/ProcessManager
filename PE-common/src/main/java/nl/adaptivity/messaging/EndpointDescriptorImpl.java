@@ -151,4 +151,9 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
     return true;
   }
 
+  @Override
+  public boolean isSameService(final EndpointDescriptor other) {
+    return mServiceNamespace.equals(other.getServiceName().getNamespaceURI()) && mServiceLocalName.equals(other.getServiceName().getLocalPart()) && mEndpointName.equals(other.getEndpointName());
+  }
+
 }

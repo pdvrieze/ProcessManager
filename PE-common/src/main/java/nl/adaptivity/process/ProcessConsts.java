@@ -17,6 +17,14 @@
 package nl.adaptivity.process;
 
 
+import nl.adaptivity.messaging.EndpointDescriptor;
+import nl.adaptivity.process.util.Constants;
+
+import javax.xml.namespace.QName;
+
+import java.net.URI;
+
+
 public class ProcessConsts {
 
   public static final class Engine {
@@ -33,4 +41,35 @@ public class ProcessConsts {
     public static final String SOAP_ENCODING_PREFIX = "soapenc";
   }
 
+  public static final class Endpoints {
+
+    public static final EndpointDescriptor USER_TASK_SERVICE_DESCRIPTOR = new UserTaskServiceDescriptor();
+
+    public static class UserTaskServiceDescriptor implements EndpointDescriptor {
+      @Override
+      public QName getServiceName() {
+        return SERVICENAME;
+      }
+
+      public static final String ENDPOINT = "internal";
+
+      public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
+
+      @Override
+      public String getEndpointName() {
+        return ENDPOINT;
+      }
+
+      @Override
+      public URI getEndpointLocation() {
+        return null;
+      }
+
+      @Override
+      public boolean isSameService(final EndpointDescriptor other) {
+        return getServiceName().equals(other.getServiceName()) && getEndpointName().equals(other.getEndpointName());
+      }
+    }
+
+  }
 }

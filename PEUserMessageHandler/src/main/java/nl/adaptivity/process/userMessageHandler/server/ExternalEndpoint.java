@@ -17,6 +17,7 @@
 package nl.adaptivity.process.userMessageHandler.server;
 
 import net.devrieze.util.Transaction;
+import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.MessagingRegistry;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.messaging.GenericEndpoint;
@@ -47,7 +48,8 @@ public class ExternalEndpoint implements GenericEndpoint {
 
   public static final String ENDPOINT = "external";
 
-  public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, "userMessageHandler");
+  public static final String SERVICE_LOCALNAME = "userMessageHandler";
+  public static final QName SERVICENAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, SERVICE_LOCALNAME);
 
   private final UserMessageService<?> mService;
 
@@ -74,6 +76,13 @@ public class ExternalEndpoint implements GenericEndpoint {
   @Override
   public URI getEndpointLocation() {
     return mURI;
+  }
+
+  @Override
+  public boolean isSameService(final EndpointDescriptor other) {
+    return Constants.USER_MESSAGE_HANDLER_NS.equals(other.getServiceName().getNamespaceURI()) &&
+           SERVICE_LOCALNAME.equals(other.getServiceName().getLocalPart()) &&
+           getEndpointName().equals(other.getEndpointName());
   }
 
   @Override
