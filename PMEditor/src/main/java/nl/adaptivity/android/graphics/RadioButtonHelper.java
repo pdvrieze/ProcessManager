@@ -33,7 +33,7 @@ import java.util.ArrayList;
  */
 public class RadioButtonHelper extends FrameLayout {
 
-  interface OnCheckedChangeListener {
+  public interface OnCheckedChangeListener {
     void onCheckedChanged(RadioButtonHelper source, int oldCheckedId, int newCheckedId);
   }
 

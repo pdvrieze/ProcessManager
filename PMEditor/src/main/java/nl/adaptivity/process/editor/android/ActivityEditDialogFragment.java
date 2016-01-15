@@ -21,25 +21,24 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.NumberPicker;
-import android.widget.NumberPicker.OnValueChangeListener;
-import android.widget.RadioGroup;
-import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+import nl.adaptivity.android.graphics.RadioButtonHelper;
+import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
-import nl.adaptivity.process.diagram.DrawableJoinSplit;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
 
 
-public class ActivityEditDialogFragment extends DialogFragment implements OnClickListener, OnValueChangeListener, OnCheckedChangeListener, OnEditorActionListener {
+/**
+ * A dialogfragment for editing activity nodes.
+ */
+public class ActivityEditDialogFragment extends DialogFragment implements DialogInterface.OnClickListener, OnEditorActionListener, OnCheckedChangeListener, View.OnClickListener {
 
   private static final int MAX_MAX = 20;
 
@@ -48,6 +47,12 @@ public class ActivityEditDialogFragment extends DialogFragment implements OnClic
   private int mPos=-1;
 
   private DlgNodeEditActivityBinding mBinding;
+
+  @Override
+  public void onCheckedChanged(final RadioButtonHelper source, final int oldCheckedId, final int newCheckedId) {
+    mBinding.editAcHuman.setEnabled(newCheckedId==R.id.radio_ac_human);
+    mBinding.editAcService.setEnabled(newCheckedId==R.id.radio_ac_service);
+  }
 
   public static ActivityEditDialogFragment newInstance(final int position) {
     ActivityEditDialogFragment frag = new ActivityEditDialogFragment();
@@ -79,6 +84,9 @@ public class ActivityEditDialogFragment extends DialogFragment implements OnClic
     final AlertDialog dialog = builder.create();
 
     mBinding.dlgNodeEditCommon.etNodeLabel.setOnEditorActionListener(this);
+    mBinding.rbhAcKind.setOnCheckedChangeListener(this);
+    mBinding.editAcHuman.setOnClickListener(this);
+    mBinding.editAcService.setOnClickListener(this);
 
     if (getActivity() instanceof NodeEditListener) {
       final NodeEditListener listener = (NodeEditListener) getActivity();
@@ -86,14 +94,6 @@ public class ActivityEditDialogFragment extends DialogFragment implements OnClic
       mBinding.setNode(node);
     }
     return dialog;
-  }
-
-  private void initNumberPicker(final NumberPicker np, final int min) {
-    np.setWrapSelectorWheel(false);
-    np.setMinValue(min);
-    np.setMaxValue(MAX_MAX);
-    np.setValue(min);
-    np.setOnValueChangedListener(this);
   }
 
   @Override
@@ -108,40 +108,13 @@ public class ActivityEditDialogFragment extends DialogFragment implements OnClic
   }
 
   @Override
-  public void onValueChange(final NumberPicker picker, final int oldVal, final int newVal) {
-//    if (picker.getId()==R.id.np_min) {
-//      mBinding.npMax.setMinValue(Math.max(1, newVal));
-//      if (mBinding.npMax.getValue()<mBinding.npMax.getMinValue()) {
-//        mBinding.npMax.setValue(mBinding.npMax.getMinValue());
-//      }
-//    }
-  }
-
-  @Override
-  public void onCheckedChanged(final RadioGroup group, final int checkedId) {
-    final DrawableActivity jsnode = (DrawableActivity) ((NodeEditListener)getActivity()).getNode(mPos);
-//    final int max = jsnode.getMaxPredecessorCount()==1 ? jsnode.getSuccessors().size() :jsnode.getPredecessors().size();
-//    final NumberPicker npMin = mBinding.npMin;
-//    final NumberPicker npMax = mBinding.npMax;
-//
-//    switch (checkedId) {
-//      case R.id.radioand:
-//        npMin.setValue(max);
-//        npMax.setValue(max);
-//        npMax.setMinValue(max);
-//        break;
-//      case R.id.radioor:
-//        npMin.setValue(1);
-//        npMax.setValue(max);
-//        npMax.setMinValue(1);
-//        break;
-//      case R.id.radioxor:
-//        npMin.setValue(1);
-//        npMax.setValue(1);
-//        npMax.setMinValue(1);
-//        break;
-//    }
-//    setMinMaxEditEnabled(checkedId==R.id.radioother);
+  public void onClick(final View v) {
+    switch (v.getId()) {
+      case R.id.editAcService:
+        break;
+      case R.id.editAcHuman:
+        break;
+    }
   }
 
   @Override
