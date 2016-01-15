@@ -44,15 +44,10 @@ public class RadioButtonHelper extends FrameLayout {
     }
   };
 
-  private int mCheckedId = 0;
+  @IdRes private int mCheckedId = 0;
   private OnCheckedChangeListener mOnCheckedChangedListener;
 
   private void radioButtonClicked(final View v) {
-    if (mCheckedId!=0 && mRadioChildren!=null) {
-      for (RadioButton b : mRadioChildren) {
-        b.setChecked(b==v);
-      }
-    }
     check(v.getId());
   }
 
@@ -76,6 +71,12 @@ public class RadioButtonHelper extends FrameLayout {
 
   public void check(@IdRes int id) {
     int oldCheckedId = mCheckedId;
+    if (mRadioChildren!=null) {
+      for (RadioButton b : mRadioChildren) {
+        b.setChecked(b.getId()==id);
+      }
+    }
+
     mCheckedId = id;
     if (mOnCheckedChangedListener!=null) {
       mOnCheckedChangedListener.onCheckedChanged(this, oldCheckedId, mCheckedId);

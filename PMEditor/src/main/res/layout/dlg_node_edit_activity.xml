@@ -65,6 +65,7 @@
                     android:id="@+id/rbh_ac_kind"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:check="@{node.isUserTask ? @id/radio_ac_human : (node.isService ? @id/radio_ac_service : (node.isBodySpecified ? @id/radio_ac_other : @id/radio_ac_unspecified))}"
                     >
 
 
@@ -87,7 +88,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/radio_ac_human"
-                                android:checked="@{node.isUserTask}"
                                 />
 
                         <android.support.v4.widget.Space
@@ -110,7 +110,6 @@
                                 android:id="@+id/radio_ac_service"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:checked="@{node.isService}"
                                 android:text="@string/radio_ac_service" />
 
                         <android.support.v4.widget.Space
@@ -131,7 +130,6 @@
                             android:id="@+id/radio_ac_unspecified"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="@{! node.isBodySpecified}"
                             tools:checked="true"
                             android:text="@string/radio_ac_unspec" />
 
