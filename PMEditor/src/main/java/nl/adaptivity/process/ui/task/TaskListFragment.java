@@ -157,16 +157,6 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
     doOnItemSelected(adapter.getSelectedPos(), adapter.getSelectedId());
   }
 
-  private void setActivatedId(long itemId) {
-    ViewHolder vh = getRecyclerView().findViewHolderForItemId(itemId);
-    if (vh!=null) {
-      mAdapter.setSelection(vh.getAdapterPosition());
-    }
-    mAdapter.setSelectedItem(itemId);
-  }
-
-
-
   @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     inflater.inflate(R.menu.tasklist_menu, menu);

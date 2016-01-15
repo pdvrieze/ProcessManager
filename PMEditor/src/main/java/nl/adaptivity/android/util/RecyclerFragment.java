@@ -53,9 +53,9 @@ public class RecyclerFragment extends Fragment {
     }
   };
 
-  RecyclerView.Adapter<? extends ViewHolder> mAdapter;
-  RecyclerView mRecyclerView;
-  boolean mListShown;
+  private RecyclerView.Adapter<? extends ViewHolder> mAdapter;
+  private RecyclerView mRecyclerView;
+  private boolean mListShown;
 
   public RecyclerFragment() {
   }
@@ -122,6 +122,16 @@ public class RecyclerFragment extends Fragment {
   }
 
   /**
+   * Get the ListAdapter associated with this activity's ListView.
+   */
+  public Adapter<?> getListAdapter() {
+    if (mAdapter==null && mRecyclerView!=null) {
+      mAdapter = mRecyclerView.getAdapter();
+    }
+    return mAdapter;
+  }
+
+  /**
    * Get the activity's list view widget.
    */
   public RecyclerView getRecyclerView() {
@@ -129,15 +139,11 @@ public class RecyclerFragment extends Fragment {
     return mRecyclerView;
   }
 
-  /**
-   * Get the ListAdapter associated with this activity's ListView.
-   */
-  public Adapter<? extends ViewHolder> getListAdapter() {
-    return mAdapter;
-  }
-
   private void ensureList() {
     if (mRecyclerView != null) {
+      if (mAdapter!=null) {
+        mRecyclerView.setAdapter(mAdapter);
+      }
       return;
     }
     View root = getView();
@@ -162,9 +168,7 @@ public class RecyclerFragment extends Fragment {
     }
     mListShown = true;
     if (mAdapter != null) {
-      Adapter adapter = mAdapter;
-      mAdapter = null;
-      setListAdapter(adapter);
+      setListAdapter(mAdapter);
     }
     mHandler.post(mRequestFocus);
   }

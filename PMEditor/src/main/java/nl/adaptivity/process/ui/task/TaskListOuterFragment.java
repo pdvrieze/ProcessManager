@@ -70,7 +70,9 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
 
   public static TaskListOuterFragment newInstance(final long taskId) {
     TaskListOuterFragment result = new TaskListOuterFragment();
-    result.setArguments(addArgs(null, taskId));
+    if (taskId!=0) {
+      result.setArguments(addArgs(null, taskId));
+    }
     return result;
   }
 

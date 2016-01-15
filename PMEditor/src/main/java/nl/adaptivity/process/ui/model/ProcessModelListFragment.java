@@ -33,7 +33,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
@@ -72,12 +71,6 @@ import java.util.UUID;
  */
 public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener, OnSelectionListener {
 
-  /**
-   * The serialization (saved instance state) Bundle key representing the
-   * activated item position. Only used on tablets.
-   */
-  private static final String STATE_ACTIVATED_ID = "activated_id";
-
   private static final int LOADERID = 3;
 
   private static final int REQUEST_IMPORT = 31;
@@ -86,7 +79,6 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   private static final int DLG_NEW_PM_NAME = 2;
 
-  private PMCursorAdapter mAdapter;
   private SwipeRefreshLayout mSwipeRefresh;
   private SyncStatusObserver mSyncObserver;
   private Object mSyncObserverHandle;
@@ -102,9 +94,9 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getLoaderManager().initLoader(LOADERID, null, this);
-    mAdapter = new PMCursorAdapter(getActivity(), null);
-    mAdapter.setOnSelectionListener(this);
-    setListAdapter(mAdapter);
+    final PMCursorAdapter adapter = new PMCursorAdapter(getActivity(), null);
+    adapter.setOnSelectionListener(this);
+    setListAdapter(adapter);
     mSyncObserver = new SyncStatusObserver() {
 
       @Override
@@ -128,16 +120,10 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
     getRecyclerView().setLayoutManager(new LinearLayoutManager(getActivity()));
     mSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefresh);
     mSwipeRefresh.setOnRefreshListener(this);
-
-    // Restore the previously serialized activated item position.
-    if (savedInstanceState != null
-        && savedInstanceState.containsKey(STATE_ACTIVATED_ID)) {
-      setActivatedId(savedInstanceState.getLong(STATE_ACTIVATED_ID));
-    }
+    super.onViewCreated(view, savedInstanceState);
   }
 
   @Override
@@ -149,12 +135,8 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   @Override
-  public void onSaveInstanceState(Bundle outState) {
-    super.onSaveInstanceState(outState);
-    if (mAdapter!=null && mAdapter.getSelectedId() != RecyclerView.NO_ID) {
-      // Serialize and persist the activated item position.
-      outState.putLong(STATE_ACTIVATED_ID, mAdapter.getSelectedId());
-    }
+  public PMCursorAdapter getListAdapter() {
+    return (PMCursorAdapter) super.getListAdapter();
   }
 
   @Override
@@ -197,15 +179,6 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
       if (syncActive || (!syncPending)) { mManualSync= false; }
       boolean sync = syncActive || mManualSync;
       mSwipeRefresh.setRefreshing(sync);
-    }
-  }
-
-  private void setActivatedId(long id) {
-    ViewHolder vh = getRecyclerView().findViewHolderForItemId(id);
-    if (vh!=null) {
-      mAdapter.setSelectedItem(vh.getAdapterPosition());
-    } else {
-      mAdapter.setSelectedItem(id);
     }
   }
 
@@ -299,14 +272,13 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   @Override
   public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
     if (data!=null) {
-      mAdapter.changeCursor(data);
+      getListAdapter().changeCursor(data);
     }
   }
 
   @Override
   public void onLoaderReset(Loader<Cursor> loader) {
-    mAdapter.changeCursor(null);
+    getListAdapter().changeCursor(null);
   }
 }

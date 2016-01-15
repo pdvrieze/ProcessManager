@@ -404,6 +404,18 @@ public class TaskProvider extends ContentProvider {
     }
   }
 
+  public static long getIdForHandle(final Context context, final long handle) {
+    final ContentResolver contentResolver = context.getContentResolver();
+    final Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] { BaseColumns._ID }, Tasks.COLUMN_HANDLE + " = ?", new String[] { Long.toString(handle)} , null);
+    if (idresult==null) { return 0; }
+    try {
+      if (! idresult.moveToFirst()) { return 0; }
+      return idresult.getLong(0);
+    } finally {
+      idresult.close();
+    }
+  }
+
   public static UserTask getTaskForHandle(Context context, long handle) {
     final ContentResolver contentResolver = context.getContentResolver();
     Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, null, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);

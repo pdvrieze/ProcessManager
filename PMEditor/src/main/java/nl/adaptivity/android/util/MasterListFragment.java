@@ -20,12 +20,24 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.Adapter;
+import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
+import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ListView;
+import nl.adaptivity.android.recyclerview.SelectableAdapter;
+import nl.adaptivity.process.ui.model.PMCursorAdapter;
 
 
 public class MasterListFragment extends RecyclerFragment {
+
+  /**
+   * The serialization (saved instance state) Bundle key representing the
+   * activated item position. Only used on tablets.
+   */
+  public static final String STATE_ACTIVATED_ID = "activated_id";
 
   public MasterListFragment() {
     Log.i(MasterListFragment.class.getSimpleName(), "Creating a new instanceo of "+getClass().getSimpleName());
@@ -42,7 +54,7 @@ public class MasterListFragment extends RecyclerFragment {
    */
   public static Callbacks sDummyCallbacks = new Callbacks() {
     @Override
-    public void onItemSelected(int row, long id) {/*dummy*/}
+    public void onItemSelected(final int row, final long id) {/*dummy*/}
 
     @Override
     public boolean isTwoPane() {
@@ -57,17 +69,33 @@ public class MasterListFragment extends RecyclerFragment {
   private Callbacks mCallbacks = sDummyCallbacks;
 
   @Override
-  public void onActivityCreated(Bundle savedInstanceState) {
+  public void onActivityCreated(final Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
     getCallbacks();
   }
 
   @Override
-  public void onAttach(Activity activity) {
+  public void onAttach(final Activity activity) {
     super.onAttach(activity);
     if (mCallbacks==sDummyCallbacks) {
       if (getActivity() instanceof Callbacks) {
         mCallbacks = (Callbacks) getActivity();
+      }
+    }
+  }
+
+  @Override
+  public void onViewCreated(final View view, final Bundle savedInstanceState) {
+    super.onViewCreated(view, savedInstanceState);
+
+    // Restore the previously serialized activated item position.
+    if (savedInstanceState != null
+        && savedInstanceState.containsKey(STATE_ACTIVATED_ID)) {
+      setActivatedId(savedInstanceState.getLong(STATE_ACTIVATED_ID));
+    } else {
+      final Bundle arguments = getArguments();
+      if (arguments != null && arguments.containsKey(MasterDetailOuterFragment.ARG_ITEM_ID)) {
+        setActivatedId(arguments.getLong(MasterDetailOuterFragment.ARG_ITEM_ID));
       }
     }
   }
@@ -94,8 +122,35 @@ public class MasterListFragment extends RecyclerFragment {
     return mCallbacks;
   }
 
-  protected void doOnItemSelected(int position, long modelid) {
+  protected void doOnItemSelected(final int position, final long modelid) {
     getCallbacks().onItemSelected(position, modelid);
+  }
+
+  protected void setActivatedId(final long id) {
+    final ViewHolder vh = getRecyclerView().findViewHolderForItemId(id);
+    final Adapter<?> adapter = getListAdapter();
+    if (adapter instanceof SelectableAdapter) {
+      final SelectableAdapter selectableAdapter = (SelectableAdapter) adapter;
+      if (vh != null) {
+        selectableAdapter.setSelectedItem(vh.getAdapterPosition());
+      } else {
+        selectableAdapter.setSelectedItem(id);
+      }
+    }
+  }
+
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    final Adapter adapter = getListAdapter();
+    if (adapter instanceof SelectableAdapter) {
+      SelectableAdapter selectableAdapter = (SelectableAdapter) adapter;
+
+      if (selectableAdapter.getSelectedId() != RecyclerView.NO_ID) {
+        // Serialize and persist the activated item position.
+        outState.putLong(STATE_ACTIVATED_ID, selectableAdapter.getSelectedId());
+      }
+    }
   }
 
 }

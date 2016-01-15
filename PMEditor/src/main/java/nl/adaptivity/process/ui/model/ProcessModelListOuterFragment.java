@@ -56,6 +56,14 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
     super(R.layout.outer_processmodel_list, R.id.processmodel_list_container, R.id.processmodel_detail_container);
   }
 
+  public static ProcessModelListOuterFragment newInstance(final long modelId) {
+    ProcessModelListOuterFragment result = new ProcessModelListOuterFragment();
+    if (modelId!=0) {
+      result.setArguments(addArgs(null, modelId));
+    }
+    return result;
+  }
+
   /**
    * Whether or not the activity is in two-pane mode, i.e. running on a tablet
    * device.

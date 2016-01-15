@@ -20,6 +20,7 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
@@ -83,6 +84,8 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
 
   private static final String TAG = "OverviewActivity";
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
+  public static final String SERVERPATH_MODELS = "/ProcessEngine/processModels";
+  public static final String SERVERPATH_TASKS = "/PEUserMessageHandler/UserMessageService/pendingTasks";
 
   private Account mAccount;
 
@@ -145,9 +148,61 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
     };
     task.execute(ProviderHelper.getAuthBase(this));
 
-    // Go by default to the home fragment. Don't add it to the back stack.
-    onNavigationItemSelected(R.id.nav_home, false);
-    mBinding.navView.setCheckedItem(R.id.nav_home);
+    if (savedInstanceState==null) {
+      Intent intent = getIntent();
+      Uri uri = intent.getData();
+      long handle = 0;
+      @IdRes int navTarget = R.id.nav_home;
+      if (uri!=null) {
+        final String path = uri.getPath();
+        if (path.startsWith(SERVERPATH_MODELS)) {
+          navTarget = R.id.nav_models;
+          if (path.length()>SERVERPATH_MODELS.length() && path.charAt(SERVERPATH_MODELS.length())=='/') {
+            handle = Long.parseLong(path.substring(SERVERPATH_MODELS.length() + 1));
+          }
+        } else if (path.startsWith(SERVERPATH_TASKS)) {
+          navTarget = R.id.nav_tasks;
+          if (path.length()>SERVERPATH_TASKS.length() && path.charAt(SERVERPATH_TASKS.length())=='/') {
+            handle = Long.parseLong(path.substring(SERVERPATH_TASKS.length() + 1));
+          }
+        }
+      }
+      if (handle!=0) {
+        AsyncTask<Long, Void, Long> bgNavigation = new AsyncTask<Long, Void, Long>() {
+          public int mNavTarget;
+
+          @Override
+          protected Long doInBackground(final Long... params) {
+            mNavTarget = params[0].intValue();
+            long handle = params[1].longValue();
+            long id;
+            switch (mNavTarget) {
+              case R.id.nav_models:
+                id = ProcessModelProvider.getIdForHandle(OverviewActivity.this, handle);
+                break;
+              case R.id.nav_tasks:
+                id = TaskProvider.getIdForHandle(OverviewActivity.this, handle);
+                break;
+              default:
+                return Long.valueOf(0);
+            }
+
+            return Long.valueOf(id);
+          }
+
+          @Override
+          protected void onPostExecute(final Long itemId) {
+            onNavigationItemSelected(mNavTarget, false, itemId.longValue());
+            mBinding.navView.setCheckedItem(mNavTarget);
+          }
+        };
+        bgNavigation.execute(Long.valueOf(navTarget), Long.valueOf(handle));
+      } else {
+        // Go by default to the home fragment. Don't add it to the back stack.
+        onNavigationItemSelected(navTarget, false);
+        mBinding.navView.setCheckedItem(navTarget);
+      }
+    }
 
   }
 
@@ -259,6 +314,10 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   }
 
   private boolean onNavigationItemSelected(@IdRes final int id, final boolean addToBackstack) {
+    return onNavigationItemSelected(id, addToBackstack, 0);
+  }
+
+  private boolean onNavigationItemSelected(@IdRes final int id, final boolean addToBackstack, final long itemId) {
     switch (id) {
       case R.id.nav_home:
         if (! (mActiveFragment instanceof OverviewFragment)) {
@@ -274,7 +333,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
         break;
       case R.id.nav_tasks: {
         if (!(mActiveFragment instanceof TaskListOuterFragment)) {
-          mActiveFragment = new TaskListOuterFragment();
+          mActiveFragment = TaskListOuterFragment.newInstance(itemId);
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
                                                                          .replace(R.id.overview_container, mActiveFragment, "tasks");
           if (addToBackstack) { transaction.addToBackStack("tasks"); }
@@ -284,7 +343,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
       }
       case R.id.nav_models: {
         if (!(mActiveFragment instanceof ProcessModelListOuterFragment)) {
-          mActiveFragment = new ProcessModelListOuterFragment();
+          mActiveFragment = ProcessModelListOuterFragment.newInstance(itemId);
           final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
                                                                         .replace(R.id.overview_container, mActiveFragment, "models");
           if (addToBackstack) { transaction.addToBackStack("models"); }

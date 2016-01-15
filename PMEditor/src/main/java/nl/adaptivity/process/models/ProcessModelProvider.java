@@ -83,7 +83,7 @@ public class ProcessModelProvider extends ContentProvider {
      * @return true if notification is needed.
      */
     private static boolean hasNotifyableColumns(final ContentValues values) {
-      for (String key: values.keySet()) {
+      for (final String key: values.keySet()) {
         switch (key) {
           case COLUMN_SYNCSTATE:
           case COLUMN_UUID:
@@ -97,7 +97,7 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     private static boolean hasServerNotifyableColumns(final ContentValues values) {
-      for (String key: values.keySet()) {
+      for (final String key: values.keySet()) {
         switch (key) {
           case COLUMN_SYNCSTATE:
           case COLUMN_FAVOURITE:
@@ -134,7 +134,7 @@ public class ProcessModelProvider extends ContentProvider {
     public static final String SELECT_HANDLE = COLUMN_HANDLE+" = ?";
 
     public static boolean hasNotifyableColumns(final ContentValues values) {
-      for (String key: values.keySet()) {
+      for (final String key: values.keySet()) {
         switch (key) {
           case COLUMN_SYNCSTATE:
           case COLUMN_UUID:
@@ -165,9 +165,9 @@ public class ProcessModelProvider extends ContentProvider {
       path=null;
     }
 
-    private QueryTarget(Uri uri) {
+    private QueryTarget(final Uri uri) {
       baseUri = Uri.fromParts(uri.getScheme(), uri.getAuthority()+'/'+uri.getPath(), null);
-      String frag = uri.getFragment();
+      final String frag = uri.getFragment();
       if (frag != null) {
         path = uri.getPath() + '#' + frag;
       } else {
@@ -182,7 +182,7 @@ public class ProcessModelProvider extends ContentProvider {
 
     static {
       _uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-      for(QueryTarget u:QueryTarget.values()) {
+      for(final QueryTarget u:QueryTarget.values()) {
         if (u.path!=null) {
           String path = u.path;
           if (path.startsWith("/")) { path = path.substring(1); }
@@ -196,11 +196,11 @@ public class ProcessModelProvider extends ContentProvider {
     final String mTable;
     boolean mNetNotify;
 
-    private UriHelper(QueryTarget u, boolean netNotify) {
+    private UriHelper(final QueryTarget u, final boolean netNotify) {
       this(u, -1, netNotify);
     }
 
-    private UriHelper(QueryTarget u, long id, boolean netNotify) {
+    private UriHelper(final QueryTarget u, final long id, final boolean netNotify) {
       mTarget = u;
       mId = id;
       mNetNotify = netNotify;
@@ -254,16 +254,16 @@ public class ProcessModelProvider extends ContentProvider {
     }
 
     static UriHelper parseUri(Uri query, final String[] projection) {
-      boolean netNotify;
+      final boolean netNotify;
       if ("nonetnotify".equals(query.getFragment())) {
         query = query.buildUpon().encodedFragment(null).build();
         netNotify=false;
       } else {
         netNotify=true;
       }
-      int ord = _uriMatcher.match(query);
+      final int ord = _uriMatcher.match(query);
       if (ord<0) { throw new IllegalArgumentException("Unknown URI: "+query); }
-      QueryTarget u = QueryTarget.values()[ord];
+      final QueryTarget u = QueryTarget.values()[ord];
 
       switch (u) {
       case PROCESSMODEL:
@@ -288,15 +288,15 @@ public class ProcessModelProvider extends ContentProvider {
     return ContentResolver.isSyncPending(account, AUTHORITY);
   }
 
-  public static void requestSyncProcessModelList(Account account, boolean expedited) {
+  public static void requestSyncProcessModelList(final Account account, final boolean expedited) {
     ProviderHelper.requestSync(account, AUTHORITY, expedited);
   }
 
-  public static void requestSyncProcessModelList(Activity context, boolean expedited) {
+  public static void requestSyncProcessModelList(final Activity context, final boolean expedited) {
     ProviderHelper.requestSync(context, AUTHORITY, expedited);
   }
 
-  private static String[] appendArg(String[] args, String arg) {
+  private static String[] appendArg(final String[] args, final String arg) {
     if (args==null || args.length==0) { return new String[] { arg }; }
     final String[] result = new String[args.length+1];
     System.arraycopy(args, 0, result, 0, args.length);
@@ -304,15 +304,15 @@ public class ProcessModelProvider extends ContentProvider {
     return result;
   }
 
-  private static boolean mimetypeMatches(String mimetype, String mimeTypeFilter) {
+  private static boolean mimetypeMatches(final String mimetype, final String mimeTypeFilter) {
     if (mimeTypeFilter==null) { return true; }
     int splitIndex = mimetype.indexOf('/');
-    String typeLeft = mimetype.substring(0, splitIndex);
-    String typeRight = mimetype.substring(splitIndex+1);
+    final String typeLeft = mimetype.substring(0, splitIndex);
+    final String typeRight = mimetype.substring(splitIndex + 1);
 
     splitIndex = mimeTypeFilter.indexOf('/');
-    String filterLeft = mimeTypeFilter.substring(0, splitIndex);
-    String filterRight = mimeTypeFilter.substring(splitIndex+1);
+    final String filterLeft = mimeTypeFilter.substring(0, splitIndex);
+    final String filterRight = mimeTypeFilter.substring(splitIndex + 1);
 
     if (! (filterLeft.equals(typeLeft)||"*".equals(filterLeft))) {
       return false;
@@ -340,8 +340,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public String getType(Uri uri) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public String getType(final Uri uri) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     switch (helper.mTarget) {
     case PROCESSMODEL:
       return "vnd.android.cursor.item/vnd.nl.adaptivity.process.processmodel";
@@ -358,9 +358,9 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
-    UriHelper helper = UriHelper.parseUri(uri);
-    String mimetype;
+  public String[] getStreamTypes(final Uri uri, final String mimeTypeFilter) {
+    final UriHelper helper = UriHelper.parseUri(uri);
+    final String mimetype;
     switch (helper.mTarget) {
       case PROCESSMODEL:
         mimetype = "vnd.android.cursor.item/vnd.nl.adaptivity.process.processmodel";break;
@@ -383,8 +383,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public ParcelFileDescriptor openFile(final Uri uri, final String mode) throws FileNotFoundException {
+    final UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mTarget!=QueryTarget.PROCESSMODELCONTENT || helper.mId<0) {
       throw new FileNotFoundException();
     }
@@ -392,8 +392,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-    UriHelper helper = UriHelper.parseUri(uri, projection);
+  public Cursor query(final Uri uri, final String[] projection, String selection, String[] selectionArgs, final String sortOrder) {
+    final UriHelper helper = UriHelper.parseUri(uri, projection);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = BaseColumns._ID+" = ?";
@@ -403,7 +403,7 @@ public class ProcessModelProvider extends ContentProvider {
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
 
-    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    final SQLiteDatabase db = mDbHelper.getReadableDatabase();
     final Cursor result;
     result = db.query(helper.mTable, projection, selection, selectionArgs, null, null, sortOrder);
     result.setNotificationUri(getContext().getContentResolver(), uri);
@@ -411,21 +411,21 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public Uri insert(Uri uri, ContentValues values) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public Uri insert(final Uri uri, final ContentValues values) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     addSyncstateIfNeeded(helper, values);
 
     if (helper.mId>=0) {
       values.put(BaseColumns._ID, Long.valueOf(helper.mId));
     }
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    final long id = db.insert(helper.mTable, ProcessModels.COLUMN_NAME, values);
     notifyPMStreamChangeIfNeeded(id, helper, values);
     return notify(helper, id);
   }
 
   private void addSyncstateIfNeeded(final UriHelper helper, final ContentValues values) {
-    boolean needsSync = isSyncStateNeeded(helper, values);
+    final boolean needsSync = isSyncStateNeeded(helper, values);
     if (needsSync) {
       values.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER));
     }
@@ -451,12 +451,12 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private Uri notify(UriHelper helper, long id) {
-    ContentResolver cr = getContext().getContentResolver();
-    Uri baseUri = helper.mTarget.baseUri;
+  private Uri notify(final UriHelper helper, final long id) {
+    final ContentResolver cr = getContext().getContentResolver();
+    final Uri baseUri = helper.mTarget.baseUri;
     cr.notifyChange(baseUri, null, false);
     if (id>=0) {
-      Uri result = ContentUris.withAppendedId(baseUri, id);
+      final Uri result = ContentUris.withAppendedId(baseUri, id);
       cr.notifyChange(result, null, helper.mNetNotify);
       return result;
     }
@@ -464,8 +464,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public int delete(Uri uri, String selection, String[] selectionArgs) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public int delete(final Uri uri, String selection, String[] selectionArgs) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = BaseColumns._ID+" = ?";
@@ -474,7 +474,7 @@ public class ProcessModelProvider extends ContentProvider {
       }
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
     final int result = db.delete(helper.mTable, selection, selectionArgs);
     if (result>0) {
       notify(helper, helper.mId);
@@ -483,8 +483,8 @@ public class ProcessModelProvider extends ContentProvider {
   }
 
   @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public int update(final Uri uri, final ContentValues values, String selection, String[] selectionArgs) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     addSyncstateIfNeeded(helper, values);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
@@ -494,7 +494,7 @@ public class ProcessModelProvider extends ContentProvider {
       }
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
     final int result = db.update(helper.mTable, values, selection, selectionArgs);
     if (result>0 && helper.hasNotifyableColumns(values)) {
       notifyPMStreamChangeIfNeeded(helper.mId, helper, values);
@@ -507,11 +507,11 @@ public class ProcessModelProvider extends ContentProvider {
    * This implementation of applyBatch wraps the operations into a database transaction that fails on exceptions.
    */
   @Override
-  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+  public ContentProviderResult[] applyBatch(final ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.beginTransaction();
     try {
-      ContentProviderResult[] result = super.applyBatch(operations);
+      final ContentProviderResult[] result = super.applyBatch(operations);
       db.setTransactionSuccessful();
       return result;
     } finally {
@@ -519,16 +519,30 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static Tupple<DrawableProcessModel, Long> getProcessModelForHandle(Context context, long handle) {
+  public static long getIdForHandle(final Context context, final long handle) {
+    final ContentResolver contentResolver = context.getContentResolver();
+    final Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID }, ProcessModels.COLUMN_HANDLE + " = ?", new String[] { Long.toString(handle)} , null);
+    if (idresult==null) { return 0; }
+    try {
+      if (! idresult.moveToFirst()) { return 0; }
+      return idresult.getLong(0);
+    } finally {
+      idresult.close();
+    }
+  }
+
+  public static Tupple<DrawableProcessModel, Long> getProcessModelForHandle(final Context context, final long handle) {
     try {
       final ContentResolver contentResolver = context.getContentResolver();
-      Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID, ProcessModels.COLUMN_FAVOURITE }, ProcessModels.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
+      final Cursor idresult = contentResolver.query(ProcessModels.CONTENT_URI, new String[] { BaseColumns._ID, ProcessModels.COLUMN_FAVOURITE }, ProcessModels.COLUMN_HANDLE + " = ?", new String[] { Long.toString(handle)} , null);
+      if (idresult==null) { return null; }
       try {
         if (! idresult.moveToFirst()) { return null; }
-        long id = idresult.getLong(1); // first column
-        boolean favourite = idresult.getInt(2)!=0;
-        Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
-        InputStream in = contentResolver.openInputStream(uri);
+        final long id = idresult.getLong(0); // first column
+        final boolean favourite = idresult.getInt(1) != 0;
+        final Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
+        final InputStream in = contentResolver.openInputStream(uri);
+        if (in==null) { throw new NullPointerException(); }
         try{
           return Tupple.tupple(getProcessModel(in, favourite), id);
         } finally {
@@ -542,17 +556,17 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static DrawableProcessModel getProcessModelForId(Context context, long id) {
-    Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
+  public static DrawableProcessModel getProcessModelForId(final Context context, final long id) {
+    final Uri uri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, id);
     return getProcessModel(context, uri);
   }
 
-  public static DrawableProcessModel getProcessModel(Context context, Uri uri) {
+  public static DrawableProcessModel getProcessModel(final Context context, final Uri uri) {
     final ContentResolver contentResolver = context.getContentResolver();
-    Cursor cursor = contentResolver.query(uri, new String[] {ProcessModels.COLUMN_FAVOURITE}, null, null, null);
+    final Cursor cursor = contentResolver.query(uri, new String[] {ProcessModels.COLUMN_FAVOURITE}, null, null, null);
     try {
       if (cursor.moveToFirst()) {
-        boolean favourite = cursor.getInt(cursor.getColumnIndex(ProcessModels.COLUMN_FAVOURITE))!=0;
+        final boolean favourite = cursor.getInt(cursor.getColumnIndex(ProcessModels.COLUMN_FAVOURITE)) != 0;
         return getProcessModel(context, uri, favourite);
       } else { // no such model
         return null;
@@ -562,9 +576,9 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static DrawableProcessModel getProcessModel(Context context, Uri uri, final boolean favourite) {
+  public static DrawableProcessModel getProcessModel(final Context context, final Uri uri, final boolean favourite) {
     try {
-      InputStream in;
+      final InputStream in;
       if (ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())||
           ContentResolver.SCHEME_ANDROID_RESOURCE.equals(uri.getScheme())||
           ContentResolver.SCHEME_FILE.equals(uri.getScheme())) {
@@ -583,23 +597,23 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  private static DrawableProcessModel getProcessModel(InputStream in, boolean favourite) {
+  private static DrawableProcessModel getProcessModel(final InputStream in, final boolean favourite) {
     final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<>();
     final DrawableProcessModel drawableProcessModel = PMParser.parseProcessModel(in, layoutAlgorithm, layoutAlgorithm);
     drawableProcessModel.setFavourite(favourite);
     return drawableProcessModel;
   }
 
-  public static Uri newProcessModel(Context context, ClientProcessModel<?, ?> processModel) throws IOException {
-    CharArrayWriter out = new CharArrayWriter();
+  public static Uri newProcessModel(final Context context, final ClientProcessModel<?, ?> processModel) throws IOException {
+    final CharArrayWriter out = new CharArrayWriter();
     try {
       PMParser.serializeProcessModel(out, processModel);
     } catch (XmlPullParserException |XmlException e) {
       throw new IOException(e);
     }
-    ContentProviderClient client = context.getContentResolver().acquireContentProviderClient(ProcessModels.CONTENT_ID_URI_BASE);
+    final ContentProviderClient client = context.getContentResolver().acquireContentProviderClient(ProcessModels.CONTENT_ID_URI_BASE);
     try {
-      ContentValues values = new ContentValues();
+      final ContentValues values = new ContentValues();
       values.put(ProcessModels.COLUMN_NAME, processModel.getName());
       values.put(ProcessModels.COLUMN_MODEL, out.toString());
       values.put(ProcessModels.COLUMN_UUID, processModel.getUuid().toString());
@@ -616,17 +630,17 @@ public class ProcessModelProvider extends ContentProvider {
     }
   }
 
-  public static Uri instantiate(Context context, long modelId, String name) throws RemoteException {
+  public static Uri instantiate(final Context context, final long modelId, final String name) throws RemoteException {
 
     final ContentResolver contentResolver = context.getContentResolver();
-    ContentProviderClient client = contentResolver.acquireContentProviderClient(ProcessInstances.CONTENT_ID_URI_BASE);
+    final ContentProviderClient client = contentResolver.acquireContentProviderClient(ProcessInstances.CONTENT_ID_URI_BASE);
     try {
       final Uri modelUri = ContentUris.withAppendedId(ProcessModels.CONTENT_ID_STREAM_BASE, modelId);
-      Cursor r = client.query(modelUri, new String[]{ProcessModels.COLUMN_HANDLE}, null, null, null);
+      final Cursor r = client.query(modelUri, new String[]{ProcessModels.COLUMN_HANDLE}, null, null, null);
       try {
         if (!r.moveToFirst()) { throw new RuntimeException("Model with id "+modelId+" not found"); }
-        long pmhandle = r.getLong(0);
-        ArrayList<ContentProviderOperation> batch = new ArrayList<>(2);
+        final long pmhandle = r.getLong(0);
+        final ArrayList<ContentProviderOperation> batch = new ArrayList<>(2);
         batch.add(ContentProviderOperation
                 .newAssertQuery(modelUri)
                 .withValue(ProcessModels.COLUMN_HANDLE, pmhandle)
@@ -641,7 +655,7 @@ public class ProcessModelProvider extends ContentProvider {
                 .withValue(XmlBaseColumns.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_PUBLISH_TO_SERVER))
                 .build());
         try {
-          ContentProviderResult[] result = client.applyBatch(batch);
+          final ContentProviderResult[] result = client.applyBatch(batch);
           return result[1].uri;
         } catch (OperationApplicationException e) {
           throw (RemoteException) new RemoteException().initCause(e);

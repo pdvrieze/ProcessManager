@@ -16,7 +16,8 @@
   -->
 
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="TaskitemContainer.Base">
+    <style name="Null" />
+    <style name="TaskitemContainer.Base" parent="Null">
         <item name="android:paddingLeft">@dimen/default_margin</item>
         <item name="android:paddingRight">@dimen/default_margin</item>
         <item name="android:layout_marginBottom">@dimen/half_margin</item>

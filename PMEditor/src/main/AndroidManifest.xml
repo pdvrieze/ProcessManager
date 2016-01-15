@@ -102,6 +102,24 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="${serverScheme}"
+                      android:host="${serverHost}"
+                      android:pathPrefix="/ProcessEngine/processModels"
+                        />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="${serverScheme}"
+                      android:host="${serverHost}"
+                      android:pathPrefix="/PEUserMessageHandler/UserMessageService/pendingTasks"
+                        />
+            </intent-filter>
         </activity>
         <activity
                 android:name="nl.adaptivity.process.ui.task.TaskDetailActivity"
