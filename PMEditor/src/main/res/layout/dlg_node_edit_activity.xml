@@ -118,12 +118,12 @@
                                 android:layout_weight="1" />
 
                         <ImageView
+                                android:id="@+id/editAcService"
                                 android:layout_width="wrap_content"
                                 android:layout_height="match_parent"
                                 android:layout_gravity="center_vertical"
                                 android:src="@drawable/ic_arrow_forward_24dp"
-                                android:id="@+id/editAcService"
-                                app:enabled="@{true}" />
+                                />
                     </LinearLayout>
 
                     <RadioButton

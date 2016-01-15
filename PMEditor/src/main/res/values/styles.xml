@@ -16,7 +16,9 @@
   -->
 
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <style name="Null" />
+
     <style name="TaskitemContainer.Base" parent="Null">
         <item name="android:paddingLeft">@dimen/default_margin</item>
         <item name="android:paddingRight">@dimen/default_margin</item>
@@ -25,6 +27,7 @@
         <item name="android:minHeight">?android:attr/listPreferredItemHeight</item>
 
     </style>
+
     <style name="OverviewCard">
 
         <item name="android:layout_width">match_parent</item>
@@ -37,12 +40,16 @@
         <item name="android:paddingTop">@dimen/default_margin</item>
         <item name="android:orientation">vertical</item>
     </style>
+
     <style name="OverviewCard.Ellipsis">
         <item name="android:paddingBottom">@dimen/half_margin</item>
         <item name="android:paddingTop">@dimen/half_margin</item>
     </style>
+
     <style name="TextAppearance.Overview.Title" parent="TextAppearance.AppCompat.Title"></style>
+
     <style name="TaskitemContainer" parent="TaskitemContainer.Base" />
+
     <style name="Widget.IconButton" parent="Widget.AppCompat.Button.Borderless">
         <item name="android:background">@drawable/bg_iconbutton</item>
         <item name="android:paddingLeft">8dp</item>
@@ -57,17 +64,21 @@
         <item name="iconHeight">24dp</item>
         <item name="iconTint">@color/iconbutton_title</item>
     </style>
+
     <style name="TextAppearance.IconButton.Title" parent="TextAppearance.AppCompat.Large">
         <item name="android:textColor">@color/iconbutton_title</item>
         <item name="android:textSize">24sp</item>
     </style>
+
     <style name="TextAppearance.IconButton.Label" parent="TextAppearance.AppCompat.Medium">
         <item name="android:textColor">@color/iconbutton_title</item>
         <item name="android:textSize">16sp</item>
     </style>
+
     <style name="TextAppearance.IconButton.Subtitle" parent="TextAppearance.AppCompat.Medium">
         <item name="android:textSize">14sp</item>
     </style>
+
     <style name="Widget.IconButton.Title" parent="Widget.IconButton">
         <item name="android:paddingLeft">16dp</item>
         <item name="android:paddingStart" tools:targetApi="jelly_bean_mr1">16dp</item>
@@ -77,6 +88,7 @@
         <item name="iconWidth">40dp</item>
         <item name="iconHeight">40dp</item>
     </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

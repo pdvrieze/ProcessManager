@@ -21,6 +21,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -33,6 +34,7 @@ import nl.adaptivity.android.graphics.RadioButtonHelper;
 import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
+import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
 
 
 /**
@@ -43,6 +45,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   private static final int MAX_MAX = 20;
 
   public static final String NODE_POS = "node_pos";
+  public static final int REQUEST_EDIT_HUMAN = 12;
 
   private int mPos=-1;
 
@@ -113,6 +116,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
       case R.id.editAcService:
         break;
       case R.id.editAcHuman:
+        startActivityForResult(new Intent(getActivity(), UserTaskEditorActivity.class), REQUEST_EDIT_HUMAN);
         break;
     }
   }

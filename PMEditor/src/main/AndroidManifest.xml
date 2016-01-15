@@ -13,8 +13,7 @@
   ~
   ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
   ~ see <http://www.gnu.org/licenses/>.
-  -->
-
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
           package="nl.adaptivity.process.editor.android">
@@ -104,21 +103,25 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="${serverScheme}"
-                      android:host="${serverHost}"
-                      android:pathPrefix="/ProcessEngine/processModels"
-                        />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                        android:host="${serverHost}"
+                        android:pathPrefix="/ProcessEngine/processModels"
+                        android:scheme="${serverScheme}" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="${serverScheme}"
-                      android:host="${serverHost}"
-                      android:pathPrefix="/PEUserMessageHandler/UserMessageService/pendingTasks"
-                        />
+
+                <category android:name="android.intent.category.BROWSABLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                        android:host="${serverHost}"
+                        android:pathPrefix="/PEUserMessageHandler/UserMessageService/pendingTasks"
+                        android:scheme="${serverScheme}" />
             </intent-filter>
         </activity>
         <activity
@@ -133,11 +136,19 @@
         <activity
                 android:name="nl.adaptivity.process.ui.main.SettingsActivity"
                 android:label="@string/title_activity_settings"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
-                >
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />
+        </activity>
+        <activity
+                android:name="nl.adaptivity.process.ui.activity.UserTaskEditorActivity"
+                android:label="@string/title_activity_user_task_editor"
+                android:parentActivityName=".PMEditor"
+                android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                    android:name="android.support.PARENT_ACTIVITY"
+                    android:value="nl.adaptivity.process.editor.android.PMEditor" />
         </activity>
     </application>
 
