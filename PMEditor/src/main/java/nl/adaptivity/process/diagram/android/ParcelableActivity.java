@@ -35,6 +35,7 @@ import java.util.List;
 
 
 /**
+ * Activity implementation that is parcelable (can be passed along to other activities.
  * Created by pdvrieze on 15/01/16.
  */
 public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientActivityNode<T,M> implements Parcelable {
@@ -78,6 +79,10 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
 
   public ParcelableActivity(final Activity<?, ?> orig, final boolean compat) {
     super(orig, compat);
+  }
+
+  public static <T extends ClientProcessNode<T,M>, M extends ClientProcessModel<T,M>> ParcelableActivity<T,M> newInstance(final Activity<T,M> orig, final boolean compat) {
+    return new ParcelableActivity<>(orig, compat);
   }
 
   @Override

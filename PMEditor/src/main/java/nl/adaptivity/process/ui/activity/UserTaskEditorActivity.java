@@ -16,32 +16,48 @@
 
 package nl.adaptivity.process.ui.activity;
 
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.editor.android.databinding.ActivityUserTaskEditorBinding;
 
 
 public class UserTaskEditorActivity extends AppCompatActivity {
 
+  private ActivityUserTaskEditorBinding mBinding;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_user_task_editor);
-    Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+    mBinding = DataBindingUtil.setContentView(this, R.layout.activity_user_task_editor);
+
+    Toolbar toolbar = mBinding.toolbar;
     setSupportActionBar(toolbar);
 
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-      }
-    });
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
   }
 
+  @Override
+  public void onPostCreate(final Bundle savedInstanceState, final PersistableBundle persistentState) {
+    super.onPostCreate(savedInstanceState, persistentState);
+    UserTaskEditorFragment frag = (UserTaskEditorFragment) getSupportFragmentManager().findFragmentById(R.id.fragment);
+
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(final MenuItem item) {
+    if (item.getItemId()==android.R.id.home) {
+      // TODO update the activity result.
+      finish(); // Make sure to call finish
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
 }

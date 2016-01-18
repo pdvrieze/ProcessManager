@@ -144,11 +144,7 @@
         <activity
                 android:name="nl.adaptivity.process.ui.activity.UserTaskEditorActivity"
                 android:label="@string/title_activity_user_task_editor"
-                android:parentActivityName=".PMEditor"
                 android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value="nl.adaptivity.process.editor.android.PMEditor" />
         </activity>
     </application>
 

@@ -104,5 +104,11 @@
     <string name="radio_ac_human">Human interaction</string>
     <string name="radio_ac_other">Other (expert only)</string>
     <string name="title_activity_user_task_editor">Edit user task</string>
+    <string name="userTaskFabMenuOther">Other…</string>
+    <string name="userTaskFabMenuTitle">Add item</string>
+    <string name="userTaskFabMenuPassword">Password</string>
+    <string name="userTaskFabMenuTextEntry">Text entry</string>
+    <string name="userTaskFabMenuLabel">Label</string>
+    <string name="userTaskFabMenuList">Selection List</string>
 
 </resources>

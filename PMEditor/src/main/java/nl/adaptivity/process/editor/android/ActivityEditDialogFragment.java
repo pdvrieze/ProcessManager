@@ -33,8 +33,11 @@ import android.widget.TextView.OnEditorActionListener;
 import nl.adaptivity.android.graphics.RadioButtonHelper;
 import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
+import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
+import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
+import nl.adaptivity.process.ui.activity.UserTaskEditorFragment;
 
 
 /**
@@ -115,9 +118,15 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     switch (v.getId()) {
       case R.id.editAcService:
         break;
-      case R.id.editAcHuman:
-        startActivityForResult(new Intent(getActivity(), UserTaskEditorActivity.class), REQUEST_EDIT_HUMAN);
+      case R.id.editAcHuman: {
+        final Intent intent = new Intent(getActivity(), UserTaskEditorActivity.class);
+        final NodeEditListener listener = (NodeEditListener) getActivity();
+        DrawableActivity activity = (DrawableActivity) listener.getNode(mPos);
+        intent.putExtra(UIConstants.KEY_ACTIVITY_ID, activity.getId() );
+        intent.putExtra(UIConstants.KEY_ACTIVITY, ParcelableActivity.newInstance(activity, activity.isCompat()));
+        startActivityForResult(intent, REQUEST_EDIT_HUMAN);
         break;
+      }
     }
   }
 
@@ -130,5 +139,4 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     }
     return false;
   }
-
 }
