@@ -301,9 +301,10 @@ public abstract class XmlEvent {
   }
 
   private static Namespace[] getNamespaceDecls(final XmlReader reader) throws XmlException {
-    Namespace[] namespaces = new Namespace[reader.getNamespaceEnd()-reader.getNamespaceStart()];
-    for(int i=namespaces.length-1; i>=0; --i) {
-      namespaces[i] = new NamespaceImpl(reader.getNamespacePrefix(i), reader.getNamespaceUri(i));
+    final int readerOffset = reader.getNamespaceStart();
+    Namespace[] namespaces = new Namespace[reader.getNamespaceEnd() - readerOffset];
+    for(int i=(reader.getNamespaceEnd()-1), j=(namespaces.length-1); i>=reader.getNamespaceStart(); --i, --j) {
+      namespaces[j] = new NamespaceImpl(reader.getNamespacePrefix(i), reader.getNamespaceUri(i));
     }
     return namespaces;
   }
