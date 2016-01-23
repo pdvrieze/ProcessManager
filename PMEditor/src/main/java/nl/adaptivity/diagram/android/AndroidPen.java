@@ -25,6 +25,7 @@ import android.graphics.Paint.Align;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Paint.Style;
 import android.graphics.Typeface;
+import nl.adaptivity.diagram.Rectangle;
 
 
 public class AndroidPen implements Pen<AndroidPen> {
@@ -112,6 +113,19 @@ public class AndroidPen implements Pen<AndroidPen> {
     final float result = mPaint.measureText(text)/FONT_MEASURE_FACTOR;
     mPaint.setTextSize(ts);
     return result;
+  }
+
+  @Override
+  public Rectangle measureTextSize(final Rectangle dest, final double x, final double y, final String text, final double foldWidth) {
+    float ts = mPaint.getTextSize();
+    mPaint.setTextSize(((float) mFontSize)*FONT_MEASURE_FACTOR);
+    ensureFontMetrics();
+    double left=x;
+    double width = mPaint.measureText(text)/FONT_MEASURE_FACTOR;
+    double top=y+mFontMetrics.top-mFontMetrics.leading/2;
+    double height=mFontMetrics.leading+mFontMetrics.top+mFontMetrics.bottom;
+    dest.set(left,top, width, height);
+    return dest;
   }
 
   public void ensureFontMetrics() {

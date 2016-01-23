@@ -16,7 +16,6 @@
 
 package nl.adaptivity.android.graphics;
 
-import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.android.AndroidCanvas;
 import nl.adaptivity.diagram.android.AndroidPath;
@@ -71,13 +70,13 @@ AbstractLightView implements LightView {
   }
 
   public static void drawArrow(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, float canvasX1, float canvasY1, float canvasX2, float canvasY2, double scale) {
-    IAndroidCanvas androidCanvas = new AndroidCanvas(canvas, theme).childCanvas(new Rectangle(0d/*Math.min(mX1, mX2)*/, 0d,0d/*Math.min(mY1, mY2)*/, 0d), scale);
+    IAndroidCanvas androidCanvas = new AndroidCanvas(canvas, theme).childCanvas(0d, 0d, scale);
     Connectors.drawArrow(androidCanvas, theme, canvasX1/scale, canvasY1/scale, 0, canvasX2/scale, canvasY2/scale, 0);
     return;
   }
 
   public static void drawStraightArrow(Canvas canvas, Theme<AndroidStrategy, AndroidPen, AndroidPath> theme, float canvasX1, float canvasY1, float canvasX2, float canvasY2, double scale) {
-    IAndroidCanvas androidCanvas = new AndroidCanvas(canvas, theme).childCanvas(new Rectangle(0d/*Math.min(mX1, mX2)*/, 0d,0d/*Math.min(mY1, mY2)*/, 0d), scale);
+    IAndroidCanvas androidCanvas = new AndroidCanvas(canvas, theme).childCanvas(0d, 0d, scale);
     Connectors.drawStraightArrow(androidCanvas, theme, canvasX1/scale, canvasY1/scale, canvasX2/scale, canvasY2/scale);
     return;
   }

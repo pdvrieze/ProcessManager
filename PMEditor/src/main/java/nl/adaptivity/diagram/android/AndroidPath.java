@@ -17,7 +17,10 @@
 package nl.adaptivity.diagram.android;
 
 import android.graphics.Path;
+import android.graphics.RectF;
 import nl.adaptivity.diagram.DiagramPath;
+import nl.adaptivity.diagram.Pen;
+import nl.adaptivity.diagram.Rectangle;
 
 
 public final class AndroidPath implements DiagramPath<AndroidPath> {
@@ -52,4 +55,11 @@ public final class AndroidPath implements DiagramPath<AndroidPath> {
     return mPath;
   }
 
+  @Override
+  public Rectangle getBounds(final Rectangle dest, final Pen<?> stroke) {
+    RectF bounds = new RectF();
+    mPath.computeBounds(bounds, false);
+    dest.set(bounds.left, bounds.top, bounds.width(), bounds.height());
+    return dest;
+  }
 }

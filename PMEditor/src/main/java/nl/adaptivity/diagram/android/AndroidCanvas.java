@@ -31,9 +31,9 @@ public class AndroidCanvas implements IAndroidCanvas {
     private double mScale;
 
 
-    public OffsetCanvas(OffsetCanvas base, Rectangle area, double scale) {
-      mXOffset = (base.mXOffset - area.left)*scale;
-      mYOffset = (base.mYOffset - area.top)*scale;
+    public OffsetCanvas(OffsetCanvas base, double offsetX, double offsetY, double scale) {
+      mXOffset = (base.mXOffset + offsetX)*scale;
+      mYOffset = (base.mYOffset + offsetY)*scale;
       mScale = base.mScale*scale;
     }
 
@@ -41,12 +41,6 @@ public class AndroidCanvas implements IAndroidCanvas {
       mXOffset = (base.mXOffset)*scale;
       mYOffset = (base.mYOffset)*scale;
       mScale = base.mScale*scale;
-    }
-
-    public OffsetCanvas(Rectangle area, double scale) {
-      mXOffset = -area.left* scale;
-      mYOffset = -area.top* scale;
-      mScale = scale;
     }
 
     public OffsetCanvas(double scale) {
@@ -62,8 +56,8 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     @Override
-    public IAndroidCanvas childCanvas(Rectangle area, double scale) {
-      return new OffsetCanvas(this, area, scale);
+    public IAndroidCanvas childCanvas(final double offsetX, final double offsetY, double scale) {
+      return new OffsetCanvas(this, offsetX, offsetY, scale);
     }
 
     @Override
@@ -197,8 +191,8 @@ public class AndroidCanvas implements IAndroidCanvas {
   }
 
   @Override
-  public IAndroidCanvas childCanvas(Rectangle area, double scale) {
-    return new OffsetCanvas(area, scale);
+  public IAndroidCanvas childCanvas(final double offsetX, final double offsetY, double scale) {
+    return new OffsetCanvas(offsetX, offsetY, scale);
   }
 
   @Override

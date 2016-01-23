@@ -20,6 +20,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.Typeface;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
+import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.svg.SVGPen;
 import nl.adaptivity.process.diagram.svg.TextMeasurer;
 
@@ -62,6 +63,15 @@ public class AndroidTextMeasurer implements TextMeasurer<AndroidTextMeasurer.And
   @Override
   public double measureTextWidth(AndroidMeasureInfo textMeasureInfo, String text, double foldWidth) {
     return textMeasureInfo.mPaint.measureText(text)/FONT_MEASURE_FACTOR;
+  }
+
+  @Override
+  public Rectangle measureTextSize(final Rectangle dest, final AndroidMeasureInfo textMeasureInfo, final String text, final double foldWidth) {
+    dest.left = 0;
+    dest.top = textMeasureInfo.mFontMetrics.top;
+    dest.width = textMeasureInfo.mPaint.measureText(text)/FONT_MEASURE_FACTOR;
+    dest.height = textMeasureInfo.mFontMetrics.bottom-textMeasureInfo.mFontMetrics.top;
+    return dest;
   }
 
   @Override

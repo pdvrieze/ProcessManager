@@ -87,6 +87,10 @@ public class AndroidXmlReader extends AbstractXmlReader {
     mReader.setInput(in, encoding);
   }
 
+  public AndroidXmlReader(final XmlPullParser in) {
+    mReader = in;
+  }
+
   @Override
   public EventType getEventType() throws XmlException {
     try {

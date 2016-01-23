@@ -23,19 +23,28 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.CallSuper;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
+import nl.adaptivity.diagram.Canvas;
+import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.svg.SVGCanvas;
+import nl.adaptivity.process.diagram.svg.SVGPath;
+import nl.adaptivity.process.diagram.svg.SVGPen;
+import nl.adaptivity.process.diagram.svg.SVGStrategy;
+import nl.adaptivity.process.editor.android.BuildConfig;
+import nl.adaptivity.process.editor.android.PMParcelable;
 import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.ProcessesCallback;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.xml.AndroidXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -127,10 +136,6 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   }
 
   private static final String TAG = "ProcessBaseActivity";
-  protected static final int REQUEST_SAVE_PROCESSMODEL = 42;
-  protected static final int REQUEST_EXPORT_PROCESSMODEL_SVG = 43;
-  protected static final int REQUEST_SHARE_PROCESSMODEL_FILE = 44;
-  protected static final int REQUEST_SHARE_PROCESSMODEL_SVG = 45;
   private static final int TYPE_FILE = 0;
   private static final int TYPE_SVG = 1;
   /** Process model that needs to be saved/exported. */
@@ -139,15 +144,20 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   protected File mTmpFile;
 
   @Override
-  public void requestShareFile(final ClientProcessModel<?, ?> processModel) {
-    final FileStoreTask task = new FileStoreTask(TYPE_FILE, new FileStoreListener("*/*", REQUEST_SHARE_PROCESSMODEL_FILE));
-    task.execute(processModel);
-  }
+  protected void onCreate(@Nullable final Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    if (savedInstanceState!=null) {
+      if (savedInstanceState.containsKey(UIConstants.KEY_TMPFILE)) {
+        mTmpFile = new File (savedInstanceState.getString(UIConstants.KEY_TMPFILE));
+      }
+      if (savedInstanceState.containsKey(UIConstants.KEY_PROCESSMODEL)) {
+        PMParcelable pm = savedInstanceState.getParcelable(UIConstants.KEY_PROCESSMODEL);
+        if (pm!=null) {
+          mProcessModel = DrawableProcessModel.get(pm.getProcessModel());
+        }
+      }
 
-  @Override
-  public void requestSaveFile(final ClientProcessModel<?, ?> processModel) {
-    mProcessModel = processModel;
-    requestSaveFile("*/*", REQUEST_SAVE_PROCESSMODEL);
+    }
   }
 
   @CallSuper
@@ -155,18 +165,18 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     switch (requestCode) {
-      case REQUEST_SHARE_PROCESSMODEL_FILE:
-      case REQUEST_SHARE_PROCESSMODEL_SVG:
+      case UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE:
+      case UIConstants.REQUEST_SHARE_PROCESSMODEL_SVG:
         mTmpFile.delete();
         break;
-      case REQUEST_SAVE_PROCESSMODEL:
+      case UIConstants.REQUEST_SAVE_PROCESSMODEL:
         if (resultCode == Activity.RESULT_OK) {
           doSaveFile(data, mProcessModel);
         }
         break;
-      case REQUEST_EXPORT_PROCESSMODEL_SVG:
+      case UIConstants.REQUEST_EXPORT_PROCESSMODEL_SVG:
         if (resultCode==Activity.RESULT_OK) {
-          doSaveFile(data, mProcessModel);
+          doExportSVG(data, DrawableProcessModel.get(mProcessModel));
         }
         break;
     }
@@ -207,15 +217,56 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   }
 
   @Override
+  public void requestShareFile(final ClientProcessModel<?, ?> processModel) {
+    if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
+    final FileStoreTask task = new FileStoreTask(TYPE_FILE, new FileStoreListener("*/*", UIConstants.REQUEST_SHARE_PROCESSMODEL_FILE));
+    task.execute(processModel);
+  }
+
+  @Override
+  public void requestSaveFile(final ClientProcessModel<?, ?> processModel) {
+    if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
+    mProcessModel = processModel;
+    requestSaveFile("*/*", UIConstants.REQUEST_SAVE_PROCESSMODEL);
+  }
+
+  @Override
   public void requestShareSVG(final ClientProcessModel<?, ?> processModel) {
-    final FileStoreTask task = new FileStoreTask(TYPE_SVG, new FileStoreListener("image/svg", REQUEST_SHARE_PROCESSMODEL_SVG));
+    if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
+    final FileStoreTask task = new FileStoreTask(TYPE_SVG, new FileStoreListener("image/svg", UIConstants.REQUEST_SHARE_PROCESSMODEL_SVG));
     task.execute(processModel);
   }
 
   @Override
   public void requestExportSVG(final ClientProcessModel<?, ?> processModel) {
+    if (BuildConfig.DEBUG && processModel == null) { throw new NullPointerException(); }
     mProcessModel = processModel;
-    requestSaveFile("image/svg", REQUEST_EXPORT_PROCESSMODEL_SVG);
+    requestSaveFile("image/svg", UIConstants.REQUEST_EXPORT_PROCESSMODEL_SVG);
+  }
+
+  private void requestSaveFile(final String type, final int request) {
+    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+    if (prefs.getBoolean(SettingsActivity.PREF_KITKATFILE, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      startKitkatSaveActivity(type, request);
+    } else {
+      Intent intent = new Intent("org.openintents.action.PICK_FILE");
+      if (supportsIntent(intent)) {
+        intent.putExtra("org.openintents.extra.TITLE", getString(R.string.title_saveas));
+        intent.putExtra("org.openintents.extra.BUTTON_TEXT", getString(R.string.btn_save));
+        intent.setData(Uri.withAppendedPath(Uri.fromFile(Compat.getDocsDirectory()), "/"));
+      } else {
+        intent = new Intent("com.estrongs.action.PICK_FILE");
+        if (supportsIntent(intent)) {
+          intent.putExtra("com.estrongs.intent.extra.TITLE", getString(R.string.title_saveas));
+//          intent.setData(Uri.withAppendedPath(Uri.fromFile(Compat.getDocsDirectory()),"/"));
+        } else {
+          requestShareFile(mProcessModel);
+//          Toast.makeText(getActivity(), "Saving not yet supported without implementation", Toast.LENGTH_LONG).show();
+          return;
+        }
+      }
+      startActivityForResult(intent, request);
+    }
   }
 
   private void doExportSVG(final Intent data, final DrawableProcessModel processModel) {
@@ -251,8 +302,13 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
 
   private void doExportSVG(final XmlSerializer serializer, final DrawableProcessModel processModel) throws IOException {
     final SVGCanvas<AndroidMeasureInfo> canvas = new SVGCanvas<>(new AndroidTextMeasurer());
-    canvas.setBounds(processModel.getBounds());
-    processModel.draw(canvas, null);
+    final Rectangle modelBounds = processModel.getBounds();
+    final Canvas<SVGStrategy<AndroidMeasureInfo>, SVGPen<AndroidMeasureInfo>, SVGPath> offsetCanvas = canvas
+            .childCanvas(-modelBounds.left, -modelBounds.top, 1d);
+    modelBounds.left=0d;// set the origin to the actual top left corner of the image.
+    modelBounds.top=0d;
+    canvas.setBounds(modelBounds);
+    processModel.draw(offsetCanvas, null);
     serializer.startDocument(null, null);
     serializer.ignorableWhitespace("\n");
     serializer.comment("Generated by PMEditor");
@@ -266,31 +322,6 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
     serializer.flush();
   }
 
-  private void requestSaveFile(final String type, final int request) {
-    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-    if (prefs.getBoolean(SettingsActivity.PREF_KITKATFILE, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      startKitkatSaveActivity(type, request);
-    } else {
-      Intent intent = new Intent("org.openintents.action.PICK_FILE");
-      if (supportsIntent(intent)) {
-        intent.putExtra("org.openintents.extra.TITLE", getString(R.string.title_saveas));
-        intent.putExtra("org.openintents.extra.BUTTON_TEXT", getString(R.string.btn_save));
-        intent.setData(Uri.withAppendedPath(Uri.fromFile(Compat.getDocsDirectory()), "/"));
-      } else {
-        intent = new Intent("com.estrongs.action.PICK_FILE");
-        if (supportsIntent(intent)) {
-          intent.putExtra("com.estrongs.intent.extra.TITLE", getString(R.string.title_saveas));
-//          intent.setData(Uri.withAppendedPath(Uri.fromFile(Compat.getDocsDirectory()),"/"));
-        } else {
-          requestShareFile(mProcessModel);
-//          Toast.makeText(getActivity(), "Saving not yet supported without implementation", Toast.LENGTH_LONG).show();
-          return;
-        }
-      }
-      startActivityForResult(intent, request);
-    }
-  }
-
   private boolean supportsIntent(final Intent intent) {
     return ! getPackageManager().queryIntentActivities(intent, 0).isEmpty();
   }
@@ -301,5 +332,13 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
     i.setType(type);
     i.addCategory(Intent.CATEGORY_OPENABLE);
     startActivityForResult(i, request);
+  }
+
+  @CallSuper
+  @Override
+  protected void onSaveInstanceState(final Bundle outState) {
+    super.onSaveInstanceState(outState);
+    if (mProcessModel!=null) { outState.putParcelable(UIConstants.KEY_PROCESSMODEL, new PMParcelable(mProcessModel)); }
+    if (mTmpFile!=null) { outState.putString(UIConstants.KEY_TMPFILE, mTmpFile.getPath()); }
   }
 }

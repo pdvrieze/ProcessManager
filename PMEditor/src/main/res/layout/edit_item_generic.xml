@@ -38,13 +38,12 @@
         <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_height="wrap_content">
 
             <include android:layout_width="match_parent"
                      android:layout_height="wrap_content"
                      android:layout_marginLeft="@dimen/draghandleWidth"
-                     android:layout_weight="1"
+                     android:layout_marginStart="@dimen/draghandleWidth"
                      android:id="@+id/included"
                      bind:taskitem="@{taskitem}"
                      layout="@layout/taskitem_generic"

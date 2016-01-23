@@ -30,8 +30,11 @@ import nl.adaptivity.process.tasks.data.TaskProvider.Items;
 import nl.adaptivity.process.tasks.data.TaskProvider.Options;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import nl.adaptivity.process.tasks.items.GenericItem;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
+import nl.adaptivity.xml.AndroidXmlReader;
+import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -46,8 +49,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.*;
 
-import static nl.adaptivity.process.tasks.UserTask.NS_TASKS;
-import static nl.adaptivity.process.tasks.UserTask.TAG_TASK;
+import static nl.adaptivity.process.tasks.UserTask.ELEMENTLOCALNAME;
 
 
 @SuppressWarnings("boxing")
@@ -58,7 +60,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     private final ContentValues mContentValues;
     final List<GenericItem> mItems;
 
-    public TaskCVProvider(ContentValues contentValues, List<GenericItem> items) {
+    public TaskCVProvider(final ContentValues contentValues, final List<GenericItem> items) {
       mContentValues = contentValues;
       mItems = items;
     }
@@ -77,42 +79,42 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   private static final String TAG = TaskSyncAdapter.class.getSimpleName();
   private URI mBase;
 
-  public TaskSyncAdapter(Context context) {
+  public TaskSyncAdapter(final Context context) {
     super(context, true, false, Tasks.CONTENT_ID_URI_BASE);
   }
 
   @Override
-  public ContentValuesProvider updateItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri,
-                                                  int syncState, SyncResult syncresult) throws RemoteException, IOException,
-      XmlPullParserException {
-    UserTask task = TaskProvider.getTask(delegator.getContext(), itemuri);
-    PostRequest postRequest;
+  public ContentValuesProvider updateItemOnServer(final DelegatingResources delegator, final ContentProviderClient provider, final Uri itemuri,
+                                                  final int syncState, final SyncResult syncresult) throws RemoteException, IOException,
+                                                                                                           XmlPullParserException {
+    final UserTask task = TaskProvider.getTask(delegator.getContext(), itemuri);
+    final PostRequest postRequest;
     final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
     factory.setNamespaceAware(true);
     if (! task.getItems().isEmpty()) {
-      XmlSerializer serializer = factory.newSerializer();
-      StringWriter writer = new StringWriter(0x100);
+      final XmlSerializer serializer = factory.newSerializer();
+      final StringWriter writer = new StringWriter(0x100);
       serializer.setOutput(writer);
-      serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, NS_TASKS);
-      serializer.startTag(NS_TASKS, TAG_TASK);
+      serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS);
+      serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
       serializer.attribute(null, "state", task.getState().getAttrValue());
-      for(TaskItem item: task.getItems()) {
+      for(final TaskItem item: task.getItems()) {
         if (! item.isReadOnly()) {
           item.serialize(serializer, false);
         }
       }
-      serializer.endTag(NS_TASKS, TAG_TASK);
+      serializer.endTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
       serializer.flush();
       postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())), writer.toString());
     } else {
       postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())+"?state="+task.getState()),"");
     }
     postRequest.setContentType("text/xml; charset=utf-8");
-    HttpURLConnection result = delegator.getWebClient().execute(postRequest);
+    final HttpURLConnection result = delegator.getWebClient().execute(postRequest);
     try {
-      int resultCode = result.getResponseCode();
+      final int resultCode = result.getResponseCode();
       if (resultCode >= 200 && resultCode < 400) {
-        XmlPullParser parser = factory.newPullParser();
+        final XmlPullParser parser = factory.newPullParser();
         final InputStream inputStream = result.getInputStream();
         final String contentEncoding = result.getContentEncoding();
         parser.setInput(inputStream, contentEncoding);
@@ -131,58 +133,58 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  public ContentValuesProvider createItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri,
-                                                  SyncResult syncresult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider createItemOnServer(final DelegatingResources delegator, final ContentProviderClient provider, final Uri itemuri,
+                                                  final SyncResult syncresult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public ContentValuesProvider deleteItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri,
-                                                  SyncResult syncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider deleteItemOnServer(final DelegatingResources delegator, final ContentProviderClient provider, final Uri itemuri,
+                                                  final SyncResult syncResult) throws RemoteException, IOException, XmlPullParserException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public boolean resolvePotentialConflict(ContentProviderClient provider, Uri uri, ContentValuesProvider item) throws RemoteException {
+  public boolean resolvePotentialConflict(final ContentProviderClient provider, final Uri uri, final ContentValuesProvider item) throws RemoteException {
     // TODO Do more than take the server state
     return true;
   }
 
   @Override
-  public Collection<ContentProviderOperation> doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long taskId, CVPair pair) throws RemoteException, OperationApplicationException, IOException {
-    ArrayList<ContentProviderOperation> batch = new ArrayList<>();
+  public Collection<ContentProviderOperation> doUpdateItemDetails(final DelegatingResources delegator, final ContentProviderClient provider, final long taskId, final CVPair pair) throws RemoteException, OperationApplicationException, IOException {
+    final ArrayList<ContentProviderOperation> batch = new ArrayList<>();
     // TODO support transactions
     boolean updated = false;
     if (pair==null) {
       return Collections.emptyList();
     }
-    List<GenericItem> items = ((TaskCVProvider) pair.mCV).mItems;
+    final List<GenericItem> items = ((TaskCVProvider) pair.mCV).mItems;
 
-    ArrayList<GenericItem> itemcpy = new ArrayList<>(items);
+    final ArrayList<GenericItem> itemcpy = new ArrayList<>(items);
 
 //    Cursor localItems = pProvider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID, new String[] { Long.toString(pTaskId) }, BaseColumns._ID);
     final Uri itemsUpdateUri = Items.CONTENT_ID_URI_BASE.buildUpon().encodedFragment("nonetnotify").build();
-    Cursor localItems = provider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID+"="+Long.toString(taskId), null, BaseColumns._ID);
+    final Cursor localItems = provider.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID + "=" + Long.toString(taskId), null, BaseColumns._ID);
     try {
-      int nameColIdx = localItems.getColumnIndex(Items.COLUMN_NAME);
-      int idColIdx = localItems.getColumnIndex(BaseColumns._ID);
-      int labelColIdx = localItems.getColumnIndex(Items.COLUMN_LABEL);
-      int typeColIdx = localItems.getColumnIndex(Items.COLUMN_TYPE);
-      int valueColIdx = localItems.getColumnIndex(Items.COLUMN_VALUE);
+      final int nameColIdx = localItems.getColumnIndex(Items.COLUMN_NAME);
+      final int idColIdx = localItems.getColumnIndex(BaseColumns._ID);
+      final int labelColIdx = localItems.getColumnIndex(Items.COLUMN_LABEL);
+      final int typeColIdx = localItems.getColumnIndex(Items.COLUMN_TYPE);
+      final int valueColIdx = localItems.getColumnIndex(Items.COLUMN_VALUE);
 
-      ListIterator<GenericItem> remoteIterator = itemcpy.listIterator();
+      final ListIterator<GenericItem> remoteIterator = itemcpy.listIterator();
       updateloop: while(localItems.moveToNext()) {
-        String localName = localItems.getString(nameColIdx);
-        long localItemId = localItems.getLong(idColIdx);
-        String localType = localItems.getString(typeColIdx);
-        String localValue = localItems.getString(valueColIdx);
-        String localLabel = localItems.getString(labelColIdx);
+        final String localName = localItems.getString(nameColIdx);
+        final long localItemId = localItems.getLong(idColIdx);
+        final String localType = localItems.getString(typeColIdx);
+        final String localValue = localItems.getString(valueColIdx);
+        final String localLabel = localItems.getString(labelColIdx);
 
         if (remoteIterator.hasNext()) {
-          GenericItem remoteItem = remoteIterator.next();
+          final GenericItem remoteItem = remoteIterator.next();
           if (StringUtil.isEqual(localName, remoteItem.getName())) {
             remoteIterator.remove();
-            ContentValues cv = new ContentValues(2);
+            final ContentValues cv = new ContentValues(2);
             if (!StringUtil.isEqual(remoteItem.getDBType(), localType)) {
               cv.put(Items.COLUMN_TYPE, remoteItem.getDBType());
             }
@@ -215,14 +217,14 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     }
 
     // These remote items need to be added locally
-    for(GenericItem remoteItem:itemcpy) {
-      ContentValues itemCv = new ContentValues(4);
+    for(final GenericItem remoteItem:itemcpy) {
+      final ContentValues itemCv = new ContentValues(4);
       itemCv.put(Items.COLUMN_TASKID, taskId);
       itemCv.put(Items.COLUMN_NAME, remoteItem.getName());
       if (remoteItem.getType()!=null) { itemCv.put(Items.COLUMN_TYPE, remoteItem.getDBType()); }
       if (remoteItem.getValue()!=null) { itemCv.put(Items.COLUMN_VALUE, remoteItem.getValue()); }
       if (remoteItem.getLabel()!=null) { itemCv.put(Items.COLUMN_LABEL, remoteItem.getLabel()); }
-      int rowitemid = batch.size();
+      final int rowitemid = batch.size();
       batch.add(ContentProviderOperation
           .newInsert(itemsUpdateUri)
           .withValues(itemCv)
@@ -236,8 +238,8 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     return batch;
   }
 
-  private static void addOptionsToBatch(List<ContentProviderOperation> batch, int previousResult, List<String> options) {
-    for(String option:options) {
+  private static void addOptionsToBatch(final List<ContentProviderOperation> batch, final int previousResult, final List<String> options) {
+    for(final String option:options) {
       batch.add(ContentProviderOperation
           .newInsert(Options.CONTENT_ID_URI_BASE)
           .withValueBackReference(Options.COLUMN_ITEMID, previousResult)
@@ -246,7 +248,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     }
   }
 
-  private static List<ContentProviderOperation> deleteItem(final Uri itemsUri, long localItemId) {
+  private static List<ContentProviderOperation> deleteItem(final Uri itemsUri, final long localItemId) {
     return Arrays.asList(ContentProviderOperation
         .newDelete(Options.CONTENT_ID_URI_BASE.buildUpon().encodedFragment("nonetnotify").build())
         .withSelection(Options.COLUMN_ITEMID+"=?", new String[] {Long.toString(localItemId)})
@@ -257,18 +259,18 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
         .build());
   }
 
-  private static Collection<? extends ContentProviderOperation> updateOptionValues(GenericItem remoteItem, ContentProviderClient provider, long localItemId) throws RemoteException {
-    ArrayList<ContentProviderOperation> result = new ArrayList<>();
-    ArrayList<String> options = new ArrayList<>(remoteItem.getOptions());
-    Cursor localItems = provider.query(Options.CONTENT_ID_URI_BASE, new String[]{ BaseColumns._ID, Options.COLUMN_VALUE }, Options.COLUMN_ITEMID+"="+Long.toString(localItemId), null, BaseColumns._ID);
+  private static Collection<? extends ContentProviderOperation> updateOptionValues(final GenericItem remoteItem, final ContentProviderClient provider, final long localItemId) throws RemoteException {
+    final ArrayList<ContentProviderOperation> result = new ArrayList<>();
+    final ArrayList<String> options = new ArrayList<>(remoteItem.getOptions());
+    final Cursor localItems = provider.query(Options.CONTENT_ID_URI_BASE, new String[]{ BaseColumns._ID, Options.COLUMN_VALUE }, Options.COLUMN_ITEMID + "=" + Long.toString(localItemId), null, BaseColumns._ID);
     try {
-      ListIterator<String> remoteIt = options.listIterator();
+      final ListIterator<String> remoteIt = options.listIterator();
       outer:
       while (localItems.moveToNext()) {
-        long localId = localItems.getLong(0);
-        String localOption = localItems.getString(1);
+        final long localId = localItems.getLong(0);
+        final String localOption = localItems.getString(1);
         if (remoteIt.hasNext()) {
-          String remoteOption = remoteIt.next();
+          final String remoteOption = remoteIt.next();
           if (StringUtil.isEqual(remoteOption, localOption)) {
             remoteIt.remove();
             continue outer;
@@ -287,7 +289,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     } finally {
       localItems.close();
     }
-    for(String option: options) {
+    for(final String option: options) {
       if (option!=null) {
         result.add(ContentProviderOperation
             .newInsert(Options.CONTENT_ID_URI_BASE.buildUpon().encodedFragment("nonetnotify").build())
@@ -299,11 +301,11 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
     return result;
   }
 
-  private static ContentValues[] getContentValuesForTaskOptions(GenericItem remoteItem, long localItemId) {
-    ContentValues[] cvs = new ContentValues[remoteItem.getOptions().size()];
+  private static ContentValues[] getContentValuesForTaskOptions(final GenericItem remoteItem, final long localItemId) {
+    final ContentValues[] cvs = new ContentValues[remoteItem.getOptions().size()];
     int i=0;
-    for(String option: remoteItem.getOptions()) {
-      ContentValues cv2 = new ContentValues(2);
+    for(final String option: remoteItem.getOptions()) {
+      final ContentValues cv2 = new ContentValues(2);
       cv2.put(Options.COLUMN_ITEMID, localItemId);
       cv2.put(Options.COLUMN_VALUE, option);
       cvs[i++] = cv2;
@@ -312,25 +314,32 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  public ContentValuesProvider parseItem(XmlPullParser in) throws XmlPullParserException, IOException {
+  public ContentValuesProvider parseItem(final XmlPullParser in) throws XmlPullParserException, IOException {
 
-    in.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
-    String summary = in.getAttributeValue(null, "summary");
-    long handle = Long.parseLong(in.getAttributeValue(null, "handle"));
-    long instHandle = Long.parseLong(in.getAttributeValue(null, "instancehandle"));
-    String owner = in.getAttributeValue(null, "owner");
-    String state = in.getAttributeValue(null, "state");
+    in.require(XmlPullParser.START_TAG, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
+    final String summary = in.getAttributeValue(null, "summary");
+    final long handle = Long.parseLong(in.getAttributeValue(null, "handle"));
+    final long instHandle = Long.parseLong(in.getAttributeValue(null, "instancehandle"));
+    final String owner = in.getAttributeValue(null, "owner");
+    final String state = in.getAttributeValue(null, "state");
     boolean hasItems = false;
-    List<GenericItem> items = new ArrayList<>();
+    final List<GenericItem> items = new ArrayList<>();
     while ((in.nextTag())==XmlPullParser.START_TAG) {
-      in.require(XmlPullParser.START_TAG, NS_TASKS, UserTask.TAG_ITEM);
-      items.add(TaskItem.parseTaskGenericItem(in));
-      in.require(XmlPullParser.END_TAG, NS_TASKS, UserTask.TAG_ITEM);
+      in.require(XmlPullParser.START_TAG, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
+      try {
+        items.add(TaskItem.parseTaskGenericItem(new AndroidXmlReader(in)));
+      } catch (XmlException e) {
+        if (e.getCause() instanceof XmlPullParserException) {
+          throw (XmlPullParserException) e.getCause();
+        }
+        throw new XmlPullParserException(e.getMessage(), in, e);
+      }
+      in.require(XmlPullParser.END_TAG, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
       hasItems = true;
     }
 
-    ContentValues result = new ContentValues(6);
-    in.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASK);
+    final ContentValues result = new ContentValues(6);
+    in.require(XmlPullParser.END_TAG, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
     result.put(Tasks.COLUMN_HANDLE, handle);
     result.put(Tasks.COLUMN_SUMMARY, summary);
     result.put(Tasks.COLUMN_OWNER, owner);
@@ -352,7 +361,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
 
   @Override
   public String getItemNamespace() {
-    return UserTask.NS_TASKS;
+    return Constants.USER_MESSAGE_HANDLER_NS;
   }
 
   @Override
@@ -361,7 +370,7 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
   }
 
   @Override
-  public URI getListUrl(URI base) {
+  public URI getListUrl(final URI base) {
     return base.resolve("pendingTasks/");
   }
 

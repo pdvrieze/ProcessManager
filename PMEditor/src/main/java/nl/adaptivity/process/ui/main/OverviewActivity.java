@@ -402,7 +402,7 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   public void onProcessModelSelected(final long processModelId) {
     mBinding.navView.setCheckedItem(R.id.nav_models);
     onNavigationItemSelected(R.id.nav_models, true);
-    if (mActiveFragment instanceof ProcessModelListOuterFragment) {
+    if (mActiveFragment instanceof ProcessModelListOuterFragment && mActiveFragment.getActivity()!=null) {
         final ProcessModelListOuterFragment fragment = (ProcessModelListOuterFragment) mActiveFragment;
         fragment.onProcessModelSelected(processModelId);
     }

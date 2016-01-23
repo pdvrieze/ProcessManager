@@ -108,6 +108,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
       if (getActivity() instanceof NodeEditListener) {
         final NodeEditListener listener = (NodeEditListener) getActivity();
         final DrawableActivity node = (DrawableActivity) listener.getNode(mPos);
+        node.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
         listener.onNodeEdit(mPos);
       }
     }

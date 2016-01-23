@@ -23,6 +23,13 @@ public final class UIConstants {
 
   public static final String KEY_ACTIVITY = "activity";
   public static final String KEY_ACTIVITY_ID = "activityId";
+  public static final String KEY_PROCESSMODEL = "processmodel";
+  public static final String KEY_TMPFILE = "tmpFile";
+
+  public static final int REQUEST_SAVE_PROCESSMODEL = 42;
+  public static final int REQUEST_EXPORT_PROCESSMODEL_SVG = 43;
+  public static final int REQUEST_SHARE_PROCESSMODEL_FILE = 44;
+  public static final int REQUEST_SHARE_PROCESSMODEL_SVG = 45;
 
   private UIConstants() {}
 }

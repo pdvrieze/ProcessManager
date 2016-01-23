@@ -94,10 +94,10 @@
                 android:layout_marginLeft="@dimen/default_margin"
                 android:layout_marginRight="@dimen/default_margin"
                 android:layout_weight="1"
-                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}"
                 app:editable="false"
                 app:maxScale="3"
                 android:focusable="false"/>
+<!--                android:visibility="@{data.isLoading ? View.GONE : View.VISIBLE}" -->
 
         <Button
                 android:id="@+id/btn_pm_clone"

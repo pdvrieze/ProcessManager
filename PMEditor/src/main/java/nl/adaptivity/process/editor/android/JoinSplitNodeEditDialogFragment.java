@@ -114,6 +114,7 @@ public class JoinSplitNodeEditDialogFragment extends DialogFragment implements O
         final DrawableJoinSplit node = (DrawableJoinSplit) listener.getNode(mPos);
         node.setMin(mBinding.npMin.getValue());
         node.setMax(mBinding.npMax.getValue());
+        node.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
         listener.onNodeEdit(mPos);
       }
     }

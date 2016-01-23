@@ -18,23 +18,34 @@ package nl.adaptivity.process.tasks;
 
 import android.databinding.*;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.items.*;
+import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlWriter;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
+
+import javax.xml.namespace.QName;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class TaskItem extends BaseObservable {
+public abstract class TaskItem extends BaseObservable implements XmlSerializable {
 
   public enum Type {
     LABEL("label", R.layout.taskitem_label) {
 
       @Override
-      public TaskItem create(String name, String label, String value, List<String> options) {
+      public TaskItem create(final String name, final String label, final String value, final List<String> options) {
         return new LabelItem(name,value==null ? label : value);
       }
     },
@@ -42,14 +53,14 @@ public abstract class TaskItem extends BaseObservable {
     GENERIC("generic", R.layout.taskitem_generic) {
 
       @Override
-      public TaskItem create(String name, String label, String value, List<String> options) {
+      public TaskItem create(final String name, final String label, final String value, final List<String> options) {
         return new GenericItem(name, label, "generic", value, options);
       }
     },
     TEXT("text", R.layout.taskitem_text) {
 
       @Override
-      public TaskItem create(String name, String label, String value, List<String> options) {
+      public TaskItem create(final String name, final String label, final String value, final List<String> options) {
         return new TextItem(name, label, value, options);
       }
 
@@ -57,7 +68,7 @@ public abstract class TaskItem extends BaseObservable {
     LIST("list", R.layout.taskitem_list) {
 
       @Override
-      public TaskItem create(String name, String label, String value, List<String> options) {
+      public TaskItem create(final String name, final String label, final String value, final List<String> options) {
         return new ListItem(name, label, value, options);
       }
 
@@ -65,7 +76,7 @@ public abstract class TaskItem extends BaseObservable {
     PASSWORD("password", R.layout.taskitem_password) {
 
       @Override
-      public TaskItem create(String name, String label, String value, List<String> options) {
+      public TaskItem create(final String name, final String label, final String value, final List<String> options) {
         return new PasswordItem(name, label, value);
       }
 
@@ -75,7 +86,7 @@ public abstract class TaskItem extends BaseObservable {
     private String mStr;
     @LayoutRes public final int layoutId;
 
-    Type(String str, @LayoutRes int layoutId) {
+    Type(final String str, @LayoutRes final int layoutId) {
       mStr = str;
       this.layoutId = layoutId;
     }
@@ -87,8 +98,8 @@ public abstract class TaskItem extends BaseObservable {
       return mStr;
     }
 
-    static Type from(String s) {
-      for(Type candidate:values()) {
+    static Type from(final String s) {
+      for(final Type candidate:values()) {
         if (candidate.mStr.equals(s)) {
           return candidate;
         }
@@ -104,8 +115,8 @@ public abstract class TaskItem extends BaseObservable {
   private enum Factories implements Factory<TaskItem>{
     DEFAULT_FACTORY {
       @Override
-      public TaskItem create(String name, String label, String typeName, String value, List<String> options) {
-        Type type = Type.from(typeName);
+      public TaskItem create(final String name, final String label, final String typeName, final String value, final List<String> options) {
+        final Type type = Type.from(typeName);
         if (type==null) {
           return new GenericItem(name, label, typeName, value, options);
         } else {
@@ -116,16 +127,21 @@ public abstract class TaskItem extends BaseObservable {
     },
     GENERIC_FACTORY {
       @Override
-      public GenericItem create(String name, String label, String type, String value, List<String> options) {
+      public GenericItem create(final String name, final String label, final String type, final String value, final List<String> options) {
         return new GenericItem(name, label, type, value, options);
       }
     },
 
   }
 
+  public static final String ELEMENTLOCALNAME = "item";
+  private static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+  public static final String OPTION_ELEMENTLOCALNAME = "option";
+  private static final QName OPTION_ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, OPTION_ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+
   private String mName;
 
-  protected TaskItem(String name) {
+  protected TaskItem(final String name) {
     mName = name;
   }
 
@@ -137,7 +153,7 @@ public abstract class TaskItem extends BaseObservable {
     return mName;
   }
 
-  public void setName(String name) {
+  public void setName(final String name) {
     mName = name;
   }
 
@@ -158,7 +174,7 @@ public abstract class TaskItem extends BaseObservable {
     return getType().toString();
   }
 
-  public static TaskItem create(String name, String label, String type, String value, List<String> options) {
+  public static TaskItem create(final String name, final String label, final String type, final String value, final List<String> options) {
     return defaultFactory().create(name, label, type, value, options);
   }
 
@@ -180,45 +196,68 @@ public abstract class TaskItem extends BaseObservable {
     return new ObservableArrayList<>();
   }
 
-  public void serialize(XmlSerializer serializer, boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
-    serializer.startTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
+  public TaskItem deserialize(final XmlReader in) throws XmlException {
+    return parseTaskItem(in);
+  }
+
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    serialize(out, true);
+  }
+
+  public void serialize(final XmlWriter out, final boolean serializeOptions) throws XmlException{
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlUtil.writeAttribute(out, "name", getName());
+    XmlUtil.writeAttribute(out, "label", getLabel());
+    XmlUtil.writeAttribute(out, "type", getDBType());
+    XmlUtil.writeAttribute(out, "value", getValue());
+    if (serializeOptions) {
+      for(final String option: getOptions()) {
+        XmlUtil.writeSimpleElement(out, OPTION_ELEMENTNAME, option);
+      }
+    }
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
+  }
+
+  @Deprecated
+  public void serialize(final XmlSerializer serializer, final boolean serializeOptions) throws IllegalArgumentException, IllegalStateException, IOException {
+    serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
     if (getName()!=null) { serializer.attribute(null, "name", getName()); }
     if (getLabel()!=null) { serializer.attribute(null, "label", getLabel()); }
     if (getDBType()!=null) { serializer.attribute(null, "type", getDBType()); }
     if (getValue()!=null) { serializer.attribute(null, "value", getValue()); }
     if (serializeOptions) {
-      for(String option: getOptions()) {
-        serializer.startTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
+      for(final String option: getOptions()) {
+        serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_OPTION);
         serializer.text(option);
-        serializer.endTag(UserTask.NS_TASKS, UserTask.TAG_OPTION);
+        serializer.endTag(Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_OPTION);
 
       }
     }
-    serializer.endTag(UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    serializer.endTag(Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
   }
 
-  public static GenericItem parseTaskGenericItem(XmlPullParser in) throws XmlPullParserException, IOException {
+  public static GenericItem parseTaskGenericItem(final XmlReader in) throws XmlException {
     return parseTaskItemHelper(in, genericFactory());
   }
 
-  private static <T extends TaskItem> T parseTaskItemHelper(XmlPullParser in, TaskItem.Factory<T> factory) throws XmlPullParserException, IOException {
-    in.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
-    String name = in.getAttributeValue(null, "name");
-    String label = in.getAttributeValue(null, "label");
-    String type = in.getAttributeValue(null, "type");
-    String value = in.getAttributeValue(null, "value");
-    List<String> options = new ArrayList<>();
-    while ((in.nextTag())==XmlPullParser.START_TAG) {
-      in.require(XmlPullParser.START_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
-      options.add(in.nextText());
-      in.nextTag();
-      in.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_OPTION);
+  private static <T extends TaskItem> T parseTaskItemHelper(@NonNull final XmlReader in, final Factory<T> factory) throws XmlException {
+    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
+    final String name = StringUtil.toString(in.getAttributeValue(null, "name"));
+    final String label = StringUtil.toString(in.getAttributeValue(null, "label"));
+    final String type = StringUtil.toString(in.getAttributeValue(null, "type"));
+    final String value = StringUtil.toString(in.getAttributeValue(null, "value"));
+    final List<String> options = new ArrayList<>();
+    while ((in.nextTag())==EventType.START_ELEMENT) {
+      in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_OPTION);
+      options.add(XmlUtil.nextText(in).toString());
+      in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_OPTION);
     }
-    in.require(XmlPullParser.END_TAG, UserTask.NS_TASKS, UserTask.TAG_ITEM);
+    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
     return factory.create(name, label, type, value, options);
   }
 
-  public static TaskItem parseTaskItem(XmlPullParser in) throws XmlPullParserException, IOException {
+  public static TaskItem parseTaskItem(final XmlReader in) throws XmlException {
     return TaskItem.parseTaskItemHelper(in, defaultFactory());
   }
 
@@ -227,7 +266,7 @@ public abstract class TaskItem extends BaseObservable {
     if (this == o) { return true; }
     if (o == null || getClass() != o.getClass()) { return false; }
 
-    TaskItem taskItem = (TaskItem) o;
+    final TaskItem taskItem = (TaskItem) o;
 
     return mName != null ? mName.equals(taskItem.mName) : taskItem.mName == null;
 

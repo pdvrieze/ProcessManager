@@ -33,12 +33,15 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentUserTaskEditorBinding;
+import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.items.LabelItem;
 import nl.adaptivity.process.tasks.items.ListItem;
 import nl.adaptivity.process.tasks.items.PasswordItem;
 import nl.adaptivity.process.tasks.items.TextItem;
+import nl.adaptivity.process.ui.UIConstants;
 
 import java.util.ArrayList;
 
@@ -73,6 +76,19 @@ public class UserTaskEditorFragment extends Fragment {
 
     mAdapter = new UserTaskEditAdapter();
     mBinding.content.setAdapter(mAdapter);
+
+    ParcelableActivity<?,?> activity = null;
+    if (savedInstanceState!=null && savedInstanceState.containsKey(UIConstants.KEY_ACTIVITY)) {
+      activity = savedInstanceState.getParcelable(UIConstants.KEY_ACTIVITY);
+    } else if (getArguments()!=null && getArguments().containsKey(UIConstants.KEY_ACTIVITY)){
+      activity = getArguments().getParcelable(UIConstants.KEY_ACTIVITY);
+    }
+    if (activity!=null) {
+      UserTask userTask = activity.getUserTask();
+      if (userTask!=null) {
+        mAdapter.setItems(userTask.getItems());
+      }
+    }
 
 
     return view;

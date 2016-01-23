@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.ui.activity;
 
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -27,6 +28,7 @@ import android.view.MenuItem;
 import android.view.View;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.ActivityUserTaskEditorBinding;
+import nl.adaptivity.process.ui.UIConstants;
 
 
 public class UserTaskEditorActivity extends AppCompatActivity {
@@ -42,6 +44,16 @@ public class UserTaskEditorActivity extends AppCompatActivity {
     setSupportActionBar(toolbar);
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    final Intent intent = getIntent();
+    UserTaskEditorFragment fragment = new UserTaskEditorFragment();
+    if (intent.hasExtra(UIConstants.KEY_ACTIVITY)) {
+      Bundle bundle = new Bundle(1);
+      bundle.putParcelable(UIConstants.KEY_ACTIVITY, intent.getParcelableExtra(UIConstants.KEY_ACTIVITY));
+      fragment.setArguments(bundle);
+    }
+    getSupportFragmentManager().beginTransaction().add(mBinding.fragment.getId(), fragment).commit();
+
+
   }
 
   @Override

@@ -18,15 +18,26 @@ package nl.adaptivity.process.diagram.android;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
+import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.tasks.PostTask;
+import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
+import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
+import org.w3.soapEnvelope.Envelope;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.CharArrayReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,14 +51,16 @@ import java.util.List;
  */
 public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends ClientProcessModel<T,M>> extends ClientActivityNode<T,M> implements Parcelable {
 
+  private static final String TAG = "ParcelableActivity";
+
   public static final Creator<ParcelableActivity> CREATOR = new Creator<ParcelableActivity>() {
     @Override
-    public ParcelableActivity createFromParcel(Parcel in) {
+    public ParcelableActivity createFromParcel(final Parcel in) {
       return new ParcelableActivity(in);
     }
 
     @Override
-    public ParcelableActivity[] newArray(int size) {
+    public ParcelableActivity[] newArray(final int size) {
       return new ParcelableActivity[size];
     }
   };
@@ -64,7 +77,8 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     setPredecessors(fromIdStrings(source.createStringArray()));
     setSuccessors(fromIdStrings(source.createStringArray()));
 
-    String strMessage = source.readString();
+    final String strMessage = source.readString();
+    Log.d(TAG, "deserializing message:\n"+strMessage);
     if (strMessage!=null && strMessage.length()>0) {
       try {
         setMessage(XmlUtil.deSerialize(new StringReader(strMessage), XmlMessage.class));
@@ -79,6 +93,21 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
 
   public ParcelableActivity(final Activity<?, ?> orig, final boolean compat) {
     super(orig, compat);
+  }
+
+  public UserTask getUserTask() {
+    final XmlMessage message = getMessage();
+    if (UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
+            UserTaskServiceDescriptor.ENDPOINT.equals(message.getEndpoint())) {
+      try {
+        final Envelope<PostTask> envelope = Envelope.deserialize(message.getBodyStreamReader(), PostTask.FACTORY);
+        return envelope.getBody().getBodyContent().getTask();
+      } catch (XmlException e) {
+        Log.e(TAG, "getUserTask", e);
+        throw new RuntimeException(e);
+      }
+    }
+    return null;
   }
 
   public static <T extends ClientProcessNode<T,M>, M extends ClientProcessModel<T,M>> ParcelableActivity<T,M> newInstance(final Activity<T,M> orig, final boolean compat) {
@@ -116,14 +145,14 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   private void writeDefines(final Parcel dest) {
     final List<XmlDefineType> defines = getDefines();
     dest.writeInt(defines.size());
-    for(XmlDefineType define:defines) {
+    for(final XmlDefineType define:defines) {
       dest.writeString(XmlUtil.toString(define));
     }
   }
 
   private static List<XmlDefineType> readDefines(final Parcel source) {
-    int count = source.readInt();
-    List<XmlDefineType> result = new ArrayList<>();
+    final int count = source.readInt();
+    final List<XmlDefineType> result = new ArrayList<>();
     try {
       for (int i = 0; i < count; i++) {
         result.add(XmlUtil.deSerialize(new StringReader(source.readString()),XmlDefineType.class));
@@ -137,14 +166,14 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   private void writeResults(final Parcel dest) {
     final List<XmlResultType> results = getResults();
     dest.writeInt(results.size());
-    for(XmlResultType result:results) {
+    for(final XmlResultType result:results) {
       dest.writeString(XmlUtil.toString(result));
     }
   }
 
   private static List<XmlResultType> readResults(final Parcel source) {
-    int count = source.readInt();
-    List<XmlResultType> retValue = new ArrayList<>();
+    final int count = source.readInt();
+    final List<XmlResultType> retValue = new ArrayList<>();
     try {
       for (int i = 0; i < count; i++) {
         retValue.add(XmlUtil.deSerialize(new StringReader(source.readString()),XmlResultType.class));
@@ -159,7 +188,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
   private static String[] toIdStrings(final ProcessNodeSet<? extends Identifiable> set) {
     final String[] result = new String[set.size()];
     int i=0;
-    for(Identifiable elem:set) {
+    for(final Identifiable elem:set) {
       result[i++]=elem.getId();
     }
     return result;
@@ -167,8 +196,8 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
 
 
   private static Collection<? extends Identifiable> fromIdStrings(final String[] stringArray) {
-    List<Identifiable> result = new ArrayList<>();
-    for(String s:stringArray) {
+    final List<Identifiable> result = new ArrayList<>();
+    for(final String s:stringArray) {
       result.add(new Identifier(s));
     }
     return result;

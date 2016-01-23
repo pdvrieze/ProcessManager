@@ -209,8 +209,6 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     mBinding.processmodelName.setText(null);
     mItem = null;
     mBinding.diagramView1.setAdapter(null);
-    // TODO Auto-generated method stub
-
   }
 
   @Override

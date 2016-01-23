@@ -27,18 +27,35 @@ import android.util.Log;
 import net.devrieze.util.CollectionUtil;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
+import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.AndroidXmlReader;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlWriter;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
+
+import javax.xml.namespace.QName;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+@XmlDeserializer(UserTask.Factory.class)
+public class UserTask extends BaseObservable implements XmlSerializable {
 
-public class UserTask extends BaseObservable {
+  public static class Factory implements XmlDeserializerFactory<UserTask> {
+
+    @Override
+    public UserTask deserialize(final XmlReader in) throws XmlException {
+      return UserTask.deserialize(in);
+    }
+  }
 
   private static final String TAG = "UserTask";
   private static final int STATE_EDITABLE=1;
@@ -76,7 +93,7 @@ public class UserTask extends BaseObservable {
     private final int mDecoratorId;
     private final int mState;
 
-    private TaskState(String attrValue, @StringRes int labelId, @DrawableRes int decoratorId, final int state) {
+    private TaskState(final String attrValue, @StringRes final int labelId, @DrawableRes final int decoratorId, final int state) {
       mAttrValue = attrValue;
       mLabelId = labelId;
       mDecoratorId = decoratorId;
@@ -105,9 +122,9 @@ public class UserTask extends BaseObservable {
       return (mState& STATE_AVAILABLE)!=0;
     }
 
-    public static TaskState fromString(String state) {
+    public static TaskState fromString(final String state) {
       if (state==null) { return null; }
-      for(TaskState candidate: values()) {
+      for(final TaskState candidate: values()) {
         if (state.equalsIgnoreCase(candidate.mAttrValue)) {
           return candidate;
         }
@@ -116,9 +133,9 @@ public class UserTask extends BaseObservable {
     }
   }
 
-  public static final String NS_TASKS = "http://adaptivity.nl/userMessageHandler";
   public static final String TAG_TASKS = "tasks";
-  public static final String TAG_TASK = "task";
+  public static final String ELEMENTLOCALNAME = "task";
+  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
   public static final String TAG_ITEM = "item";
   public static final String TAG_OPTION = "option";
   private final OnListChangedCallback mChangeCallback = new OnListChangedCallback() {
@@ -165,6 +182,13 @@ public class UserTask extends BaseObservable {
   private TaskState mState;
   private ObservableList<TaskItem> mItems;
   private boolean mDirty = false;
+  private List<CompactFragment> mExtras;
+
+  private UserTask() {
+    mItems = new ObservableArrayList<>();
+    mExtras = new ArrayList<>();
+    // Constructor for deserialization.
+  }
 
   public UserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
     Log.d(TAG, "UserTask() called with " + "summary = [" + summary + "], handle = [" + handle + "], owner = [" + owner + "], state = [" + state + "], items = [" + items + "] -> " +toString() );
@@ -172,6 +196,7 @@ public class UserTask extends BaseObservable {
     mHandle = handle;
     mOwner = owner;
     mState = state;
+    mExtras = new ObservableArrayList<>();
     mItems = new ObservableArrayList<>();
     mItems.addAll(items);
     mItems.addOnListChangedCallback(mChangeCallback);
@@ -187,8 +212,8 @@ public class UserTask extends BaseObservable {
     return mSummary;
   }
 
-  private void setDirty(boolean dirty, int fieldId) {
-    boolean oldDirty = mDirty;
+  private void setDirty(final boolean dirty, final int fieldId) {
+    final boolean oldDirty = mDirty;
     mDirty = mDirty || dirty;
     if (dirty) {
       notifyPropertyChanged(fieldId);
@@ -198,7 +223,7 @@ public class UserTask extends BaseObservable {
     }
   }
 
-  public void setSummary(String summary) {
+  public void setSummary(final String summary) {
     setDirty(! Util.equals(mSummary, summary), BR.summary);
     mSummary = summary;
   }
@@ -209,7 +234,7 @@ public class UserTask extends BaseObservable {
   }
 
 
-  public void setHandle(long handle) {
+  public void setHandle(final long handle) {
     mHandle = handle;
   }
 
@@ -220,7 +245,7 @@ public class UserTask extends BaseObservable {
   }
 
 
-  public void setOwner(String owner) {
+  public void setOwner(final String owner) {
     setDirty(! Util.equals(mOwner, owner), BR.owner);
     mOwner = owner;
   }
@@ -231,9 +256,9 @@ public class UserTask extends BaseObservable {
   }
 
 
-  public void setState(TaskState state) {
-    boolean oldCanComplete = isCompleteable();
-    boolean oldEditable = isEditable();
+  public void setState(final TaskState state) {
+    final boolean oldCanComplete = isCompleteable();
+    final boolean oldEditable = isEditable();
     setDirty(! Util.equals(mState, state), BR.state);
     mState = state;
     if (oldCanComplete != isCompleteable()) {
@@ -250,7 +275,7 @@ public class UserTask extends BaseObservable {
   }
 
 
-  public void setItems(List<TaskItem> items) {
+  public void setItems(final List<TaskItem> items) {
     // No need to check for dirtyness, the list will do that itself.
     if (items==null || items.isEmpty()) {
       mItems.clear();
@@ -262,7 +287,7 @@ public class UserTask extends BaseObservable {
   @Bindable
   public boolean isCompleteable() {
     if (mState ==null || (! mState.isEditable())) { return false; }
-    for (TaskItem item:mItems) {
+    for (final TaskItem item:mItems) {
       if (! item.isCompleteable()) { return false; }
     }
     return true;
@@ -271,8 +296,8 @@ public class UserTask extends BaseObservable {
   /**
    * Method that can be used to trigger completeability checks that trigger change notifications.
    */
-  public boolean checkCompleteable(boolean oldValue) {
-    boolean newValue = isCompleteable();
+  public boolean checkCompleteable(final boolean oldValue) {
+    final boolean newValue = isCompleteable();
     if (newValue != oldValue) {
       notifyPropertyChanged(BR.completeable);
     }
@@ -282,16 +307,53 @@ public class UserTask extends BaseObservable {
   @Bindable
   public boolean isDirty() {
     if (mDirty) return true;
-    for(TaskItem i: mItems) {
+    for(final TaskItem i: mItems) {
       if (i.isDirty()) return true;
     }
     return false;
   }
 
-  public static List<UserTask> parseTasks(InputStream in) throws XmlPullParserException, IOException {
-    XmlPullParser parser;
+  @Override
+  public void serialize(final XmlWriter out) throws XmlException {
+    XmlUtil.writeStartElement(out, ELEMENTNAME);
+    XmlUtil.writeAttribute(out, "summary", mSummary);
+    XmlUtil.writeAttribute(out, "handle", mHandle);
+    XmlUtil.writeAttribute(out, "owner", mOwner);
+    if (mState!=null) { out.attribute(null, "state", null, mState.name()); }
+    for(CompactFragment extra: mExtras) {
+      extra.serialize(out);
+    }
+    for(TaskItem item: mItems) {
+      item.serialize(out);
+    }
+    XmlUtil.writeEndElement(out, ELEMENTNAME);
+  }
+
+  public static UserTask deserialize(final XmlReader in) throws XmlException {
+    final String summary;
+    final long handle;
+    final String owner;
+    final String state;
+    final List<TaskItem> items;
+    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
+    summary = in.getAttributeValue(null, "summary").toString();
+    handle = Long.parseLong(in.getAttributeValue(null, "handle").toString());
+    owner = in.getAttributeValue(null, "owner").toString();
+    state = in.getAttributeValue(null, "state").toString();
+    items = new ArrayList<>();
+
+    while ((in.nextTag()) == EventType.START_ELEMENT) {
+      items.add(TaskItem.parseTaskItem(in));
+    }
+    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
+    return new UserTask(summary, handle, owner, TaskState.fromString(state), items);
+  }
+
+
+  public static List<UserTask> parseTasks(final InputStream in) throws XmlPullParserException, IOException {
+    final XmlPullParser parser;
     try {
-      XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+      final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
       factory.setNamespaceAware(true);
       parser = factory.newPullParser();
       parser.setInput(in, "utf-8");
@@ -302,31 +364,30 @@ public class UserTask extends BaseObservable {
     return parseTasks(in);
   }
 
-  public static List<UserTask> parseTasks(XmlPullParser in) throws XmlPullParserException, IOException {
+  public static List<UserTask> parseTasks(final XmlPullParser in) throws XmlPullParserException, IOException {
     if(in.getEventType()==XmlPullParser.START_DOCUMENT) {
       in.nextTag();
     }
-    in.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASKS);
-    ArrayList<UserTask> result = new ArrayList<>();
+    in.require(XmlPullParser.START_TAG, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
+    final ArrayList<UserTask> result = new ArrayList<>();
     while ((in.nextTag())==XmlPullParser.START_TAG) {
       result.add(parseTask(in));
     }
-    in.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASKS);
+    in.require(XmlPullParser.END_TAG, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
     return result;
   }
 
-  public static UserTask parseTask(XmlPullParser in) throws XmlPullParserException, IOException {
-    in.require(XmlPullParser.START_TAG, NS_TASKS, TAG_TASK);
-    String summary = in.getAttributeValue(null, "summary");
-    long handle = Long.parseLong(in.getAttributeValue(null, "handle"));
-    String owner = in.getAttributeValue(null, "owner");
-    String state = in.getAttributeValue(null, "state");
-    List<TaskItem> items = new ArrayList<>();
-    while ((in.nextTag())==XmlPullParser.START_TAG) {
-      items.add(TaskItem.parseTaskItem(in));
+  @Deprecated
+  public static UserTask parseTask(final XmlPullParser in) throws XmlPullParserException {
+    try {
+      return deserialize(new AndroidXmlReader(in));
+    } catch (XmlException e) {
+      if (e.getCause() instanceof XmlPullParserException) {
+        throw (XmlPullParserException) e.getCause();
+      } else {
+        throw new XmlPullParserException(e.getMessage(), in, e);
+      }
     }
-    in.require(XmlPullParser.END_TAG, NS_TASKS, TAG_TASK);
-    return new UserTask(summary, handle, owner, TaskState.fromString(state), items);
   }
 
   @Override

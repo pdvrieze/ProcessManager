@@ -141,11 +141,6 @@ public class NodeEditDialogFragment extends DialogFragment implements OnClickLis
       if (getActivity() instanceof NodeEditListener) {
         NodeEditListener listener = (NodeEditListener) getActivity();
         DrawableProcessNode node = listener.getNode(mPos);
-        if (node instanceof DrawableJoinSplit) {
-          DrawableJoinSplit jsnode = (DrawableJoinSplit) node;
-          jsnode.setMin(mNpMin.getValue());
-          jsnode.setMax(mNpMax.getValue());
-        }
         node.setLabel(mEtLabel.getText().toString());
         listener.onNodeEdit(mPos);
       }

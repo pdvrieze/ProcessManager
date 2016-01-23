@@ -17,6 +17,7 @@
 package nl.adaptivity.process.ui.activity;
 
 import android.databinding.DataBindingUtil;
+import android.databinding.ObservableList;
 import android.databinding.ViewDataBinding;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
@@ -77,7 +78,11 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
 
 // Object Initialization
   public UserTaskEditAdapter() {
-    mItems = new ArrayList<>();
+    this(null);
+  }
+
+  public UserTaskEditAdapter(final List<? extends TaskItem> items) {
+    mItems = (items==null || items.isEmpty()) ? new ArrayList<TaskItem>() : new ArrayList<TaskItem>(items);
     mItemTouchHelper = new ItemTouchHelper(new Callback() {
 
       @Override
@@ -102,7 +107,6 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
         UserTaskEditAdapter.this.onSwiped(viewHolder, direction);
       }
     });
-
   }
 // Object Initialization end
 
@@ -196,4 +200,10 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
     }
   }
 
+  public void setItems(final List<? extends TaskItem> items) {
+    mItems.clear();
+    mItems.addAll(items);
+    // The entire dataset changed
+    notifyDataSetChanged();
+  }
 }
