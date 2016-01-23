@@ -22,13 +22,16 @@ import nl.adaptivity.diagram.*;
 public final class Connectors {
 
   private Connectors() { /* No functions */ }
-  
-  private static final double LEADERLEN = 17d;
+
+  /** The distance of the control point from the head of the arrow */
+  private static final double HEAD_CONTROL_DIST = 17d;
   private static final double HEADLEN= 10d;
   private static final double HEADANGLE=(35*Math.PI)/180;
   private static final double HEADDX = Math.cos(HEADANGLE)*HEADLEN;
   private static final double HEADDY = Math.sin(HEADANGLE)*HEADLEN;
   private static final double MINANGLE = (1*Math.PI)/180;
+  private static final double TAIL_JOIN_DIST = 6d;
+  private static final double TAIL_CONTROL_DIST=TAIL_JOIN_DIST*0.6d;
 
   public static <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> 
       void drawArrow(Canvas<S, PEN_T, PATH_T> canvas, Theme<S, PEN_T, PATH_T> theme, double canvasX1, double canvasY1, double a1, double canvasX2, double canvasY2, double a2) {
@@ -40,68 +43,83 @@ public final class Connectors {
   }
 
   public static <PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>, S extends DrawingStrategy<S, PEN_T, PATH_T>> 
-      PATH_T getArrow(S strategy, double x1, double y1, double x2, double y2, PEN_T pen) {
-    double dx = x2-x1;
-    double dy = y2-y1;
+      PATH_T getArrow(S strategy, double tailX, double tailY, double headTargetX, double headTargetY, PEN_T pen) {
+    double dx = headTargetX-tailX;
+    double dy = headTargetY-tailY;
     double angle = Math.atan2(dy,dx);
-    if (Math.abs(angle)<MINANGLE || Math.abs(x2-x1)<LEADERLEN){
-      return getStraightArrow(strategy, x1, y1, x2, y2, pen);
+    if (Math.abs(angle)<MINANGLE || Math.abs(headTargetX-tailX) < HEAD_CONTROL_DIST){
+      return getStraightArrow(strategy, tailX, tailY, headTargetX, headTargetY, pen);
     }
 
     final double headDx;
-    final double x3;
-    final double x4;
-    final double y3 = y2;
-    final double angle2;
+    final double headOffsetX;
+    final double headControlX;
+    final double headOffsetY = headTargetY; // fully horizontal so no change
+    final double headControlY = headOffsetY;
+    final double lineAngle;
     final double capCorrect;
+    final double tailJoinX;
+    final double tailJoinY = tailY;
+    final double tailControlX1;
+    final double tailControlY1 = tailY;
 
     // The distance that the miter extends from the focal point of the arrow.
     final double miterExtend = (0.5*pen.getStrokeWidth())/Math.sin(HEADANGLE);
-    if (x1<x2) { // left to right
+    if (tailX<headTargetX) { // left to right
+
       headDx = -HEADDX;
-      x3 = (float) (x2-miterExtend);
+      headOffsetX = (float) (headTargetX-miterExtend);
       /* Point 3 represents the focal point of a spline.
        * Point 4 is the point where the spline stops and a straight line starts.
        */
-      x4 = x3-LEADERLEN;
-      angle2 = Math.atan2((y1-y3),(x1-x4));
+      headControlX = headOffsetX - HEAD_CONTROL_DIST;
+      tailJoinX = tailX + TAIL_JOIN_DIST;
+      tailControlX1 = tailX + TAIL_CONTROL_DIST;
+      lineAngle = Math.atan2((tailJoinY-headOffsetY),(tailJoinX-headControlX));
       capCorrect = pen.getStrokeWidth()/-2f;
     } else { //right to left
       headDx = HEADDX;
-      x3 = (float) (x2+miterExtend);
-      /* Point 3 represents the focal point of a spline.
-       * Point 4 is the point where the spline stops and a straight line starts.
+      headOffsetX = (float) (headTargetX+miterExtend);
+      /* headOffsetX represents the focal point of a spline such that with the miter, the x will be at headTargetX.
+       * headControlX is x coordinate of the control point for the head
        */
-      x4 = x3+LEADERLEN;
-      angle2 = Math.atan2((y1-y3),(x1-x4));
+      headControlX = headOffsetX + HEAD_CONTROL_DIST;
+      tailJoinX = tailX - TAIL_JOIN_DIST;
+      tailControlX1 = tailX - TAIL_CONTROL_DIST;
+      lineAngle = Math.atan2((tailJoinY-headOffsetY),(tailJoinX-headControlX));
       capCorrect = pen.getStrokeWidth()/2f;
     }
-    final float x5 = (float) (x4+Math.cos(angle2)*LEADERLEN);
-    final float y6 = (float) (y3+Math.sin(angle2)*LEADERLEN);
+    final float headStartX = (float) (headControlX+ Math.cos(lineAngle) * HEAD_CONTROL_DIST);
+    final float headStartY = (float) (headOffsetY+ Math.sin(lineAngle) * HEAD_CONTROL_DIST);
+    final float tailEndX = (float) (tailJoinX- Math.cos(lineAngle) * TAIL_JOIN_DIST);
+    final float tailEndY = (float) (tailJoinY- Math.sin(lineAngle) * TAIL_JOIN_DIST);
+    final float tailControlX2 = (float) (tailEndX + Math.cos(lineAngle) * TAIL_CONTROL_DIST);
+    final float tailControlY2 = (float) (tailEndY + Math.sin(lineAngle) * TAIL_CONTROL_DIST);
 
     boolean tooShort = false;
     if (dx>0) {
-      if (x5<x1) { tooShort=true; }
+      if (headStartX<tailX) { tooShort=true; }
     } else {
-      if (x5>x1) { tooShort=true; }
+      if (headStartX>tailX) { tooShort=true; }
     }
     if (dy>0) {
-      if (y6<y1) { tooShort=true; }
+      if (headStartY<tailY) { tooShort=true; }
     } else { // dy<0
-      if (y6>y1) { tooShort=true; }
+      if (headStartY>tailY) { tooShort=true; }
     }
     if (tooShort) {
-      return getStraightArrow(strategy, x1, y1, x2, y2, pen);
+      return getStraightArrow(strategy, tailX, tailY, headTargetX, headTargetY, pen);
     } else {
   
       PATH_T arrowPath = strategy.newPath();
-      arrowPath.moveTo(x1, y1);
-      arrowPath.lineTo(x5, y6);
-      arrowPath.cubicTo((float)x4, (float)y3, (float)x4, (float)y3, x3+capCorrect, y2);
+      arrowPath.moveTo(tailX, tailY);
+      arrowPath.cubicTo(tailControlX1, tailControlY1, tailControlX2, tailControlY2, tailEndX, tailEndY);
+      arrowPath.lineTo(headStartX, headStartY);
+      arrowPath.cubicTo((float)headControlX, (float)headOffsetY, (float)headControlX, (float)headOffsetY, headOffsetX+capCorrect, headTargetY);
       final float headDy = (float) (HEADDY);
-      arrowPath.moveTo((float)(x3+headDx), y2-headDy);
-      arrowPath.lineTo(x3, y2);
-      arrowPath.lineTo((float)(x3+headDx), y2+headDy);
+      arrowPath.moveTo((float)(headOffsetX+headDx), headTargetY-headDy);
+      arrowPath.lineTo(headOffsetX, headTargetY);
+      arrowPath.lineTo((float)(headOffsetX+headDx), headTargetY+headDy);
       return arrowPath;
     }
   }
