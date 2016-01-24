@@ -63,9 +63,6 @@ import java.util.Map.Entry;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = Envelope.ELEMENTLOCALNAME, propOrder = { "header", "body" })
-@XmlRootElement(name = Envelope.ELEMENTLOCALNAME, namespace = Envelope.NAMESPACE)
 @XmlDeserializer(Envelope.Factory.class)
 public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
@@ -87,19 +84,16 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
   public static final String MIMETYPE = "application/soap+xml";
 
-  @XmlElement(name = Header.ELEMENTLOCALNAME)
   protected Header header;
 
-  @XmlElement(name = Body.ELEMENTLOCALNAME, required = true)
   protected Body<T> body;
 
-  @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
   private URI encodingStyle;
 
   public static Envelope<CompactFragment> deserialize(final XmlReader in) throws XmlException {
-    return deserialize(in, new CompactFragment.Factory());
+    return deserialize(in, CompactFragment.FACTORY);
   }
 
   public static <T extends XmlSerializable> Envelope<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyDeserializer) throws XmlException {
@@ -217,7 +211,6 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
     return otherAttributes;
   }
 
-  @XmlAttribute(name = "encodingStyle")
   public URI getEncodingStyle() {
     return encodingStyle;
   }
