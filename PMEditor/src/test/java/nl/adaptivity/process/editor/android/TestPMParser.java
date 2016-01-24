@@ -1,16 +1,26 @@
 package nl.adaptivity.process.editor.android;
 
+import net.devrieze.util.Streams;
 import nl.adaptivity.diagram.Drawable;
 import nl.adaptivity.process.diagram.*;
 import nl.adaptivity.process.engine.TestProcessData;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
+import nl.adaptivity.process.processModel.XmlMessage;
+import nl.adaptivity.process.tasks.PostTask;
+import nl.adaptivity.util.HttpMessage.Post;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
+import org.custommonkey.xmlunit.XMLAssert;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
+import org.w3.soapEnvelope.Envelope;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.CharArrayWriter;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -41,6 +51,38 @@ public class TestPMParser {
     XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
     DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
     checkModel1(model);
+
+  }
+
+  @Test
+  public void testRoundTripSoapMessage() throws Exception {
+    String source = Streams.toString(getClass().getResourceAsStream("/message.xml"), Charset.forName("UTF-8"));
+
+    XmlReader parser = new AndroidXmlReader(new StringReader(source));
+    XmlMessage msg = XmlMessage.deserialize(parser);
+
+    String out = XmlUtil.toString(msg);
+
+
+    try {
+      XMLAssert.assertXMLEqual(source, out);
+    } catch (AssertionError e) {
+      assertEquals(source, out);
+    }
+
+    String bodySource = msg.getMessageBody().getContentString();
+    XmlReader bodyParser = msg.getBodyStreamReader();
+    Envelope<PostTask> pt = Envelope.deserialize(bodyParser, PostTask.FACTORY);
+    String bodyOut = XmlUtil.toString(pt);
+    XMLUnit.setIgnoreWhitespace(true);
+    XMLUnit.setIgnoreComments(true);
+    XMLUnit.setIgnoreAttributeOrder(true);
+
+    try {
+      XMLAssert.assertXMLEqual(bodySource, bodyOut);
+    } catch (AssertionError e) {
+      assertEquals(bodySource, bodyOut);
+    }
 
   }
 

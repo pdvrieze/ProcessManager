@@ -8,9 +8,29 @@ package android.util;
  */
 public class Log {
 
+  public static int e (String tag, String msg) {
+    return e(tag, msg, null);
+  }
+
   public static int e (String tag, String msg, Throwable tr) {
     System.err.println("ERROR: "+tag + " -- " + msg);
-    tr.printStackTrace(System.err);
+    if (tr!=null) {
+      tr.printStackTrace(System.err);
+    }
     return 0;
   }
+
+  public static int d(String tag, String msg) {
+    return d(tag, msg, null);
+  }
+
+  public static int d (String tag, String msg, Throwable tr) {
+    System.err.println("DEBUG: "+tag + " -- " + msg);
+    if (tr!=null) {
+      tr.printStackTrace(System.err);
+    }
+    return 0;
+  }
+
+
 }
