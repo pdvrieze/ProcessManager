@@ -47,8 +47,9 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   private String mLabel;
   private double mX=Double.NaN;
   private double mY=Double.NaN;
-  private List<XmlDefineType> mDefines;
-  private List<XmlResultType> mResults;
+  @Nullable private List<XmlDefineType> mDefines;
+  @Nullable private List<XmlResultType> mResults;
+  private int mHashCode = 0;
 
   public ProcessNodeBase(@Nullable final M ownerModel) {
     if (ownerModel!=null) {
@@ -129,6 +130,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   @Deprecated
   protected final void swapPredecessors(@NotNull final Collection<?> predecessors) {
+    mHashCode = 0;
     mPredecessors=null;
     final List<ExecutableProcessNode> tmp = new ArrayList<>(predecessors.size());
     for(final Object pred:predecessors) {
@@ -141,6 +143,8 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   @Override
   public void addPredecessor(@NotNull final Identifiable predId) {
+    mHashCode = 0;
+    if (predId==this) { throw new IllegalArgumentException(); }
     if (mPredecessors!=null) {
       if (mPredecessors.containsKey(predId.getId())) { return; }
       if (mPredecessors.size() + 1 > getMaxPredecessorCount()) {
@@ -169,7 +173,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   @Override
   public final void removePredecessor(final Identifiable predecessorId) {
-
+    mHashCode = 0;
     if (mPredecessors.remove(predecessorId)) {
       M owner = mOwnerModel;
       T predecessor;
@@ -185,6 +189,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     if (nodeId == null) {
       throw new IllegalProcessModelException("Adding Null process successors is illegal");
     }
+    mHashCode = 0;
     if (mSuccessors == null) {
       mSuccessors = getMaxSuccessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet(1);
     } else {
@@ -213,6 +218,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   @Override
   public final void removeSuccessor(final Identifiable node) {
     if (mSuccessors.remove(node)) {
+      mHashCode = 0;
       ProcessNode successorNode = node instanceof ProcessNode ? (ProcessNode) node : (mOwnerModel == null ? null : mOwnerModel.getNode(node));
       if (successorNode!=null) { successorNode.removePredecessor(this.asT()); }
     }
@@ -225,6 +231,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   @Override
   public final ProcessNodeSet<? extends Identifiable> getPredecessors() {
     if (mPredecessors == null) {
+      mHashCode = 0;
       switch (getMaxPredecessorCount()) {
         case 0: mPredecessors = ProcessNodeSet.empty(); break;
         case 1: mPredecessors = ProcessNodeSet.singleton(); break;
@@ -242,6 +249,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     if (predecessors.size()>getMaxPredecessorCount()) {
       throw new IllegalArgumentException();
     }
+    mHashCode = 0;
 
     if (mPredecessors == null) {
       mPredecessors = getMaxPredecessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
@@ -287,6 +295,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     if (successors.size()>getMaxSuccessorCount()) {
       throw new IllegalArgumentException();
     }
+    mHashCode = 0;
     if (mSuccessors == null) {
       mSuccessors = getMaxSuccessorCount()==1 ? ProcessNodeSet.singleton() : ProcessNodeSet.processNodeSet();
     }
@@ -311,6 +320,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   @Override
   public ProcessNodeSet<? extends Identifiable> getSuccessors() {
     if (mSuccessors==null) {
+      mHashCode = 0;
       switch (getMaxSuccessorCount()) {
         case 0:
           mSuccessors = ProcessNodeSet.empty();
@@ -356,6 +366,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   @Override
   public final void setOwnerModel(@Nullable final M ownerModel) {
     if (mOwnerModel!=ownerModel) {
+      mHashCode = 0;
       T thisT = this.asT();
       if (mOwnerModel!=null) { mOwnerModel.removeNode(thisT); }
       mOwnerModel = ownerModel;
@@ -379,6 +390,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   public final void setId(final String id) {
     mId = id;
+    mHashCode = 0;
     notifyChange();
   }
 
@@ -398,6 +410,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   public final void setLabel(final String label) {
     mLabel = label;
+    mHashCode = 0;
     notifyChange();
   }
 
@@ -412,6 +425,7 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   public final void setX(final double x) {
     mX = x;
+    mHashCode = 0;
     notifyChange();
   }
 
@@ -422,12 +436,14 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
 
   public final void setY(final double y) {
     mY = y;
+    mHashCode = 0;
     notifyChange();
   }
 
   public void translate(final double dX, final double dY) {
     mX+=dX;
     mY+=dY;
+    mHashCode = 0;
     notifyChange();
   }
 
@@ -453,24 +469,28 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
   }
 
   protected void setDefines(@Nullable final Collection<? extends IXmlDefineType> exports) {
+    mHashCode = 0;
     mDefines = exports==null ? new ArrayList<XmlDefineType>(0) : toExportableDefines(exports);
   }
 
   @Override
   public final List<XmlDefineType> getDefines() {
     if (mDefines==null) {
+      mHashCode = 0;
       mDefines = new ArrayList<>();
     }
     return mDefines;
   }
 
   protected void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
+    mHashCode = 0;
     mResults = imports==null ? new ArrayList<XmlResultType>(0) : toExportableResults(imports);
   }
 
   @Override
   public final List<XmlResultType> getResults() {
     if (mResults==null) {
+      mHashCode = 0;
       mResults = new ArrayList<>();
     }
     return mResults;
@@ -502,6 +522,58 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
       newImports = new ArrayList<>();
     }
     return newImports;
+  }
+
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+
+    ProcessNodeBase<?, ?> that = (ProcessNodeBase<?, ?>) o;
+
+    if (Double.compare(that.mX, mX) != 0) { return false; }
+    if (Double.compare(that.mY, mY) != 0) { return false; }
+    if (mPredecessors != null ? !mPredecessors.equals(that.mPredecessors) : that.mPredecessors != null) {
+      return false;
+    }
+    if (mSuccessors != null ? !mSuccessors.equals(that.mSuccessors) : that.mSuccessors != null) { return false; }
+    if (mId != null ? !mId.equals(that.mId) : that.mId != null) { return false; }
+    if (mLabel != null ? !mLabel.equals(that.mLabel) : that.mLabel != null) { return false; }
+    if (mDefines != null ? !mDefines.equals(that.mDefines) : that.mDefines != null) { return false; }
+    return mResults != null ? mResults.equals(that.mResults) : that.mResults == null;
+
+  }
+
+  /**
+   * Method to only use the specific ids of predecessors / successors for the hash code. Otherwise there may be an infinite loop.
+   * @param c The collection of ids
+   * @return The hashcode.
+   */
+  private static int getHashCode(Collection<Identifiable> c) {
+    int result = 1;
+    for(Identifiable i: c) {
+      String id=i.getId();
+      result = result*31 + (id==null ? 1 : id.hashCode());
+    }
+    return result;
+  }
+
+  @Override
+  public int hashCode() {
+    if (mHashCode!=0) { return mHashCode; }
+    int result;
+    long temp;
+    result = mPredecessors != null ? getHashCode(mPredecessors) : 0;
+    result = 31 * result + (mSuccessors != null ? getHashCode(mSuccessors) : 0);
+    result = 31 * result + (mId != null ? mId.hashCode() : 0);
+    result = 31 * result + (mLabel != null ? mLabel.hashCode() : 0);
+    temp = Double.doubleToLongBits(mX);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(mY);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    result = 31 * result + (mDefines != null ? mDefines.hashCode() : 0);
+    result = 31 * result + (mResults != null ? mResults.hashCode() : 0);
+    return result;
   }
 
   public String toString() {

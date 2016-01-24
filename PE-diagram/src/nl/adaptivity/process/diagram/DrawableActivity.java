@@ -17,16 +17,15 @@
 package nl.adaptivity.process.diagram;
 import nl.adaptivity.diagram.*;
 import nl.adaptivity.diagram.Canvas.TextPos;
-import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.ProcessConsts.Endpoints;
 import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.processModel.Activity;
 import nl.adaptivity.process.processModel.XmlMessage;
-import nl.adaptivity.process.userMessageHandler.server.UserTask;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static nl.adaptivity.process.diagram.DrawableProcessModel.*;
 
@@ -137,19 +136,31 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void drawLabel(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds, double left, double top) {
     if (hasPos()) {
       PEN_T textPen = canvas.getTheme().getPen(ProcessThemeItems.DIAGRAMLABEL, mState);
-      String label = getLabel();
-      if (label == null) { label = getName(); }
-      if (label == null && getOwnerModel() != null) {
-        label = '<' + getId() + '>';
-        textPen.setTextItalics(true);
-      } else if (label != null) {
-        textPen.setTextItalics(false);
-      }
-      if (label != null) {
+      String label = getDrawnLabel(textPen);
+      if (label != null && label.length()>0) {
         double topCenter = ACTIVITYHEIGHT + STROKEWIDTH + textPen.getTextLeading() / 2;
         canvas.drawText(TextPos.ASCENT, REFERENCE_OFFSET_X, topCenter, label, Double.MAX_VALUE, textPen);
       }
     }
+  }
+
+  /**
+   * Get the label that would be drawn to the screen. This will set the pen to italics or not unless no label could be determined.
+   * @param textPen The textPen to set to italics (or not).
+   * @param <PEN_T>
+   * @return The actual label.
+   */
+  @Nullable
+  private <PEN_T extends Pen<PEN_T>> String getDrawnLabel(@NotNull final PEN_T textPen) {
+    String label = getLabel();
+    if (label == null) { label = getName(); }
+    if (label == null && getOwnerModel() != null) {
+      label = '<' + getId() + '>';
+      textPen.setTextItalics(true);
+    } else if (label != null) {
+      textPen.setTextItalics(false);
+    }
+    return label;
   }
 
   public static DrawableActivity from(Activity<?, ?> elem, final boolean compat) {
@@ -170,7 +181,7 @@ public class DrawableActivity extends ClientActivityNode<DrawableProcessNode, Dr
 
   public boolean isUserTask() {
     XmlMessage message = getMessage();
-    return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.equals(message.getEndpointDescriptor());
+    return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.getEndpointDescriptor());
   }
 
   public boolean isService() {

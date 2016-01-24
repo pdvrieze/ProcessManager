@@ -25,12 +25,80 @@ public interface Canvas<S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T exten
     LEFT, MIDDLE, RIGHT,
     BASELINELEFT, BASELINEMIDDLE, BASELINERIGHT,
     DESCENTLEFT, DESCENT, DESCENTRIGHT,
-    BOTTOMLEFT, BOTTOM, BOTTOMRIGHT
+    BOTTOMLEFT, BOTTOM, BOTTOMRIGHT;
+
+    public void offset(final Rectangle rect, Pen<?> pen) {
+      switch (this) {
+        case MAXTOPLEFT:
+        case ASCENTLEFT:
+        case LEFT:
+        case BASELINELEFT:
+        case DESCENTLEFT:
+        case BOTTOMLEFT:
+          // Keep the left where it is
+          break;
+        case MAXTOP:
+        case ASCENT:
+        case MIDDLE:
+        case BASELINEMIDDLE:
+        case DESCENT:
+        case BOTTOM:
+          rect.left-=rect.width/2;
+          break;
+        case MAXTOPRIGHT:
+        case ASCENTRIGHT:
+        case RIGHT:
+        case BASELINERIGHT:
+        case DESCENTRIGHT:
+        case BOTTOMRIGHT:
+          rect.left-=rect.width;
+      }
+      switch (this) {
+        case MAXTOPLEFT:
+        case MAXTOP:
+        case MAXTOPRIGHT:
+          //
+          break;
+        case ASCENTLEFT:
+        case ASCENT:
+        case ASCENTRIGHT:
+          rect.top+=pen.getTextAscent()-pen.getTextMaxDescent();
+          break;
+        case LEFT:
+        case MIDDLE:
+        case RIGHT:
+          rect.top+=(pen.getTextMaxAscent()+pen.getTextMaxDescent())/2 - pen.getTextMaxAscent();
+          break;
+        case BASELINELEFT:
+        case BASELINEMIDDLE:
+        case BASELINERIGHT:
+          rect.top-=pen.getTextMaxAscent();
+          break;
+        case DESCENTLEFT:
+        case DESCENT:
+        case DESCENTRIGHT:
+          rect.top+=pen.getTextDescent()-pen.getTextMaxAscent();
+          break;
+        case BOTTOMLEFT:
+        case BOTTOM:
+        case BOTTOMRIGHT:
+          rect.top+=pen.getTextMaxDescent()-pen.getTextMaxAscent();
+      }
+      
+    }
   }
 
   S getStrategy();
 
-  Canvas<S, PEN_T, PATH_T> childCanvas(Rectangle area, double scale);
+  /**
+   * Create a new canvas that offsets the current one. Offset is applied before scaling (so it's effect will be modified by the scale.
+   *
+   * @param offsetX The x offset to apply
+   * @param offsetY The y offset to apply
+   * @param scale The new scale.
+   * @return The new canvas representing the change
+   */
+  Canvas<S, PEN_T, PATH_T> childCanvas(final double offsetX, final double offsetY, double scale);
 
   /**
    * Draw a circle filled with the given color.

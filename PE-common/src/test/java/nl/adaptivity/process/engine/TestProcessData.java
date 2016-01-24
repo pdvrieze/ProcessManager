@@ -61,6 +61,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static junit.framework.Assert.assertEquals;
 import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
@@ -203,6 +204,17 @@ public class TestProcessData {
   }
 
   @Test
+  public void testSerializeMessage() throws Exception {
+    Logger.getAnonymousLogger().setLevel(Level.ALL);
+    final ProcessModelImpl pm = getProcessModel("testModel2.xml");
+    ActivityImpl ac2 = (ActivityImpl) pm.getNode("ac2");
+    String serialized = XmlUtil.toString(ac2.getMessage());
+    XmlMessage msg2= XmlUtil.deSerialize(new StringReader(serialized), XmlMessage.class);
+    assertEquals(ac2.getMessage().getMessageBody().getContentString(),msg2.getMessageBody().getContentString());
+    assertEquals(ac2.getMessage(), msg2);
+  }
+
+  @Test
   public void testDeserializeProcessModel() throws Exception {
     Logger.getAnonymousLogger().setLevel(Level.ALL);
     final ProcessModelImpl pm = getProcessModel("testModel2.xml");
@@ -294,7 +306,7 @@ public class TestProcessData {
 
   @NotNull
   private static CompactFragment createEndpoint() {
-    final SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS));
+    final SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS_STR));
     final StringBuilder content = new StringBuilder();
     content.append("<jbi:endpointDescriptor");
     content.append(" endpointLocation=\"http://localhost\"");

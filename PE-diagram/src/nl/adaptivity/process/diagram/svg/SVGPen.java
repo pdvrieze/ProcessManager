@@ -17,6 +17,7 @@
 package nl.adaptivity.process.diagram.svg;
 
 import nl.adaptivity.diagram.Pen;
+import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 
 
@@ -77,6 +78,17 @@ public class SVGPen<M extends MeasureInfo> implements Pen<SVGPen<M>>, Cloneable 
       mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
     }
     return mTextMeasurer.measureTextWidth(mTextMeasureInfo, text, foldWidth);
+  }
+
+  @Override
+  public Rectangle measureTextSize(Rectangle dest, final double x, final double y, String text, double foldWidth) {
+    if (mTextMeasureInfo==null) {
+      mTextMeasureInfo = mTextMeasurer.getTextMeasureInfo(this);
+    }
+    mTextMeasurer.measureTextSize(dest, mTextMeasureInfo, text, foldWidth);
+    dest.top+=y;
+    dest.left+=x;
+    return  dest;
   }
 
   @Override

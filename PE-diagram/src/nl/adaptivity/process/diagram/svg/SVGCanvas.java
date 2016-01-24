@@ -19,6 +19,7 @@ package nl.adaptivity.process.diagram.svg;
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.lang.Doubles;
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
@@ -35,21 +36,22 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
     void serialize(XmlWriter out) throws XmlException;
 
+    Rectangle getBounds(Rectangle dest);
   }
 
   private static abstract class PaintedElem<M extends MeasureInfo> implements IPaintedElem {
-    final SVGPen<M> mColor;
+    final SVGPen<M> mPen;
 
-    PaintedElem(SVGPen<M> color) {
-      mColor = color;
+    PaintedElem(final SVGPen<M> color) {
+      mPen = color;
     }
 
-    void serializeFill(XmlWriter out) throws XmlException {
-      serializeStyle(out, null, mColor, null);
+    void serializeFill(final XmlWriter out) throws XmlException {
+      serializeStyle(out, null, mPen, null);
     }
 
-    void serializeStroke(XmlWriter out) throws XmlException {
-      serializeStyle(out, mColor, null, null);
+    void serializeStroke(final XmlWriter out) throws XmlException {
+      serializeStyle(out, mPen, null, null);
     }
 
   }
@@ -57,28 +59,36 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   private static abstract class BaseRect<M extends MeasureInfo> extends PaintedElem<M> {
     final Rectangle mBounds;
 
-    BaseRect(Rectangle bounds, SVGPen<M> color) {
+    BaseRect(final Rectangle bounds, final SVGPen<M> color) {
       super(color);
       mBounds = bounds;
     }
 
-    void serializeRect(XmlWriter out) throws XmlException {
+    void serializeRect(final XmlWriter out) throws XmlException {
       out.startTag(SVG_NAMESPACE, "rect", null);
       out.attribute(null, "x", null, Double.toString(mBounds.left));
       out.attribute(null, "y", null, Double.toString(mBounds.top));
       out.attribute(null, "width", null, Double.toString(mBounds.width));
       out.attribute(null, "height", null, Double.toString(mBounds.height));
     }
+
+    @Override
+    public Rectangle getBounds(final Rectangle dest) {
+      final double strokeWidth = mPen.getStrokeWidth();
+      double delta = strokeWidth / 2;
+      dest.set(mBounds.left-delta, mBounds.top-delta, mBounds.width+strokeWidth, mBounds.height+strokeWidth);
+      return dest;
+    }
   }
 
   private static class Rect<M extends MeasureInfo> extends BaseRect<M> {
 
-    public Rect(Rectangle bounds, SVGPen<M> color) {
+    public Rect(final Rectangle bounds, final SVGPen<M> color) {
       super(bounds, color);
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       serializeRect(out);
       serializeStroke(out);
       out.endTag(SVG_NAMESPACE, "rect", null);
@@ -88,12 +98,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class FilledRect<M extends MeasureInfo> extends BaseRect<M> {
 
-    FilledRect(Rectangle bounds, SVGPen<M> color) {
+    FilledRect(final Rectangle bounds, final SVGPen<M> color) {
       super(bounds, color);
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       serializeRect(out);
       serializeFill(out);
       out.endTag(SVG_NAMESPACE, "rect", null);
@@ -105,13 +115,13 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final double mRx;
     final double mRy;
 
-    BaseRoundRect(Rectangle bounds, double rx, double ry, SVGPen<M> color) {
+    BaseRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> color) {
       super(bounds, color);
       mRx = rx;
       mRy = ry;
     }
 
-    void serializeRoundRect(XmlWriter out) throws XmlException {
+    void serializeRoundRect(final XmlWriter out) throws XmlException {
       serializeRect(out);
       out.attribute(null, "rx", null, Double.toString(mRx));
       out.attribute(null, "ry", null, Double.toString(mRy));
@@ -120,12 +130,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class RoundRect<M extends MeasureInfo> extends BaseRoundRect<M> {
 
-    RoundRect(Rectangle bounds, double rx, double ry, SVGPen<M> color) {
+    RoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> color) {
       super(bounds, rx, ry, color);
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       serializeRoundRect(out);
       serializeStroke(out);
       out.endTag(SVG_NAMESPACE, "rect", null);
@@ -135,12 +145,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class FilledRoundRect<M extends MeasureInfo> extends BaseRoundRect<M> {
 
-    FilledRoundRect(Rectangle bounds, double rx, double ry, SVGPen<M> color) {
+    FilledRoundRect(final Rectangle bounds, final double rx, final double ry, final SVGPen<M> color) {
       super(bounds, rx, ry, color);
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       serializeRoundRect(out);
       serializeFill(out);
       out.endTag(SVG_NAMESPACE, "rect", null);
@@ -154,30 +164,38 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final double mY;
     final double mRadius;
 
-    public BaseCircle(double x, double y, double radius, SVGPen<M> color) {
+    public BaseCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
       super(color);
       mX = x;
       mY = y;
       mRadius = radius;
     }
 
-    public void serializeCircle(XmlWriter out) throws XmlException {
+    public void serializeCircle(final XmlWriter out) throws XmlException {
       out.startTag(SVG_NAMESPACE, "circle", null);
       out.attribute(null, "cx", null, Double.toString(mX));
       out.attribute(null, "cy", null, Double.toString(mY));
       out.attribute(null, "r", null, Double.toString(mRadius));
     }
 
+    @Override
+    public Rectangle getBounds(final Rectangle dest) {
+      final double strokeWidth = mPen.getStrokeWidth();
+      double delta = strokeWidth / 2;
+      dest.set(mX-mRadius-delta, mY-mRadius-delta, mRadius*2+strokeWidth, mRadius*2+strokeWidth);
+      return dest;
+    }
+
   }
 
   private static class Circle<M extends MeasureInfo> extends BaseCircle<M> {
 
-    public Circle(double x, double y, double radius, SVGPen<M> color) {
+    public Circle(final double x, final double y, final double radius, final SVGPen<M> color) {
       super(x, y, radius, color);
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       serializeCircle(out);
       serializeStroke(out);
       out.endTag(SVG_NAMESPACE, "circle", null);
@@ -187,12 +205,12 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   private static class FilledCircle<M extends MeasureInfo> extends BaseCircle<M> {
 
-    public FilledCircle(double x, double y, double radius, SVGPen<M> color) {
+    public FilledCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
       super(x, y, radius, color);
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       serializeCircle(out);
       serializeFill(out);
       out.endTag(SVG_NAMESPACE, "circle", null);
@@ -206,14 +224,14 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final SVGPen<M> mStroke;
     final SVGPen<M> mFill;
 
-    public PaintedPath(SVGPath path, SVGPen<M> stroke, SVGPen<M> fill) {
+    public PaintedPath(final SVGPath path, final SVGPen<M> stroke, final SVGPen<M> fill) {
       mPath = path;
       mStroke = stroke;
       mFill = fill;
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       out.startTag(SVG_NAMESPACE, "path", null);
       serializeStyle(out, mStroke, mFill, null);
 
@@ -222,6 +240,10 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
       out.endTag(SVG_NAMESPACE, "path", null);
     }
 
+    @Override
+    public Rectangle getBounds(final Rectangle dest) {
+      return mPath.getBounds(dest, mStroke);
+    }
   }
 
 
@@ -234,7 +256,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     @SuppressWarnings("unused")
     final double mFoldWidth;
 
-    public DrawText(TextPos textPos, double x, double y, String text, double foldWidth, SVGPen<M> color) {
+    public DrawText(final TextPos textPos, final double x, final double y, final String text, final double foldWidth, final SVGPen<M> color) {
       super(color);
       mTextPos = textPos;
       mX = x;
@@ -244,17 +266,24 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       out.startTag(SVG_NAMESPACE, "text", null);
       out.attribute(null, "x", null, Double.toString(mX));
       out.attribute(null, "y", null, Double.toString(mY));
-      serializeStyle(out, null, mColor, mTextPos);
+      serializeStyle(out, null, mPen, mTextPos);
       out.startTag(SVG_NAMESPACE, "tspan", null);
       out.text(mText);
       out.endTag(SVG_NAMESPACE, "tspan", null);
       out.endTag(SVG_NAMESPACE, "text", null);
     }
 
+    @Override
+    public Rectangle getBounds(final Rectangle dest) {
+
+      mPen.measureTextSize(dest, mX, mY, mText, mFoldWidth);
+      mTextPos.offset(dest, mPen);
+      return dest;
+    }
   }
 
   private static class SubCanvas<M extends MeasureInfo> extends SVGCanvas<M> implements IPaintedElem {
@@ -263,22 +292,26 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     final double mX;
     final double mY;
 
-    SubCanvas(SVGStrategy<M> strategy, Rectangle area, double scale) {
+    SubCanvas(final SVGStrategy<M> strategy, final double offsetX, final double offsetY, final double scale) {
       super(strategy);
-      mX = area.left;
-      mY = area.top;
+      mX = offsetX;
+      mY = offsetY;
       mScale = scale;
     }
 
     @Override
-    public void serialize(XmlWriter out) throws XmlException {
+    public void serialize(final XmlWriter out) throws XmlException {
       out.startTag(SVG_NAMESPACE, "g", null);
       if (mX==0 && mY==0) {
-        out.attribute(null, "transform", null, "scale("+mScale+")");
+        if (mScale!=1d) {
+          out.attribute(null, "transform", null, "scale(" + mScale + ")");
+        }
+      } else if (mScale==1d) {
+        out.attribute(null, "transform", null, "translate("+mX+","+mY+")");
       } else {
         out.attribute(null, "transform", null, "matrix("+mScale+",0,0,"+mScale+","+mX*mScale+","+mY*mScale+")");
       }
-      for (IPaintedElem element:this.mPath) {
+      for (final IPaintedElem element:this.mPath) {
         element.serialize(out);
       }
       out.endTag(SVG_NAMESPACE, "g", null);
@@ -294,17 +327,18 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 
   List<IPaintedElem> mPath = new ArrayList<>();
 
-  private Rectangle mBounds;
+  private final Rectangle mBounds;
 
 // Only for debug purposes
 //  private SVGPen<M> mRedPen;
 //  private SVGPen<M> mGreenPen;
 
-  public SVGCanvas(TextMeasurer<M> textMeasurer) {
+  public SVGCanvas(final TextMeasurer<M> textMeasurer) {
     this(new SVGStrategy<>(textMeasurer));
   }
 
-  public SVGCanvas(SVGStrategy<M> strategy) {
+  public SVGCanvas(final SVGStrategy<M> strategy) {
+    mBounds = new Rectangle(Double.NaN, Double.NaN, 0d, 0d);
     mStrategy = strategy;
 // Only for debug purposes
 //    mRedPen = mStrategy.newPen();
@@ -313,8 +347,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 //    mGreenPen.setColor(0, 0xff, 0);
   }
 
-  public static void serializeStyle(XmlWriter out, SVGPen<?> stroke, SVGPen<?> fill, TextPos textPos) throws XmlException {
-    StringBuilder style = new StringBuilder();
+  public static void serializeStyle(final XmlWriter out, final SVGPen<?> stroke, final SVGPen<?> fill, final TextPos textPos) throws XmlException {
+    final StringBuilder style = new StringBuilder();
     if (stroke!=null) {
       final int color = stroke.getColor();
       style.append("stroke: ").append(colorToSVGpaint(color)).append("; ");
@@ -351,7 +385,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     out.attribute(null, "style", null, style.toString());
   }
 
-  private static String toBaseline(TextPos textPos) {
+  private static String toBaseline(final TextPos textPos) {
     switch (textPos) {
       case BASELINELEFT:
       case BASELINEMIDDLE:
@@ -379,7 +413,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     throw new IllegalArgumentException();
   }
 
-  private static String toAnchor(TextPos textPos) {
+  private static String toAnchor(final TextPos textPos) {
     switch (textPos) {
       case MAXTOPLEFT:
       case ASCENTLEFT:
@@ -406,21 +440,47 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     throw new IllegalArgumentException();
   }
 
-  private static boolean hasAlpha(int color) {
+  private static boolean hasAlpha(final int color) {
     return (color >>>24) !=0xff;
   }
 
-  private static String colorToSVGOpacity(int color) {
-    int alpha = color >>>24;
+  private static String colorToSVGOpacity(final int color) {
+    final int alpha = color >>> 24;
     return String.format("%5f", Double.valueOf(alpha/255d));
   }
 
-  private static String colorToSVGpaint(int color) {
+  private static String colorToSVGpaint(final int color) {
     return String.format("#%06x", Integer.valueOf(color&0xffffff)); // Ignore alpha here
   }
 
-  public void setBounds(Rectangle bounds) {
-    mBounds = bounds;
+  public void setBounds(final Rectangle bounds) {
+    mBounds.set(bounds);
+  }
+
+  private void ensureBounds() {
+    if (Doubles.isFinite(mBounds.top) &&
+        Doubles.isFinite(mBounds.left) &&
+        Doubles.isFinite(mBounds.height) &&
+        Doubles.isFinite(mBounds.width)) {
+      return;
+    }
+    if (mPath.size()>0) {
+      final Rectangle tmpBounds = new Rectangle(0d, 0d, 0d, 0d);
+      mBounds.set(mPath.get(0).getBounds(tmpBounds));
+      for (int i = 1; i < mPath.size(); i++) {
+        mBounds.extendBounds(mPath.get(i).getBounds(tmpBounds));
+      }
+    }
+  }
+
+  public Rectangle getBounds(final Rectangle dest) {
+    ensureBounds();
+    dest.set(mBounds);
+    return dest;
+  }
+
+  public Rectangle getBounds() {
+    return getBounds(new Rectangle(0d, 0d, 0d, 0d));
   }
 
   @Override
@@ -429,61 +489,61 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   @Override
-  public Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> childCanvas(Rectangle area, double scale) {
-    final SubCanvas<M> result = new SubCanvas<>(mStrategy, area, scale);
+  public Canvas<SVGStrategy<M>, SVGPen<M>, SVGPath> childCanvas(final double offsetX, final double offsetY, final double scale) {
+    final SubCanvas<M> result = new SubCanvas<>(mStrategy, offsetX, offsetY, scale);
     mPath.add(result);
     return result;
   }
 
   @Override
-  public void drawFilledCircle(double x, double y, double radius, SVGPen<M> color) {
+  public void drawFilledCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
     mPath.add(new FilledCircle<>(x, y, radius, color.clone()));
   }
 
   @Override
-  public void drawRect(Rectangle rect, SVGPen<M> color) {
+  public void drawRect(final Rectangle rect, final SVGPen<M> color) {
     mPath.add(new Rect<>(rect, color));
   }
 
   @Override
-  public void drawFilledRect(Rectangle rect, SVGPen<M> color) {
+  public void drawFilledRect(final Rectangle rect, final SVGPen<M> color) {
     mPath.add(new FilledRect<>(rect, color));
   }
 
   @Override
-  public void drawCircle(double x, double y, double radius, SVGPen<M> color) {
+  public void drawCircle(final double x, final double y, final double radius, final SVGPen<M> color) {
     mPath.add(new Circle<>(x, y, radius, color));
   }
 
   @Override
-  public void drawRoundRect(Rectangle rect, double rx, double ry, SVGPen<M> color) {
+  public void drawRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> color) {
     mPath.add(new RoundRect<>(rect, rx, ry, color));
 
   }
 
   @Override
-  public void drawFilledRoundRect(Rectangle rect, double rx, double ry, SVGPen<M> color) {
+  public void drawFilledRoundRect(final Rectangle rect, final double rx, final double ry, final SVGPen<M> color) {
     mPath.add(new FilledRoundRect<>(rect, rx, ry, color));
   }
 
   @Override
-  public void drawPoly(double[] points, SVGPen<M> color) {
+  public void drawPoly(final double[] points, final SVGPen<M> color) {
     if (points.length>1) {
-      SVGPath path = pointsToPath(points);
+      final SVGPath path = pointsToPath(points);
       drawPath(path, color, null);
     }
   }
 
   @Override
-  public void drawFilledPoly(double[] points, SVGPen<M> color) {
+  public void drawFilledPoly(final double[] points, final SVGPen<M> color) {
     if (points.length>1) {
-      SVGPath path = pointsToPath(points);
+      final SVGPath path = pointsToPath(points);
       drawPath(path, null, color);
     }
   }
 
-  private static SVGPath pointsToPath(double[] points) {
-    SVGPath path = new SVGPath();
+  private static SVGPath pointsToPath(final double[] points) {
+    final SVGPath path = new SVGPath();
     path.moveTo(points[0], points[1]);
     for(int i=2; i<points.length; i+=2) {
       path.lineTo(points[i], points[i+1]);
@@ -492,7 +552,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   @Override
-  public void drawPath(SVGPath path, SVGPen<M> stroke, SVGPen<M> fill) {
+  public void drawPath(final SVGPath path, final SVGPen<M> stroke, final SVGPen<M> fill) {
     mPath.add(new PaintedPath<>(path, stroke, fill));
   }
 
@@ -502,8 +562,8 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
   }
 
   @Override
-  public void drawText(TextPos textPos, double x, double y, String text, double foldWidth,
-                       SVGPen<M> pen) {
+  public void drawText(final TextPos textPos, final double x, final double y, final String text, final double foldWidth,
+                       final SVGPen<M> pen) {
     final double adjustedY;
     if (sUseBaselineAlign) {
       adjustedY = y;
@@ -516,7 +576,7 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
 //    mPath.add(new FilledCircle<>(pX, y, 1d, mRedPen));
   }
 
-  private double adjustToBaseline(nl.adaptivity.diagram.Canvas.TextPos textPos, double y, SVGPen<M> pen) {
+  private double adjustToBaseline(final nl.adaptivity.diagram.Canvas.TextPos textPos, final double y, final SVGPen<M> pen) {
     switch (textPos) {
     case BASELINELEFT:
     case BASELINEMIDDLE:
@@ -546,14 +606,15 @@ public class SVGCanvas<M extends MeasureInfo> implements Canvas<SVGStrategy<M>, 
     throw new IllegalArgumentException();
   }
 
-  public void serialize(XmlWriter out) throws XmlException {
+  public void serialize(final XmlWriter out) throws XmlException {
+    ensureBounds();
     out.startTag(SVG_NAMESPACE, "svg", null);
     out.namespaceAttr(XMLConstants.DEFAULT_NS_PREFIX, SVG_NAMESPACE);
     out.attribute(null, "version", null, "1.1");
     out.attribute(null, "width", null, Double.toString(mBounds.width+mBounds.left*2));
     out.attribute(null, "height", null, Double.toString(mBounds.height+mBounds.top*2));
 
-    for (IPaintedElem element:mPath) {
+    for (final IPaintedElem element:mPath) {
       try {element.serialize(out);} catch (XmlException e) {
         throw new RuntimeException(e);
       }

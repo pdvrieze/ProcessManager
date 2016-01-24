@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.diagram.svg;
 
+import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,4 +44,5 @@ public interface TextMeasurer <M extends MeasureInfo> {
 
   double getTextLeading(@NotNull M textMeasureInfo);
 
+  Rectangle measureTextSize(Rectangle dest, M textMeasureInfo, String text, double foldWidth);
 }

@@ -164,6 +164,16 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     public void resolve(final ProcessModelBase<? extends T, ?> reference) {
       throw new UnsupportedOperationException("This set is immutable");
     }
+
+    @Override
+    public boolean equals(final Object o) {
+      return ProcessNodeSet.this.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+      return ProcessNodeSet.this.hashCode();
+    }
   }
 
   private static final class BaseProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
@@ -264,6 +274,24 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
         mStore.set(i, reference.getNode(mStore.get(i)));
       }
     }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+
+      BaseProcessNodeSet<?> that = (BaseProcessNodeSet<?>) o;
+
+      return mStore.equals(that.mStore);
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = 1;
+      result = 31 * result + mStore.hashCode();
+      return result;
+    }
   }
 
   private static final class EmptyProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
@@ -296,6 +324,17 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       // do nothing
     }
 
+    @Override
+    public int hashCode() {
+      return 1;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      return true;
+    }
   }
 
   private static final class SingletonProcessNodeSet<V extends Identifiable> extends ProcessNodeSet<V> {
@@ -450,6 +489,24 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
       if (mElement!=null) {
         mElement = reference.getNode(mElement);
       }
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+
+      SingletonProcessNodeSet<?> that = (SingletonProcessNodeSet<?>) o;
+
+      return mElement != null ? mElement.equals(that.mElement) : that.mElement == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = 1;
+      result = 31 * result + (mElement != null ? mElement.hashCode() : 0);
+      return result;
     }
   }
 

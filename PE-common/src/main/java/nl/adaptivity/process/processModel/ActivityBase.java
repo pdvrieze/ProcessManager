@@ -40,14 +40,15 @@ import java.util.Collections;
  */
 public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T, M> implements Activity<T, M>, SimpleXmlDeserializable {
 
+  @Nullable private XmlMessage mMessage;
+
+  @Nullable private String mName;
+
   public ActivityBase(final Activity<?, ?> orig) {
     super(orig);
     setMessage(orig.getMessage());
     setName(orig.getName());
   }
-
-  private XmlMessage mMessage;
-  @Nullable private String mName;
 
   // Object Initialization
   public ActivityBase(@Nullable final M ownerModel) {
@@ -192,6 +193,31 @@ public abstract class ActivityBase<T extends ProcessNode<T, M>, M extends Proces
   public final QName getElementName() {
     return ELEMENTNAME;
   }
-// Property acccessors end
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) { return true; }
+    if (o == null || getClass() != o.getClass()) { return false; }
+    if (!super.equals(o)) { return false; }
+
+    ActivityBase<?, ?> that = (ActivityBase<?, ?>) o;
+
+    if (mMessage != null ? !mMessage.equals(that.mMessage) : that.mMessage != null) { return false; }
+    final String condition = getCondition();
+    if (condition != null ? ! condition.equals(that.getCondition()) : that.getCondition() != null) { return false; }
+    return mName != null ? mName.equals(that.mName) : that.mName == null;
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (mMessage != null ? mMessage.hashCode() : 0);
+    final String condition = getCondition();
+    result = 31 * result + (condition != null ? condition.hashCode() : 0);
+    result = 31 * result + (mName != null ? mName.hashCode() : 0);
+    return result;
+  }
+
+  // Property acccessors end
 }

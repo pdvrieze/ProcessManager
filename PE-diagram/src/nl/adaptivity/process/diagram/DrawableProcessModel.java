@@ -98,7 +98,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   public static final double DIAGRAMLABEL_SIZE = DIAGRAMTEXT_SIZE*1.1; // 11dp
 
   private ItemCache mItems = new ItemCache();
-  private Rectangle mBounds = new Rectangle(0, 0, 0, 0);
+  private Rectangle mBounds = new Rectangle(Double.NaN, Double.NaN, Double.NaN, Double.NaN);
   private int mState = STATE_DEFAULT;
   private int idSeq=0;
   private boolean mFavourite;
@@ -339,7 +339,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   @Override
   public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
 //    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
-    Canvas<S, PEN_T, PATH_T> childCanvas = canvas.childCanvas(NULLRECTANGLE, 1d);
+    Canvas<S, PEN_T, PATH_T> childCanvas = canvas.childCanvas(0d, 0d, 1d);
     final S strategy = canvas.getStrategy();
 
     PEN_T arcPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState);
@@ -369,12 +369,14 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     }
 
     for(DrawableProcessNode node:getModelNodes()) {
-      node.draw(childCanvas.childCanvas(node.getBounds(), 1 ), null);
+      Rectangle b = node.getBounds();
+      node.draw(childCanvas.childCanvas(b.left, b.top, 1 ), null);
     }
 
     for(DrawableProcessNode node:getModelNodes()) {
       // TODO do something better with the left and top coordinates
-      node.drawLabel(childCanvas.childCanvas(node.getBounds(), 1 ), null, node.getX(), node.getY());
+      Rectangle b = node.getBounds();
+      node.drawLabel(childCanvas.childCanvas(b.left, b.top, 1 ), null, node.getX(), node.getY());
     }
   }
 

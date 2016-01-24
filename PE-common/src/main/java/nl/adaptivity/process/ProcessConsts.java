@@ -67,7 +67,7 @@ public class ProcessConsts {
 
       @Override
       public boolean isSameService(final EndpointDescriptor other) {
-        return getServiceName().equals(other.getServiceName()) && getEndpointName().equals(other.getEndpointName());
+        return SERVICENAME.equals(other.getServiceName()) && ENDPOINT.equals(other.getEndpointName());
       }
     }
 

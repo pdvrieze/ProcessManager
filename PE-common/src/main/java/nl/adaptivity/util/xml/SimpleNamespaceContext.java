@@ -93,6 +93,12 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     }
   }
 
+  public SimpleNamespaceContext(@NotNull final CharSequence prefix, @NotNull final CharSequence namespace) {
+    mStrings=new String[2];
+    mStrings[0] = prefix.toString();
+    mStrings[1] = namespace.toString();
+  }
+
   SimpleNamespaceContext(final String[] strings) {
     mStrings = strings;
   }

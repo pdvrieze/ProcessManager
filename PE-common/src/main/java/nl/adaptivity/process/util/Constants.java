@@ -16,6 +16,9 @@
 
 package nl.adaptivity.process.util;
 
+import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.util.xml.SimpleNamespaceContext;
+
 import java.net.URI;
 
 import javax.xml.namespace.QName;
@@ -42,13 +45,14 @@ public final class Constants {
 
   public static final String USER_MESSAGE_HANDLER_NS = "http://adaptivity.nl/userMessageHandler";
 
+  public static final String USER_MESSAGE_HANDLER_NS_PREFIX = "umh";
+
   public static final String DARWIN_NS = "http://darwin.bournemouth.ac.uk/services";
 
   public static final String MODIFY_NS_STR = "http://adaptivity.nl/ProcessEngine/activity";
 
   public static final URI MODIFY_NS_URI = URI.create(MODIFY_NS_STR);
-
-  public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
+  public static final String MY_JBI_NS_STR = "http://adaptivity.nl/jbi";
 
   private Constants() {
 

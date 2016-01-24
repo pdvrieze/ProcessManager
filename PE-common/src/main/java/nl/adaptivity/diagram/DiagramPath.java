@@ -64,4 +64,11 @@ public interface DiagramPath<PATH_T extends DiagramPath<PATH_T>> {
    */
   PATH_T close();
 
+  /**
+   * Get the bounds of the path
+   * @param dest The rectangle to store the bounds in (existing content is discarded)
+   * @param stroke The pen that represents the stroke to use.
+   * @return The bounds of the path
+   */
+  Rectangle getBounds(Rectangle dest, Pen<?> stroke);
 }

@@ -30,6 +30,8 @@ import javax.xml.namespace.QName;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
+import java.util.Arrays;
+
 
 public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
 
@@ -230,7 +232,7 @@ public abstract class BaseMessage extends XMLContainer implements IXmlMessage{
     final char[] thatBody = that.getContent();
     if (body==null) return thatBody==null;
     if (thatBody==null) return false;
-    return body.equals(thatBody);
+    return Arrays.equals(body,thatBody);
 
   }
 

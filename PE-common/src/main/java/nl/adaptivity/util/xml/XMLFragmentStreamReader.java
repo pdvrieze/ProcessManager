@@ -160,11 +160,11 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
       case DOCDECL:
         return next();
       case START_ELEMENT:
-        if (WRAPPERNAMESPACE.equals(mDelegate.getNamespaceUri())) { return mDelegate.next(); }
+        if (StringUtil.isEqual(WRAPPERNAMESPACE,mDelegate.getNamespaceUri())) { return mDelegate.next(); }
         extendNamespace();
         break;
       case END_ELEMENT:
-        if (WRAPPERNAMESPACE.equals(mDelegate.getNamespaceUri())) { return mDelegate.next(); }
+        if (StringUtil.isEqual(WRAPPERNAMESPACE,mDelegate.getNamespaceUri())) { return mDelegate.next(); }
         localNamespaceContext = localNamespaceContext.mParent;
         break;
     }

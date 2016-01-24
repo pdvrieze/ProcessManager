@@ -23,7 +23,6 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
-import android.util.DisplayMetrics;
 
 
 public class DrawableDrawable extends Drawable implements Cloneable {

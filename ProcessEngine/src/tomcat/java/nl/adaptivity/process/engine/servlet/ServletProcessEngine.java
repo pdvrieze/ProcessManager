@@ -281,8 +281,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
         if ("handle".equals(valueName)) {
           out.add(xef.createCharacters(Long.toString(nodeInstance.getHandle())));
         } else if ("endpoint".equals(valueName)) {
-          final QName qname1 = new QName(Constants.MY_JBI_NS, "endpointDescriptor", "");
-          final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", Constants.MY_JBI_NS));
+          final QName qname1 = new QName(Constants.MY_JBI_NS_STR, "endpointDescriptor", "");
+          final List<Namespace> namespaces = Collections.singletonList(xef.createNamespace("", Constants.MY_JBI_NS_STR));
           out.add(xef.createStartElement(qname1, null, namespaces.iterator()));
 
           {

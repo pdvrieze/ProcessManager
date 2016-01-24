@@ -204,7 +204,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
   public void onDecorationMove(final DiagramView view, final int position, final RelativeLightView decoration, final float x, final float y) {
     if (decoration==mCachedDecorations[2]) {
       final DrawableProcessNode start = mCachedDecorationItem;
-      final float x1 = (float) (start.getBounds().right()-DrawableProcessModel.STROKEWIDTH);
+      final float x1 = (float) (start.getBounds().right() - DrawableProcessModel.STROKEWIDTH);
       final float y1 = (float) (start.getY());
       final float x2 = x;
       final float y2 = y;
@@ -229,7 +229,7 @@ public class MyDiagramAdapter extends BaseProcessAdapter {
 
       DrawableProcessNode next=null;
       for(final DrawableProcessNode item: getDiagram().getModelNodes()) {
-        if(item.getItemAt(x, y)!=null) {
+        if(item.getItemAt(x, y) != null) {
           next = item;
           break;
         }

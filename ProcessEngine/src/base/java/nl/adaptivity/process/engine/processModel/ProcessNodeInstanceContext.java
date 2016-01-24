@@ -83,7 +83,7 @@ public class ProcessNodeInstanceContext extends AbstractDataContext {
   }
 
   private CompactFragment createEndpoint() {
-    SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS));
+    SimpleNamespaceContext namespaces = new SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MY_JBI_NS_STR));
     StringBuilder content = new StringBuilder();
     content.append("<jbi:endpointDescriptor");
 

@@ -142,10 +142,10 @@ public final class XmlUtil {
     @NotNull
     @Override
     protected List<XmlEvent> doPeek() throws XmlException {
-      List<XmlEvent> events = super.doPeek();
-      for (Iterator<XmlEvent> it = events.iterator(); it.hasNext();) {
-        XmlEvent event = it.next();
-        EventType eventType = event.getEventType();
+      final List<XmlEvent> events = super.doPeek();
+      for (final Iterator<XmlEvent> it = events.iterator(); it.hasNext();) {
+        final XmlEvent event = it.next();
+        final EventType eventType = event.getEventType();
         switch (eventType) {
           case START_DOCUMENT:
           case PROCESSING_INSTRUCTION:
@@ -214,6 +214,27 @@ public final class XmlUtil {
     return root;
   }
 
+  public static CharSequence nextText(final XmlReader in) throws XmlException {
+    EventType type;
+    final StringBuilder result = new StringBuilder();
+    while ((type=in.next())!=EventType.END_ELEMENT) {
+      switch (type) {
+        case COMMENT: break; //ignore
+        case IGNORABLE_WHITESPACE:
+          if (result.length()==0) { break; } // ignore whitespace starting the element.
+          //noinspection fallthrough
+        case TEXT:
+        case CDSECT:
+          result.append(in.getText());
+          break;
+        default:
+          throw new XmlException("Found unexpected child tag");
+      }
+
+    }
+    return result;
+  }
+
   public static Node ensureAttached(final Node node) {
     if (node==null) { return null; }
     if (node instanceof Document || node instanceof DocumentFragment) {
@@ -222,7 +243,7 @@ public final class XmlUtil {
     if (isAttached(node)) {
       return node;
     }
-    DocumentFragment frag = node.getOwnerDocument().createDocumentFragment();
+    final DocumentFragment frag = node.getOwnerDocument().createDocumentFragment();
     frag.appendChild(node.cloneNode(true));
     return frag;
   }
@@ -231,7 +252,7 @@ public final class XmlUtil {
     if (node instanceof Document || node instanceof DocumentFragment) {
       return true;
     }
-    Node docElem = node.getOwnerDocument().getDocumentElement();
+    final Node docElem = node.getOwnerDocument().getDocumentElement();
     if (docElem!=null) {
       for (Node n = node; n != null; n = n.getParentNode()) {
         if (docElem.isSameNode(n)) { return true; }
@@ -252,15 +273,15 @@ public final class XmlUtil {
   public static String getPrefix(final Node node, final String namespaceURI) {
     if (node==null) { return null; }
     if (node instanceof Element) {
-      NamedNodeMap attrs = node.getAttributes();
+      final NamedNodeMap attrs = node.getAttributes();
       for (int i=0; i<attrs.getLength(); ++i) {
-        Attr attr = (Attr) attrs.item(i);
+        final Attr attr = (Attr) attrs.item(i);
         if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(attr.getNamespaceURI()) && attr.getValue().equals(namespaceURI)) {
           return attr.getName();
         }
       }
     }
-    String prefix = getPrefix(node.getParentNode(), namespaceURI);
+    final String prefix = getPrefix(node.getParentNode(), namespaceURI);
     if (node.hasAttributes()&& prefix!=null) {
       if (prefix.isEmpty()) {
         if (node.getAttributes().getNamedItem(XMLConstants.XMLNS_ATTRIBUTE) != null) {
@@ -276,8 +297,8 @@ public final class XmlUtil {
   }
 
   public static Reader toReader(final XmlSerializable serializable) throws XmlException {
-    CharArrayWriter buffer = new CharArrayWriter();
-    XmlWriter writer = XmlStreaming.newWriter(buffer);
+    final CharArrayWriter buffer = new CharArrayWriter();
+    final XmlWriter writer = XmlStreaming.newWriter(buffer);
     serializable.serialize(writer);
     writer.close();
     return new CharArrayReader(buffer.toCharArray());
@@ -336,6 +357,12 @@ public final class XmlUtil {
 
   }
 
+  /**
+   * Make a QName for the given parameters.
+   * @param reference The node to use to look up the namespace that corresponds to the prefix.
+   * @param name This is the full name of the element. That includes the prefix (or if no colon present) the default prefix.
+   * @return
+   */
   @NotNull
   public static QName asQName(@NotNull final Node reference, @NotNull final String name) {
     final int colPos = name.indexOf(':');
@@ -434,7 +461,7 @@ public final class XmlUtil {
   }
 
   public static void serialize(final XmlSerializable serializable, final Writer writer) throws XmlException {
-    XmlWriter out = XmlStreaming.newWriter(writer, true);
+    final XmlWriter out = XmlStreaming.newWriter(writer, true);
     serializable.serialize(out);
     out.close();
   }
@@ -460,7 +487,7 @@ public final class XmlUtil {
    */
   public static void serialize(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
     while (in.hasNext()) {
-      EventType eventType = in.next();
+      final EventType eventType = in.next();
       if (eventType==null) { break; }
       switch (eventType) {
         case START_DOCUMENT:
@@ -561,7 +588,7 @@ public final class XmlUtil {
     if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
     try {
       @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
-      return factory.deserialize((StAXReader) in);
+      return factory.deserialize(in);
     } catch (@NotNull InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
@@ -612,7 +639,7 @@ public final class XmlUtil {
   public static CharSequence readSimpleElement(@NotNull final XmlReader in) throws XmlException {
     in.require(EventType.START_ELEMENT, null, null);
     EventType type;
-    StringBuilder result = new StringBuilder();
+    final StringBuilder result = new StringBuilder();
     while ((type = in.next())!=EventType.END_ELEMENT) {
       switch (type) {
         case COMMENT:
@@ -753,8 +780,6 @@ public final class XmlUtil {
 
   private static String toString(@NotNull final XmlSerializable serializable, final int flags) {
     final StringWriter out =new StringWriter();
-    final XMLOutputFactory factory = XMLOutputFactory.newInstance();
-    configure(factory, flags);
     try {
       final XmlWriter serializer = XmlStreaming.newWriter(out);
       serializable.serialize(serializer);
@@ -873,7 +898,7 @@ public final class XmlUtil {
   public static DocumentFragment childrenToDocumentFragment(final XMLStreamReader in) throws XMLStreamException {
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
-    Document doc;
+    final Document doc;
     try {
       doc = dbf.newDocumentBuilder().newDocument();
     } catch (@NotNull final ParserConfigurationException e) {
@@ -899,14 +924,14 @@ public final class XmlUtil {
   public static DocumentFragment childrenToDocumentFragment(final XmlReader in) throws XmlException {
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
-    Document doc;
+    final Document doc;
     try {
       doc = dbf.newDocumentBuilder().newDocument();
     } catch (@NotNull final ParserConfigurationException e) {
       throw new XmlException(e);
     }
     final DocumentFragment documentFragment = doc.createDocumentFragment();
-    XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
+    final XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
     while (in.hasNext() && (in.next()!= EventType.END_ELEMENT)) {
       writeCurrentEvent(in, out);
       if (in.getEventType()== EventType.START_ELEMENT) {
@@ -920,14 +945,14 @@ public final class XmlUtil {
   public static Node childToNode(final XmlReader in) throws XmlException {
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
-    Document doc;
+    final Document doc;
     try {
       doc = dbf.newDocumentBuilder().newDocument();
     } catch (@NotNull final ParserConfigurationException e) {
       throw new XmlException(e);
     }
     final DocumentFragment documentFragment = doc.createDocumentFragment();
-    XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
+    final XmlWriter out = XmlStreaming.newWriter(new DOMResult(documentFragment), true);
     writeCurrentEvent(in, out);
     if (in.getEventType()== EventType.START_ELEMENT) {
       writeElementContent(null, in, out);
@@ -976,21 +1001,21 @@ public final class XmlUtil {
    */
   @NotNull
   public static CompactFragment siblingsToFragment(final XmlReader in) throws XmlException {
-    CharArrayWriter caw = new CharArrayWriter();
+    final CharArrayWriter caw = new CharArrayWriter();
     if (in.getEventType()==null && in.hasNext()) { in.next(); }
 
     final String startLocation = in.getLocationInfo();
     try {
 
       final TreeMap<String, String> missingNamespaces = new TreeMap<>();
-      GatheringNamespaceContext gatheringContext = null;
+      final GatheringNamespaceContext gatheringContext = null;
       // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
-      int initialDepth = in.getDepth() - (in.getEventType()==EventType.START_ELEMENT ? 1 : 0);
+      final int initialDepth = in.getDepth() - (in.getEventType() == EventType.START_ELEMENT ? 1 : 0);
       for(EventType type = in.getEventType(); type!=XmlStreaming.END_DOCUMENT && type!=XmlStreaming.END_ELEMENT && in.getDepth()>=initialDepth; type = (in.hasNext()? in.next(): null)) {
         if (type==XmlStreaming.START_ELEMENT) {
-          XmlWriter out = XmlStreaming.newWriter(caw);
+          final XmlWriter out = XmlStreaming.newWriter(caw);
           writeCurrentEvent(in, out); // writes the start tag
-          for(String prefix: undeclaredPrefixes(in, out)) {
+          for(final String prefix: undeclaredPrefixes(in, out)) {
             if (! missingNamespaces.containsKey(prefix)) {
               missingNamespaces.put(prefix, in.getNamespaceUri(prefix));
             }
@@ -1010,10 +1035,10 @@ public final class XmlUtil {
 
   private static List<String> undeclaredPrefixes(final XmlReader in, final XmlWriter reference) throws XmlException {
     assert in.getEventType()==XmlStreaming.START_ELEMENT;
-    List<String> result = new ArrayList<>(2);
-    String prefix = StringUtil.toString(in.getPrefix());
+    final List<String> result = new ArrayList<>(2);
+    final String prefix = StringUtil.toString(in.getPrefix());
     if (prefix!=null) {
-      CharSequence uri;
+      final CharSequence uri;
       if ((! prefix.isEmpty()) && ((uri=reference.getNamespaceUri(prefix))==null || (uri.length()==0 && prefix.length()>0))) {
         result.add(prefix);
       }
@@ -1028,14 +1053,14 @@ public final class XmlUtil {
       case START_ELEMENT: {
         out.startTag(in.getNamespaceUri(), in.getLocalName(), in.getPrefix());
         {
-          int nsStart = in.getNamespaceStart();
-          int nsEnd = in.getNamespaceEnd();
+          final int nsStart = in.getNamespaceStart();
+          final int nsEnd = in.getNamespaceEnd();
           for(int i=nsStart; i<nsEnd; ++i) {
             out.namespaceAttr(in.getNamespacePrefix(i), in.getNamespaceUri(i));
           }
         }
         {
-          int attrCount = in.getAttributeCount();
+          final int attrCount = in.getAttributeCount();
           for(int i=0; i<attrCount; ++i) {
             out.attribute(in.getAttributeNamespace(i), in.getAttributeLocalName(i), null, in.getAttributeValue(i));
           }
@@ -1214,7 +1239,7 @@ public final class XmlUtil {
     }
   }
 
-  public static void writeChild(XmlWriter out, final Node in) throws XmlException {
+  public static void writeChild(final XmlWriter out, final Node in) throws XmlException {
     serialize(in, out);
   }
 
@@ -1442,11 +1467,11 @@ public final class XmlUtil {
   private static void writeElementContent(@Nullable final Map<String, String> missingNamespaces, @NotNull final XmlReader in, @NotNull final XmlWriter out) throws
           XmlException {
     while (in.hasNext()) {
-      EventType type = in.next();
+      final EventType type = in.next();
       writeCurrentEvent(in, out);
       if (type== EventType.START_ELEMENT) {
         if (missingNamespaces!=null) {
-          for (String prefix : undeclaredPrefixes(in, out)) {
+          for (final String prefix : undeclaredPrefixes(in, out)) {
             if (!missingNamespaces.containsKey(prefix)) {
               missingNamespaces.put(prefix, in.getNamespaceUri(prefix));
             }
