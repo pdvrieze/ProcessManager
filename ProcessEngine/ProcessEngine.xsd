@@ -18,6 +18,7 @@
 <xsd:schema targetNamespace="http://adaptivity.nl/ProcessEngine/" elementFormDefault="qualified"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://adaptivity.nl/ProcessEngine/">
     <xsd:element name="processModel" type="tns:TProcessModel"></xsd:element>
+    <xsd:element name="message" type="tns:Message"></xsd:element>
 
     <xsd:complexType name="TProcessModel">
         <xsd:choice minOccurs="0" maxOccurs="unbounded">
