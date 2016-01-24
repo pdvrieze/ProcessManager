@@ -16,10 +16,14 @@
 
 package nl.adaptivity.process.processModel;
 
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
@@ -31,8 +35,8 @@ import java.util.Collection;
  */
 public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends ProcessModelBase<T, M>> extends ProcessNodeBase<T,M> implements JoinSplit<T, M>, SimpleXmlDeserializable {
 
-  protected int mMin;
-  protected int mMax;
+  protected int mMin = -1;
+  protected int mMax = -1;
 
   public JoinSplitBase(final M ownerModel, final Collection<? extends Identifiable> predecessors, final int max, final int min) {
     super(ownerModel);
@@ -57,6 +61,25 @@ public abstract class JoinSplitBase<T extends ProcessNode<T, M>, M extends Proce
   @Override
   public boolean deserializeChildText(final CharSequence elementText) {
     return false;
+  }
+
+  @Override
+  protected void serializeAttributes(@NotNull final XmlWriter out) throws XmlException {
+    super.serializeAttributes(out);
+    if (mMin>=0) { XmlUtil.writeAttribute(out, "min", mMin); }
+    if (mMax>=0) { XmlUtil.writeAttribute(out, "max", mMax); }
+  }
+
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, @NotNull final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    if (StringUtil.isEqual("min", attributeLocalName)) {
+      mMin = Integer.parseInt(attributeValue.toString());
+    } else if (StringUtil.isEqual("max", attributeLocalName)) {
+      mMax = Integer.parseInt(attributeValue.toString());
+    } else {
+      return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
+    }
+    return true;
   }
 
   @Override
