@@ -72,7 +72,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 
     @Override
     public DrawableSplit createSplit(final DrawableProcessModel ownerModel, final Collection<? extends Identifiable> successors) {
-      DrawableSplit join = new DrawableSplit(ownerModel);
+      final DrawableSplit join = new DrawableSplit(ownerModel);
       join.setId(Identifier.findIdentifier(join.getIdBase(), ownerModel.getModelNodes()));
       ownerModel.addNode(join);
       join.setSuccessors(successors);
@@ -107,11 +107,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     super();
   }
 
-  public DrawableProcessModel(ProcessModel<?, ?> original) {
+  public DrawableProcessModel(final ProcessModel<?, ?> original) {
     this(original, null);
   }
 
-  public DrawableProcessModel(ProcessModel<?, ?> original, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  public DrawableProcessModel(final ProcessModel<?, ?> original, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     super(original.getUuid(), original.getName(), cloneNodes(original), layoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
@@ -135,22 +135,22 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @NotNull
-  public static DrawableProcessModel deserialize(@NotNull Factory factory, @NotNull final XmlReader in) throws XmlException {
+  public static DrawableProcessModel deserialize(@NotNull final Factory factory, @NotNull final XmlReader in) throws XmlException {
     return (DrawableProcessModel) ProcessModelBase.deserialize(factory, new DrawableProcessModel(), in).normalize(factory);
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<? extends ProcessNode<?, ?>, ?> original) {
-    Map<String,DrawableProcessNode> cache = new HashMap<>(original.getModelNodes().size());
+  private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<? extends ProcessNode<?, ?>, ?> original) {
+    final Map<String,DrawableProcessNode> cache = new HashMap<>(original.getModelNodes().size());
     return cloneNodes(original, cache, original.getModelNodes());
   }
 
-  private static Collection<? extends DrawableProcessNode> cloneNodes(ProcessModel<?, ?> source, Map<String, DrawableProcessNode> cache, Collection<? extends Identifiable> nodes) {
-    List<DrawableProcessNode> result = new ArrayList<>(nodes.size());
-    for(Identifiable origId: nodes) {
-      DrawableProcessNode val = cache.get(origId.getId());
+  private static Collection<? extends DrawableProcessNode> cloneNodes(final ProcessModel<?, ?> source, final Map<String, DrawableProcessNode> cache, final Collection<? extends Identifiable> nodes) {
+    final List<DrawableProcessNode> result = new ArrayList<>(nodes.size());
+    for(final Identifiable origId: nodes) {
+      final DrawableProcessNode val = cache.get(origId.getId());
       if (val==null) {
-        ProcessNode orig = source.getNode(origId);
-        DrawableProcessNode cpy = toDrawableNode(orig);
+        final ProcessNode orig = source.getNode(origId);
+        final DrawableProcessNode cpy = toDrawableNode(orig);
         result.add(cpy);
         cache.put(cpy.getId(), cpy);
         cpy.setSuccessors(Collections.<DrawableProcessNode>emptyList());
@@ -163,11 +163,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return result;
   }
 
-  public DrawableProcessModel(UUID uuid, String name, Collection<? extends DrawableProcessNode> nodes) {
+  public DrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes) {
     this(uuid, name, nodes, null);
   }
 
-  public DrawableProcessModel(UUID uuid, String name, Collection<? extends DrawableProcessNode> nodes, LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
+  public DrawableProcessModel(final UUID uuid, final String name, final Collection<? extends DrawableProcessNode> nodes, final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm) {
     super(uuid, name, nodes, layoutAlgorithm);
     setDefaultNodeWidth(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYWIDTH, JOINWIDTH)));
     setDefaultNodeHeight(Math.max(Math.max(STARTNODERADIUS, ENDNODEOUTERRADIUS), Math.max(ACTIVITYHEIGHT, JOINHEIGHT)));
@@ -177,7 +177,7 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     layout();
   }
 
-  public static DrawableProcessModel get(ProcessModel<?, ?> src) {
+  public static DrawableProcessModel get(final ProcessModel<?, ?> src) {
     if (src instanceof DrawableProcessModel) { return (DrawableProcessModel) src; }
     return src==null ? null : new DrawableProcessModel(src);
   }
@@ -187,31 +187,31 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
 	return new DrawableProcessModel(this);
   }
 
-  private static DrawableProcessNode toDrawableNode(ProcessNode<?, ?> elem) {
+  private static DrawableProcessNode toDrawableNode(final ProcessNode<?, ?> elem) {
     return elem.visit(new Visitor<DrawableProcessNode>() {
 
       @Override
-      public DrawableProcessNode visitStartNode(StartNode<?, ?> startNode) {
+      public DrawableProcessNode visitStartNode(final StartNode<?, ?> startNode) {
         return DrawableStartNode.from(startNode, true);
       }
 
       @Override
-      public DrawableProcessNode visitActivity(Activity<?, ?> activity) {
+      public DrawableProcessNode visitActivity(final Activity<?, ?> activity) {
         return DrawableActivity.from(activity, true);
       }
 
       @Override
-      public DrawableProcessNode visitSplit(Split<?, ?> split) {
+      public DrawableProcessNode visitSplit(final Split<?, ?> split) {
         return DrawableSplit.from(split);
       }
 
       @Override
-      public DrawableProcessNode visitJoin(Join<?, ?> join) {
+      public DrawableProcessNode visitJoin(final Join<?, ?> join) {
         return DrawableJoin.from(join, true);
       }
 
       @Override
-      public DrawableProcessNode visitEndNode(EndNode<?, ?> endNode) {
+      public DrawableProcessNode visitEndNode(final EndNode<?, ?> endNode) {
         return DrawableEndNode.from(endNode);
       }
 
@@ -227,26 +227,26 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void translate(double dX, double dY) {
+  public void translate(final double dX, final double dY) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
   }
 
   @Override
-  public void setPos(double left, double top) {
+  public void setPos(final double left, final double top) {
     // TODO instead implement this through moving all elements.
     throw new UnsupportedOperationException("Diagrams can not be moved");
   }
 
   public void ensureIds() {
-    for (ClientProcessNode node: getModelNodes()) {
+    for (final ClientProcessNode node: getModelNodes()) {
       ensureId(node);
     }
   }
 
-  private <T extends ClientProcessNode> T ensureId(T node) {
+  private <T extends ClientProcessNode> T ensureId(final T node) {
     if (node.getId()==null) {
-      String idBase = node.getIdBase();
+      final String idBase = node.getIdBase();
       String newId = idBase + idSeq++;
       while (getNode(newId)!=null) {
         newId = idBase+idSeq++;
@@ -257,12 +257,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public Drawable getItemAt(double x, double y) {
+  public Drawable getItemAt(final double x, final double y) {
     if (getModelNodes().size()==0) {
       return getBounds().contains(x, y) ? this : null;
     }
-    for(Drawable candidate: getChildElements()) {
-      Drawable result = candidate.getItemAt(x, y);
+    for(final Drawable candidate: getChildElements()) {
+      final Drawable result = candidate.getItemAt(x, y);
       if (result!=null) {
         return result;
       }
@@ -276,12 +276,12 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void setState(int state) {
+  public void setState(final int state) {
     mState = state;
   }
 
   @Override
-  public void setNodes(Collection<? extends DrawableProcessNode> nodes) {
+  public void setNodes(final Collection<? extends DrawableProcessNode> nodes) {
     // Null check here as setNodes is called during construction of the parent
     if (mBounds!=null) { mBounds.left = Double.NaN; }
     super.setNodes(nodes);
@@ -295,16 +295,16 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public void notifyNodeChanged(DrawableProcessNode node) {
+  public void notifyNodeChanged(final DrawableProcessNode node) {
     invalidateConnectors();
     // TODO this is not correct as it will only expand the bounds.
-    Rectangle nodeBounds = node.getBounds();
+    final Rectangle nodeBounds = node.getBounds();
     if (mBounds==null) {
       mBounds = nodeBounds.clone();
       return;
     }
-    double right = Math.max(nodeBounds.right(), mBounds.right());
-    double bottom = Math.max(nodeBounds.bottom(), mBounds.bottom());
+    final double right = Math.max(nodeBounds.right(), mBounds.right());
+    final double bottom = Math.max(nodeBounds.bottom(), mBounds.bottom());
     if (nodeBounds.left<mBounds.left) {
       mBounds.left = nodeBounds.left;
     }
@@ -316,11 +316,11 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   private void updateBounds() {
-    Collection<? extends DrawableProcessNode> modelNodes = getModelNodes();
+    final Collection<? extends DrawableProcessNode> modelNodes = getModelNodes();
     if (modelNodes.isEmpty()) { mBounds.set(0,0,0,0); return; }
-    DrawableProcessNode firstNode = modelNodes.iterator().next();
+    final DrawableProcessNode firstNode = modelNodes.iterator().next();
     mBounds.set(firstNode.getBounds());
-    for(DrawableProcessNode node: getModelNodes()) {
+    for(final DrawableProcessNode node: getModelNodes()) {
       mBounds.extendBounds(node.getBounds());
     }
   }
@@ -337,25 +337,25 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
   }
 
   @Override
-  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(Canvas<S, PEN_T, PATH_T> canvas, Rectangle clipBounds) {
+  public <S extends DrawingStrategy<S, PEN_T, PATH_T>, PEN_T extends Pen<PEN_T>, PATH_T extends DiagramPath<PATH_T>> void draw(final Canvas<S, PEN_T, PATH_T> canvas, final Rectangle clipBounds) {
 //    updateBounds(); // don't use getBounds as that may force a layout. Don't do layout in draw code
-    Canvas<S, PEN_T, PATH_T> childCanvas = canvas.childCanvas(0d, 0d, 1d);
+    final Canvas<S, PEN_T, PATH_T> childCanvas = canvas.childCanvas(0d, 0d, 1d);
     final S strategy = canvas.getStrategy();
 
-    PEN_T arcPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState);
+    final PEN_T arcPen = canvas.getTheme().getPen(ProcessThemeItems.LINE, mState);
 
     List<PATH_T> connectors  = mItems.getPathList(strategy, 0);
     if (connectors == null) {
       connectors = new ArrayList<>();
-      for(DrawableProcessNode start:getModelNodes()) {
+      for(final DrawableProcessNode start:getModelNodes()) {
         if (! (Double.isNaN(start.getX())|| Double.isNaN(start.getY()))) {
-          for (Identifiable endId: start.getSuccessors()) {
-            DrawableProcessNode end = asNode(endId);
+          for (final Identifiable endId: start.getSuccessors()) {
+            final DrawableProcessNode end = asNode(endId);
             if (! (Double.isNaN(end.getX())|| Double.isNaN(end.getY()))) {
-              double x1 = start.getBounds().right()/*-STROKEWIDTH*/;
-              double y1 = start.getY();
-              double x2 = end.getBounds().left/*+STROKEWIDTH*/;
-              double y2 = end.getY();
+              final double x1 = start.getBounds().right()/*-STROKEWIDTH*/;
+              final double y1 = start.getY();
+              final double x2 = end.getBounds().left/*+STROKEWIDTH*/;
+              final double y2 = end.getY();
               connectors.add(Connectors.getArrow(strategy, x1, y1, x2, y2, arcPen));
             }
           }
@@ -364,18 +364,18 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
       mItems.setPathList(strategy, 0, connectors);
     }
 
-    for(PATH_T path: connectors) {
+    for(final PATH_T path: connectors) {
       childCanvas.drawPath(path, arcPen, null);
     }
 
-    for(DrawableProcessNode node:getModelNodes()) {
-      Rectangle b = node.getBounds();
+    for(final DrawableProcessNode node:getModelNodes()) {
+      final Rectangle b = node.getBounds();
       node.draw(childCanvas.childCanvas(b.left, b.top, 1 ), null);
     }
 
-    for(DrawableProcessNode node:getModelNodes()) {
+    for(final DrawableProcessNode node:getModelNodes()) {
       // TODO do something better with the left and top coordinates
-      Rectangle b = node.getBounds();
+      final Rectangle b = node.getBounds();
       node.drawLabel(childCanvas.childCanvas(b.left, b.top, 1 ), null, node.getX(), node.getY());
     }
   }
@@ -385,13 +385,13 @@ public class DrawableProcessModel extends ClientProcessModel<DrawableProcessNode
     return getModelNodes();
   }
 
-  static void copyProcessNodeAttrs(ProcessNode<?, ?> from, DrawableProcessNode to) {
+  static void copyProcessNodeAttrs(final ProcessNode<?, ?> from, final DrawableProcessNode to) {
     to.setId(from.getId());
     to.setX(from.getX());
     to.setY(from.getY());
 
-    Set<? extends Identifiable> predecessors = from.getPredecessors();
-    Set<? extends Identifiable> successors = from.getSuccessors();
+    final Set<? extends Identifiable> predecessors = from.getPredecessors();
+    final Set<? extends Identifiable> successors = from.getSuccessors();
     if (predecessors != null) { to.setPredecessors(predecessors); }
     if (successors != null) { to.setSuccessors(successors); }
   }
