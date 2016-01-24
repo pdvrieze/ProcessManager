@@ -34,6 +34,7 @@ import nl.adaptivity.process.ui.UIConstants;
 public class UserTaskEditorActivity extends AppCompatActivity {
 
   private ActivityUserTaskEditorBinding mBinding;
+  private UserTaskEditorFragment mEditorFragment;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -45,13 +46,13 @@ public class UserTaskEditorActivity extends AppCompatActivity {
 
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     final Intent intent = getIntent();
-    UserTaskEditorFragment fragment = new UserTaskEditorFragment();
+    mEditorFragment = new UserTaskEditorFragment();
     if (intent.hasExtra(UIConstants.KEY_ACTIVITY)) {
       Bundle bundle = new Bundle(1);
       bundle.putParcelable(UIConstants.KEY_ACTIVITY, intent.getParcelableExtra(UIConstants.KEY_ACTIVITY));
-      fragment.setArguments(bundle);
+      mEditorFragment.setArguments(bundle);
     }
-    getSupportFragmentManager().beginTransaction().add(mBinding.fragment.getId(), fragment).commit();
+    getSupportFragmentManager().beginTransaction().add(mBinding.fragment.getId(), mEditorFragment).commit();
 
 
   }
@@ -71,5 +72,13 @@ public class UserTaskEditorActivity extends AppCompatActivity {
       return true;
     }
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void finish() {
+    Intent intent = new Intent();
+    intent.putExtra(UIConstants.KEY_ACTIVITY, mEditorFragment.getParcelableResult());
+    setResult(RESULT_OK, intent);
+    super.finish();
   }
 }

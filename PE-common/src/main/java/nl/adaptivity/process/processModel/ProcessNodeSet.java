@@ -258,6 +258,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     }
 
     @Override
+    public V set(final int index, final V element) {
+      return mStore.set(index, element);
+    }
+
+    @Override
     public V get(final int index) {
       return mStore.get(index);
     }
@@ -311,6 +316,11 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
     @NotNull
     @Override
     public V get(final int index) {
+      throw new IndexOutOfBoundsException();
+    }
+
+    @Override
+    public V set(final int index, final V element) {
       throw new IndexOutOfBoundsException();
     }
 
@@ -383,6 +393,16 @@ public abstract class ProcessNodeSet<T extends Identifiable> extends AbstractLis
         throw new IndexOutOfBoundsException();
       }
       return mElement;
+    }
+
+    @Override
+    public V set(final int index, final V element) {
+      if (index!=0) {
+        throw new IndexOutOfBoundsException();
+      }
+      V result = mElement;
+      mElement = element;
+      return result;
     }
 
     @Override

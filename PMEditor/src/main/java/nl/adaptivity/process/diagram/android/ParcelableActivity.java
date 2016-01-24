@@ -97,7 +97,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
 
   public UserTask getUserTask() {
     final XmlMessage message = getMessage();
-    if (UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
+    if (message!=null && UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
             UserTaskServiceDescriptor.ENDPOINT.equals(message.getEndpoint())) {
       try {
         final Envelope<PostTask> envelope = Envelope.deserialize(message.getBodyStreamReader(), PostTask.FACTORY);

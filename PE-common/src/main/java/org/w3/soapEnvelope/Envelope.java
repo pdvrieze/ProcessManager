@@ -33,7 +33,6 @@ import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 import java.net.URI;
@@ -86,11 +85,23 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
   protected Header header;
 
-  protected Body<T> body;
+  protected Body<T> mBody;
 
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
-  private URI encodingStyle;
+  private URI encodingStyle = URI.create("http://www.w3.org/2003/05/soap-encoding");
+
+  public Envelope() {
+  }
+
+  public Envelope(final Body<T> body) {
+    this();
+    mBody = body;
+  }
+
+  public Envelope(final T content) {
+    this(new Body<>(content));
+  }
 
   public static Envelope<CompactFragment> deserialize(final XmlReader in) throws XmlException {
     return deserialize(in, CompactFragment.FACTORY);
@@ -150,12 +161,12 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
   @Override
   public void serialize(final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, getElementName());
-    XmlUtil.writeAttribute(out, "encodingStyle", encodingStyle.toString());
+    XmlUtil.writeAttribute(out, "encodingStyle", encodingStyle);
     for(Entry<QName, String> attr:otherAttributes.entrySet()) {
       XmlUtil.writeAttribute(out, attr.getKey(), attr.getValue());
     }
     XmlUtil.writeChild(out, header);
-    XmlUtil.writeChild(out, body);
+    XmlUtil.writeChild(out, mBody);
     XmlUtil.writeEndElement(out, getElementName());
   }
 
@@ -183,7 +194,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
    * @return possible object is {@link Body }
    */
   public Body<T> getBody() {
-    return body;
+    return mBody;
   }
 
   /**
@@ -192,7 +203,7 @@ public class Envelope<T extends XmlSerializable> implements XmlSerializable{
    * @param value allowed object is {@link Body }
    */
   public void setBody(final Body<T> value) {
-    this.body = value;
+    this.mBody = value;
   }
 
   /**

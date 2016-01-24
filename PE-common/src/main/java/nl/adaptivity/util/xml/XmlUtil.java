@@ -19,6 +19,7 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.XmlEvent.TextEvent;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.codehaus.stax2.XMLOutputFactory2;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,7 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import java.io.*;
+import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -1198,9 +1200,8 @@ public final class XmlUtil {
    * @param in The stream reader to skip
    */
   public static void skipPreamble(@NotNull final XmlReader in) throws XmlException {
-    EventType type = in.getEventType();
-    while (isIgnorable(type) && in.hasNext()) {
-      type = in.next();
+    while (isIgnorable(in) && in.hasNext()) {
+      in.next();
     }
   }
 
@@ -1218,7 +1219,8 @@ public final class XmlUtil {
     }
   }
 
-  public static boolean isIgnorable(final EventType type) {
+  public static boolean isIgnorable(final XmlReader in) throws XmlException {
+    EventType type = in.getEventType();
     if (type==null) { return true; } // Before start, means ignore the "current event"
     switch (type) {
       case COMMENT:
@@ -1228,6 +1230,26 @@ public final class XmlUtil {
       case DOCDECL:
       case IGNORABLE_WHITESPACE:
         return true;
+      case TEXT:
+        return isXmlWhitespace(in.getText());
+      default:
+        return false;
+    }
+  }
+
+  public static boolean isIgnorable(final XmlEvent event) {
+    EventType type = event.getEventType();
+    if (type==null) { return true; } // Before start, means ignore the "current event"
+    switch (type) {
+      case COMMENT:
+      case START_DOCUMENT:
+      case END_DOCUMENT:
+      case PROCESSING_INSTRUCTION:
+      case DOCDECL:
+      case IGNORABLE_WHITESPACE:
+        return true;
+      case TEXT:
+        return isXmlWhitespace(((TextEvent) event).text);
       default:
         return false;
     }
@@ -1299,6 +1321,12 @@ public final class XmlUtil {
   public static void writeAttribute(@NotNull final XmlWriter out, final String name, @Nullable final String value) throws XmlException {
     if (value!=null) {
       out.attribute(null, name, null, value);
+    }
+  }
+
+  public static void writeAttribute(final XmlWriter out, final String name, @Nullable final Object value) throws XmlException {
+    if (value!=null) {
+      out.attribute(null, name, null, value.toString());
     }
   }
 

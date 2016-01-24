@@ -384,6 +384,22 @@ public class ProcessModelBase<T extends ProcessNode<? extends T, M>, M extends P
     return mProcessNodes.get(pos);
   }
 
+  public T setNode(final int pos, final T newValue) {
+    final T oldValue = mProcessNodes.set(pos, newValue);
+    newValue.setOwnerModel(asM());
+    oldValue.setSuccessors(Collections.<Identifiable>emptySet());
+    oldValue.setPredecessors(Collections.<Identifiable>emptySet());
+    oldValue.setOwnerModel(null);
+    newValue.resolveRefs();
+    for(Identifiable pred: newValue.getPredecessors()) {
+      getNode(pred).addSuccessor(newValue);
+    }
+    for(Identifiable suc: newValue.getSuccessors()) {
+      getNode(suc).addPredecessor(newValue);
+    }
+    return oldValue;
+  }
+
   /**
    * Initiate the notification that a node has changed. Actual implementations can override this.
    * @param node The node that has changed.

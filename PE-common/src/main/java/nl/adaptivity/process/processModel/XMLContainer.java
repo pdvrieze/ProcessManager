@@ -192,7 +192,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   @NotNull
   public XmlReader getBodyStreamReader() throws XmlException {
-    return XMLFragmentStreamReader.from(new CharArrayReader(content), originalNSContext);
+    return XMLFragmentStreamReader.from(new CharArrayReader(content == null ? new char[0] : content), originalNSContext);
   }
 
   protected void serializeAttributes(final XmlWriter out) throws XmlException {

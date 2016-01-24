@@ -200,6 +200,10 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
     }
   }
 
+  public List<TaskItem> getItems() {
+    return mItems;
+  }
+
   public void setItems(final List<? extends TaskItem> items) {
     mItems.clear();
     mItems.addAll(items);

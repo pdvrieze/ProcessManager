@@ -94,6 +94,11 @@ public class BaseProcessAdapter implements DiagramAdapter<LWDrawableView, Drawab
     mDiagram = diagram;
   }
 
+  public void updateItem(final int pos, final DrawableProcessNode newValue) {
+    mDiagram.setNode(pos, newValue);
+    invalidate();
+  }
+
   @Override
   public int getCount() {
     if (mDiagram==null) { return 0; }

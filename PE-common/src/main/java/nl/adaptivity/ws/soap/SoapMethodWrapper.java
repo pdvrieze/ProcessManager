@@ -114,7 +114,7 @@ public class SoapMethodWrapper extends WsMethodWrapper {
     final LinkedHashMap<String, Node> params = SoapHelper.unmarshalWrapper(reader);
     reader.require(EventType.END_ELEMENT, null, null);
     if (reader.hasNext()) { reader.next(); }
-    while ( reader.hasNext() && XmlUtil.isIgnorable(reader.getEventType())) { reader.next(); }
+    while ( reader.hasNext() && XmlUtil.isIgnorable(reader)) { reader.next(); }
     if (reader.getEventType()== EventType.START_ELEMENT) {
       throw new MessagingFormatException("Multiple body elements not expected");
     }

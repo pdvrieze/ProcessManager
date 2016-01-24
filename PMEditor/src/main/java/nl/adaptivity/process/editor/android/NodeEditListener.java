@@ -16,15 +16,19 @@
 
 package nl.adaptivity.process.editor.android;
 
+import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 
 
 /**
+ * Interface to enable interacting with process nodes.
  * Created by pdvrieze on 10/01/16.
  */
 public interface NodeEditListener {
 
-  public DrawableProcessNode getNode(int pos);
+  DrawableProcessNode getNode(int pos);
 
-  public void onNodeEdit(int pos);
+  void onNodeEdit(int pos);
+
+  void updateNode(int pos, DrawableProcessNode newValue);
 }

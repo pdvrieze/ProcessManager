@@ -210,7 +210,7 @@ public class PETransformer {
 
     private static void addAllRegular(List<XmlEvent> target, Iterable<? extends XmlEvent> source) {
       for(XmlEvent event:source) {
-        if (! XmlUtil.isIgnorable(event.getEventType())) {
+        if (! XmlUtil.isIgnorable(event)) {
           target.add(event);
         }
       }

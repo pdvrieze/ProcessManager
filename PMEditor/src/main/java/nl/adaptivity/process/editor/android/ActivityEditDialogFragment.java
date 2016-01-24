@@ -35,9 +35,9 @@ import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
+import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
-import nl.adaptivity.process.ui.activity.UserTaskEditorFragment;
 
 
 /**
@@ -47,12 +47,10 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
 
   private static final int MAX_MAX = 20;
 
-  public static final String NODE_POS = "node_pos";
-  public static final int REQUEST_EDIT_HUMAN = 12;
-
   private int mPos=-1;
 
   private DlgNodeEditActivityBinding mBinding;
+  private DrawableActivity mActivityNode;
 
   @Override
   public void onCheckedChanged(final RadioButtonHelper source, final int oldCheckedId, final int newCheckedId) {
@@ -63,7 +61,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   public static ActivityEditDialogFragment newInstance(final int position) {
     ActivityEditDialogFragment frag = new ActivityEditDialogFragment();
     Bundle args = new Bundle(1);
-    args.putInt(NODE_POS, position);
+    args.putInt(UIConstants.KEY_NODE_POS, position);
     frag.setArguments(args);
     return frag;
   }
@@ -75,7 +73,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
 
   @Override
   public Dialog onCreateDialog(final Bundle savedInstanceState) {
-    mPos = getArguments().getInt(NODE_POS,-1);
+    mPos = getArguments().getInt(UIConstants.KEY_NODE_POS, -1);
     final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
     builder.setTitle("Edit node")
     .setCancelable(true)
@@ -94,10 +92,12 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     mBinding.editAcHuman.setOnClickListener(this);
     mBinding.editAcService.setOnClickListener(this);
 
-    if (getActivity() instanceof NodeEditListener) {
+    if (savedInstanceState!=null && savedInstanceState.containsKey(UIConstants.KEY_ACTIVITY)) {
+      mActivityNode = DrawableActivity.from(savedInstanceState.<ParcelableActivity<?,?>>getParcelable(UIConstants.KEY_ACTIVITY), false);
+    } else if (getActivity() instanceof NodeEditListener) {
       final NodeEditListener listener = (NodeEditListener) getActivity();
-      final DrawableActivity node = (DrawableActivity) listener.getNode(mPos);
-      mBinding.setNode(node);
+      mActivityNode = (DrawableActivity) listener.getNode(mPos);
+      mBinding.setNode(mActivityNode);
     }
     return dialog;
   }
@@ -109,6 +109,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
         final NodeEditListener listener = (NodeEditListener) getActivity();
         final DrawableActivity node = (DrawableActivity) listener.getNode(mPos);
         node.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
+        node.setMessage(mActivityNode.getMessage());
         listener.onNodeEdit(mPos);
       }
     }
@@ -122,11 +123,26 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
       case R.id.editAcHuman: {
         final Intent intent = new Intent(getActivity(), UserTaskEditorActivity.class);
         final NodeEditListener listener = (NodeEditListener) getActivity();
-        DrawableActivity activity = (DrawableActivity) listener.getNode(mPos);
-        intent.putExtra(UIConstants.KEY_ACTIVITY_ID, activity.getId() );
-        intent.putExtra(UIConstants.KEY_ACTIVITY, ParcelableActivity.newInstance(activity, activity.isCompat()));
-        startActivityForResult(intent, REQUEST_EDIT_HUMAN);
+        intent.putExtra(UIConstants.KEY_ACTIVITY_ID, mActivityNode.getId() );
+        intent.putExtra(UIConstants.KEY_ACTIVITY, ParcelableActivity.newInstance(mActivityNode, mActivityNode.isCompat()));
+        startActivityForResult(intent, UIConstants.REQUEST_EDIT_HUMAN);
         break;
+      }
+    }
+  }
+
+  @Override
+  public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    if (resultCode==Activity.RESULT_OK) {
+      switch (requestCode) {
+        case UIConstants.REQUEST_EDIT_HUMAN: {
+          ParcelableActivity newActivity = data.getParcelableExtra(UIConstants.KEY_ACTIVITY);
+          if (newActivity!=null) {
+            final NodeEditListener listener = (NodeEditListener) getActivity();
+            mActivityNode = DrawableActivity.from(newActivity, false);
+            mBinding.setNode(mActivityNode);
+          }
+        }
       }
     }
   }

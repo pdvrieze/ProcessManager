@@ -635,7 +635,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     try {
       // TODO replace with factory
       constructor = nodeType.getConstructor(DrawableProcessModel.class);
-      final DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(mPm);
+      final DrawableProcessNode node = (DrawableProcessNode) constructor.newInstance(getPm());
       float diagramX = diagramView1.toDiagramX(event.getX());
       float diagramY = diagramView1.toDiagramY(event.getY());
       final int gridSize = diagramView1.getGridSize();
@@ -733,20 +733,20 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     if(savedInstanceState!=null) {
       final PMParcelable pmparcelable = savedInstanceState.getParcelable(KEY_PROCESSMODEL);
       if (pmparcelable!=null) {
-        mPm = DrawableProcessModel.get(pmparcelable.getProcessModel());
+        setPm(DrawableProcessModel.get(pmparcelable.getProcessModel()));
       }
       mPmUri = savedInstanceState.getParcelable(KEY_PROCESSMODEL_URI);
     } else {
       mPmUri = getIntent().getData();
       if (mPmUri!=null) {
         final LayoutAlgorithm<DrawableProcessNode> layoutAlgorithm = new LayoutAlgorithm<DrawableProcessNode>();
-        mPm = loadProcessModel(mPmUri, layoutAlgorithm, layoutAlgorithm);
+        setPm(loadProcessModel(mPmUri, layoutAlgorithm, layoutAlgorithm));
       }
     }
-    if (mPm == null) {
-      mPm = loadInitialProcessModel();
+    if (getPm() == null) {
+      setPm(loadInitialProcessModel());
     }
-    mAdapter = new MyDiagramAdapter(this, mPm);
+    mAdapter = new MyDiagramAdapter(this, getPm());
     diagramView1.setAdapter(mAdapter);
 
     getSupportFragmentManager().beginTransaction().add(new PMProcessesFragment(), "processModelHelper").commit();
@@ -778,6 +778,14 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     elementsView.addView(v);
   }
 
+  private DrawableProcessModel getPm() {
+    return mPm;
+  }
+
+  private void setPm(DrawableProcessModel pm) {
+    mPm = pm;
+  }
+
   private static DrawableProcessNode positionNode(final DrawableProcessNode node) {
     node.setX(0); node.setY(0);
     final Rectangle bounds = node.getBounds();
@@ -801,7 +809,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     double minX = Double.POSITIVE_INFINITY;
     double minY = Double.POSITIVE_INFINITY;
     double maxY = Double.NEGATIVE_INFINITY;
-    for(final DrawableProcessNode node: mPm.getModelNodes()) {
+    for(final DrawableProcessNode node: getPm().getModelNodes()) {
       if (!(Double.isNaN(node.getX()) || Double.isNaN(node.getY()))) {
         final Rectangle bounds = node.getBounds();
         if (bounds.left<minX) { minX = bounds.left; }
@@ -809,8 +817,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         if (bounds.bottom()>maxY) { maxY = bounds.bottom(); }
       }
     }
-    final double offsetX= Double.isInfinite(minX)? 0 : minX - mPm.getLeftPadding();
-    final double offsetY= Double.isInfinite(minY)? 0 : minY - mPm.getTopPadding();
+    final double offsetX= Double.isInfinite(minX)? 0 : minX - getPm().getLeftPadding();
+    final double offsetY= Double.isInfinite(minY)? 0 : minY - getPm().getTopPadding();
     diagramView1.setOffsetX(offsetX/*/diagramView1.getScale()*/);
     diagramView1.setOffsetY(offsetY-(((diagramView1.getHeight()/diagramView1.getScale())-(maxY-minY))/2));
   }
@@ -880,7 +888,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           try {
             out = getContentResolver().openOutputStream(mPmUri);
             try {
-              PMParser.serializeProcessModel(out, mPm);
+              PMParser.serializeProcessModel(out, getPm());
             } finally {
               out.close();
             }
@@ -889,8 +897,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           }
         }
       }
-      if (mPm!=null) {
-        final PMParcelable parcelable = new PMParcelable(mPm);
+      if (getPm() != null) {
+        final PMParcelable parcelable = new PMParcelable(getPm());
         data.putExtra(EXTRA_PROCESS_MODEL, parcelable);
       }
       setResult(RESULT_OK, data);
@@ -908,7 +916,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
         if (mLayoutTask!=null) {
           mLayoutTask.next();
         } else {
-          mLayoutTask = new LayoutTask(mPm);
+          mLayoutTask = new LayoutTask(getPm());
           mLayoutTask.execute();
         }
         break;
@@ -917,8 +925,8 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
           mLayoutTask.cancel(false);
           mLayoutTask.playAll();
         }
-        mPm = null; // unset the process model
-        mLayoutTask = new LayoutTask(mPm);
+        setPm(null); // unset the process model
+        mLayoutTask = new LayoutTask(getPm());
         mLayoutTask.execute();
         break;
       case R.id.ac_play:
@@ -973,7 +981,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   @Override
   protected void onSaveInstanceState(final Bundle outState) {
     super.onSaveInstanceState(outState);
-    outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(mPm));
+    outState.putParcelable(KEY_PROCESSMODEL, new PMParcelable(getPm()));
     if (mPmUri!=null) {
       outState.putParcelable(KEY_PROCESSMODEL_URI, mPmUri);
     }
@@ -990,8 +998,13 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
   }
 
   @Override
+  public void updateNode(final int pos, final DrawableProcessNode newValue) {
+    mAdapter.updateItem(pos, newValue);
+  }
+
+  @Override
   public ClientProcessModel<?, ?> getProcessModel() {
-    return mPm;
+    return getPm();
   }
 
 

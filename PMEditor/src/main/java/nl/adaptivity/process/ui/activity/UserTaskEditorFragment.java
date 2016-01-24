@@ -36,6 +36,7 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentUserTaskEditorBinding;
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.items.LabelItem;
 import nl.adaptivity.process.tasks.items.ListItem;
@@ -44,6 +45,7 @@ import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -54,6 +56,7 @@ public class UserTaskEditorFragment extends Fragment {
   public static final int ANIMATION_DURATION = 200;
   private FragmentUserTaskEditorBinding mBinding;
   private UserTaskEditAdapter mAdapter;
+  private ParcelableActivity<?, ?> mActivity;
 
   // Object Initialization
   public UserTaskEditorFragment() {
@@ -77,14 +80,13 @@ public class UserTaskEditorFragment extends Fragment {
     mAdapter = new UserTaskEditAdapter();
     mBinding.content.setAdapter(mAdapter);
 
-    ParcelableActivity<?,?> activity = null;
     if (savedInstanceState!=null && savedInstanceState.containsKey(UIConstants.KEY_ACTIVITY)) {
-      activity = savedInstanceState.getParcelable(UIConstants.KEY_ACTIVITY);
+      mActivity = savedInstanceState.getParcelable(UIConstants.KEY_ACTIVITY);
     } else if (getArguments()!=null && getArguments().containsKey(UIConstants.KEY_ACTIVITY)){
-      activity = getArguments().getParcelable(UIConstants.KEY_ACTIVITY);
+      mActivity = getArguments().getParcelable(UIConstants.KEY_ACTIVITY);
     }
-    if (activity!=null) {
-      UserTask userTask = activity.getUserTask();
+    if (mActivity != null) {
+      UserTask userTask = mActivity.getUserTask();
       if (userTask!=null) {
         mAdapter.setItems(userTask.getItems());
       }
@@ -203,5 +205,17 @@ public class UserTaskEditorFragment extends Fragment {
         mAdapter.addItem(new TextItem(name, "text", null, new ArrayList<String>()));
         break;
     }
+  }
+
+  public ParcelableActivity getParcelableResult() {
+    List<TaskItem> items = mAdapter.getItems();
+    if (mActivity.getUserTask()==null) {
+      UserTask userTask = new UserTask(null, -1, null, null, items);
+      mActivity.setMessage(userTask.asMessage());
+    } else {
+      mActivity.getUserTask().setItems(items);
+    }
+
+    return mActivity;
   }
 }

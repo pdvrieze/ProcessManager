@@ -71,6 +71,14 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
   private final Map<QName, String> otherAttributes = new HashMap<>();
   private T mContent;
 
+  public Body() {
+  }
+
+  public Body(final T content) {
+    this();
+    mContent = content;
+  }
+
   public static <T extends XmlSerializable> Body<T> deserialize(final XmlReader in, final XmlDeserializerFactory<T> bodyFactory) throws XmlException {
     final Body<T> result = new Body<T>();
     XmlUtil.skipPreamble(in);
@@ -87,7 +95,9 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
 
   public void deserializeChildren(final XmlReader in, XmlDeserializerFactory<T> bodyFactory) throws XmlException {
     if( in.next() != EventType.END_ELEMENT) { // first child
-      if (in.hasNext()) mContent = bodyFactory.deserialize(in);
+      if (in.hasNext()) { mContent = bodyFactory.deserialize(in); }
+      in.nextTag();
+      in.require(EventType.END_ELEMENT, ELEMENTNAME.getNamespaceURI(), ELEMENTLOCALNAME);
     }
   }
 

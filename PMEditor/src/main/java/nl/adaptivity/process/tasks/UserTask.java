@@ -25,16 +25,18 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.StringRes;
 import android.util.Log;
 import net.devrieze.util.CollectionUtil;
+import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.AndroidXmlReader;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlWriter;
+import org.w3.soapEnvelope.Body;
+import org.w3.soapEnvelope.Envelope;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -43,6 +45,7 @@ import javax.xml.namespace.QName;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -202,6 +205,25 @@ public class UserTask extends BaseObservable implements XmlSerializable {
     mItems.addOnListChangedCallback(mChangeCallback);
   }
 
+  public XmlMessage asMessage() {
+    QName service  = UserTaskServiceDescriptor.SERVICENAME;
+    String endpoint = UserTaskServiceDescriptor.ENDPOINT;
+    String operation = PostTask.ELEMENTLOCALNAME;
+    StringWriter bodyWriter = new StringWriter();
+    try {
+      XmlWriter writer = XmlStreaming.newWriter(bodyWriter, true);
+      Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
+
+      envelope.serialize(writer);
+      writer.close();
+    } catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
+
+    XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, new CompactFragment(bodyWriter.toString()));
+    return result;
+  }
+
   @Bindable
   public boolean isEditable() {
     return mState==null ? false :mState.isEditable();
@@ -317,7 +339,7 @@ public class UserTask extends BaseObservable implements XmlSerializable {
   public void serialize(final XmlWriter out) throws XmlException {
     XmlUtil.writeStartElement(out, ELEMENTNAME);
     XmlUtil.writeAttribute(out, "summary", mSummary);
-    XmlUtil.writeAttribute(out, "handle", mHandle);
+    if (mHandle>=0) { XmlUtil.writeAttribute(out, "handle", mHandle); }
     XmlUtil.writeAttribute(out, "owner", mOwner);
     if (mState!=null) { out.attribute(null, "state", null, mState.name()); }
     for(CompactFragment extra: mExtras) {
@@ -335,11 +357,13 @@ public class UserTask extends BaseObservable implements XmlSerializable {
     final String owner;
     final String state;
     final List<TaskItem> items;
+    XmlUtil.skipPreamble(in);
     in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
-    summary = in.getAttributeValue(null, "summary").toString();
-    handle = Long.parseLong(in.getAttributeValue(null, "handle").toString());
-    owner = in.getAttributeValue(null, "owner").toString();
-    state = in.getAttributeValue(null, "state").toString();
+    summary = StringUtil.toString(in.getAttributeValue(null, "summary"));
+    final CharSequence handleStr = in.getAttributeValue(null, "handle");
+    handle = handleStr!=null ? Long.parseLong(handleStr.toString()) : -1L;
+    owner = StringUtil.toString(in.getAttributeValue(null, "owner"));
+    state = StringUtil.toString(in.getAttributeValue(null, "state"));
     items = new ArrayList<>();
 
     while ((in.nextTag()) == EventType.START_ELEMENT) {

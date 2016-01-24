@@ -16,11 +16,14 @@
 
 package nl.adaptivity.process.tasks;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.namespace.QName;
@@ -55,6 +58,15 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   private CompactFragment mReplies;
   private UserTask mTask;
 
+  public PostTask(final UserTask task) {
+    this();
+    mTask = task;
+  }
+
+  public PostTask() {
+  }
+
+  @NonNull
   public CompactFragment getReplies() {
     if (mReplies==null) {
       return DEFAULT_REPLIES_PARAM;
@@ -62,8 +74,20 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     return mReplies;
   }
 
+  /**
+   * Set the replies parameter. If not set, a default parameter will be passed.
+   * @param replies The content of the replies parameter.
+   */
+  public void setReplies(@Nullable final CompactFragment replies) {
+    mReplies = replies;
+  }
+
   public UserTask getTask() {
     return mTask;
+  }
+
+  public void setTask(final UserTask userTask) {
+    mTask = userTask;
   }
 
   @Override
@@ -89,11 +113,13 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     if (StringUtil.isEqual(Constants.USER_MESSAGE_HANDLER_NS,in.getNamespaceUri())) {
       switch (in.getLocalName().toString()) {
         case REPLIESPARAM_LOCALNAME:
-          in.next();
           mReplies = XmlUtil.readerToFragment(in);
           return true;
         case TASKPARAM_LOCALNAME:
+          in.next();//The param tag has been handled.
           mTask = UserTask.deserialize(in);
+          in.nextTag();
+          in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME);
           return true;
       }
     }

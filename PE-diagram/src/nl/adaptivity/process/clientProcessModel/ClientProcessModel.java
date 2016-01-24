@@ -252,7 +252,7 @@ public abstract class ClientProcessModel<T extends ClientProcessNode<T, M>, M ex
     if (node==null) {
       return false;
     }
-    if (getModelNodes().remove(node)) {
+    if (super.removeNode(node)) {
       disconnectNode(node);
       return true;
     }
