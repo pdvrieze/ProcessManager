@@ -20,6 +20,11 @@
         <item name="iconButtonStyle">@style/Widget.IconButton</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
+        <item name="colorPrimary">@color/myColorPrimary</item>
+        <item name="colorPrimaryDark">@color/myColorPrimaryDark</item>
+        <item name="colorAccent">@color/myColorAccent</item>
+        <item name="android:textColorPrimary">@color/myTextColorPrimary</item>
+        <item name="android:textColorSecondary">@color/myColorPrimaryDark</item>
     </style>
 
     <style name="AppTheme.Base" parent="Theme.AppCompat.Light">
