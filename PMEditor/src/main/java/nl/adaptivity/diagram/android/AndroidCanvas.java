@@ -32,8 +32,8 @@ public class AndroidCanvas implements IAndroidCanvas {
 
 
     public OffsetCanvas(OffsetCanvas base, double offsetX, double offsetY, double scale) {
-      mXOffset = (base.mXOffset + offsetX)*scale;
-      mYOffset = (base.mYOffset + offsetY)*scale;
+      mXOffset = (base.mXOffset - offsetX)*scale;
+      mYOffset = (base.mYOffset - offsetY)*scale;
       mScale = base.mScale*scale;
     }
 
@@ -50,8 +50,8 @@ public class AndroidCanvas implements IAndroidCanvas {
     }
 
     private OffsetCanvas(double xOffset, double yOffset, double scale) {
-      mXOffset = xOffset;
-      mYOffset = yOffset;
+      mXOffset = -xOffset;
+      mYOffset = -yOffset;
       mScale = scale;
     }
 
@@ -310,7 +310,7 @@ public class AndroidCanvas implements IAndroidCanvas {
 
   @Override
   public IAndroidCanvas translate(final double left, final double right) {
-    return new OffsetCanvas(-left, -right, 1);
+    return new OffsetCanvas(left, right, 1);
   }
 
   @Override
