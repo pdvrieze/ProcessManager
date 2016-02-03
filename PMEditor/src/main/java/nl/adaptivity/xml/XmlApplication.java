@@ -17,7 +17,6 @@
 package nl.adaptivity.xml;
 
 import android.app.Application;
-import com.squareup.leakcanary.LeakCanary;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 
 
@@ -33,6 +32,5 @@ public class XmlApplication extends Application {
     XmlStreaming.setFactory(new AndroidStreamingFactory());
     // Use the default preference database to store the account name (to enable settings)
     AuthenticatedWebClient.setSharedPreferenceName(null);
-//    LeakCanary.install(this);
   }
 }
