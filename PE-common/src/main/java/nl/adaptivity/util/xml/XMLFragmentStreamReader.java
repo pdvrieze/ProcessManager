@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 
 import java.io.CharArrayReader;
 import java.io.Reader;
@@ -160,15 +161,56 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
       case DOCDECL:
         return next();
       case START_ELEMENT:
-        if (StringUtil.isEqual(WRAPPERNAMESPACE,mDelegate.getNamespaceUri())) { return mDelegate.next(); }
+        if (StringUtil.isEqual(WRAPPERNAMESPACE, mDelegate.getNamespaceUri())) {
+          return mDelegate.next();
+        }
         extendNamespace();
         break;
       case END_ELEMENT:
-        if (StringUtil.isEqual(WRAPPERNAMESPACE,mDelegate.getNamespaceUri())) { return mDelegate.next(); }
+        if (StringUtil.isEqual(WRAPPERNAMESPACE, mDelegate.getNamespaceUri())) {
+          return mDelegate.next();
+        }
         localNamespaceContext = localNamespaceContext.mParent;
         break;
     }
     return result;
+  }
+
+  @Override
+  public String getNamespaceUri(final CharSequence prefix) throws XmlException {
+    if (StringUtil.isEqual(WRAPPERPPREFIX, prefix)) { return null; }
+    return super.getNamespaceUri(prefix);
+  }
+
+  @Override
+  public CharSequence getNamespacePrefix(final CharSequence namespaceUri) throws XmlException {
+    if (StringUtil.isEqual(WRAPPERNAMESPACE, namespaceUri)) { return null; }
+    return super.getNamespacePrefix(namespaceUri);
+  }
+
+  @Override
+  public int getNamespaceStart() throws XmlException {
+    return 0;
+  }
+
+  @Override
+  public int getNamespaceEnd() throws XmlException {
+    return localNamespaceContext.size();
+  }
+
+  @Override
+  public CharSequence getNamespacePrefix(final int i) throws XmlException {
+    return localNamespaceContext.getPrefix(i);
+  }
+
+  @Override
+  public CharSequence getNamespaceUri(final int i) throws XmlException {
+    return localNamespaceContext.getNamespaceURI(i);
+  }
+
+  @Override
+  public NamespaceContext getNamespaceContext() throws XmlException {
+    return localNamespaceContext;
   }
 
   private void extendNamespace() throws XmlException {
