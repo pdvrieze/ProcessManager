@@ -34,6 +34,8 @@ public final class XmlStreaming {
 
   private static class DefaultFactory implements XmlStreamingFactory {
 
+    private static final XmlStreamingFactory DEFAULTFACTORY = new DefaultFactory();
+
     @Override
     public XmlWriter newWriter(final Writer writer, final boolean repairNamespaces) throws XmlException {
       try {
@@ -145,7 +147,6 @@ public final class XmlStreaming {
 
   public static final EventType CDATA = CDSECT;
   public static final EventType CHARACTERS = TEXT;
-  private static final XmlStreamingFactory DEFAULTFACTORY = new DefaultFactory();
 
   private static XmlStreamingFactory _factory;
 
@@ -156,7 +157,7 @@ public final class XmlStreaming {
   }
 
   public static XmlWriter newWriter(final Result result, final boolean repairNamespaces) throws XmlException {
-    return (_factory !=null ? _factory : DEFAULTFACTORY).newWriter(result, repairNamespaces);
+    return (_factory !=null ? _factory : DefaultFactory.DEFAULTFACTORY).newWriter(result, repairNamespaces);
   }
 
   public static XmlWriter newWriter(final OutputStream outputStream, final String encoding) throws XmlException {
@@ -164,7 +165,7 @@ public final class XmlStreaming {
   }
 
   public static XmlWriter newWriter(final OutputStream outputStream, final String encoding, final boolean repairNamespaces) throws XmlException {
-    return (_factory !=null ? _factory : DEFAULTFACTORY).newWriter(outputStream, encoding, repairNamespaces);
+    return (_factory !=null ? _factory : DefaultFactory.DEFAULTFACTORY).newWriter(outputStream, encoding, repairNamespaces);
   }
 
   public static XmlWriter newWriter(final Writer writer) throws XmlException {
@@ -172,19 +173,19 @@ public final class XmlStreaming {
   }
 
   public static XmlWriter newWriter(final Writer writer, final boolean repairNamespaces) throws XmlException {
-    return (_factory !=null ? _factory : DEFAULTFACTORY).newWriter(writer, repairNamespaces);
+    return (_factory !=null ? _factory : DefaultFactory.DEFAULTFACTORY).newWriter(writer, repairNamespaces);
   }
 
   public static XmlReader newReader(final InputStream inputStream, final String encoding) throws XmlException {
-    return (_factory !=null ? _factory : DEFAULTFACTORY).newReader(inputStream, encoding);
+    return (_factory !=null ? _factory : DefaultFactory.DEFAULTFACTORY).newReader(inputStream, encoding);
   }
 
   public static XmlReader newReader(final Reader reader) throws XmlException {
-    return (_factory !=null ? _factory : DEFAULTFACTORY).newReader(reader);
+    return (_factory !=null ? _factory : DefaultFactory.DEFAULTFACTORY).newReader(reader);
   }
 
   public static XmlReader newReader(final Source source) throws XmlException {
-    return (_factory !=null ? _factory : DEFAULTFACTORY).newReader(source);
+    return (_factory !=null ? _factory : DefaultFactory.DEFAULTFACTORY).newReader(source);
   }
 
   public static void setFactory(XmlStreamingFactory factory) {
