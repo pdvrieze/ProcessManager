@@ -18,6 +18,7 @@ package nl.adaptivity.process.ui.main;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.net.Uri;
@@ -266,9 +267,8 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
 
   @Override
   public void onBackPressed() {
-    final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.overview_drawer);
-    if (drawer.isDrawerOpen(GravityCompat.START)) {
-      drawer.closeDrawer(GravityCompat.START);
+    if (mBinding.overviewDrawer.isDrawerOpen(GravityCompat.START)) {
+      mBinding.overviewDrawer.closeDrawer(GravityCompat.START);
     } else {
       super.onBackPressed();
     }
@@ -324,8 +324,9 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
 
           mActiveFragment = OverviewFragment.newInstance();
           final FragmentManager fragmentManager = getSupportFragmentManager();
+          @SuppressLint("CommitTransaction")
           final FragmentTransaction transaction = fragmentManager.beginTransaction()
-                                                                             .replace(R.id.overview_container, mActiveFragment, "home");
+                      .replace(R.id.overview_container, mActiveFragment, "home");
           // don't add it to the backstack if there is no child visible yet.
           if (addToBackstack) { transaction.addToBackStack("home"); }
           transaction.commit();
