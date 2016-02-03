@@ -48,7 +48,7 @@
                        android:paddingRight="8dp"
                        android:layout_gravity="center_horizontal"
                        android:src="@{thumbnail==null ? @drawable/ic_launcher : thumbnail}"
-                    tools:src="@drawable/ic_launcher"/>
+                    tools:src="@mipmap/ic_launcher"/>
 
             <TextView
                     android:id="@+id/model_name"
