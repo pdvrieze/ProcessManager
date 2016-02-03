@@ -96,7 +96,10 @@ public class Body<T extends XmlSerializable> implements XmlSerializable {
   public void deserializeChildren(final XmlReader in, XmlDeserializerFactory<T> bodyFactory) throws XmlException {
     if( in.next() != EventType.END_ELEMENT) { // first child
       if (in.hasNext()) { mContent = bodyFactory.deserialize(in); }
-      in.nextTag();
+      // Be slightly flexible as CompactFragments already deserialize to the parent end element
+      if (! XmlUtil.isElement(in, EventType.END_ELEMENT, ELEMENTNAME)) {
+        in.nextTag();
+      }
       in.require(EventType.END_ELEMENT, ELEMENTNAME.getNamespaceURI(), ELEMENTLOCALNAME);
     }
   }

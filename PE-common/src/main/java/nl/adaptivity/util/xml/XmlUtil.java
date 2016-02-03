@@ -46,7 +46,6 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 
 import java.io.*;
-import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -1017,11 +1016,7 @@ public final class XmlUtil {
         if (type==XmlStreaming.START_ELEMENT) {
           final XmlWriter out = XmlStreaming.newWriter(caw);
           writeCurrentEvent(in, out); // writes the start tag
-          for(final String prefix: undeclaredPrefixes(in, out)) {
-            if (! missingNamespaces.containsKey(prefix)) {
-              missingNamespaces.put(prefix, in.getNamespaceUri(prefix));
-            }
-          }
+          addUndeclaredNamespaces(in, out, missingNamespaces);
           writeElementContent(missingNamespaces, in, out); // writes the children and end tag
           out.close();
         } else if (type==XmlStreaming.TEXT || type==XmlStreaming.IGNORABLE_WHITESPACE || type==XmlStreaming.CDATA) {
@@ -1035,17 +1030,22 @@ public final class XmlUtil {
 
   }
 
-  private static List<String> undeclaredPrefixes(final XmlReader in, final XmlWriter reference) throws XmlException {
+  public static void addUndeclaredNamespaces(final XmlReader in, final XmlWriter out, final Map<String, String> missingNamespaces) throws XmlException {
+    undeclaredPrefixes(in, out, missingNamespaces);
+  }
+
+  private static void undeclaredPrefixes(final XmlReader in, final XmlWriter reference, final Map<String, String> missingNamespaces) throws XmlException {
     assert in.getEventType()==XmlStreaming.START_ELEMENT;
     final List<String> result = new ArrayList<>(2);
     final String prefix = StringUtil.toString(in.getPrefix());
     if (prefix!=null) {
-      final CharSequence uri;
-      if ((! prefix.isEmpty()) && ((uri=reference.getNamespaceUri(prefix))==null || (uri.length()==0 && prefix.length()>0))) {
-        result.add(prefix);
+      if (!missingNamespaces.containsKey(prefix)) {
+        final CharSequence uri = in.getNamespaceUri();
+        if ((!prefix.isEmpty()) && ((!StringUtil.isEqual(uri,reference.getNamespaceUri(prefix)) || (uri.length() == 0 && prefix.length() > 0)))) {
+          missingNamespaces.put(prefix, uri.toString());
+        }
       }
     }
-    return result;
   }
 
   public static void writeCurrentEvent(final XmlReader in, final XmlWriter out) throws XmlException {
@@ -1394,7 +1394,19 @@ public final class XmlUtil {
    */
 
   public static boolean isElement(@NotNull final XmlReader in, @NotNull final QName elementname) throws XmlException {
-    return isElement(in, elementname.getNamespaceURI(), elementname.getLocalPart(), elementname.getPrefix());
+    return isElement(in, EventType.START_ELEMENT, elementname.getNamespaceURI(), elementname.getLocalPart(), elementname
+            .getPrefix());
+  }
+
+  /**
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
+   * @param in The stream reader to check
+   * @param type
+   *@param elementname The name to check against  @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+
+  public static boolean isElement(@NotNull final XmlReader in, final EventType type, @NotNull final QName elementname) throws XmlException {
+    return isElement(in, type, elementname.getNamespaceURI(), elementname.getLocalPart(), elementname.getPrefix());
   }
 
   /**
@@ -1417,8 +1429,19 @@ public final class XmlUtil {
    */
   public static boolean isElement(@NotNull final XmlReader in, final CharSequence elementNamespace, final CharSequence elementName) throws
           XmlException {
-    final String elementPrefix = null;
-    return isElement(in, elementNamespace, elementName, elementPrefix);
+    return isElement(in, EventType.START_ELEMENT, elementNamespace, elementName, null);
+  }
+
+  /**
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
+   * @param in The stream reader to check
+   * @param type The type to verify. Should be named so start or end element
+   * @param elementNamespace  The namespace to check against.
+   * @param elementName The local name to check against   @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(@NotNull final XmlReader in, final EventType type, final CharSequence elementNamespace, final CharSequence elementName) throws
+          XmlException {
+    return isElement(in, type, elementNamespace, elementName, null);
   }
 
 
@@ -1427,9 +1450,8 @@ public final class XmlUtil {
    * @param in The stream reader to check
    * @param elementNamespace  The namespace to check against.
    * @param elementName The local name to check against
-   * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined
-   * @return <code>true</code> if it matches, otherwise <code>false</code>
-   */
+   * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined    @return <code>true</code> if it matches, otherwise <code>false</code>
+   * */
   public static boolean isElement(@NotNull final XMLStreamReader in, final String elementNamespace, final String elementName, @NotNull final String elementPrefix) {
     if (in.getEventType()!= XMLStreamConstants.START_ELEMENT) { return false; }
     String expNs =  elementNamespace;
@@ -1456,8 +1478,19 @@ public final class XmlUtil {
    * @return <code>true</code> if it matches, otherwise <code>false</code>
    */
   public static boolean isElement(@NotNull final XmlReader in, final CharSequence elementNamespace, final CharSequence elementName, @NotNull final CharSequence elementPrefix) throws
+          XmlException {return isElement(in, EventType.START_ELEMENT, elementNamespace, elementName, elementPrefix);}
+
+  /**
+   * Check that the current state is a start element for the given name. The mPrefix is ignored.
+   * @param in The stream reader to check
+   * @param type The type to verify. Should be named so start or end element
+   *@param elementNamespace  The namespace to check against.
+   * @param elementName The local name to check against
+   * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined    @return <code>true</code> if it matches, otherwise <code>false</code>
+   */
+  public static boolean isElement(@NotNull final XmlReader in, final EventType type, final CharSequence elementNamespace, final CharSequence elementName, @NotNull final CharSequence elementPrefix) throws
           XmlException {
-    if (in.getEventType()!= XmlStreaming.START_ELEMENT) { return false; }
+    if (in.getEventType()!= type) { return false; }
     CharSequence expNs =  elementNamespace;
     if (expNs!=null && expNs.length()==0) { expNs = null; }
     if (! in.getLocalName().equals(elementName)) { return false; }
@@ -1499,11 +1532,7 @@ public final class XmlUtil {
       writeCurrentEvent(in, out);
       if (type== EventType.START_ELEMENT) {
         if (missingNamespaces!=null) {
-          for (final String prefix : undeclaredPrefixes(in, out)) {
-            if (!missingNamespaces.containsKey(prefix)) {
-              missingNamespaces.put(prefix, in.getNamespaceUri(prefix));
-            }
-          }
+          addUndeclaredNamespaces(in, out, missingNamespaces);
         }
         writeElementContent(missingNamespaces, in, out);
       } else if (type == EventType.END_ELEMENT) {
