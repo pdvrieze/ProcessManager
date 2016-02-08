@@ -651,6 +651,38 @@ public class TestProcessData {
   }
 
   @Test
+  public void testDeserializeResult2() throws Exception {
+    final String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                       "  <user xmlns=\"\"\n" +
+                       "    xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                       "    <fullname>\n" +
+                       "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                       "    </fullname>\n" +
+                       "  </user>\n" +
+                       "</result>";
+
+    final String expectedContent = "\n  <user xmlns=\"\"" +
+                       " xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\">\n" +
+                       "    <fullname>\n" +
+                       "      <jbi:value xpath=\"/umh:result/umh:value[@name='user']/text()\"/>\n" +
+                       "    </fullname>\n" +
+                       "  </user>\n";
+
+    XmlResultType rt = XmlResultType.deserialize(XmlStreaming.newReader(new StringReader(xml)));
+    assertEquals(expectedContent, new String(rt.getContent()));
+    Iterable<Namespace> namespaces = rt.getOriginalNSContext();
+    Iterator<Namespace> it = namespaces.iterator();
+    Namespace ns = it.next();
+    assertEquals("", ns.getPrefix());
+    assertEquals("http://adaptivity.nl/ProcessEngine/", ns.getNamespaceURI());
+    ns = it.next();
+    assertEquals("umh", ns.getPrefix());
+    assertEquals("http://adaptivity.nl/userMessageHandler", ns.getNamespaceURI());
+
+    assertEquals(false, it.hasNext());
+  }
+
+  @Test
   public void testRoundTripResult3() throws Exception {
     final String xml = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"user2\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">" +
             "<jbi:value xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>" +

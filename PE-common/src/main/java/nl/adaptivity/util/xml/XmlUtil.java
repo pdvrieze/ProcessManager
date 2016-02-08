@@ -580,6 +580,10 @@ public final class XmlUtil {
     return deSerialize(XmlStreaming.newReader(in), type);
   }
 
+  public static <T> T deSerialize(final String in, @NotNull final Class<T> type) throws XmlException {
+    return deSerialize(XmlStreaming.newReader(new StringReader(in)), type);
+  }
+
   public static <T> T deSerialize(final Source in, @NotNull final Class<T> type) throws XmlException {
     return deSerialize(XmlStreaming.newReader(in), type);
   }
@@ -1036,16 +1040,24 @@ public final class XmlUtil {
 
   private static void undeclaredPrefixes(final XmlReader in, final XmlWriter reference, final Map<String, String> missingNamespaces) throws XmlException {
     assert in.getEventType()==XmlStreaming.START_ELEMENT;
-    final List<String> result = new ArrayList<>(2);
     final String prefix = StringUtil.toString(in.getPrefix());
     if (prefix!=null) {
       if (!missingNamespaces.containsKey(prefix)) {
         final CharSequence uri = in.getNamespaceUri();
-        if ((!prefix.isEmpty()) && ((!StringUtil.isEqual(uri,reference.getNamespaceUri(prefix)) || (uri.length() == 0 && prefix.length() > 0)))) {
+        if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && isPrefixDeclaredInElement(in, prefix)) {
+          return;
+        } else if (uri.length()>0) {
           missingNamespaces.put(prefix, uri.toString());
         }
       }
     }
+  }
+
+  private static boolean isPrefixDeclaredInElement(final XmlReader in, final String prefix) throws XmlException {
+    for (int i = in.getNamespaceStart(); i < in.getNamespaceEnd(); i++) {
+      if (StringUtil.isEqual(in.getNamespacePrefix(i), prefix)) { return true; }
+    }
+    return false;
   }
 
   public static void writeCurrentEvent(final XmlReader in, final XmlWriter out) throws XmlException {

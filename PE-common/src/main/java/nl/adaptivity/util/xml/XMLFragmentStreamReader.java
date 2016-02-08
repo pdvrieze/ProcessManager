@@ -109,6 +109,9 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
   public XMLFragmentStreamReader(final Reader in, @NotNull final Iterable<Namespace> wrapperNamespaceContext) throws XmlException {
     super(getDelegate(in, wrapperNamespaceContext));
     localNamespaceContext = new FragmentNamespaceContext(null, new String[0], new String[0]);
+    if (mDelegate.getEventType()==EventType.START_ELEMENT) {
+      extendNamespace();
+    }
   }
 
   private static XmlReader getDelegate(final Reader in, final @NotNull Iterable<Namespace> wrapperNamespaceContext) throws
@@ -162,7 +165,7 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
         return next();
       case START_ELEMENT:
         if (StringUtil.isEqual(WRAPPERNAMESPACE, mDelegate.getNamespaceUri())) {
-          return mDelegate.next();
+          return next();
         }
         extendNamespace();
         break;
