@@ -110,5 +110,10 @@
     <string name="userTaskFabMenuTextEntry">Text entry</string>
     <string name="userTaskFabMenuLabel">Label</string>
     <string name="userTaskFabMenuList">Selection List</string>
+    <string name="lbl_editName">Name</string>
+    <string name="lbl_editLabel">Label</string>
+    <string name="lbl_editValue">Value</string>
+    <string name="dlg_title_item_details">Item details</string>
+    <string name="dlg_title_edit_taskitem">Edit task item</string>
 
 </resources>

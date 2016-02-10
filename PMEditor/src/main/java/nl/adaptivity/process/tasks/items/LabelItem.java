@@ -17,8 +17,10 @@
 package nl.adaptivity.process.tasks.items;
 
 import android.databinding.ViewDataBinding;
+import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.databinding.TaskitemLabelBinding;
 import nl.adaptivity.process.tasks.TaskItem;
+import nl.adaptivity.util.Util;
 
 
 public class LabelItem extends TaskItem {
@@ -55,9 +57,24 @@ public class LabelItem extends TaskItem {
     return mValue;
   }
 
+  public void setValue(String value) {
+    mValue = value;
+    notifyPropertyChanged(BR.value);
+  }
+
+  @Override
+  public boolean hasValueProperty() {
+    return true;
+  }
+
   @Override
   public String getLabel() {
     return null;
+  }
+
+  @Override
+  public boolean hasLabelProperty() {
+    return false;
   }
 
   @Override

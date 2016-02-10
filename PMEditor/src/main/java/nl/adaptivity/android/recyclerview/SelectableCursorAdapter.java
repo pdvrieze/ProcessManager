@@ -21,13 +21,12 @@ import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ViewHolder;
-import nl.adaptivity.android.recyclerview.ClickableCursorAdapter.ClickableViewHolder;
 
 
 /**
  * Class that allows selection state to be maintained in a recyclerview.
  */
-public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> extends ClickableCursorAdapter<VH> implements nl.adaptivity.android.recyclerview.SelectableAdapter {
+public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> extends ClickableCursorAdapter<VH> implements nl.adaptivity.android.recyclerview.SelectableAdapter<VH> {
 
   private int mSelectionPos = RecyclerView.NO_POSITION;
   private long mSelectionId = RecyclerView.NO_ID;
@@ -40,7 +39,7 @@ public abstract class SelectableCursorAdapter<VH extends ClickableViewHolder> ex
   }
 
   @Override
-  public void onClickView(final ViewHolder viewHolder) {
+  public void onClickView(final VH viewHolder) {
     if (mSelectionEnabled) {
       setSelection(viewHolder.getAdapterPosition());
     }

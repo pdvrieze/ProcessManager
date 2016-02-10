@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <import type="nl.adaptivity.process.tasks.TaskItem" />
+        <import type="android.view.View"/>
+
+        <variable name="item"
+                  type="TaskItem" />
+        <variable name="hideTitle"
+                  type="boolean" />
+    </data>
+
+    <LinearLayout android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="@dimen/default_margin">
+
+        <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/dlg_title_item_details"
+                android:visibility="@{hideTitle ? View.GONE : View.VISIBLE}"/>
+
+        <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/editName"
+                    android:inputType="textVisiblePassword"
+                    android:hint="@string/lbl_editName"
+                    android:text="@{item.name}"/>
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
+                >
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/editLabel"
+                    android:inputType="text"
+                    android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
+                    android:text="@{item.label}"
+                    android:hint="@string/lbl_editLabel"
+                    />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="@{item.hasValueProperty() ? View.VISIBLE : View.GONE}"
+                >
+
+            <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/editValue"
+                    android:text="@{item.value}"
+                    android:visibility="@{item.hasValueProperty() ? View.VISIBLE : View.GONE}"
+                    android:hint="@string/lbl_editValue"
+                    android:inputType="text" />
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
+</layout>

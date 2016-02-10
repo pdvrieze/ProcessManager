@@ -26,6 +26,8 @@ public final class UIConstants {
   public static final String KEY_PROCESSMODEL = "processmodel";
   public static final String KEY_TMPFILE = "tmpFile";
   public static final String KEY_NODE_POS = "node_pos";
+  public static final String KEY_ITEM = "item";
+  public static final String KEY_ITEMNO = "itemno";
 
   public static final int REQUEST_SAVE_PROCESSMODEL = 42;
   public static final int REQUEST_EXPORT_PROCESSMODEL_SVG = 43;

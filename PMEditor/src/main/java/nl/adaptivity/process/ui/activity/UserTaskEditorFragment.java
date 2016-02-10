@@ -24,15 +24,13 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.support.v7.widget.helper.ItemTouchHelper.Callback;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import nl.adaptivity.android.recyclerview.ClickableAdapter;
+import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentUserTaskEditorBinding;
@@ -43,6 +41,7 @@ import nl.adaptivity.process.tasks.items.ListItem;
 import nl.adaptivity.process.tasks.items.PasswordItem;
 import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
+import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +50,7 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class UserTaskEditorFragment extends Fragment {
+public class UserTaskEditorFragment extends Fragment implements OnItemClickListener<ItemViewHolder> {
 
   public static final int ANIMATION_DURATION = 200;
   private FragmentUserTaskEditorBinding mBinding;
@@ -79,6 +78,7 @@ public class UserTaskEditorFragment extends Fragment {
 
     mAdapter = new UserTaskEditAdapter();
     mBinding.content.setAdapter(mAdapter);
+    mAdapter.setOnItemClickListener(this);
 
     if (savedInstanceState!=null && savedInstanceState.containsKey(UIConstants.KEY_ACTIVITY)) {
       mActivity = savedInstanceState.getParcelable(UIConstants.KEY_ACTIVITY);
@@ -207,8 +207,18 @@ public class UserTaskEditorFragment extends Fragment {
     }
   }
 
+  @Override
+  public boolean onClickItem(final ClickableAdapter<? extends ItemViewHolder> adapter, final ItemViewHolder viewHolder) {
+    ItemEditDialogFragment.newInstance(mAdapter.getItem(viewHolder.getAdapterPosition()), viewHolder.getAdapterPosition()).show(getFragmentManager(), "itemdialog");
+    return true;
+  }
+
+  public void updateItem(final int itemNo, final TaskItem newItem) {
+    mAdapter.setItem(itemNo, newItem);
+  }
+
   public ParcelableActivity getParcelableResult() {
-    List<TaskItem> items = mAdapter.getItems();
+    List<TaskItem> items = mAdapter.getContent();
     if (mActivity.getUserTask()==null) {
       UserTask userTask = new UserTask(null, -1, null, null, items);
       mActivity.setMessage(userTask.asMessage());

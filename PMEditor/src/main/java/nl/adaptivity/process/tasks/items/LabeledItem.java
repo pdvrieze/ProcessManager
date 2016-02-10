@@ -43,6 +43,11 @@ public abstract class LabeledItem extends TaskItem {
     notifyPropertyChanged(BR.label);
   }
 
+  @Override
+  public boolean hasLabelProperty() {
+    return true;
+  }
+
   public void setValue(String value) {
     boolean dirty = false;
     if (mValue==null) {
@@ -64,6 +69,11 @@ public abstract class LabeledItem extends TaskItem {
   @Bindable
   public final String getValue() {
     return mValue;
+  }
+
+  @Override
+  public boolean hasValueProperty() {
+    return true;
   }
 
   @Override

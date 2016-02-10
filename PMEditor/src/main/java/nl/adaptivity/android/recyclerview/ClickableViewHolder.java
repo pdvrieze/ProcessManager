@@ -17,27 +17,24 @@
 package nl.adaptivity.android.recyclerview;
 
 import android.support.v7.widget.RecyclerView.ViewHolder;
+import android.view.View;
+import android.view.View.OnClickListener;
 
 
 /**
- * Created by pdvrieze on 04/01/16.
+ * Created by pdvrieze on 04/02/16.
  */
-public interface ClickableAdapter<VH extends ClickableViewHolder> {
+public abstract class ClickableViewHolder extends ViewHolder implements OnClickListener {
 
-  public interface OnItemClickListener<VH extends ClickableViewHolder> {
+  private ClickableAdapter mClickableAdapter;
 
-    /**
-     * Callback to handle item clicks. This method can stop processing of the click by returning true.
-     * @param adapter The adapter that caused the event
-     * @param viewHolder The underlying viewHolder for the event.
-     * @return true if the click has been absorbed, false if not.
-     */
-    boolean onClickItem(ClickableAdapter<? extends VH> adapter, VH viewHolder);
+  public ClickableViewHolder(final ClickableAdapter clickableAdapter, final View itemView) {
+    super(itemView);
+    mClickableAdapter = clickableAdapter;
+    itemView.setOnClickListener(this);
   }
 
-  void doClickView(VH clickableViewHolder);
-
-  OnItemClickListener getOnItemClickListener();
-
-  void setOnItemClickListener(OnItemClickListener<? super VH> itemClickListener);
+  public void onClick(final View v) {
+    mClickableAdapter.doClickView(this);
+  }
 }

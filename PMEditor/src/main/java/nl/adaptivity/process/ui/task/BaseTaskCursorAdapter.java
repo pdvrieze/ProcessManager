@@ -21,7 +21,7 @@ import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.view.LayoutInflater;
 import nl.adaptivity.android.recyclerview.SelectableCursorAdapter;
-import nl.adaptivity.android.recyclerview.ClickableCursorAdapter.ClickableViewHolder;
+import nl.adaptivity.android.recyclerview.ClickableViewHolder;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 
 

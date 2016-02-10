@@ -21,7 +21,7 @@ import android.database.Cursor;
 import android.databinding.DataBindingUtil;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import nl.adaptivity.android.recyclerview.ClickableCursorAdapter;
+import nl.adaptivity.android.recyclerview.ClickableViewHolder;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.TaskListitemBinding;
 import nl.adaptivity.process.tasks.UserTask.TaskState;
@@ -33,12 +33,12 @@ import nl.adaptivity.process.ui.task.TaskCursorAdapter.TaskCursorViewHolder;
  */
 public final class TaskCursorAdapter extends BaseTaskCursorAdapter<TaskCursorViewHolder> {
 
-  public final class TaskCursorViewHolder extends ClickableCursorAdapter<TaskCursorViewHolder>.ClickableViewHolder {
+  public final class TaskCursorViewHolder extends ClickableViewHolder {
 
     public final TaskListitemBinding binding;
 
     public TaskCursorViewHolder(final LayoutInflater inflater, final ViewGroup parent) {
-      super(inflater.inflate(R.layout.task_listitem, parent, false));
+      super(TaskCursorAdapter.this, inflater.inflate(R.layout.task_listitem, parent, false));
       binding = DataBindingUtil.bind(itemView);
     }
   }

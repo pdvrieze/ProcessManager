@@ -28,10 +28,12 @@ import android.view.MenuItem;
 import android.view.View;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.ActivityUserTaskEditorBinding;
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.ui.UIConstants;
+import nl.adaptivity.process.ui.activity.ItemEditDialogFragment.ItemEditDialogListener;
 
 
-public class UserTaskEditorActivity extends AppCompatActivity {
+public class UserTaskEditorActivity extends AppCompatActivity implements ItemEditDialogListener {
 
   private ActivityUserTaskEditorBinding mBinding;
   private UserTaskEditorFragment mEditorFragment;
@@ -80,5 +82,10 @@ public class UserTaskEditorActivity extends AppCompatActivity {
     intent.putExtra(UIConstants.KEY_ACTIVITY, mEditorFragment.getParcelableResult());
     setResult(RESULT_OK, intent);
     super.finish();
+  }
+
+  @Override
+  public void updateItem(final int itemNo, final TaskItem newItem) {
+    mEditorFragment.updateItem(itemNo, newItem);
   }
 }

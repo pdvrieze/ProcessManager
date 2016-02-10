@@ -20,7 +20,7 @@ package nl.adaptivity.android.recyclerview;
 /**
  * Created by pdvrieze on 04/01/16.
  */
-public interface SelectableAdapter extends ClickableAdapter {
+public interface SelectableAdapter<VH extends ClickableViewHolder> extends ClickableAdapter<VH> {
 
   public interface OnSelectionListener {
 

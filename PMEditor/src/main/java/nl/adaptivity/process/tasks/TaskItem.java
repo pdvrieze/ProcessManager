@@ -23,6 +23,8 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.items.*;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.util.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@XmlDeserializer(TaskItem.DeserializerFactory.class)
 public abstract class TaskItem extends BaseObservable implements XmlSerializable {
 
   public enum Type {
@@ -134,6 +137,14 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
 
   }
 
+  public static class DeserializerFactory implements XmlDeserializerFactory<TaskItem> {
+
+    @Override
+    public TaskItem deserialize(final XmlReader in) throws XmlException {
+      return TaskItem.deserialize(in);
+    }
+  }
+
   public static final String ELEMENTLOCALNAME = "item";
   private static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
   public static final String OPTION_ELEMENTLOCALNAME = "option";
@@ -167,8 +178,20 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   @Bindable
   public abstract String getValue();
 
+  public void setValue(String value) {
+    throw new UnsupportedOperationException("Not supported by this task item");
+  }
+
+  public abstract boolean hasValueProperty();
+
   @Bindable
   public abstract String getLabel();
+
+  public void setLabel(String value) {
+    throw new UnsupportedOperationException("Not supported by this task item: ");
+  }
+
+  public abstract boolean hasLabelProperty();
 
   protected String getDBType() {
     return getType().toString();
@@ -196,7 +219,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
     return new ObservableArrayList<>();
   }
 
-  public TaskItem deserialize(final XmlReader in) throws XmlException {
+  public static TaskItem deserialize(final XmlReader in) throws XmlException {
     return parseTaskItem(in);
   }
 
@@ -242,6 +265,7 @@ public abstract class TaskItem extends BaseObservable implements XmlSerializable
   }
 
   private static <T extends TaskItem> T parseTaskItemHelper(@NonNull final XmlReader in, final Factory<T> factory) throws XmlException {
+    XmlUtil.skipPreamble(in);
     in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, UserTask.TAG_ITEM);
     final String name = StringUtil.toString(in.getAttributeValue(null, "name"));
     final String label = StringUtil.toString(in.getAttributeValue(null, "label"));

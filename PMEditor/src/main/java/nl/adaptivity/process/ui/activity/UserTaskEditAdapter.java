@@ -17,11 +17,10 @@
 package nl.adaptivity.process.ui.activity;
 
 import android.databinding.DataBindingUtil;
-import android.databinding.ObservableList;
 import android.databinding.ViewDataBinding;
+import android.support.annotation.NonNull;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.Adapter;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.support.v7.widget.helper.ItemTouchHelper.Callback;
@@ -30,11 +29,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import nl.adaptivity.android.recyclerview.ClickableListAdapter;
+import nl.adaptivity.android.recyclerview.ClickableViewHolder;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.TaskItem;
+import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,18 +43,19 @@ import java.util.List;
 /**
  * Created by pdvrieze on 18/01/16.
  */
-public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHolder> {
+public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemViewHolder> {
 
-  class ItemViewHolder extends ViewHolder implements OnTouchListener {
+  class ItemViewHolder extends ClickableViewHolder implements OnTouchListener {
 
     private final ViewDataBinding mBinding;
 
 // Object Initialization
     public ItemViewHolder(final ViewDataBinding binding) {
-      super(binding.getRoot());
+      super(UserTaskEditAdapter.this, binding.getRoot());
       mBinding = binding;
       View dragHandle = mBinding.getRoot().findViewById(R.id.drag_handle);
       dragHandle.setOnTouchListener(this);
+      mBinding.getRoot().setOnClickListener(this);
     }
 // Object Initialization end
 
@@ -72,17 +74,16 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
   private static final int VIEWTYPE_TEXT = 3;
   private static final int VIEWTYPE_GENERIC = 4;
 
-  private final List<TaskItem> mItems;
   private final ItemTouchHelper mItemTouchHelper;
   private LayoutInflater mInflater;
 
 // Object Initialization
   public UserTaskEditAdapter() {
-    this(null);
+    this(Collections.<TaskItem>emptyList());
   }
 
-  public UserTaskEditAdapter(final List<? extends TaskItem> items) {
-    mItems = (items==null || items.isEmpty()) ? new ArrayList<TaskItem>() : new ArrayList<TaskItem>(items);
+  public UserTaskEditAdapter(@NonNull final List<TaskItem> items) {
+    super(items);
     mItemTouchHelper = new ItemTouchHelper(new Callback() {
 
       @Override
@@ -134,7 +135,7 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, final int position) {
 
-    holder.mBinding.setVariable(BR.taskitem, mItems.get(position));
+    holder.mBinding.setVariable(BR.taskitem, getItem(position));
   }
 
   @Override
@@ -149,7 +150,7 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
 
   @Override
   public int getItemViewType(final int position) {
-    TaskItem item = mItems.get(position);
+    TaskItem item = getItem(position);
     switch (item.getType()) {
       case LABEL:
         return VIEWTYPE_LABEL;
@@ -165,29 +166,16 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
     }
   }
 
-  @Override
-  public int getItemCount() {
-    return mItems.size();
-  }
-
-  public boolean addItem(TaskItem item) {
-    if (mItems.add(item)) {
-      notifyItemInserted(mItems.size() - 1);
-      return true;
-    }
-    return false;
-  }
-
   boolean onMove(final RecyclerView recyclerView, final ViewHolder viewHolder, final ViewHolder target) {
     int fromPosition = viewHolder.getAdapterPosition();
     int toPosition = target.getAdapterPosition();
     if (fromPosition<toPosition) {
       for (int i = fromPosition; i < toPosition; i++) {
-        Collections.swap(mItems, i, i+1);
+        Collections.swap(getContent(), i, i + 1);
       }
     } else {
       for (int i = fromPosition; i > toPosition; i--) {
-        Collections.swap(mItems, i, i-1);
+        Collections.swap(getContent(), i, i - 1);
       }
     }
     notifyItemMoved(fromPosition, toPosition);
@@ -195,19 +183,9 @@ public class UserTaskEditAdapter extends Adapter<UserTaskEditAdapter.ItemViewHol
   }
 
   void onSwiped(final ViewHolder viewHolder, final int direction) {
-    if(mItems.remove(viewHolder.getAdapterPosition())!=null) {
+    if(getContent().remove(viewHolder.getAdapterPosition()) != null) {
       notifyItemRemoved(viewHolder.getAdapterPosition());
     }
   }
 
-  public List<TaskItem> getItems() {
-    return mItems;
-  }
-
-  public void setItems(final List<? extends TaskItem> items) {
-    mItems.clear();
-    mItems.addAll(items);
-    // The entire dataset changed
-    notifyDataSetChanged();
-  }
 }

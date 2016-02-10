@@ -34,6 +34,7 @@ import android.view.ViewGroup;
 import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.recyclerview.ClickableAdapter;
 import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
+import nl.adaptivity.android.recyclerview.ClickableViewHolder;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentOverviewBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
@@ -62,7 +63,7 @@ import java.lang.annotation.RetentionPolicy;
  * Use the {@link OverviewFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class OverviewFragment extends TitleFragment implements OnItemClickListener {
+public class OverviewFragment extends TitleFragment implements OnItemClickListener<ClickableViewHolder> {
 
   private static final int LOADER_TASKS = 1;
   private static final int LOADER_MODELS = 2;
@@ -230,7 +231,7 @@ public class OverviewFragment extends TitleFragment implements OnItemClickListen
   }
 
   @Override
-  public boolean onClickItem(final ClickableAdapter adapter, final ViewHolder viewHolder) {
+  public boolean onClickItem(final ClickableAdapter adapter, final ClickableViewHolder viewHolder) {
     if (viewHolder instanceof OverviewPMCursorAdapter.OverviewPMViewHolder) {
       mCallbacks.onInstantiateModel(viewHolder.getItemId(), ((OverviewPMViewHolder)viewHolder).getBinding().getName().toString()+" instance");
     } else if (viewHolder instanceof OverviewTaskCursorAdapter.OverviewTaskCursorViewHolder) {

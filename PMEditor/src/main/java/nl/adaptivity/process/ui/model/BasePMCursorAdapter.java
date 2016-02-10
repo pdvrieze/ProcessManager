@@ -24,7 +24,7 @@ import android.support.annotation.LayoutRes;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import nl.adaptivity.android.recyclerview.ClickableCursorAdapter;
+import nl.adaptivity.android.recyclerview.ClickableViewHolder;
 import nl.adaptivity.android.recyclerview.SelectableCursorAdapter;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.model.BasePMCursorAdapter.BasePMViewHolder;
@@ -35,7 +35,7 @@ import nl.adaptivity.process.ui.model.BasePMCursorAdapter.BasePMViewHolder;
  */
 public abstract class BasePMCursorAdapter<VH extends BasePMViewHolder> extends SelectableCursorAdapter<VH> {
 
-  public abstract class BasePMViewHolder<B extends ViewDataBinding> extends ClickableCursorAdapter<BasePMViewHolder<B>>.ClickableViewHolder {
+  public abstract class BasePMViewHolder<B extends ViewDataBinding> extends ClickableViewHolder {
 
     protected final B binding;
 
@@ -44,7 +44,7 @@ public abstract class BasePMCursorAdapter<VH extends BasePMViewHolder> extends S
     }
 
     private BasePMViewHolder(final B binding) {
-      super(binding.getRoot());
+      super(BasePMCursorAdapter.this, binding.getRoot());
       this.binding = binding;
     }
 
