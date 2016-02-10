@@ -236,13 +236,20 @@ public final class XmlUtil {
     return result;
   }
 
+  /**
+   * XPath processing does require either a document or a fragment to actually work. This method will
+   * make this work. If the node is either that will be returned, otherwise, if it is the root node of the owner document,
+   * the owner document is returned. Otherwise, a fragment will be created with a clone of the node.
+   * @param node The node to attach if needed.
+   * @return A document or documentfragment representing the given node (it may be a clone though)
+   */
   public static Node ensureAttached(final Node node) {
     if (node==null) { return null; }
     if (node instanceof Document || node instanceof DocumentFragment) {
       return node;
     }
-    if (isAttached(node)) {
-      return node;
+    if (node.isSameNode(node.getOwnerDocument().getDocumentElement())) {
+      return node.getOwnerDocument();
     }
     final DocumentFragment frag = node.getOwnerDocument().createDocumentFragment();
     frag.appendChild(node.cloneNode(true));
@@ -1047,7 +1054,9 @@ public final class XmlUtil {
         if (StringUtil.isEqual(reference.getNamespaceUri(prefix), uri) && isPrefixDeclaredInElement(in, prefix)) {
           return;
         } else if (uri.length()>0) {
-          missingNamespaces.put(prefix, uri.toString());
+          if (! StringUtil.isEqual(reference.getNamespaceUri(prefix), uri)) {
+            missingNamespaces.put(prefix, uri.toString());
+          }
         }
       }
     }

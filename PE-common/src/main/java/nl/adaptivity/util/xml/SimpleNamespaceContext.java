@@ -79,7 +79,9 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     int i=0;
     for(final Entry<? extends CharSequence, ? extends CharSequence> entry: prefixMap.entrySet()) {
       mStrings[(i*2)] = entry.getKey().toString();
-      mStrings[(i*2+1)] = entry.getValue().toString();
+      final String nsUri = entry.getValue().toString();
+      if (nsUri==null || nsUri.isEmpty()) { throw new IllegalArgumentException("Null namespaces are illegal"); }
+      mStrings[(i * 2 + 1)] = nsUri;
       ++i;
     }
   }

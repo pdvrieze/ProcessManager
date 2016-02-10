@@ -177,8 +177,7 @@ public class TestXmlResultType {
     inner.setTextContent("Some test value");
     outer.appendChild(inner);
     DocumentFragment frag = document.createDocumentFragment();
-//    frag.appendChild(outer);
-    document.appendChild(outer);
+    frag.appendChild(outer);
 
     XMLUnit.setIgnoreWhitespace(true);
 //    XMLAssert.assertXMLEqual(expected, document);
@@ -188,7 +187,7 @@ public class TestXmlResultType {
     prefixMap.put("ns1", Constants.USER_MESSAGE_HANDLER_NS);
     xPath.setNamespaceContext(new SimpleNamespaceContext(prefixMap));
     final XPathExpression expr = xPath.compile("./ns1:result/ns1:value[@name='user']/text()");
-    assertEquals("Some test value", expr.evaluate(outer));
+    assertEquals("Some test value", expr.evaluate(frag));
 
   }
 

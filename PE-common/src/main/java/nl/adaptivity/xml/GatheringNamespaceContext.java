@@ -40,7 +40,7 @@ public class GatheringNamespaceContext implements NamespaceContext {
   @Override
   public String getNamespaceURI(final String prefix) {
     final String namespaceURI = mParentContext.getNamespaceURI(prefix);
-    if (namespaceURI != null && !(XMLConstants.XMLNS_ATTRIBUTE.equals(prefix))) {
+    if (namespaceURI != null && namespaceURI.length()>0 && !(XMLConstants.XMLNS_ATTRIBUTE.equals(prefix))) {
       mResultMap.put(prefix, namespaceURI);
     }
     return namespaceURI;
