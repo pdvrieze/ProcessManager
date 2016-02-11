@@ -192,17 +192,21 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     switch (v.getId()) {
       case R.id.fabMenuLabel:
         mAdapter.addItem(new LabelItem(name, null));
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuList:
         mAdapter.addItem(new ListItem(name, "list", null, new ArrayList<String>()));
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuOther:
         break;
       case R.id.fabMenuPassword:
         mAdapter.addItem(new PasswordItem(name, "password", null));
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuText:
         mAdapter.addItem(new TextItem(name, "text", null, new ArrayList<String>()));
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
         break;
     }
   }
