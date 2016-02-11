@@ -219,12 +219,14 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
 
   public ParcelableActivity getParcelableResult() {
     List<TaskItem> items = mAdapter.getContent();
+    UserTask userTask;
     if (mActivity.getUserTask()==null) {
-      UserTask userTask = new UserTask(null, -1, null, null, items);
-      mActivity.setMessage(userTask.asMessage());
+      userTask = new UserTask(null, -1, null, null, items);
     } else {
-      mActivity.getUserTask().setItems(items);
+      userTask = mActivity.getUserTask();
+      userTask.setItems(items);
     }
+    mActivity.setMessage(userTask.asMessage());
 
     return mActivity;
   }
