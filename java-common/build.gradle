@@ -59,6 +59,6 @@ test {
 dependencies {
     compile project(':JavaCommonApi')
     compile 'asm:asm-tree:3.3.1'
-    compile "com.intellij:annotations:12.0"
+    compile "org.jetbrains:annotations:13.0"
     testCompile 'org.testng:testng:6.9.9'
 }
