@@ -415,22 +415,22 @@ public class DarwinRealm implements Realm, Lifecycle {
 
   @Override
   public boolean hasRole(Principal principal, final String role) {
-    final Principal usedPrincipal;
+    final Principal userPrincipal;
     if (principal instanceof GenericPrincipal) {
-      usedPrincipal = ((GenericPrincipal) principal).getUserPrincipal();
-      if (usedPrincipal instanceof GenericPrincipal) {
-        return ((GenericPrincipal) usedPrincipal).hasRole(role);
+      userPrincipal = ((GenericPrincipal) principal).getUserPrincipal();
+      if (userPrincipal instanceof GenericPrincipal) {
+        return ((GenericPrincipal) userPrincipal).hasRole(role);
       }
     } else {
-      usedPrincipal = principal;
+      userPrincipal = principal;
     }
 
-    if (usedPrincipal instanceof CoyotePrincipal) {
+    if (userPrincipal instanceof CoyotePrincipal) {
       // Look up this user in the UserDatabaseRealm.  The new
       // principal will contain UserDatabaseRealm role info.
       final DarwinUserPrincipalImpl p;
       try {
-        p = getDarwinPrincipal(usedPrincipal.getName());
+        p = getDarwinPrincipal(userPrincipal.getName());
       } catch (NamingException e) {
         return false;
       }
