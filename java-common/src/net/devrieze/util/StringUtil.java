@@ -22,6 +22,7 @@
 package net.devrieze.util;
 
 import net.devrieze.lang.Const;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -124,6 +125,16 @@ public final class StringUtil {
     /* Do not alow an instance */
   }
 
+  /**
+   * Utility method to determine whether a string is null or empty
+   * @param value The value to check.
+   * @return <code>true</code> if it is empty, <code>false</code> if not
+   */
+  @Contract(value="null -> true", pure=true)
+  public static boolean isNullOrEmpty(final CharSequence value) {
+    return value==null || value.length()==0;
+  }
+
   public static String toLowerCase(final CharSequence string) {
     StringBuilder result = new StringBuilder(string.length());
     final int l = string.length();
@@ -149,6 +160,7 @@ public final class StringUtil {
    * @return The result of calling @{link #toString()} on the object.
    */
   @Nullable
+  @Contract(value="null -> null, !null -> !null", pure=true)
   public static String toString(@Nullable final CharSequence obj) {
     return obj==null ? null : obj.toString();
   }

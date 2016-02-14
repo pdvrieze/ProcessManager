@@ -22,6 +22,7 @@ import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.TextEvent;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.codehaus.stax2.XMLOutputFactory2;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.*;
@@ -50,6 +51,9 @@ import java.util.*;
 import java.util.Map.Entry;
 
 
+/**
+ * Utility class that contains a lot of functionality to handle xml.
+ */
 public final class XmlUtil {
 
   private static class NamespaceInfo {
@@ -134,6 +138,9 @@ public final class XmlUtil {
     }
   }
 
+  /**
+   * A class that filters an xml stream such that it will only
+   */
   private static class SubstreamFilter extends XmlBufferedReader {
 
     public SubstreamFilter(final XmlReader delegate) {
@@ -154,6 +161,8 @@ public final class XmlUtil {
           case END_DOCUMENT:
             it.remove();
             break;
+          default:
+            // other events should remain
         }
       }
       return events;
@@ -196,25 +205,41 @@ public final class XmlUtil {
     }
   }
 
-  public static final int OMIT_XMLDECL = 1;
-  private static final int DEFAULT_FLAGS = OMIT_XMLDECL;
+  /** Flag to indicate that the xml declaration should be omitted, when possible. */
+  public static final int FLAG_OMIT_XMLDECL = 1;
+  private static final int DEFAULT_FLAGS = FLAG_OMIT_XMLDECL;
 
 
-  private XmlUtil() {
-  }
+  private XmlUtil() { /* Utility class is not constructible. */ }
 
-  public static Element createElement(@NotNull final Document document, @NotNull final QName outerName) {
+// Object Initialization
+  /**
+   * Create an {@link Element} with the given name. Depending on the prefix, and namespace it uses the "correct"
+   * approach, with null namespace or prefix, or specified namespace and prefix.
+   *
+   * @param document  The owning document.
+   * @param qName The name of the element.
+   */
+  public static Element createElement(@NotNull final Document document, @NotNull final QName qName) {
     final Element root;
-    if (XMLConstants.NULL_NS_URI.equals(outerName.getNamespaceURI()) || null == outerName.getNamespaceURI()) {
-      root = document.createElement(outerName.getLocalPart());
-    } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(outerName.getPrefix())) {
-      root = document.createElementNS(outerName.getNamespaceURI(), outerName.getLocalPart());
+    if (XMLConstants.NULL_NS_URI.equals(qName.getNamespaceURI()) || null == qName.getNamespaceURI()) {
+      root = document.createElement(qName.getLocalPart());
+    } else if (XMLConstants.DEFAULT_NS_PREFIX.equals(qName.getPrefix())) {
+      root = document.createElementNS(qName.getNamespaceURI(), qName.getLocalPart());
     } else {
-      root = document.createElementNS(outerName.getNamespaceURI(), outerName.getPrefix() + ':' + outerName.getLocalPart());
+      root = document.createElementNS(qName.getNamespaceURI(), qName.getPrefix() + ':' + qName.getLocalPart());
     }
     return root;
   }
+// Object Initialization end
 
+  /**
+   * Get the next text sequence in the reader. This will skip over comments and ignorable whitespace, but not tags.
+   *
+   * @param in The reader to read from.
+   * @return   The text found
+   * @throws XmlException If reading breaks, or an unexpected element was found.
+   */
   public static CharSequence nextText(final XmlReader in) throws XmlException {
     EventType type;
     final StringBuilder result = new StringBuilder();
@@ -262,8 +287,8 @@ public final class XmlUtil {
     }
     final Node docElem = node.getOwnerDocument().getDocumentElement();
     if (docElem!=null) {
-      for (Node n = node; n != null; n = n.getParentNode()) {
-        if (docElem.isSameNode(n)) { return true; }
+      for (Node curNode = node; curNode != null; curNode = curNode.getParentNode()) {
+        if (docElem.isSameNode(curNode)) { return true; }
       }
     }
     return false;
@@ -327,17 +352,17 @@ public final class XmlUtil {
   }
 
   @Nullable
-  public static Document tryParseXml(@NotNull final String string) throws IOException {
-    return tryParseXml(new StringReader(string));
+  public static Document tryParseXml(@NotNull final String xmlString) throws IOException {
+    return tryParseXml(new StringReader(xmlString));
   }
 
-  public static Document tryParseXml(final InputSource s) throws IOException {
+  public static Document tryParseXml(final InputSource xmlSource) throws IOException {
     try {
       final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
       final DocumentBuilder db = dbf.newDocumentBuilder();
 
-      return db.parse(s);
+      return db.parse(xmlSource);
     } catch (@NotNull final SAXException e) {
       return null;
     } catch (@NotNull final ParserConfigurationException e) {
@@ -369,9 +394,10 @@ public final class XmlUtil {
    * Make a QName for the given parameters.
    * @param reference The node to use to look up the namespace that corresponds to the prefix.
    * @param name This is the full name of the element. That includes the prefix (or if no colon present) the default prefix.
-   * @return
+   * @return The QName.
    */
   @NotNull
+  @Contract(pure = true)
   public static QName asQName(@NotNull final Node reference, @NotNull final String name) {
     final int colPos = name.indexOf(':');
     if (colPos >= 0) {
@@ -432,7 +458,7 @@ public final class XmlUtil {
 
   public static String getQualifiedName(@NotNull final QName name) {
     final String prefix = name.getPrefix();
-    if ((prefix == null) || (prefix == XMLConstants.NULL_NS_URI)) {
+    if ((prefix == null) || XMLConstants.NULL_NS_URI.equals(prefix)) {
       return name.getLocalPart();
     }
     return prefix + ':' + name.getLocalPart();
@@ -491,7 +517,7 @@ public final class XmlUtil {
    * Serialize the inputstream to the outputstream. Not that it will ignore document level events if the outputstream is not at depth 0
    * @param in The inputstream
    * @param out the outputsream
-   * @throws XmlException
+   * @throws XmlException When serialization fails.
    */
   public static void serialize(@NotNull final XmlReader in, @NotNull final XmlWriter out) throws XmlException {
     while (in.hasNext()) {
@@ -504,7 +530,8 @@ public final class XmlUtil {
         case END_DOCUMENT:
           if (out.getDepth()>0) {
             break; // ignore
-          } // otherwise fallthrough
+          }
+          // otherwise fall through
         default:
           writeCurrentEvent(in, out);
       }
@@ -562,6 +589,7 @@ public final class XmlUtil {
             if (((SimpleXmlDeserializable)result).deserializeChildText(in.getText())) {
               continue loop;
             }
+            // If the text was not deserialized, then just fall through
           default:
             XmlUtil.unhandledEvent(in);
         }
@@ -672,8 +700,11 @@ public final class XmlUtil {
   /**
    * Filter the stream such that is a valid substream. This basically strips start document, end document, processing
    * instructions and dtd declarations.
+   *
    * @param streamReader The original stream reader.
    * @return A filtered stream
+   * @throws XMLStreamReader
+   * @deprecated Usage of {@link XMLStreamReader} is deprecated over {@link XmlReader}
    */
   public static XMLStreamReader filterSubstream(final XMLStreamReader streamReader) throws
           XMLStreamException {
@@ -691,6 +722,13 @@ public final class XmlUtil {
     return new SubstreamFilter(streamReader);
   }
 
+  /**
+   * Filter out all meta events like start doc, end doc, document declratations and processing instructions.
+   * @param xMLEventReader
+   * @return
+   * @throws XMLStreamException
+   * @deprecated Usage of {@link XMLStreamReader} is deprecated over {@link XmlReader}
+   */
   public static XMLEventReader filterSubstream(final XMLEventReader xMLEventReader) throws XMLStreamException {
     final XMLInputFactory xif = XMLInputFactory.newFactory();
     return xif.createFilteredReader(xMLEventReader, SubstreamEventFilter.SUBEVENTS_FILTER);
@@ -1563,7 +1601,7 @@ public final class XmlUtil {
   }
 
   private static void configure(@NotNull final Transformer transformer, final int flags) {
-    if ((flags & OMIT_XMLDECL)!=0) {
+    if ((flags & FLAG_OMIT_XMLDECL) != 0) {
       transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
     }
   }
