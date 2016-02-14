@@ -44,7 +44,7 @@ sourceSets {
 dependencies {
     providedCompile project(':JavaCommonApi')
     providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
-    providedCompile "org.jetbrains:annotations:15.0"
+    providedCompile "com.intellij:annotations:12.0"
 }
 
 
