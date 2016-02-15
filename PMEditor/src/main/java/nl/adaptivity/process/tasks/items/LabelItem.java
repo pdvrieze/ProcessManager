@@ -20,14 +20,13 @@ import android.databinding.ViewDataBinding;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.databinding.TaskitemLabelBinding;
 import nl.adaptivity.process.tasks.TaskItem;
-import nl.adaptivity.util.Util;
 
 
 public class LabelItem extends TaskItem {
 
-  private String mValue;
+  private CharSequence mValue;
 
-  public LabelItem(String name, String value) {
+  public LabelItem(CharSequence name, CharSequence value) {
     super(name);
     mValue = value;
   }
@@ -53,11 +52,11 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
-  public String getValue() {
+  public CharSequence getValue() {
     return mValue;
   }
 
-  public void setValue(String value) {
+  public void setValue(CharSequence value) {
     mValue = value;
     notifyPropertyChanged(BR.value);
   }
@@ -68,7 +67,7 @@ public class LabelItem extends TaskItem {
   }
 
   @Override
-  public String getLabel() {
+  public CharSequence getLabel() {
     return null;
   }
 

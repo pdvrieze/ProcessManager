@@ -22,17 +22,18 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import nl.adaptivity.process.editor.android.databinding.TaskitemTextBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class TextItem extends TextLabeledItem {
 
-  private List<String> mSuggestions;
-  private ArrayAdapter<String> mSuggestionAdapter;
+  private List<CharSequence> mSuggestions;
+  private ArrayAdapter<CharSequence> mSuggestionAdapter;
 
-  public TextItem(String name, String label, String value, List<String> suggestions) {
+  public TextItem(CharSequence name, CharSequence label, CharSequence value, List<? extends CharSequence> suggestions) {
     super(name, label, value);
-    mSuggestions = suggestions;
+    mSuggestions = new ArrayList<>(suggestions);
   }
 
   @Override
@@ -43,7 +44,7 @@ public class TextItem extends TextLabeledItem {
     textview.setText(getValue());
     if (mSuggestions!=null && mSuggestions.size()>0) {
       if (mSuggestionAdapter == null) {
-        mSuggestionAdapter = new ArrayAdapter<String>(textview.getContext(), android.R.layout.simple_dropdown_item_1line, mSuggestions);
+        mSuggestionAdapter = new ArrayAdapter<>(textview.getContext(), android.R.layout.simple_dropdown_item_1line, mSuggestions);
       }
       textview.setAdapter(mSuggestionAdapter);
     }

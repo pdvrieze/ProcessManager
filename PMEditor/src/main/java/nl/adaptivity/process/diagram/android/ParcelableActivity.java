@@ -24,24 +24,17 @@ import nl.adaptivity.process.clientProcessModel.ClientActivityNode;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.clientProcessModel.ClientProcessNode;
 import nl.adaptivity.process.processModel.*;
+import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.PostTask;
-import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import org.w3.soapEnvelope.Envelope;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.CharArrayReader;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -95,7 +88,7 @@ public class ParcelableActivity<T extends ClientProcessNode<T, M>, M extends Cli
     super(orig, compat);
   }
 
-  public UserTask getUserTask() {
+  public EditableUserTask getUserTask() {
     final XmlMessage message = getMessage();
     if (message!=null && UserTaskServiceDescriptor.SERVICENAME.equals(message.getService()) &&
             UserTaskServiceDescriptor.ENDPOINT.equals(message.getEndpoint())) {

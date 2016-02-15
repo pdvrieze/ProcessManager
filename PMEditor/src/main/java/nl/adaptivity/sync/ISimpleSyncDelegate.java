@@ -26,7 +26,8 @@ import android.provider.BaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.CVPair;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
-import org.xmlpull.v1.XmlPullParser;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public interface ISimpleSyncDelegate {
    * @param id The id within the local table of the item to update the details
    *          of.
    * @param pair The details (if available) of the item, based upon the return
-   *          of {@link #parseItem(XmlPullParser)}.
+   *          of {@link #parseItem(XmlReader)}.
    *
    * @return <code>true</code> on success.
    * @throws RemoteException
@@ -84,7 +85,7 @@ public interface ISimpleSyncDelegate {
    * @throws IOException
    * @category Hooks
    */
-  ContentValuesProvider createItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri, SyncResult syncresult) throws RemoteException, IOException, XmlPullParserException;
+  ContentValuesProvider createItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri, SyncResult syncresult) throws RemoteException, IOException, XmlException;
 
   /**
    * Hook for that should be used by subclasses to update an item on the server.
@@ -99,7 +100,7 @@ public interface ISimpleSyncDelegate {
    * @throws IOException
    * @category Hooks
    */
-  ContentValuesProvider updateItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri, int syncState, SyncResult syncresult) throws RemoteException, IOException, XmlPullParserException;
+  ContentValuesProvider updateItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri, int syncState, SyncResult syncresult) throws RemoteException, IOException, XmlException;
 
   /**
    * Hook for that should be used by subclasses to resolve conflicts between the
@@ -124,14 +125,14 @@ public interface ISimpleSyncDelegate {
    * Hook to parse an item from XML. The function must consume the endTag
    * corresponding to the startTag that is the current position of the parser.
    *
-   * @param parser The parser that has been used. The parser is positioned at
+   * @param in The parser that has been used. The parser is positioned at
    *          the first tag of the element.
    * @return The new values to be stored in the database for the object.
    * @throws XmlPullParserException
    * @throws IOException
    * @category Hooks
    */
-  ContentValuesProvider parseItem(XmlPullParser parser) throws XmlPullParserException, IOException;
+  ContentValuesProvider parseItem(XmlReader in) throws IOException, XmlException;
 
   /**
    * Returns the column that is the key for items that is shared by both. This

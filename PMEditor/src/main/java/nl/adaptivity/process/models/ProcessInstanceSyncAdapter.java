@@ -36,6 +36,11 @@ import nl.adaptivity.sync.RemoteXmlSyncAdapter.ContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.SimpleContentValuesProvider;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -65,12 +70,12 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   }
 
   @Override
-  public URI getListUrl(URI base) {
+  public URI getListUrl(final URI base) {
     return base.resolve("processInstances");
   }
 
   @Override
-  public ContentValuesProvider updateItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri, int syncState, SyncResult syncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider updateItemOnServer(final DelegatingResources delegator, final ContentProviderClient provider, final Uri itemuri, final int syncState, final SyncResult syncResult) throws RemoteException, IOException, XmlException {
     throw new UnsupportedOperationException("The server can not be changed yet");
 //    long pmHandle;
 //    long handle;
@@ -93,12 +98,12 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   }
 
   @Override
-  public ContentValuesProvider createItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri, SyncResult syncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider createItemOnServer(final DelegatingResources delegator, final ContentProviderClient provider, final Uri itemuri, final SyncResult syncResult) throws RemoteException, IOException, XmlException {
     String name;
     long pmHandle;
     String uuid;
     {
-      Cursor pendingPosts = provider.query(itemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_NAME, ProcessInstances.COLUMN_UUID }, null, null, null);
+      final Cursor pendingPosts = provider.query(itemuri, new String[]{ ProcessInstances.COLUMN_PMHANDLE, ProcessInstances.COLUMN_NAME, ProcessInstances.COLUMN_UUID }, null, null, null);
       try {
         if (pendingPosts.moveToFirst()) {
           pmHandle = pendingPosts.getLong(0);
@@ -112,7 +117,7 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
         pendingPosts.close();
       }
     }
-    StringBuilder url = new StringBuilder();
+    final StringBuilder url = new StringBuilder();
     url.append(delegator.getSyncSource())
        .append("/processModels/")
        .append(Long.toString(pmHandle))
@@ -123,35 +128,34 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
     return postInstanceToServer(delegator, URI.create(url.toString()), syncResult);
   }
 
-  private static ContentValuesProvider postInstanceToServer(DelegatingResources delegator, final URI url, SyncResult syncResult) throws
-          IOException, XmlPullParserException {
-    PostRequest post = new PostRequest(url, "");
-    HttpURLConnection urlConnection = delegator.getWebClient().execute(post);
+  private static ContentValuesProvider postInstanceToServer(final DelegatingResources delegator, final URI url, final SyncResult syncResult) throws
+          IOException, XmlException {
+    final PostRequest post = new PostRequest(url, "");
+    final HttpURLConnection urlConnection = delegator.getWebClient().execute(post);
     try {
-      int status = urlConnection.getResponseCode();
+      final int status = urlConnection.getResponseCode();
       if (status >= 200 && status < 400) {
-        XmlPullParser parser = delegator.newPullParser();
-        InputStream input = urlConnection.getInputStream();
+        final InputStream input = urlConnection.getInputStream();
         try {
-          parser.setInput(input, "UTF-8");
+          final XmlReader parser = XmlStreaming.newReader(input, "UTF-8");
 
           parser.nextTag(); // Skip document start etc.
-          parser.require(XmlPullParser.START_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
-          long handle = Long.parseLong(parser.nextText());
+          parser.require(EventType.START_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
+          final long handle = Long.parseLong(XmlUtil.nextText(parser).toString());
           parser.nextTag();
-          parser.require(XmlPullParser.END_TAG, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
+          parser.require(EventType.END_ELEMENT, NS_PROCESSMODELS, TAG_HPROCESSINSTANCE);
 
-          ContentValues cv = new ContentValues(2);
+          final ContentValues cv = new ContentValues(2);
           cv.put(ProcessInstances.COLUMN_HANDLE, handle);
           cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_UPTODATE);
-          ContentValuesProvider values = new SimpleContentValuesProvider(cv, false);
+          final ContentValuesProvider values = new SimpleContentValuesProvider(cv, false);
           ++syncResult.stats.numUpdates;
           return values;
         } finally {
           input.close();
         }
       } else {
-        String statusline = Integer.toString(urlConnection.getResponseCode())+urlConnection.getResponseMessage();
+        final String statusline = Integer.toString(urlConnection.getResponseCode()) + urlConnection.getResponseMessage();
         if (Log.isLoggable(TAG, Log.DEBUG)) {
           LogUtil.logResponse(TAG, Log.DEBUG, url.toString(), statusline, urlConnection.getErrorStream());
         }
@@ -168,11 +172,11 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   }
 
   @Override
-  public ContentValuesProvider deleteItemOnServer(DelegatingResources delegator, ContentProviderClient provider, Uri itemuri,
-                                                     SyncResult syncResult) throws RemoteException, IOException, XmlPullParserException {
+  public ContentValuesProvider deleteItemOnServer(final DelegatingResources delegator, final ContentProviderClient provider, final Uri itemuri,
+                                                  final SyncResult syncResult) throws RemoteException, IOException, XmlPullParserException {
     long handle;
     {
-      Cursor itemCursor = provider.query(itemuri, new String[]{ ProcessModels.COLUMN_HANDLE }, null, null, null);
+      final Cursor itemCursor = provider.query(itemuri, new String[]{ ProcessModels.COLUMN_HANDLE }, null, null, null);
       try {
         if (itemCursor.moveToFirst()) {
           handle = itemCursor.getLong(1);
@@ -185,23 +189,23 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
       }
     }
 
-    URI uri =delegator.getSyncSource().resolve("processInstances/"+handle);
-    DeleteRequest request = new DeleteRequest(uri);
-    HttpURLConnection urlConnection = delegator.getWebClient().execute(request);
+    final URI uri =delegator.getSyncSource().resolve("processInstances/" + handle);
+    final DeleteRequest request = new DeleteRequest(uri);
+    final HttpURLConnection urlConnection = delegator.getWebClient().execute(request);
     try {
-      int status = urlConnection.getResponseCode();
+      final int status = urlConnection.getResponseCode();
       if (status >= 200 && status < 400) {
-        CharArrayWriter out = new CharArrayWriter();
-        InputStream ins = urlConnection.getInputStream();
-        Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
-        char[] buffer = new char[2048];
+        final CharArrayWriter out = new CharArrayWriter();
+        final InputStream ins = urlConnection.getInputStream();
+        final Reader in = new InputStreamReader(ins, Charset.forName("UTF-8"));
+        final char[] buffer = new char[2048];
         int cnt;
         while ((cnt = in.read(buffer)) >= 0) {
           out.write(buffer, 0, cnt);
         }
         Log.i(TAG, "Response on deleting item: \"" + out.toString() + "\"");
 
-        ContentValues cv = new ContentValues(1);
+        final ContentValues cv = new ContentValues(1);
         cv.put(XmlBaseColumns.COLUMN_SYNCSTATE, RemoteXmlSyncAdapter.SYNC_PENDING);
         return new SimpleContentValuesProvider(cv, false);
       }
@@ -212,38 +216,38 @@ public class ProcessInstanceSyncAdapter extends RemoteXmlSyncAdapterDelegate imp
   }
 
   @Override
-  public boolean resolvePotentialConflict(ContentProviderClient provider, Uri uri, ContentValuesProvider item) throws RemoteException {
+  public boolean resolvePotentialConflict(final ContentProviderClient provider, final Uri uri, final ContentValuesProvider item) throws RemoteException {
     // Server always wins
     return true;
   }
 
   @Override
-  public ContentValuesProvider parseItem(XmlPullParser parser) throws XmlPullParserException, IOException {
-    parser.require(START_TAG, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
-    String name = parser.getAttributeValue(null, "name");
-    long handle;
-    long pmhandle;
-    String uuid;
+  public ContentValuesProvider parseItem(final XmlReader in) throws XmlException, IOException {
+    in.require(EventType.START_ELEMENT, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
+    final CharSequence name = in.getAttributeValue(null, "name");
+    final long handle;
+    final long pmhandle;
+    final String uuid;
     try {
-      handle = Long.parseLong(parser.getAttributeValue(null, "handle"));
-      pmhandle = Long.parseLong(parser.getAttributeValue(null, "processModel"));
-      uuid = parser.getAttributeValue(null, "uuid");
+      handle = Long.parseLong(in.getAttributeValue(null, "handle").toString());
+      pmhandle = Long.parseLong(in.getAttributeValue(null, "processModel").toString());
+      uuid = in.getAttributeValue(null, "uuid").toString();
     } catch (NullPointerException|NumberFormatException e) {
-      throw new XmlPullParserException(e.getMessage(), parser, e);
+      throw new XmlException(e.getMessage(), in, e);
     }
-    parser.next();
-    parser.require(END_TAG, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
-    ContentValues result = new ContentValues(4);
+    in.next();
+    in.require(EventType.END_ELEMENT, NS_PROCESSMODELS, TAG_PROCESSINSTANCE);
+    final ContentValues result = new ContentValues(4);
     result.put(ProcessInstances.COLUMN_HANDLE, handle);
     result.put(ProcessInstances.COLUMN_PMHANDLE, pmhandle);
-    result.put(ProcessInstances.COLUMN_NAME, name);
+    result.put(ProcessInstances.COLUMN_NAME, name.toString());
     result.put(ProcessInstances.COLUMN_UUID, uuid);
     result.put(XmlBaseColumns.COLUMN_SYNCSTATE, SYNC_UPTODATE); // No details at this stage
     return new SimpleContentValuesProvider(result, false);
   }
 
   @Override
-  public Collection<ContentProviderOperation> doUpdateItemDetails(DelegatingResources delegator, ContentProviderClient provider, long id, CVPair pair) throws RemoteException, IOException {
+  public Collection<ContentProviderOperation> doUpdateItemDetails(final DelegatingResources delegator, final ContentProviderClient provider, final long id, final CVPair pair) throws RemoteException, IOException {
     return Collections.emptyList();
   }
 

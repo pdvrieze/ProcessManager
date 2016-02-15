@@ -24,7 +24,7 @@ import nl.adaptivity.process.editor.android.databinding.TaskitemPasswordBinding;
 
 public class PasswordItem extends TextLabeledItem {
 
-  public PasswordItem(String name, String label, String value) {
+  public PasswordItem(CharSequence name, CharSequence label, CharSequence value) {
     super(name, label, value);
   }
 

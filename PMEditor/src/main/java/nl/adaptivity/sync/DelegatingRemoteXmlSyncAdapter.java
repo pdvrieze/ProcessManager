@@ -24,6 +24,7 @@ import android.os.RemoteException;
 import android.util.Log;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
+import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -38,7 +39,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
     UPDATE_LIST_FROM_SERVER {
 
       @Override
-      public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlPullParserException, IOException, OperationApplicationException {
+      public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
         delegate.updateListFromServer(delegator, provider, syncResult);
       }},
 
@@ -46,11 +47,11 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
 
       @Override
       public void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult)
-          throws XmlPullParserException, IOException, RemoteException, OperationApplicationException {
+          throws XmlException, IOException, RemoteException, OperationApplicationException {
         delegate.updateItemDetails(delegator, provider, syncResult);
       }};
 
-    public abstract void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws XmlPullParserException, IOException, RemoteException, OperationApplicationException;
+    public abstract void execute(DelegatingResources delegator, ISyncAdapterDelegate delegate, ContentProviderClient provider, SyncResult syncResult) throws XmlException, IOException, RemoteException, OperationApplicationException;
   }
 
   private static final String TAG = DelegatingRemoteXmlSyncAdapter.class.getSimpleName();
@@ -91,7 +92,7 @@ public abstract class DelegatingRemoteXmlSyncAdapter extends AbstractThreadedSyn
           /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" STARTING phase "+phase); //}
           phase.execute(this, delegate, provider, syncResult);
           /*if (BuildConfig.DEBUG) { */Log.e(TAG, getClass().getSimpleName()+" FINISHED phase "+phase); //}
-        } catch (IllegalStateException|XmlPullParserException e) {
+        } catch (IllegalStateException|XmlException e) {
           syncResult.stats.numParseExceptions++;
           Log.e(TAG, "Error parsing list", e);
         } catch (IOException e) {

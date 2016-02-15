@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.tasks.data;
 
-import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.ExecutableUserTask;
 import nl.adaptivity.process.tasks.data.TaskProvider.Tasks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -28,11 +28,11 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 
 
-public class TaskLoader extends AsyncTaskLoader<UserTask> {
+public class TaskLoader extends AsyncTaskLoader<ExecutableUserTask> {
 
   private Uri mUri=null;
   private long mHandle=-1L;
-  private Loader<UserTask>.ForceLoadContentObserver mObserver;
+  private Loader<ExecutableUserTask>.ForceLoadContentObserver mObserver;
 
   public TaskLoader(Context context, long handle) {
     super(context);
@@ -58,8 +58,8 @@ public class TaskLoader extends AsyncTaskLoader<UserTask> {
   }
 
   @Override
-  public UserTask loadInBackground() {
-    UserTask task;
+  public ExecutableUserTask loadInBackground() {
+    ExecutableUserTask task;
     final ContentResolver contentResolver = getContext().getContentResolver();
     if (mHandle>=0) {
       Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, new String[] { BaseColumns._ID }, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(mHandle)} , null);

@@ -52,6 +52,8 @@ public final class Constants {
   public static final String MODIFY_NS_STR = "http://adaptivity.nl/ProcessEngine/activity";
 
   public static final URI MODIFY_NS_URI = URI.create(MODIFY_NS_STR);
+  public static final String MODIFY_NS_PREFIX = "jbi";
+
   public static final String MY_JBI_NS_STR = "http://adaptivity.nl/jbi";
 
   private Constants() {

@@ -27,6 +27,10 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient.GetRequest;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -41,8 +45,7 @@ import java.util.ListIterator;
 import java.util.Map.Entry;
 
 import static nl.adaptivity.sync.RemoteXmlSyncAdapter.*;
-import static org.xmlpull.v1.XmlPullParser.END_TAG;
-import static org.xmlpull.v1.XmlPullParser.START_TAG;
+
 
 @SuppressWarnings("boxing")
 public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
@@ -91,7 +94,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    */
   @Override
   public
-  final void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlPullParserException, IOException, OperationApplicationException {
+  final void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException, IOException, OperationApplicationException {
     GetRequest getList = new GetRequest(mActualDelegate.getListUrl(delegator.getSyncSource()));
     HttpURLConnection result;
     try {
@@ -197,7 +200,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
    *           but children may, when using batch content provider operations.
    * @category Phase
    */
-  public final List<CVPair> updateItemListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult, InputStream content) throws XmlPullParserException, RemoteException, IOException, OperationApplicationException {
+  public final List<CVPair> updateItemListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult, InputStream content) throws XmlException, RemoteException, IOException, OperationApplicationException {
     final List<CVPair> result = new ArrayList<>();
     final List<CVPair> pendingResults = new ArrayList<>();
 
@@ -255,7 +258,7 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
             ContentValuesProvider newValues = null;
             try { // Don't jinx the entire sync when only the single update fails
               newValues = mActualDelegate.updateItemOnServer(delegator, provider, itemUri, localSyncState, syncResult);
-            } catch (IOException | RemoteException | XmlPullParserException e) {
+            } catch (IOException | RemoteException | XmlException e) {
               Log.w(TAG, "Error updating the server", e);
               if (mActualDelegate.resolvePotentialConflict(provider, itemUri, remoteItem)) {
                 if (! remoteItem.getContentValues().containsKey(colSyncstate)) {
@@ -380,25 +383,24 @@ public class RemoteXmlSyncAdapterDelegate implements ISyncAdapterDelegate {
     return -1;
   }
 
-  protected List<ContentValuesProvider> parseItems(DelegatingResources delegator, InputStream content) throws XmlPullParserException, IOException {
+  protected List<ContentValuesProvider> parseItems(DelegatingResources delegator, InputStream content) throws XmlException, IOException {
     final String colSyncstate = mActualDelegate.getSyncStateColumn();
-    XmlPullParser parser = delegator.newPullParser();
-    parser.setInput(content, "UTF8");
+    XmlReader parser = XmlStreaming.newReader(content, "UTF8");
     List<ContentValuesProvider> items = new ArrayList<>();
-    int type;
+    EventType type;
     parser.nextTag();
-    parser.require(XmlPullParser.START_TAG, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
-    while ((type = parser.next()) != END_TAG) {
+    parser.require(EventType.START_ELEMENT, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
+    while ((type = parser.next()) != EventType.END_ELEMENT) {
       switch (type) {
-        case START_TAG:
+        case START_ELEMENT:
           final ContentValuesProvider item = mActualDelegate.parseItem(parser);
           items.add(item);
           break;
         default:
-          throw new XmlPullParserException("Unexpected tag type: " + type);
+          throw new XmlException("Unexpected tag type: " + type);
       }
     }
-    parser.require(XmlPullParser.END_TAG, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
+    parser.require(EventType.END_ELEMENT, mActualDelegate.getItemNamespace(), mActualDelegate.getItemsTag());
     return items;
   }
 

@@ -23,22 +23,22 @@ import nl.adaptivity.process.tasks.TaskItem;
 
 public abstract class LabeledItem extends TaskItem {
 
-  private String mLabel;
-  private String mValue;
+  private CharSequence mLabel;
+  private CharSequence mValue;
   private boolean mDirty = false;
 
-  public LabeledItem(String name, String label, String value) {
+  public LabeledItem(CharSequence name, CharSequence label, CharSequence value) {
     super(name);
     mValue = value;
     setLabel(label);
   }
 
   @Bindable
-  public String getLabel() {
+  public CharSequence getLabel() {
     return mLabel;
   }
 
-  public void setLabel(String label) {
+  public void setLabel(CharSequence label) {
     mLabel = label;
     notifyPropertyChanged(BR.label);
   }
@@ -48,7 +48,7 @@ public abstract class LabeledItem extends TaskItem {
     return true;
   }
 
-  public void setValue(String value) {
+  public void setValue(CharSequence value) {
     boolean dirty = false;
     if (mValue==null) {
       if (value!=null) { dirty = true; }
@@ -67,7 +67,7 @@ public abstract class LabeledItem extends TaskItem {
   }
 
   @Bindable
-  public final String getValue() {
+  public final CharSequence getValue() {
     return mValue;
   }
 

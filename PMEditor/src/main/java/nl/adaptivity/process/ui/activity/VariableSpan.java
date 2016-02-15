@@ -43,47 +43,45 @@ public class VariableSpan extends ReplacementSpan {
   private StaticLayout mLayout;
   private final Rect mPadding = new Rect(0,0,0,0);
 
-  public VariableSpan(Context context, @DrawableRes final int borderId) {
+  public VariableSpan(final Context context, @DrawableRes final int borderId) {
     mBorderId = borderId;
     mContext = context;
   }
 
   @Override
   public int getSize(final Paint paint, final CharSequence text, final int start, final int end, final FontMetricsInt fm) {
-    TextPaint textPaint = paint instanceof TextPaint ? (TextPaint) paint : new TextPaint(paint);
+    final TextPaint textPaint = paint instanceof TextPaint ? (TextPaint) paint : new TextPaint(paint);
     if (mLayout == null) {
       // Create a copy without this spannable as that would create an infinite loop
-      SpannableStringBuilder myText = new SpannableStringBuilder(text, start, end);
-      for (VariableSpan span: myText.getSpans(0, end - start, VariableSpan.class)) {
+      final SpannableStringBuilder myText = new SpannableStringBuilder(text, start, end);
+      for (final VariableSpan span: myText.getSpans(0, end - start, VariableSpan.class)) {
         myText.removeSpan(span);
       }
-      int desiredWidth = (int) Math.ceil(Layout.getDesiredWidth(myText, 0, myText.length(), textPaint));
+      final int desiredWidth = (int) Math.ceil(Layout.getDesiredWidth(myText, 0, myText.length(), textPaint)+100);
       mLayout = new StaticLayout(myText, 0, myText.length(), textPaint, desiredWidth, Alignment.ALIGN_NORMAL, 1f, 0f, false);
     }
     if (mBorder==null && mBorderId!=0) {
       mBorder = mContext.getDrawable(mBorderId);
     }
     if (mBorder!=null) { mBorder.getPadding(mPadding); }
-    int textWidth = mLayout.getWidth() + mPadding.left + mPadding.right;
+    final int textWidth = (int) Math.ceil(mLayout.getLineMax(0) + mPadding.left + mPadding.right);
     if (fm!=null) {
       fm.ascent = mLayout.getLineAscent(0) - mPadding.top;
-      fm.top = mLayout.getLineAscent(0) - mPadding.top;
+      fm.top = fm.ascent;
       fm.descent = mLayout.getLineDescent(0) + mPadding.bottom;
       fm.bottom = fm.descent;
     }
-    int textHeight = mLayout.getHeight() + mPadding.top + mPadding.bottom;
 
-    Log.d(TAG, "getSize: "+textWidth +" x "+textHeight);
     return textWidth;
   }
 
   @Override
   public void draw(final Canvas canvas, final CharSequence text, final int start, final int end, final float x, final int top, final int y, final int bottom, final Paint paint) {
     Log.d(TAG, "draw() called with: " + "canvas = [" + canvas + "], text = [" + text + "], start = [" + start + "], end = [" + end + "], x = [" + x + "], top = [" + top + "], y = [" + y + "], bottom = [" + bottom + "], paint = [" + paint + "]");
-    int save = canvas.save();
+    final int save = canvas.save();
     canvas.translate(x, top);
     if (mBorder!=null) {
-      mBorder.setBounds(0, 0, mLayout.getWidth()+mPadding.left+mPadding.right, bottom);
+      mBorder.setBounds(0, 0, (int) Math.ceil(mLayout.getLineMax(0)+mPadding.left+mPadding.right), bottom);
       mBorder.draw(canvas);
     }
     canvas.translate(mPadding.left, -top +y+ mLayout.getLineAscent(0));
@@ -92,7 +90,7 @@ public class VariableSpan extends ReplacementSpan {
   }
 
   public static Spanned newVarSpanned(final Context context, final String varName, final int borderDrawableId) {
-    SpannableStringBuilder builder = new SpannableStringBuilder(varName);
+    final SpannableStringBuilder builder = new SpannableStringBuilder(varName);
     builder.setSpan(new VariableSpan(context, borderDrawableId), 0, varName.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return SpannableString.valueOf(builder);
   }

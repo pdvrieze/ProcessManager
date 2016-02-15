@@ -30,11 +30,11 @@ import java.util.List;
 
 public class ListItem extends LabeledItem implements OnItemSelectedListener {
 
-  private List<String> mOptions;
+  private List<CharSequence> mOptions;
 
-  public ListItem(String name, String label, String value, List<String> options) {
+  public ListItem(CharSequence name, CharSequence label, CharSequence value, List<? extends CharSequence> options) {
     super(name, label, value);
-    mOptions = options;
+    mOptions = new ArrayList<>(options);
   }
 
   @Override
@@ -47,7 +47,7 @@ public class ListItem extends LabeledItem implements OnItemSelectedListener {
     TaskitemListBinding b = (TaskitemListBinding) binding;
     b.setTaskitem(this);
     Spinner view = b.taskitemDetailList;
-    String value = getValue();
+    CharSequence value = getValue();
     int index = AdapterView.INVALID_POSITION;
     if (value!=null) {
       if (mOptions == null) {

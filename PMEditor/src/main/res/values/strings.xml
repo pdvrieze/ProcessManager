@@ -115,5 +115,6 @@
     <string name="lbl_editValue">Value</string>
     <string name="dlg_title_item_details">Item details</string>
     <string name="dlg_title_edit_taskitem">Edit task item</string>
+    <string name="btn_label_var">Var...</string>
 
 </resources>

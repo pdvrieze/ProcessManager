@@ -24,7 +24,7 @@ import android.view.ViewGroup;
 import nl.adaptivity.android.recyclerview.ClickableViewHolder;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.OverviewTaskListitemBinding;
-import nl.adaptivity.process.tasks.UserTask.TaskState;
+import nl.adaptivity.process.tasks.ExecutableUserTask.TaskState;
 import nl.adaptivity.process.ui.task.OverviewTaskCursorAdapter.OverviewTaskCursorViewHolder;
 
 

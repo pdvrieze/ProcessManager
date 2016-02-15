@@ -22,12 +22,12 @@
 
         <import type="android.view.View" />
 
-        <import type="nl.adaptivity.process.tasks.UserTask" />
+        <import type="nl.adaptivity.process.tasks.ExecutableUserTask" />
 
         <import type="nl.adaptivity.process.ui.task.TaskDetailHandler" />
 
         <variable name="task"
-                  type="UserTask" />
+                  type="ExecutableUserTask" />
 
         <variable name="loading"
                   type="boolean" />

@@ -39,34 +39,34 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
 
   private static class ComboFilter extends Filter {
 
-    private List<String> mOriginal;
+    private List<CharSequence> mOriginal;
 
-    public ComboFilter(List<String> original) {
+    public ComboFilter(final List<CharSequence> original) {
       mOriginal = original;
     }
 
     @Override
-    protected FilterResults performFiltering(CharSequence constraint) {
-      FilterResults result = new FilterResults();
+    protected FilterResults performFiltering(final CharSequence constraint) {
+      final FilterResults result = new FilterResults();
       result.count=mOriginal.size();
       result.values=mOriginal;
       return result;
     }
 
     @Override
-    protected void publishResults(CharSequence constraint, FilterResults results) {
+    protected void publishResults(final CharSequence constraint, final FilterResults results) {
       // We don't change the results.
     }
 
   }
 
-  private String mType;
-  private ObservableList<String> mOptions;
+  private CharSequence mType;
+  private ObservableList<CharSequence> mOptions;
 
-  private static class ComboAdapter extends ArrayAdapter<String> {
-    private List<String> mOriginal;
+  private static class ComboAdapter extends ArrayAdapter<CharSequence> {
+    private List<CharSequence> mOriginal;
 
-    public ComboAdapter(Context context, List<String> original) {
+    public ComboAdapter(final Context context, final List<CharSequence> original) {
       super(context, android.R.layout.simple_dropdown_item_1line, original);
       mOriginal = original;
     }
@@ -78,7 +78,7 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
 
-  public GenericItem(String name, String label, String type, String value, List<String> options) {
+  public GenericItem(final CharSequence name, final CharSequence label, final CharSequence type, final CharSequence value, final List<? extends CharSequence> options) {
     super(name, label, value);
     mType = type;
     mOptions = new ObservableArrayList<>();
@@ -94,17 +94,17 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
 
 
   @Override
-  public String getDBType() {
+  public CharSequence getDBType() {
     return mType;
   }
 
   @Bindable
-  public ObservableList<String> getOptions() {
+  public ObservableList<CharSequence> getOptions() {
     return mOptions;
   }
 
 
-  public void setOptions(List<String> options) {
+  public void setOptions(final List<String> options) {
     mOptions = new ObservableArrayList<>();
     if (options!=null && options.size()>0) {
       mOptions.addAll(options);
@@ -113,14 +113,14 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
   @Override
-  public void updateView(ViewDataBinding binding) {
-    TaskitemGenericBinding b = (TaskitemGenericBinding) binding;
+  public void updateView(final ViewDataBinding binding) {
+    final TaskitemGenericBinding b = (TaskitemGenericBinding) binding;
     b.setTaskitem(this);
-    AutoCompleteTextView textview = b.taskitemDetailTextText;
+    final AutoCompleteTextView textview = b.taskitemDetailTextText;
     textview.setText(getValue());
     textview.setThreshold(1);
     textview.setAdapter(new ComboAdapter(textview.getContext(), mOptions));
-    Object tag = textview.getTag();
+    final Object tag = textview.getTag();
     if (tag instanceof TextWatcher) {
       textview.removeTextChangedListener((TextWatcher) tag);
     }
@@ -130,18 +130,18 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
   }
 
   @Override
-  public void beforeTextChanged(CharSequence s, int start, int count, int after) { /*do nothing*/ }
+  public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) { /*do nothing*/ }
 
   @Override
-  public void onTextChanged(CharSequence s, int start, int before, int count) {
+  public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
     setValue(s.toString());
   }
 
   @Override
-  public void afterTextChanged(Editable s) { /*do nothing*/ }
+  public void afterTextChanged(final Editable s) { /*do nothing*/ }
 
   @Override
-  public void onClick(View v) {
+  public void onClick(final View v) {
     final AutoCompleteTextView tv = (AutoCompleteTextView) v;
     if (tv.getText().length()==0 &&  !tv.isPopupShowing()) {
       tv.showDropDown();
@@ -159,7 +159,7 @@ public class GenericItem extends LabeledItem implements TextWatcher, OnClickList
     if (o == null || getClass() != o.getClass()) { return false; }
     if (!super.equals(o)) { return false; }
 
-    GenericItem that = (GenericItem) o;
+    final GenericItem that = (GenericItem) o;
 
     if (mType != null ? !mType.equals(that.mType) : that.mType != null) { return false; }
     return mOptions != null ? mOptions.equals(that.mOptions) : that.mOptions == null;

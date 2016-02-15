@@ -37,8 +37,8 @@ import android.widget.Toast;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentTaskDetailBinding;
-import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.UserTask.TaskState;
+import nl.adaptivity.process.tasks.ExecutableUserTask;
+import nl.adaptivity.process.tasks.ExecutableUserTask.TaskState;
 import nl.adaptivity.process.tasks.data.TaskLoader;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 
@@ -49,7 +49,7 @@ import java.util.NoSuchElementException;
  * either contained in a {@link TaskListOuterFragment} in two-pane mode (on
  * tablets) or a {@link TaskDetailActivity} on handsets.
  */
-public class TaskDetailFragment extends Fragment implements LoaderCallbacks<UserTask>, TaskDetailHandler {
+public class TaskDetailFragment extends Fragment implements LoaderCallbacks<ExecutableUserTask>, TaskDetailHandler {
 
   public interface TaskDetailCallbacks {
     void dismissTaskDetails();
@@ -100,7 +100,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @BindingAdapter({"app:usertask"})
-  public static void bindTaskItemAdapter(RecyclerView view, UserTask task) {
+  public static void bindTaskItemAdapter(RecyclerView view, ExecutableUserTask task) {
     if (view.getAdapter() instanceof TaskItemAdapter) {
       TaskItemAdapter adapter = (TaskItemAdapter) view.getAdapter();
       adapter.setUserTask(task);
@@ -112,7 +112,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   @Override
   public void onPause() {
     super.onPause();
-    final UserTask task = mBinding.getTask();
+    final ExecutableUserTask task = mBinding.getTask();
     if (task != null && task.isDirty()) {
       try {
         TaskProvider.updateValuesAndState(getActivity(), mTaskId, task);
@@ -126,27 +126,27 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<User
   }
 
   @Override
-  public Loader<UserTask> onCreateLoader(int id, Bundle args) {
+  public Loader<ExecutableUserTask> onCreateLoader(int id, Bundle args) {
     mTaskId = args.getLong(MasterDetailOuterFragment.ARG_ITEM_ID);
     Uri uri = ContentUris.withAppendedId(TaskProvider.Tasks.CONTENT_ID_URI_BASE, mTaskId);
     return new TaskLoader(getActivity(), uri);
   }
 
   @Override
-  public void onLoadFinished(Loader<UserTask> loader, UserTask data) {
+  public void onLoadFinished(Loader<ExecutableUserTask> loader, ExecutableUserTask data) {
     mBinding.setLoading(false);
     if (data==null) { onLoaderReset(loader); return;}
     mBinding.setTask(data);
   }
 
   @Override
-  public void onLoaderReset(Loader<UserTask> loader) {
+  public void onLoaderReset(Loader<ExecutableUserTask> loader) {
     mBinding.setTask(null);
   }
 
   @Override
   public void onAcceptClick(final View v) {
-    final UserTask task = mBinding.getTask();
+    final ExecutableUserTask task = mBinding.getTask();
     boolean initialDirty = task.isDirty();
     task.setState(TaskState.Taken);
     if (initialDirty) {

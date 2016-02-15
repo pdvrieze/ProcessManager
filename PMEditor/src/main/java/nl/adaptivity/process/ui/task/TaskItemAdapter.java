@@ -28,9 +28,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import nl.adaptivity.process.editor.android.BR;
+import nl.adaptivity.process.tasks.ExecutableUserTask;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.TaskItem.Type;
-import nl.adaptivity.process.tasks.UserTask;
 
 
 /**
@@ -88,7 +88,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
     }
   };
 
-  private UserTask mUserTask;
+  private ExecutableUserTask mUserTask;
   private LayoutInflater mInflater;
   private boolean mCompletable = false;
 
@@ -107,7 +107,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
     // do nothing
   }
 
-  public TaskItemAdapter(UserTask userTask) {
+  public TaskItemAdapter(ExecutableUserTask userTask) {
     mUserTask = userTask;
     if (userTask!=null) {
       mCompletable = userTask.isCompleteable();
@@ -115,7 +115,7 @@ public class TaskItemAdapter extends Adapter<TaskItemAdapter.TaskItemHolder> {
     }
   }
 
-  public void setUserTask(UserTask userTask) {
+  public void setUserTask(ExecutableUserTask userTask) {
     Log.d(TAG, "setUserTask() called with " + "userTask = [" + userTask + "]");
     if (mUserTask==userTask) { return; }
     if (mUserTask!=null) {

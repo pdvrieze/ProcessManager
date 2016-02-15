@@ -17,9 +17,12 @@
 package nl.adaptivity.sync;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 
+import nl.adaptivity.android.darwin.AuthenticatedWebClient.GetRequest;
 import nl.adaptivity.sync.RemoteXmlSyncAdapterDelegate.DelegatingResources;
 
+import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.content.ContentProviderClient;
@@ -33,7 +36,7 @@ public interface ISyncAdapterDelegate {
   public void updateItemDetails(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, IOException,
       OperationApplicationException;
 
-  public void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlPullParserException,
+  public void updateListFromServer(DelegatingResources delegator, ContentProviderClient provider, SyncResult syncResult) throws RemoteException, XmlException,
       IOException, OperationApplicationException;
 
 }

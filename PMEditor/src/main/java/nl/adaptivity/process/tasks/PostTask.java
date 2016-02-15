@@ -56,9 +56,9 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
   public static Factory FACTORY = new Factory();
 
   private CompactFragment mReplies;
-  private UserTask mTask;
+  private EditableUserTask mTask;
 
-  public PostTask(final UserTask task) {
+  public PostTask(final EditableUserTask task) {
     this();
     mTask = task;
   }
@@ -82,11 +82,11 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     mReplies = replies;
   }
 
-  public UserTask getTask() {
+  public EditableUserTask getTask() {
     return mTask;
   }
 
-  public void setTask(final UserTask userTask) {
+  public void setTask(final EditableUserTask userTask) {
     mTask = userTask;
   }
 
@@ -117,7 +117,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
           return true;
         case TASKPARAM_LOCALNAME:
           in.next();//The param tag has been handled.
-          mTask = UserTask.deserialize(in);
+          mTask = EditableUserTask.deserialize(in);
           in.nextTag();
           in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TASKPARAM_LOCALNAME);
           return true;

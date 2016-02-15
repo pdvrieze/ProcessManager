@@ -27,11 +27,12 @@ import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.data.DataOpenHelper;
+import nl.adaptivity.process.tasks.ExecutableUserTask;
+import nl.adaptivity.process.tasks.ExecutableUserTask.TaskState;
 import nl.adaptivity.process.tasks.TaskItem;
-import nl.adaptivity.process.tasks.UserTask;
-import nl.adaptivity.process.tasks.UserTask.TaskState;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
+import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class TaskProvider extends ContentProvider {
     public final int colType;
     public final int colValue;
 
-    public ItemCols(int colId, int colName, int colLabel, int colType, int colValue) {
+    public ItemCols(final int colId, final int colName, final int colLabel, final int colType, final int colValue) {
       this.colId = colId;
       this.colName = colName;
       this.colLabel = colLabel;
@@ -60,12 +61,12 @@ public class TaskProvider extends ContentProvider {
       this.colValue = colValue;
     }
 
-    public static ItemCols init(Cursor itemCursor) {
-      int colId = itemCursor.getColumnIndex(Items._ID);
-      int colName = itemCursor.getColumnIndex(Items.COLUMN_NAME);
-      int colLabel = itemCursor.getColumnIndex(Items.COLUMN_LABEL);
-      int colType = itemCursor.getColumnIndex(Items.COLUMN_TYPE);
-      int colValue = itemCursor.getColumnIndex(Items.COLUMN_VALUE);
+    public static ItemCols init(final Cursor itemCursor) {
+      final int colId = itemCursor.getColumnIndex(Items._ID);
+      final int colName = itemCursor.getColumnIndex(Items.COLUMN_NAME);
+      final int colLabel = itemCursor.getColumnIndex(Items.COLUMN_LABEL);
+      final int colType = itemCursor.getColumnIndex(Items.COLUMN_TYPE);
+      final int colValue = itemCursor.getColumnIndex(Items.COLUMN_VALUE);
       return new ItemCols(colId, colName, colLabel, colType, colValue);
     }
 
@@ -135,8 +136,8 @@ public class TaskProvider extends ContentProvider {
     private final String path;
     private final String table;
 
-    QueryTarget(Uri uri, String table) {
-      String frag = uri.getFragment();
+    QueryTarget(final Uri uri, final String table) {
+      final String frag = uri.getFragment();
       if (frag != null) {
         path = uri.getPath() + '#' + frag;
       } else {
@@ -152,7 +153,7 @@ public class TaskProvider extends ContentProvider {
 
     static {
       _uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-      for(QueryTarget u:QueryTarget.values()) {
+      for(final QueryTarget u:QueryTarget.values()) {
         String path = u.path;
         if (path.startsWith("/")) { path = path.substring(1); }
         _uriMatcher.addURI(AUTHORITY, path, u.ordinal() );
@@ -164,32 +165,32 @@ public class TaskProvider extends ContentProvider {
     final public String mTable;
     private boolean mNetNotify;
 
-    private UriHelper(QueryTarget u, boolean netNotify, boolean ext) {
+    private UriHelper(final QueryTarget u, final boolean netNotify, final boolean ext) {
       this(u, -1, netNotify, ext);
     }
 
-    private UriHelper(QueryTarget u, long id, boolean netNotify, boolean ext) {
+    private UriHelper(final QueryTarget u, final long id, final boolean netNotify, final boolean ext) {
       mTarget = u;
       mId = id;
       mNetNotify = netNotify;
       mTable = ext && u.table==DataOpenHelper.TABLE_NAME_TASKS ? DataOpenHelper.VIEW_NAME_TASKSEXT : u.table;
     }
 
-    static UriHelper parseUri(Uri query) {
+    static UriHelper parseUri(final Uri query) {
       return parseUri(query, null);
     }
 
     static UriHelper parseUri(Uri query, final String[] projection) {
-      boolean netNotify;
+      final boolean netNotify;
       if ("nonetnotify".equals(query.getFragment())) {
         query = query.buildUpon().encodedFragment(null).build();
         netNotify=false;
       } else {
         netNotify=true;
       }
-      int ord = _uriMatcher.match(query);
+      final int ord = _uriMatcher.match(query);
       if (ord<0) { throw new IllegalArgumentException("Unknown URI: "+query); }
-      QueryTarget u = QueryTarget.values()[ord];
+      final QueryTarget u = QueryTarget.values()[ord];
 
       switch (u) {
       case TASK:
@@ -210,15 +211,15 @@ public class TaskProvider extends ContentProvider {
     return ContentResolver.isSyncPending(account, AUTHORITY);
   }
 
-  public static void requestSyncTaskList(Account account, boolean expedited) {
+  public static void requestSyncTaskList(final Account account, final boolean expedited) {
     ProviderHelper.requestSync(account, AUTHORITY, expedited);
   }
 
-  public static void requestSyncTaskList(Activity context, boolean expedited) {
+  public static void requestSyncTaskList(final Activity context, final boolean expedited) {
     ProviderHelper.requestSync(context, AUTHORITY, expedited);
   }
 
-  private static String[] appendArg(String[] args, String arg) {
+  private static String[] appendArg(final String[] args, final String arg) {
     if (args==null || args.length==0) { return new String[] { arg }; }
     final String[] result = new String[args.length+1];
     System.arraycopy(args, 0, result, 0, args.length);
@@ -226,15 +227,15 @@ public class TaskProvider extends ContentProvider {
     return result;
   }
 
-  private static boolean mimetypeMatches(String mimetype, String mimeTypeFilter) {
+  private static boolean mimetypeMatches(final String mimetype, final String mimeTypeFilter) {
     if (mimeTypeFilter==null) { return true; }
     int splitIndex = mimetype.indexOf('/');
-    String typeLeft = mimetype.substring(0, splitIndex);
-    String typeRight = mimetype.substring(splitIndex+1);
+    final String typeLeft = mimetype.substring(0, splitIndex);
+    final String typeRight = mimetype.substring(splitIndex + 1);
 
     splitIndex = mimeTypeFilter.indexOf('/');
-    String filterLeft = mimeTypeFilter.substring(0, splitIndex);
-    String filterRight = mimeTypeFilter.substring(splitIndex+1);
+    final String filterLeft = mimeTypeFilter.substring(0, splitIndex);
+    final String filterRight = mimeTypeFilter.substring(splitIndex + 1);
 
     if (! (filterLeft.equals(typeLeft)||"*".equals(filterLeft))) {
       return false;
@@ -256,8 +257,8 @@ public class TaskProvider extends ContentProvider {
   }
 
   @Override
-  public String getType(Uri uri) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public String getType(final Uri uri) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     switch (helper.mTarget) {
       case TASK:
         return "vnd.android.cursor.item/vnd.nl.adaptivity.process.task";
@@ -276,8 +277,8 @@ public class TaskProvider extends ContentProvider {
   }
 
   @Override
-  public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
-    String mimetype = getType(uri);
+  public String[] getStreamTypes(final Uri uri, final String mimeTypeFilter) {
+    final String mimetype = getType(uri);
     if (mimetypeMatches(mimetype, mimeTypeFilter)) {
       return new String[] { mimetype };
     } else {
@@ -286,8 +287,8 @@ public class TaskProvider extends ContentProvider {
   }
 
   @Override
-  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-    UriHelper helper = UriHelper.parseUri(uri, projection);
+  public Cursor query(final Uri uri, final String[] projection, String selection, String[] selectionArgs, final String sortOrder) {
+    final UriHelper helper = UriHelper.parseUri(uri, projection);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = BaseColumns._ID+" = ?";
@@ -297,20 +298,20 @@ public class TaskProvider extends ContentProvider {
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
 
-    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    final SQLiteDatabase db = mDbHelper.getReadableDatabase();
     final Cursor result = db.query(helper.mTable, projection, selection, selectionArgs, null, null, sortOrder);
     result.setNotificationUri(getContext().getContentResolver(), uri);
     return result;
   }
 
   @Override
-  public Uri insert(Uri uri, ContentValues values) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public Uri insert(final Uri uri, final ContentValues values) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mTarget==QueryTarget.TASK && helper.mId>=0) {
       values.put(Tasks._ID, Long.valueOf(helper.mId));
     }
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    long id = db.insert(helper.mTable, null, values);
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    final long id = db.insert(helper.mTable, null, values);
     final Uri result = ContentUris.withAppendedId(uri, id);
     getContext().getContentResolver().notifyChange(Tasks.CONTENT_ID_URI_BASE, null, false);
     getContext().getContentResolver().notifyChange(result, null, helper.mNetNotify);
@@ -318,9 +319,9 @@ public class TaskProvider extends ContentProvider {
   }
 
   @Override
-  public int delete(Uri uri, String selection, String[] selectionArgs) {
-    UriHelper helper = UriHelper.parseUri(uri);
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+  public int delete(final Uri uri, String selection, String[] selectionArgs) {
+    final UriHelper helper = UriHelper.parseUri(uri);
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.beginTransaction();
     try {
       if (helper.mTarget==QueryTarget.TASK) {
@@ -330,24 +331,24 @@ public class TaskProvider extends ContentProvider {
           selection = "( "+selection+" ) AND ( "+Tasks._ID+" = ? )";
         }
         selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
-        String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
-                                    "SELECT " + Items._ID+
-                                    " FROM " + DataOpenHelper.TABLE_NAME_ITEMS+
-                                    " WHERE " + Items.COLUMN_TASKID+" IN (" +
-                                      " SELECT " + Tasks._ID+
-                                      " FROM " + DataOpenHelper.TABLE_NAME_TASKS +
-                                      " WHERE " + selection + " ) )";
+        final String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
+                                       "SELECT " + Items._ID +
+                                       " FROM " + DataOpenHelper.TABLE_NAME_ITEMS +
+                                       " WHERE " + Items.COLUMN_TASKID + " IN (" +
+                                       " SELECT " + Tasks._ID +
+                                       " FROM " + DataOpenHelper.TABLE_NAME_TASKS +
+                                       " WHERE " + selection + " ) )";
         db.delete(DataOpenHelper.TABLE_NAME_OPTIONS, optionSelection, selectionArgs);
-        String itemSelection = Items.COLUMN_TASKID+" IN (" +
-              " SELECT " + Tasks._ID+
-              " FROM " + DataOpenHelper.TABLE_NAME_TASKS +
-              " WHERE " + selection + " )";
+        final String itemSelection = Items.COLUMN_TASKID + " IN (" +
+                                     " SELECT " + Tasks._ID +
+                                     " FROM " + DataOpenHelper.TABLE_NAME_TASKS +
+                                     " WHERE " + selection + " )";
         db.delete(DataOpenHelper.TABLE_NAME_ITEMS, itemSelection, selectionArgs);
       } else if (helper.mTarget==QueryTarget.TASKITEMS) {
-        String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
-            "SELECT " + Items._ID+
-            " FROM " + DataOpenHelper.TABLE_NAME_ITEMS+
-            " WHERE " + selection + " )";
+        final String optionSelection = Options.COLUMN_ITEMID + " IN ( " +
+                                       "SELECT " + Items._ID +
+                                       " FROM " + DataOpenHelper.TABLE_NAME_ITEMS +
+                                       " WHERE " + selection + " )";
         db.delete(DataOpenHelper.TABLE_NAME_OPTIONS, optionSelection, selectionArgs);
       } else if (helper.mId>=0) {
         if (selection==null || selection.length()==0) {
@@ -370,8 +371,8 @@ public class TaskProvider extends ContentProvider {
   }
 
   @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-    UriHelper helper = UriHelper.parseUri(uri);
+  public int update(final Uri uri, final ContentValues values, String selection, String[] selectionArgs) {
+    final UriHelper helper = UriHelper.parseUri(uri);
     if (helper.mId>=0) {
       if (selection==null || selection.length()==0) {
         selection = Tasks._ID+" = ?";
@@ -380,7 +381,7 @@ public class TaskProvider extends ContentProvider {
       }
       selectionArgs = appendArg(selectionArgs, Long.toString(helper.mId));
     }
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
     final int result = db.update(helper.mTable, values, selection, selectionArgs);
     if (result>0) {
       getContext().getContentResolver().notifyChange(uri, null, helper.mNetNotify);
@@ -392,11 +393,11 @@ public class TaskProvider extends ContentProvider {
    * This implementation of applyBatch wraps the operations into a database transaction that fails on exceptions.
    */
   @Override
-  public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+  public ContentProviderResult[] applyBatch(final ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
+    final SQLiteDatabase db = mDbHelper.getWritableDatabase();
     db.beginTransaction();
     try {
-      ContentProviderResult[] result = super.applyBatch(operations);
+      final ContentProviderResult[] result = super.applyBatch(operations);
       db.setTransactionSuccessful();
       return result;
     } finally {
@@ -416,9 +417,9 @@ public class TaskProvider extends ContentProvider {
     }
   }
 
-  public static UserTask getTaskForHandle(Context context, long handle) {
+  public static ExecutableUserTask getTaskForHandle(final Context context, final long handle) {
     final ContentResolver contentResolver = context.getContentResolver();
-    Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, null, Tasks.COLUMN_HANDLE+" = ?", new String[] { Long.toString(handle)} , null);
+    final Cursor idresult = contentResolver.query(Tasks.CONTENT_URI, null, Tasks.COLUMN_HANDLE + " = ?", new String[] { Long.toString(handle)} , null);
     try {
       if (! idresult.moveToFirst()) { return null; }
       return getTask(contentResolver, idresult);
@@ -427,18 +428,18 @@ public class TaskProvider extends ContentProvider {
     }
   }
 
-  public static UserTask getTaskForId(Context context, long id) {
-    Uri uri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, id);
+  public static ExecutableUserTask getTaskForId(final Context context, final long id) {
+    final Uri uri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, id);
     return getTask(context, uri);
   }
 
-  public static UserTask getTask(Context context, Uri uri) {
+  public static ExecutableUserTask getTask(final Context context, final Uri uri) {
     final ContentResolver contentResolver = context.getContentResolver();
     return getTask(contentResolver, uri);
   }
 
-  private static UserTask getTask(final ContentResolver contentResolver, Uri uri) {
-    Cursor cursor = contentResolver.query(uri, null, null, null, null);
+  private static ExecutableUserTask getTask(final ContentResolver contentResolver, final Uri uri) {
+    final Cursor cursor = contentResolver.query(uri, null, null, null, null);
     try {
       if (cursor.moveToFirst()) {
         return getTask(contentResolver, cursor);
@@ -450,37 +451,37 @@ public class TaskProvider extends ContentProvider {
     }
   }
 
-  private static UserTask getTask(ContentResolver contentResolver, Cursor cursor) {
-    long id = cursor.getLong(cursor.getColumnIndex(BaseColumns._ID));
-    String summary = cursor.getString(cursor.getColumnIndexOrThrow(Tasks.COLUMN_SUMMARY));
-    long handle = cursor.getLong(cursor.getColumnIndexOrThrow(Tasks.COLUMN_HANDLE));
-    String owner = cursor.getString(cursor.getColumnIndexOrThrow(Tasks.COLUMN_OWNER));
-    String state  =  cursor.getString(cursor.getColumnIndexOrThrow(Tasks.COLUMN_STATE));
+  private static ExecutableUserTask getTask(final ContentResolver contentResolver, final Cursor cursor) {
+    final long id = cursor.getLong(cursor.getColumnIndex(BaseColumns._ID));
+    final String summary = cursor.getString(cursor.getColumnIndexOrThrow(Tasks.COLUMN_SUMMARY));
+    final long handle = cursor.getLong(cursor.getColumnIndexOrThrow(Tasks.COLUMN_HANDLE));
+    final String owner = cursor.getString(cursor.getColumnIndexOrThrow(Tasks.COLUMN_OWNER));
+    final String state  =  cursor.getString(cursor.getColumnIndexOrThrow(Tasks.COLUMN_STATE));
 
 
-    List<TaskItem> items = new ArrayList<>();
-    Cursor itemCursor = contentResolver.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID+" = "+id, null, null);
+    final List<TaskItem> items = new ArrayList<>();
+    final Cursor itemCursor = contentResolver.query(Items.CONTENT_ID_URI_BASE, null, Items.COLUMN_TASKID + " = " + id, null, null);
     try {
       while (itemCursor.moveToNext()) {
-        ItemCols itemCols = ItemCols.init(itemCursor);
+        final ItemCols itemCols = ItemCols.init(itemCursor);
         items.add(getItem(contentResolver, itemCols, itemCursor));
       }
     } finally {
       itemCursor.close();
     }
 
-    return new UserTask(summary, handle, owner, TaskState.fromString(state), items);
+    return new ExecutableUserTask(summary, handle, owner, TaskState.fromString(state), items);
   }
 
-  private static TaskItem getItem(ContentResolver contentResolver, ItemCols itemCols, Cursor cursor) {
-    long id = cursor.getLong(itemCols.colId);
-    String name = cursor.getString(itemCols.colName);
-    String label = cursor.getString(itemCols.colLabel);
-    String type = cursor.getString(itemCols.colType);
-    String value = cursor.getString(itemCols.colValue);
+  private static TaskItem getItem(final ContentResolver contentResolver, final ItemCols itemCols, final Cursor cursor) {
+    final long id = cursor.getLong(itemCols.colId);
+    final String name = cursor.getString(itemCols.colName);
+    final String label = cursor.getString(itemCols.colLabel);
+    final String type = cursor.getString(itemCols.colType);
+    final String value = cursor.getString(itemCols.colValue);
 
-    List<String> options = new ArrayList<>();
-    Cursor optionCursor = contentResolver.query(Options.CONTENT_ID_URI_BASE, new String[] { Options.COLUMN_VALUE }, Options.COLUMN_ITEMID+" = "+id, null, null);
+    final List<String> options = new ArrayList<>();
+    final Cursor optionCursor = contentResolver.query(Options.CONTENT_ID_URI_BASE, new String[] { Options.COLUMN_VALUE }, Options.COLUMN_ITEMID + " = " + id, null, null);
     try {
       while (optionCursor.moveToNext()) {
         options.add(optionCursor.getString(0));
@@ -492,32 +493,32 @@ public class TaskProvider extends ContentProvider {
     return TaskItem.defaultFactory().create(name, label, type, value, options);
   }
 
-  private static List<UserTask> getTasks(InputStream in) throws XmlPullParserException, IOException {
-    return UserTask.parseTasks(in);
+  private static List<ExecutableUserTask> getTasks(final InputStream in) throws XmlException {
+    return ExecutableUserTask.parseTasks(in);
   }
 
-  public static int updateTaskState(Context context, long taskId, TaskState newState) {
-    Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, taskId);
+  public static int updateTaskState(final Context context, final long taskId, final TaskState newState) {
+    final Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, taskId);
     final ContentResolver contentResolver = context.getContentResolver();
-    ContentValues values = new ContentValues(2);
+    final ContentValues values = new ContentValues(2);
     values.put(XmlBaseColumns.COLUMN_SYNCSTATE, Long.valueOf(RemoteXmlSyncAdapter.SYNC_UPDATE_SERVER));
     values.put(Tasks.COLUMN_STATE, newState.getAttrValue());
     return contentResolver.update(taskUri, values, null, null); // no additional where needed
   }
 
-  public static void updateValuesAndState(Context context, long taskId, UserTask updatedTask) throws RemoteException, OperationApplicationException {
-    ArrayList<ContentProviderOperation> operations = new ArrayList<>();
-    Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, taskId);
+  public static void updateValuesAndState(final Context context, final long taskId, final ExecutableUserTask updatedTask) throws RemoteException, OperationApplicationException {
+    final ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+    final Uri taskUri = ContentUris.withAppendedId(Tasks.CONTENT_ID_URI_BASE, taskId);
 
     final ContentResolver contentResolver = context.getContentResolver();
-    UserTask oldTask = getTask(contentResolver, taskUri);
+    final ExecutableUserTask oldTask = getTask(contentResolver, taskUri);
     if (oldTask==null) {
       throw new NoSuchElementException("The task with id "+taskId+" to update could not be found");
     }
 
     updateTaskValues(operations, taskId, oldTask, updatedTask);
 
-    ContentValues newValues = new ContentValues(3);
+    final ContentValues newValues = new ContentValues(3);
     if(oldTask.getState()!=updatedTask.getState()) {
       newValues.put(Tasks.COLUMN_STATE, updatedTask.getState().getAttrValue());
     }
@@ -537,11 +538,11 @@ public class TaskProvider extends ContentProvider {
     }
   }
 
-  private static void updateTaskValues(ArrayList<ContentProviderOperation> operations, long taskId, UserTask oldTask, UserTask updatedTask) {
-    for(TaskItem newItem: updatedTask.getItems()) {
+  private static void updateTaskValues(final ArrayList<ContentProviderOperation> operations, final long taskId, final ExecutableUserTask oldTask, final ExecutableUserTask updatedTask) {
+    for(final TaskItem newItem: updatedTask.getItems()) {
       if (newItem.getName()!=null) { // no name, no value
         TaskItem oldItem = null;
-        for(TaskItem candidate: oldTask.getItems()) {
+        for(final TaskItem candidate: oldTask.getItems()) {
           if (newItem.getName().equals(candidate.getName())) {
             oldItem = candidate;
             break;
@@ -551,7 +552,7 @@ public class TaskProvider extends ContentProvider {
           if (!StringUtil.isEqual(oldItem.getValue(), newItem.getValue())) {
             operations.add(ContentProviderOperation
                 .newUpdate(Items.CONTENT_ID_URI_BASE)
-                .withSelection(Items.COLUMN_TASKID+"=? AND "+Items.COLUMN_NAME+" = ?", new String[] {Long.toString(taskId), newItem.getName() })
+                .withSelection(Items.COLUMN_TASKID+"=? AND "+Items.COLUMN_NAME+" = ?", new String[] {Long.toString(taskId), String.valueOf(newItem.getName())})
                 .withValue(Items.COLUMN_VALUE, newItem.getValue())
                 .build());
           }

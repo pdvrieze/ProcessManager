@@ -22,9 +22,13 @@
         <import type="nl.adaptivity.process.tasks.TaskItem" />
 
         <import type="android.view.View" />
+        <import type="nl.adaptivity.process.util.CharSequenceDecorator" />
 
         <variable name="item"
                   type="TaskItem" />
+
+        <variable name="decorator"
+                  type="CharSequenceDecorator" />
 
         <variable name="hideTitle"
                   type="boolean" />
@@ -74,7 +78,7 @@
                         android:id="@+id/editLabel"
                         android:inputType="text"
                         android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
-                        android:text="@{item.label}"
+                        android:text="@{decorator.decorate(item.label)}"
                         android:hint="@string/lbl_editLabel"
                         />
 
@@ -83,7 +87,7 @@
             <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Var..."
+                    android:text="@string/btn_label_var"
                     android:id="@+id/btnAddVarLabel"
                     android:layout_gravity="center_vertical" />
         </LinearLayout>
@@ -104,7 +108,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:id="@+id/editValue"
-                        android:text="@{item.value}"
+                        android:text="@{decorator.decorate(item.value)}"
                         android:visibility="@{item.hasValueProperty() ? View.VISIBLE : View.GONE}"
                         android:hint="@string/lbl_editValue"
                         android:inputType="text" />
@@ -113,7 +117,7 @@
             <Button
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Var..."
+                    android:text="@string/btn_label_var"
                     android:id="@+id/btnAddVarValue"
                     android:layout_gravity="center_vertical" />
         </LinearLayout>

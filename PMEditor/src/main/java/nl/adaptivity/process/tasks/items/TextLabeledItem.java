@@ -23,7 +23,7 @@ import android.text.TextWatcher;
 
 public abstract class TextLabeledItem extends LabeledItem implements TextWatcher {
 
-  public TextLabeledItem(String name, String label, String value) {
+  public TextLabeledItem(CharSequence name, CharSequence label, CharSequence value) {
     super(name, label, value);
   }
 

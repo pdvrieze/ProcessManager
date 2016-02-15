@@ -37,13 +37,14 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentUserTaskEditorBinding;
 import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.tasks.TaskItem;
-import nl.adaptivity.process.tasks.UserTask;
+import nl.adaptivity.process.tasks.EditableUserTask;
 import nl.adaptivity.process.tasks.items.LabelItem;
 import nl.adaptivity.process.tasks.items.ListItem;
 import nl.adaptivity.process.tasks.items.PasswordItem;
 import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
+import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.util.xml.Namespace;
 
 import java.util.ArrayList;
@@ -90,9 +91,9 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
       mActivity = getArguments().getParcelable(UIConstants.KEY_ACTIVITY);
     }
     if (mActivity != null) {
-      final UserTask userTask = mActivity.getUserTask();
-      if (userTask!=null) {
-        mAdapter.setItems(userTask.getItems());
+      final EditableUserTask EditableUserTask = mActivity.getUserTask();
+      if (EditableUserTask!=null) {
+        mAdapter.setItems(EditableUserTask.getItems());
       }
     }
 
@@ -196,28 +197,28 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     switch (v.getId()) {
       case R.id.fabMenuLabel:
         mAdapter.addItem(new LabelItem(name, null));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuList:
         mAdapter.addItem(new ListItem(name, "list", null, new ArrayList<String>()));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuOther:
         break;
       case R.id.fabMenuPassword:
         mAdapter.addItem(new PasswordItem(name, "password", null));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuText:
         mAdapter.addItem(new TextItem(name, "text", null, new ArrayList<String>()));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mAdapter.getItemCount()-1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
     }
   }
 
   @Override
   public boolean onClickItem(final ClickableAdapter<? extends ItemViewHolder> adapter, final ItemViewHolder viewHolder) {
-    ItemEditDialogFragment.newInstance(mAdapter.getItem(viewHolder.getAdapterPosition()), viewHolder.getAdapterPosition()).show(getFragmentManager(), "itemdialog");
+    ItemEditDialogFragment.newInstance(mAdapter.getItem(viewHolder.getAdapterPosition()), mActivity.getDefines(), viewHolder.getAdapterPosition()).show(getFragmentManager(), "itemdialog");
     return true;
   }
 
@@ -231,23 +232,23 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
    */
   public ParcelableActivity getParcelableResult() {
     final List<TaskItem> items = mAdapter.getContent();
-    final UserTask userTask;
+    final EditableUserTask EditableUserTask;
     if (mActivity.getUserTask()==null) {
-      userTask = new UserTask(null, -1, null, null, items);
+      EditableUserTask = new EditableUserTask(null, null, null, items);
     } else {
-      userTask = mActivity.getUserTask();
-      userTask.setItems(items);
+      EditableUserTask = mActivity.getUserTask();
+      EditableUserTask.setItems(items);
     }
     for(final TaskItem item: items) {
-      if (! item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName())) {
-        final XmlResultType result = mActivity.getResult(item.getName());
+      if (! (item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName()) || (item.getName() instanceof ModifySequence) )) {
+        final XmlResultType result = mActivity.getResult(item.getName().toString());
         if (result==null) {
-          final XmlResultType newResult = new XmlResultType(item.getName(), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
+          final XmlResultType newResult = new XmlResultType(item.getName().toString(), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
           mActivity.getResults().add(newResult);
         }
       }
     }
-    mActivity.setMessage(userTask.asMessage());
+    mActivity.setMessage(EditableUserTask.asMessage());
 
     return mActivity;
   }

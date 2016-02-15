@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.tasks;
 
-import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableList;
@@ -26,43 +25,34 @@ import android.support.annotation.StringRes;
 import android.util.Log;
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.ProcessConsts.Endpoints.UserTaskServiceDescriptor;
 import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
-import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import org.w3.soapEnvelope.Body;
-import org.w3.soapEnvelope.Envelope;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import javax.xml.namespace.QName;
+import org.xml.sax.XMLReader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-@XmlDeserializer(UserTask.Factory.class)
-public class UserTask extends BaseObservable implements XmlSerializable {
 
-  public static class Factory implements XmlDeserializerFactory<UserTask> {
+/**
+ * UserTask implementation for execution of tasks (no modifyable params etc)
+ */
+@XmlDeserializer(ExecutableUserTask.Factory.class)
+public class ExecutableUserTask extends UserTaskBase implements XmlSerializable {
+
+  public static class Factory implements XmlDeserializerFactory<ExecutableUserTask> {
 
     @Override
-    public UserTask deserialize(final XmlReader in) throws XmlException {
-      return UserTask.deserialize(in);
+    public ExecutableUserTask deserialize(final XmlReader in) throws XmlException {
+      return ExecutableUserTask.deserialize(in);
     }
   }
-
-  private static final String TAG = "UserTask";
-  private static final int STATE_EDITABLE=1;
-  private static final int STATE_AVAILABLE=2;
 
   public enum TaskState {
     Available("Acknowledged", R.string.taskstate_available, R.drawable.decorator_taskstate_available, STATE_AVAILABLE),
@@ -118,16 +108,16 @@ public class UserTask extends BaseObservable implements XmlSerializable {
     }
 
     public boolean isEditable() {
-      return (mState& STATE_EDITABLE)!=0;
+      return (mState & STATE_EDITABLE) != 0;
     }
 
     public boolean isAvailable() {
-      return (mState& STATE_AVAILABLE)!=0;
+      return (mState & STATE_AVAILABLE) != 0;
     }
 
     public static TaskState fromString(final String state) {
       if (state==null) { return null; }
-      for(final TaskState candidate: values()) {
+      for(final TaskState candidate: TaskState.values()) {
         if (state.equalsIgnoreCase(candidate.mAttrValue)) {
           return candidate;
         }
@@ -136,11 +126,10 @@ public class UserTask extends BaseObservable implements XmlSerializable {
     }
   }
 
-  public static final String TAG_TASKS = "tasks";
-  public static final String ELEMENTLOCALNAME = "task";
-  public static final QName ELEMENTNAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
-  public static final String TAG_ITEM = "item";
-  public static final String TAG_OPTION = "option";
+  private static final String TAG = "UserTask";
+
+  private static final int STATE_EDITABLE=1;
+  private static final int STATE_AVAILABLE=2;
   private final OnListChangedCallback mChangeCallback = new OnListChangedCallback() {
 
     @Override
@@ -178,50 +167,30 @@ public class UserTask extends BaseObservable implements XmlSerializable {
       }
     }
   };
+  protected TaskState mState;
 
   private String mSummary;
   private long mHandle;
   private String mOwner;
-  private TaskState mState;
   private ObservableList<TaskItem> mItems;
   private boolean mDirty = false;
-  private List<CompactFragment> mExtras;
+  private long mRemoteHandle;
+  private long mInstanceHandle;
 
-  private UserTask() {
+  private ExecutableUserTask() {
     mItems = new ObservableArrayList<>();
-    mExtras = new ArrayList<>();
     // Constructor for deserialization.
   }
 
-  public UserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
+  public ExecutableUserTask(final String summary, final long handle, final String owner, final TaskState state, final List<TaskItem> items) {
     Log.d(TAG, "UserTask() called with " + "summary = [" + summary + "], handle = [" + handle + "], owner = [" + owner + "], state = [" + state + "], items = [" + items + "] -> " +toString() );
     mSummary = summary;
     mHandle = handle;
     mOwner = owner;
     mState = state;
-    mExtras = new ObservableArrayList<>();
     mItems = new ObservableArrayList<>();
     mItems.addAll(items);
     mItems.addOnListChangedCallback(mChangeCallback);
-  }
-
-  public XmlMessage asMessage() {
-    QName service  = UserTaskServiceDescriptor.SERVICENAME;
-    String endpoint = UserTaskServiceDescriptor.ENDPOINT;
-    String operation = PostTask.ELEMENTLOCALNAME;
-    StringWriter bodyWriter = new StringWriter();
-    try {
-      XmlWriter writer = XmlStreaming.newWriter(bodyWriter, true);
-      Envelope<PostTask> envelope = new Envelope<>(new PostTask(this));
-
-      envelope.serialize(writer);
-      writer.close();
-    } catch (XmlException e) {
-      throw new RuntimeException(e);
-    }
-
-    XmlMessage result = new XmlMessage(service, endpoint, operation, null, null, null, new CompactFragment(bodyWriter.toString()));
-    return result;
   }
 
   @Bindable
@@ -255,11 +224,29 @@ public class UserTask extends BaseObservable implements XmlSerializable {
     return mHandle;
   }
 
-
   public void setHandle(final long handle) {
     mHandle = handle;
   }
 
+  @Override
+  protected CharSequence getRemoteHandle() {
+    return mRemoteHandle>=0 ? Long.toString(mRemoteHandle) : null;
+  }
+
+  @Override
+  protected void setRemoteHandle(final String remoteHandle) {
+    mRemoteHandle = remoteHandle == null ? -1L : Long.parseLong(remoteHandle);
+  }
+
+  @Override
+  protected CharSequence getInstanceHandle() {
+    return mInstanceHandle>=0 ? Long.toString(mInstanceHandle) : null;
+  }
+
+  @Override
+  protected void setInstanceHandle(final String instanceHandle) {
+    mInstanceHandle = instanceHandle == null ? -1L : Long.parseLong(instanceHandle);
+  }
 
   @Bindable
   public String getOwner() {
@@ -336,82 +323,47 @@ public class UserTask extends BaseObservable implements XmlSerializable {
   }
 
   @Override
-  public void serialize(final XmlWriter out) throws XmlException {
-    XmlUtil.writeStartElement(out, ELEMENTNAME);
-    XmlUtil.writeAttribute(out, "summary", mSummary);
-    if (mHandle>=0) { XmlUtil.writeAttribute(out, "handle", mHandle); }
-    XmlUtil.writeAttribute(out, "owner", mOwner);
+  protected void serializeAdditionalAttributes(final List<XmlSerializable> pending, final XmlWriter out) throws XmlException {
     if (mState!=null) { out.attribute(null, "state", null, mState.name()); }
-    for(CompactFragment extra: mExtras) {
-      extra.serialize(out);
-    }
-    for(TaskItem item: mItems) {
-      item.serialize(out);
-    }
-    XmlUtil.writeEndElement(out, ELEMENTNAME);
+    if (mHandle>=0) { out.attribute(null, "handle", null, Long.toString(mHandle)); }
   }
 
-  public static UserTask deserialize(final XmlReader in) throws XmlException {
-    final String summary;
-    final long handle;
-    final String owner;
-    final String state;
-    final List<TaskItem> items;
-    XmlUtil.skipPreamble(in);
-    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
-    summary = StringUtil.toString(in.getAttributeValue(null, "summary"));
-    final CharSequence handleStr = in.getAttributeValue(null, "handle");
-    handle = handleStr!=null ? Long.parseLong(handleStr.toString()) : -1L;
-    owner = StringUtil.toString(in.getAttributeValue(null, "owner"));
-    state = StringUtil.toString(in.getAttributeValue(null, "state"));
-    items = new ArrayList<>();
-
-    while ((in.nextTag()) == EventType.START_ELEMENT) {
-      items.add(TaskItem.parseTaskItem(in));
-    }
-    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME);
-    return new UserTask(summary, handle, owner, TaskState.fromString(state), items);
+  public static ExecutableUserTask deserialize(final XmlReader in) throws XmlException {
+    return XmlUtil.deserializeHelper(new ExecutableUserTask(), in);
   }
 
+  @Override
+  protected void parseTaskItem(final XmlReader in) throws XmlException {
+    mItems.add(TaskItem.parseTaskItem(in));
+  }
 
-  public static List<UserTask> parseTasks(final InputStream in) throws XmlPullParserException, IOException {
-    final XmlPullParser parser;
+  @Override
+  public boolean deserializeAttribute(final CharSequence attributeNamespace, final CharSequence attributeLocalName, final CharSequence attributeValue) {
+    if (StringUtil.isEqual("handle", attributeLocalName)) {
+    }
+    return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue);
+  }
+
+  public static List<ExecutableUserTask> parseTasks(final InputStream in) throws XmlException {
+    final XmlReader parser;
     try {
-      final XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-      factory.setNamespaceAware(true);
-      parser = factory.newPullParser();
-      parser.setInput(in, "utf-8");
+      parser = XmlStreaming.newReader(in, "UTF-8");
     } catch (Exception e){
-      Log.e(UserTask.class.getName(), e.getMessage(), e);
+      Log.e(ExecutableUserTask.class.getName(), e.getMessage(), e);
       return null;
     }
-    return parseTasks(in);
+    return parseTasks(parser);
   }
 
-  public static List<UserTask> parseTasks(final XmlPullParser in) throws XmlPullParserException, IOException {
-    if(in.getEventType()==XmlPullParser.START_DOCUMENT) {
-      in.nextTag();
+  public static List<ExecutableUserTask> parseTasks(final XmlReader in) throws XmlException {
+    XmlUtil.skipPreamble(in);
+    in.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
+    final ArrayList<ExecutableUserTask> result = new ArrayList<>();
+    while ((in.nextTag())==EventType.START_ELEMENT) {
+      result.add(deserialize(in));
     }
-    in.require(XmlPullParser.START_TAG, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
-    final ArrayList<UserTask> result = new ArrayList<>();
-    while ((in.nextTag())==XmlPullParser.START_TAG) {
-      result.add(parseTask(in));
-    }
-    in.require(XmlPullParser.END_TAG, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
+    in.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, TAG_TASKS);
     return result;
-  }
-
-  @Deprecated
-  public static UserTask parseTask(final XmlPullParser in) throws XmlPullParserException {
-    try {
-      return deserialize(new AndroidXmlReader(in));
-    } catch (XmlException e) {
-      if (e.getCause() instanceof XmlPullParserException) {
-        throw (XmlPullParserException) e.getCause();
-      } else {
-        throw new XmlPullParserException(e.getMessage(), in, e);
-      }
-    }
   }
 
   @Override

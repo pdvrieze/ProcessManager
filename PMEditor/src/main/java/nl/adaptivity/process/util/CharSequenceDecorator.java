@@ -14,30 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.xml;
+package nl.adaptivity.process.util;
 
 /**
- * Created by pdvrieze on 15/11/15.
+ * Created by pdvrieze on 15/02/16.
  */
-public class XmlException extends Exception {
-
-  public XmlException() {
-  }
-
-  public XmlException(final String message) {
-    super(message);
-  }
-
-  public XmlException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
-
-  public XmlException(final Throwable cause) {
-    super(cause);
-  }
-
-  public XmlException(final String message, final XmlReader in, final Throwable cause) {
-    // TODO do something witht the reader state
-    super(message, cause);
-  }
+public interface CharSequenceDecorator {
+  CharSequence decorate(CharSequence in);
 }
