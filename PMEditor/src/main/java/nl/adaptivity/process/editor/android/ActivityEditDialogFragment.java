@@ -35,7 +35,6 @@ import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
-import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
 
@@ -58,9 +57,14 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     mBinding.editAcService.setEnabled(newCheckedId==R.id.radio_ac_service);
   }
 
+  /**
+   * Create a new dialog
+   * @param position The number of the activity in the containing model
+   * @return The dialog fragment
+   */
   public static ActivityEditDialogFragment newInstance(final int position) {
-    ActivityEditDialogFragment frag = new ActivityEditDialogFragment();
-    Bundle args = new Bundle(1);
+    final ActivityEditDialogFragment frag = new ActivityEditDialogFragment();
+    final Bundle args = new Bundle(1);
     args.putInt(UIConstants.KEY_NODE_POS, position);
     frag.setArguments(args);
     return frag;
@@ -139,7 +143,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     if (resultCode==Activity.RESULT_OK) {
       switch (requestCode) {
         case UIConstants.REQUEST_EDIT_HUMAN: {
-          ParcelableActivity newActivity = data.getParcelableExtra(UIConstants.KEY_ACTIVITY);
+          final ParcelableActivity newActivity = data.getParcelableExtra(UIConstants.KEY_ACTIVITY);
           if (newActivity!=null) {
             final NodeEditListener listener = (NodeEditListener) getActivity();
             mActivityNode = DrawableActivity.from(newActivity, false);
@@ -153,7 +157,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
   @Override
   public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
     if (actionId==EditorInfo.IME_ACTION_DONE) {
-      // TODO make a method of this that both call
+      // TODO make a method of this that both this method and onClick call
       onClick(null, DialogInterface.BUTTON_POSITIVE);
       return true;
     }
