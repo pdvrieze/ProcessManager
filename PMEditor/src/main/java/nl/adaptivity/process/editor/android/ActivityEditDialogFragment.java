@@ -110,6 +110,8 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
         final DrawableActivity node = (DrawableActivity) listener.getNode(mPos);
         node.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
         node.setMessage(mActivityNode.getMessage());
+        node.setResults(mActivityNode.getResults());
+        node.setDefines(mActivityNode.getDefines());
         listener.onNodeEdit(mPos);
       }
     }
@@ -121,6 +123,7 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
       case R.id.editAcService:
         break;
       case R.id.editAcHuman: {
+        mActivityNode.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
         final Intent intent = new Intent(getActivity(), UserTaskEditorActivity.class);
         final NodeEditListener listener = (NodeEditListener) getActivity();
         intent.putExtra(UIConstants.KEY_ACTIVITY_ID, mActivityNode.getId() );
@@ -156,4 +159,6 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
     }
     return false;
   }
+
+
 }

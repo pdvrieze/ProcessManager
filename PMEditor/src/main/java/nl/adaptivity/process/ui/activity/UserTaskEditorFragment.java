@@ -29,11 +29,13 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.recyclerview.ClickableAdapter;
 import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentUserTaskEditorBinding;
+import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.UserTask;
 import nl.adaptivity.process.tasks.items.LabelItem;
@@ -42,8 +44,10 @@ import nl.adaptivity.process.tasks.items.PasswordItem;
 import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
+import nl.adaptivity.util.xml.Namespace;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -63,15 +67,15 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
 // Object Initialization end
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
     mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_user_task_editor, container, false);
     mBinding.setHandler(this);
     final View view = mBinding.getRoot();
 
-    FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
+    final FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.fab);
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
-      public void onClick(View view) {
+      public void onClick(final View view) {
         toggleFabMenu();
       }
     });
@@ -86,7 +90,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
       mActivity = getArguments().getParcelable(UIConstants.KEY_ACTIVITY);
     }
     if (mActivity != null) {
-      UserTask userTask = mActivity.getUserTask();
+      final UserTask userTask = mActivity.getUserTask();
       if (userTask!=null) {
         mAdapter.setItems(userTask.getItems());
       }
@@ -115,7 +119,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     mBinding.fabMenu.setPivotX(targetWidth - startWidth / 2);
     mBinding.fabMenu.setPivotY(targetHeight);
 
-    ValueAnimator menuAnimator = ValueAnimator.ofFloat(0f, 1f);
+    final ValueAnimator menuAnimator = ValueAnimator.ofFloat(0f, 1f);
     menuAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
     menuAnimator.addUpdateListener(new AnimatorUpdateListener() {
       boolean oldImage = true;
@@ -156,7 +160,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     mBinding.fabMenu.setPivotX(startWidth - targetWidth / 2);
     mBinding.fabMenu.setPivotY(startHeight);
 
-    ValueAnimator menuAnimator = ValueAnimator.ofFloat(0f, 1f);
+    final ValueAnimator menuAnimator = ValueAnimator.ofFloat(0f, 1f);
     menuAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
     menuAnimator.addUpdateListener(new AnimatorUpdateListener() {
       boolean oldImage = true;
@@ -188,7 +192,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
 
   public void onFabMenuItemClicked(final View v) {
     hideFabMenu();
-    String name = null; // TODO use a dialog to ask for a name.
+    final String name = null; // TODO use a dialog to ask for a name.
     switch (v.getId()) {
       case R.id.fabMenuLabel:
         mAdapter.addItem(new LabelItem(name, null));
@@ -221,14 +225,27 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     mAdapter.setItem(itemNo, newItem);
   }
 
+  /**
+   * From the fragment, retrieve a parcelable activity.
+   * @return The parcelable activity that represents the activity state.
+   */
   public ParcelableActivity getParcelableResult() {
-    List<TaskItem> items = mAdapter.getContent();
-    UserTask userTask;
+    final List<TaskItem> items = mAdapter.getContent();
+    final UserTask userTask;
     if (mActivity.getUserTask()==null) {
       userTask = new UserTask(null, -1, null, null, items);
     } else {
       userTask = mActivity.getUserTask();
       userTask.setItems(items);
+    }
+    for(final TaskItem item: items) {
+      if (! item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName())) {
+        final XmlResultType result = mActivity.getResult(item.getName());
+        if (result==null) {
+          final XmlResultType newResult = new XmlResultType(item.getName(), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
+          mActivity.getResults().add(newResult);
+        }
+      }
     }
     mActivity.setMessage(userTask.asMessage());
 

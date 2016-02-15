@@ -482,6 +482,17 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     return mDefines;
   }
 
+  public XmlDefineType getDefine(final String name) {
+    if (mDefines!=null && name!=null) {
+      for(final XmlDefineType candidate: mDefines) {
+        if (candidate.getName().equals(name)) {
+          return candidate;
+        }
+      }
+    }
+    return null;
+  }
+
   protected void setResults(@Nullable final Collection<? extends IXmlResultType> imports) {
     mHashCode = 0;
     mResults = imports==null ? new ArrayList<XmlResultType>(0) : toExportableResults(imports);
@@ -494,6 +505,17 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
       mResults = new ArrayList<>();
     }
     return mResults;
+  }
+
+  public XmlResultType getResult(final String name) {
+    if (mResults!=null && name!=null) {
+      for(final XmlResultType candidate: mResults) {
+        if (candidate.getName().equals(name)) {
+          return candidate;
+        }
+      }
+    }
+    return null;
   }
 
   @NotNull

@@ -81,7 +81,11 @@ public interface ProcessNode<T extends ProcessNode<T, M>, M extends ProcessModel
 
   List<? extends IXmlResultType> getResults();
 
+  XmlResultType getResult(final String name);
+
   List<? extends IXmlDefineType> getDefines();
+
+  XmlDefineType getDefine(final String name);
 
   String getIdBase();
 }
