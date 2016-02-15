@@ -20,10 +20,12 @@
     <data>
 
         <import type="nl.adaptivity.process.tasks.TaskItem" />
-        <import type="android.view.View"/>
+
+        <import type="android.view.View" />
 
         <variable name="item"
                   type="TaskItem" />
+
         <variable name="hideTitle"
                   type="boolean" />
     </data>
@@ -38,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="@string/dlg_title_item_details"
-                android:visibility="@{hideTitle ? View.GONE : View.VISIBLE}"/>
+                android:visibility="@{hideTitle ? View.GONE : View.VISIBLE}" />
 
         <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
@@ -51,42 +53,69 @@
                     android:id="@+id/editName"
                     android:inputType="textVisiblePassword"
                     android:hint="@string/lbl_editName"
-                    android:text="@{item.name}"/>
+                    android:text="@{item.name}" />
 
         </android.support.design.widget.TextInputLayout>
 
-        <android.support.design.widget.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
-                >
+        <LinearLayout android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
+                      android:orientation="horizontal">
 
-            <EditText
-                    android:layout_width="match_parent"
+            <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:id="@+id/editLabel"
-                    android:inputType="text"
-                    android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
-                    android:text="@{item.label}"
-                    android:hint="@string/lbl_editLabel"
-                    />
+                    >
 
-        </android.support.design.widget.TextInputLayout>
+                <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/editLabel"
+                        android:inputType="text"
+                        android:visibility="@{item.hasLabelProperty() ? View.VISIBLE : View.GONE}"
+                        android:text="@{item.label}"
+                        android:hint="@string/lbl_editLabel"
+                        />
 
-        <android.support.design.widget.TextInputLayout
+            </android.support.design.widget.TextInputLayout>
+
+            <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Var..."
+                    android:id="@+id/btnAddVarLabel"
+                    android:layout_gravity="center_vertical" />
+        </LinearLayout>
+
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="@{item.hasValueProperty() ? View.VISIBLE : View.GONE}"
-                >
+                android:orientation="horizontal">
 
-            <EditText
-                    android:layout_width="match_parent"
+            <android.support.design.widget.TextInputLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:id="@+id/editValue"
-                    android:text="@{item.value}"
-                    android:visibility="@{item.hasValueProperty() ? View.VISIBLE : View.GONE}"
-                    android:hint="@string/lbl_editValue"
-                    android:inputType="text" />
-        </android.support.design.widget.TextInputLayout>
+                    android:layout_weight="1"
+                    >
+
+                <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/editValue"
+                        android:text="@{item.value}"
+                        android:visibility="@{item.hasValueProperty() ? View.VISIBLE : View.GONE}"
+                        android:hint="@string/lbl_editValue"
+                        android:inputType="text" />
+            </android.support.design.widget.TextInputLayout>
+
+            <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Var..."
+                    android:id="@+id/btnAddVarValue"
+                    android:layout_gravity="center_vertical" />
+        </LinearLayout>
     </LinearLayout>
 </layout>

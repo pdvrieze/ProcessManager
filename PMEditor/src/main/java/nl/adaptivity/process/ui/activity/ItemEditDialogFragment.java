@@ -20,12 +20,15 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
+import android.text.Spanned;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.DialogTaskItemBinding;
 import nl.adaptivity.process.tasks.TaskItem;
@@ -37,7 +40,7 @@ import nl.adaptivity.xml.XmlException;
 /**
  * A dialog fragment for editing task items. Created by pdvrieze on 04/02/16.
  */
-public class ItemEditDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
+public class ItemEditDialogFragment extends DialogFragment implements OnClickListener, View.OnClickListener {
 
   public interface ItemEditDialogListener {
 
@@ -75,6 +78,8 @@ public class ItemEditDialogFragment extends DialogFragment implements DialogInte
     mBinding = DataBindingUtil.inflate(inflater, R.layout.dialog_task_item, null, false);
     mBinding.setItem(mItem);
     mBinding.setHideTitle(true);
+    mBinding.btnAddVarLabel.setOnClickListener(this);
+    mBinding.btnAddVarValue.setOnClickListener(this);
 
     builder.setCancelable(true)
            .setView(mBinding.getRoot())
@@ -120,6 +125,36 @@ public class ItemEditDialogFragment extends DialogFragment implements DialogInte
       mItem.setValue(mBinding.editValue.getText().toString());
     }
   }
+
+  @Override
+  public void onClick(final View v) {
+    switch (v.getId()) {
+      case R.id.btnAddVarLabel:
+        addVariableSpan(mBinding.editLabel);
+        break;
+      case R.id.btnAddVarValue:
+        addVariableSpan(mBinding.editValue);
+        break;
+    }
+  }
+
+  private void addVariableSpan(final EditText editText) {
+    final int start;
+    final int end;
+    if (editText.length()==0) {
+      start = 0; end = 0;
+    } else if (editText.getSelectionStart()<0) {
+      start=editText.length();
+      end = start;
+    } else {
+      start = Math.min(editText.getSelectionStart(), editText.getSelectionEnd());
+      end = Math.max(editText.getSelectionStart(), editText.getSelectionEnd());
+    }
+    final Spanned spanned = VariableSpan.newVarSpanned(getActivity(), "foo", R.drawable.varspan_border);
+    editText.getText().replace(start, end, spanned);
+  }
+
+
 
   public static ItemEditDialogFragment newInstance(TaskItem item, int itemNo) {
     ItemEditDialogFragment f = new ItemEditDialogFragment();
