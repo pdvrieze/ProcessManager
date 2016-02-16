@@ -25,14 +25,17 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.SpannedString;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.android.dialogs.ComboDialogFragment;
+import nl.adaptivity.android.dialogs.DialogResultListener;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.DialogTaskItemBinding;
 import nl.adaptivity.process.processModel.XmlDefineType;
@@ -41,23 +44,37 @@ import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.util.CharSequenceDecorator;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
+import nl.adaptivity.process.util.VariableReference;
+import nl.adaptivity.process.util.VariableReference.ResultReference;
+import nl.adaptivity.util.xml.Namespace;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.CharArrayWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
 /**
  * A dialog fragment for editing task items. Created by pdvrieze on 04/02/16.
  */
-public class ItemEditDialogFragment extends DialogFragment implements OnClickListener, View.OnClickListener, CharSequenceDecorator {
+public class ItemEditDialogFragment extends DialogFragment implements OnClickListener, View.OnClickListener, CharSequenceDecorator, DialogResultListener {
+
+  private static final String TAG = "ItemEditDialogFragment";
 
   public interface ItemEditDialogListener {
 
     void updateItem(int itemNo, TaskItem newItem);
+
+    void updateDefine(XmlDefineType define);
   }
 
   public static final int VARSPAN_BORDER_ID = R.drawable.varspan_border;
@@ -67,6 +84,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   private int mItemNo;
   private ItemEditDialogListener mListener;
   private List<XmlDefineType> mDefines;
+  private List<ResultReference> mAvailableVariables;
 
   @Override
   public void onCreate(final Bundle savedInstanceState) {
@@ -82,7 +100,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     } catch (XmlException e) {
       throw new RuntimeException(e);
     }
-
+    mAvailableVariables = getArguments().getParcelableArrayList(UIConstants.KEY_VARIABLES);
   }
 
   @NonNull
@@ -137,18 +155,116 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   public void updateItemFromUI() {
     mItem.setName(mBinding.editName.getText().toString());
     if (mBinding.editLabel.getVisibility() == View.VISIBLE) {
-      mItem.setLabel(mBinding.editLabel.getText().toString());
+      mItem.setLabel(toItemValue(mBinding.editLabel, mItem.getLabel()));
     }
     if (mBinding.editValue.getVisibility() == View.VISIBLE) {
-      mItem.setValue(mBinding.editValue.getText().toString());
+      mItem.setValue(toItemValue(mBinding.editValue, mItem.getValue()));
     }
+  }
+
+  public CharSequence toItemValue(EditText source, CharSequence currentValue) {
+    String currentName = mBinding.editName.getText().toString();
+    if (! (currentValue instanceof ModifySequence)) {
+      if (! hasVariables(source.getText())) {
+        return source.getText();
+      } else {
+        VariableSpan[] spans = new VariableSpan[0];
+        XmlDefineType newDefine = createDefine(getDefineName("d_"+currentName), source.getText());
+        mListener.updateDefine(newDefine);
+        return ModifySequence.newAttributeSequence("value", newDefine.getName(),null);
+      }
+    } else { //
+      ModifySequence current = (ModifySequence) currentValue;
+      if (! hasVariables(source.getText())) {
+        return source.getText(); // Perhaps trigger define purging
+      } else {
+        XmlDefineType define = getDefine(current.getVariableName());
+        define = updateDefine(define, source.getText());
+        mListener.updateDefine(define);
+        return current;
+      }
+
+    }
+  }
+
+  private String getDefineName(final String currentName) {
+    if (getDefine(currentName)==null) {
+      return currentName;
+    }
+    int i=1;
+    String varName;
+    while(getDefine((varName = currentName+i))!=null) {
+      ++i;
+    }
+    return varName;
+  }
+
+  public XmlDefineType createDefine(String name, Spanned annotatedSequence) {
+    XmlDefineType result = new XmlDefineType();
+    result.setName(name);
+
+    return updateDefine(result, annotatedSequence);
+  }
+
+  @NotNull
+  private XmlDefineType updateDefine(final XmlDefineType define, final Spanned annotatedSequence) {CharArrayWriter caw = new CharArrayWriter();
+    try {
+      XmlWriter writer = XmlStreaming.newWriter(caw);
+      try {
+        int prev = 0;
+        int sequenceLength = annotatedSequence.length();
+        int next = annotatedSequence.nextSpanTransition(0, sequenceLength, VariableSpan.class);
+        while (next>=0 && next < sequenceLength) {
+          writer.text(annotatedSequence.subSequence(prev, next));
+          prev = next;
+
+          next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
+          Log.d(TAG, "updateDefine getSpans(" + prev + ", " + next + ")");
+          VariableSpan[] spans = annotatedSequence.getSpans(prev, next, VariableSpan.class);
+          VariableSpan span = spans[0]; // no nesting
+          VariableReference reference = span.getReference();
+          if (define.getRefNode() == null) { // trick to treat the first result reference different, by using the define's params
+            if (reference instanceof ResultReference) {
+              ResultReference resultReference = (ResultReference) reference;
+              define.setRefNode(resultReference.getNodeId());
+              define.setRefName(resultReference.getVariableName());
+              define.setPath(Collections.<Namespace>emptyList(), ".");
+              reference = VariableReference.newDefineReference(null, null); // Make this a default reference
+            }
+          }
+          reference.toModifySequence().serialize(writer);
+          prev = next;
+
+          next = annotatedSequence.nextSpanTransition(prev, sequenceLength, VariableSpan.class);
+        }
+        if (prev < sequenceLength) {
+          writer.text(annotatedSequence.subSequence(prev, sequenceLength));
+        }
+      } finally {
+        writer.close();
+      }
+    } catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
+    char[] content = caw.toCharArray();
+    define.setContent(Collections.<Namespace>emptyList(), content);
+    return define;
+  }
+
+
+  public static boolean hasVariables(CharSequence string) {
+    if (string instanceof Spanned) {
+      Spanned span = (Spanned) string;
+      return span.nextSpanTransition(0, span.length(), VariableSpan.class) >=0;
+    }
+    return false;
   }
 
   @Override
   public CharSequence decorate(final CharSequence in) {
     if (in instanceof ModifySequence) {
-      ModifySequence sequence = (ModifySequence) in;
-      XmlDefineType define = getDefine(sequence.getDefineName());
+      final ModifySequence sequence = (ModifySequence) in;
+      final XmlDefineType define = getDefine(sequence.getVariableName());
       if (define==null) {
         throw new IllegalArgumentException("Invalid state");
       }
@@ -163,8 +279,8 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     }
   }
 
-  private Spanned toSpanned(final XmlReader bodyStreamReader, XmlDefineType define) throws XmlException {
-    SpannableStringBuilder builder = new SpannableStringBuilder();
+  private Spanned toSpanned(final XmlReader bodyStreamReader, final XmlDefineType define) throws XmlException {
+    final SpannableStringBuilder builder = new SpannableStringBuilder();
     while (bodyStreamReader.hasNext()) {
       switch (bodyStreamReader.next()) {
         case CDSECT:
@@ -172,12 +288,12 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
           builder.append(bodyStreamReader.getText());
           break;
         case START_ELEMENT: {
-          CharSequence elemNS = bodyStreamReader.getNamespaceUri();
-          CharSequence elemLN = bodyStreamReader.getLocalName();
-          ModifySequence var = ModifyHelper.parseAny(bodyStreamReader);
+          final CharSequence elemNS = bodyStreamReader.getNamespaceUri();
+          final CharSequence elemLN = bodyStreamReader.getLocalName();
+          final ModifySequence var = ModifyHelper.parseAny(bodyStreamReader);
           bodyStreamReader.require(EventType.END_ELEMENT, elemNS, elemLN);
-          String displayName = getDisplayName(define, var);
-          builder.append(VariableSpan.newVarSpanned(getActivity(), displayName, VARSPAN_BORDER_ID));
+          final VariableReference ref = getVariableReference(define, var);
+          builder.append(VariableSpan.newVarSpanned(getActivity(), define, ref, VARSPAN_BORDER_ID));
           break;
         }
         case END_DOCUMENT:
@@ -189,31 +305,20 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
     return new SpannedString(builder);
   }
 
-  private String getDisplayName(final XmlDefineType baseDefine, final ModifySequence var) {
-    XmlDefineType define;
-    if (var.getDefineName()==null) {
-      define = baseDefine;
-    } else {
-      define = getDefine(var.getDefineName());
-    }
-    // If the define is a standard define, importing a variable from another activity
-    if ((define==baseDefine || define.getContent()==null || define.getContent().length==0) &&
-        (StringUtil.isNullOrEmpty(baseDefine.getPath()) || StringUtil.isEqual(".", define.getPath()))) {
-      return "$"+define.getRefNode()+"."+define.getRefName()+displayPath(var.getXpath());
-    }
-    return "@"+(var.getDefineName()==null ? baseDefine.getRefName()+'.'+baseDefine.getRefNode() : var.getDefineName()) +var.getDefineName()+displayPath(var.getXpath());
+  private VariableReference getVariableReference(final XmlDefineType baseDefine, final ModifySequence variable) {
+    return VariableReference.newDefineReference(StringUtil.toString(variable.getVariableName()), StringUtil.toString(variable.getXpath()));
   }
 
   private String displayPath(final CharSequence xpath) {
     if (StringUtil.isNullOrEmpty(xpath) || StringUtil.isEqual(".", xpath)) {
       return "";
     }
-    return "["+xpath+"]";
+    return "[" + xpath + ']';
   }
 
   @Nullable
   private XmlDefineType getDefine(final CharSequence defineName) {
-    for (XmlDefineType candidate : mDefines) {
+    for (final XmlDefineType candidate : mDefines) {
       if (StringUtil.isEqual(defineName, candidate.getName())) {
         return candidate;
       }
@@ -224,16 +329,51 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   @Override
   public void onClick(final View v) {
     switch (v.getId()) {
-      case R.id.btnAddVarLabel:
-        addVariableSpan(mBinding.editLabel);
+      case R.id.btnAddVarLabel: {
+        final ComboDialogFragment frag = ComboDialogFragment.newInstance(UIConstants.DIALOG_ID_SELECT_VAR_LABEL, getAllVariables(), getString(R.string.dlgTitleSelectVar));
+        frag.show(getFragmentManager(), "dialog");
         break;
-      case R.id.btnAddVarValue:
-        addVariableSpan(mBinding.editValue);
+      }
+      case R.id.btnAddVarValue: {
+        final ComboDialogFragment frag = ComboDialogFragment.newInstance(UIConstants.DIALOG_ID_SELECT_VALUE_LABEL, getAllVariables(), getString(R.string.dlgTitleSelectVar));
+        frag.show(getFragmentManager(), "dialog");
+        break;
+      }
+    }
+  }
+
+  private List<? extends VariableReference> getAllVariables() {
+    ArrayList<VariableReference> allVars = new ArrayList<>();
+    allVars.addAll(mAvailableVariables);
+    String currentName = mBinding.editName.getText().toString();
+    for (XmlDefineType define : mDefines) {
+      if (!(currentName.equals(define.getName()) ||
+          (CollectionUtil.isNullOrEmpty(define.getContent()) && (StringUtil.isNullOrEmpty(define.getPath())||".".equals(define.getPath()))))) {
+        allVars.add(VariableReference.newDefineReference(define));
+      }
+    }
+    Collections.sort(allVars);
+    return allVars;
+  }
+
+  @Override
+  public void onDialogSuccess(final DialogFragment source, final int id, final Object value) {
+    switch (id) {
+      case UIConstants.DIALOG_ID_SELECT_VAR_LABEL:
+        addVariableSpan(mBinding.editLabel, (VariableReference) value);
+        break;
+      case UIConstants.DIALOG_ID_SELECT_VALUE_LABEL:
+        addVariableSpan(mBinding.editValue, (VariableReference) value);
         break;
     }
   }
 
-  private void addVariableSpan(final EditText editText) {
+  @Override
+  public void onDialogCancelled(final DialogFragment source, final int id) {
+
+  }
+
+  private void addVariableSpan(final EditText editText, final VariableReference variableReference) {
     final int start;
     final int end;
     if (editText.length()==0) {
@@ -245,18 +385,19 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
       start = Math.min(editText.getSelectionStart(), editText.getSelectionEnd());
       end = Math.max(editText.getSelectionStart(), editText.getSelectionEnd());
     }
-    final Spanned spanned = VariableSpan.newVarSpanned(getActivity(), "foo", VARSPAN_BORDER_ID);
+    final Spanned spanned = VariableSpan.newVarSpanned(getActivity(), null, variableReference, VARSPAN_BORDER_ID);
     editText.getText().replace(start, end, spanned);
   }
 
 
 
-  public static ItemEditDialogFragment newInstance(TaskItem item, final List<? extends XmlDefineType> defines, int itemNo) {
-    ItemEditDialogFragment f = new ItemEditDialogFragment();
-    Bundle args = new Bundle(2);
+  public static ItemEditDialogFragment newInstance(final TaskItem item, final Collection<? extends VariableReference> variables, final List<? extends XmlDefineType> defines, final int itemNo) {
+    final ItemEditDialogFragment f = new ItemEditDialogFragment();
+    final Bundle args = new Bundle(4);
     args.putInt(UIConstants.KEY_ITEMNO, itemNo);
     args.putString(UIConstants.KEY_ITEM, XmlUtil.toString(item));
     args.putStringArrayList(UIConstants.KEY_DEFINES, XmlUtil.toString(defines));
+    args.putParcelableArrayList(UIConstants.KEY_VARIABLES, CollectionUtil.toArrayList(variables));
     f.setArguments(args);
     return f;
   }

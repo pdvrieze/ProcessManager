@@ -16,7 +16,8 @@
 
 package nl.adaptivity.process.util;
 
-import net.devrieze.lang.Const;
+import android.os.Parcel;
+import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
@@ -29,9 +30,21 @@ import javax.xml.namespace.QName;
 /**
  * Holder for task variables. Created by pdvrieze on 15/02/16.
  */
-public abstract class ModifySequence implements CharSequence, XmlSerializable {
+public abstract class ModifySequence implements CharSequence, XmlSerializable, Parcelable {
 
   public static class AttributeSequence extends ModifySequence {
+
+    public static final Creator<AttributeSequence> CREATOR = new Creator<AttributeSequence>() {
+      @Override
+      public AttributeSequence createFromParcel(final Parcel source) {
+        return new AttributeSequence(source);
+      }
+
+      @Override
+      public AttributeSequence[] newArray(final int size) {
+        return new AttributeSequence[size];
+      }
+    };
 
     public static final QName ELEMENTNAME = new QName(Constants.MODIFY_NS_STR, "attribute", Constants.MODIFY_NS_PREFIX);
     private final CharSequence mParamName;
@@ -39,12 +52,32 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
     private final CharSequence mXpath;
 
     // Object Initialization
+
+    public AttributeSequence(final Parcel source) {
+      mParamName = readCharSequence(source);
+      mDefineName = readCharSequence(source);
+      mXpath = readCharSequence(source);
+    }
+
     public AttributeSequence(final CharSequence paramName, final CharSequence defineName, final CharSequence xpath) {
       mParamName = paramName;
       mDefineName = defineName;
       mXpath = xpath;
     }
 // Object Initialization end
+
+
+    @Override
+    public int describeContents() {
+      return 0;
+    }
+
+    @Override
+    public void writeToParcel(final Parcel dest, final int flags) {
+      writeCharSequence(dest, mParamName);
+      writeCharSequence(dest, mDefineName);
+      writeCharSequence(dest, mXpath);
+    }
 
     @Override
     public void serialize(final XmlWriter out) throws XmlException {
@@ -101,7 +134,7 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
       return mParamName;
     }
 
-    public CharSequence getDefineName() {
+    public CharSequence getVariableName() {
       return mDefineName;
     }
     public CharSequence getXpath() {
@@ -113,14 +146,41 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
 
   public static class FragmentSequence extends ModifySequence {
 
+    public static final Creator<FragmentSequence> CREATOR = new Creator<FragmentSequence>() {
+      @Override
+      public FragmentSequence createFromParcel(final Parcel source) {
+        return new FragmentSequence(source);
+      }
+
+      @Override
+      public FragmentSequence[] newArray(final int size) {
+        return new FragmentSequence[size];
+      }
+    };
+
     private final String mElementName;
-    private final CharSequence mDefineName;
+    private final CharSequence mVariableName;
     private final CharSequence mXpath;
+    private final String mRefNodeId;
 
     // Object Initialization
-    public FragmentSequence(final String elementName, final CharSequence defineName, final CharSequence xpath) {
+
+    public FragmentSequence(final Parcel source) {
+      mRefNodeId = source.readString();
+      mElementName = source.readString();
+      mVariableName = readCharSequence(source);
+      mXpath = readCharSequence(source);
+
+    }
+
+    public FragmentSequence(final String elementName, final CharSequence variableName, final CharSequence xpath) {
+      this(null, elementName, variableName, xpath);
+    }
+
+    public FragmentSequence(final String refNodeId, final String elementName, final CharSequence variableName, final CharSequence xpath) {
+      mRefNodeId = refNodeId;
       mElementName = elementName;
-      mDefineName = defineName;
+      mVariableName = variableName;
       mXpath = xpath;
     }
     // Object Initialization end
@@ -129,17 +189,18 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
     public void serialize(final XmlWriter out) throws XmlException {
       final QName elementName = new QName(Constants.MODIFY_NS_STR, mElementName, Constants.MODIFY_NS_PREFIX);
       XmlUtil.writeStartElement(out, elementName);
-      XmlUtil.writeAttribute(out, "value", mDefineName);
+      XmlUtil.writeAttribute(out, "refNode", mRefNodeId);
+      XmlUtil.writeAttribute(out, "value", mVariableName);
       XmlUtil.writeAttribute(out, "xpath", mXpath);
       XmlUtil.writeEndElement(out, elementName);
     }
 
     @Override
     public int length() {
-      if (mDefineName==null) {
+      if (mVariableName == null) {
         return 4;
       }
-      int len = 3 + mDefineName.length();
+      int len = 3 + mVariableName.length();
 
       if (mXpath!=null && mXpath.length()>1 && (!StringUtil.isEqual(".", mXpath))) {
         len+= 2 + mXpath.length();
@@ -149,16 +210,16 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
 
     @Override
     public char charAt(final int index) {
-      if (mDefineName == null) { return "null".charAt(index); }
+      if (mVariableName == null) { return "null".charAt(index); }
       if (index<2) {
         return "${".charAt(index);
       }
       int offset = 2;
 
-      if (index-offset<mDefineName.length()) {
-        return mDefineName.charAt(index-offset);
+      if (index-offset < mVariableName.length()) {
+        return mVariableName.charAt(index - offset);
       }
-      offset += mDefineName.length();
+      offset += mVariableName.length();
 
       if (mXpath!=null && mXpath.length()>1 && (!StringUtil.isEqual(".", mXpath))) {
         if (index==offset) { return '['; }
@@ -172,10 +233,22 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
       throw new IndexOutOfBoundsException();
     }
 
-    // Property accessors start
     @Override
-    public CharSequence getDefineName() {
-      return mDefineName;
+    public int describeContents() {
+      return 0;
+    }
+
+    @Override
+    public void writeToParcel(final Parcel dest, final int flags) {
+      dest.writeString(mRefNodeId);
+      dest.writeString(mElementName);
+      writeCharSequence(dest, mVariableName);
+      writeCharSequence(dest, mXpath);
+    }
+
+    // Property accessors start
+    public CharSequence getVariableName() {
+      return mVariableName;
     }
 
     @Override
@@ -211,8 +284,31 @@ public abstract class ModifySequence implements CharSequence, XmlSerializable {
     return stringBuilder.toString();
   }
 
+  private static void writeCharSequence(final Parcel dest, final CharSequence sequence) {
+    if (sequence==null) {
+      dest.writeByte((byte) 2);
+    } else if (sequence instanceof Parcelable) {
+      dest.writeByte((byte) 1);
+      dest.writeParcelable((Parcelable) sequence, 0);
+    } else {
+      dest.writeByte((byte) 0);
+      dest.writeString(sequence.toString());
+    }
+  }
+
+  private static CharSequence readCharSequence(final Parcel source) {
+    byte b = source.readByte();
+    if (b==2) {
+      return null;
+    } else if (b==0) {
+      return source.readString();
+    } else {
+      return source.readParcelable(ModifySequence.class.getClassLoader());
+    }
+  }
+
   // Property accessors start
-  public abstract CharSequence getDefineName();
+  public abstract CharSequence getVariableName();
 
   public abstract CharSequence getXpath();
   // Property accesors end

@@ -27,7 +27,10 @@ import android.text.*;
 import android.text.Layout.Alignment;
 import android.text.style.ReplacementSpan;
 import android.util.Log;
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.util.VariableReference;
 
 
 /**
@@ -37,13 +40,15 @@ public class VariableSpan extends ReplacementSpan {
 
   private static final String TAG = "VariableSpan";
 
+  private final VariableReference mReference;
   @DrawableRes private final int mBorderId;
   private final Context mContext;
   private Drawable mBorder;
   private StaticLayout mLayout;
   private final Rect mPadding = new Rect(0,0,0,0);
 
-  public VariableSpan(final Context context, @DrawableRes final int borderId) {
+  public VariableSpan(final Context context, final VariableReference reference, @DrawableRes final int borderId) {
+    mReference = reference;
     mBorderId = borderId;
     mContext = context;
   }
@@ -89,9 +94,30 @@ public class VariableSpan extends ReplacementSpan {
     canvas.restoreToCount(save);
   }
 
-  public static Spanned newVarSpanned(final Context context, final String varName, final int borderDrawableId) {
-    final SpannableStringBuilder builder = new SpannableStringBuilder(varName);
-    builder.setSpan(new VariableSpan(context, borderDrawableId), 0, varName.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+  /**
+   * Create a new span representing the reference. This method will attempt to display a user friendly label. If a define exists
+   * purely to pass forward a result from another activity, display it as that (but don't forget about the define).
+   * @param context The context for resolving
+   * @param define The define referred to, if known and applicable.
+   * @param variableReference The variable to refer. This is either a define ref or a result ref
+   * @param borderDrawableId The id of the border drawable
+   * @return The spanned.
+   */
+  public static Spanned newVarSpanned(final Context context, final XmlDefineType define, final VariableReference variableReference, final int borderDrawableId) {
+    CharSequence label;
+    if (define!=null && CollectionUtil.isNullOrEmpty(define.getContent()) && (StringUtil.isNullOrEmpty(define.getPath())||StringUtil.isEqual(".", define.getPath()))) {
+      label = VariableReference.newDefineReference(define).getLabel();
+    } else if (StringUtil.isNullOrEmpty(variableReference.getVariableName()) && (StringUtil.isNullOrEmpty(variableReference.getXPath())|| ".".equals(variableReference.getXPath()))) {
+      label = VariableReference.newResultReference(define.getRefNode(), define.getRefName(), define.getPath()).getLabel();
+    } else {
+      label = variableReference.getLabel();
+    }
+    final SpannableStringBuilder builder = new SpannableStringBuilder(label);
+    builder.setSpan(new VariableSpan(context, variableReference, borderDrawableId), 0, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     return SpannableString.valueOf(builder);
+  }
+
+  public VariableReference getReference() {
+    return mReference;
   }
 }

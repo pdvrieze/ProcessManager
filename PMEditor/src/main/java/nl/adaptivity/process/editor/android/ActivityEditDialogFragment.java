@@ -33,10 +33,18 @@ import android.widget.TextView.OnEditorActionListener;
 import nl.adaptivity.android.graphics.RadioButtonHelper;
 import nl.adaptivity.android.graphics.RadioButtonHelper.OnCheckedChangeListener;
 import nl.adaptivity.process.diagram.DrawableActivity;
+import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.databinding.DlgNodeEditActivityBinding;
+import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditorActivity;
+import nl.adaptivity.process.util.Identifiable;
+import nl.adaptivity.process.util.VariableReference;
+import nl.adaptivity.process.util.VariableReference.ResultReference;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -128,12 +136,35 @@ public class ActivityEditDialogFragment extends DialogFragment implements Dialog
         break;
       case R.id.editAcHuman: {
         mActivityNode.setLabel(mBinding.dlgNodeEditCommon.etNodeLabel.getText().toString());
-        final Intent intent = new Intent(getActivity(), UserTaskEditorActivity.class);
-        final NodeEditListener listener = (NodeEditListener) getActivity();
-        intent.putExtra(UIConstants.KEY_ACTIVITY_ID, mActivityNode.getId() );
-        intent.putExtra(UIConstants.KEY_ACTIVITY, ParcelableActivity.newInstance(mActivityNode, mActivityNode.isCompat()));
+        List<? extends ResultReference> variables = getAccessibleVariables();
+        final Intent intent = UserTaskEditorActivity.createIntent(getActivity(),
+                                                                  ParcelableActivity.newInstance(mActivityNode, mActivityNode.isCompat()),
+                                                                  mActivityNode.getId(), variables);
         startActivityForResult(intent, UIConstants.REQUEST_EDIT_HUMAN);
         break;
+      }
+    }
+  }
+
+  private ArrayList<ResultReference> getAccessibleVariables() {
+    NodeEditListener listener = (NodeEditListener) getActivity();
+    DrawableProcessNode node = listener.getNode(mPos);
+    List<DrawableProcessNode> seen = new ArrayList<>();
+    ArrayList<ResultReference> result = new ArrayList<>();
+    getAccessibleVariablesFromPredecessors(node, seen, result);
+
+    return result;
+  }
+
+  private void getAccessibleVariablesFromPredecessors(final DrawableProcessNode reference, final List<DrawableProcessNode> seen, final List<ResultReference> gather) {
+    for(Identifiable predId: reference.getPredecessors()) {
+      DrawableProcessNode pred = reference.getOwnerModel().asNode(predId);
+      if (! seen.contains(pred)) {
+        for(IXmlResultType result: pred.getResults()) {
+          gather.add(VariableReference.newResultReference(pred, result));
+        }
+        seen.add(pred);
+        getAccessibleVariablesFromPredecessors(pred, seen, gather);
       }
     }
   }

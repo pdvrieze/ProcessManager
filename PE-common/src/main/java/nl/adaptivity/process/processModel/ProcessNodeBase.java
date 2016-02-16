@@ -473,6 +473,22 @@ public abstract class ProcessNodeBase<T extends ProcessNode<T, M>, M extends Pro
     mDefines = exports==null ? new ArrayList<XmlDefineType>(0) : toExportableDefines(exports);
   }
 
+
+  public XmlDefineType setDefine(final IXmlDefineType define) {
+    if (mDefines==null) {
+      mDefines = new ArrayList<>();
+    }
+    String targetName = define.getName();
+    for (int i = 0; i < mDefines.size(); i++) {
+      if (mDefines.get(i).getName().equals(targetName)) {
+        return mDefines.set(i, XmlDefineType.get(define));
+      }
+    }
+    mDefines.add(XmlDefineType.get(define));
+    return null;
+  }
+
+
   @Override
   public final List<XmlDefineType> getDefines() {
     if (mDefines==null) {

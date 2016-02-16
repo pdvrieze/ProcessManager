@@ -747,6 +747,56 @@ public final class CollectionUtil {
 
   }
 
+  public static boolean isNullOrEmpty(final byte[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final short[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final boolean[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final char[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final int[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final long[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final float[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final double[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static boolean isNullOrEmpty(final Object[] content) {
+    return content==null || content.length==0;
+  }
+
+  public static <T> ArrayList<T> toArrayList(final Iterable<T> values) {
+    if (values instanceof ArrayList) {
+      return (ArrayList<T>) values;
+    }
+    if (values instanceof Collection) {
+      return new ArrayList<>((Collection<T>) values);
+    }
+    ArrayList<T> result = new ArrayList<>();
+    for (T value : values) {
+      result.add(value);
+    }
+    return result;
+  }
+
   @SuppressWarnings("unchecked")
   public static <T> SortedSet<T> emptySortedSet() {
     return EMPTYSORTEDSET;

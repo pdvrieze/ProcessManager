@@ -29,12 +29,19 @@ public final class UIConstants {
   public static final String KEY_ITEM = "item";
   public static final String KEY_ITEMNO = "itemno";
   public static final String KEY_DEFINES = "defines";
+  public static final String KEY_VALUES = "values";
+  public static final String KEY_TITLE = "title";
+  public static final String KEY_DIALOG_ID = "dialogId";
+  public static final String KEY_VARIABLES = "variables";
 
   public static final int REQUEST_SAVE_PROCESSMODEL = 42;
   public static final int REQUEST_EXPORT_PROCESSMODEL_SVG = 43;
   public static final int REQUEST_SHARE_PROCESSMODEL_FILE = 44;
   public static final int REQUEST_SHARE_PROCESSMODEL_SVG = 45;
   public static final int REQUEST_EDIT_HUMAN = 12;
+
+  public static final int DIALOG_ID_SELECT_VAR_LABEL = 1;
+  public static final int DIALOG_ID_SELECT_VALUE_LABEL = 2;
 
   private UIConstants() {}
 }

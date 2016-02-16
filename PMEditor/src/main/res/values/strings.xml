@@ -116,5 +116,6 @@
     <string name="dlg_title_item_details">Item details</string>
     <string name="dlg_title_edit_taskitem">Edit task item</string>
     <string name="btn_label_var">Var...</string>
+    <string name="dlgTitleSelectVar">Select variable</string>
 
 </resources>

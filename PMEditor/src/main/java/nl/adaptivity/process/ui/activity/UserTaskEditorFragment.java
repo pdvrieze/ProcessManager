@@ -29,15 +29,17 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.android.recyclerview.ClickableAdapter;
 import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.process.diagram.android.ParcelableActivity;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.editor.android.databinding.FragmentUserTaskEditorBinding;
+import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.processModel.XmlResultType;
-import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.EditableUserTask;
+import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.tasks.items.LabelItem;
 import nl.adaptivity.process.tasks.items.ListItem;
 import nl.adaptivity.process.tasks.items.PasswordItem;
@@ -45,9 +47,11 @@ import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
 import nl.adaptivity.process.util.ModifySequence;
+import nl.adaptivity.process.util.VariableReference.ResultReference;
 import nl.adaptivity.util.xml.Namespace;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -61,9 +65,20 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
   private FragmentUserTaskEditorBinding mBinding;
   private UserTaskEditAdapter mAdapter;
   private ParcelableActivity<?, ?> mActivity;
+  /** The list of possible variables to use in here. */
+  private List<ResultReference> mVariables;
 
   // Object Initialization
   public UserTaskEditorFragment() {
+  }
+
+  public static UserTaskEditorFragment newInstance(final ParcelableActivity activity, final Collection<? extends ResultReference> variables) {
+    final Bundle args = new Bundle(2);
+    args.putParcelable(UIConstants.KEY_ACTIVITY, activity);
+    args.putParcelableArrayList(UIConstants.KEY_VARIABLES, CollectionUtil.toArrayList(variables));
+    final UserTaskEditorFragment fragment = new UserTaskEditorFragment();
+    fragment.setArguments(args);
+    return fragment;
   }
 // Object Initialization end
 
@@ -90,6 +105,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     } else if (getArguments()!=null && getArguments().containsKey(UIConstants.KEY_ACTIVITY)){
       mActivity = getArguments().getParcelable(UIConstants.KEY_ACTIVITY);
     }
+    mVariables = getArguments().getParcelableArrayList(UIConstants.KEY_VARIABLES);
     if (mActivity != null) {
       final EditableUserTask EditableUserTask = mActivity.getUserTask();
       if (EditableUserTask!=null) {
@@ -197,33 +213,38 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     switch (v.getId()) {
       case R.id.fabMenuLabel:
         mAdapter.addItem(new LabelItem(name, null));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mVariables, mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuList:
         mAdapter.addItem(new ListItem(name, "list", null, new ArrayList<String>()));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mVariables, mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuOther:
         break;
       case R.id.fabMenuPassword:
         mAdapter.addItem(new PasswordItem(name, "password", null));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mVariables, mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
       case R.id.fabMenuText:
         mAdapter.addItem(new TextItem(name, "text", null, new ArrayList<String>()));
-        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
+        ItemEditDialogFragment.newInstance(mAdapter.getItem(mAdapter.getItemCount()-1), mVariables, mActivity.getDefines(), mAdapter.getItemCount() - 1).show(getFragmentManager(), "itemdialog");
         break;
     }
   }
 
   @Override
   public boolean onClickItem(final ClickableAdapter<? extends ItemViewHolder> adapter, final ItemViewHolder viewHolder) {
-    ItemEditDialogFragment.newInstance(mAdapter.getItem(viewHolder.getAdapterPosition()), mActivity.getDefines(), viewHolder.getAdapterPosition()).show(getFragmentManager(), "itemdialog");
+    ItemEditDialogFragment.newInstance(mAdapter.getItem(viewHolder.getAdapterPosition()), mVariables, mActivity.getDefines(), viewHolder.getAdapterPosition()).show(getFragmentManager(), "itemdialog");
     return true;
   }
 
   public void updateItem(final int itemNo, final TaskItem newItem) {
     mAdapter.setItem(itemNo, newItem);
+  }
+
+
+  public void updateDefine(final XmlDefineType define) {
+    mActivity.setDefine(define);
   }
 
   /**
