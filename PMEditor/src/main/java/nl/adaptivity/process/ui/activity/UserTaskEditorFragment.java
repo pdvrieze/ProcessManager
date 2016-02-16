@@ -262,7 +262,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     }
     for(final TaskItem item: items) {
       if (! (item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName()) || (item.getName() instanceof ModifySequence) )) {
-        final XmlResultType result = mActivity.getResult(item.getName().toString());
+        final XmlResultType result = getResultFor(item.getName().toString());
         if (result==null) {
           final XmlResultType newResult = new XmlResultType(getResultName("r_"+item.getName()), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
           mActivity.getResults().add(newResult);
@@ -272,6 +272,21 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     mActivity.setMessage(EditableUserTask.asMessage());
 
     return mActivity;
+  }
+
+  /**
+   * Get a result that is a simple output result for the task value.
+   * @param name The name of the value
+   * @return The first matching result, or null, if none found.
+   */
+  private XmlResultType getResultFor(final String name) {
+    String xpath = "/value/"+name+"/text()";
+    for (XmlResultType candidate : mActivity.getResults()) {
+      if (CollectionUtil.isNullOrEmpty(candidate.getContent()) && xpath.equals(candidate.getPath())) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   private String getResultName(final String candidate) {
