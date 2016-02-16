@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.editor.android;
 
-import nl.adaptivity.process.diagram.DrawableActivity;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 
 
@@ -31,4 +30,5 @@ public interface NodeEditListener {
   void onNodeEdit(int pos);
 
   void updateNode(int pos, DrawableProcessNode newValue);
+
 }
