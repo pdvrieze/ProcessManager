@@ -264,7 +264,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
       if (! (item.isReadOnly() || StringUtil.isNullOrEmpty(item.getName()) || (item.getName() instanceof ModifySequence) )) {
         final XmlResultType result = mActivity.getResult(item.getName().toString());
         if (result==null) {
-          final XmlResultType newResult = new XmlResultType(item.getName().toString(), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
+          final XmlResultType newResult = new XmlResultType(getResultName("r_"+item.getName()), "/values/" + item.getName() + "/text()", (char[]) null, Collections.<Namespace>emptyList());
           mActivity.getResults().add(newResult);
         }
       }
@@ -272,5 +272,15 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
     mActivity.setMessage(EditableUserTask.asMessage());
 
     return mActivity;
+  }
+
+  private String getResultName(final String candidate) {
+    if (mActivity.getResult(candidate) ==null ) {
+      return candidate;
+    }
+    int i=2;
+    String candidateName;
+    while (mActivity.getResult(candidateName = (candidate+i))!=null) { ++i; }
+    return candidateName;
   }
 }
