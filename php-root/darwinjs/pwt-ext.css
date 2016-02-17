@@ -1,0 +1,11 @@
+
+.pwt-BoxWidget-box {
+  width: 20px;
+  height: 20px;
+  border: 1px solid black;
+  margin-bottom: 4px;
+}
+
+.pwt-BoxWidget-label {
+  text-align: center;
+}
