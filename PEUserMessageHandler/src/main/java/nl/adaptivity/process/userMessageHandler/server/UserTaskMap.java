@@ -229,7 +229,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
       try (PreparedStatement statement = connection.prepareStatement("INSERT INTO `"+TABLEDATA+"` (`"+COL_HANDLE+"`, `"+COL_NAME+"`, `"+COL_DATA+"`) VALUES ( ?, ?, ? ) ON DUPLICATE KEY UPDATE `"+COL_DATA+"`= VALUES(`"+COL_DATA+"`);")) {
         final List<XmlItem> items = newValue.getItems();
         for(XmlItem item:items) {
-          if (item!=null && item.getName()!=null) {
+          if (item!=null && item.getName()!=null && !"label".equals(item.getType())) {
             XmlItem oldItem = oldValue==null ? null : oldValue.getItem(item.getName());
             if (oldItem==null ||
                 oldItem.getValue()==null ||
