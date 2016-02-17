@@ -89,15 +89,16 @@ public class TaskSyncAdapter extends RemoteXmlSyncAdapter {
       final StringWriter writer = new StringWriter(0x100);
       final XmlWriter serializer = XmlStreaming.newWriter(writer);
       serializer.setPrefix(XMLConstants.DEFAULT_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS);
-      serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, XMLConstants.DEFAULT_NS_PREFIX);
+      serializer.startTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+      serializer.namespaceAttr(Constants.USER_MESSAGE_HANDLER_NS_PREFIX, Constants.USER_MESSAGE_HANDLER_NS);
       serializer.attribute(null, "state", XMLConstants.DEFAULT_NS_PREFIX, task.getState().getAttrValue());
       for(final TaskItem item: task.getItems()) {
         if (! item.isReadOnly()) {
           item.serialize(serializer, false);
         }
       }
-      serializer.endTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, XMLConstants.DEFAULT_NS_PREFIX);
-      serializer.flush();
+      serializer.endTag(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);
+      serializer.close();
       postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())), writer.toString());
     } else {
       postRequest = new PostRequest(getListUrl(mBase).resolve(Long.toString(task.getHandle())+"?state="+task.getState()),"");
