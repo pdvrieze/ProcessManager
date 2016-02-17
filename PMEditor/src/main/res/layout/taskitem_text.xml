@@ -21,6 +21,10 @@
 
         <import type="nl.adaptivity.process.tasks.items.TextItem" />
 
+        <import type="nl.adaptivity.process.util.CharSequenceDecorator" />
+        <variable name="decorator"
+                  type="CharSequenceDecorator" />
+
         <variable name="taskitem"
                   type="TextItem" />
         <variable name="editable"
@@ -41,7 +45,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="@dimen/default_margin"
                 android:layout_marginRight="@dimen/default_margin"
-                android:text="@{taskitem.label}" />
+                android:text="@{decorator == null ? taskitem.label : decorator.decorate(taskitem.label)}" />
 
         <AutoCompleteTextView
                 android:id="@+id/taskitem_detail_text_text"

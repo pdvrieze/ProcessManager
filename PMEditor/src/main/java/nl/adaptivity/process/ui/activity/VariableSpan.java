@@ -30,7 +30,14 @@ import android.util.Log;
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.XmlDefineType;
+import nl.adaptivity.process.util.ModifyHelper;
+import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
+import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -39,10 +46,12 @@ import nl.adaptivity.process.util.VariableReference;
 public class VariableSpan extends ReplacementSpan {
 
   private static final String TAG = "VariableSpan";
+  private static final int EXTRA_PADDING_DP = 2/*dp*/;
 
   private final VariableReference mReference;
   @DrawableRes private final int mBorderId;
   private final Context mContext;
+  private final float mExtraPadding;
   private Drawable mBorder;
   private StaticLayout mLayout;
   private final Rect mPadding = new Rect(0,0,0,0);
@@ -51,6 +60,7 @@ public class VariableSpan extends ReplacementSpan {
     mReference = reference;
     mBorderId = borderId;
     mContext = context;
+    mExtraPadding = mContext.getResources().getDisplayMetrics().density * EXTRA_PADDING_DP;
   }
 
   @Override
@@ -62,14 +72,13 @@ public class VariableSpan extends ReplacementSpan {
       for (final VariableSpan span: myText.getSpans(0, end - start, VariableSpan.class)) {
         myText.removeSpan(span);
       }
-      final int desiredWidth = (int) Math.ceil(Layout.getDesiredWidth(myText, 0, myText.length(), textPaint)+100);
-      mLayout = new StaticLayout(myText, 0, myText.length(), textPaint, desiredWidth, Alignment.ALIGN_NORMAL, 1f, 0f, false);
+      mLayout = new StaticLayout(myText, 0, myText.length(), textPaint, mContext.getResources().getDisplayMetrics().widthPixels, Alignment.ALIGN_NORMAL, 1f, 0f, false);
     }
     if (mBorder==null && mBorderId!=0) {
       mBorder = mContext.getDrawable(mBorderId);
     }
     if (mBorder!=null) { mBorder.getPadding(mPadding); }
-    final int textWidth = (int) Math.ceil(mLayout.getLineMax(0) + mPadding.left + mPadding.right);
+    final int textWidth = (int) Math.ceil(mLayout.getLineMax(0) + mPadding.left + mPadding.right + mExtraPadding*2);
     if (fm!=null) {
       fm.ascent = mLayout.getLineAscent(0) - mPadding.top;
       fm.top = fm.ascent;
@@ -84,7 +93,7 @@ public class VariableSpan extends ReplacementSpan {
   public void draw(final Canvas canvas, final CharSequence text, final int start, final int end, final float x, final int top, final int y, final int bottom, final Paint paint) {
     Log.d(TAG, "draw() called with: " + "canvas = [" + canvas + "], text = [" + text + "], start = [" + start + "], end = [" + end + "], x = [" + x + "], top = [" + top + "], y = [" + y + "], bottom = [" + bottom + "], paint = [" + paint + "]");
     final int save = canvas.save();
-    canvas.translate(x, top);
+    canvas.translate(x+mExtraPadding, top);
     if (mBorder!=null) {
       mBorder.setBounds(0, 0, (int) Math.ceil(mLayout.getLineMax(0)+mPadding.left+mPadding.right), bottom);
       mBorder.draw(canvas);
@@ -103,7 +112,7 @@ public class VariableSpan extends ReplacementSpan {
    * @param borderDrawableId The id of the border drawable
    * @return The spanned.
    */
-  public static Spanned newVarSpanned(final Context context, final XmlDefineType define, final VariableReference variableReference, final int borderDrawableId) {
+  public static Spanned newVarSpanned(final Context context, final XmlDefineType define, final VariableReference variableReference, @DrawableRes final int borderDrawableId) {
     CharSequence label;
     if (define!=null && CollectionUtil.isNullOrEmpty(define.getContent()) && (StringUtil.isNullOrEmpty(define.getPath())||StringUtil.isEqual(".", define.getPath()))) {
       label = VariableReference.newDefineReference(define).getLabel();
@@ -119,5 +128,36 @@ public class VariableSpan extends ReplacementSpan {
 
   public VariableReference getReference() {
     return mReference;
+  }
+
+  @NotNull
+  static Spanned getSpanned(final Context context, final XmlReader bodyStreamReader, final XmlDefineType define, @DrawableRes final int varspanBorderId) throws XmlException {
+    SpannableStringBuilder builder = new SpannableStringBuilder();
+    while (bodyStreamReader.hasNext()) {
+      switch (bodyStreamReader.next()) {
+        case CDSECT:
+        case TEXT:
+          builder.append(bodyStreamReader.getText());
+          break;
+        case START_ELEMENT: {
+          final CharSequence elemNS = bodyStreamReader.getNamespaceUri();
+          final CharSequence elemLN = bodyStreamReader.getLocalName();
+          final ModifySequence var = ModifyHelper.parseAny(bodyStreamReader);
+          bodyStreamReader.require(EventType.END_ELEMENT, elemNS, elemLN);
+          final VariableReference ref = getVariableReference(define, var);
+          builder.append(newVarSpanned(context, define, ref, varspanBorderId));
+          break;
+        }
+        case END_DOCUMENT:
+          return new SpannedString(builder);
+        default:
+          XmlUtil.unhandledEvent(bodyStreamReader);
+      }
+    }
+    return new SpannedString(builder);
+  }
+
+  private static VariableReference getVariableReference(final XmlDefineType baseDefine, final ModifySequence variable) {
+    return VariableReference.newDefineReference(StringUtil.toString(variable.getVariableName()), StringUtil.toString(variable.getXpath()));
   }
 }

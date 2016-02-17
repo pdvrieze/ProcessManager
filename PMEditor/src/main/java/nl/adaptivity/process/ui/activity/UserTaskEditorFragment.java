@@ -46,9 +46,12 @@ import nl.adaptivity.process.tasks.items.PasswordItem;
 import nl.adaptivity.process.tasks.items.TextItem;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
+import nl.adaptivity.process.util.CharSequenceDecorator;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
 import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.xml.XmlException;
+import nl.adaptivity.xml.XmlReader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,7 +62,9 @@ import java.util.List;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class UserTaskEditorFragment extends Fragment implements OnItemClickListener<ItemViewHolder> {
+public class UserTaskEditorFragment extends Fragment implements OnItemClickListener<ItemViewHolder>, CharSequenceDecorator {
+
+  private static final int VARSPAN_LIGHT_BORDER_ID = R.drawable.varspan_border_light;
 
   public static final int ANIMATION_DURATION = 200;
   private FragmentUserTaskEditorBinding mBinding;
@@ -96,7 +101,7 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
       }
     });
 
-    mAdapter = new UserTaskEditAdapter();
+    mAdapter = new UserTaskEditAdapter(this);
     mBinding.content.setAdapter(mAdapter);
     mAdapter.setOnItemClickListener(this);
 
@@ -115,6 +120,30 @@ public class UserTaskEditorFragment extends Fragment implements OnItemClickListe
 
 
     return view;
+  }
+
+  @Override
+  public CharSequence decorate(final CharSequence in) {
+    if (in instanceof ModifySequence) {
+      final ModifySequence sequence = (ModifySequence) in;
+      final XmlDefineType define = mActivity.getDefine(sequence.getVariableName().toString());
+      if (define==null) {
+        throw new IllegalArgumentException("Invalid state");
+      }
+      try {
+        return toLightSpanned(define.getBodyStreamReader(), define);
+      } catch (XmlException e) {
+        throw new RuntimeException(e);
+      }
+
+    } else {
+      return in;
+    }
+
+  }
+
+  private CharSequence toLightSpanned(final XmlReader bodyStreamReader, final XmlDefineType define) throws XmlException {
+    return VariableSpan.getSpanned(getActivity(), bodyStreamReader, define, VARSPAN_LIGHT_BORDER_ID);
   }
 
   private void toggleFabMenu() {

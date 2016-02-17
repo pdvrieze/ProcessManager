@@ -25,9 +25,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.SpannedString;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +40,6 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.ui.UIConstants;
 import nl.adaptivity.process.util.CharSequenceDecorator;
-import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
@@ -51,7 +48,6 @@ import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;
-import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -280,33 +276,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   }
 
   private Spanned toSpanned(final XmlReader bodyStreamReader, final XmlDefineType define) throws XmlException {
-    final SpannableStringBuilder builder = new SpannableStringBuilder();
-    while (bodyStreamReader.hasNext()) {
-      switch (bodyStreamReader.next()) {
-        case CDSECT:
-        case TEXT:
-          builder.append(bodyStreamReader.getText());
-          break;
-        case START_ELEMENT: {
-          final CharSequence elemNS = bodyStreamReader.getNamespaceUri();
-          final CharSequence elemLN = bodyStreamReader.getLocalName();
-          final ModifySequence var = ModifyHelper.parseAny(bodyStreamReader);
-          bodyStreamReader.require(EventType.END_ELEMENT, elemNS, elemLN);
-          final VariableReference ref = getVariableReference(define, var);
-          builder.append(VariableSpan.newVarSpanned(getActivity(), define, ref, VARSPAN_BORDER_ID));
-          break;
-        }
-        case END_DOCUMENT:
-          return new SpannedString(builder);
-        default:
-          XmlUtil.unhandledEvent(bodyStreamReader);
-      }
-    }
-    return new SpannedString(builder);
-  }
-
-  private VariableReference getVariableReference(final XmlDefineType baseDefine, final ModifySequence variable) {
-    return VariableReference.newDefineReference(StringUtil.toString(variable.getVariableName()), StringUtil.toString(variable.getXpath()));
+    return VariableSpan.getSpanned(getActivity(), bodyStreamReader, define, VARSPAN_BORDER_ID);
   }
 
   private String displayPath(final CharSequence xpath) {
@@ -345,7 +315,7 @@ public class ItemEditDialogFragment extends DialogFragment implements OnClickLis
   private List<? extends VariableReference> getAllVariables() {
     ArrayList<VariableReference> allVars = new ArrayList<>();
     allVars.addAll(mAvailableVariables);
-    String currentName = mBinding.editName.getText().toString();
+    String currentName = "d_"+mBinding.editName.getText().toString();
     for (XmlDefineType define : mDefines) {
       if (!(currentName.equals(define.getName()) ||
           (CollectionUtil.isNullOrEmpty(define.getContent()) && (StringUtil.isNullOrEmpty(define.getPath())||".".equals(define.getPath()))))) {

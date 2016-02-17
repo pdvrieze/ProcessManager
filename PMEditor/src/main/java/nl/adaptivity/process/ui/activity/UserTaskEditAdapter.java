@@ -35,6 +35,7 @@ import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.process.ui.activity.UserTaskEditAdapter.ItemViewHolder;
+import nl.adaptivity.process.util.CharSequenceDecorator;
 
 import java.util.Collections;
 import java.util.List;
@@ -75,15 +76,17 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
   private static final int VIEWTYPE_GENERIC = 4;
 
   private final ItemTouchHelper mItemTouchHelper;
+  private final CharSequenceDecorator mDecorator;
   private LayoutInflater mInflater;
 
 // Object Initialization
-  public UserTaskEditAdapter() {
-    this(Collections.<TaskItem>emptyList());
+  public UserTaskEditAdapter(final CharSequenceDecorator decorator) {
+    this(decorator, Collections.<TaskItem>emptyList());
   }
 
-  public UserTaskEditAdapter(@NonNull final List<TaskItem> items) {
+  public UserTaskEditAdapter(CharSequenceDecorator decorator, @NonNull final List<TaskItem> items) {
     super(items);
+    mDecorator = decorator;
     mItemTouchHelper = new ItemTouchHelper(new Callback() {
 
       @Override
@@ -134,7 +137,7 @@ public class UserTaskEditAdapter extends ClickableListAdapter<TaskItem, ItemView
 
   @Override
   public void onBindViewHolder(final ItemViewHolder holder, final int position) {
-
+    holder.mBinding.setVariable(BR.decorator, mDecorator);
     holder.mBinding.setVariable(BR.taskitem, getItem(position));
   }
 
