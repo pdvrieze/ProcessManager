@@ -18,9 +18,7 @@ package nl.adaptivity.android.util;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.CallSuper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.annotation.*;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
@@ -35,13 +33,13 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
 
   private static final String TAG = "MasterDetailOutFrag";
   public static final String ARG_ITEM_ID = "item_id";
-  private int mLayoutId;
-  private int mListContainerId;
-  private int mDetailContainerId;
+  private @LayoutRes int mLayoutId;
+  private @IdRes int mListContainerId;
+  private @IdRes int mDetailContainerId;
   private boolean mTwoPane;
   private MasterListFragment mListFragment;
 
-  public MasterDetailOuterFragment(int layoutId, int listContainerId, int detailContainerId) {
+  public MasterDetailOuterFragment(@LayoutRes int layoutId, @IdRes int listContainerId, @IdRes int detailContainerId) {
     mLayoutId = layoutId;
     mListContainerId = listContainerId;
     mDetailContainerId = detailContainerId;
@@ -50,7 +48,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   @Override
   public final View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     View result = inflater.inflate(mLayoutId, container, false);
-    if (result.findViewById(mListContainerId) != null) {
+    if (result.findViewById(mDetailContainerId) != null) {
       mTwoPane = true;
     }
     {
