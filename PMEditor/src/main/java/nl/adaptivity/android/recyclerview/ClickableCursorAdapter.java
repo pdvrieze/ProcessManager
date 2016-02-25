@@ -18,7 +18,6 @@ package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
 
 
@@ -27,7 +26,7 @@ import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
  */
 public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> extends CursorRecyclerViewAdapter<VH> implements ClickableAdapter<VH> {
 
-  private OnItemClickListener mItemClickListener;
+  private OnItemClickListener<? super VH> mItemClickListener;
 
   public ClickableCursorAdapter(final Context context, final Cursor cursor) {super(context, cursor);}
 
@@ -46,7 +45,7 @@ public abstract class ClickableCursorAdapter<VH extends ClickableViewHolder> ext
   }
 
   @Override
-  public void setOnItemClickListener(final OnItemClickListener itemClickListener) {
+  public void setOnItemClickListener(final OnItemClickListener<? super VH> itemClickListener) {
     mItemClickListener = itemClickListener;
   }
 }

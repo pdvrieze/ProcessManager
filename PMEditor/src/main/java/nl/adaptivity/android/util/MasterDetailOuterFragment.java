@@ -110,6 +110,14 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
     onItemSelected(itemId, false);
   }
 
+  /** When we are in single pane mode, handle item clicks, don't allow selection to happen. */
+  @Override
+  public boolean onItemClicked(final int row, final long itemId) {
+    if (isTwoPane()) { return false; }
+    onItemSelected(itemId, false);
+    return true;
+  }
+
   public MasterListFragment getListFragment() {
     return mListFragment;
   }

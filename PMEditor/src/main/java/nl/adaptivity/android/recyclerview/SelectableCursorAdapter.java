@@ -20,7 +20,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 
 
 /**

@@ -37,6 +37,8 @@ import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
+import nl.adaptivity.android.recyclerview.ClickableAdapter;
+import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
@@ -51,6 +53,7 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.process.ui.main.SettingsActivity;
+import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 
@@ -69,7 +72,7 @@ import java.util.UUID;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener, OnSelectionListener {
+public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
 
   private static final int LOADERID = 3;
 
@@ -96,6 +99,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     getLoaderManager().initLoader(LOADERID, null, this);
     final PMCursorAdapter adapter = new PMCursorAdapter(getActivity(), null);
     adapter.setOnSelectionListener(this);
+    adapter.setOnItemClickListener(this);
     setListAdapter(adapter);
     mSyncObserver = new SyncStatusObserver() {
 
@@ -132,6 +136,11 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
       doOnItemSelected(adapter.getSelectedPos(), adapter.getSelectedId());
     }
 
+  }
+
+  @Override
+  public boolean onClickItem(final ClickableAdapter<? extends PMViewHolder> adapter, final PMViewHolder viewHolder) {
+    return doOnItemClicked(viewHolder.getAdapterPosition(), viewHolder.getItemId());
   }
 
   @Override

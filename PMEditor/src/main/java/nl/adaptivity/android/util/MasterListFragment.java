@@ -19,16 +19,12 @@ package nl.adaptivity.android.util;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
 import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.util.Log;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.ListView;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
-import nl.adaptivity.process.ui.model.PMCursorAdapter;
 
 
 public class MasterListFragment extends RecyclerFragment {
@@ -44,6 +40,8 @@ public class MasterListFragment extends RecyclerFragment {
   }
 
   public interface Callbacks {
+    /** Initiate a click. When this returns true, further ignore the event (don't select) */
+    boolean onItemClicked(final int row, final long id);
     void onItemSelected(int row, long id);
     boolean isTwoPane();
   }
@@ -53,6 +51,7 @@ public class MasterListFragment extends RecyclerFragment {
    * nothing. Used only when this fragment is not attached to an activity.
    */
   public static Callbacks sDummyCallbacks = new Callbacks() {
+    @Override public boolean onItemClicked(final int row, final long id) {/*dummy, not processed*/ return false; }
     @Override
     public void onItemSelected(final int row, final long id) {/*dummy*/}
 
@@ -122,8 +121,12 @@ public class MasterListFragment extends RecyclerFragment {
     return mCallbacks;
   }
 
-  protected void doOnItemSelected(final int position, final long modelid) {
-    getCallbacks().onItemSelected(position, modelid);
+  protected boolean doOnItemClicked(final int position, final long nodeId) {
+    return getCallbacks().onItemClicked(position, nodeId);
+  }
+
+  protected void doOnItemSelected(final int position, final long nodeId) {
+    getCallbacks().onItemSelected(position, nodeId);
   }
 
   protected void setActivatedId(final long id) {

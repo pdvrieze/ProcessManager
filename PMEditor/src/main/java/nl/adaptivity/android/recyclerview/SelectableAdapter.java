@@ -22,9 +22,9 @@ package nl.adaptivity.android.recyclerview;
  */
 public interface SelectableAdapter<VH extends ClickableViewHolder> extends ClickableAdapter<VH> {
 
-  public interface OnSelectionListener {
+  interface OnSelectionListener<VH extends ClickableViewHolder> {
 
-    void onSelectionChanged(SelectableAdapter adapter);
+    void onSelectionChanged(SelectableAdapter<VH> adapter);
   }
 
   long getSelectedId();
