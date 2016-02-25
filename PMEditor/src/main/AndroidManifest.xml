@@ -126,7 +126,8 @@
         <activity
                 android:name="nl.adaptivity.process.ui.task.TaskDetailActivity"
                 android:label="@string/title_task_detail"
-                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity">
+                android:parentActivityName="nl.adaptivity.process.ui.main.OverviewActivity"
+                android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                     android:name="android.support.PARENT_ACTIVITY"
                     android:value="nl.adaptivity.process.ui.main.OverviewActivity" />

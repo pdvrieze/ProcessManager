@@ -42,7 +42,7 @@ public class TaskDetailActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     mBinding = DataBindingUtil.setContentView(this, R.layout.activity_task_detail);
-    setSupportActionBar(mBinding.detailToolbar);
+    setSupportActionBar(mBinding.toolbar);
 
     // Show the Up button in the action bar.
     ActionBar actionBar = getSupportActionBar();
