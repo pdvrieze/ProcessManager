@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.models;
 
-import android.accounts.Account;
-import android.app.Activity;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -27,9 +25,9 @@ import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.Tupple;
 import nl.adaptivity.android.util.ContentProviderHelper;
-import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
 import nl.adaptivity.process.data.DataOpenHelper;
+import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
 import nl.adaptivity.process.diagram.LayoutAlgorithm;
@@ -278,22 +276,6 @@ public class ProcessModelProvider extends ContentProvider {
         return new UriHelper(u, netNotify);
       }
     }
-  }
-
-  public static boolean isSyncActive(final Account account) {
-    return ContentResolver.isSyncActive(account, AUTHORITY);
-  }
-
-  public static boolean isSyncPending(final Account account) {
-    return ContentResolver.isSyncPending(account, AUTHORITY);
-  }
-
-  public static void requestSyncProcessModelList(final Account account, final boolean expedited) {
-    ProviderHelper.requestSync(account, AUTHORITY, expedited);
-  }
-
-  public static void requestSyncProcessModelList(final Activity context, final boolean expedited) {
-    ProviderHelper.requestSync(context, AUTHORITY, expedited);
   }
 
   private static String[] appendArg(final String[] args, final String arg) {

@@ -48,6 +48,7 @@ import nl.adaptivity.process.models.ProcessModelLoader;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
+import nl.adaptivity.sync.SyncManager;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -64,6 +65,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     void onProcessModelSelected(long processModelId);
 
     void onInstantiateModel(long modelId, String suggestedName);
+
+    SyncManager getSyncManager();
   }
 
   private class ModelViewLayoutChangeListener implements OnLayoutChangeListener {
@@ -279,7 +282,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     final ContentResolver contentResolver = getActivity().getContentResolver();
     contentResolver.update(itemUri, cv, null, null);
     mBinding.btnPmPublish.setEnabled(false);
-    ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
+    mCallbacks.getSyncManager().requestSyncProcessModelList(true);
   }
 
   @Override
@@ -306,7 +309,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
       ContentValues cv = new ContentValues(1);
       cv.put(ProcessModels.COLUMN_SYNCSTATE, Integer.valueOf(RemoteXmlSyncAdapter.SYNC_DELETE_ON_SERVER));
       result = getActivity().getContentResolver().update(uri, cv , null, null)>0;
-      ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
+      mCallbacks.getSyncManager().requestSyncProcessModelList(true);
     }
     if (result && mCallbacks!=null) {
       mCallbacks.onProcessModelSelected(-1);

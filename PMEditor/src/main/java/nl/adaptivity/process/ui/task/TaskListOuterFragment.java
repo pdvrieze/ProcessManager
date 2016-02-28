@@ -22,7 +22,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
 import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.android.util.MasterListFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -38,7 +40,7 @@ import nl.adaptivity.process.editor.android.R;
  * {@link TaskDetailFragment}.
  * <p>
  * This activity also implements the required
- * {@link TaskListFragment.Callbacks} interface to listen for item
+ * {@link ProcessModelListCallbacks} interface to listen for item
  * selections.
  */
 public class TaskListOuterFragment extends MasterDetailOuterFragment {
@@ -49,6 +51,8 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
     void requestSyncTaskList(boolean immediate);
 
     void onShowTask(long taskId);
+
+    SyncManager getSyncManager();
   }
 
 
@@ -97,6 +101,11 @@ public class TaskListOuterFragment extends MasterDetailOuterFragment {
     Intent intent = new Intent(getActivity(), TaskDetailActivity.class);
     intent.putExtra(ARG_ITEM_ID, itemId);
     return intent;
+  }
+
+  @Override
+  public SyncManager getSyncManager() {
+    return mCallbacks.getSyncManager();
   }
 
   @Override

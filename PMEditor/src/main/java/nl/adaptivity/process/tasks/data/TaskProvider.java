@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.tasks.data;
 
-import android.accounts.Account;
-import android.app.Activity;
 import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -25,17 +23,15 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.BaseColumns;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.data.DataOpenHelper;
+import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.tasks.ExecutableUserTask;
 import nl.adaptivity.process.tasks.ExecutableUserTask.TaskState;
 import nl.adaptivity.process.tasks.TaskItem;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
 import nl.adaptivity.xml.XmlException;
-import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -201,22 +197,6 @@ public class TaskProvider extends ContentProvider {
         return new UriHelper(u, netNotify, ProviderHelper.isColumnInProjection(Tasks.COLUMN_INSTANCENAME, projection));
       }
     }
-  }
-
-  public static boolean isSyncActive(final Account account) {
-    return ContentResolver.isSyncActive(account, AUTHORITY);
-  }
-
-  public static boolean isSyncPending(final Account account) {
-    return ContentResolver.isSyncPending(account, AUTHORITY);
-  }
-
-  public static void requestSyncTaskList(final Account account, final boolean expedited) {
-    ProviderHelper.requestSync(account, AUTHORITY, expedited);
-  }
-
-  public static void requestSyncTaskList(final Activity context, final boolean expedited) {
-    ProviderHelper.requestSync(context, AUTHORITY, expedited);
   }
 
   private static String[] appendArg(final String[] args, final String arg) {

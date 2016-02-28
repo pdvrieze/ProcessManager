@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.ui.task;
 
-import android.accounts.Account;
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.SyncStatusObserver;
@@ -26,9 +25,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
 import android.view.*;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.MasterDetailOuterFragment;
@@ -36,6 +33,7 @@ import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
+import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -46,7 +44,7 @@ import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  * <p>
- * Activities containing this fragment MUST implement the {@link Callbacks}
+ * Activities containing this fragment MUST implement the {@link ProcessModelListCallbacks}
  * interface.
  */
 public class TaskListFragment extends MasterListFragment implements OnRefreshListener, OnSelectionListener {
@@ -131,7 +129,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   public void onResume() {
     super.onResume();
     mSyncObserver.onStatusChanged(0); // trigger status sync
-    mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
+    mSyncObserverHandle = getCallbacks().getSyncManager().addOnStatusChangeObserver(TaskProvider.AUTHORITY,mSyncObserver);
   }
 
   @Override
@@ -176,7 +174,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
 
   @Override
   public void onRefresh() {
-    TaskProvider.requestSyncTaskList(getActivity(), true);
+    getCallbacks().getSyncManager().requestSyncTaskList(true);
     mManualSync=true;
   }
 
@@ -186,12 +184,12 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   }
 
   private void updateSyncState() {
-    Account storedAccount = AuthenticatedWebClient.getStoredAccount(getActivity());
-    if (storedAccount==null) {
+    SyncManager syncManager = getCallbacks().getSyncManager();
+    if (! syncManager.isSyncable(TaskProvider.AUTHORITY)) {
       mSwipeRefresh.setRefreshing(false);
     } else {
-      final boolean syncActive = TaskProvider.isSyncActive(storedAccount);
-      final boolean syncPending = TaskProvider.isSyncPending(storedAccount);
+      final boolean syncActive = syncManager.isTaskSyncActive();
+      final boolean syncPending = syncManager.isTaskSyncPending();
       if (syncActive || (!syncPending)) { mManualSync= false; }
       boolean sync = syncActive || mManualSync;
       mSwipeRefresh.setRefreshing(sync);

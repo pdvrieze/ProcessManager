@@ -27,9 +27,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import nl.adaptivity.android.compat.TitleFragment;
+import nl.adaptivity.android.util.MasterListFragment.ProcessModelListCallbacks;
 
 
-public abstract class MasterDetailOuterFragment extends TitleFragment implements MasterListFragment.Callbacks {
+public abstract class MasterDetailOuterFragment extends TitleFragment implements ProcessModelListCallbacks {
 
   private static final String TAG = "MasterDetailOutFrag";
   public static final String ARG_ITEM_ID = "item_id";
@@ -100,7 +101,7 @@ public abstract class MasterDetailOuterFragment extends TitleFragment implements
   }
 
   /**
-   * Callback method from {@link MasterListFragment.Callbacks} indicating
+   * Callback method from {@link ProcessModelListCallbacks} indicating
    * that the item with the given ID was selected.
    * @param row Ignored by this implementation, but the row that was selected in the list.
    * @param itemId The id of the task that was selected (this is the local database ID, not the server assigned handle).

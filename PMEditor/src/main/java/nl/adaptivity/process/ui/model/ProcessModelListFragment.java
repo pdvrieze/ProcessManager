@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.ui.model;
 
-import android.accounts.Account;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -36,7 +35,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
-import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.recyclerview.ClickableAdapter;
 import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
@@ -56,6 +54,8 @@ import nl.adaptivity.process.ui.main.SettingsActivity;
 import nl.adaptivity.process.ui.model.PMCursorAdapter.PMViewHolder;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter.XmlBaseColumns;
+import nl.adaptivity.sync.SyncManager;
+import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +69,7 @@ import java.util.UUID;
  * state upon selection. This helps indicate which item is currently being
  * viewed in a {@link ProcessModelDetailFragment}.
  * <p>
- * Activities containing this fragment MUST implement the {@link Callbacks}
+ * Activities containing this fragment MUST implement the {@link ProcessModelListCallbacks}
  * interface.
  */
 public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, GetNameDialogFragmentCallbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
@@ -84,7 +84,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
 
   private SwipeRefreshLayout mSwipeRefresh;
   private SyncStatusObserver mSyncObserver;
-  private Object mSyncObserverHandle;
+  private SyncStatusObserverData mSyncObserverHandle;
   private boolean mManualSync;
 
   /**
@@ -101,6 +101,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
     adapter.setOnSelectionListener(this);
     adapter.setOnItemClickListener(this);
     setListAdapter(adapter);
+
     mSyncObserver = new SyncStatusObserver() {
 
       @Override
@@ -151,8 +152,8 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   @Override
   public void onResume() {
     super.onResume();
+    mSyncObserverHandle = getCallbacks().getSyncManager().addOnStatusChangeObserver(ProcessModelProvider.AUTHORITY, mSyncObserver);
     mSyncObserver.onStatusChanged(0); // trigger status sync
-    mSyncObserverHandle = ContentResolver.addStatusChangeListener(ContentResolver.SYNC_OBSERVER_TYPE_ACTIVE | ContentResolver.SYNC_OBSERVER_TYPE_PENDING, mSyncObserver);
   }
 
   @Override
@@ -173,18 +174,18 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   }
 
   private void doManualRefresh() {
-    ProcessModelProvider.requestSyncProcessModelList(getActivity(), true);
+    getCallbacks().getSyncManager().requestSyncProcessModelList(true);
     mManualSync=true;
     updateSyncState();
   }
 
   private void updateSyncState() {
-    Account storedAccount = AuthenticatedWebClient.getStoredAccount(getActivity());
-    if (storedAccount==null) {
+    SyncManager syncManager = getCallbacks().getSyncManager();
+    if (! syncManager.isSyncable(ProcessModelProvider.AUTHORITY)) {
       mSwipeRefresh.setRefreshing(false);
     } else {
-      final boolean syncActive = ProcessModelProvider.isSyncActive(storedAccount);
-      final boolean syncPending = ProcessModelProvider.isSyncPending(storedAccount);
+      final boolean syncActive = syncManager.isProcessModelSyncActive();
+      final boolean syncPending = syncManager.isProcessModelSyncPending();
       if (syncActive || (!syncPending)) { mManualSync= false; }
       boolean sync = syncActive || mManualSync;
       mSwipeRefresh.setRefreshing(sync);

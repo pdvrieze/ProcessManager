@@ -22,8 +22,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import nl.adaptivity.android.util.MasterListFragment;
+import nl.adaptivity.android.util.MasterListFragment.ProcessModelListCallbacks;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
+import nl.adaptivity.sync.SyncManager;
 
 
 /**
@@ -39,10 +42,10 @@ import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDet
  * {@link ProcessModelDetailFragment}.
  * <p>
  * This activity also implements the required
- * {@link ProcessModelListFragment.Callbacks} interface to listen for item
+ * {@link MasterListFragment.ProcessModelListCallbacks} interface to listen for item
  * selections.
  */
-public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragmentCallbacks {
+public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListCallbacks, ProcessModelDetailFragmentCallbacks {
 
   public interface ProcessModelListCallbacks {
 
@@ -50,6 +53,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
 
     void onInstantiateModel(long id, String suggestedName);
 
+    SyncManager getSyncManager();
   }
 
 
@@ -97,7 +101,7 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
   }
 
   /**
-   * Callback method from {@link ProcessModelListFragment.Callbacks} indicating
+   * Callback method from {@link MasterListFragment.ProcessModelListCallbacks} indicating
    * that the item with the given ID was selected.
    */
   @Override
@@ -132,6 +136,11 @@ public class ProcessModelListOuterFragment extends MasterDetailOuterFragment imp
         startActivity(detailIntent);
       }
     }
+  }
+
+  @Override
+  public SyncManager getSyncManager() {
+    return mCallbacks.getSyncManager();
   }
 
   @Override
