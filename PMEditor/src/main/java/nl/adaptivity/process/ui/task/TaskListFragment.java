@@ -17,7 +17,6 @@
 package nl.adaptivity.process.ui.task;
 
 import android.annotation.TargetApi;
-import android.content.ContentResolver;
 import android.content.SyncStatusObserver;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +33,7 @@ import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.ListCursorLoaderCallbacks;
 import nl.adaptivity.sync.SyncManager;
+import nl.adaptivity.sync.SyncManager.SyncStatusObserverData;
 
 
 /**
@@ -62,7 +62,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   private TaskCursorAdapter mAdapter;
   private SwipeRefreshLayout mSwipeRefresh;
   private SyncStatusObserver mSyncObserver;
-  private Object mSyncObserverHandle;
+  private SyncStatusObserverData mSyncObserverHandle;
   private boolean mManualSync;
   private ListCursorLoaderCallbacks mTaskLoaderCallbacks;
 
@@ -136,7 +136,7 @@ public class TaskListFragment extends MasterListFragment implements OnRefreshLis
   public void onPause() {
     super.onPause();
     if (mSyncObserverHandle!=null) {
-      ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
+      getCallbacks().getSyncManager().removeOnStatusChangeObserver(mSyncObserverHandle);
       mSyncObserverHandle=null;
     }
   }

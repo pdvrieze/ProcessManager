@@ -17,7 +17,6 @@
 package nl.adaptivity.process.ui.model;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.SyncStatusObserver;
@@ -160,7 +159,7 @@ public class ProcessModelListFragment extends MasterListFragment implements Load
   public void onPause() {
     super.onPause();
     if (mSyncObserverHandle!=null) {
-      ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
+      getCallbacks().getSyncManager().removeOnStatusChangeObserver(mSyncObserverHandle);
       mSyncObserverHandle=null;
     }
   }

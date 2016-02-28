@@ -29,6 +29,7 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import nl.adaptivity.android.compat.Compat;
+import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer;
 import nl.adaptivity.android.graphics.AndroidTextMeasurer.AndroidMeasureInfo;
 import nl.adaptivity.diagram.Canvas;
@@ -45,6 +46,7 @@ import nl.adaptivity.process.editor.android.PMParser;
 import nl.adaptivity.process.editor.android.PMProcessesFragment.ProcessesCallback;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.ui.UIConstants;
+import nl.adaptivity.sync.SyncManager;
 import nl.adaptivity.xml.AndroidXmlWriter;
 import nl.adaptivity.xml.XmlException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -142,6 +144,7 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
   protected ClientProcessModel<?, ?> mProcessModel;
   /** Temporary file for sharing. */
   protected File mTmpFile;
+  private SyncManager mSyncManager;
 
   @Override
   protected void onCreate(@Nullable final Bundle savedInstanceState) {
@@ -340,5 +343,12 @@ public class ProcessBaseActivity extends AuthenticatedActivity implements Proces
     super.onSaveInstanceState(outState);
     if (mProcessModel!=null) { outState.putParcelable(UIConstants.KEY_PROCESSMODEL, new PMParcelable(mProcessModel)); }
     if (mTmpFile!=null) { outState.putString(UIConstants.KEY_TMPFILE, mTmpFile.getPath()); }
+  }
+
+  public SyncManager getSyncManager() {
+    if (mSyncManager==null) {
+      mSyncManager = new SyncManager(AuthenticatedWebClient.getStoredAccount(this));
+    }
+    return mSyncManager;
   }
 }

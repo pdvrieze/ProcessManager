@@ -56,7 +56,6 @@ import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDet
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment;
 import nl.adaptivity.process.ui.task.TaskDetailFragment.TaskDetailCallbacks;
 import nl.adaptivity.process.ui.task.TaskListOuterFragment;
-import nl.adaptivity.sync.SyncManager;
 
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
@@ -94,7 +93,6 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
   private TitleFragment mActiveFragment;
   private ActionBarDrawerToggle mDrawerToggle;
   private long mModelIdToInstantiate = -1L;
-  private SyncManager mSyncManager;
 
 
   @Override
@@ -303,14 +301,6 @@ public class OverviewActivity extends ProcessBaseActivity implements OnNavigatio
     mBinding.navView.setCheckedItem(R.id.nav_models);
     onNavigationItemSelected(R.id.nav_models, true);
     finishSettingFragment();
-  }
-
-  @Override
-  public SyncManager getSyncManager() {
-    if (mSyncManager==null) {
-      mSyncManager = new SyncManager(AuthenticatedWebClient.getStoredAccount(this));
-    }
-    return mSyncManager;
   }
 
   @Override
