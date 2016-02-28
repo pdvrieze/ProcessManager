@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import nl.adaptivity.process.editor.android.R;
+import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
 
 
 /**
@@ -41,7 +42,7 @@ import nl.adaptivity.process.editor.android.R;
  * {@link ProcessModelListFragment.Callbacks} interface to listen for item
  * selections.
  */
-public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragment.Callbacks {
+public class ProcessModelListOuterFragment extends MasterDetailOuterFragment implements ProcessModelListFragment.Callbacks, ProcessModelDetailFragmentCallbacks {
 
   public interface ProcessModelListCallbacks {
 

@@ -25,7 +25,6 @@ import android.databinding.DataBindingUtil;
 import android.graphics.RectF;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.IntDef;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
@@ -33,6 +32,7 @@ import android.view.*;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.diagram.android.DiagramView;
 import nl.adaptivity.process.android.ProcessModelUtil;
 import nl.adaptivity.process.clientProcessModel.ClientProcessModel;
@@ -50,8 +50,6 @@ import nl.adaptivity.process.models.ProcessModelProvider.ProcessModels;
 import nl.adaptivity.sync.RemoteXmlSyncAdapter;
 
 import java.io.IOException;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.util.UUID;
 
 /**
@@ -62,7 +60,7 @@ import java.util.UUID;
 public class ProcessModelDetailFragment extends PMProcessesFragment implements LoaderCallbacks<ProcessModelHolder>, OnClickListener, PMProvider {
 
   private static final String TAG = "ProcModelDetailFrag";
-  public interface Callbacks {
+  public interface ProcessModelDetailFragmentCallbacks {
     void onProcessModelSelected(long processModelId);
 
     void onInstantiateModel(long modelId, String suggestedName);
@@ -89,7 +87,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
 
   private static final int DLG_NEW_MODEL_NAME_CLONE = 3;
 
-  Callbacks mCallbacks;
+  ProcessModelDetailFragmentCallbacks mCallbacks;
 
   /**
    * The process model represented by this fragment
@@ -112,8 +110,8 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
-    if (activity instanceof Callbacks) {
-      mCallbacks = (Callbacks) activity;
+    if (activity instanceof ProcessModelDetailFragmentCallbacks) {
+      mCallbacks = (ProcessModelDetailFragmentCallbacks) activity;
     }
   }
 
@@ -241,7 +239,7 @@ public class ProcessModelDetailFragment extends PMProcessesFragment implements L
     CharSequence previousName = mBinding.processmodelName.getText();
     String suggestedNewName = ProcessModelUtil.suggestNewName(getActivity(), previousName);
 
-    GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name", new GetNameDialogFragment.Callbacks() {
+    GetNameDialogFragment.show(getFragmentManager(), DLG_NEW_MODEL_NAME_CLONE, "Model name", "Provide the new name", new GetNameDialogFragmentCallbacks() {
 
       @Override
       public void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string) {

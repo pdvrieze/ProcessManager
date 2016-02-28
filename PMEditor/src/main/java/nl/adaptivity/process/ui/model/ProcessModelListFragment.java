@@ -42,7 +42,7 @@ import nl.adaptivity.android.recyclerview.ClickableAdapter.OnItemClickListener;
 import nl.adaptivity.android.recyclerview.SelectableAdapter;
 import nl.adaptivity.android.recyclerview.SelectableAdapter.OnSelectionListener;
 import nl.adaptivity.android.util.GetNameDialogFragment;
-import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
+import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.android.util.MasterListFragment;
 import nl.adaptivity.process.diagram.DrawableProcessModel;
 import nl.adaptivity.process.diagram.DrawableProcessNode;
@@ -72,7 +72,7 @@ import java.util.UUID;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, Callbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
+public class ProcessModelListFragment extends MasterListFragment implements LoaderCallbacks<Cursor>, GetNameDialogFragmentCallbacks, OnRefreshListener, OnSelectionListener, OnItemClickListener<PMViewHolder> {
 
   private static final int LOADERID = 3;
 

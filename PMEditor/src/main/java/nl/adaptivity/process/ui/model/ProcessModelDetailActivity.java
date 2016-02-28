@@ -24,9 +24,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Toast;
 import nl.adaptivity.android.util.GetNameDialogFragment;
+import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.ui.main.OverviewActivity;
+import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
 
 
 /**
@@ -38,7 +40,7 @@ import nl.adaptivity.process.ui.main.OverviewActivity;
  * This activity is mostly just a 'shell' activity containing nothing more than
  * a {@link ProcessModelDetailFragment}.
  */
-public class ProcessModelDetailActivity extends AppCompatActivity implements ProcessModelDetailFragment.Callbacks, GetNameDialogFragment.Callbacks {
+public class ProcessModelDetailActivity extends AppCompatActivity implements ProcessModelDetailFragmentCallbacks, GetNameDialogFragmentCallbacks {
 
   private static final int DLG_MODEL_INSTANCE_NAME = 1;
   private long mModelHandleToInstantiate;

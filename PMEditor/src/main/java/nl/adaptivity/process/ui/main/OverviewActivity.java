@@ -44,7 +44,7 @@ import nl.adaptivity.android.compat.TitleFragment;
 import nl.adaptivity.android.darwin.AuthenticatedWebClient;
 import nl.adaptivity.android.util.AsyncCallableTask;
 import nl.adaptivity.android.util.GetNameDialogFragment;
-import nl.adaptivity.android.util.GetNameDialogFragment.Callbacks;
+import nl.adaptivity.android.util.GetNameDialogFragment.GetNameDialogFragmentCallbacks;
 import nl.adaptivity.process.data.ProviderHelper;
 import nl.adaptivity.process.data.ProviderHelper.SyncCallable;
 import nl.adaptivity.process.editor.android.R;
@@ -52,7 +52,7 @@ import nl.adaptivity.process.editor.android.databinding.ActivityOverviewBinding;
 import nl.adaptivity.process.models.ProcessModelProvider;
 import nl.adaptivity.process.tasks.data.TaskProvider;
 import nl.adaptivity.process.ui.main.OverviewFragment.OverviewCallbacks;
-import nl.adaptivity.process.ui.model.ProcessModelDetailFragment;
+import nl.adaptivity.process.ui.model.ProcessModelDetailFragment.ProcessModelDetailFragmentCallbacks;
 import nl.adaptivity.process.ui.model.ProcessModelListOuterFragment;
 import nl.adaptivity.process.ui.task.TaskDetailFragment.TaskDetailCallbacks;
 import nl.adaptivity.process.ui.task.TaskListOuterFragment;
@@ -63,9 +63,7 @@ import java.util.concurrent.Future;
 
 
 public class OverviewActivity extends ProcessBaseActivity implements OnNavigationItemSelectedListener,
-                                                                     OverviewCallbacks,
-                                                                     Callbacks,
-                                                                     ProcessModelDetailFragment.Callbacks,
+                                                                     OverviewCallbacks, GetNameDialogFragmentCallbacks, ProcessModelDetailFragmentCallbacks,
                                                                      TaskDetailCallbacks, OnBackStackChangedListener {
 
   private final class SyncTask extends AsyncCallableTask<Account, SyncCallable> {

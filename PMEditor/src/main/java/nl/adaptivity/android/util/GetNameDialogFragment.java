@@ -74,7 +74,7 @@ public class GetNameDialogFragment extends DialogFragment {
 
   private static final String KEY_EDIT = "text";
 
-  public static interface Callbacks {
+  public static interface GetNameDialogFragmentCallbacks {
 
     void onNameDialogCompletePositive(GetNameDialogFragment dialog, int id, String string);
 
@@ -82,7 +82,7 @@ public class GetNameDialogFragment extends DialogFragment {
 
   }
 
-  Callbacks mOwner;
+  GetNameDialogFragmentCallbacks mOwner;
 
   private int mId;
 
@@ -97,12 +97,12 @@ public class GetNameDialogFragment extends DialogFragment {
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
-    if (mOwner==null && activity instanceof Callbacks) {
-      mOwner = (Callbacks) activity;
+    if (mOwner==null && activity instanceof GetNameDialogFragmentCallbacks) {
+      mOwner = (GetNameDialogFragmentCallbacks) activity;
     }
   }
 
-  public void setCallbacks(Callbacks callbacks) {
+  public void setCallbacks(GetNameDialogFragmentCallbacks callbacks) {
     mOwner = callbacks;
   }
 
@@ -149,11 +149,11 @@ public class GetNameDialogFragment extends DialogFragment {
     outState.putCharSequence(KEY_EDIT, mEditText.getText());
   }
 
-  public static GetNameDialogFragment show(FragmentManager fragmentManager, int id, String title, String message, Callbacks callbacks) {
+  public static GetNameDialogFragment show(FragmentManager fragmentManager, int id, String title, String message, GetNameDialogFragmentCallbacks callbacks) {
     return show(fragmentManager, id, title, message, callbacks, null);
   }
 
-  public static GetNameDialogFragment show(FragmentManager fragmentManager, int id, String title, String message, Callbacks callbacks, String previous) {
+  public static GetNameDialogFragment show(FragmentManager fragmentManager, int id, String title, String message, GetNameDialogFragmentCallbacks callbacks, String previous) {
     GetNameDialogFragment f = new GetNameDialogFragment();
     f.setCallbacks(callbacks);
     f.setId(id);
