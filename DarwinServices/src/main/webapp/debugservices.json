@@ -1,0 +1,19 @@
+{
+  "services" : [
+    {
+      "name": "auth",
+      "protocol": "darwinauth",
+      "uri": "/account/"
+    },
+    {
+      "name": "ProcessEngine",
+      "protocol": "1",
+      "uri": "/ProcessEngine"
+    },
+    {
+      "name": "taskService",
+      "protocol": "1",
+      "uri": "/PEUserMessageHandler/UserMessageService/"
+    }
+  ]
+}
