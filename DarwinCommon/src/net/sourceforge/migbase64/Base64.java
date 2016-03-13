@@ -1,5 +1,10 @@
 package net.sourceforge.migbase64;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /** A very fast and memory efficient class to encode and decode to and from BASE64 in full accordance
@@ -81,6 +86,84 @@ public class Base64
 		IA['='] = 0;
 	}
 
+	public interface Codec {
+		byte[]	encode(byte[] src);
+		int	encode(byte[] src, byte[] dst);
+		ByteBuffer	encode(ByteBuffer buffer);
+		String	encodeToString(byte[] src);
+		OutputStream	wrap(OutputStream os);
+
+		byte[]	decode(byte[] src);
+		int	decode(byte[] src, byte[] dst);
+		ByteBuffer	decode(ByteBuffer buffer);
+		byte[]	decode(String src);
+		InputStream	wrap(InputStream is);
+	}
+
+	private enum CodecImpl implements Codec {
+		INSTANCE
+		;
+
+		@Override
+		public byte[] encode(final byte[] src) {
+			return encodeToByte(src, true);
+		}
+
+		@Override
+		public int encode(final byte[] src, final byte[] dst) {
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+
+		@Override
+		public ByteBuffer encode(final ByteBuffer buffer) {
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+
+		@Override
+		public String encodeToString(final byte[] src) {
+			return Base64.encodeToString(src, true);
+		}
+
+		@Override
+		public OutputStream wrap(final OutputStream os) {
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+
+		@Override
+		public byte[] decode(final byte[] src) {
+			return Base64.decode(src);
+		}
+
+		@Override
+		public int decode(final byte[] src, final byte[] dst) {
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+
+		@Override
+		public ByteBuffer decode(final ByteBuffer buffer) {
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+
+		@Override
+		public byte[] decode(final String src) {
+			return Base64.decode(src);
+		}
+
+		@Override
+		public InputStream wrap(final InputStream is) {
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+	}
+
+	@NotNull
+	public static Codec encoder() {
+		return CodecImpl.INSTANCE;
+	}
+
+	public static Codec decoder() {
+		return CodecImpl.INSTANCE;
+	}
+
 	// ****************************************************************************************
 	// *  char[] version
 	// ****************************************************************************************
@@ -100,8 +183,7 @@ public class Base64
 			return new char[0];
 
 		int eLen = (sLen / 3) * 3;              // Length of even 24-bits.
-		int cCnt = ((sLen - 1) / 3 + 1) << 2;   // Returned character count
-		int dLen = cCnt + (lineSep ? (cCnt - 1) / 76 << 1 : 0); // Length of returned array
+		int dLen = neededEncBufferLength(lineSep, sLen);
 		char[] dArr = new char[dLen];
 
 		// Encode even 24-bits
@@ -136,6 +218,11 @@ public class Base64
 			dArr[dLen - 1] = '=';
 		}
 		return dArr;
+	}
+
+	private static int neededEncBufferLength(final boolean lineSep, final int byteLength) {
+		int cCnt = ((byteLength - 1) / 3 + 1) << 2;   // Returned character count
+		return cCnt + (lineSep ? (cCnt - 1) / 76 << 1 : 0);
 	}
 
 	/** Decodes a BASE64 encoded char array. All illegal characters will be ignored and can handle both arrays with
@@ -276,8 +363,7 @@ public class Base64
 			return new byte[0];
 
 		int eLen = (sLen / 3) * 3;                              // Length of even 24-bits.
-		int cCnt = ((sLen - 1) / 3 + 1) << 2;                   // Returned character count
-		int dLen = cCnt + (lineSep ? (cCnt - 1) / 76 << 1 : 0); // Length of returned array
+		int dLen = neededEncBufferLength(lineSep, sLen);
 		byte[] dArr = new byte[dLen];
 
 		// Encode even 24-bits
