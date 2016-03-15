@@ -87,7 +87,7 @@ public class SyncManager {
   }
 
   public void removeOnStatusChangeObserver(SyncStatusObserverData handle) {
-    if (mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
+    if (mSyncObserverHandle!=null && mSyncObservers.remove(handle) && mSyncObservers.isEmpty()) {
       ContentResolver.removeStatusChangeListener(mSyncObserverHandle);
       mSyncObserverHandle = null;
     }
