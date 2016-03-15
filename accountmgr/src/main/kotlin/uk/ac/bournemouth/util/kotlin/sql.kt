@@ -400,8 +400,17 @@ class ConnectionHelper constructor (val connection: Connection) {
      * *
      * @see SQLWarning
      */
-    @Throws(SQLException::class)
-    inline fun getWarnings(): SQLWarning = connection.warnings
+    val warningsIt: Iterator<SQLWarning> get() = object: AbstractIterator<SQLWarning>() {
+        override fun computeNext() {
+            val w = connection.warnings
+            if (w!=null) {
+                setNext(w)
+            } else {
+                done()
+            }
+        }
+    }
+
 
     /**
      * Clears all warnings reported for this `Connection` object.
@@ -1484,11 +1493,70 @@ class StatementHelper constructor (val statement: PreparedStatement) : PreparedS
         throw UnsupportedOperationException()
     }
 
+    val warningsIt: Iterator<SQLWarning>
+        get()= object: AbstractIterator<SQLWarning>() {
+        override fun computeNext() {
+            val w = statement.warnings
+            if (w!=null) {
+                setNext(w)
+            } else {
+                done()
+            }
+        }
+    }
+
+
+    inline fun <reified T> setParam_(index:Int, value :T) = when (value) {
+        is Int -> setParam(index, value)
+        is Long -> setParam(index, value)
+        is String -> setParam(index, value)
+        is Boolean -> setParam(index, value)
+        is Byte -> setParam(index, value)
+        is Short -> setParam(index, value)
+        else -> throw UnsupportedOperationException("Not possible to set this value")
+    }
+
+
+
+    inline fun setParam(index:Int, value:Int) = setInt(index, value)
+    inline fun setParam(index:Int, value:Long) = setLong(index, value)
+    inline fun setParam(index:Int, value:String) = setString(index, value)
+    inline fun setParam(index:Int, value:Boolean) = setBoolean(index, value)
+    inline fun setParam(index:Int, value:Byte) = setByte(index, value)
+    inline fun setParam(index:Int, value:Short) = setShort(index, value)
+
+    class ParamHelper_(val sh: StatementHelper) {
+        var index = 1
+        inline operator fun Int.unaryPlus():Unit = sh.setParam(index++, this)
+        inline operator fun Long.unaryPlus():Unit = sh.setParam(index++, this)
+        inline operator fun String.unaryPlus():Unit = sh.setParam(index++, this)
+        inline operator fun Boolean.unaryPlus():Unit = sh.setParam(index++, this)
+        inline operator fun Byte.unaryPlus():Unit = sh.setParam(index++, this)
+        inline operator fun Short.unaryPlus():Unit = sh.setParam(index++, this)
+
+        inline operator fun <T> T.plus(value:Int):Unit = sh.setParam(index++, value)
+        inline operator fun <T> T.plus(value:Long):Unit = sh.setParam(index++, value)
+        inline operator fun <T> T.plus(value:String):Unit = sh.setParam(index++, value)
+        inline operator fun <T> T.plus(value:Boolean):Unit = sh.setParam(index++, value)
+        inline operator fun <T> T.plus(value:Byte):Unit = sh.setParam(index++, value)
+        inline operator fun <T> T.plus(value:Short):Unit = sh.setParam(index++, value)
+    }
+
+    inline fun <R> params(block:ParamHelper_.() -> R) =ParamHelper_(this).block()
+
     inline fun <R> withResultSet(block: (ResultSet)-> R) = statement.getResultSet().use(block)
 
     inline fun <R> withGeneratedKeys(block: (ResultSet) -> R) = statement.generatedKeys.use(block)
 
     inline fun <R> execute(block: (ResultSet)-> R ) = statement.executeQuery().use(block)
+
+    inline fun executeHasRows(): Boolean = execute() && withResultSet { it.next() }
+}
+
+fun String.appendWarnings(warnings: Iterator<SQLWarning>):String {
+    val result = StringBuilder().append(this).append(" - \n    ")
+    warnings.asSequence().map { "${it.errorCode}: ${it.message}"  }.joinTo(result, ",\n    ")
+    return result.toString()
 }
 
 /**

@@ -99,6 +99,16 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, title: Strin
     }
 }
 
+fun HttpServletResponse.darwinError(req: HttpServletRequest, message: String, code: Int = 500, status: String="Server error", cause: Exception?=null) {
+    this.darwinResponse(req, title="$code $status", checkuser = false) {
+        h2 { +status }
+        p { style="margin-top: 2em"
+            +message.trim().replace("\n", "<br />")
+        }
+        // TODO print backtrace, but only in debug
+    }
+}
+
 class MenuItem(val label: String, val target: URI) { constructor(label:String, target: String) : this(label, URI.create(target))}
 
 fun BODY.darwinMenu(request: HttpServletRequest, wrapper: HtmlBlockTag? = null): Unit {
