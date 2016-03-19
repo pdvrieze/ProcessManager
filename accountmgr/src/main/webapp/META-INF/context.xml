@@ -18,9 +18,6 @@
 <Context>
     <Loader delegate="true"/>
 
-    <Environment name="webauthAdm/userName" type="java.lang.String" value="webauthadm" description="The username that is allowed to administer the authentication database (not only authenticate, but change stuff)" />
-    <Environment name="webauthAdm/password" type="java.lang.String" value="QfWEsNjJeM" description="The password used with the webauthAdm/userName user" />
-
     <Resource name="jdbc/webauthadm"
               auth="Container"
               driverClassName="com.mysql.jdbc.Driver"

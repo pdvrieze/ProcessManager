@@ -25,10 +25,9 @@ import java.security.SecureRandom
 import javax.naming.InitialContext
 import javax.sql.DataSource
 
-internal const val DARWINCOOKIENAME = "DWNID"
-internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
-internal const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
-internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
+const val MAXTOKENLIFETIME = 864000 /* Ten days */
+const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
+const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
 
 /*
  * This file contains the functionality needed for managing accounts on darwin. This includes the underlying database

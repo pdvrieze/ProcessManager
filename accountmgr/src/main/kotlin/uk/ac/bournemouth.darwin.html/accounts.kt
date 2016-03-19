@@ -19,6 +19,7 @@ package uk.ac.bournemouth.darwin.html
 import kotlinx.html.*
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.darwin.accounts.AccountDb
+import uk.ac.bournemouth.darwin.accounts.MAXTOKENLIFETIME
 import uk.ac.bournemouth.darwin.accounts.accountDb
 import java.security.MessageDigest
 import java.security.Principal
@@ -39,9 +40,9 @@ internal const val FIELD_NEWPASSWORD1 = "newpassword1"
 internal const val FIELD_NEWPASSWORD2 = "newpassword2"
 
 internal const val DARWINCOOKIENAME = "DWNID"
-internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
-internal const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
-internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
+//internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
+//internal const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
+//internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
 
 /*
  * This file contains the functionality needed for managing accounts on darwin. This includes the underlying database
@@ -51,9 +52,7 @@ internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
 /** Create a SHA1 digest of the source */
 internal fun sha1(src:ByteArray):ByteArray = MessageDigest.getInstance("SHA1").digest(src)
 
-const val DBRESOURCE = "java:comp/env/jdbc/webauth"
-const val AUTHDBADMINUSERNAME = "java:comp/env/webauthAdm/userName"
-const val AUTHDBADMINPASSWORD = "java:comp/env/webauthAdm/password"
+const val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
 
 private inline fun <R> accountDb(block:AccountDb.()->R): R = accountDb(DBRESOURCE, block)
 
