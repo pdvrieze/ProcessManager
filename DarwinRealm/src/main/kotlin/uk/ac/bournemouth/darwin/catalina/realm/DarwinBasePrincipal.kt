@@ -16,8 +16,11 @@
 
 package uk.ac.bournemouth.darwin.catalina.realm
 
-import org.apache.catalina.Realm
 import org.apache.catalina.realm.GenericPrincipal
+import org.ietf.jgss.GSSCredential
+import java.security.Principal
+import java.util.*
+import javax.security.auth.login.LoginContext
 
 
 /**
@@ -32,13 +35,13 @@ abstract class DarwinBasePrincipal
  * *
  * @param name The name of the principal.
  */
-(realm: Realm, name: String) : GenericPrincipal(name, null), DarwinPrincipal {
+(name: String, roles: List<out String> = Collections.emptyList(), userPrincipal: Principal? = null, loginContext: LoginContext? = null, gssCredential: GSSCredential? = null) : GenericPrincipal(name, null, roles, userPrincipal, loginContext, gssCredential), DarwinPrincipal {
 
     /**
      * Attribute to record when we last checked the database. By default very far
      * in the past so that we will certainly need to check.
      */
-    private val mLastChecked = java.lang.Long.MIN_VALUE
+    private var lastChecked = java.lang.Long.MIN_VALUE
 
     /**
      * This is used by subclasses to determine whether the user data needs to be reretrieved from the database.
@@ -46,8 +49,10 @@ abstract class DarwinBasePrincipal
      */
     protected fun needsRefresh(): Boolean {
         val now = System.currentTimeMillis()
-        return now < mLastChecked + MAX_CACHE
+        return now < lastChecked + MAX_CACHE
     }
+
+    protected fun notifyRefresh() { lastChecked = System.currentTimeMillis() }
 
     companion object {
 

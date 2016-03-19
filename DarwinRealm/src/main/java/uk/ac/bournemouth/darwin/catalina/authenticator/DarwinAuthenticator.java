@@ -196,7 +196,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
   }
 
   private static DarwinUserPrincipal getDarwinPrincipal(final DataSource dataSource, final Realm realm, final String userName) {
-    return new DarwinUserPrincipalImpl(dataSource, realm, userName);
+    return new DarwinUserPrincipalImpl(dataSource, userName);
   }
 
   private static DarwinUserPrincipal toDarwinPrincipal(final DataSource dataSource, final Realm realm, final Principal principal) {
@@ -206,7 +206,7 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
     if (principal instanceof DarwinUserPrincipal) {
       return (DarwinUserPrincipal) principal;
     }
-    return new DarwinUserPrincipalImpl(dataSource, realm, principal.getName());
+    return new DarwinUserPrincipalImpl(dataSource, principal.getName());
   }
 
   @NotNull

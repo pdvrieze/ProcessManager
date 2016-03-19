@@ -45,7 +45,7 @@ private inline fun SecureRandom.nextBytes(len:Int): ByteArray = ByteArray(len).a
 /**
  * A class that abstracts the interaction with the account database.
  */
-class AccountDb internal constructor(private val connection: ConnectionHelper) {
+class AccountDb constructor(private val connection: ConnectionHelper) {
 
     val now:Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
 
@@ -148,6 +148,20 @@ class AccountDb internal constructor(private val connection: ConnectionHelper) {
         }
     }
 
+    fun getUserRoles(user:String): List<String> {
+        connection.prepareStatement("SELECT role FROM user_roles WHERE user=?") {
+            params { +user }
+            return mutableListOf<String>().apply {
+                execute {
+                    while (it.next()) {
+                        add(it.getString(1))
+                    }
+                }
+            }
+
+        }
+    }
+
     fun cleanAuthTokens() {
         connection.prepareStatement("DELETE FROM tokens WHERE `epoch` < ?") {
             setLong(1, now - MAXTOKENLIFETIME)
@@ -179,12 +193,15 @@ class AuthException(msg: String, cause:Throwable? = null): RuntimeException(msg,
  *
  * @param block The code to execute in relation to the database.
  */
-fun <R> accountDb(resourceName:String = DBRESOURCE, block:AccountDb.()->R): R {
+inline fun <R> accountDb(resourceName:String = DBRESOURCE, block:AccountDb.()->R): R {
 
     val ic = InitialContext()
 //    val username = ic.lookup(AUTHDBADMINUSERNAME) as String
 //    val password = ic.lookup(AUTHDBADMINPASSWORD) as String
-    val dataSource = ic.lookup(resourceName) as DataSource
+    return accountDb(ic.lookup(resourceName) as DataSource, block)
+}
+
+inline fun <R> accountDb(dataSource:DataSource, block:AccountDb.()->R): R {
     dataSource.connection {
         val accountDb = AccountDb(it)
         accountDb.cleanAuthTokens()
@@ -193,5 +210,4 @@ fun <R> accountDb(resourceName:String = DBRESOURCE, block:AccountDb.()->R): R {
 
     }
 }
-
 
