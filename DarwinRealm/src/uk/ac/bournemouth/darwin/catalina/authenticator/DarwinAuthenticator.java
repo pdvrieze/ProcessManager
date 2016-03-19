@@ -19,12 +19,14 @@ package uk.ac.bournemouth.darwin.catalina.authenticator;
 import net.devrieze.util.db.DBConnection;
 import net.devrieze.util.db.DBConnection.DBQuery;
 import net.devrieze.util.db.StringAdapter;
-import org.apache.catalina.*;
+import org.apache.catalina.Authenticator;
+import org.apache.catalina.Context;
+import org.apache.catalina.Lifecycle;
+import org.apache.catalina.Realm;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.deploy.LoginConfig;
 import org.apache.catalina.deploy.SecurityConstraint;
-import org.apache.catalina.util.LifecycleSupport;
 import org.apache.catalina.valves.ValveBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,66 +69,17 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
 
   private static final String LOGGERNAME = "DarwinRealm";
 
-  private boolean mStarted = false;
-
-  /**
-   * The lifecycle event support for this component.
-   */
-  @NotNull
-  protected LifecycleSupport mLifecycle = new LifecycleSupport(this);
-
   @Nullable
-  private Context mContext;
-
   private String mLoginPage = "/accounts/login";
 
-
-  @Override
-  public void addLifecycleListener(final LifecycleListener listener) {
-    mLifecycle.addLifecycleListener(listener);
-  }
-
-  @Override
-  public void setContainer(final Container container) {
-    super.setContainer(container);
-    if (container instanceof Context) {
-      mContext = (Context) container;
-    }
-  }
-
-  @Override
-  public LifecycleListener[] findLifecycleListeners() {
-    return mLifecycle.findLifecycleListeners();
-  }
-
-  @Override
-  public void removeLifecycleListener(final LifecycleListener listener) {
-    mLifecycle.removeLifecycleListener(listener);
-  }
-
-  @Override
-  public void start() throws LifecycleException {
-    if (mStarted) {
-      throw new LifecycleException("Already started");
-    }
-    mLifecycle.fireLifecycleEvent(START_EVENT, null);
-    mStarted = true;
-    setLoginPage(null); // Default is not specified.
-  }
-
-  @Override
-  public void stop() throws LifecycleException {
-    mLifecycle.fireLifecycleEvent(STOP_EVENT, null);
-    mStarted = false;
-  }
 
   @Override
   public void invoke(final Request request, final Response response) throws IOException, ServletException {
 
     final AuthResult authresult = authenticate(request);
 
-    final Context context = this.mContext;
-    final Realm realm = context == null ? null : context.getRealm();
+    Context context = request.getContext();
+    final Realm realm = context.getRealm();
     if (realm != null) {
       logFine("This context has an authentication realm, enforce the constraints");
       final SecurityConstraint[] constraints = realm.findSecurityConstraints(request, context);
@@ -191,6 +144,27 @@ public class DarwinAuthenticator extends ValveBase implements Authenticator, Lif
       // No realm, no authentication required.
       getNext().invoke(request, response);
     }
+  }
+
+  @Override
+  public void login(final String userName, final String password, final Request request) throws ServletException {
+    throw new UnsupportedOperationException("Not imlemented yet");
+  }
+
+  @Override
+  public void logout(final Request request) throws ServletException {
+    throw new UnsupportedOperationException("Not imlemented yet");
+  }
+
+  @Override
+  public boolean authenticate(final Request request, final HttpServletResponse response) throws IOException {
+    throw new UnsupportedOperationException("Not imlemented yet");
+  }
+
+  @Deprecated
+  @Override
+  public boolean authenticate(final Request request, final HttpServletResponse response, final LoginConfig config) throws IOException {
+    throw new UnsupportedOperationException("Not imlemented yet");
   }
 
   public String getLoginPage() {

@@ -69,5 +69,5 @@ dependencies {
     testCompile 'org.mockito:mockito-core:1.9.5'
     testCompile project(':DarwinJavaApi')
     providedCompile project(':DarwinJavaApi')
-    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }

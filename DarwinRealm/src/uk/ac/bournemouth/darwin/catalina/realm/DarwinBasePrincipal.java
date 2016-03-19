@@ -46,7 +46,7 @@ public abstract class DarwinBasePrincipal extends GenericPrincipal implements Da
    * @param name The name of the principal.
    */
   public DarwinBasePrincipal(final Realm realm, final String name) {
-    super(realm, name, null);
+    super(name, null);
   }
 
   /**

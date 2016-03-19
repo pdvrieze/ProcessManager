@@ -18,21 +18,25 @@ package uk.ac.bournemouth.darwin.catalina.realm;
 
 
 import net.devrieze.util.db.DBConnection;
-import org.apache.catalina.*;
+import org.apache.catalina.Context;
+import org.apache.catalina.Lifecycle;
+import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.CoyotePrincipal;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.deploy.SecurityCollection;
 import org.apache.catalina.deploy.SecurityConstraint;
 import org.apache.catalina.realm.GenericPrincipal;
+import org.apache.catalina.realm.RealmBase;
 import org.apache.catalina.util.LifecycleSupport;
+import org.ietf.jgss.GSSContext;
 import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator;
 
 import javax.naming.NamingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.security.Principal;
@@ -40,7 +44,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 
-public class DarwinRealm implements Realm, Lifecycle {
+public class DarwinRealm extends RealmBase implements Lifecycle {
 
   private static final String INFO = "uk.ac.bournemouth.darwin.catalina.realm.DarwinRealm/1.0";
 
@@ -49,71 +53,12 @@ public class DarwinRealm implements Realm, Lifecycle {
 
   private static final String RESOURCE = DarwinAuthenticator.DBRESOURCE;
 
-  private boolean mStarted = false;
-
   /**
    * The lifecycle event support for this component.
    */
   protected LifecycleSupport mLifecycle = new LifecycleSupport(this);
 
-  private Container mContainer;
-
   PropertyChangeSupport propChangeSupport = new PropertyChangeSupport(this);
-
-
-  @Override
-  public void start() throws LifecycleException {
-    if (mStarted) {
-      throw new LifecycleException("Already started");
-    }
-    mLifecycle.fireLifecycleEvent(START_EVENT, null);
-    mStarted = true;
-  }
-
-
-  @Override
-  public void stop() throws LifecycleException {
-    mLifecycle.fireLifecycleEvent(STOP_EVENT, null);
-    mStarted = false;
-  }
-
-
-  @Override
-  public void addLifecycleListener(final LifecycleListener listener) {
-    mLifecycle.addLifecycleListener(listener);
-  }
-
-
-  @Override
-  public LifecycleListener[] findLifecycleListeners() {
-    return mLifecycle.findLifecycleListeners();
-  }
-
-
-  @Override
-  public void removeLifecycleListener(final LifecycleListener listener) {
-    mLifecycle.removeLifecycleListener(listener);
-  }
-
-
-  @Override
-  public Container getContainer() {
-    return mContainer;
-  }
-
-
-  @Override
-  public void setContainer(final Container container) {
-    final Container oldContainer = mContainer;
-    mContainer = container;
-    propChangeSupport.firePropertyChange("container", oldContainer, mContainer);
-  }
-
-
-  @Override
-  public void addPropertyChangeListener(final PropertyChangeListener listener) {
-    propChangeSupport.addPropertyChangeListener(listener);
-  }
 
 
   @Override
@@ -123,22 +68,29 @@ public class DarwinRealm implements Realm, Lifecycle {
 
 
   @Override
-  public Principal authenticate(final String username, final byte[] credentials) {
-    throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
-  }
-
-
-  @Override
   public Principal authenticate(final String username, final String digest, final String nonce, final String nc, final String cnonce, final String qop, final String realm, final String md5a2) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
+  @Override
+  public Principal authenticate(final String username) {
+    return null;
+  }
+
+  @Override
+  public Principal authenticate(final GSSContext gssContext, final boolean storeCreds) {
+    return null;
+  }
 
   @Override
   public Principal authenticate(final X509Certificate[] certs) {
     throw new UnsupportedOperationException("In this implementation the realm does not support independent authentication.");
   }
 
+  @Override
+  protected String getPassword(final String username) {
+    throw new UnsupportedOperationException("This implementation does not allow retrieving passwords.");
+  }
 
   @Override
   public void backgroundProcess() {
@@ -155,12 +107,11 @@ public class DarwinRealm implements Realm, Lifecycle {
       return null;
     }
 
+    String uri;
     // Check each defined security constraint
-    String uri = request.getRequestPathMB().toString();
-    // Bug47080 - in rare cases this may be null
-    // Mapper treats as '/' do the same to prevent NPE
-    if (uri == null) {
-      uri = "/";
+    {
+      HttpServletRequest req = request.getRequest();
+      uri = req.getServletPath()+req.getContextPath();
     }
 
     // First try simple matches
@@ -347,7 +298,7 @@ public class DarwinRealm implements Realm, Lifecycle {
         // No user, no access
       } else {
         for (final String role : roles) {
-          if (hasRole(principal, role)) {
+          if (hasRole(request.getWrapper(), principal, role)) {
             status = true;
           }
         }
@@ -400,21 +351,18 @@ public class DarwinRealm implements Realm, Lifecycle {
     return false;
   }
 
-
   @Override
-  public void removePropertyChangeListener(final PropertyChangeListener listener) {
-    propChangeSupport.removePropertyChangeListener(listener);
+  protected String getName() {
+    return NAME;
   }
-
 
   @Override
   public String getInfo() {
     return INFO;
   }
 
-
   @Override
-  public boolean hasRole(Principal principal, final String role) {
+  public boolean hasRole(final Wrapper wrapper, final Principal principal, final String role) {
     final Principal userPrincipal;
     if (principal instanceof GenericPrincipal) {
       userPrincipal = ((GenericPrincipal) principal).getUserPrincipal();
@@ -444,6 +392,15 @@ public class DarwinRealm implements Realm, Lifecycle {
 
   private DarwinUserPrincipalImpl getDarwinPrincipal(final String name) throws NamingException {
     return new DarwinUserPrincipalImpl(getDataSource(), this, name);
+  }
+
+  @Override
+  protected Principal getPrincipal(final String username) {
+    try {
+      return getDarwinPrincipal(username);
+    } catch (NamingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static DataSource getDataSource() throws NamingException {

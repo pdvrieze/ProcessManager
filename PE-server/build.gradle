@@ -32,9 +32,9 @@ configurations {
 }
 
 dependencies {
-    tomcat "org.apache.tomcat:catalina:${tomcatVersion}",
-            "org.apache.tomcat:coyote:${tomcatVersion}",
-            "org.apache.tomcat:jasper:${tomcatVersion}"
+    tomcat "org.apache.tomcat:tomcat-catalina:${tomcatVersion}",
+            "org.apache.tomcat:tomcat-coyote:${tomcatVersion}",
+            "org.apache.tomcat:tomcat-jasper:${tomcatVersion}"
 //    tomcat dbcpSpec
 
     extraBootCp 'mysql:mysql-connector-java:5.1.36'
@@ -56,6 +56,7 @@ dependencies {
     tomcat project(path: ':PEUserMessageHandler', configuration: 'runtime')
     tomcat project(':DarwinServices')
     tomcat project(path: ':ProcessEngine')
+    tomcat project(':accountmgr')
 /*    tomcatRunWar ':ProcessEngine:tomcatExtClasses'*/
 /*    tomcatRun project(':ProcessEngine').tasks['war']*/
 }

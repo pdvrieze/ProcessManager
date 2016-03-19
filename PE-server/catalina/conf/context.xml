@@ -42,4 +42,9 @@
               jdbcUrl="jdbc:mysql://localhost/webauth"
               username="webauth"/>
 
+
+
+    <Environment name="webauthAdm/userName" type="java.lang.String" value="webauthadm" description="The username that is allowed to administer the authentication database (not only authenticate, but change stuff)" />
+    <Environment name="webauthAdm/password" type="java.lang.String" value="" description="The password used with the webauthAdm/userName user" />
+
 </Context>

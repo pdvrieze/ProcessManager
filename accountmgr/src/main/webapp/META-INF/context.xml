@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+
+<Context>
+    <Loader delegate="true"/>
+
+    <Environment name="webauthAdm/userName" type="java.lang.String" value="webauthadm" description="The username that is allowed to administer the authentication database (not only authenticate, but change stuff)" />
+    <Environment name="webauthAdm/password" type="java.lang.String" value="QfWEsNjJeM" description="The password used with the webauthAdm/userName user" />
+
+    <Resource name="jdbc/webauthadm"
+              auth="Container"
+              driverClassName="com.mysql.jdbc.Driver"
+              factory="org.apache.naming.factory.BeanFactory"
+              type="com.zaxxer.hikari.HikariDataSource"
+              jdbcUrl="jdbc:mysql://localhost/webauth"
+              username="webauthadm"
+              password="QfWEsNjJeM"
+              connectionTimeout="10000"
+              idleTimeout="180000"
+              maxLifetime="180000"
+              leakDetectionThreshold="10000"
+              registerMbeans="true"
+              autoCommit="false"/>
+</Context>

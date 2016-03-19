@@ -46,7 +46,7 @@ task tomcatRun(dependsOn: ["classes"]) {
 dependencies {
     compile project(':PE-common')
     myProvidedCompile project(path: ':PE-common', configuration:'providedCompile')
-    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }
 
 idea {

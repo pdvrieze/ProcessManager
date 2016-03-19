@@ -45,11 +45,12 @@ sourceSets {
 
 
 dependencies {
-    providedCompile "org.apache.tomcat:catalina:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:tomcat-catalina:${tomcatVersion}"
     runtime dbcpSpec
 
     compile project(':DarwinJavaApi')
     compile project(':DarwinCommon')
+    compile project(':accountcommon')
     compile project(path: ':DarwinCommon', configuration:'providedCompile')
 
 }

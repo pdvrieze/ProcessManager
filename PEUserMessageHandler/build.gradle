@@ -169,8 +169,8 @@ tomcat {
 }
 */
 dependencies {
-    apiProvided "org.apache.tomcat:servlet-api:${tomcatVersion}"
-//    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+    apiProvided "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+//    providedCompile "org.apache.tomcat:tomcatservlet-api:${tomcatVersion}"
     apiProvided project(':DarwinJavaApi')
     apiProvided project(path: ':PE-common', configuration:'providedCompile')
 

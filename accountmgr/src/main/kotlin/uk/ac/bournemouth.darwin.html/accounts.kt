@@ -56,8 +56,10 @@ internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
 internal fun sha1(src:ByteArray):ByteArray = MessageDigest.getInstance("SHA1").digest(src)
 
 const val DBRESOURCE = "java:comp/env/jdbc/webauth"
+const val AUTHDBADMINUSERNAME = "java:comp/env/webauthAdm/userName"
+const val AUTHDBADMINPASSWORD = "java:comp/env/webauthAdm/password"
 
-private inline fun SecureRandom.nextBytes(len:Int): ByteArray { val result = ByteArray(len); this.nextBytes(result); return result }
+private inline fun SecureRandom.nextBytes(len:Int): ByteArray = ByteArray(len).apply { nextBytes(this) }
 
 /**
  * A class that abstracts the interaction with the account database.
@@ -197,7 +199,11 @@ class AuthException(msg: String, cause:Throwable? = null): RuntimeException(msg,
  * @param block The code to execute in relation to the database.
  */
 fun <R> accountDb(block:AccountDb.()->R): R {
-    val dataSource: DataSource =  InitialContext.doLookup<DataSource>(DBRESOURCE)
+
+    val ic = InitialContext()
+//    val username = ic.lookup(AUTHDBADMINUSERNAME) as String
+//    val password = ic.lookup(AUTHDBADMINPASSWORD) as String
+    val dataSource = ic.lookup(DBRESOURCE) as DataSource
     dataSource.connection {
         val accountDb = uk.ac.bournemouth.darwin.html.AccountDb(it)
         accountDb.cleanAuthTokens()
@@ -212,20 +218,21 @@ class AccountController : HttpServlet() {
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
-            "login" -> tryLogin(req, resp)
-            "challenge" -> challenge(req, resp)
-            "chpasswd" -> chpasswd(req, resp)
-            else -> super.doGet(req, resp)
+            "/login" -> tryLogin(req, resp)
+            "/challenge" -> challenge(req, resp)
+            "/chpasswd" -> chpasswd(req, resp)
+            "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
+            else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
     }
 
     override fun doPost(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
-            "login" -> tryCredentials(req, resp)
-            "challenge" -> challenge(req, resp)
-            "chpasswd" -> chpasswd(req, resp)
-            "regkey" -> registerkey(req, resp)
-            else -> super.doPost(req, resp)
+            "/login" -> tryCredentials(req, resp)
+            "/challenge" -> challenge(req, resp)
+            "/chpasswd" -> chpasswd(req, resp)
+            "/regkey" -> registerkey(req, resp)
+            else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
 
     }
@@ -294,10 +301,7 @@ class AccountController : HttpServlet() {
             }
         } else {
             if (req.htmlAccepted) {
-                resp.darwinResponse(req) {
-                    loginScreen(req, resp)
-                }
-
+                loginScreen(req, resp)
             } else {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
                 resp.writer.use { it.appendln("error:Login is required\n") }

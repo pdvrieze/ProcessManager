@@ -47,9 +47,6 @@ import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
-import org.apache.catalina.ServerFactory;
-import org.apache.catalina.Service;
-import org.apache.catalina.connector.Connector;
 import org.jetbrains.annotations.TestOnly;
 import org.w3.soapEnvelope.Envelope;
 import org.w3c.dom.Document;
@@ -438,34 +435,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
       // TODO this should can be done better.
       if (port == null) {
-        try {
-          final Service[] services = ServerFactory.getServer().findServices();
-
-          for (final Service service : services) {
-            // Loop repeatedly, prefer
-            final List<String> protocolList;
-            if ("localhost".equals(hostname)) {
-              protocolList = Arrays.asList("HTTP/1.1", "org.apache.coyote.http11.Http11NioProtocol");
-            } else {
-              protocolList = Arrays.asList("HTTP/1.1", "org.apache.coyote.http11.Http11NioProtocol", "AJP/1.3");
-            }
-            for (final String candidateProtocol : protocolList) {
-              for (final Connector connector : service.findConnectors()) {
-                final String protocol = connector.getProtocol();
-                if (candidateProtocol.equals(protocol)) {
-                  if ("localhost".equals(hostname)) {
-                    port = Integer.toString(connector.getPort());
-                  } else {
-                    port = Integer.toString(connector.getProxyPort());
-                  }
-                }
-              }
-
-            }
-          }
-        } catch (final Error e) { // We're not on tomcat, this trick won't work.
-          localURL = URI.create("http://" + hostname + "/" + config.getServletContext().getContextPath());
-        }
+        localURL = URI.create("/" + config.getServletContext().getContextPath());
       }
       if (port == null) {
         localURL = URI.create("http://" + hostname + config.getServletContext().getContextPath());

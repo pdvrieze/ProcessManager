@@ -98,7 +98,7 @@ dependencies {
     compile project(':JavaCommonApi')
     compile project(':java-common')
     compile project(':PE-common')
-    providedCompile "org.apache.tomcat:servlet-api:${tomcatVersion}"
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     providedCompile project(path: ':PE-common', configuration:'providedCompile')
 }
 
