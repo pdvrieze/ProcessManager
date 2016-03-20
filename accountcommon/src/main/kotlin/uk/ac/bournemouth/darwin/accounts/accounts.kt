@@ -25,6 +25,7 @@ import java.security.SecureRandom
 import javax.naming.InitialContext
 import javax.sql.DataSource
 
+const val DARWINCOOKIENAME = "DWNID"
 const val MAXTOKENLIFETIME = 864000 /* Ten days */
 const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
 const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
@@ -76,6 +77,25 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
             params { + username + passwordHash }
             return executeHasRows() // If we can get a record, the combination exists.
         }
+    }
+
+    fun userFromToken(token: String, remoteAddr: String): String? {
+        connection.prepareStatement("SELECT user FROM tokens WHERE token=? AND ip=?") {
+            params { + token + remoteAddr }
+            execute {
+                if (it.next() && it.isLast) {
+                    return it.getString(1).apply { updateTokenEpoch(token, remoteAddr) }
+                }
+                return null
+            }
+        }
+    }
+
+    private inline fun updateTokenEpoch(token:String, remoteAddr:String) {
+        connection.prepareStatement("UPDATE tokens SET epoch=? WHERE token=? and ip=?") {
+            params { + now + token + remoteAddr }
+        }
+
     }
 
     private fun generateAuthToken() = Base64.encoder().encodeToString(random.nextBytes(32))
@@ -178,6 +198,13 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
                     return false
                 }
             }
+        }
+    }
+
+    fun logout(authToken: String): Unit {
+        connection.prepareStatement("DELETE FROM tokens WHERE token = ?") {
+            params { + authToken }
+            execute()
         }
     }
 

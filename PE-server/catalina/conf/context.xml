@@ -30,7 +30,6 @@
     <!--
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
-    
     <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"/>
     <!-- description="The authentication database" -->
     <Resource name="jdbc/webauth"

@@ -19,10 +19,12 @@ package uk.ac.bournemouth.darwin.html
 import kotlinx.html.*
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.darwin.accounts.AccountDb
+import uk.ac.bournemouth.darwin.accounts.DARWINCOOKIENAME
 import uk.ac.bournemouth.darwin.accounts.MAXTOKENLIFETIME
 import uk.ac.bournemouth.darwin.accounts.accountDb
 import java.security.MessageDigest
 import java.security.Principal
+import javax.servlet.ServletException
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
@@ -39,7 +41,6 @@ internal const val FIELD_RESETTOKEN = "resettoken"
 internal const val FIELD_NEWPASSWORD1 = "newpassword1"
 internal const val FIELD_NEWPASSWORD2 = "newpassword2"
 
-internal const val DARWINCOOKIENAME = "DWNID"
 //internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
 //internal const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
 //internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
@@ -111,6 +112,11 @@ class AccountController : HttpServlet() {
         if (username==null || password ==null) {
             tryLogin(req, resp)
         } else {
+            try {
+                req.login(username, password)
+            } catch (e: ServletException) {
+
+            }
             accountDb {
                 if (verifyCredentials(username, password)) {
                     val authtoken = createAuthtoken(username, req.remoteAddr)

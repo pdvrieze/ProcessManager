@@ -17,7 +17,6 @@
 package uk.ac.bournemouth.darwin.catalina.realm
 
 
-import net.devrieze.util.db.DBConnection
 import org.apache.catalina.Lifecycle
 import org.apache.catalina.Wrapper
 import org.apache.catalina.connector.CoyotePrincipal
@@ -27,13 +26,17 @@ import org.ietf.jgss.GSSContext
 import uk.ac.bournemouth.darwin.accounts.AccountDb
 import uk.ac.bournemouth.darwin.accounts.DBRESOURCE
 import uk.ac.bournemouth.darwin.accounts.accountDb
-import uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator
 import java.security.Principal
+import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.sql.DataSource
 
 
 class DarwinRealm : RealmBase(), Lifecycle {
+
+    var resourceName:String? = null
+
+    val dataSource by lazy { InitialContext.doLookup<DataSource>(resourceName!!) }
 
     override fun authenticate(username: String, credentials: String): Principal? {
         accountDb(DBRESOURCE) {
@@ -107,12 +110,6 @@ class DarwinRealm : RealmBase(), Lifecycle {
 
         @SuppressWarnings("unused")
         private val NAME = "DarwinRealm"
-
-        private val dbResource = DarwinAuthenticator.DBRESOURCE
-
-        private val dataSource: DataSource
-            @Throws(NamingException::class)
-            get() = DBConnection.getDataSource(dbResource)
     }
 
 
