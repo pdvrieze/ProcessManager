@@ -75,20 +75,13 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
             refreshIfNeeded()
             roles.joinTo(result)
         }
-        result.append("])")
+        result.append(")])")
         return result.toString()
     }
 
-    override fun getEmail(): CharSequence {
-        val lName = getName()
-        val result = StringBuilder(lName.length + DOMAIN.length + 1)
-        result.append(lName).append('@').append(DOMAIN)
-        return result
-    }
+    override fun getEmail() = "${name}@${DOMAIN}"
 
-    override fun isAdmin(): Boolean {
-        return hasRole("admin")
-    }
+    override fun isAdmin()= hasRole("admin")
 
     @Synchronized override fun cacheStrings(stringCache: StringCache): Principal {
         name = stringCache.lookup(this.name)

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Process Engine" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Test" ALTERNATIVE_JRE_ENABLED="false">
+  <configuration default="false" name="Process Engine" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 7.0.68" ALTERNATIVE_JRE_ENABLED="false">
     <option name="OPEN_IN_BROWSER" value="false" />
     <option name="COMMON_VM_ARGUMENTS" value="-Dorg.apache.catalina.level=FINEST" />
     <option name="UPDATING_POLICY" value="redeploy-artifacts" />
@@ -19,11 +19,11 @@
           <option name="CONTEXT_PATH" value="/" />
         </settings>
       </file>
-      <artifact name="accountmgr">
+      <file path="$PROJECT_DIR$/accountmgr/build/libs/accountmgr.war">
         <settings>
           <option name="CONTEXT_PATH" value="/accounts2" />
         </settings>
-      </artifact>
+      </file>
     </deployment>
     <server-settings>
       <option name="AJP_PORT" value="8009" />
@@ -86,10 +86,7 @@
     </ConfigurationWrapper>
     <method>
       <option name="Make" enabled="false" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks="assembleExtraBootCp :ProcessEngine:war :DarwinServices:war PEUserMessageHandler:draftWar" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
-      <option name="BuildArtifacts" enabled="true">
-        <artifact name="accountmgr" />
-      </option>
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="assembleExtraBootCp :ProcessEngine:war :DarwinServices:war accountmgr:war PEUserMessageHandler:draftWar" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

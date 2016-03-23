@@ -36,7 +36,7 @@
     </resource-ref>
 
     <servlet>
-        <servlet-name>processEngine</servlet-name>
+        <servlet-name>accountController</servlet-name>
         <servlet-class>uk.ac.bournemouth.darwin.html.AccountController</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
@@ -57,7 +57,7 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>processEngine</servlet-name>
+        <servlet-name>accountController</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
 

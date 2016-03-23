@@ -22,26 +22,32 @@ import org.apache.catalina.Wrapper
 import org.apache.catalina.connector.CoyotePrincipal
 import org.apache.catalina.realm.GenericPrincipal
 import org.apache.catalina.realm.RealmBase
+import org.apache.naming.ContextBindings
 import org.ietf.jgss.GSSContext
 import uk.ac.bournemouth.darwin.accounts.AccountDb
 import uk.ac.bournemouth.darwin.accounts.DBRESOURCE
 import uk.ac.bournemouth.darwin.accounts.accountDb
 import java.security.Principal
-import javax.naming.InitialContext
+import javax.naming.Context
 import javax.naming.NamingException
 import javax.sql.DataSource
 
 
 class DarwinRealm : RealmBase(), Lifecycle {
 
-    var resourceName:String? = null
+    var resourceName:String = DBRESOURCE
+    var globalResource:Boolean = true
 
-    val dataSource by lazy { InitialContext.doLookup<DataSource>(resourceName!!) }
+    val dataSource by lazy {
+        val context: Context = if (globalResource) server.globalNamingContext else ContextBindings.getClassLoader().lookup("java:comp/env/") as Context
+
+        context.lookup(resourceName) as DataSource
+    }
 
     override fun authenticate(username: String, credentials: String): Principal? {
-        accountDb(DBRESOURCE) {
+        accountDb(dataSource) {
             if (verifyCredentials(username, credentials)) {
-                return getDarwinPrincipal(this, name)
+                return getDarwinPrincipal(this, username)
             } else {
                 return null
             }

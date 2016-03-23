@@ -16,13 +16,13 @@
 
 package uk.ac.bournemouth.darwin.catalina.authenticator
 
-import net.devrieze.util.db.DBConnection
 import org.apache.catalina.Lifecycle
 import org.apache.catalina.authenticator.AuthenticatorBase
 import org.apache.catalina.connector.Request
 import org.apache.catalina.connector.Response
 import org.apache.catalina.deploy.LoginConfig
 import org.apache.juli.logging.LogFactory
+import org.apache.naming.ContextBindings
 import uk.ac.bournemouth.darwin.accounts.DARWINCOOKIENAME
 import uk.ac.bournemouth.darwin.accounts.MAXTOKENLIFETIME
 import uk.ac.bournemouth.darwin.accounts.accountDb
@@ -32,7 +32,7 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl
 import java.io.IOException
 import java.net.URLEncoder
 import java.security.Principal
-import javax.naming.InitialContext
+import javax.naming.Context
 import javax.naming.NamingException
 import javax.servlet.ServletException
 import javax.servlet.http.Cookie
@@ -49,13 +49,29 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
         LOGIN_NEEDED
     }
 
+
+    var resourceName:String = DEFAULTDBRESOURCE
+
+    val dataSource by lazy {
+        val context: Context = /*if (globalResource) container. else */ContextBindings.getClassLoader().lookup("comp/env/") as Context
+
+        context.lookup(resourceName) as DataSource
+    }
+
+
     var loginPage: String? = "/accounts/login"
 
+
+    private inline fun invokeNext(request: Request, response: Response) {
+        next.invoke(request, response)
+        (request.getNote(DARWINCOOKIENAME) as? String)?.let { token -> response.addCookie(createAuthCookie(token))}
+    }
 
     @Throws(IOException::class, ServletException::class)
     override fun invoke(request: Request, response: Response) {
 
-        val authresult = lazy { authenticateHelper(request, response) }
+        val authresult = lazy { authenticateHelper(dataSource, request, response) }
+        request.setNote("response", response)
         if (context.preemptiveAuthentication) { authresult.value }
 
         val realm = context.realm
@@ -65,7 +81,7 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
             if (constraints == null) {
                 log.trace("Realm has no constraints, calling next in chain")
                 // Unconstrained
-                getNext().invoke(request, response)
+                invokeNext(request, response)
                 return
             }
             // Need security, set cache control
@@ -101,7 +117,7 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
             if (authRequired) {
                 when (authresult.value) {
                     AuthResult.AUTHENTICATED -> if (realm.hasResourcePermission(request, response, constraints, context)) {
-                            next.invoke(request, response)
+                            invokeNext(request, response)
                         } else {
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, "User " + request.userPrincipal + " does not have permission for " + realm.info + " class:" + realm.javaClass.name)
                         }
@@ -111,20 +127,20 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
                     }
                 }
             } else {
-                getNext().invoke(request, response)
+                invokeNext(request, response)
             }
 
         } else {
             // No realm, no authentication required.
-            getNext().invoke(request, response)
+            invokeNext(request, response)
         }
-
     }
 
     private fun requestLogin(request: Request, response: Response) {
         val loginPage = context.loginConfig.loginPage ?: this.loginPage
-        if (loginPage != null) {
-            response.sendRedirect("${loginPage}?redirect=${URLEncoder.encode(request.pathInfo, "utf-8")}")
+        val decodedRequestURI: String? = request.decodedRequestURI
+        if (loginPage != null && decodedRequestURI!=null) {
+            response.sendRedirect("${loginPage}?redirect=${URLEncoder.encode(decodedRequestURI, "utf-8")}")
         } else {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You need to log in for this page, but no login page is configured")
         }
@@ -137,13 +153,18 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
      * don't carry passwords around.
      */
     override fun login(userName: String, password: String, request: Request) {
-        val realm = request.context.realm
         val principal = doLogin(request, userName, password)
         //        val principal = realm.authenticate(userName, password) ?: throw ServletException("Invalid credentials")
 
-        accountDb(DBRESOURCE) {
+        accountDb(dataSource) {
             val authtoken = this.createAuthtoken(userName, request.remoteAddr)
-            request.setNote(DARWINCOOKIENAME, authtoken)
+
+            val response = request.getNote("response") as? Response
+            if (response!=null) {
+                response.addCookie(createAuthCookie(authtoken))
+            } else {
+                request.setNote(DARWINCOOKIENAME, authtoken)
+            }
         }
 
         if (log.isDebugEnabled) {
@@ -158,51 +179,39 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
     @Throws(ServletException::class)
     override fun logout(request: Request) {
         request.cookies.find({ it.name == DARWINCOOKIENAME })?.let {
-            accountDb(DBRESOURCE) {
+            accountDb(dataSource) {
                 logout(it.value!!)
             }
             it.value = ""
             it.maxAge = 0
+            val response = request.getNote("response") as? Response
+            if (response!=null) {
+                response.addCookie(Cookie(DARWINCOOKIENAME,"").apply { maxAge=0 })
+            }
         }
         request.userPrincipal = null
     }
 
     @Throws(IOException::class)
     override fun authenticate(request: Request, response: HttpServletResponse, config: LoginConfig): Boolean {
-        val authResult = authenticateHelper(request, response)
-
-        var authToken: String? = null
-        request.getHeader(DARWINCOOKIENAME)?.let { authToken = it }
-
-        if (authToken != null) {
-            request.cookies.find({ it.name == DARWINCOOKIENAME })?.let { authToken = it.value }
+        val authResult = authenticateHelper(dataSource, request, response)
+        when (authResult) {
+            AuthResult.AUTHENTICATED -> return true
+            else -> return false
         }
-
-        if (authToken != null) {
-            accountDb(DBRESOURCE) {
-                cleanAuthTokens() // First get rid of no longer needed tokens
-                val user = userFromToken(authToken!!, request.remoteAddr)
-                if (user != null) {
-                    request.userPrincipal = DarwinUserPrincipalImpl(InitialContext.doLookup(DBRESOURCE), user, getUserRoles(user))
-                    return true
-                }
-            }
-        }
-
-        return false
     }
 
     companion object {
 
         private val AUTHTYPE = "DARWIN"
 
-        val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
+        val DEFAULTDBRESOURCE = "webauthAdm"
 
         private val log = LogFactory.getLog(DarwinAuthenticator::class.java)
 
-        fun Principal.asDarwinPrincipal(): DarwinPrincipal {
+        fun Principal.asDarwinPrincipal(dataSource: DataSource): DarwinPrincipal {
             try {
-                return toDarwinPrincipal(DBConnection.getDataSource(DBRESOURCE), this)
+                return toDarwinPrincipal(dataSource, this)
             } catch (e: NamingException) {
                 log.warn("Failure to connect to database", e)
                 throw e
@@ -217,20 +226,20 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
             return DarwinUserPrincipalImpl(dataSource, principal.name)
         }
 
-        private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).apply { maxAge = MAXTOKENLIFETIME }
+        private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).apply { maxAge = MAXTOKENLIFETIME; path="/" }
 
-        private fun authenticateHelper(request: Request, response: HttpServletResponse): AuthResult {
-            val origPrincipal = request.userPrincipal
+        private fun authenticateHelper(dataSource: DataSource, request: Request, response: HttpServletResponse): AuthResult {
+            val origPrincipal: Principal? = request.userPrincipal
 
             val authToken: String = request.getHeader(DARWINCOOKIENAME) ?:
-                    request.cookies.find ({ it.name == DARWINCOOKIENAME })?.let { it.value } ?:
+                    request.cookies?.find ({ it.name == DARWINCOOKIENAME })?.let { it.value } ?:
                     return AuthResult.LOGIN_NEEDED
 
             if (origPrincipal != null) {
                 if (origPrincipal !is DarwinUserPrincipal) {
                     log.trace("Found preexisting principal, converted to darwinprincipal: ${origPrincipal.name}")
                     request.authType = AUTHTYPE
-                    request.userPrincipal = origPrincipal.asDarwinPrincipal()
+                    request.userPrincipal = origPrincipal.asDarwinPrincipal(dataSource)
                 }
                 if (authToken!= null) response.addCookie(createAuthCookie(authToken))
 
@@ -238,8 +247,6 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
             }
 
             try {
-                val dataSource = DBConnection.getDataSource(DBRESOURCE)
-
                 accountDb(dataSource) {
                     cleanAuthTokens() // First get rid of no longer needed tokens
                     val user = userFromToken(authToken, request.remoteAddr)

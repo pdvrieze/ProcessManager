@@ -55,9 +55,9 @@ internal fun sha1(src:ByteArray):ByteArray = MessageDigest.getInstance("SHA1").d
 
 const val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
 
-private inline fun <R> accountDb(block:AccountDb.()->R): R = accountDb(DBRESOURCE, block)
-
 class AccountController : HttpServlet() {
+
+    private inline fun <R> accountDb(block:AccountDb.()->R): R = accountDb(DBRESOURCE, block)
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
@@ -114,15 +114,8 @@ class AccountController : HttpServlet() {
         } else {
             try {
                 req.login(username, password)
-            } catch (e: ServletException) {
-
-            }
-            accountDb {
-                if (verifyCredentials(username, password)) {
-                    val authtoken = createAuthtoken(username, req.remoteAddr)
-                    resp.addCookie(createAuthCookie(authtoken))
-
-                    if (redirect!=null) {
+                accountDb {
+                    if (redirect != null) {
                         resp.sendRedirect(resp.encodeRedirectURL(redirect))
                     } else {
                         if (req.htmlAccepted) {
@@ -131,21 +124,27 @@ class AccountController : HttpServlet() {
                             resp.writer.use { it.append("login:").appendln(username) }
                         }
                     }
-                } else {
-                    invalidCredentials(req, resp)
                 }
+            } catch (e: ServletException) {
+                log("Failure in authentication", e)
+                invalidCredentials(req, resp)
             }
         }
 
     }
 
-    private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).let { it.maxAge = MAXTOKENLIFETIME; it }
+    private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).let { it.maxAge = MAXTOKENLIFETIME; it.path="/"; it }
 
 
     private fun tryLogin(req: HttpServletRequest, resp: HttpServletResponse) {
-        if (req.userPrincipal!=null) {
+        if (req.authenticate(resp) && req.userPrincipal!=null) {
             accountDb {
-                loginSuccess(req, resp, this)
+                val redirect = req.getParameter(FIELD_REDIRECT)
+                if (redirect != null) {
+                    resp.sendRedirect(resp.encodeRedirectURL(redirect))
+                } else {
+                    loginSuccess(req, resp, this)
+                }
             }
         } else {
             if (req.htmlAccepted) {
@@ -290,7 +289,7 @@ class AccountController : HttpServlet() {
         } else {
             val token = req.cookies.find({ it.name == DARWINCOOKIENAME })?.value
 
-            if (token !=null) resp.addCookie(createAuthCookie(db.updateAuthToken(userName, token)))
+            if (token !=null) resp.addCookie(createAuthCookie(db.updateAuthToken(userName, token, req.remoteAddr)))
 
             if (req.htmlAccepted) {
                 resp.darwinResponse(req) {

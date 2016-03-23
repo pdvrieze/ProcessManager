@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  ~ Copyright (c) 2016.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+<!-- The contents of this file will be loaded for each web application -->
+<Context>
+
+    <!-- Default set of monitored resources -->
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+
+    <!-- Uncomment this to disable session persistence across Tomcat restarts -->
+    <!--
+    <Manager pathname="" />
+    -->
+
+    <!-- Uncomment this to enable Comet connection tacking (provides events
+         on session expiration as well as webapp lifecycle) -->
+    <!--
+    <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
+    -->
+    <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator" loginPage="/accounts2/login" resourceName="jdbc/webauthadm"/>
+
+    <ResourceLink name="jdbc/webauth" global="jdbc/webauth" type="javax.sql.DataSource" />
+
+    <Resource name="jdbc/webauthadm"
+              auth="Container"
+              driverClassName="com.mysql.jdbc.Driver"
+              factory="org.apache.naming.factory.BeanFactory"
+              password="QfWEsNjJeM"
+              type="com.zaxxer.hikari.HikariDataSource"
+              jdbcUrl="jdbc:mysql://localhost/webauth"
+              username="webauthadm"/>
+
+
+</Context>

@@ -38,7 +38,7 @@ const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
 /** Create a SHA1 digest of the source */
 internal fun sha1(src:ByteArray):ByteArray = MessageDigest.getInstance("SHA1").digest(src)
 
-const val DBRESOURCE = "java:comp/env/jdbc/webauth"
+const val DBRESOURCE = "jdbc/webauth"
 
 private inline fun SecureRandom.nextBytes(len:Int): ByteArray = ByteArray(len).apply { nextBytes(this) }
 
@@ -79,34 +79,15 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
         }
     }
 
-    fun userFromToken(token: String, remoteAddr: String): String? {
-        connection.prepareStatement("SELECT user FROM tokens WHERE token=? AND ip=?") {
-            params { + token + remoteAddr }
-            execute {
-                if (it.next() && it.isLast) {
-                    return it.getString(1).apply { updateTokenEpoch(token, remoteAddr) }
-                }
-                return null
-            }
-        }
-    }
-
-    private inline fun updateTokenEpoch(token:String, remoteAddr:String) {
-        connection.prepareStatement("UPDATE tokens SET epoch=? WHERE token=? and ip=?") {
-            params { + now + token + remoteAddr }
-        }
-
-    }
-
     private fun generateAuthToken() = Base64.encoder().encodeToString(random.nextBytes(32))
 
-    fun createAuthtoken(username: String, remoteAddr: String, keyid:Int=0):String {
+    fun createAuthtoken(username: String, remoteAddr: String, keyid:Int?=null):String {
         val token = generateAuthToken()
-        connection.prepareStatement("INSERT INTO tokens (`user`, `ip`, `keyid`, `token`, `epoch`) VALUES (?,?,?,?,?)") {
+        return connection.prepareStatement("INSERT INTO tokens (`user`, `ip`, `keyid`, `token`, `epoch`) VALUES (?,?,?,?,?)") {
             params { + username + remoteAddr + keyid + token + now }
-            if (executeUpdate()==0 ) throw AuthException("Failure to record the authentication token".appendWarnings(warningsIt))
+            if (executeUpdate()==0 ) throw AuthException("Failure to record the authentication token.".appendWarnings(warningsIt))
+            token
         }
-        return token
     }
 
     fun cleanChallenges() {
@@ -147,14 +128,36 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
 
     }
 
+    fun userFromToken(token: String, remoteAddr: String): String? {
+        connection.prepareStatement("SELECT user FROM tokens WHERE token=? AND ip=?") {
+            params { + token + remoteAddr }
+            execute {
+                if (it.next() && it.isLast) {
+                    return it.getString(1).apply { updateTokenEpoch(token, remoteAddr) }
+                }
+                return null
+            }
+        }
+    }
+
+    private inline fun updateTokenEpoch(token:String, remoteAddr:String) {
+        connection.prepareStatement("UPDATE tokens SET epoch=? WHERE token=? and ip=?") {
+            setLong(1, now)
+            setString(2, token)
+            setString(3, remoteAddr)
+            if (executeUpdate()==0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
+        }
+
+    }
+
     /**
      * Update the auth token for the given user. This may change the token, but normally doesn't.
      *
      * @return The relevant authToken.
      */
-    fun updateAuthToken(username: String, token: String): String {
-        connection.prepareStatement("UPDATE `tokens` SET `epoch`=UNIX_TIMESTAMP() WHERE user = ? and token=?") {
-            params { +username + token }
+    fun updateAuthToken(username: String, token: String, remoteAddr:String): String {
+        connection.prepareStatement("UPDATE `tokens` SET `epoch`= ? WHERE user = ? and token=? and ip=?") {
+            params { +now +username + token + remoteAddr }
             if (executeUpdate()==0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
         }
         return token
@@ -228,12 +231,6 @@ inline fun <R> accountDb(resourceName:String = DBRESOURCE, block:AccountDb.()->R
 }
 
 inline fun <R> accountDb(dataSource:DataSource, block:AccountDb.()->R): R {
-    dataSource.connection {
-        val accountDb = AccountDb(it)
-        accountDb.cleanAuthTokens()
-        it.commit()
-        return accountDb.block()
-
-    }
+    return dataSource.connection { AccountDb(it).block() }
 }
 
