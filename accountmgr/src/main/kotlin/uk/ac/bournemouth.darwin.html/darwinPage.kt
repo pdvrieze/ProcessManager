@@ -73,7 +73,8 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, title: Strin
                 div { id = "login"
                     val user = request.userPrincipal
                     if (user==null) {
-                        a(href=appRoot+"/accounts/login") { id="logout" }
+                        a(href=appRoot+"/accounts/login") { id="logout"
+                        +"login"}
                     } else {
                         a(href=appRoot+"/accounts/myaccount") {
                             id="username"
