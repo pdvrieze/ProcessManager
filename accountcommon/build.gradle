@@ -19,7 +19,8 @@ apply plugin: 'kotlin'
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile project(":DarwinCommon")
-
+    testCompile 'org.testng:testng:6.9.9'
+    testCompile 'mysql:mysql-connector-java:5.1.36'
 }
 
 
