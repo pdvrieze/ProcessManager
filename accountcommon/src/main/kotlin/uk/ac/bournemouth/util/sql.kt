@@ -50,11 +50,19 @@ class ConnectionHelper constructor(val connection: Connection) {
 
   inline fun <R> raw(block: (Connection) -> R): R = block(connection)
   inline fun <R> use(block: (ConnectionHelper) -> R): R = useHelper({ it.connection.close() }) {
-    connection.autoCommit = false
-    val v = block(this)
-    connection.commit()
-    return v
+    return transaction(block)
   }
+
+  inline fun <R> transaction(block: (ConnectionHelper) -> R):R {
+    connection.autoCommit=false
+    try {
+      return block(this).apply { commit() }
+    } catch (e:Exception) {
+      connection.rollback()
+      throw e
+    }
+  }
+
 
   /**
    * Creates a `PreparedStatement` object for sending

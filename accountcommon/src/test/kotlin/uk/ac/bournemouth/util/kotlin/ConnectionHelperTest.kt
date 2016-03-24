@@ -83,7 +83,7 @@ class ConnectionHelperTest {
   @Test
   fun testUseThrow() {
     try {
-      ConnectionHelper(conn!!).use {
+      ConnectionHelper(conn!!).transaction {
         simpleInsert(it)
         throw UnsupportedOperationException("test")
       }
