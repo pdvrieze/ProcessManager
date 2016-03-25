@@ -117,7 +117,7 @@ fun BODY.darwinMenu(request: HttpServletRequest, wrapper: HtmlBlockTag? = null):
 
 
     val content : HtmlBlockTag.() -> Unit = {
-        for (menuItem in getMenuItems(user)) {
+        for (menuItem in getMenuItems(request, user)) {
             a(href = menuItem.target.toString(), classes = "menuitem") {
                 +menuItem.label
             }
@@ -136,7 +136,7 @@ fun BODY.darwinMenu(request: HttpServletRequest, wrapper: HtmlBlockTag? = null):
 }
 
 
-private fun getMenuItems(user: Principal?) : List<MenuItem> {
+private fun getMenuItems(request:HttpServletRequest, user: Principal?) : List<MenuItem> {
     val menuItems: MutableList<MenuItem> = ArrayList()
     // Pages with /#/... urls are virtual pages. They don't have valid other urls
 
@@ -144,10 +144,8 @@ private fun getMenuItems(user: Principal?) : List<MenuItem> {
         menuItems += MenuItem("Welcome", "/")
     } else {
         menuItems += MenuItem("Home", "/")
-        if (user is DarwinPrincipal) {
-            if (user.isAdmin || user.hasRole("appprogramming")) {
-                menuItems += MenuItem("Trac", user.name + "/trac/")
-            }
+        if (request.isUserInRole("admin") || request.isUserInRole("appprogramming")) {
+            menuItems += MenuItem("Trac", user.name + "/trac/")
         }
     }
     menuItems += MenuItem("About", "/#/about")
