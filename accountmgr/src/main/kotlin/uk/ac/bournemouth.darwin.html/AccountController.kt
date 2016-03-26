@@ -18,12 +18,11 @@ package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
 import net.sourceforge.migbase64.Base64
-import uk.ac.bournemouth.darwin.accounts.AccountDb
-import uk.ac.bournemouth.darwin.accounts.DARWINCOOKIENAME
-import uk.ac.bournemouth.darwin.accounts.MAXTOKENLIFETIME
-import uk.ac.bournemouth.darwin.accounts.accountDb
+import uk.ac.bournemouth.darwin.accounts.*
 import java.security.MessageDigest
 import java.security.Principal
+import java.text.DateFormat
+import java.util.*
 import javax.servlet.ServletException
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServlet
@@ -31,15 +30,6 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-internal const val FIELD_USERNAME = "username"
-internal const val FIELD_PASSWORD = "password"
-internal const val FIELD_PUBKEY = "pubkey"
-internal const val FIELD_REDIRECT = "redirect"
-internal const val FIELD_KEYID = "keyid"
-internal const val FIELD_RESPONSE = "response"
-internal const val FIELD_RESETTOKEN = "resettoken"
-internal const val FIELD_NEWPASSWORD1 = "newpassword1"
-internal const val FIELD_NEWPASSWORD2 = "newpassword2"
 
 //internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
 //internal const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
@@ -57,6 +47,19 @@ const val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
 
 class AccountController : HttpServlet() {
 
+    companion object {
+        internal const val FIELD_USERNAME = "username"
+        internal const val FIELD_PASSWORD = "password"
+        internal const val FIELD_PUBKEY = "pubkey"
+        internal const val FIELD_REDIRECT = "redirect"
+        internal const val FIELD_KEYID = "keyid"
+        internal const val FIELD_APPNAME = "app"
+        internal const val FIELD_RESPONSE = "response"
+        internal const val FIELD_RESETTOKEN = "resettoken"
+        internal const val FIELD_NEWPASSWORD1 = "newpassword1"
+        internal const val FIELD_NEWPASSWORD2 = "newpassword2"
+    }
+
     private inline fun <R> accountDb(block:AccountDb.()->R): R = accountDb(DBRESOURCE, block)
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -65,6 +68,7 @@ class AccountController : HttpServlet() {
             "/challenge" -> challenge(req, resp)
             "/chpasswd" -> chpasswd(req, resp)
             "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
+            "/myaccount" -> myAccount(req, resp)
             else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
     }
@@ -80,6 +84,53 @@ class AccountController : HttpServlet() {
 
     }
 
+    private fun myAccount(req: HttpServletRequest, resp: HttpServletResponse) {
+        authenticatedResponse(req, resp) {
+            val user:String = req.userPrincipal.name
+            accountDb {
+                val alias = alias(user)
+                val displayName = if (alias.isNullOrBlank()) fullname(user) else alias
+                resp.darwinResponse(req, "My Account", "My Account - ${displayName ?: user}") {
+                    section {
+                        h1 { +"Account" }
+                        p {
+                            if (alias == null) {
+                                a { onClick = "setAlias(\"${displayName}\")"; +"Set alias" }
+                            } else {
+                                +"Alias: ${alias} "
+                                a { onClick = "setAlias(\"${alias}\")"; +"change" }
+                            }
+                        }
+                        if (isLocalAccount(user)) p { a(href = "chpasswd") { +"change password" } }
+                    }
+                    val keys = keyInfo(user)
+                    if (keys.size>0) {
+                        section {
+                            h1 { +"Authorizations" }
+                            table {
+                                thead {
+                                    tr { th { +"Application" }; th { +"Last use" }; th {} }
+                                }
+                                tbody {
+                                    for(key in keys) {
+                                        tr {
+                                            td { +(key.appname ?: "<unknown>" )}
+                                            td { +(key.lastUse.let { if (it<10000) "never" else DateFormat.getDateTimeInstance().format(Date(it)) })}
+                                            td { a { onClick="forget(${key.keyId})"; +"forget"} }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+    }
+
     private fun registerkey(req: HttpServletRequest, resp: HttpServletResponse) {
         val username = req.getParameter(FIELD_USERNAME)
         val password = req.getParameter(FIELD_PASSWORD)
@@ -89,13 +140,14 @@ class AccountController : HttpServlet() {
         } else {
 
             val pubkey = req.getParameter(FIELD_PUBKEY)
+            val appname:String? = req.getParameter(FIELD_APPNAME)
             accountDb(DBRESOURCE) {
                 if (verifyCredentials(username, password)) {
                     if (pubkey.isNullOrBlank()) {
                         resp.contentType("text/plain")
                         resp.writer.use { it.append("authenticated ").appendln(username) }
                     } else {
-                        registerkey(username, pubkey, keyid?.toLong())
+                        registerkey(username, pubkey, appname, keyid?.toLong())
                     }
 
                 } else {
@@ -119,7 +171,7 @@ class AccountController : HttpServlet() {
                         resp.sendRedirect(resp.encodeRedirectURL(redirect))
                     } else {
                         if (req.htmlAccepted) {
-                            loginSuccess(req, resp, this)
+                            loginSuccess(req, resp)
                         } else {
                             resp.writer.use { it.append("login:").appendln(username) }
                         }
@@ -135,23 +187,28 @@ class AccountController : HttpServlet() {
 
     private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).let { it.maxAge = MAXTOKENLIFETIME; it.path="/"; it }
 
-
-    private fun tryLogin(req: HttpServletRequest, resp: HttpServletResponse) {
-        if (req.authenticate(resp) && req.userPrincipal!=null) {
-            accountDb {
-                val redirect = req.getParameter(FIELD_REDIRECT)
-                if (redirect != null) {
-                    resp.sendRedirect(resp.encodeRedirectURL(redirect))
-                } else {
-                    loginSuccess(req, resp, this)
-                }
-            }
+    private fun authenticatedResponse(req:HttpServletRequest, resp: HttpServletResponse, condition: (HttpServletRequest)->Boolean = { true }, block: ()->Unit) {
+        if (req.authenticate(resp) && req.userPrincipal!=null && condition(req)) {
+            block()
         } else {
             if (req.htmlAccepted) {
                 loginScreen(req, resp)
             } else {
                 resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
                 resp.writer.use { it.appendln("error:Login is required\n") }
+            }
+        }
+    }
+
+    private fun tryLogin(req: HttpServletRequest, resp: HttpServletResponse) {
+        authenticatedResponse(req, resp) {
+            accountDb {
+                val redirect = req.getParameter(FIELD_REDIRECT)
+                if (redirect != null) {
+                    resp.sendRedirect(resp.encodeRedirectURL(redirect))
+                } else {
+                    loginSuccess(req, resp)
+                }
             }
         }
     }
@@ -164,7 +221,25 @@ class AccountController : HttpServlet() {
             issueChallenge(req, resp, keyId)
         } else {
             val response = Base64.decoder().decode(responseParam)
-            //handleResponse(req, resp, keyId, response)
+            handleResponse(req, resp, keyId, response)
+        }
+    }
+
+    private fun handleResponse(req: HttpServletRequest, resp: HttpServletResponse, keyId: Long, response: ByteArray) {
+        try {
+            accountDb {
+                val user = userFromChallengeResponse(keyId, req.remoteAddr, response)
+                if (user!=null) {
+                    val authtoken = createAuthtoken(user, req.remoteAddr, keyId)
+                    resp.addHeader("Content-type", "text/plain")
+                    resp.addCookie(createAuthCookie(authtoken))
+                    resp.writer.use { it.append(authtoken) }
+                } else {
+                    resp.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                }
+            }
+        } catch(e:AuthException) {
+            resp.darwinError(req=req, message=e.message, code=e.errorCode, cause = e)
         }
     }
 
@@ -282,20 +357,14 @@ class AccountController : HttpServlet() {
         }
     }
 
-    private fun loginSuccess(req: HttpServletRequest, resp: HttpServletResponse, db: AccountDb) {
+    private fun loginSuccess(req: HttpServletRequest, resp: HttpServletResponse) {
         val userName = req.userPrincipal?.name
         if (userName==null) {
             loginScreen(req, resp)
         } else {
-            val token = req.cookies.find({ it.name == DARWINCOOKIENAME })?.value
-
-            if (token !=null) resp.addCookie(createAuthCookie(db.updateAuthToken(userName, token, req.remoteAddr)))
-
             if (req.htmlAccepted) {
-                resp.darwinResponse(req) {
-                    resp.darwinResponse(request = wrapUser(req, userName), title = "Welcome", pageTitle = "Welcome - Login scucessful") {
-                        p { +"Congratulations with successfully authenticating on darwin." }
-                    }
+                resp.darwinResponse(request = req, title = "Welcome", pageTitle = "Welcome - Login successful") {
+                    p { +"Congratulations with successfully authenticating on darwin." }
                 }
             } else {
                 resp.writer.use { it.append("login:").appendln(userName) }
@@ -313,8 +382,8 @@ class AccountController : HttpServlet() {
     }
 
     private fun loginScreen(req: HttpServletRequest, resp: HttpServletResponse, errorMsg:String? = null) {
-        resp.darwinResponse(req) {
-            this.darwinDialog("login") {
+        resp.darwinResponse(req, "Please log in") {
+            this.darwinDialog("Log in") {
                 if (errorMsg!=null) {
                     div("errorMsg") { +errorMsg }
                 }
