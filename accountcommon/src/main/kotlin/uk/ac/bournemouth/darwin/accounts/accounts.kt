@@ -18,6 +18,7 @@ package uk.ac.bournemouth.darwin.accounts
 
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.util.kotlin.sql.ConnectionHelper
+import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
 import uk.ac.bournemouth.util.kotlin.sql.appendWarnings
 import uk.ac.bournemouth.util.kotlin.sql.connection
 import java.math.BigInteger
@@ -27,7 +28,6 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPublicKeySpec
-import java.util.*
 import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
@@ -158,14 +158,32 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
   }
 
   fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null) {
+
+    // Helper function for the shared code that determines the application name to use
+    fun realAppname(sql:String, setparams: StatementHelper.(String) -> Unit) : String? {
+      var result= appname ?: return null
+
+      var idx =1
+      while (connection.prepareStatement(sql) { setparams(result); executeHasRows() }) {
+        result="${appname} ${idx}"
+        idx++
+      }
+
+      return result
+    }
+
     if (keyid != null) {
-      connection.prepareStatement("UPDATE `pubkeys` SET pubkey=? , appname=? WHERE `keyid`=? AND `user`=?") {
-        params(pubkey) + appname + keyid + user
+      var realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=? AND keyid!=?") { it-> params(user) + it + keyid}
+
+      connection.prepareStatement("UPDATE `pubkeys` SET pubkey=?, appname=? WHERE `keyid`=? AND `user`=?") {
+        params(pubkey) +realappname+ keyid + user
         if (executeUpdate()==0) throw AuthException("Failure to update the authentication key")
       }
     } else {
+      var realappname= realAppname("SELECT appname FROM pubkeys WHERE `user`=? AND appname=?") { it-> params(user) + it }
+
       connection.prepareStatement("INSERT INTO `pubkeys` (user, appname, pubkey, lastUse) VALUES (?,?,?,?)") {
-        params(user) + appname + pubkey + now
+        params(user) + realappname + pubkey + now
         if (executeUpdate()==null) throw AuthException("Failure to store the authentication key")
       }
     }
