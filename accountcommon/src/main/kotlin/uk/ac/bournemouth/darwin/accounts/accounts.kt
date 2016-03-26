@@ -20,8 +20,15 @@ import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.util.kotlin.sql.ConnectionHelper
 import uk.ac.bournemouth.util.kotlin.sql.appendWarnings
 import uk.ac.bournemouth.util.kotlin.sql.connection
+import java.math.BigInteger
+import java.net.HttpURLConnection
+import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.security.interfaces.RSAPublicKey
+import java.security.spec.RSAPublicKeySpec
+import java.util.*
+import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
 
@@ -81,7 +88,7 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
 
   private fun generateAuthToken() = Base64.encoder().encodeToString(random.nextBytes(32))
 
-  fun createAuthtoken(username: String, remoteAddr: String, keyid: Int? = null): String {
+  fun createAuthtoken(username: String, remoteAddr: String, keyid: Long? = null): String {
     val token = generateAuthToken()
     return connection.prepareStatement("INSERT INTO tokens (`user`, `ip`, `keyid`, `token`, `epoch`) VALUES (?,?,?,?,?)") {
       params(username) + remoteAddr + keyid + token + now
@@ -111,21 +118,57 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
-  fun registerkey(user: String, pubkey: String, keyid: Long? = null) {
-    if (keyid != null) {
-      connection.prepareStatement("UPDATE `pubkeys` SET privkey=? WHERE `keyid`=? AND `user`=?") {
-        params(pubkey) + keyid + user
+  private fun toRSAPubKey(keyData:String):RSAPublicKey {
+    val colPos = keyData.indexOf(':')
+    val modulus = BigInteger(Base64.decoder().decode(keyData.substring(0, colPos)))
+    val publicExponent = BigInteger(Base64.decoder().decode(keyData.substring(colPos+1)))
 
+    val factory = KeyFactory.getInstance("RSA")
+    return factory.generatePublic(RSAPublicKeySpec(modulus, publicExponent)) as RSAPublicKey
+  }
+
+  fun userFromChallengeResponse(keyId:Long, requestIp:String, response:ByteArray): String? {
+    cleanChallenges()
+    var challenge:ByteArray?=null
+    connection.prepareStatement("SELECT `challenge`, `requestip` FROM challenges WHERE keyid=?") {
+      params(keyId)
+      execute { rs ->
+        if (rs.next()) {
+          challenge = rs.getString(1)?.let { Base64.decoder().decode(it) }
+          val remoteAddr = rs.getString(2)
+          if (requestIp != remoteAddr || challenge == null) throw AuthException("Invalid challenge", errorCode = HttpURLConnection.HTTP_UNAUTHORIZED)
+        } else {
+          return null
+        }
+      }
+    }
+
+    var user:String? = null
+    val pubkey = connection.prepareStatement("SELECT user, pubkey FROM pubkeys WHERE keyid=?") {
+      params(keyId)
+      execute { rs ->
+        if (rs.next()) { user = rs.getString(1) ;rs.getString(2)?.let { toRSAPubKey(it) }} else null
+      }
+    } ?: throw AuthException("No suitable public key found", errorCode = HttpURLConnection.HTTP_UNAUTHORIZED)
+
+    val rsa = Cipher.getInstance("RSA")
+    rsa.init(Cipher.DECRYPT_MODE, pubkey)
+    val decryptedResponse = rsa.doFinal(response)
+    if (decryptedResponse==challenge) return user!! else return null
+  }
+
+  fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null) {
+    if (keyid != null) {
+      connection.prepareStatement("UPDATE `pubkeys` SET pubkey=? , appname=? WHERE `keyid`=? AND `user`=?") {
+        params(pubkey) + appname + keyid + user
+        if (executeUpdate()==0) throw AuthException("Failure to update the authentication key")
       }
     } else {
-
+      connection.prepareStatement("INSERT INTO `pubkeys` (user, appname, pubkey, lastUse) VALUES (?,?,?,?)") {
+        params(user) + appname + pubkey + now
+        if (executeUpdate()==null) throw AuthException("Failure to store the authentication key")
+      }
     }
-    /*
-        if ($stmt=$DB->prepare('UPDATE `pubkeys` SET privkey=? WHERE `keyid`=? AND `user`=?')) {
-          $stmt->bind_param("sis", $PUBKEY, $REQUESTKEYID, $USERNAME);
-
-     */
-    throw UnsupportedOperationException("Not implemented yet")
   }
 
   fun userFromToken(token: String, remoteAddr: String): String? {
@@ -182,6 +225,13 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
+  fun keyInfo(user:String) : List<out KeyInfo>  {
+    connection.prepareStatement("SELECT keyid, appname, lastUse FROM pubkeys where user=?") {
+      params(user)
+      return executeEach { rs -> KeyInfo(rs.getLong(1), rs.getString(2), rs.getLong(3)) }
+    }
+  }
+
   fun cleanAuthTokens() {
     connection.prepareStatement("DELETE FROM tokens WHERE `epoch` < ?") {
       setLong(1, now - MAXTOKENLIFETIME)
@@ -209,10 +259,35 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
+  fun alias(user: String): String? {
+    connection.prepareStatement("SELECT alias FROM users WHERE user=?") {
+      params(user)
+      return stringResult()
+    }
+  }
+
+  fun fullname(user:String): String? {
+    connection.prepareStatement("SELECT fullname FROM users WHERE user=?") {
+      params(user)
+      return stringResult()
+    }
+  }
+
+  fun isLocalAccount(user:String): Boolean {
+    connection.prepareStatement("SELECT password FROM users WHERE user=?") {
+      params(user)
+      return ! stringResult().isNullOrBlank()
+    }
+  }
+
 }
 
+class KeyInfo(val keyId:Long, val appname:String?, val lastUse: Long)
 
-class AuthException(msg: String, cause: Throwable? = null) : RuntimeException(msg, cause) {}
+class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=HttpURLConnection.HTTP_INTERNAL_ERROR) : RuntimeException(msg, cause) {
+  override val message: String
+    get() = super.message!!
+}
 
 
 /** Helper function to create, use and dismiss an [AccountDb] instance. It will open the database and execute the
