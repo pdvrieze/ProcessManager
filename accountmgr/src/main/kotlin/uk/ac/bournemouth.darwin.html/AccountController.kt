@@ -48,16 +48,16 @@ const val DBRESOURCE = "java:comp/env/jdbc/webauthadm"
 class AccountController : HttpServlet() {
 
     companion object {
-        internal const val FIELD_USERNAME = "username"
-        internal const val FIELD_PASSWORD = "password"
-        internal const val FIELD_PUBKEY = "pubkey"
-        internal const val FIELD_REDIRECT = "redirect"
-        internal const val FIELD_KEYID = "keyid"
-        internal const val FIELD_APPNAME = "app"
-        internal const val FIELD_RESPONSE = "response"
-        internal const val FIELD_RESETTOKEN = "resettoken"
-        internal const val FIELD_NEWPASSWORD1 = "newpassword1"
-        internal const val FIELD_NEWPASSWORD2 = "newpassword2"
+        const val FIELD_USERNAME = "username"
+        const val FIELD_PASSWORD = "password"
+        const val FIELD_PUBKEY = "pubkey"
+        const val FIELD_REDIRECT = "redirect"
+        const val FIELD_KEYID = "keyid"
+        const val FIELD_APPNAME = "app"
+        const val FIELD_RESPONSE = "response"
+        const val FIELD_RESETTOKEN = "resettoken"
+        const val FIELD_NEWPASSWORD1 = "newpassword1"
+        const val FIELD_NEWPASSWORD2 = "newpassword2"
     }
 
     private inline fun <R> accountDb(block:AccountDb.()->R): R = accountDb(DBRESOURCE, block)
@@ -266,7 +266,7 @@ class AccountController : HttpServlet() {
     }
 
     private fun showChangeScreen(req: HttpServletRequest, resp: HttpServletResponse, message: String? = null, resetToken: String? = null, changedUser: String? = null) {
-        resp.darwinResponse(request = req, title="Change password", checkuser = false) {
+        resp.darwinResponse(request = req, windowTitle ="Change password", checkuser = false) {
             darwinDialog("Change password") {
                 if (message!=null) div("warning") { +message }
                 form(method = FormMethod.post) {
@@ -363,7 +363,7 @@ class AccountController : HttpServlet() {
             loginScreen(req, resp)
         } else {
             if (req.htmlAccepted) {
-                resp.darwinResponse(request = req, title = "Welcome", pageTitle = "Welcome - Login successful") {
+                resp.darwinResponse(request = req, windowTitle = "Welcome", pageTitle = "Welcome - Login successful") {
                     p { +"Congratulations with successfully authenticating on darwin." }
                 }
             } else {

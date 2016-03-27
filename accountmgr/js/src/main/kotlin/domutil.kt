@@ -1,3 +1,10 @@
+
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import kotlin.dom.childElements
+import kotlin.dom.children
+import kotlin.dom.removeFromParent
+
 /*
  * Copyright (c) 2016.
  *
@@ -14,26 +21,26 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-include ':DarwinGenerators'
-include ':android-auth'
-include ':PMEditor'
-include ':DarwinClients'
-include ':DarwinCommon'
-include ':darwinlib'
-include ':java-common'
-include ':DarwinJavaApi'
-include ':PE-common'
-include ':JavaCommonApi'
-include ':PE-dataservices'
-include ':PEUserMessageHandler'
-include ':ProcessEngine'
-include ':PE-diagram'
-include ':DarwinRealm'
-include ':DarwinServices'
-include ':PE-server'
-include ':darwin-sql'
-include ':accountmgr'
-include ':accountmgr:js'
-include ':accountcommon'
-include ':darwin:jvm'
-include ':darwin:js'
+/**
+ * Created by pdvrieze on 27/03/16.
+ */
+
+const val BUTTON_DEFAULT: Short=0
+
+inline fun Element.removeChildElementIf(predicate:(Element)-> Boolean) {
+  for(childElement in childElements()) {
+    if(predicate(childElement)) {
+      childElement.removeFromParent()
+    }
+  }
+}
+
+@native("encodeURI") fun encodeURI(uri: dynamic):String? = noImpl
+
+inline fun Element.removeChildIf(predicate:(Node)-> Boolean) {
+  for(childNode in children()) {
+    if(predicate(childNode)) {
+      childNode.removeFromParent()
+    }
+  }
+}

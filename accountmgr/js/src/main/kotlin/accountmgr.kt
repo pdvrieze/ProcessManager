@@ -14,26 +14,21 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-include ':DarwinGenerators'
-include ':android-auth'
-include ':PMEditor'
-include ':DarwinClients'
-include ':DarwinCommon'
-include ':darwinlib'
-include ':java-common'
-include ':DarwinJavaApi'
-include ':PE-common'
-include ':JavaCommonApi'
-include ':PE-dataservices'
-include ':PEUserMessageHandler'
-include ':ProcessEngine'
-include ':PE-diagram'
-include ':DarwinRealm'
-include ':DarwinServices'
-include ':PE-server'
-include ':darwin-sql'
-include ':accountmgr'
-include ':accountmgr:js'
-include ':accountcommon'
-include ':darwin:jvm'
-include ':darwin:js'
+/**
+ * Created by pdvrieze on 26/03/16.
+ */
+package accountmgr
+
+import kotlin.browser.document
+
+
+fun main(args: Array<String>) {
+  val el = document.createElement("div")
+  el.appendChild(document.createTextNode("Hello!"))
+  document.body!!.appendChild(el)
+
+  val counterDiv = document.createElement("div")
+  val counterText = document.createTextNode("Counter!")
+  counterDiv.appendChild(counterText)
+  document.body!!.appendChild(counterDiv)
+}

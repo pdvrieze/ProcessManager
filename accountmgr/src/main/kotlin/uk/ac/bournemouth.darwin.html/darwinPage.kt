@@ -30,16 +30,23 @@ fun HttpServletResponse.contentType(type: String) {
 
 /**
  * Method that encapsulates the darwin web template.
+ *
+ * @param request The request to respond to
+ * @param windowTitle The title that should be in the head element
+ * @param pageTitle The title to display on page (if not the same as windowTitle)
+ * @param checkuser If `false` then don't attempt to do any user related database lookups
+ * @param lightweight Should the page be lightweight (not load the javascript)
+ * @param bodyContent The closure that creates the actual body content of the document.
  */
-fun HttpServletResponse.darwinResponse(request: HttpServletRequest, title: String = "Darwin", pageTitle: String? = null, checkuser: Boolean = true, lightweight: Boolean = false, bodyContent: HtmlBlockTag.() -> Unit): Unit {
+fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle: String = "Darwin", pageTitle: String? = null, checkuser: Boolean = true, lightweight: Boolean = false, bodyContent: HtmlBlockTag.() -> Unit): Unit {
   val result = writer
   val appRoot = request.servletPath
 
-  if (request.getHeader("X-Darwin") != null) {
+  if (request.getHeader("X-Darwin")?.contains("chrome") ?: false) {
     contentType("text/xml")
     result.append("<?xml version=\"1.0\" ?>\n")
     result.appendXML().partialHTML {
-      title(title)
+      title(windowTitle, pageTitle)
       body() { bodyContent }
     }
   } else {
@@ -48,7 +55,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, title: Strin
     result.appendHTML().html() {
 
       head() {
-        title(title)
+        title(windowTitle)
         link(rel = "stylesheet", href = appRoot + "css/darwin.css")
         meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
         if (!lightweight) {
@@ -65,7 +72,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, title: Strin
           }
           span() {
             id = "title"
-            +(pageTitle ?: title)
+            +(pageTitle ?: windowTitle)
           }
         }
 
@@ -105,7 +112,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, title: Strin
 }
 
 fun HttpServletResponse.darwinError(req: HttpServletRequest, message: String, code: Int = 500, status: String = "Server error", cause: Exception? = null) {
-  this.darwinResponse(req, title = "$code $status", checkuser = false) {
+  this.darwinResponse(req, windowTitle = "$code $status", checkuser = false) {
     h2 { +status }
     p {
       style = "margin-top: 2em"
@@ -166,7 +173,10 @@ private fun getMenuItems(request: HttpServletRequest, user: Principal?): List<Me
 class PartialHTML(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) : HTMLTag("root", consumer, initialAttributes, null, false, false) {
 
   fun title(block: TITLE.() -> Unit = {}): Unit = TITLE(emptyMap, consumer).visit(block)
-  fun title(content: String = ""): Unit = TITLE(emptyMap, consumer).visit({ +content })
+  fun title(windowTitle: String = "", pageTitle:String? = null): Unit = TITLE(emptyMap, consumer).visit({
+    attributes.put("windowtitle", windowTitle)
+    +(pageTitle?:windowTitle)
+  })
 
   fun body(block: XMLBody.() -> Unit = {}): Unit = XMLBody(emptyMap, consumer).visit(block)
 }
