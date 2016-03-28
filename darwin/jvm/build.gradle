@@ -17,6 +17,11 @@
 apply plugin: 'kotlin'
 apply plugin: 'war'
 
+configurations {
+  javascript
+}
+
+/*
 sourceSets {
     main {
         kotlin {
@@ -24,14 +29,29 @@ sourceSets {
         }
     }
 }
+*/
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx.html.jvm:$kotlinx_html_version"
-//    compile project(":darwin:shared")
+    compile project(":darwin:shared")
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")
+    javascript project(":darwin:js")
+}
 
+war {
+    dependsOn configurations.javascript
+    configurations.javascript.each { File file ->
+      logger.warn(file.toString())
+      into("js") { 
+        from zipTree(file.absolutePath)
+	include { fileTreeElement ->
+	  def path = fileTreeElement.path
+	  path.endsWith(".js")&& path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
+	}
+      }
+    }
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
