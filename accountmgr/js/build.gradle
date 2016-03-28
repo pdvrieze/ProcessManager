@@ -37,7 +37,7 @@ jar {
     manifest {
         attributes(
                 "Specification-Title": "Kotlin JavaScript Lib",
-                "Kotlin-JS-Module-Name": "test-library"
+                "Kotlin-JS-Module-Name": "accountmgrjs"
         )
     }
 }
