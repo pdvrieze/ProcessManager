@@ -25,32 +25,19 @@ description = 'Common utility classes common to the process engine'
 //group = ['server', 'support']
 
 
-configurations {
-    providedCompile
-}
-
 
 sourceSets {
     main {
         java {
             srcDir 'src'
         }
-        compileClasspath+=configurations.providedCompile
     }
 
 }
 
 
 dependencies {
-    providedCompile project(':JavaCommonApi')
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    providedCompile "org.jetbrains:annotations:13.0"
-}
-
-
-idea {
-    module {
-        scopes.COMPILE.minus += [configurations.providedCompile]
-        scopes.PROVIDED.plus += [configurations.providedCompile]
-    }
+    compileOnly project(':JavaCommonApi')
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly "org.jetbrains:annotations:13.0"
 }

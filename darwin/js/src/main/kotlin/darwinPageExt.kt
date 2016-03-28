@@ -27,11 +27,19 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.NodeFilter
+import uk.ac.bournemouth.darwin.html.shared.*
 import kotlin.browser.document
 import kotlin.dom.appendText
 import kotlin.dom.clear
 import kotlin.dom.hasClass
 
+class JSServiceContext: ServiceContext {
+  override val accountMgrPath: String
+    get() = "/accounts/"
+  override val assetPath: String
+    get() = "/assets/"
+
+}
 
 class LoginDialog private constructor (val element: HTMLElement) {
   constructor(errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: INPUT.() -> Unit, visitCancel: (INPUT.() -> Unit)?): this(document.create.loginDialog(errorMsg=errorMsg, username=username, password =password, redirect=redirect, visitConfirm=visitConfirm, visitCancel=visitCancel)) {}

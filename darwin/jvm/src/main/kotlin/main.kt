@@ -1,11 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'idea'
-
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
-version = '1.0.0'
-description = 'A library that contains the shared code for diagrams that is not specific for a output system'
 /*
  * Copyright (c) 2016.
  *
@@ -22,20 +14,27 @@ description = 'A library that contains the shared code for diagrams that is not 
  * see <http://www.gnu.org/licenses/>.
  */
 
-//group = ['shared', 'process' ]
+/**
+ * Created by pdvrieze on 28/03/16.
+ */
 
+package uk.ac.bournemouth.darwin.html
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
+import kotlinx.html.img
+import javax.servlet.http.HttpServlet
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
+class MainServlet: HttpServlet() {
+  override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
+    when (req.pathInfo) {
+      "/" -> resp.darwinResponse(req) {
+        darwinDialog(title = "loading", id="banner") {
+          img(alt="loading...", src="/assets/progress_large.gif") { width="192"; height="192"}
         }
+      }
+      else -> super.doGet(req, resp)
+
     }
-
-}
-
-
-dependencies {
-    compile project(':PE-common')
-    compileOnly project(path: ':PE-common', configuration:'compileOnly')
+  }
 }

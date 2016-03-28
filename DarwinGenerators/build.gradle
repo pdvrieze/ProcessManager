@@ -48,6 +48,6 @@ jar {
 
 dependencies {
     compile project(':PE-common')
-    compile project(path: ':PE-common', configuration:'providedCompile')
-    compile 'org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}'
+    compile project(path: ':PE-common', configuration:'compileOnly')
+    compile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }

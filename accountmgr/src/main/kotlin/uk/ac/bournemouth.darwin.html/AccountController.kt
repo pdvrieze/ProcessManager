@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-
 //internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
 //internal const val MAXCHALLENGELIFETIME = 60 /* 60 seconds */
 //internal const val MAX_RESET_VALIDITY = 1800 /* 12 hours */
@@ -214,8 +213,8 @@ class AccountController : HttpServlet() {
     }
 
     private fun challenge(req: HttpServletRequest, resp: HttpServletResponse) {
-        val keyId = req.getParameter(FIELD_KEYID).toLong()
-        if (keyId==null) resp.darwinError(req, "Insufficient credentials", 403, "Forbidden")
+        val keyId = req.getParameter(FIELD_KEYID)?.toLong()
+        if (keyId==null) { resp.darwinError(req, "Insufficient credentials", 403, "Forbidden"); return }
         val responseParam = req.getParameter(FIELD_RESPONSE)
         if (responseParam==null) {
             issueChallenge(req, resp, keyId)
@@ -244,7 +243,6 @@ class AccountController : HttpServlet() {
     }
 
     private fun issueChallenge(req:HttpServletRequest, resp: HttpServletResponse, keyid: Long) {
-        val requestIp = req.remoteAddr
         accountDb {
             cleanChallenges()
             val challenge = newChallenge(keyid, req.remoteAddr) // This should fail on an incorrect keyid due to integrity constraints
@@ -320,6 +318,7 @@ class AccountController : HttpServlet() {
             return
         }
 
+        if (resetToken==null) req.login(changedUser, origPasswd) // check the username/password again, if there is no reset token
         if (newPasswd1!=newPasswd2) {
             val message = if (changedUser!=null) {
                 "Please provide two identical copies of the new password"

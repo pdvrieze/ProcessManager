@@ -1,11 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'idea'
-
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
-version = '1.0.0'
-description = 'A library that contains the shared code for diagrams that is not specific for a output system'
 /*
  * Copyright (c) 2016.
  *
@@ -22,20 +14,23 @@ description = 'A library that contains the shared code for diagrams that is not 
  * see <http://www.gnu.org/licenses/>.
  */
 
-//group = ['shared', 'process' ]
-
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
-        }
-    }
-
-}
-
+apply plugin: 'kotlin'
 
 dependencies {
-    compile project(':PE-common')
-    compileOnly project(path: ':PE-common', configuration:'compileOnly')
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx.html.jvm:$kotlinx_html_version"
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+//compileKotlin2Js {
+//    kotlinOptions.metaInfo = true
+//}
+
+
+idea {
+    module {
+        name="darwinshared"
+    }
 }

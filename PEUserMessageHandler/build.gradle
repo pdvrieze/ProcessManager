@@ -169,10 +169,10 @@ tomcat {
 }
 */
 dependencies {
-    apiProvided "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 //    providedCompile "org.apache.tomcat:tomcatservlet-api:${tomcatVersion}"
-    apiProvided project(':DarwinJavaApi')
-    apiProvided project(path: ':PE-common', configuration:'providedCompile')
+    apiCompileOnly project(':DarwinJavaApi')
+    apiCompileOnly project(path: ':PE-common', configuration:'compileOnly')
 
     apiCompile project(':PE-common')
 
@@ -183,19 +183,12 @@ dependencies {
 
     testCompile 'org.testng:testng:6.9.9'
     testCompile 'xmlunit:xmlunit:1.6'
-    testCompile project(path: ':PE-common', configuration:'providedCompile')
+    testCompile project(path: ':PE-common', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
 
 }
 
 test {
     useTestNG()
-}
-
-idea {
-    module {
-        scopes.COMPILE.minus += [configurations.providedCompile, configurations.apiProvided]
-        scopes.PROVIDED.plus += [configurations.providedCompile, configurations.apiProvided]
-    }
 }
 

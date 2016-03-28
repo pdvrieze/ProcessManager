@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.bournemouth.darwin.html
+package uk.ac.bournemouth.darwin.html.shared
 
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
@@ -68,6 +68,27 @@ fun <T, C : TagConsumer<T>> C.darwinDialog(title: String, id: String? = null, bo
   }
 }
 
+fun DIV.loginPanelContent(context: ServiceContext, username: String?) {
+  consumer.loginPanelContent(context, username)
+}
+
+fun <T, C: TagConsumer<T>> C.loginPanelContent(context: ServiceContext, username: String?) {
+  if (username == null) {
+    a(href = context.accountMgrPath + "/login") {
+      id = "logout"
+      +"login"
+    }
+  } else {
+    a(href = context.accountMgrPath + "/myaccount") { id = "username"; +username }
+    span("hide")
+    a(href = context.accountMgrPath + "/logout") { id = "logout"; +"logout" }
+  }
+}
+
+interface ServiceContext {
+  val accountMgrPath:String
+  val assetPath:String
+}
 
 
 fun <T, C : TagConsumer<T>> C.loginDialog(errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: INPUT.() -> Unit, visitCancel: (INPUT.() -> Unit)?): T {

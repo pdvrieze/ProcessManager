@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2016.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+
+<web-app id="ProcessEngine" version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+    <servlet>
+        <servlet-name>mainServlet</servlet-name>
+        <servlet-class>uk.ac.bournemouth.darwin.html.MainServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/css/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/assets/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/darwinjs/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>mainServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
+</web-app>

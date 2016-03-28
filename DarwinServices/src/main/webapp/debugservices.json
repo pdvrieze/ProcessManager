@@ -3,7 +3,7 @@
     {
       "name": "auth",
       "protocol": "darwinauth",
-      "uri": "/account/"
+      "uri": "/accounts/"
     },
     {
       "name": "ProcessEngine",

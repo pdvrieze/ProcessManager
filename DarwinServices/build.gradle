@@ -45,15 +45,8 @@ task tomcatRun(dependsOn: ["classes"]) {
 
 dependencies {
     compile project(':PE-common')
-    myProvidedCompile project(path: ':PE-common', configuration:'providedCompile')
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-}
-
-idea {
-    module {
-        scopes.PROVIDED.plus += [configurations.providedCompile]
-        scopes.TEST.plus += [configurations.providedCompile]
-    }
+    myProvidedCompile project(path: ':PE-common', configuration:'compileOnly')
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }
 
 /*

@@ -29,8 +29,6 @@ def genClasses = ['nl.adaptivity.process.userMessageHandler.server.InternalEndpo
 
 configurations {
     codegen
-
-    providedCompile
 }
 
 sourceSets {
@@ -39,7 +37,6 @@ sourceSets {
             srcDir 'src'
             srcDir genDir
         }
-        compileClasspath+=configurations.providedCompile
     }
 }
 
@@ -98,15 +95,13 @@ dependencies {
     compile project(':JavaCommonApi')
     compile project(':java-common')
     compile project(':PE-common')
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
-    providedCompile project(path: ':PE-common', configuration:'providedCompile')
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly project(path: ':PE-common', configuration:'compileOnly')
 }
 
 
 idea {
     module {
-        scopes.COMPILE.minus += [configurations.providedCompile]
-        scopes.PROVIDED.plus += [configurations.providedCompile]
         sourceDirs -= genDir
         generatedSourceDirs += genDir
     }

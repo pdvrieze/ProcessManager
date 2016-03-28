@@ -24,27 +24,13 @@ description = 'A tomcat realm to work with the darwin authentication system'
 
 //group = 'serverclasspath'
 
-
-configurations {
-    providedCompile
-}
-
-
-sourceSets {
-    main {
-        compileClasspath+=configurations.providedCompile
-    }
-
-}
-
-
 dependencies {
-    providedCompile "org.apache.tomcat:tomcat-catalina:${tomcatVersion}"
+    compileOnly "org.apache.tomcat:tomcat-catalina:${tomcatVersion}"
     runtime dbcpSpec
 
     compile project(':DarwinJavaApi')
     compile project(':DarwinCommon')
     compile project(':accountcommon')
-    compile project(path: ':DarwinCommon', configuration:'providedCompile')
+    compile project(path: ':DarwinCommon', configuration:'compileOnly')
 
 }

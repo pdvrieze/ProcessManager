@@ -18,6 +18,9 @@ package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
+import uk.ac.bournemouth.darwin.html.shared.*
+import uk.ac.bournemouth.darwin.html.shared.appendXML
+import uk.ac.bournemouth.darwin.html.shared.loginPanelContent
 import java.net.URI
 import java.security.Principal
 import java.util.*
@@ -38,9 +41,10 @@ fun HttpServletResponse.contentType(type: String) {
  * @param lightweight Should the page be lightweight (not load the javascript)
  * @param bodyContent The closure that creates the actual body content of the document.
  */
-fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle: String = "Darwin", pageTitle: String? = null, checkuser: Boolean = true, lightweight: Boolean = false, bodyContent: HtmlBlockTag.() -> Unit): Unit {
+fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle: String = "Darwin", pageTitle: String? = null, checkuser: Boolean = true, includeLogin:Boolean = true, lightweight: Boolean = false, bodyContent: HtmlBlockTag.() -> Unit): Unit {
   val result = writer
   val appRoot = request.servletPath
+  val context: uk.ac.bournemouth.darwin.html.shared.ServiceContext = RequestServiceContext(request)
 
   if (request.getHeader("X-Darwin")?.contains("chrome") ?: false) {
     contentType("text/xml")
@@ -80,29 +84,21 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
 
         div {
           id = "login"
-          val user = request.userPrincipal
-          if (user == null) {
-            a(href = request.contextPath + "/login") {
-              id = "logout"
-              +"login"
-            }
-          } else {
-            a(href = request.contextPath + "/myaccount") {
-              id = "username"
-              +user.name
-            }
-            span("hide")
-            a(href = request.contextPath + "/logout") { id = "logout"; +"logout" }
-          }
-
+          loginPanelContent(context, request.userPrincipal?.name)
         }
 
-        div {
-          id = "content"
+        div { id = "content"
           bodyContent()
         }
-        div {
-          id = "footer"
+        if (includeLogin) {
+          // A mini form that we use to get username/password out of the account manager
+          form(action = "/accounts/login", method = FormMethod.post) {
+            id = "xloginform"; style = "display:none";
+            input(type = InputType.text, name = "username")
+            input(type = InputType.password, name = "password")
+          }
+        }
+        div { id = "footer"
           span { id = "divider" }
           +"Darwin is a Bournemouth University Project"
         }
@@ -184,9 +180,6 @@ class PartialHTML(initialAttributes: Map<String, String>, override val consumer:
 class XMLBody(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) : HTMLTag("body", consumer, initialAttributes, null, false, false), HtmlBlockTag
 
 
-/** Just inline for now, as this is just a forwarder. */
-inline fun <O : Appendable> O.appendXML(prettyPrint: Boolean = true): TagConsumer<O> = this.appendHTML(prettyPrint)
-
 fun <T, C : TagConsumer<T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T = PartialHTML(emptyMap, this).visitAndFinalize(this, block)
 
 val HttpServletRequest.htmlAccepted: Boolean
@@ -209,4 +202,11 @@ fun HtmlBlockTag.darwinDialog(title: String, id: String? = null, bodyContent: Fl
     }
   }
 
+}
+
+class RequestServiceContext(private val request: HttpServletRequest) : ServiceContext {
+  override val accountMgrPath: String
+    get() = "/accounts/"
+  override val assetPath: String
+    get() = "/assets/"
 }

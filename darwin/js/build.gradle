@@ -21,8 +21,17 @@ dependencies {
 //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-js-library:$kotlin_version"
     compile "org.jetbrains.kotlinx:kotlinx.html.js:$kotlinx_html_version"
-    compile project(":darwin:js")
 }
+
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs+="../shared/src/main/kotlin"
+        }
+    }
+}
+
 
 def outDir = "${buildDir}/kotlin2js/main/"
 
@@ -45,14 +54,15 @@ jar {
 jar.dependsOn(compileKotlin2Js)
 
 compileKotlin2Js {
-    kotlinOptions.outputFile = outDir + "accountmgr.js"
+    kotlinOptions.outputFile = outDir + "darwin.js"
     kotlinOptions.sourceMap = true
     kotlinOptions.suppressWarnings = true
     kotlinOptions.verbose = true
+    kotlinOptions.metaInfo = true
 }
 
 idea {
     module {
-        name="accountmgrjs"
+        name="darwinjs"
     }
 }

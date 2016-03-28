@@ -5,8 +5,6 @@ sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
 configurations {
-    providedCompile
-
     testJarConfig {
         extendsFrom testRuntime
     }
@@ -42,20 +40,6 @@ artifacts {
     testRuntime testJar
 }
 
-sourceSets {
-    main {
-        compileClasspath += configurations.providedCompile
-    }
-    test.compileClasspath += configurations.providedCompile
-}
-
-idea {
-    module {
-        scopes.PROVIDED.plus += [configurations.providedCompile]
-        scopes.TEST.plus += [configurations.providedCompile]
-    }
-}
-
 test {
     useTestNG()
 }
@@ -68,6 +52,6 @@ dependencies {
     testCompile 'xmlunit:xmlunit:1.6'
     testCompile 'org.mockito:mockito-core:1.9.5'
     testCompile project(':DarwinJavaApi')
-    providedCompile project(':DarwinJavaApi')
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly project(':DarwinJavaApi')
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }

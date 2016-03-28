@@ -4,10 +4,6 @@ apply plugin: 'idea'
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
-configurations {
-    providedCompile
-}
-
 version = '1.1.0'
 description = 'A library with generic support classes'
 /*
@@ -34,22 +30,13 @@ sourceSets {
         java {
             srcDir 'src'
         }
-        compileClasspath += configurations.providedCompile
     }
     test {
         java {
             srcDir 'test'
         }
-        compileClasspath += configurations.providedCompile
     }
 
-}
-
-idea {
-    module {
-        scopes.PROVIDED.plus += [configurations.providedCompile]
-        scopes.TEST.plus += [configurations.providedCompile]
-    }
 }
 
 test {
