@@ -21,11 +21,13 @@
 package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.img
+import kotlinx.html.stream.appendHTML
+import javax.servlet.Servlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-class MainServlet: HttpServlet() {
+class MainServlet: HttpServlet(), Servlet {
   override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
     when (req.pathInfo) {
       "/" -> resp.darwinResponse(req) {
@@ -33,7 +35,13 @@ class MainServlet: HttpServlet() {
           img(alt="loading...", src="/assets/progress_large.gif") { width="192"; height="192"}
         }
       }
-      else -> super.doGet(req, resp)
+      "/common/menu" -> {
+        resp.writer!!.use {
+          it.appendHTML().darwinMenu(req)
+        }
+      }
+
+      else -> resp.sendError(HttpServletResponse.SC_NOT_FOUND)
 
     }
   }

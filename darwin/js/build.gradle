@@ -17,6 +17,14 @@
 apply plugin: 'kotlin2js'
 apply plugin: 'idea'
 
+
+def gendir = file("${projectDir}/gen/sharedjs")
+def outDir = "${buildDir}/kotlin2js/main/"
+
+configurations {
+    shared
+}
+
 dependencies {
 //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-js-library:$kotlin_version"
@@ -27,13 +35,12 @@ dependencies {
 sourceSets {
     main {
         kotlin {
-            srcDirs+="../shared/src/main/kotlin"
+            srcDirs+=gendir
         }
     }
 }
 
 
-def outDir = "${buildDir}/kotlin2js/main/"
 
 
 jar {
@@ -53,7 +60,13 @@ jar {
 
 jar.dependsOn(compileKotlin2Js)
 
+task copyShared(type: Copy) {
+    from '../shared/src/main/kotlin'
+    into gendir
+}
+
 compileKotlin2Js {
+    dependsOn tasks.copyShared
     kotlinOptions.outputFile = outDir + "darwin.js"
     kotlinOptions.sourceMap = true
     kotlinOptions.suppressWarnings = true
@@ -61,8 +74,27 @@ compileKotlin2Js {
     kotlinOptions.metaInfo = true
 }
 
+clean.doLast {
+    gendir.deleteDir()
+}
+
 idea {
     module {
+        sourceDirs -= gendir
+        generatedSourceDirs += gendir
         name="darwinjs"
+/*
+
+        module.iml.withXml {
+            it.asNode().component.content.sourceFolder
+                    .find { it.@url.contains('/gen/') }
+                    .each { node ->
+                def attrs= attributes()
+                atts.put('generated', 'true')
+                logger.quiet("Updated generated folders")
+            }
+        }
+*/
+
     }
 }

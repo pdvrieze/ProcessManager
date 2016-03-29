@@ -42,7 +42,10 @@ jar {
     }
 }
 
-jar.dependsOn(compileKotlin2Js)
+jar{
+    dependsOn(compileKotlin2Js)
+    baseName='accountmgrjs'
+}
 
 compileKotlin2Js {
     kotlinOptions.outputFile = outDir + "accountmgr.js"
@@ -53,6 +56,6 @@ compileKotlin2Js {
 
 idea {
     module {
-        name="accountmgrjs"
+//        name="accountmgrjs"
     }
 }

@@ -27,10 +27,3 @@ targetCompatibility = JavaVersion.VERSION_1_8
 //compileKotlin2Js {
 //    kotlinOptions.metaInfo = true
 //}
-
-
-idea {
-    module {
-        name="darwinshared"
-    }
-}

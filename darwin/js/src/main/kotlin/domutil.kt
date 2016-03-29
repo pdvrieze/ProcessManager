@@ -1,10 +1,4 @@
 
-import org.w3c.dom.Element
-import org.w3c.dom.Node
-import kotlin.dom.childElements
-import kotlin.dom.children
-import kotlin.dom.removeFromParent
-
 /*
  * Copyright (c) 2016.
  *
@@ -24,6 +18,14 @@ import kotlin.dom.removeFromParent
 /**
  * Created by pdvrieze on 27/03/16.
  */
+
+package uk.ac.bournemouth.darwin.util
+
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import kotlin.dom.childElements
+import kotlin.dom.children
+import kotlin.dom.removeFromParent
 
 const val BUTTON_DEFAULT: Short=0
 

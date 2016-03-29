@@ -27,15 +27,19 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLFormElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.NodeFilter
-import uk.ac.bournemouth.darwin.html.shared.*
+import uk.ac.bournemouth.darwin.html.shared.ServiceContext
+import uk.ac.bournemouth.darwin.html.shared.loginDialog
 import kotlin.browser.document
 import kotlin.dom.appendText
 import kotlin.dom.clear
 import kotlin.dom.hasClass
 
 class JSServiceContext: ServiceContext {
+  private val accountsLoc = "/accounts"
   override val accountMgrPath: String
-    get() = "/accounts/"
+    get() {
+      return accountsLoc
+    }
   override val assetPath: String
     get() = "/assets/"
 

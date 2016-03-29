@@ -18,7 +18,7 @@ package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
-import uk.ac.bournemouth.darwin.html.shared.*
+import uk.ac.bournemouth.darwin.html.shared.ServiceContext
 import uk.ac.bournemouth.darwin.html.shared.appendXML
 import uk.ac.bournemouth.darwin.html.shared.loginPanelContent
 import java.net.URI
@@ -63,8 +63,9 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
         link(rel = "stylesheet", href = appRoot + "css/darwin.css")
         meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
         if (!lightweight) {
-          this.script(src = appRoot + "darwinjs/darwinjs.nocache.js", type = ScriptType.textJavaScript)
-          //                result.append("      <script type=\"text/javascript\" src=\"${request.servletPath}\"darwinjs/darwinjs.nocache.js\"></script>\n")
+          script(type= ScriptType.textJavaScript, src="/js/kotlin.js")
+          script(type= ScriptType.textJavaScript, src="/js/kotlinx.html.shared.js")
+          script(type= ScriptType.textJavaScript, src="/js/kotlinx.html.js.js")
         }
       }
       body() {
@@ -102,6 +103,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
           span { id = "divider" }
           +"Darwin is a Bournemouth University Project"
         }
+        script(type= ScriptType.textJavaScript, src="/js/darwin.js")
       }
     }
   }
@@ -120,11 +122,11 @@ fun HttpServletResponse.darwinError(req: HttpServletRequest, message: String, co
 
 class MenuItem(val label: String, val target: URI) { constructor(label: String, target: String) : this(label, URI.create(target)) }
 
-fun BODY.darwinMenu(request: HttpServletRequest, wrapper: HtmlBlockTag? = null): Unit {
+fun <T, C: TagConsumer<T>> C.darwinMenu(request:HttpServletRequest):T {
   val user = request.userPrincipal
 
-
-  val content: HtmlBlockTag.() -> Unit = {
+  return div() {
+    id = "menu"
     var first = true
     for (menuItem in getMenuItems(request, user)) {
       if (!first) +"\n" else first = false
@@ -133,16 +135,10 @@ fun BODY.darwinMenu(request: HttpServletRequest, wrapper: HtmlBlockTag? = null):
       }
     }
   }
+}
 
-  if (wrapper == null) {
-    div() {
-      id = "menu"
-      content()
-    }
-  } else {
-    wrapper.visitAndFinalize(consumer, content)
-  }
-
+fun FlowContent.darwinMenu(request: HttpServletRequest): Unit {
+  consumer.darwinMenu(request)
 }
 
 

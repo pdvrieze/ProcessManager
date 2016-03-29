@@ -52,6 +52,11 @@ tasks.war {
                 def path = fileTreeElement.path
                 path.endsWith(".js")&& path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
             }
+            exclude { f ->
+                def r = f.name.endsWith(".class") || (f.name.endsWith(".kjsm") && f.path.startsWith("kotlinx.html.shared"))
+                if (r) logger.info("Skipping inclusion of `${f.relativePath.pathString}` into javascript path")
+                return r
+            }
         }
     }
 }
@@ -60,9 +65,3 @@ artifacts { warConfig tasks.war }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
-
-idea {
-    module {
-        name="darwinjvm"
-    }
-}
