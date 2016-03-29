@@ -29,12 +29,16 @@ configurations {
     extraBootCp {
         description "This configuration allows for assembling all the jars for the boot classpath of catalina"
     }
+    warContents {
+        description "The contents of the combined war file"
+    }
+    runtime
 }
 
 dependencies {
-    tomcat "org.apache.tomcat:tomcat-catalina:${tomcatVersion}",
-            "org.apache.tomcat:tomcat-coyote:${tomcatVersion}",
-            "org.apache.tomcat:tomcat-jasper:${tomcatVersion}"
+    tomcat "org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}",
+            "org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}",
+            "org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}"
 //    tomcat dbcpSpec
 
     extraBootCp 'mysql:mysql-connector-java:5.1.36'
@@ -53,10 +57,12 @@ dependencies {
     tomcat project(path: ':ProcessEngine', configuration: 'compile')
     tomcat project(path: ':ProcessEngine', configuration: 'webCompile')*/
 //    tomcat project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
-    tomcat project(path: ':PEUserMessageHandler', configuration: 'runtime')
-    tomcat project(':DarwinServices')
-    tomcat project(path: ':ProcessEngine')
-    tomcat project(':accountmgr')
+//    compile project(':darwin:jvm')
+    warContents project(path: ':PEUserMessageHandler', configuration: 'runtime')
+    warContents project(':DarwinServices')
+    warContents project(path: ':darwin:jvm', configuration: 'warConfig')
+    warContents project(path: ':ProcessEngine')
+    warContents project(':accountmgr')
 /*    tomcatRunWar ':ProcessEngine:tomcatExtClasses'*/
 /*    tomcatRun project(':ProcessEngine').tasks['war']*/
 }
@@ -76,10 +82,11 @@ tomcat {
     users {
         user {
             username = 'pdvrieze'
-            password = 'secret'
+            password = 'geheim'
             roles = ['admin']
         }
     }
+
 }
 
 task assembleExtraBootCp(type: Copy) {
@@ -87,7 +94,65 @@ task assembleExtraBootCp(type: Copy) {
     into "${buildDir}/bootClasspath"
 }
 
+
+task war(type: War, overwrite:true, dependsOn: configurations.warContents) {
+//    dependsOn configurations.warContents
+    /*def seen = new HashSet<String>()*/
+    setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    configurations.warContents.each { File file ->
+        def depPath = file.path
+        if (depPath.endsWith("war")) {
+            into("/") {
+                logger.lifecycle("Extracting war ${file}")
+                from zipTree(file.absolutePath)
+                include { innerFile ->
+                    def path = innerFile.path
+                    def name = innerFile.name
+                    def result = name.endsWith(".js") && path.startsWith("META-INF/resources") || !(path.startsWith("META-INF/") || name.endsWith("web.xml") /*|| (name.endsWith(".jar")&& seen.contains(name))*/)
+                    /*if (name.endsWith(".jar")) { seen.add(name) }*/
+                    result
+                }
+            }
+        } else if (! (file.name.startsWith("gwt-user-") /*|| seen.contains(file.name)*/ )){
+//            seen.add(file.name)
+            into("/WEB-INF/lib") {
+                logger.lifecycle("Adding library $depPath")
+                from file
+            }
+        }
+    }
+//    into("/META-INF") { from file("src/main/webapp/META-INF/context.xml") }
+//    into("/WEB-INF") { from file("src/main/webapp/WEB-INF/web.xml") }
+}
+
+artifacts { runtime war }
+
+//    project(':darwin:jvm').task('war').outputs.each { File file ->
+//        def depPath = file.path
+//        if (depPath.endsWith("war")) {
+//            logger.info("Extracting war ${file}")
+//            into("/") {
+//                from zipTree(file.absolutePath)
+//                include { fileTreeElement ->
+//                    def path = fileTreeElement.path
+//                    path.endsWith(".js") && path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
+//                }
+//            }
+//        } else if (! (file.name.startsWith("gwt-user-") || seen.contains(file.name) )){
+//            logger.info("Adding library $depPath")
+//            seen.add(file.name)
+//            into("/WEB-INF/lib") {
+//                from file
+//            }
+//        }
+//
+//    }
+//    into("/META-INF") { from file("src/main/webapp/META-INF/context.xml") }
+//    into("/WEB-INF") { from file("src/main/webapp/WEB-INF/web.xml") }
+
+
 tomcatRun() {
+    dependsOn configurations.runtime
     doFirst {
 //        webAppClasspath=webAppClasspath.plus(project(':ProcessEngine').sourceSets.tomcat.runtimeClasspath)
         logger.lifecycle('Running Tomcat')
@@ -104,8 +169,8 @@ tomcatRun() {
 }
 
 
-[tomcatRun, tomcatRunWar]*.webDefaultXml = file ('config/web.xml')
-[tomcatRun, tomcatRunWar]*.configFile = file ('config/context.xml')
+[tomcatRun, tomcatRunWar]*.webDefaultXml = file ('src/main/webapp/WEB-INF/web.xml')
+[tomcatRun, tomcatRunWar]*.configFile = file ('src/main/webapp/META-INF/context.xml')
 
 
 //artifacts {

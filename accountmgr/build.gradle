@@ -18,7 +18,7 @@ apply plugin: 'kotlin'
 apply plugin: 'war'
 
 configurations {
-    jsFiles
+    javascript
 }
 
 dependencies {
@@ -28,12 +28,21 @@ dependencies {
     compile project(':darwin:jvm')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")
-    jsFiles project(':accountmgr:js')
+    javascript project(':accountmgr:js')
 }
 
 war {
-    dependsOn.add(configurations.jsFiles)
-//    from configurations.jsFiles into "js"
+    dependsOn configurations.javascript
+    configurations.javascript.each { File file ->
+        logger.info("Adding javascript dependency: "+file.toString())
+        into("js") {
+            from zipTree(file.absolutePath)
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js")&& path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
+            }
+        }
+    }
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8

@@ -17,6 +17,7 @@
 
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
+<!--
     <servlet>
         <servlet-name>default</servlet-name>
         <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
@@ -30,31 +31,7 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
-
-    <servlet>
-        <servlet-name>jsp</servlet-name>
-        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
-        <init-param>
-            <param-name>fork</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <init-param>
-            <param-name>xpoweredBy</param-name>
-            <param-value>false</param-value>
-        </init-param>
-        <load-on-startup>3</load-on-startup>
-    </servlet>
-
-    <!-- The mapping for the JSP servlet -->
-    <servlet-mapping>
-        <servlet-name>jsp</servlet-name>
-        <url-pattern>*.jsp</url-pattern>
-    </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>jsp</servlet-name>
-        <url-pattern>*.jspx</url-pattern>
-    </servlet-mapping>
+-->
 
   <!-- ==================== Default Session Configuration ================= -->
   <!-- You can set the default session timeout (in minutes) for all newly   -->
@@ -758,11 +735,13 @@
   <!-- here, so be sure that you include any of the default values that     -->
   <!-- you wish to include.                                                 -->
 
+<!--
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
         <welcome-file>index.htm</welcome-file>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
+-->
 
     <!-- XX_XX From services -->
     <servlet>
@@ -787,6 +766,11 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
 
+    <servlet-mapping>
+        <servlet-name>internalEndpointServlet</servlet-name>
+        <url-pattern>/PEUserMessageHandler/internal</url-pattern>
+    </servlet-mapping>
+
     <servlet>
         <servlet-name>externalEndpointServlet</servlet-name>
         <servlet-class>nl.adaptivity.process.messaging.EndpointServlet</servlet-class>
@@ -799,11 +783,6 @@
         <url-pattern>/PEUserMessageHandler/UserMessageService/*</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-        <servlet-name>internalEndpointServlet</servlet-name>
-        <url-pattern>/PEUserMessageHandler/internal</url-pattern>
-    </servlet-mapping>
-
     <!-- Default page to serve -->
     <welcome-file-list>
         <welcome-file>PEUserMessageHandler.html</welcome-file>
@@ -811,9 +790,12 @@
 
     <!-- XX_XX From ProcessEngine -->
 
+<!--
     <listener>
         <listener-class>nl.adaptivity.process.engine.servlet.PEContextListener</listener-class>
     </listener>
+-->
+
     <servlet>
         <servlet-name>processEngine</servlet-name>
         <servlet-class>nl.adaptivity.process.engine.servlet.ServletProcessEngine</servlet-class>
@@ -826,9 +808,42 @@
     </servlet-mapping>
 
 
+
+    <servlet>
+        <servlet-name>accountController</servlet-name>
+        <servlet-class>uk.ac.bournemouth.darwin.html.AccountController</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>accountController</servlet-name>
+        <url-pattern>/accounts/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>mainServlet</servlet-name>
+        <servlet-class>uk.ac.bournemouth.darwin.html.MainServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>mainServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+
     <servlet-mapping>
         <servlet-name>default</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <url-pattern>/css/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/assets/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/js/*</url-pattern>
     </servlet-mapping>
 
 </web-app>

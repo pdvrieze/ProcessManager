@@ -19,6 +19,7 @@ apply plugin: 'war'
 
 configurations {
   javascript
+  warConfig
 }
 
 /*
@@ -38,21 +39,24 @@ dependencies {
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")
     javascript project(":darwin:js")
+//    javascript project(":accountmgr:js")
 }
 
-war {
+tasks.war {
     dependsOn configurations.javascript
     configurations.javascript.each { File file ->
-      logger.warn(file.toString())
-      into("js") { 
-        from zipTree(file.absolutePath)
-	include { fileTreeElement ->
-	  def path = fileTreeElement.path
-	  path.endsWith(".js")&& path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
-	}
-      }
+        logger.info("Adding javascript dependency "+file.toString())
+        into("js") {
+            from zipTree(file.absolutePath)
+            include { fileTreeElement ->
+                def path = fileTreeElement.path
+                path.endsWith(".js")&& path.startsWith("META-INF/resources") || !path.startsWith("META-INF/")
+            }
+        }
     }
 }
+
+artifacts { warConfig tasks.war }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8

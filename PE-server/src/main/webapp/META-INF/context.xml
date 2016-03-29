@@ -34,7 +34,7 @@
 
     <!-- The authenticator module -->
 
-    <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"/>
+    <!--Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"/-->
     <!-- description="The authentication database"-->
     <Resource name="jdbc/webauth"
               auth="Container"
