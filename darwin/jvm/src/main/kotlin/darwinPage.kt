@@ -182,7 +182,7 @@ val HttpServletRequest.htmlAccepted: Boolean
     return getHeader("Accept")?.contains("text/html") ?: false
   }
 
-fun ContextTagConsumer<HtmlBlockTag>.darwinDialog(title: String, id: String? = null, bodyContent: FlowContent.() -> Unit = {}) {
+fun ContextTagConsumer<out HtmlBlockTag>.darwinDialog(title: String, id: String? = null, bodyContent: FlowContent.() -> Unit = {}) {
   div(classes = "dialog centerContents") {
     if (id != null) {
       this.id = id

@@ -52,16 +52,16 @@ class XMLBody(initialAttributes: Map<String, String>, override val consumer: Tag
 //inline fun ContextHtmlInlineTag.withContext(context:ServiceContext) = ContextHtmlInlineTag(context, this)
 
 
-class ContextTagConsumer<T>(val context:ServiceContext, private val delegate: TagConsumer<T>): TagConsumer<T> by delegate {
+class ContextTagConsumer<out T>(val context:ServiceContext, private val delegate: TagConsumer<out T>): TagConsumer<T> by delegate {
   @Suppress("NOTHING_TO_INLINE")
   inline final operator fun CharSequence.unaryPlus() = onTagContent(this)
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T,C:TagConsumer<T>> C.withContext(context:ServiceContext) = ContextTagConsumer<T>(context, this)
+inline fun <T,C:TagConsumer<out T>> C.withContext(context:ServiceContext) = ContextTagConsumer<T>(context, this)
 
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
-inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsumer<T>).withContext(context)
+inline fun <T:Tag> T.withContext(context:ServiceContext) = (consumer as TagConsumer<out T>).withContext(context)
 
 
 /** Just inline for now, as this is just a forwarder. */
@@ -77,9 +77,9 @@ class PartialHTML(initialAttributes: Map<String, String>, override val consumer:
 }
 
 
-fun <T, C : TagConsumer<T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T = PartialHTML(emptyMap, this).visitAndFinalize(this, block)
+fun <T, C : TagConsumer<out T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T = PartialHTML(emptyMap, this).visitAndFinalize(this, block)
 
-fun <T, C : TagConsumer<T>> C.darwinDialog(title: String, id: String? = null, positiveButton:String?="Ok", negativeButton:String?=null, vararg otherButtons:String, bodyContent: FlowContent.() -> Unit = {}):T {
+fun <T, C : ContextTagConsumer<T>> C.darwinDialog(title: String, id: String? = null, positiveButton:String?="Ok", negativeButton:String?=null, vararg otherButtons:String, bodyContent: ContextTagConsumer<*>.() -> Unit = {}):T {
   return div(classes = "dialog centerContents") {
     if (id != null) {
       this.id = id
@@ -88,7 +88,7 @@ fun <T, C : TagConsumer<T>> C.darwinDialog(title: String, id: String? = null, po
       h1(classes = "dlgTitle") { +title }
       div(classes = "dialogInner centerContents") {
         div(classes = "dlgContent") {
-          bodyContent()
+          withContext(context).bodyContent()
         }
         div(classes = "dlgButtons") {
           style="margin-top: 1em; float: right;"
@@ -118,7 +118,7 @@ fun DIV.loginPanelContent(context: ServiceContext, username: String?) {
   consumer.loginPanelContent(context, username)
 }
 
-fun <T, C: TagConsumer<T>> C.loginPanelContent(context: ServiceContext, username: String?) {
+fun <T, C: TagConsumer<out T>> C.loginPanelContent(context: ServiceContext, username: String?) {
   if (username == null) {
     a(href = context.accountMgrPath + "/login") {
       id = "logout"
@@ -142,7 +142,7 @@ interface ServiceContext {
 }
 
 
-fun <T, C : TagConsumer<T>> C.loginDialog(context: ServiceContext, errorMsg: String? = null, username: String? = null, password: String? = null, redirect: String? = null, cancelEnabled: Boolean = true): T {
+fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, errorMsg: String? = null, username: String? = null, password: String? = null, redirect: String? = null, cancelEnabled: Boolean = true): T {
   return darwinDialog(title="Log in",
                       positiveButton = "Log in",
                       negativeButton = if (cancelEnabled) "Cancel" else null) {

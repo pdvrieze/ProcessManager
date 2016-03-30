@@ -16,11 +16,14 @@
 
 package nl.adaptivity.darwin.html
 
-import kotlinx.html.*
+import kotlinx.html.TagConsumer
+import kotlinx.html.button
+import kotlinx.html.div
 import kotlinx.html.dom.create
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.span
+import kotlinx.html.span
 import org.w3c.dom.*
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -34,9 +37,7 @@ import org.w3c.xhr.FormData
 import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.html.JSServiceContext
 import uk.ac.bournemouth.darwin.html.LoginDialog
-import uk.ac.bournemouth.darwin.html.shared.ServiceContext
-import uk.ac.bournemouth.darwin.html.shared.darwinDialog
-import uk.ac.bournemouth.darwin.html.shared.loginPanelContent
+import uk.ac.bournemouth.darwin.html.shared.*
 import uk.ac.bournemouth.darwin.util.*
 import java.io.Closeable
 import kotlin.browser.document
@@ -373,8 +374,8 @@ private fun updateDialogTitle(string: String) {
 /**
  * @category ui_elements
  */
-private fun dialog(title: String, id: String? = null, content: FlowContent.() -> Unit) {
-  mContentPanel!!.appendHtml.darwinDialog(title, id, content)
+private fun dialog(title: String, id: String? = null, content: ContextTagConsumer<*>.() -> Unit) {
+  mContentPanel!!.appendHtml.withContext(context).darwinDialog(title = title, id = id, bodyContent = content)
 }
 
 private fun closeDialogs(event: dynamic = null) {

@@ -49,10 +49,10 @@
               auth="Container"
               driverClassName="com.mysql.jdbc.Driver"
               factory="org.apache.naming.factory.BeanFactory"
-              password="5glul9f3i4"
+              password="QfWEsNjJeM"
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/webauth"
-              username="webauth"/>
+              username="webauthadm"/>
 
   </GlobalNamingResources>
 
@@ -147,6 +147,9 @@
         <!--
         <Valve className="org.apache.catalina.authenticator.SingleSignOn" />
         -->
+
+        <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator"
+               resourceName="jdbc/webauth"/>
 
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html

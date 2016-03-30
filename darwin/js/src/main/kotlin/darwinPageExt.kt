@@ -28,6 +28,7 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.NodeFilter
 import uk.ac.bournemouth.darwin.html.shared.ServiceContext
 import uk.ac.bournemouth.darwin.html.shared.loginDialog
+import uk.ac.bournemouth.darwin.html.shared.withContext
 import uk.ac.bournemouth.darwin.util.visitDescendants
 import kotlin.browser.document
 import kotlin.dom.appendText
@@ -47,7 +48,7 @@ class JSServiceContext: ServiceContext {
 }
 
 class LoginDialog private constructor (val element: HTMLElement) {
-  constructor(context:ServiceContext, errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: (HTMLElement) -> Unit, visitCancel: ((HTMLElement) -> Unit)?): this(document.create.loginDialog(context=context, errorMsg=errorMsg, username=username, password =password, redirect=redirect, cancelEnabled = visitCancel!=null)) {
+  constructor(context:ServiceContext, errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: (HTMLElement) -> Unit, visitCancel: ((HTMLElement) -> Unit)?): this(document.create.withContext(context).loginDialog(context=context, errorMsg=errorMsg, username=username, password =password, redirect=redirect, cancelEnabled = visitCancel!=null)) {
     element.visitDescendants { descendant ->
       if (descendant is HTMLElement) {
         if (descendant.hasClass("dialogconfirm")) visitConfirm(descendant)
