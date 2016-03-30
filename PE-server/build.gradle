@@ -179,3 +179,11 @@ tomcatRun() {
 //artifacts {
 //    extraBootCp tasks.assembleExtraBootCp
 //}
+
+idea {
+    module {
+        excludeDirs << file('catalina')
+        excludeDirs << file('catalina7')
+
+    }
+}
