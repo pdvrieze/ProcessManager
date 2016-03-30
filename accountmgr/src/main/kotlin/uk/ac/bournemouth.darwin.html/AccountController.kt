@@ -17,8 +17,13 @@
 package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
+import net.devrieze.util.nullIfNot
+import net.devrieze.util.overrideIf
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.darwin.accounts.*
+import uk.ac.bournemouth.darwin.html.shared.darwinDialog
+import uk.ac.bournemouth.darwin.html.shared.setAliasDialog
+import java.net.URLEncoder
 import java.security.MessageDigest
 import java.security.Principal
 import java.text.DateFormat
@@ -68,6 +73,7 @@ class AccountController : HttpServlet() {
             "/chpasswd" -> chpasswd(req, resp)
             "/regkey" -> resp.darwinError(req, "HTTP method GET is not supported by this URL", HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Get not supported")
             "/myaccount" -> myAccount(req, resp)
+            "/setAliasForm" -> setAliasForm(req, resp)
             else -> resp.darwinError(req, "The resource ${req.contextPath}${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "Not Found")
         }
     }
@@ -83,6 +89,19 @@ class AccountController : HttpServlet() {
 
     }
 
+    private fun setAliasForm(req: HttpServletRequest, resp: HttpServletResponse) {
+        authenticatedResponse(req, resp) {
+            val user:String = req.userPrincipal.name
+            val oldAlias:String? = req.getParameter("alias").nullIfNot { length>0 }
+            val displayName:String = oldAlias.overrideIf { isBlank() } by user
+            resp.darwinResponse(req, "My Account", "My Account - $displayName") {
+                setAliasDialog(oldAlias)
+            }
+        }
+    }
+
+
+
     private fun myAccount(req: HttpServletRequest, resp: HttpServletResponse) {
         authenticatedResponse(req, resp) {
             val user:String = req.userPrincipal.name
@@ -94,7 +113,8 @@ class AccountController : HttpServlet() {
                         h1 { +"Account" }
                         p {
                             if (alias == null) {
-                                a { onClick = "setAlias(\"${displayName}\")"; +"Set alias" }
+                                val encodedDisplayName = URLEncoder.encode(displayName, "UTF-8")
+                                a(href = "${context.accountMgrPath}setAliasForm?alias=${encodedDisplayName}") { onClick = "setAlias(\"${displayName}\")"; +"Set alias" }
                             } else {
                                 +"Alias: ${alias} "
                                 a { onClick = "setAlias(\"${alias}\")"; +"change" }
@@ -115,7 +135,7 @@ class AccountController : HttpServlet() {
                                         tr {
                                             td { +(key.appname ?: "<unknown>" )}
                                             td { +(key.lastUse.let { if (it<10000) "never" else DateFormat.getDateTimeInstance().format(Date(it)) })}
-                                            td { a { onClick="forget(${key.keyId})"; +"forget"} }
+                                            td { a(href="${context}forget") { onClick="forget(${key.keyId})"; +"forget"} }
                                         }
                                     }
                                 }

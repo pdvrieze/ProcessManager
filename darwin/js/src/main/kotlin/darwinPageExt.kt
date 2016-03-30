@@ -20,7 +20,6 @@
 
 package uk.ac.bournemouth.darwin.html
 
-import kotlinx.html.INPUT
 import kotlinx.html.dom.create
 import org.w3c.dom.*
 import org.w3c.dom.HTMLElement
@@ -29,24 +28,33 @@ import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.NodeFilter
 import uk.ac.bournemouth.darwin.html.shared.ServiceContext
 import uk.ac.bournemouth.darwin.html.shared.loginDialog
+import uk.ac.bournemouth.darwin.util.visitDescendants
 import kotlin.browser.document
 import kotlin.dom.appendText
 import kotlin.dom.clear
 import kotlin.dom.hasClass
 
 class JSServiceContext: ServiceContext {
-  private val accountsLoc = "/accounts"
+  private val accountsLoc = "/accounts/"
   override val accountMgrPath: String
-    get() {
-      return accountsLoc
-    }
+    get() = accountsLoc
   override val assetPath: String
     get() = "/assets/"
-
+  override val cssPath: String
+    get() = "/css/"
+  override val jsPath: String
+    get() = "/js/"
 }
 
 class LoginDialog private constructor (val element: HTMLElement) {
-  constructor(errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: INPUT.() -> Unit, visitCancel: (INPUT.() -> Unit)?): this(document.create.loginDialog(errorMsg=errorMsg, username=username, password =password, redirect=redirect, visitConfirm=visitConfirm, visitCancel=visitCancel)) {}
+  constructor(context:ServiceContext, errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: (HTMLElement) -> Unit, visitCancel: ((HTMLElement) -> Unit)?): this(document.create.loginDialog(context=context, errorMsg=errorMsg, username=username, password =password, redirect=redirect, cancelEnabled = visitCancel!=null)) {
+    element.visitDescendants { descendant ->
+      if (descendant is HTMLElement) {
+        if (descendant.hasClass("dialogconfirm")) visitConfirm(descendant)
+        else if (descendant.hasClass("dialogcancel")) visitCancel?.invoke(descendant)
+      }
+    }
+  }
 
   val form: HTMLFormElement by lazy {
     val treeWalker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT, { node -> if (node is HTMLFormElement) NodeFilter.FILTER_ACCEPT else NodeFilter.FILTER_SKIP })

@@ -41,7 +41,7 @@ class MainServlet: HttpServlet(), Servlet {
         }
       }
 
-      else -> resp.sendError(HttpServletResponse.SC_NOT_FOUND)
+      else -> resp.darwinError(req, "The resource ${req.pathInfo} was not found", HttpServletResponse.SC_NOT_FOUND, "NOT FOUND")
 
     }
   }

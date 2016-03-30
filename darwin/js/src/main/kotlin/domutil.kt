@@ -21,11 +21,15 @@
 
 package uk.ac.bournemouth.darwin.util
 
+import kotlinx.html.TagConsumer
 import org.w3c.dom.Element
+import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
+import org.w3c.dom.NodeFilter
 import kotlin.dom.childElements
 import kotlin.dom.children
 import kotlin.dom.removeFromParent
+import kotlinx.html.dom.append as kotlinxAppend
 
 const val BUTTON_DEFAULT: Short=0
 
@@ -46,3 +50,21 @@ inline fun Element.removeChildIf(predicate:(Node)-> Boolean) {
     }
   }
 }
+
+inline fun Node.appendHtml(crossinline block : TagConsumer<HTMLElement>.() -> Unit) : List<HTMLElement> = kotlinxAppend({ ConsumerExt(this).block() })
+
+val HTMLElement.appendHtml : TagConsumer<HTMLElement>
+  get() = ConsumerExt(kotlinxAppend)
+
+class ConsumerExt<T>(val parent:TagConsumer<T>): TagConsumer<T> by parent {
+  inline operator fun CharSequence.unaryPlus() { parent.onTagContent(this)}
+}
+
+fun Element.visitDescendants(filter:(Node)->Short = {node -> NodeFilter.FILTER_ACCEPT}, visitor: (Node)->Unit) {
+  val walker = ownerDocument!!.createTreeWalker(root=this, whatToShow= NodeFilter.SHOW_ALL, filter=filter)
+  while (walker.nextNode()!=null) {
+    visitor(walker.currentNode)
+  }
+}
+
+inline operator fun <T, C: TagConsumer<T>> C.plus(text:String) = this.onTagContent(text)

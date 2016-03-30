@@ -18,9 +18,7 @@ package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
-import uk.ac.bournemouth.darwin.html.shared.ServiceContext
-import uk.ac.bournemouth.darwin.html.shared.appendXML
-import uk.ac.bournemouth.darwin.html.shared.loginPanelContent
+import uk.ac.bournemouth.darwin.html.shared.*
 import java.net.URI
 import java.security.Principal
 import java.util.*
@@ -30,6 +28,7 @@ import javax.servlet.http.HttpServletResponse
 fun HttpServletResponse.contentType(type: String) {
   addHeader("Content-Type", type)
 }
+
 
 /**
  * Method that encapsulates the darwin web template.
@@ -41,10 +40,9 @@ fun HttpServletResponse.contentType(type: String) {
  * @param lightweight Should the page be lightweight (not load the javascript)
  * @param bodyContent The closure that creates the actual body content of the document.
  */
-fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle: String = "Darwin", pageTitle: String? = null, checkuser: Boolean = true, includeLogin:Boolean = true, lightweight: Boolean = false, bodyContent: HtmlBlockTag.() -> Unit): Unit {
+fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle: String = "Darwin", pageTitle: String? = null, checkuser: Boolean = true, includeLogin:Boolean = true, lightweight: Boolean = false, context: ServiceContext=RequestServiceContext(request), bodyContent: ContextTagConsumer<out HtmlBlockTag>.() -> Unit): Unit {
   val result = writer
-  val appRoot = request.servletPath
-  val context: uk.ac.bournemouth.darwin.html.shared.ServiceContext = RequestServiceContext(request)
+  val appRoot = "${context.accountMgrPath}/"
 
   if (request.getHeader("X-Darwin")?.contains("chrome") ?: false) {
     contentType("text/xml")
@@ -60,12 +58,12 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
 
       head() {
         title(windowTitle)
-        link(rel = "stylesheet", href = appRoot + "css/darwin.css")
+        styleLink(context.cssRef( "darwin.css"))
         meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
         if (!lightweight) {
-          script(type= ScriptType.textJavaScript, src="/js/kotlin.js")
-          script(type= ScriptType.textJavaScript, src="/js/kotlinx.html.shared.js")
-          script(type= ScriptType.textJavaScript, src="/js/kotlinx.html.js.js")
+          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlin.js"))
+          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.shared.js"))
+          script(type= ScriptType.textJavaScript, src=context.jsRef("kotlinx.html.js.js"))
         }
       }
       body() {
@@ -89,11 +87,11 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
         }
 
         div { id = "content"
-          bodyContent()
+          withContext(context).bodyContent()
         }
         if (includeLogin) {
           // A mini form that we use to get username/password out of the account manager
-          form(action = "/accounts/login", method = FormMethod.post) {
+          form(action = "${context.accountMgrPath}/login", method = FormMethod.post) {
             id = "xloginform"; style = "display:none";
             input(type = InputType.text, name = "username")
             input(type = InputType.password, name = "password")
@@ -110,6 +108,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
 }
 
 fun HttpServletResponse.darwinError(req: HttpServletRequest, message: String, code: Int = 500, status: String = "Server error", cause: Exception? = null) {
+  setStatus(code)
   this.darwinResponse(req, windowTitle = "$code $status", checkuser = false) {
     h2 { +status }
     p {
@@ -183,7 +182,7 @@ val HttpServletRequest.htmlAccepted: Boolean
     return getHeader("Accept")?.contains("text/html") ?: false
   }
 
-fun HtmlBlockTag.darwinDialog(title: String, id: String? = null, bodyContent: FlowContent.() -> Unit = {}) {
+fun ContextTagConsumer<HtmlBlockTag>.darwinDialog(title: String, id: String? = null, bodyContent: FlowContent.() -> Unit = {}) {
   div(classes = "dialog centerContents") {
     if (id != null) {
       this.id = id
@@ -205,4 +204,8 @@ class RequestServiceContext(private val request: HttpServletRequest) : ServiceCo
     get() = "/accounts/"
   override val assetPath: String
     get() = "/assets/"
+  override val cssPath: String
+    get() = "/css/"
+  override val jsPath: String
+    get() = "/js/"
 }

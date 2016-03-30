@@ -131,6 +131,10 @@ body {
 	color: black;
 }
 
+input + input {
+    margin-left: 1em;
+}
+
 #logout {
 	cursor: pointer;
 	text-decoration: underline;

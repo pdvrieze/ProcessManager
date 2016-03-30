@@ -16,13 +16,11 @@
 
 package nl.adaptivity.darwin.html
 
-import kotlinx.html.FlowContent
-import kotlinx.html.button
+import kotlinx.html.*
 import kotlinx.html.dom.create
 import kotlinx.html.js.onClickFunction
 import kotlinx.html.js.p
 import kotlinx.html.js.span
-import kotlinx.html.span
 import org.w3c.dom.*
 import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLDivElement
@@ -39,192 +37,197 @@ import uk.ac.bournemouth.darwin.html.LoginDialog
 import uk.ac.bournemouth.darwin.html.shared.ServiceContext
 import uk.ac.bournemouth.darwin.html.shared.darwinDialog
 import uk.ac.bournemouth.darwin.html.shared.loginPanelContent
-import uk.ac.bournemouth.darwin.util.BUTTON_DEFAULT
-import uk.ac.bournemouth.darwin.util.encodeURI
-import uk.ac.bournemouth.darwin.util.removeChildElementIf
+import uk.ac.bournemouth.darwin.util.*
 import java.io.Closeable
 import kotlin.browser.document
 import kotlin.browser.window
 import kotlin.dom.*
 
 fun onMenuReceived(request: XMLHttpRequest) {
-    if (request.status in 200..399) {
-      val holder = document.createElement("holder")
-      holder.innerHTML= request.responseText
-      val m = menu
-      m.clear()
-      var first = true
-      for (child in holder.firstElementChild?.childElements()) {
-        if (child !is Text) {
-          if (first) first = false else m.appendChild(document.createTextNode("\n"))
-          m.appendChild(child)
-        }
+  if (request.status in 200..399) {
+    val holder = document.createElement("holder")
+    holder.innerHTML = request.responseText
+    val m = menu
+    m.clear()
+    var first = true
+    for (child in holder.firstElementChild?.childElements()) {
+      if (child !is Text) {
+        if (first) first = false else m.appendChild(document.createTextNode("\n"))
+        m.appendChild(child)
       }
-      convertMenuToJS()
-    } else {
-      error("Error updating the menu: ${request.statusText} (${request.status})")
     }
+    convertMenuToJS()
+  } else {
+    error("Error updating the menu: ${request.statusText} (${request.status})")
   }
+}
 
-  private fun onContentPanelReceived(request: XMLHttpRequest, location:String) {
-    val statusCode:Int = request.status.toInt()
-    if (statusCode == 401) {
-      hideBanner()
-      loginDialog() // just return
-      return
-    } else if (statusCode !in 200..399) {
-      hideBanner()
-      error("Failure to load panel: " + statusCode)
-      return
-    }
-    mContentPanel!!.clear()
+private fun onContentPanelReceived(request: XMLHttpRequest, location: String) {
+  val statusCode: Int = request.status.toInt()
+  if (statusCode == 401) {
     hideBanner()
-    val root = request.responseXML?.documentElement
-    if (root!=null) {
-      var windowtitle: String? = null
-      var pagetitle: NodeList? = null
-      var body: NodeList? = null
-      for(childElement in root.elements()) {
-        when (childElement.nodeName) {
-          "title" -> if (windowtitle==null) {
-            windowtitle = childElement.getAttribute("windowtitle") ?: childElement.textContent
-            pagetitle = document.importNode(childElement, true).childNodes
-          }
-          "body" -> if (body==null) { body = document.importNode(childElement, true).childNodes }
-          else error("unexpected child in dynamic content: ${childElement.nodeName}")
+    loginDialog() // just return
+    return
+  } else if (statusCode !in 200..399) {
+    hideBanner()
+    error("Failure to load panel: " + statusCode)
+    return
+  }
+  mContentPanel!!.clear()
+  hideBanner()
+  val root = request.responseXML?.documentElement
+  if (root != null) {
+    var windowtitle: String? = null
+    var pagetitle: NodeList? = null
+    var body: NodeList? = null
+    for (childElement in root.elements()) {
+      when (childElement.nodeName) {
+        "title" -> if (windowtitle == null) {
+          windowtitle = childElement.getAttribute("windowtitle") ?: childElement.textContent
+          pagetitle = document.importNode(childElement, true).childNodes
         }
-      }
-
-      windowtitle?.let { document.title=it }
-      window.history.pushState(data=location, title="location", url=location)
-
-      if (pagetitle != null) {
-        val onPageTitle = document.getElementById("title")
-        onPageTitle?.let {
-          it.append(pagetitle)
-        }
-      }
-      if (body != null) {
-        mContentPanel!!.append(body)
+        "body" -> if (body == null) {
+          body = document.importNode(childElement, true).childNodes
+        } else error("unexpected child in dynamic content: ${childElement.nodeName}")
       }
     }
+
+    windowtitle?.let { document.title = it }
+    window.history.pushState(data = location, title = "location", url = location)
+
+    if (pagetitle != null) {
+      val onPageTitle = document.getElementById("title")
+      onPageTitle?.let {
+        it.append(pagetitle)
+      }
+    }
+    if (body != null) {
+      mContentPanel!!.append(body)
+    }
+  }
+}
+
+private fun onContentPanelError(request: XMLHttpRequest) {
+  hideBanner()
+  error("The requested location is not available: ${request.statusText} (${request.status})")
+}
+
+//  interface DarwinUiBinder extends UiBinder<Widget, Darwin> { /* Dynamic gwt */}
+
+private val menu: HTMLElement
+  get() {
+    return document.getElementById("menu") as HTMLElement
   }
 
-  private fun onContentPanelError(request: XMLHttpRequest) {
-    hideBanner()
-    error("The requested location is not available: ${request.statusText} (${request.status})")
-  }
-
-  //  interface DarwinUiBinder extends UiBinder<Widget, Darwin> { /* Dynamic gwt */}
-
-  private val menu: HTMLElement
-    get() { return document.getElementById("menu") as HTMLElement }
-
-  private var context: ServiceContext = JSServiceContext()
+private var context: ServiceContext = JSServiceContext()
 
 private fun onLoginResult(request: XMLHttpRequest) {
-val text = request.responseText
-val cpos = text.indexOf(':')
-val eolpos = text.indexOf('\n', cpos)
-val result: String
-val payload: String?
-if (cpos >= 0) {
-  result = text.substring(0, cpos)
-  if (eolpos >= 0) {
-    payload = text.substring(cpos + 1, eolpos)
+  val text = request.responseText
+  val cpos = text.indexOf(':')
+  val eolpos = text.indexOf('\n', cpos)
+  val result: String
+  val payload: String?
+  if (cpos >= 0) {
+    result = text.substring(0, cpos)
+    if (eolpos >= 0) {
+      payload = text.substring(cpos + 1, eolpos)
+    } else {
+      payload = text.substring(cpos + 1)
+    }
   } else {
-    payload = text.substring(cpos + 1)
+    result = text
+    payload = null
   }
-} else {
-  result = text
-  payload = null
-}
 
-val dialog = mLoginDialog!!
+  val dialog = mLoginDialog!!
 
-if ("login" == result && payload != null) {
-  mUsername = payload
-  closeDialogs()
-  updateLoginPanel()
-  requestRefreshMenu(mLocation!!)
-} else if ("logout" == result) {
-  mUsername = null
-  closeDialogs()
-  updateLoginPanel()
-  requestRefreshMenu(mLocation!!)
-  navigateTo("/", true, true)
-} else if ("error" == result) {
-  closeDialogs()
-  error("Error validating login: " + payload!!, null)
-} else if ("invalid" == result) {
-  dialog.errorMsg="Credentials invalid"
-  dialog.password=null
-} else {
-  closeDialogs()
-  error("Invalid response received from login form : ${request.statusText} (${request.status})", null)
-}
+  if ("login" == result && payload != null) {
+    mUsername = payload
+    closeDialogs()
+    updateLoginPanel()
+    requestRefreshMenu(mLocation!!)
+  } else if ("logout" == result) {
+    mUsername = null
+    closeDialogs()
+    updateLoginPanel()
+    requestRefreshMenu(mLocation!!)
+    navigateTo("/", true, true)
+  } else if ("error" == result) {
+    closeDialogs()
+    error("Error validating login: " + payload!!, null)
+  } else if ("invalid" == result) {
+    dialog.errorMsg = "Credentials invalid"
+    dialog.password = null
+  } else {
+    closeDialogs()
+    error("Invalid response received from login form (${text}) : ${request.statusText} (${request.status})", null)
+  }
 }
 
 private fun onLoginError(request: XMLHttpRequest) {
-error("Could not login due to request error: ${request.statusText} (${request.status})")
-closeDialogs()
-}
-
-private fun onLoginDialogConfirm(event:Event) {
-val form = (event.target!! as HTMLInputElement).form!!
-
-event.stopPropagation()
-
-val username:String? = (form.get("username") as? HTMLInputElement)?.value
-val password:String? = (form.get("password") as? HTMLInputElement)?.value
-
-if (username.isNullOrBlank()) { /* set error bit*/ }
-if (password.isNullOrBlank()) { /* set error bit */ }
-
-val request = XMLHttpRequest().apply {
-  open("POST", LOGIN_LOCATION)
-  setRequestHeader("Accept", "text/plain")
-  setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-  onload = { onLoginResult(this) }
-  onerror = { onLoginError(this) }
-}
-
-val postData = FormData().apply {
-  append("username", username)
-  append("password", password)
-}
-
-try {
-  request.send(postData)
-} catch (e: Exception) {
-  error("Could not send login request", e)
+  error("Could not login due to request error: ${request.statusText} (${request.status})")
   closeDialogs()
 }
 
-}
+private fun onLoginDialogConfirm(event: Event) {
+  val form = (event.target!! as HTMLInputElement).form!!
 
-private fun dialogCloseHandler(event:Event) {
-closeDialogs()
-}
+  event.stopPropagation()
 
-private fun onLoginOutClicked(event:MouseEvent) {
-if (mUsername == null) {
-  loginDialog()
-  // Login
-} else {
+  val username: String? = (form.get("username") as? HTMLInputElement)?.value
+  val password: String? = (form.get("password") as? HTMLInputElement)?.value
+
+  if (username.isNullOrBlank()) {
+    /* set error bit*/
+  }
+  if (password.isNullOrBlank()) {
+    /* set error bit */
+  }
+
   val request = XMLHttpRequest().apply {
-    open("GET", "/accounts/logout")
-    setRequestHeader("Accept", "application/binary")
+    open("POST", "${context.accountMgrPath}/${LOGIN_LOCATION}")
+    setRequestHeader("Accept", "text/plain")
+    setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
     onload = { onLoginResult(this) }
-    onerror = { error("Error logging out: ${statusText} (${status})")}
-  }
-  try {
-    request.send()
-  } catch (e: Exception) {
-    error("Could not log out", e)
+    onerror = { onLoginError(this) }
   }
 
+  val postData = FormData().apply {
+    append("username", username)
+    append("password", password)
+  }
+
+  try {
+    request.send(postData)
+  } catch (e: Exception) {
+    error("Could not send login request", e)
+    closeDialogs()
+  }
+  event.preventDefault()
+  event.stopPropagation()
 }
+
+private fun dialogCloseHandler(event: Event) = closeDialogs(event)
+
+private fun onLoginOutClicked(event: MouseEvent) {
+  val username = mUsername
+  if (username.isNullOrEmpty()) {
+    loginDialog()
+    // Login
+  } else {
+    val request = XMLHttpRequest().apply {
+      open("GET", "/accounts/logout")
+      setRequestHeader("Accept", "application/binary")
+      onload = { onLoginResult(this) }
+      onerror = { error("Error logging out: ${statusText} (${status})") }
+    }
+    try {
+      request.send()
+    } catch (e: Exception) {
+      error("Could not log out", e)
+    }
+
+  }
 }
 
 /*
@@ -239,19 +242,19 @@ private inner class HistoryChangeHandler : ValueChangeHandler<String> {
 */
 
 fun onLinkClick(event: MouseEvent) {
-if (event.button == BUTTON_DEFAULT) {
-  val target = event.target as? HTMLAnchorElement
-  var href = target?.pathname
-  // handle urls to virtual pages
-  if (href!=null) {
-    if (href=="/") {
-      href = target?.hash ?: "/"
+  if (event.button == BUTTON_DEFAULT) {
+    val target = event.target as? HTMLAnchorElement
+    var href = target?.pathname
+    // handle urls to virtual pages
+    if (href != null) {
+      if (href == "/") {
+        href = target?.hash ?: "/"
+      }
+      navigateTo(href, true, true)
+      event.preventDefault()
+      event.stopPropagation()
     }
-    navigateTo(href, true, true)
-    event.preventDefault()
-    event.stopPropagation()
   }
-}
 
 }
 
@@ -275,10 +278,10 @@ private var mBanner: Element? = null
 fun main(args: Array<String>) {
   val newLocation = window.location.hash.let { if (it.isNullOrBlank()) window.location.pathname else it }
 
-//    val newLocation = History.getToken()
+  //    val newLocation = History.getToken()
   val usernameSpan = document.getElementById("username")
 
-  (document.getElementById("xloginform") as? HTMLFormElement) ?.let { form ->
+  (document.getElementById("xloginform") as? HTMLFormElement)?.let { form ->
     mUsername = (form["username"] as? HTMLInputElement)?.value
     mPassword = (form["password"] as? HTMLInputElement)?.value
     form.removeFromParent() // No longer needed
@@ -294,7 +297,7 @@ fun main(args: Array<String>) {
 
   registerLoginPanel()
 
-//    History.addValueChangeHandler(HistoryChangeHandler())
+  //    History.addValueChangeHandler(HistoryChangeHandler())
 
   mBanner = document.getElementById("banner")
 
@@ -315,16 +318,22 @@ private fun hideBanner() = mBanner?.setAttribute("style", "display:none")
 /**
  * @category ui_elements
  */
-private fun showBanner()  = mBanner?.removeAttribute("style")
+private fun showBanner() = mBanner?.removeAttribute("style")
 
 /**
  * @category ui_elements
  */
 private fun modalDialog(string: String) {
   dialog("Message") {
-    span { +string }
-    button () { onClickFunction = { dialogCloseHandler(it) };
-      + "Ok"
+    div {
+      span { +string }
+    }
+    div {
+      style="text-align:center; margin-top: 1ex"
+      button () {
+        onClickFunction = { dialogCloseHandler(it) };
+        +"Ok"
+      }
     }
   }
 }
@@ -344,7 +353,11 @@ fun error(message: String, exception: Throwable? = null) {
 }
 
 private fun loginDialog() {
-  val loginDialog = LoginDialog(username = mUsername, password=mPassword, visitConfirm = { onClickFunction = { event -> onLoginDialogConfirm(event) } }, visitCancel = { closeDialogs() })
+  val setConfirmFunction: (HTMLElement) -> Unit = { it.onclick = ::onLoginDialogConfirm }
+
+  val setCancelFunction: (HTMLElement) -> Unit = { it.onclick = ::closeDialogs }
+
+  val loginDialog = LoginDialog(context, username = mUsername, password = mPassword, visitConfirm = setConfirmFunction, visitCancel = setCancelFunction)
   mLoginDialog = loginDialog
 
   mContentPanel!!.appendChild(loginDialog.element)
@@ -354,29 +367,34 @@ private fun loginDialog() {
  * @category ui_elements
  */
 private fun updateDialogTitle(string: String) {
-  dialogTitle?.textContent=string
+  dialogTitle?.textContent = string
 }
 
 /**
  * @category ui_elements
  */
 private fun dialog(title: String, id: String? = null, content: FlowContent.() -> Unit) {
-  val dlg: HTMLElement = document.create.darwinDialog(title, id, content)
-  mContentPanel!!.appendChild(dlg)
+  mContentPanel!!.appendHtml.darwinDialog(title, id, content)
 }
 
-private fun closeDialogs() {
+private fun closeDialogs(event: dynamic = null) {
   val contentPanel = mContentPanel
-  if (contentPanel !=null) {
-    contentPanel.removeChildElementIf {it.hasClass("dialog")}
+  if (contentPanel != null) {
+    contentPanel.removeChildElementIf { it.hasClass("dialog") }
   }
-  if (mLoginDialog!=null) { mLoginDialog = null }
+  if (mLoginDialog != null) {
+    mLoginDialog = null
+  }
+  if (event!=null) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
 }
 
 fun navigateTo(locationParam: String?, addHistory: Boolean, doRedirect: Boolean) {
   var location = mLocation
   var effectiveAddHistory = addHistory
-  val newLocation = locationParam?.let { if (it[0]=='#') it.substring(1) else it } ?:"/"
+  val newLocation = locationParam?.let { if (it[0] == '#') it.substring(1) else it } ?: "/"
 
   if (location == null && newLocation != null || location != null && location != newLocation) {
     if (location != null && location.startsWith("/accounts/myaccount")) {
@@ -407,9 +425,9 @@ fun navigateTo(locationParam: String?, addHistory: Boolean, doRedirect: Boolean)
       if (inlineLocation != null) {
         location = inlineLocation
         val contentPanel = mContentPanel
-        if (contentPanel!=null) {
+        if (contentPanel != null) {
           contentPanel.clear()
-          contentPanel.appendChild(document.create.span("label") { +"Loading" })
+          contentPanel.appendHtml.span("label") { +"Loading" }
         }
 
         val request = XMLHttpRequest().apply {
@@ -419,10 +437,10 @@ fun navigateTo(locationParam: String?, addHistory: Boolean, doRedirect: Boolean)
         }
         effectiveAddHistory = false // don't add history here.
         request.onload = { onContentPanelReceived(request, inlineLocation) }
-        request.onerror = { onContentPanelError(request)}
+        request.onerror = { onContentPanelError(request) }
         try {
           request.send()
-        } catch (e:Exception) {
+        } catch (e: Exception) {
           error("Could load requested content", e)
           closeDialogs()
         }
@@ -437,8 +455,8 @@ fun navigateTo(locationParam: String?, addHistory: Boolean, doRedirect: Boolean)
       }
     }
     if (effectiveAddHistory) {
-      window.history.pushState(data=location, title="location", url=location)
-//        History.newItem(location, false)
+      window.history.pushState(data = location, title = "location", url = location)
+      //        History.newItem(location, false)
     }
     mLocation = location
     updateMenuTabs()
@@ -446,7 +464,7 @@ fun navigateTo(locationParam: String?, addHistory: Boolean, doRedirect: Boolean)
 }
 
 private fun updateMenuTabs() {
-  for(menuitem in menu.childElements()) {
+  for (menuitem in menu.childElements()) {
     if (menuitem is HTMLAnchorElement)
       updateLinkItem(menuitem)
   }
@@ -454,8 +472,8 @@ private fun updateMenuTabs() {
 
 private fun updateLinkItem(menuitem: HTMLAnchorElement) {
   var href = menuitem.pathname
-  if (href!=null && href.length>0) {
-    if (href == "/" && menuitem.hash.length>1) {
+  if (href != null && href.length > 0) {
+    if (href == "/" && menuitem.hash.length > 1) {
       href = menuitem.hash.substring(1) // skip # character
     }
     val loc = mLocation?.let {
@@ -473,8 +491,9 @@ private fun updateLinkItem(menuitem: HTMLAnchorElement) {
 /**
  * Make the menu elements active and add an onClick Listener.
  */
-fun convertMenuToJS() { // TODO convert this into a window handler that is a bit smarter.
-  for(item in menu.elements()) {
+fun convertMenuToJS() {
+  // TODO convert this into a window handler that is a bit smarter.
+  for (item in menu.elements()) {
     if (item is HTMLAnchorElement) {
       item.onClick(true, ::onLinkClick)
       updateLinkItem(item)
@@ -482,39 +501,47 @@ fun convertMenuToJS() { // TODO convert this into a window handler that is a bit
   }
 }
 
-fun setContent(vararg newContent: Node) {
+fun setContent(block : TagConsumer<HTMLElement>.() -> Unit) {
   val contentPanel = mContentPanel!!
   contentPanel.clear()
-  for(node in newContent) {
+  contentPanel.appendHtml(block)
+}
+
+fun setContentOld(vararg newContent: Node) {
+  val contentPanel = mContentPanel!!
+  contentPanel.clear()
+  for (node in newContent) {
     contentPanel.appendChild(node)
   }
 }
 
-fun setContent(newContent: NodeList) {
+fun setContentOld(newContent: NodeList) {
   val contentPanel = mContentPanel!!
   for (node in newContent) {
     contentPanel.appendChild(node)
   }
 }
 
-inline fun setContent(block: ()->Node) {
-  setContent(block())
+inline fun setContentOld(block: () -> Node) {
+  setContentOld(block())
 }
 
-inline fun setContentList(block: ()->NodeList) {
-  setContent(block())
+inline fun setContentListOld(block: () -> NodeList) {
+  setContentOld(block())
 }
 
 private fun setInboxPanel() {
-  setContent(document.create.span { +"Inbox panel - work in progress" })
+  setContent {
+    span { +"Inbox panel - work in progress" }
+  }
 }
 
 private fun setProcessesPanel() {
-  setContent(document.create.span { +"Processes panel - work in progress" })
+  setContent { span {+"Processes panel - work in progress" }}
 }
 
 private fun setActionPanel() {
-  setContent(document.create.span { +"Action panel - work in progress" })
+  setContent { plus("Action panel - work in progress") }
 }
 
 private fun setAboutPanel() {
@@ -545,8 +572,7 @@ private fun updateLoginPanel() {
 
   val loginPanel = document.getElementById("login") as HTMLDivElement
   loginPanel.clear()
-  val content = document.create.loginPanelContent(context, mUsername)
-  loginPanel.append(content)
+  loginPanel.appendHtml.loginPanelContent(context, mUsername)
   registerLoginPanel()
 }
 
@@ -555,7 +581,7 @@ private fun requestRefreshMenu(location: String) {
   val request = XMLHttpRequest().apply {
     open("GET", "/common/menu?location=${encodeURI(location)}")
     onload = { onMenuReceived(this) }
-    onerror = { error("Could not update menu: ${statusText} ($status)")}
+    onerror = { error("Could not update menu: ${statusText} ($status)") }
   }
   try {
     request.send()
@@ -565,7 +591,7 @@ private fun requestRefreshMenu(location: String) {
 
 }
 
-private val LOGIN_LOCATION = "/accounts/login.php"
+private val LOGIN_LOCATION = "/login"
 
 private val INLINEPREFIXES = arrayOf("/accounts/chpasswd", "/accounts/myaccount")
 
