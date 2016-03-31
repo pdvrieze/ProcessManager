@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'com.bmuschko.tomcat'
 apply plugin: 'idea'
 
-defaultTasks 'tomcatRun'
+defaultTasks 'tomcatRunWar'
 
 version = '1.0.0'
 description = 'A project for running an embedded tomcat server that works.'
@@ -32,7 +32,7 @@ configurations {
     warContents {
         description "The contents of the combined war file"
     }
-    runtime
+    runtime.extendsFrom warContents
 }
 
 dependencies {
