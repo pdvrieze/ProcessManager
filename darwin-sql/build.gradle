@@ -14,4 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+apply plugin: 'kotlin'
+
 description = 'The DDL files for the darwin databases'
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile project(":kotlinsql")
+}
