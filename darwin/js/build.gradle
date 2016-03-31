@@ -17,6 +17,7 @@
 apply plugin: 'kotlin2js'
 apply plugin: 'idea'
 
+description = 'Javascript support for the darwin web interface'
 
 def gendir = file("${projectDir}/gen/sharedjs")
 def outDir = "${buildDir}/kotlin2js/main/"

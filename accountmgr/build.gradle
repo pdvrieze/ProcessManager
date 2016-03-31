@@ -17,6 +17,8 @@
 apply plugin: 'kotlin'
 apply plugin: 'war'
 
+description = 'The web application that is responsible for managing and maintaining accounts for darwin'
+
 configurations {
     javascript
 }
@@ -28,7 +30,7 @@ dependencies {
     compile project(':darwin:jvm')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
     compileOnly project(":DarwinJavaApi")
-    javascript project(':accountmgr:accountmgrjs')
+//    javascript project(':accountmgr:accountmgrjs')
 }
 
 war {

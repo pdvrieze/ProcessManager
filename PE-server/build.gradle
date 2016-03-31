@@ -1,11 +1,3 @@
-apply plugin: 'java'
-apply plugin: 'com.bmuschko.tomcat'
-apply plugin: 'idea'
-
-defaultTasks 'tomcatRunWar'
-
-version = '1.0.0'
-description = 'A project for running an embedded tomcat server that works.'
 /*
  * Copyright (c) 2016.
  *
@@ -21,6 +13,15 @@ description = 'A project for running an embedded tomcat server that works.'
  * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+
+apply plugin: 'java'
+apply plugin: 'com.bmuschko.tomcat'
+apply plugin: 'idea'
+
+defaultTasks 'tomcatRunWar'
+
+version = '1.0.0'
+description = 'A project for running an embedded tomcat server that works.'
 
 //group = ['util' ]
 

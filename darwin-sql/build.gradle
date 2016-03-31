@@ -14,3 +14,4 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+description = 'The DDL files for the darwin databases'

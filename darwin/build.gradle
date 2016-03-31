@@ -14,39 +14,4 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
-apply plugin: 'idea'
-
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
-version = '1.1.0'
-description = 'A library with generic support classes'
-
-//group = 'util'
-
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
-        }
-    }
-    test {
-        java {
-            srcDir 'test'
-        }
-    }
-
-}
-
-test {
-    useTestNG()
-}
-
-dependencies {
-    compile project(':JavaCommonApi')
-    compile 'asm:asm-tree:3.3.1'
-    compile "org.jetbrains:annotations:13.0"
-    testCompile 'org.testng:testng:6.9.9'
-}
+description = 'Wrapper project for the main darwin web interface. This is not really process dependent.'

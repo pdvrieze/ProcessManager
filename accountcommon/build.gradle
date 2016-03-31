@@ -14,6 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+description = 'A library that abstracts away the access to the account database through a nicer api'
+
 apply plugin: 'kotlin'
 
 dependencies {
@@ -23,7 +25,6 @@ dependencies {
     testCompile 'org.testng:testng:6.9.9'
     testCompile 'mysql:mysql-connector-java:5.1.36'
 }
-
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
