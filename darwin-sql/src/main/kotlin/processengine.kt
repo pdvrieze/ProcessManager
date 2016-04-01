@@ -1,8 +1,3 @@
-
-import uk.ac.bournemouth.kotlinsql.ColumnType.*
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.Table
-
 /*
  * Copyright (c) 2016.
  *
@@ -18,6 +13,13 @@ import uk.ac.bournemouth.kotlinsql.Table
  * You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+
+package uk.ac.bournemouth.ac.db.darwin.processengine
+
+import uk.ac.bournemouth.kotlinsql.ColumnType.*
+import uk.ac.bournemouth.kotlinsql.Database
+import uk.ac.bournemouth.kotlinsql.Table
+
 
 /**
  * Created by pdvrieze on 31/03/16.
@@ -46,7 +48,7 @@ object pmUsersTable: Table("pmusers", EXTRACONF, {
   val user by type(VARCHAR_T)
 }
 
-object pmrolesTable: Table("pmroles", EXTRACONF,{
+object pmrolesTable: Table("pmroles", EXTRACONF, {
   val handle = BIGINT("pmhandle") { NOT_NULL }
   val role =   VARCHAR("role", 30)
   PRIMARY_KEY( handle, role )
@@ -57,7 +59,7 @@ object pmrolesTable: Table("pmroles", EXTRACONF,{
   val role by type(VARCHAR_T)
 }
 
-object processInstancesTable:Table("processinstances", EXTRACONF, {
+object processInstancesTable: Table("processinstances", EXTRACONF, {
   val pihandle = BIGINT("pihandle") { NOT_NULL; AUTO_INCREMENT }
   val owner =    VARCHAR("owner", 30) { NOT_NULL }
                  VARCHAR("name", 50)
@@ -77,7 +79,7 @@ object processInstancesTable:Table("processinstances", EXTRACONF, {
 }
 
 
-object processNodeInstancesTable:Table("processinstances", EXTRACONF, {
+object processNodeInstancesTable: Table("processinstances", EXTRACONF, {
   val pnihandle = BIGINT("pnihandle") { NOT_NULL; AUTO_INCREMENT }
   val pihandle =  BIGINT("pihandle") { NOT_NULL }
   val nodeid =    VARCHAR("nodeid", 30) { NOT_NULL }
@@ -92,7 +94,7 @@ object processNodeInstancesTable:Table("processinstances", EXTRACONF, {
 }
 
 
-object pnipredecessorsTable:Table("pnipredecessors", EXTRACONF, {
+object pnipredecessorsTable: Table("pnipredecessors", EXTRACONF, {
   val pnihandle =   BIGINT("pnihandle") { NOT_NULL }
   val predecessor = BIGINT("predecessor") { NOT_NULL }
   PRIMARY_KEY(pnihandle)
@@ -103,7 +105,7 @@ object pnipredecessorsTable:Table("pnipredecessors", EXTRACONF, {
   val predecessor by type(BIGINT_T)
 }
 
-object instancedataTable:Table("instancedata", EXTRACONF, {
+object instancedataTable: Table("instancedata", EXTRACONF, {
   val name =     VARCHAR("name", 30) { NOT_NULL }
   val pihandle = BIGINT("pihandle") { NOT_NULL }
                  TEXT("data") { NOT_NULL }
@@ -117,7 +119,7 @@ object instancedataTable:Table("instancedata", EXTRACONF, {
   val isoutput by type(TINYINT_T)
 }
 
-object nodedataTable:Table("nodedata", EXTRACONF,{
+object nodedataTable: Table("nodedata", EXTRACONF, {
   val name =      VARCHAR("name", 30) { NOT_NULL }
   val pnihandle = BIGINT("pnihandle") { NOT_NULL }
   TEXT("data") { NOT_NULL }
@@ -128,7 +130,7 @@ object nodedataTable:Table("nodedata", EXTRACONF,{
   val pnihandle by type(BIGINT_T)
 }
 
-object ProcessEngineDB: Database(2, {
+object ProcessEngineDB: Database(1, {
   table(processModelTable)
   table(pmUsersTable)
   table(pmrolesTable)
