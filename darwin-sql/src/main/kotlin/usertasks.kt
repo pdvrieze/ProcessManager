@@ -17,9 +17,8 @@
 package uk.ac.bournemouth.ac.db.darwin.usertasks
 
 
-import uk.ac.bournemouth.kotlinsql.ColumnType.BIGINT_T
-import uk.ac.bournemouth.kotlinsql.ColumnType.VARCHAR_T
 import uk.ac.bournemouth.kotlinsql.Database
+import uk.ac.bournemouth.kotlinsql.MutableTable
 
 /**
  * Created by pdvrieze on 31/03/16.
@@ -27,30 +26,28 @@ import uk.ac.bournemouth.kotlinsql.Database
 
 const val EXTRACONF="ENGINE=InnoDB CHARSET=utf8"
 
-object userTaskTable: uk.ac.bournemouth.kotlinsql.Table("usertasks", EXTRACONF, {
-  val handle = BIGINT("taskhandle") { NOT_NULL; AUTO_INCREMENT }
-               BIGINT("remotehandle") { NOT_NULL }
-  PRIMARY_KEY(handle)
-}) {
-  val taskhandle by type(BIGINT_T)
-  val remotehandle by type(BIGINT_T)
-}
 
-object nodedataTable: uk.ac.bournemouth.kotlinsql.Table("nodedata", EXTRACONF, {
-  val name = VARCHAR("name", 30) { NOT_NULL }
-  val handle = BIGINT("taskhandle") { NOT_NULL }
-  TEXT("data")
-  PRIMARY_KEY( name, handle )
-  FOREIGN_KEY ( handle ).REFERENCES(userTaskTable.taskhandle)
-}) {
-  val taskhandle by type(BIGINT_T)
-  val name by type(VARCHAR_T)
-}
+object UserTaskDB: Database(1) {
 
-object UserTaskDB: Database(1, {
-  table(userTaskTable)
-  table(nodedataTable)
-}) {
-  val usertasks by ref(userTaskTable)
-  val nodedata by ref(nodedataTable)
+  object usertasks : MutableTable("usertasks", EXTRACONF) {
+    val taskhandle by BIGINT("taskhandle") { NOT_NULL; AUTO_INCREMENT }
+    val remotehandle by BIGINT("remotehandle") { NOT_NULL }
+
+    override fun init() {
+      PRIMARY_KEY(taskhandle)
+    }
+  }
+
+
+  object nodedata : MutableTable("nodedata", EXTRACONF) {
+    val name by VARCHAR("name", 30) { NOT_NULL }
+    val taskhandle by BIGINT("taskhandle") { NOT_NULL }
+    val data by TEXT("data")
+
+    override fun init() {
+      PRIMARY_KEY( name, taskhandle )
+      FOREIGN_KEY ( taskhandle ).REFERENCES(usertasks.taskhandle)
+    }
+  }
+
 }

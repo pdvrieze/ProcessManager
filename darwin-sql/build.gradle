@@ -21,4 +21,6 @@ description = 'The DDL files for the darwin databases'
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile project(":kotlinsql")
+
+    testCompile 'org.testng:testng:6.9.9'
 }
