@@ -26,9 +26,9 @@ import uk.ac.bournemouth.kotlinsql.MutableTable
 
 const val EXTRACONF="ENGINE=InnoDB CHARSET=utf8"
 
-object UserTaskDB: Database(1) {
+object WebAuthDB: Database(1) {
 
-  object users: MutableTable("users", EXTRACONF) {
+  object users: MutableTable(EXTRACONF) {
     val user by VARCHAR("user", 30) { NOT_NULL }
     val fullname by VARCHAR("fullname", 80)
     val alias by VARCHAR("alias", 80)
@@ -41,5 +41,45 @@ object UserTaskDB: Database(1) {
     }
   }
 
+  object roles: MutableTable(EXTRACONF) {
+    val role by VARCHAR("role", 30) { NOT_NULL }
+    val description by VARCHAR("description", 120) { NOT_NULL }
+
+    override fun init() {
+      PRIMARY_KEY(role)
+    }
+  }
+
+  object user_roles: MutableTable(EXTRACONF) {
+    val user by VARCHAR("user", 30) { NOT_NULL }
+    val role by VARCHAR("role", 30) { NOT_NULL }
+
+    override fun init() {
+      PRIMARY_KEY(user, role)
+      FOREIGN_KEY(user).REFERENCES(users.user)
+      FOREIGN_KEY(role).REFERENCES(roles.role)
+    }
+  }
+
+  object tokens: MutableTable(EXTRACONF) {
+    val tokenid by INT("tokenid") { NOT_NULL; AUTO_INCREMENT }
+    val user by reference(users.user) { NOT_NULL }
+
+    override fun init() {
+      PRIMARY_KEY(tokenid)
+      FOREIGN_KEY(user).REFERENCES(users.user)
+    }
+  }
+
+        /*  `tokenid` int(11) NOT NULL AUTO_INCREMENT,
+  `user` varchar(30) NOT NULL,
+  `ip` varchar(24) NOT NULL,
+  `keyid` int(11),
+  `token` varchar(45) NOT NULL,
+  `epoch` bigint NOT NULL,
+  PRIMARY KEY (`tokenid`),
+  FOREIGN KEY (`user`) REFERENCES `users` (`user`),
+  FOREIGN KEY (`keyid`) REFERENCES `pubkeys` (`keyid`)
+*/
 
 }

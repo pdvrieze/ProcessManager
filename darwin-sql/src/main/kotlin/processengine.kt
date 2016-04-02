@@ -20,6 +20,12 @@ import uk.ac.bournemouth.kotlinsql.ColumnType.*
 import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.ImmutableTable
 import uk.ac.bournemouth.kotlinsql.MutableTable
+import uk.ac.bournemouth.kotlinsql.ColumnType.NumericColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.SimpleColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.CharColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.LengthCharColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.LengthColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.DecimalColumnType.*
 
 
 /**
@@ -42,7 +48,7 @@ object ProcessEngineDB : Database(1) {
   }
 
   object pmUsersTable : MutableTable("pmusers", EXTRACONF) {
-    val pmhandle by BIGINT("pmhandle") { NOT_NULL }
+    val pmhandle by reference(processModelTable.pmhandle) { NOT_NULL }
     val user by VARCHAR("user", 30) { BINARY }
     override fun init() {
       PRIMARY_KEY(pmhandle, user)
@@ -50,15 +56,14 @@ object ProcessEngineDB : Database(1) {
     }
   }
 
-  object pmrolesTable : ImmutableTable("pmroles", EXTRACONF, {
-    val handle = BIGINT("pmhandle") { NOT_NULL }
-    val role = VARCHAR("role", 30)
-    PRIMARY_KEY(handle, role)
-    FOREIGN_KEY (handle).REFERENCES(processModelTable.pmhandle)
+  object pmrolesTable : MutableTable("pmroles", EXTRACONF) {
+    val pmhandle by reference(processModelTable.pmhandle) { NOT_NULL }
+    val role by VARCHAR("role", 30)
+    override fun init() {
+      PRIMARY_KEY(pmhandle, role)
+      FOREIGN_KEY (pmhandle).REFERENCES(processModelTable.pmhandle)
+    }
 
-  }) {
-    val pmhandle by type(BIGINT_T)
-    val role by type(VARCHAR_T)
   }
 
   object processInstancesTable : ImmutableTable("processinstances", EXTRACONF, {
