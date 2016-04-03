@@ -21,7 +21,7 @@ import uk.ac.bournemouth.kotlinsql.Database
 import uk.ac.bournemouth.kotlinsql.MutableTable
 
 /**
- * Created by pdvrieze on 31/03/16.
+ * Code definition of the webauth database.
  */
 
 const val EXTRACONF="ENGINE=InnoDB CHARSET=utf8"
@@ -71,15 +71,36 @@ object WebAuthDB: Database(1) {
     }
   }
 
-        /*  `tokenid` int(11) NOT NULL AUTO_INCREMENT,
-  `user` varchar(30) NOT NULL,
-  `ip` varchar(24) NOT NULL,
-  `keyid` int(11),
-  `token` varchar(45) NOT NULL,
-  `epoch` bigint NOT NULL,
-  PRIMARY KEY (`tokenid`),
-  FOREIGN KEY (`user`) REFERENCES `users` (`user`),
-  FOREIGN KEY (`keyid`) REFERENCES `pubkeys` (`keyid`)
-*/
+  object app_perms: MutableTable(EXTRACONF) {
+    val user by reference(users.user) { NOT_NULL }
+    val app by VARCHAR("app", 50) { NOT_NULL }
+    override fun init() {
+      PRIMARY_KEY (user, app)
+      FOREIGN_KEY (`user`).REFERENCES(users.user)
+    }
+  }
+
+  object pubkeys: MutableTable(EXTRACONF) {
+    val keyid by INT("keyid") { NOT_NULL; AUTO_INCREMENT }
+    val user by reference(users.user) { NOT_NULL }
+    val appname by VARCHAR("appname", 80)
+    val pubkey by MEDIUMTEXT("pubkey") { BINARY; NOT_NULL }
+    val lastUse by BIGINT("lastUse")
+    override fun init() {
+      PRIMARY_KEY(keyid)
+      FOREIGN_KEY(user).REFERENCES(users.user)
+    }
+  }
+
+  object challenges: MutableTable(EXTRACONF) {
+    val keyid by reference(pubkeys.keyid) { NOT_NULL }
+    val challenge by VARCHAR("challenge", 100) { NOT_NULL }
+    val requestip by VARCHAR("requestip", 45) { NOT_NULL }
+    val epoch by BIGINT("epoch")
+    override fun init() {
+      PRIMARY_KEY(keyid, requestip)
+      FOREIGN_KEY(keyid).REFERENCES(pubkeys.keyid)
+    }
+  }
 
 }
