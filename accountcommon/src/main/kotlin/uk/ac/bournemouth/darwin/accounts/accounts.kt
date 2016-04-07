@@ -17,10 +17,11 @@
 package uk.ac.bournemouth.darwin.accounts
 
 import net.sourceforge.migbase64.Base64
-import uk.ac.bournemouth.util.kotlin.sql.ConnectionHelper
-import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
-import uk.ac.bournemouth.util.kotlin.sql.appendWarnings
-import uk.ac.bournemouth.util.kotlin.sql.connection
+import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
+import uk.ac.bournemouth.kotlinsql.*
+import uk.ac.bournemouth.util.kotlin.sql.*
+import uk.ac.bournemouth.util.kotlin.sql.impl.gen.DatabaseMethods
+import uk.ac.bournemouth.util.kotlin.sql.impl.gen._Statement3
 import java.math.BigInteger
 import java.net.HttpURLConnection
 import java.security.KeyFactory
@@ -28,6 +29,8 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPublicKeySpec
+import java.sql.Connection
+import java.sql.Timestamp
 import javax.crypto.Cipher
 import javax.naming.InitialContext
 import javax.sql.DataSource
@@ -52,7 +55,7 @@ private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).
 /**
  * A class that abstracts the interaction with the account database.
  */
-class AccountDb constructor(private val connection: ConnectionHelper) {
+open class AccountDb constructor(private val connection: ConnectionHelper) {
 
   val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
 
@@ -189,19 +192,7 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
-  fun userFromToken(token: String, remoteAddr: String): String? {
-    connection.prepareStatement("SELECT user FROM tokens WHERE token=? AND ip=?") {
-      params(token) + remoteAddr
-      execute {
-        if (it.next() && it.isLast) {
-          return it.getString(1).apply { updateTokenEpoch(token, remoteAddr) }
-        }
-        return null
-      }
-    }
-  }
-
-  private inline fun updateTokenEpoch(token: String, remoteAddr: String) {
+  internal inline fun updateTokenEpoch(token: String, remoteAddr: String) {
     connection.prepareStatement("UPDATE tokens SET epoch=? WHERE token=? and ip=?") {
       params(now) + token + remoteAddr
       if (executeUpdate() == 0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
@@ -222,51 +213,10 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
     return token
   }
 
-  fun isUserInRole(user: String, role: String): Boolean {
-    connection.prepareStatement("SELECT user FROM user_roles where user=? and role=?") {
-      params(user) + role
-      return executeHasRows() // If there is an item,
-    }
-  }
-
-  fun getUserRoles(user: String): List<String> {
-    connection.prepareStatement("SELECT role FROM user_roles WHERE user=?") {
-      params(user)
-      return mutableListOf<String>().apply {
-        execute {
-          while (it.next()) {
-            add(it.getString(1))
-          }
-        }
-      }
-
-    }
-  }
-
-  fun keyInfo(user:String) : List<out KeyInfo>  {
-    connection.prepareStatement("SELECT keyid, appname, lastUse FROM pubkeys where user=?") {
-      params(user)
-      return executeEach { rs -> KeyInfo(rs.getLong(1), rs.getString(2), rs.getLong(3)) }
-    }
-  }
-
   fun cleanAuthTokens() {
     connection.prepareStatement("DELETE FROM tokens WHERE `epoch` < ?") {
       setLong(1, now - MAXTOKENLIFETIME)
       executeUpdate()
-    }
-  }
-
-  fun verifyResetToken(user: String, resetToken: String): Boolean {
-    connection.prepareStatement("SELECT UNIX_TIMESTAMP()-UNIX_TIMESTAMP(`resettime`) AS `age` FROM `users` WHERE `user`=? AND `resettoken`=?") {
-      params(user) + resetToken
-      execute {
-        if (it.next()) {
-          return it.getLong(1) < MAX_RESET_VALIDITY
-        } else {
-          return false
-        }
-      }
     }
   }
 
@@ -277,30 +227,52 @@ class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
-  fun alias(user: String): String? {
-    connection.prepareStatement("SELECT alias FROM users WHERE user=?") {
-      params(user)
-      return stringResult()
+}
+
+open class AccountDb2(private val connection:DBConnection, connectionHelper: ConnectionHelper):
+      AccountDb(connectionHelper) {
+
+  private val u: WebAuthDB.users get() = WebAuthDB.users
+  private val t: WebAuthDB.tokens get() = WebAuthDB.tokens
+  private val r: WebAuthDB.user_roles get() = WebAuthDB.user_roles
+  private val p: WebAuthDB.pubkeys get() = WebAuthDB.pubkeys
+
+  private fun <T:Any, S:IColumnType<T,S,C>, C: Column<T, S, C>> getSingle(col:C, user:String):T? {
+    return u.let { u ->
+      WebAuthDB.SELECT(col).WHERE { u.user eq user }.getSingle(connection)
     }
   }
 
-  fun fullname(user:String): String? {
-    connection.prepareStatement("SELECT fullname FROM users WHERE user=?") {
-      params(user)
-      return stringResult()
-    }
+  fun isLocalAccount(user:String) = ! getSingle(u.password, user).isNullOrBlank()
+
+  fun isUserInRole(user: String, role: String) = WebAuthDB.SELECT(r.user)
+        .WHERE { (r.user eq user) AND (r.role eq role) }
+        .getSingle(connection) != null
+
+  fun fullname(user:String): String? = getSingle(u.fullname, user)
+
+  fun alias(user: String): String? = getSingle(u.alias, user)
+
+  fun keyInfo(user:String) = WebAuthDB.SELECT(p.keyid, p.appname, p.lastUse).WHERE { p.user eq user }.getList(connection) { p1, p2, p3 -> KeyInfo(p1, p2, p3)}
+
+
+  fun verifyResetToken(user: String, resetToken: String): Boolean {
+    val resetTime:Timestamp = WebAuthDB.SELECT(u.resettime).WHERE { (u.user eq user) AND (u.resettoken eq resetToken) }.getSingle(connection) ?: return false
+    return resetTime.time - now < MAX_RESET_VALIDITY
   }
 
-  fun isLocalAccount(user:String): Boolean {
-    connection.prepareStatement("SELECT password FROM users WHERE user=?") {
-      params(user)
-      return ! stringResult().isNullOrBlank()
-    }
+  fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getList(connection)
+
+  fun userFromToken(token: String, remoteAddr: String): String? {
+    return WebAuthDB.SELECT(t.user)
+                    .WHERE { (t.token eq token) AND (t.ip eq remoteAddr) }
+                    .getSingle(connection)
+                    ?.apply { updateTokenEpoch(token, remoteAddr ) }
   }
 
 }
 
-class KeyInfo(val keyId:Long, val appname:String?, val lastUse: Long)
+class KeyInfo(val keyId:Int, val appname:String?, val lastUse: Long)
 
 class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=HttpURLConnection.HTTP_INTERNAL_ERROR) : RuntimeException(msg, cause) {
   override val message: String
@@ -313,15 +285,20 @@ class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=Htt
  *
  * @param block The code to execute in relation to the database.
  */
-inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() -> R): R {
+inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb2.() -> R): R {
 
   val ic = InitialContext()
   //    val username = ic.lookup(AUTHDBADMINUSERNAME) as String
   //    val password = ic.lookup(AUTHDBADMINPASSWORD) as String
   return accountDb(ic.lookup(resourceName) as DataSource, block)
 }
+//
+//inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
+//  return dataSource.connection { AccountDb(it).block() }
+//}
 
-inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
-  return dataSource.connection { AccountDb(it).block() }
+inline fun <R> accountDb(dataSource: DataSource, block: AccountDb2.() -> R): R {
+  WebAuthDB.connect(dataSource) {
+    return AccountDb2(this, ConnectionHelper(__getConnection())).block()
+  }
 }
-

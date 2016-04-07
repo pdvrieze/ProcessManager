@@ -64,7 +64,7 @@ class AccountController : HttpServlet() {
         const val FIELD_NEWPASSWORD2 = "newpassword2"
     }
 
-    private inline fun <R> accountDb(block:AccountDb.()->R): R = accountDb(DBRESOURCE, block)
+    private inline fun <R> accountDb(block:AccountDb2.()->R): R = accountDb(DBRESOURCE, block)
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
