@@ -64,10 +64,15 @@ object WebAuthDB: Database(1) {
   object tokens: MutableTable(EXTRACONF) {
     val tokenid by INT("tokenid") { NOT_NULL; AUTO_INCREMENT }
     val user by reference(users.user) { NOT_NULL }
+    val ip by VARCHAR("ip", 45) { NOT_NULL }
+    val keyid by reference(pubkeys.keyid)
+    val token by VARCHAR("token", 45) { NOT_NULL }
+    val epoch by BIGINT("epoch") { NOT_NULL }
 
     override fun init() {
       PRIMARY_KEY(tokenid)
       FOREIGN_KEY(user).REFERENCES(users.user)
+      FOREIGN_KEY(keyid).REFERENCES(pubkeys.keyid)
     }
   }
 
