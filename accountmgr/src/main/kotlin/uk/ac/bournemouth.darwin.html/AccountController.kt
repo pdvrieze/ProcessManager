@@ -64,7 +64,7 @@ class AccountController : HttpServlet() {
         const val FIELD_NEWPASSWORD2 = "newpassword2"
     }
 
-    private inline fun <R> accountDb(block:AccountDb2.()->R): R = accountDb(DBRESOURCE, block)
+    private inline fun <R> accountDb(block: AccountDb.()->R): R = accountDb(DBRESOURCE, block)
 
     override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {
         when(req.pathInfo) {
@@ -233,7 +233,7 @@ class AccountController : HttpServlet() {
     }
 
     private fun challenge(req: HttpServletRequest, resp: HttpServletResponse) {
-        val keyId = req.getParameter(FIELD_KEYID)?.toLong()
+        val keyId = req.getParameter(FIELD_KEYID)?.toInt()
         if (keyId==null) { resp.darwinError(req, "Insufficient credentials", 403, "Forbidden"); return }
         val responseParam = req.getParameter(FIELD_RESPONSE)
         if (responseParam==null) {
@@ -244,7 +244,7 @@ class AccountController : HttpServlet() {
         }
     }
 
-    private fun handleResponse(req: HttpServletRequest, resp: HttpServletResponse, keyId: Long, response: ByteArray) {
+    private fun handleResponse(req: HttpServletRequest, resp: HttpServletResponse, keyId: Int, response: ByteArray) {
         try {
             accountDb {
                 val user = userFromChallengeResponse(keyId, req.remoteAddr, response)
@@ -262,7 +262,7 @@ class AccountController : HttpServlet() {
         }
     }
 
-    private fun issueChallenge(req:HttpServletRequest, resp: HttpServletResponse, keyid: Long) {
+    private fun issueChallenge(req:HttpServletRequest, resp: HttpServletResponse, keyid: Int) {
         accountDb {
             cleanChallenges()
             val challenge = newChallenge(keyid, req.remoteAddr) // This should fail on an incorrect keyid due to integrity constraints

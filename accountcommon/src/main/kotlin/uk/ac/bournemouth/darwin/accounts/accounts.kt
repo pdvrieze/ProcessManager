@@ -55,20 +55,13 @@ private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).
 /**
  * A class that abstracts the interaction with the account database.
  */
-open class AccountDb constructor(private val connection: ConnectionHelper) {
+@Deprecated("Old class that is generally subsumed", ReplaceWith("AccountDB", "uk.ac.bournemouth.darwin.accounts.AccountDB"))
+open class OldAccountDb constructor(private val connection: ConnectionHelper) {
 
   val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
 
   companion object {
     val random: SecureRandom by lazy { SecureRandom() }
-  }
-
-  private fun getSalt(username: String): String {
-    return ""
-  }
-
-  private fun createPasswordHash(salt: String, password: String): String {
-    return "{SHA}${Base64.encoder().encodeToString(sha1(password.toByteArray()))}";
   }
 
   fun updateCredentials(username: String, password: String): Boolean {
@@ -78,20 +71,9 @@ open class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
-  fun verifyCredentials(username: String, password: String): Boolean {
-
-    val salt = getSalt(username)
-    val passwordHash = createPasswordHash(salt, password)
-
-    connection.prepareStatement("SELECT `user` FROM users WHERE `user`=? AND `password`=?") {
-      params(username) + passwordHash
-      return executeHasRows() // If we can get a record, the combination exists.
-    }
-  }
-
   private fun generateAuthToken() = Base64.encoder().encodeToString(random.nextBytes(32))
 
-  fun createAuthtoken(username: String, remoteAddr: String, keyid: Long? = null): String {
+  fun createAuthtoken(username: String, remoteAddr: String, keyid: Int? = null): String {
     val token = generateAuthToken()
     return connection.prepareStatement("INSERT INTO tokens (`user`, `ip`, `keyid`, `token`, `epoch`) VALUES (?,?,?,?,?)") {
       params(username) + remoteAddr + keyid + token + now
@@ -100,16 +82,8 @@ open class AccountDb constructor(private val connection: ConnectionHelper) {
     }
   }
 
-  fun cleanChallenges() {
-    val cutoff = now - MAXCHALLENGELIFETIME
-    connection.prepareStatement("DELETE FROM challenges WHERE `epoch` < ?") {
-      params(cutoff)
-      executeUpdate()
-    }
-  }
 
-
-  fun newChallenge(keyid: Long, requestIp: String): String {
+  fun newChallenge(keyid: Int, requestIp: String): String {
     val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
     connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
       params(keyid) + requestIp + challenge + now + challenge + now
@@ -119,45 +93,6 @@ open class AccountDb constructor(private val connection: ConnectionHelper) {
         throw AuthException("Could not store challenge".appendWarnings(warningsIt))
       }
     }
-  }
-
-  private fun toRSAPubKey(keyData:String):RSAPublicKey {
-    val colPos = keyData.indexOf(':')
-    val modulus = BigInteger(Base64.decoder().decode(keyData.substring(0, colPos)))
-    val publicExponent = BigInteger(Base64.decoder().decode(keyData.substring(colPos+1)))
-
-    val factory = KeyFactory.getInstance("RSA")
-    return factory.generatePublic(RSAPublicKeySpec(modulus, publicExponent)) as RSAPublicKey
-  }
-
-  fun userFromChallengeResponse(keyId:Long, requestIp:String, response:ByteArray): String? {
-    cleanChallenges()
-    var challenge:ByteArray?=null
-    connection.prepareStatement("SELECT `challenge`, `requestip` FROM challenges WHERE keyid=?") {
-      params(keyId)
-      execute { rs ->
-        if (rs.next()) {
-          challenge = rs.getString(1)?.let { Base64.decoder().decode(it) }
-          val remoteAddr = rs.getString(2)
-          if (requestIp != remoteAddr || challenge == null) throw AuthException("Invalid challenge", errorCode = HttpURLConnection.HTTP_UNAUTHORIZED)
-        } else {
-          return null
-        }
-      }
-    }
-
-    var user:String? = null
-    val pubkey = connection.prepareStatement("SELECT user, pubkey FROM pubkeys WHERE keyid=?") {
-      params(keyId)
-      execute { rs ->
-        if (rs.next()) { user = rs.getString(1) ;rs.getString(2)?.let { toRSAPubKey(it) }} else null
-      }
-    } ?: throw AuthException("No suitable public key found", errorCode = HttpURLConnection.HTTP_UNAUTHORIZED)
-
-    val rsa = Cipher.getInstance("RSA")
-    rsa.init(Cipher.DECRYPT_MODE, pubkey)
-    val decryptedResponse = rsa.doFinal(response)
-    if (decryptedResponse==challenge) return user!! else return null
   }
 
   fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null) {
@@ -213,26 +148,13 @@ open class AccountDb constructor(private val connection: ConnectionHelper) {
     return token
   }
 
-  fun cleanAuthTokens() {
-    connection.prepareStatement("DELETE FROM tokens WHERE `epoch` < ?") {
-      setLong(1, now - MAXTOKENLIFETIME)
-      executeUpdate()
-    }
-  }
-
-  fun logout(authToken: String): Unit {
-    connection.prepareStatement("DELETE FROM tokens WHERE token = ?") {
-      params (authToken)
-      execute()
-    }
-  }
-
 }
 
-open class AccountDb2(private val connection:DBConnection, connectionHelper: ConnectionHelper):
-      AccountDb(connectionHelper) {
+open class AccountDb(private val connection:DBConnection, connectionHelper: ConnectionHelper):
+      OldAccountDb(connectionHelper) {
 
   private val u: WebAuthDB.users get() = WebAuthDB.users
+  private val c: WebAuthDB.challenges get() = WebAuthDB.challenges
   private val t: WebAuthDB.tokens get() = WebAuthDB.tokens
   private val r: WebAuthDB.user_roles get() = WebAuthDB.user_roles
   private val p: WebAuthDB.pubkeys get() = WebAuthDB.pubkeys
@@ -253,7 +175,23 @@ open class AccountDb2(private val connection:DBConnection, connectionHelper: Con
 
   fun alias(user: String): String? = getSingle(u.alias, user)
 
-  fun keyInfo(user:String) = WebAuthDB.SELECT(p.keyid, p.appname, p.lastUse).WHERE { p.user eq user }.getList(connection) { p1, p2, p3 -> KeyInfo(p1, p2, p3)}
+  fun keyInfo(user:String) = WebAuthDB.SELECT(p.keyid, p.appname, p.lastUse).WHERE { p.user eq user }.getList(connection) { p1, p2, p3 -> KeyInfo(p1!!, p2, p3!!)}
+
+  private fun getSalt(username: String): String {
+    return ""
+  }
+
+  private fun createPasswordHash(salt: String, password: String): String {
+    return "{SHA}${Base64.encoder().encodeToString(sha1(password.toByteArray()))}";
+  }
+
+  fun verifyCredentials(username: String, password: String): Boolean {
+    // TODO use proper salts
+    val passwordHash = createPasswordHash(getSalt(username), password)
+
+    return WebAuthDB.SELECT(u.user).WHERE { (u.user eq username) AND (u.password eq passwordHash) }.getSingle(connection)!=null
+
+  }
 
 
   fun verifyResetToken(user: String, resetToken: String): Boolean {
@@ -261,7 +199,7 @@ open class AccountDb2(private val connection:DBConnection, connectionHelper: Con
     return resetTime.time - now < MAX_RESET_VALIDITY
   }
 
-  fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getList(connection)
+  fun getUserRoles(user: String): List<String> = WebAuthDB.SELECT(r.role).WHERE { r.user eq user }.getSafeList(connection)
 
   fun userFromToken(token: String, remoteAddr: String): String? {
     return WebAuthDB.SELECT(t.user)
@@ -269,6 +207,50 @@ open class AccountDb2(private val connection:DBConnection, connectionHelper: Con
                     .getSingle(connection)
                     ?.apply { updateTokenEpoch(token, remoteAddr ) }
   }
+
+  private fun toRSAPubKey(keyData:String):RSAPublicKey {
+    val colPos = keyData.indexOf(':')
+    val modulus = BigInteger(Base64.decoder().decode(keyData.substring(0, colPos)))
+    val publicExponent = BigInteger(Base64.decoder().decode(keyData.substring(colPos+1)))
+
+    val factory = KeyFactory.getInstance("RSA")
+    return factory.generatePublic(RSAPublicKeySpec(modulus, publicExponent)) as RSAPublicKey
+  }
+
+  fun userFromChallengeResponse(keyId:Int, requestIp:String, response:ByteArray): String? {
+    cleanChallenges()
+    val challenge = WebAuthDB.SELECT(c.challenge)
+                             .WHERE { (c.keyid eq keyId) AND (c.requestip eq requestIp) }
+                             .getSingle(connection)
+                             ?.let{Base64.decoder().decode(it)} ?: return null
+
+    val (user, encodedpubkey) = WebAuthDB.SELECT(p.user, p.pubkey)
+          .WHERE { p.keyid eq keyId }
+          .getSingle(connection) ?: throw AuthException("No suitable public key found",
+                                                        errorCode = HttpURLConnection.HTTP_UNAUTHORIZED)
+
+    val pubkey = toRSAPubKey(encodedpubkey?: throw AuthException("Invalid value for public key", errorCode = HttpURLConnection.HTTP_UNAUTHORIZED))
+
+    val rsa = Cipher.getInstance("RSA")
+    rsa.init(Cipher.DECRYPT_MODE, pubkey)
+    val decryptedResponse = rsa.doFinal(response)
+    if (decryptedResponse==challenge) return user else return null
+  }
+
+
+  fun logout(authToken: String): Int {
+    return WebAuthDB.DELETE_FROM(t).WHERE{t.token eq authToken}.execute(connection)
+  }
+
+  fun cleanAuthTokens() {
+    WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (now - MAXTOKENLIFETIME) }.execute(connection)
+  }
+
+  fun cleanChallenges() {
+    val cutoff = now - MAXCHALLENGELIFETIME
+    WebAuthDB.DELETE_FROM(c).WHERE { c.epoch lt cutoff }.execute(connection)
+  }
+
 
 }
 
@@ -285,7 +267,7 @@ class AuthException(msg: String, cause: Throwable? = null, val errorCode:Int=Htt
  *
  * @param block The code to execute in relation to the database.
  */
-inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb2.() -> R): R {
+inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() -> R): R {
 
   val ic = InitialContext()
   //    val username = ic.lookup(AUTHDBADMINUSERNAME) as String
@@ -297,8 +279,8 @@ inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb2.()
 //  return dataSource.connection { AccountDb(it).block() }
 //}
 
-inline fun <R> accountDb(dataSource: DataSource, block: AccountDb2.() -> R): R {
+inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
   WebAuthDB.connect(dataSource) {
-    return AccountDb2(this, ConnectionHelper(__getConnection())).block()
+    return AccountDb(this, ConnectionHelper(__getConnection())).block()
   }
 }
