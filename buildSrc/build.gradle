@@ -34,6 +34,7 @@ buildscript {
     }
 }
 
+apply plugin: 'idea'
 apply from: '../kotlinsql/buildSrc/build.gradle'
 
 sourceSets {
@@ -48,5 +49,13 @@ sourceSets {
         resources {
             srcDir '../kotlinsql/buildSrc/src/main/resources'
         }
+    }
+}
+
+idea {
+    module {
+        excludeDirs += file('../kotlinsql/buildSrc/src/main/kotlin')
+        excludeDirs += file('../kotlinsql/buildSrc/src/main/resources')
+        excludeDirs += file('../kotlinsql/buildSrc')
     }
 }
