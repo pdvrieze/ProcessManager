@@ -38,7 +38,6 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 configurations {
     apiCompile
-    apiProvided
     main {
         extendsFrom apiCompile
     }
@@ -52,11 +51,9 @@ sourceSets {
         java {
             srcDir 'src/api/java'
         }
-        compileClasspath += configurations.apiProvided
     }
     main {
         java {
-            srcDir 'src/api/java'
             srcDirs sourceSets.api.allSource
         }
         resources {

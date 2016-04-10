@@ -48,6 +48,7 @@ dependencies {
     compile project(':PE-common')
     myProvidedCompile project(path: ':PE-common', configuration:'compileOnly')
     compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly project(":DarwinJavaApi")
 }
 
 /*
