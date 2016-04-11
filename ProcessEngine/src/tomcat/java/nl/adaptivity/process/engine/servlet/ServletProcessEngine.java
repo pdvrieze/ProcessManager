@@ -599,7 +599,7 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
    *          <code>null</code> a name will be assigned. This name has no
    *          semantic meaning.
    * @param owner The owner of the process instance. (Who started it).
-   * @return
+   * @return A handle to the process
    */
   @WebMethod
   @RestMethod(method = HttpMethod.POST, path = "/processModels/${handle}", query = { "op=newInstance" })
