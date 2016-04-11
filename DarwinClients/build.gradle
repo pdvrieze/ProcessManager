@@ -41,7 +41,7 @@ sourceSets {
     }
 }
 
-task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:tomcatExtClasses', ':PEUserMessageHandler:apiClasses' ] , type:JavaExec) {
+task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:servlet:classes', ':PEUserMessageHandler:apiClasses' ] , type:JavaExec) {
     group = 'build'
     description = 'Generate the client sources'
 
@@ -50,8 +50,6 @@ task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:tomcatEx
         main = 'nl.adaptivity.messaging.MessagingSoapClientGenerator'
         def cp = configurations.codegen
                 .plus(project(':PEUserMessageHandler').sourceSets.api.runtimeClasspath)
-                .plus(project(':ProcessEngine').sourceSets.tomcatExt.runtimeClasspath)
-                .plus(project(':ProcessEngine').sourceSets.tomcatExt.output)
 
 //        def cp2 = project(':PEUserMessageHandler').sourceSets.api.runtimeClasspath
 //        def cp2 = sourceSets.codegen.compileClasspath
@@ -91,7 +89,7 @@ compileJava.dependsOn generate
 dependencies {
     codegen project(':DarwinGenerators')
     codegen project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
-    codegen project(path: ':ProcessEngine', configuration: 'tomcatExtCompile')
+    codegen project(path: ':ProcessEngine:servlet')
 //    compile 'generate'
     compile project(':JavaCommonApi')
     compile project(':java-common')
