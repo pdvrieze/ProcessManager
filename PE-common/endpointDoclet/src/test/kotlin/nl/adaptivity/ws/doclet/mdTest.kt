@@ -56,4 +56,10 @@ class TestMDGen {
     """.trimIndent().toString()
     Assert.assertEquals(result, expected)
   }
+
+  @Test
+  fun testNormalize() {
+    val input = "      aa ab ac  \n | ba bb\tbc   | ca cb cc   | da db dc\n"
+    val expected = "aa ab ac | ba bb bc | ca cb cc | da db dc"
+  }
 }

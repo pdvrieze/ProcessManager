@@ -215,7 +215,7 @@ private class MdCell(val wrapped:Boolean=false):Cell {
   private val buffer = StringBuilder()
 
   override fun text(c: CharSequence) {
-    buffer.append(c.stripNewLines())
+    buffer.append(c.normalize())
   }
 
   override fun link(target: CharSequence, label: CharSequence?) = buffer._link(target, label)
@@ -235,7 +235,7 @@ private class StripNewLines(val orig:CharSequence):CharSequence {
 
   override fun subSequence(startIndex: Int, endIndex: Int):CharSequence {
     val subSequence = orig.subSequence(startIndex, endIndex)
-    return subSequence.stripNewLines() as CharSequence
+    return subSequence.normalize()
   }
 
   override fun toString(): String {
@@ -243,7 +243,14 @@ private class StripNewLines(val orig:CharSequence):CharSequence {
   }
 }
 
-fun CharSequence.stripNewLines():CharSequence = StripNewLines(this)
+fun CharSequence.normalize():CharSequence = StringBuilder(this.length).apply {
+  this@normalize.forEach { c ->
+    when(c) {
+      in '\u0000'..'\u001f', ' ', '\u00a0' -> if (length>0 && last()!=' ') append(' ')
+      else -> append(c)
+    }
+  }
+}
 
 private fun Appendable._link(target:CharSequence, label: CharSequence?) {
   if (label!=null) {
@@ -271,3 +278,4 @@ private class MdGen(val out: Appendable): OutputGenerator {
     MdTable(columns).apply { this.block() }.appendTo(out)
   }
 }
+
