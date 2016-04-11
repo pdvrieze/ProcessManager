@@ -56,3 +56,9 @@ test {
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
+
+idea {
+    module {
+        name = "${parent.name}-${project.name}"
+    }
+}

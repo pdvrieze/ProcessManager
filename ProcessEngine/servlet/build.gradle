@@ -44,8 +44,8 @@ dependencies {
 
     compile project(':ProcessEngine:core')
 
-    compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    providedCompile project(path: ':ProcessEngine:core', configuration: "compileOnly")
+    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
     wsDoc project(":PE-common:endpointDoclet")
 }
@@ -76,3 +76,9 @@ task wsDoc(type:Javadoc) {
 }
 
 assemble.dependsOn tasks.wsDoc
+
+idea {
+    module {
+        name = "${parent.name}-${project.name}"
+    }
+}
