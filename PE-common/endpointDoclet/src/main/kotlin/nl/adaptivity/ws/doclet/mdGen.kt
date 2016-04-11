@@ -145,28 +145,6 @@ private class MdTable(val columns: Array<out String>) : Table {
     override fun hashCode() = buffer.hashCode()
   }
 
-  private fun CharSequence.wordWrap(maxWidth:Int) : Sequence<CharSequence> {
-    val result = mutableListOf<CharSequence>()
-    var start=0
-    var lastWordEnd=0
-    forEachIndexed { i, c ->
-      when (c) {
-        ' ' -> lastWordEnd=i
-        '.', '!', '?' -> lastWordEnd=i+1
-      }
-      if (start>=lastWordEnd && i-lastWordEnd>maxWidth) { // don't wrap if the word is too long
-        result.add(subSequence(start, lastWordEnd))
-        start = lastWordEnd
-        while(start<length && get(start)==' ') { start++ }// start after any spaces
-      }
-    }
-    if (lastWordEnd<length) {
-      val last = subSequence(lastWordEnd, length)
-      if (! last.isBlank()) { result.add(last) }
-    }
-    return result.asSequence()
-  }
-
   private val rows = mutableListOf<MdRow>()
 
   override var targetWidth:Int = 100
@@ -175,6 +153,30 @@ private class MdTable(val columns: Array<out String>) : Table {
     rows.add(MdRow(columns.size).apply { block() })
   }
 }
+
+
+fun CharSequence.wordWrap(maxWidth:Int) : Sequence<CharSequence> {
+  val result = mutableListOf<CharSequence>()
+  var start=0
+  var lastWordEnd=0
+  forEachIndexed { i, c ->
+    when (c) {
+      '\n', '\r', ' ' -> lastWordEnd=i
+      ',', '.', '!', '?' -> lastWordEnd=i+1
+    }
+    if ((start<=lastWordEnd && i-start>=maxWidth) || c=='\n' || c=='\r') { // don't wrap if the word is too long
+      result.add(subSequence(start, lastWordEnd))
+      start = lastWordEnd
+      while(start<length && get(start)==' ') { start++ }// start after any spaces
+    }
+  }
+  if (lastWordEnd<length) {
+    val last = subSequence(start, length)
+    if (! last.isBlank()) { result.add(last) }
+  }
+  return result.asSequence()
+}
+
 
 private class FlipIterator<T>(inSeq:Sequence<Sequence<T>>):Iterator<Sequence<T?>> {
   val innerSequences:List<Iterator<T>> = inSeq.map{it.iterator()}.toList()
@@ -213,7 +215,7 @@ private class MdCell(val wrapped:Boolean=false):Cell {
   private val buffer = StringBuilder()
 
   override fun text(c: CharSequence) {
-    buffer.append(c)
+    buffer.append(c.stripNewLines())
   }
 
   override fun link(target: CharSequence, label: CharSequence?) = buffer._link(target, label)
@@ -222,6 +224,26 @@ private class MdCell(val wrapped:Boolean=false):Cell {
 
   override val width: Int get() = buffer.length
 }
+
+private class StripNewLines(val orig:CharSequence):CharSequence {
+  override val length:Int get() = orig.length
+
+  override fun get(index: Int) = orig.get(index).let{ when (it) {
+    '\n', '\r', '\t' -> ' '
+    else -> it
+  } }
+
+  override fun subSequence(startIndex: Int, endIndex: Int):CharSequence {
+    val subSequence = orig.subSequence(startIndex, endIndex)
+    return subSequence.stripNewLines() as CharSequence
+  }
+
+  override fun toString(): String {
+    return StringBuilder(length).append(this).toString()
+  }
+}
+
+fun CharSequence.stripNewLines():CharSequence = StripNewLines(this)
 
 private fun Appendable._link(target:CharSequence, label: CharSequence?) {
   if (label!=null) {

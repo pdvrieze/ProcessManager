@@ -25,6 +25,8 @@ dependencies {
     compile files(org.gradle.internal.jvm.Jvm.current().toolsJar)
     compile project(":PE-common")
     compile project(":DarwinJavaApi")
+
+    testCompile 'org.testng:testng:6.9.9'
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
