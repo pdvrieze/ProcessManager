@@ -18,6 +18,7 @@
  * under the License.
  */
 
+/* A hack build script that incorporates the plugins from kotlinsql. */
 
 buildscript {
 
@@ -33,18 +34,20 @@ buildscript {
     }
 }
 
+apply plugin: 'idea'
+apply from: '../kotlinsql/buildSrc/build.gradle'
 
-apply plugin: 'kotlin'
-
-sourceCompatibility = JavaVersion.VERSION_1_6
-targetCompatibility = JavaVersion.VERSION_1_6
-
-
-dependencies {
-    compile gradleApi()
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+task copySrc(type:Copy) {
+    from file('../kotlinsql/buildSrc/src')
+    into file('src')
 }
 
-repositories {
-    jcenter()
+compileJava.dependsOn copySrc
+compileKotlin.dependsOn copySrc
+processResources.dependsOn copySrc
+
+idea {
+    module {
+    	generatedSourceDirs+=file('src')
+    }
 }
