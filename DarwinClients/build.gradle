@@ -41,7 +41,7 @@ sourceSets {
     }
 }
 
-task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:servlet:classes', ':PEUserMessageHandler:apiClasses' ] , type:JavaExec) {
+task generate(dependsOn: [configurations.codegen, ':DarwinGenerators:assemble', ':ProcessEngine:servlet:classes', ':PEUserMessageHandler:apiClasses' ] , type:JavaExec) {
     group = 'build'
     description = 'Generate the client sources'
 
@@ -51,16 +51,9 @@ task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:servlet:
         def cp = configurations.codegen
                 .plus(project(':PEUserMessageHandler').sourceSets.api.runtimeClasspath)
 
-//        def cp2 = project(':PEUserMessageHandler').sourceSets.api.runtimeClasspath
-//        def cp2 = sourceSets.codegen.compileClasspath
-//        cp2.each({println("cp2 $it")})
-
-//        def cp = configurations.codegen
         classpath = cp
         args '-cp'
         args cp.join(':')
-
-//        cp.each({ println("classpath: $it");})
 
         args '-package', 'nl.adaptivity.process.client', '-dstdir', genDir.absolutePath
         genClasses.each {
@@ -68,20 +61,6 @@ task generate(dependsOn: [':DarwinGenerators:assemble', ':ProcessEngine:servlet:
             args y
         }
     }
-
-/*
-//    inputs.file rootProject.findProject('DarwinGenerators').getTasksByName('assemble')
-//    outputs.dir genDir
-    doLast {
-        println("Generating clients")
-        def t= rootProject.DarwinGenerators.run
-        t.args=["-package","nl.adaptivity.process.client",
-                 "-dstdir",genDir]
-        t.args.addAll(gen)
-        t.execute()
-
-        //    ant.generate()
-    }*/
 }
 
 compileJava.dependsOn generate
@@ -89,7 +68,7 @@ compileJava.dependsOn generate
 dependencies {
     codegen project(':DarwinGenerators')
     codegen project(path: ':PEUserMessageHandler', configuration: 'apiCompile')
-    codegen project(path: ':ProcessEngine:servlet')
+    codegen project(path: ':ProcessEngine:servlet', configuration: 'codeGen')
 //    compile 'generate'
     compile project(':JavaCommonApi')
     compile project(':java-common')
