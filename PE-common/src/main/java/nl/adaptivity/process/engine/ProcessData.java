@@ -37,7 +37,7 @@ import java.util.List;
 
 
 /** Class to represent data attached to process instances. */
-@XmlJavaTypeAdapter(XmlSerializable.JAXBAdapter.class)
+@XmlJavaTypeAdapter(JAXBAdapter.class)
 public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "value";

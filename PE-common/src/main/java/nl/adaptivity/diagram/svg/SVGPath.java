@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.diagram.svg;
+package nl.adaptivity.diagram.svg;
 
 import nl.adaptivity.diagram.DiagramPath;
 import nl.adaptivity.diagram.Pen;

@@ -99,7 +99,7 @@ public class TaskDetailFragment extends Fragment implements LoaderCallbacks<Exec
     return mBinding.getRoot();
   }
 
-  @BindingAdapter({"app:usertask"})
+  @BindingAdapter("usertask")
   public static void bindTaskItemAdapter(RecyclerView view, ExecutableUserTask task) {
     if (view.getAdapter() instanceof TaskItemAdapter) {
       TaskItemAdapter adapter = (TaskItemAdapter) view.getAdapter();

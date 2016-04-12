@@ -46,13 +46,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @BindingMethods({
         @BindingMethod(type=IconButton.class,
-                       attribute="bind:iconTint",
+                       attribute="iconTint",
                        method="setDrawableTint"),
         @BindingMethod(type=IconButton.class,
-                attribute = "bind:iconRes",
+                attribute = "iconRes",
                 method="setIconResource"),
         @BindingMethod(type=IconButton.class,
-          attribute = "bind:iconSrc",
+          attribute = "iconSrc",
           method="setIconDrawable")
 })
 public class IconButton extends ViewGroup {

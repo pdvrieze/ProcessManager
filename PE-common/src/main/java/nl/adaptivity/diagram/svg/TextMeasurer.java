@@ -14,10 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.diagram.svg;
+package nl.adaptivity.diagram.svg;
 
 import nl.adaptivity.diagram.Rectangle;
-import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
+import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo;
 import org.jetbrains.annotations.NotNull;
 
 

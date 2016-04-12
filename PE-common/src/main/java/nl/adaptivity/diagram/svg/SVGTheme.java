@@ -14,11 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.diagram.svg;
+package nl.adaptivity.diagram.svg;
 
 import nl.adaptivity.diagram.Theme;
 import nl.adaptivity.diagram.ThemeItem;
-import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
+import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo;
 
 
 public class SVGTheme<M extends MeasureInfo> implements Theme<SVGStrategy<M>, SVGPen<M>, SVGPath> {

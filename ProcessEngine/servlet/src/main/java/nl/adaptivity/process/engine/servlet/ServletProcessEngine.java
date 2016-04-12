@@ -497,10 +497,8 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
 
   /*
-   * Web interface for this servlet
+   * Get the list of all process models in the engine. This will be limited to user owned ones
    */
-
-
   @RestMethod(method = HttpMethod.GET, path = "/processModels")
   public ProcessModelRefs getProcesModelRefs() {
     try (Transaction transaction = mProcessEngine.startTransaction()){

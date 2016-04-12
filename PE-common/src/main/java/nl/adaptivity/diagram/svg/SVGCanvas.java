@@ -14,13 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.diagram.svg;
+package nl.adaptivity.diagram.svg;
 
 import nl.adaptivity.diagram.Canvas;
 import nl.adaptivity.diagram.Rectangle;
 import nl.adaptivity.diagram.Theme;
+import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo;
 import nl.adaptivity.lang.Doubles;
-import nl.adaptivity.process.diagram.svg.TextMeasurer.MeasureInfo;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 
