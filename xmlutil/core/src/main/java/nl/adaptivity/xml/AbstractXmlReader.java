@@ -17,7 +17,6 @@
 package nl.adaptivity.xml;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.xml.XmlUtil;
 
 import javax.xml.namespace.QName;
 

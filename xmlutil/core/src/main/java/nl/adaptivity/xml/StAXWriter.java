@@ -17,7 +17,6 @@
 package nl.adaptivity.xml;
 
 import net.devrieze.util.StringUtil;
-import org.codehaus.stax2.XMLStreamWriter2;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.XMLConstants;
@@ -29,12 +28,32 @@ import javax.xml.transform.Result;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 
 /**
  * An implementation of {@link XmlWriter} that uses an underlying stax writer.
  * Created by pdvrieze on 16/11/15.
  */
 public class StAXWriter extends AbstractXmlWriter {
+
+  final static Class<? extends XMLStreamWriter> _XMLStreamWriter2;
+  final static Method                           _writeStartDocument;
+
+  static {
+    Class<?> clazz;
+    Method m = null;
+    try {
+      clazz = StAXWriter.class.getClassLoader().loadClass("org.codehaus.stax2.XMLStreamWriter");
+      m = clazz.getMethod("writeStartDocument", String.class, String.class, boolean.class);
+    } catch (ClassNotFoundException|NoSuchMethodException e) {
+      clazz = null;
+    }
+    //noinspection unchecked
+    _XMLStreamWriter2 = clazz.asSubclass(XMLStreamWriter.class);
+    _writeStartDocument = m;
+  }
 
   private final XMLStreamWriter mDelegate;
   private int mDepth;
@@ -271,8 +290,12 @@ public class StAXWriter extends AbstractXmlWriter {
   @Override
   public void startDocument(final CharSequence version, final CharSequence encoding, final Boolean standalone) throws XmlException {
     try {
-      if (standalone!=null && mDelegate instanceof XMLStreamWriter2) {
-        ((XMLStreamWriter2) mDelegate).writeStartDocument(toString(version), toString(encoding), standalone);
+      if (standalone!=null && _XMLStreamWriter2.isInstance(mDelegate)) {
+        try {
+          _writeStartDocument.invoke(mDelegate, toString(version), toString(encoding), standalone);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+          throw new RuntimeException(e);
+        }
       } else {
         mDelegate.writeStartDocument(toString(encoding), toString(version)); // standalone doesn't work
       }
