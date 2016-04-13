@@ -46,6 +46,7 @@ test {
 }
 
 dependencies {
+    compile project(':xmlutil:core')
     compile project(':java-common')
     compile 'org.codehaus.woodstox:stax2-api:3.1.4'
     runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
