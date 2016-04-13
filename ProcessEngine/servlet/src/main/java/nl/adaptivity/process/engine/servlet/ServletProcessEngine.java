@@ -45,6 +45,7 @@ import nl.adaptivity.rest.annotations.RestParam;
 import nl.adaptivity.rest.annotations.RestParam.ParamType;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.ws.soap.ServiceInfo;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.TestOnly;
@@ -82,12 +83,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+/**
+ * The service representing a process engine.
+ *
+ * @param <T> The type of transaction used. Mainly used for testing with memory based storage
+ */
+@ServiceInfo(targetNamespace = ServletProcessEngine.SERVICE_NS,
+             interfaceNS = ServletProcessEngine.SERVICE_NS,
+             interfaceLocalname = "soap",
+             interfacePrefix = "pe",
+             serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 public class ServletProcessEngine<T extends Transaction> extends EndpointServlet implements IMessageService<ServletProcessEngine.NewServletMessage, ProcessNodeInstance>, GenericEndpoint {
-
 
   private static final long serialVersionUID = -6277449163953383974L;
 
-  public static final QName SERVICE_QNAME = new QName(Constants.PROCESS_ENGINE_NS, "ProcessEngine");
+  public static final String SERVICE_NS = Constants.PROCESS_ENGINE_NS;
+  public static final String SERVICE_LOCALNAME = "ProcessEngine";
+  public static final QName SERVICE_QNAME = new QName(SERVICE_NS, SERVICE_LOCALNAME);
 
   private class MessagingCompletionListener implements CompletionListener<DataSource> {
 
@@ -389,8 +401,6 @@ public class ServletProcessEngine<T extends Transaction> extends EndpointServlet
 
 
   }
-
-  public static final String SERVICE_LOCALNAME = "ProcessEngine";
 
   private ProcessEngine mProcessEngine;
 
