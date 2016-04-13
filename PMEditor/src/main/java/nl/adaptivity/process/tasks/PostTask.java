@@ -21,10 +21,8 @@ import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.namespace.QName;
 
@@ -46,7 +44,7 @@ public class PostTask implements SimpleXmlDeserializable, XmlSerializable {
     }
   }
 
-  public static final CompactFragment DEFAULT_REPLIES_PARAM = new CompactFragment(new SimpleNamespaceContext("jbi", Constants.MODIFY_NS_STR), "<jbi:element value=\"endpoint\"/>"
+  public static final CompactFragment DEFAULT_REPLIES_PARAM = new CompactFragment(new nl.adaptivity.xml.SimpleNamespaceContext("jbi", Constants.MODIFY_NS_STR), "<jbi:element value=\"endpoint\"/>"
           .toCharArray());
   public static final String REPLIESPARAM_LOCALNAME = "repliesParam";
   public static final QName REPLIESPARAM_NAME = new QName(Constants.USER_MESSAGE_HANDLER_NS, REPLIESPARAM_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS_PREFIX);

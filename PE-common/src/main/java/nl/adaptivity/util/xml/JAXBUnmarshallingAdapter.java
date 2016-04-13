@@ -16,9 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
-import nl.adaptivity.xml.StAXReader;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -66,10 +64,10 @@ public class JAXBUnmarshallingAdapter<T extends XmlSerializable> extends JAXBAda
       root = XmlUtil.createElement(document, outerName);
 
 
-      final SimpleNamespaceContext sourceNamespaceContext = v.getNamespaceContext();
+      final nl.adaptivity.xml.SimpleNamespaceContext sourceNamespaceContext = v.getNamespaceContext();
 
 
-      for (int i = ((SimpleNamespaceContext) sourceNamespaceContext).size() - 1; i >= 0; --i) {
+      for (int i = ((nl.adaptivity.xml.SimpleNamespaceContext) sourceNamespaceContext).size() - 1; i >= 0; --i) {
         final String prefix    = sourceNamespaceContext.getPrefix(i);
         final String namespace = sourceNamespaceContext.getNamespaceURI(i);
         if (!(XMLConstants.NULL_NS_URI.equals(namespace) || // Not null namespace

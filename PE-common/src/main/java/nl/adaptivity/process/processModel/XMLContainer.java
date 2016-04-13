@@ -19,6 +19,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.Namespace;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,7 +88,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
   }
 
   public void setContent(final Iterable<Namespace> originalNSContext, final char[] content) {
-    this.originalNSContext = SimpleNamespaceContext.from(originalNSContext);
+    this.originalNSContext = SimpleNamespaceContext.Companion.from(originalNSContext);
     this.content = content;
   }
 
@@ -97,7 +98,7 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   protected void updateNamespaceContext(final Iterable<Namespace> additionalContext) {
     final Map<String, String> nsmap = new TreeMap<>();
-    final SimpleNamespaceContext context = originalNSContext == null ? SimpleNamespaceContext.from(additionalContext) : originalNSContext.combine(additionalContext);
+    final SimpleNamespaceContext context = originalNSContext == null ? SimpleNamespaceContext.Companion.from(additionalContext) : originalNSContext.combine(additionalContext);
     try {
       final GatheringNamespaceContext gatheringNamespaceContext = new GatheringNamespaceContext(context, nsmap);
       visitNamespaces(gatheringNamespaceContext);

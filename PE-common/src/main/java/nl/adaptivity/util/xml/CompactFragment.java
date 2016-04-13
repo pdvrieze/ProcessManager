@@ -17,6 +17,7 @@
 package nl.adaptivity.util.xml;
 
 import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,11 +45,11 @@ public class CompactFragment implements XmlSerializable {
     return XmlUtil.siblingsToFragment(in);
   }
 
-  private final SimpleNamespaceContext namespaces;
-  private final char[] content;
+  private final nl.adaptivity.xml.SimpleNamespaceContext namespaces;
+  private final char[]                                   content;
 
   public CompactFragment(final Iterable<nl.adaptivity.xml.Namespace> namespaces, final char[] content) {
-    this.namespaces = SimpleNamespaceContext.from(namespaces);
+    this.namespaces = SimpleNamespaceContext.Companion.from(namespaces);
     this.content = content;
   }
 
@@ -58,7 +59,7 @@ public class CompactFragment implements XmlSerializable {
   }
 
   public CompactFragment(final CompactFragment orig) {
-    namespaces = SimpleNamespaceContext.from(orig.namespaces);
+    namespaces = SimpleNamespaceContext.Companion.from(orig.namespaces);
     content = orig.content;
   }
 

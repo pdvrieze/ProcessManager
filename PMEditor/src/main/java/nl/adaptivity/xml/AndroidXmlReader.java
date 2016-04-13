@@ -17,7 +17,6 @@
 package nl.adaptivity.xml;
 
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParser;

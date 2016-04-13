@@ -21,7 +21,7 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.XmlStreaming.EventType;
@@ -257,12 +257,12 @@ public class TestProcessData {
     final XmlResultType result1 = ac1.getResults().get(0);
     assertEquals("name", result1.getName());
     assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath());
-    final SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result1.getOriginalNSContext());
+    final SimpleNamespaceContext snc1 = (SimpleNamespaceContext) SimpleNamespaceContext.Companion.from(result1.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
     final XmlResultType result2 = ac1.getResults().get(1);
-    final SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.from(result2.getOriginalNSContext());
+    final SimpleNamespaceContext snc2 = (SimpleNamespaceContext) SimpleNamespaceContext.Companion.from(result2.getOriginalNSContext());
     assertEquals(1, snc1.size());
     assertEquals("umh", snc1.getPrefix(0));
 
@@ -282,11 +282,11 @@ public class TestProcessData {
     final SimpleNamespaceContext nsContext = new SimpleNamespaceContext(new String[]{"umh"}, new String[]{"http://adaptivity.nl/userMessageHandler"});
     final String expression = "/umh:result/umh:value[@name='user']/text()";
     final XmlResultType result = new XmlResultType("foo", expression, (char[]) null, nsContext);
-    assertEquals(1, ((SimpleNamespaceContext) SimpleNamespaceContext.from(result.getOriginalNSContext())).size());
+    assertEquals(1, ((SimpleNamespaceContext) SimpleNamespaceContext.Companion.from(result.getOriginalNSContext())).size());
 
     final Document testData = getDocumentBuilder().parse(new InputSource(new StringReader("<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>")));
     final XPath xPath = XPathFactory.newInstance().newXPath();
-    xPath.setNamespaceContext(SimpleNamespaceContext.from(result.getOriginalNSContext()));
+    xPath.setNamespaceContext(SimpleNamespaceContext.Companion.from(result.getOriginalNSContext()));
     final XPathExpression pathExpression = xPath.compile(expression);
     final NodeList apply2 = (NodeList) pathExpression.evaluate(testData, XPathConstants.NODESET);
     assertNotNull(apply2);
@@ -335,7 +335,7 @@ public class TestProcessData {
   @Test
   public void testTransform() throws XmlException, IOException, SAXException {
     final ProcessData endpoint = new ProcessData("endpoint", createEndpoint());
-    final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(Collections.<nl.adaptivity.xml.Namespace>emptyList()), endpoint);
+    final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.Companion.from(Collections.<nl.adaptivity.xml.Namespace>emptyList()), endpoint);
     final String INPUT = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
                          "  <jbi:element value=\"endpoint\"/>\n" +
                          "</umh:postTask>";

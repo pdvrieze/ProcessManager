@@ -32,6 +32,7 @@ import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NodeList;
@@ -177,7 +178,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
     final char[] content = getContent();
     if (getContent()!=null && getContent().length>0) {
       try {
-        final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(getOriginalNSContext()), processData);
+        final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.Companion.from(getOriginalNSContext()), processData);
 
         XmlReader reader = transformer.createFilter(getBodyStreamReader());
         final CompactFragment transformed = XmlUtil.siblingsToFragment(reader);

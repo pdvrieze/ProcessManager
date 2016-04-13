@@ -85,7 +85,7 @@ public class NamespaceHolder {
     int endPos = mNamespaceCounts[mDepth] * 2;
     String[] pairs = new String[endPos - startPos];
     System.arraycopy(mNamespaces, startPos, pairs, 0, pairs.length);
-    return new SimpleNamespaceContext(pairs);
+    return new nl.adaptivity.xml.SimpleNamespaceContext(pairs);
   }
 
   public CharSequence getNamespaceUri(final CharSequence prefix) {

@@ -18,6 +18,7 @@ package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.Namespace;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;

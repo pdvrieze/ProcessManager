@@ -49,7 +49,7 @@ public class SimpleAdapter {
   private static MethodHandle _getNamespaceURI;
 
   QName name;
-  private SimpleNamespaceContext namespaceContext;
+  private nl.adaptivity.xml.SimpleNamespaceContext namespaceContext;
 
   @NotNull
   public Map<QName, Object> getAttributes() {
@@ -102,7 +102,7 @@ public class SimpleAdapter {
           for (int i = prefixes.length - 1; i >= 0; --i) {
             namespaces[i] = (String) _getNamespaceURI.invoke(context, prefixes[i]);
           }
-          namespaceContext = new SimpleNamespaceContext(prefixes, namespaces);
+          namespaceContext = new nl.adaptivity.xml.SimpleNamespaceContext(prefixes, namespaces);
         }
       }
 
@@ -112,7 +112,7 @@ public class SimpleAdapter {
     }
   }
 
-  SimpleNamespaceContext getNamespaceContext() {
+  nl.adaptivity.xml.SimpleNamespaceContext getNamespaceContext() {
     return namespaceContext;
   }
 }

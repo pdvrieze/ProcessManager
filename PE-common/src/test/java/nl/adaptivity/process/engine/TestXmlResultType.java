@@ -21,7 +21,7 @@ import nl.adaptivity.process.processModel.XmlResultType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.Namespace;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -138,9 +138,9 @@ public class TestXmlResultType {
 
     final XmlDefineType testHolder = XmlDefineType.deserialize(in);
 
-    assertNotNull(SimpleNamespaceContext.from(testHolder.getOriginalNSContext()));
-    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
-                                                                          .getNamespaceURI("umh"));
+    assertNotNull(SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext()));
+    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext())
+                                                                                    .getNamespaceURI("umh"));
 
   }
 
@@ -154,9 +154,9 @@ public class TestXmlResultType {
 
     final XmlResultType testHolder = XmlResultType.deserialize(in);
 
-    assertNotNull(SimpleNamespaceContext.from(testHolder.getOriginalNSContext()));
-    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.getOriginalNSContext())
-                                                                          .getNamespaceURI("umh"));
+    assertNotNull(SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext()));
+    assertEquals(Constants.USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.Companion.from(testHolder.getOriginalNSContext())
+                                                                                    .getNamespaceURI("umh"));
     assertEquals("foo", testHolder.getName());
   }
 

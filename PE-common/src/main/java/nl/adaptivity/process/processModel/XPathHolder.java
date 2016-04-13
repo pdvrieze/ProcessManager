@@ -20,7 +20,7 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
 import nl.adaptivity.xml.Namespace;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +65,7 @@ public abstract class XPathHolder extends XMLContainer {
   public XPathHolder(final char[] content, final Iterable<Namespace> originalNSContext, final String path, final String name) {
     super();
     setName(name);
-    final SimpleNamespaceContext context = SimpleNamespaceContext.from(originalNSContext);
+    final SimpleNamespaceContext context = SimpleNamespaceContext.Companion.from(originalNSContext);
     setPath(context, path);
     setContent(context, content);
   }
@@ -95,7 +95,7 @@ public abstract class XPathHolder extends XMLContainer {
         try {
           final XPath xPath = f.newXPath();
           if (getOriginalNSContext()!=null) {
-            xPath.setNamespaceContext(SimpleNamespaceContext.from(getOriginalNSContext()));
+            xPath.setNamespaceContext(SimpleNamespaceContext.Companion.from(getOriginalNSContext()));
           }
           path = xPath.compile(pathString);
           return path;
@@ -149,7 +149,7 @@ public abstract class XPathHolder extends XMLContainer {
     final NamespaceContext origContext = in.getNamespaceContext();
     super.deserializeChildren(in);
     final Map<String, String> namespaces = new TreeMap<>();
-    final NamespaceContext gatheringNamespaceContext = new CombiningNamespaceContext(SimpleNamespaceContext.from(getOriginalNSContext()), new GatheringNamespaceContext(in.getNamespaceContext(), namespaces));
+    final NamespaceContext gatheringNamespaceContext = new CombiningNamespaceContext(SimpleNamespaceContext.Companion.from(getOriginalNSContext()), new GatheringNamespaceContext(in.getNamespaceContext(), namespaces));
     visitNamespaces(gatheringNamespaceContext);
     if (namespaces.size() > 0) {
       addNamespaceContext(new SimpleNamespaceContext(namespaces));
@@ -169,7 +169,8 @@ public abstract class XPathHolder extends XMLContainer {
       // Have a namespace that gathers those namespaces that are not known already in the outer context
       final NamespaceContext referenceContext = out.getNamespaceContext();
       // TODO streamline this, the right context should not require the filtering on the output context later.
-      final NamespaceContext nsc = new GatheringNamespaceContext(new CombiningNamespaceContext(referenceContext, SimpleNamespaceContext.from(getOriginalNSContext())), namepaces);
+      final NamespaceContext nsc = new GatheringNamespaceContext(new CombiningNamespaceContext(referenceContext, SimpleNamespaceContext.Companion
+                                                                                                                         .from(getOriginalNSContext())), namepaces);
       visitXpathUsedPrefixes(pathString, nsc);
       for(final Entry<String, String> ns: namepaces.entrySet()) {
         if (! ns.getValue().equals(referenceContext.getNamespaceURI(ns.getKey()))) {

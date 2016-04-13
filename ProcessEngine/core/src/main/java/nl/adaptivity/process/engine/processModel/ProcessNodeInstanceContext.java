@@ -24,7 +24,7 @@ import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.xml.Namespace;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
+import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlEvent;
 
 import java.util.Collections;
