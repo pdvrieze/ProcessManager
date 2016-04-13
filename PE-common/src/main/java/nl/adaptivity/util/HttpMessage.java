@@ -22,9 +22,7 @@ import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -532,7 +530,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
             buffer.get(chars);
           }
 
-          mBody = new CompactFragment(Collections.<Namespace>emptyList(), chars);
+          mBody = new CompactFragment(Collections.<nl.adaptivity.xml.Namespace>emptyList(), chars);
         }
 
       }

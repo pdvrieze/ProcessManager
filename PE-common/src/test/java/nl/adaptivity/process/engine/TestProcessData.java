@@ -22,12 +22,10 @@ import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import nl.adaptivity.xml.XmlStreaming.XmlStreamingFactory;
-import nl.adaptivity.xml.XmlWriter;
 import org.custommonkey.xmlunit.*;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InOrder;
@@ -337,7 +335,7 @@ public class TestProcessData {
   @Test
   public void testTransform() throws XmlException, IOException, SAXException {
     final ProcessData endpoint = new ProcessData("endpoint", createEndpoint());
-    final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(Collections.<Namespace>emptyList()), endpoint);
+    final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.from(Collections.<nl.adaptivity.xml.Namespace>emptyList()), endpoint);
     final String INPUT = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
                          "  <jbi:element value=\"endpoint\"/>\n" +
                          "</umh:postTask>";
@@ -671,8 +669,8 @@ public class TestProcessData {
     XmlResultType rt = XmlResultType.deserialize(XmlStreaming.newReader(new StringReader(xml)));
     assertEquals(expectedContent, new String(rt.getContent()));
     Iterable<Namespace> namespaces = rt.getOriginalNSContext();
-    Iterator<Namespace> it = namespaces.iterator();
-    Namespace ns = it.next();
+    Iterator<Namespace> it         = namespaces.iterator();
+    Namespace           ns         = it.next();
     assertEquals("", ns.getPrefix());
     assertEquals("http://adaptivity.nl/ProcessEngine/", ns.getNamespaceURI());
     ns = it.next();

@@ -18,7 +18,6 @@ package nl.adaptivity.xml;
 
 import nl.adaptivity.io.Writable;
 import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.Namespace;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

@@ -23,7 +23,7 @@ import nl.adaptivity.process.processModel.IXmlResultType;
 import nl.adaptivity.process.processModel.XmlDefineType;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CompactFragment;
-import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlEvent;
 

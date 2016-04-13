@@ -31,9 +31,7 @@ import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.NodeList;
@@ -66,7 +64,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
 
   public XmlDefineType() {}
 
-  public XmlDefineType(final String name, final String refNode, final String refName, final String path, final char[] content, final Iterable<Namespace> originalNSContext) {
+  public XmlDefineType(final String name, final String refNode, final String refName, final String path, final char[] content, final Iterable<nl.adaptivity.xml.Namespace> originalNSContext) {
     super(content, originalNSContext, path, name);
     this.refNode = refNode;
     this.refName = refName;

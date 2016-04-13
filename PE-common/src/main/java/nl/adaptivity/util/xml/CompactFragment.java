@@ -16,9 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,14 +47,14 @@ public class CompactFragment implements XmlSerializable {
   private final SimpleNamespaceContext namespaces;
   private final char[] content;
 
-  public CompactFragment(final Iterable<Namespace> namespaces, final char[] content) {
+  public CompactFragment(final Iterable<nl.adaptivity.xml.Namespace> namespaces, final char[] content) {
     this.namespaces = SimpleNamespaceContext.from(namespaces);
     this.content = content;
   }
 
   /** Convenience constructor for content without namespaces. */
   public CompactFragment(@NotNull final String string) {
-    this(Collections.<Namespace>emptyList(), string.toCharArray());
+    this(Collections.<nl.adaptivity.xml.Namespace>emptyList(), string.toCharArray());
   }
 
   public CompactFragment(final CompactFragment orig) {

@@ -29,9 +29,9 @@ import java.util.Map.Entry;
 /**
  * Created by pdvrieze on 24/08/15.
  */
-public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namespace> {
+public class SimpleNamespaceContext implements NamespaceContext, Iterable<nl.adaptivity.xml.Namespace> {
 
-  private class SimpleIterator implements Iterator<Namespace> {
+  private class SimpleIterator implements Iterator<nl.adaptivity.xml.Namespace> {
     private int pos=0;
 
     @Override
@@ -41,7 +41,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
     @NotNull
     @Override
-    public Namespace next() {
+    public nl.adaptivity.xml.Namespace next() {
       final SimpleNamespace result = new SimpleNamespace(pos);
       pos+=2;
       return result;
@@ -53,7 +53,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     }
   }
 
-  private class SimpleNamespace implements Namespace {
+  private class SimpleNamespace implements nl.adaptivity.xml.Namespace {
 
     private final int pos;
 
@@ -105,18 +105,18 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
     mStrings = strings;
   }
 
-  public SimpleNamespaceContext(final Iterable<Namespace> namespaces) {
+  public SimpleNamespaceContext(final Iterable<nl.adaptivity.xml.Namespace> namespaces) {
     if (namespaces instanceof Collection) {
       final int len = ((Collection) namespaces).size();
       mStrings = new String[len*2];
       int i=0;
-      for(final Namespace ns:namespaces) {
+      for(final nl.adaptivity.xml.Namespace ns:namespaces) {
         mStrings[i++] = ns.getPrefix().toString();
         mStrings[i++] = ns.getNamespaceURI().toString();
       }
     } else {
       final ArrayList<String> intermediate = new ArrayList<>();
-      for(final Namespace ns: namespaces) {
+      for(final nl.adaptivity.xml.Namespace ns: namespaces) {
         intermediate.add(ns.getPrefix().toString());
         intermediate.add(ns.getNamespaceURI().toString());
       }
@@ -142,7 +142,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
    * @return the new context
    */
   @Nullable
-  public SimpleNamespaceContext combine(@Nullable final Iterable<Namespace> other) {
+  public SimpleNamespaceContext combine(@Nullable final Iterable<nl.adaptivity.xml.Namespace> other) {
     if (mStrings.length==0) {
       return from(other);
     }
@@ -157,7 +157,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
         result.put(snother.mStrings[i * 2], snother.mStrings[i * 2 + 1]);
       }
     } else {
-      for(final Namespace ns: other) {
+      for(final nl.adaptivity.xml.Namespace ns: other) {
         result.put(ns.getPrefix(), ns.getNamespaceURI());
       }
     }
@@ -166,7 +166,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
   }
 
   @Nullable
-  public static SimpleNamespaceContext from(final Iterable<Namespace> originalNSContext) {
+  public static SimpleNamespaceContext from(final Iterable<nl.adaptivity.xml.Namespace> originalNSContext) {
     if (originalNSContext instanceof SimpleNamespaceContext) {
       return (SimpleNamespaceContext) originalNSContext;
     } else if (originalNSContext==null) {
@@ -256,7 +256,7 @@ public class SimpleNamespaceContext implements NamespaceContext, Iterable<Namesp
 
   @NotNull
   @Override
-  public Iterator<Namespace> iterator() {
+  public Iterator<nl.adaptivity.xml.Namespace> iterator() {
     return new SimpleIterator();
   }
 

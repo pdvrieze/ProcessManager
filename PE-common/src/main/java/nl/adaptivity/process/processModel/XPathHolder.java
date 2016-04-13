@@ -19,7 +19,7 @@ package nl.adaptivity.process.processModel;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.CombiningNamespaceContext;
-import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;

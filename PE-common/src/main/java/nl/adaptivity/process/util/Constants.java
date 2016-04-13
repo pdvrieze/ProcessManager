@@ -16,9 +16,6 @@
 
 package nl.adaptivity.process.util;
 
-import nl.adaptivity.util.xml.Namespace;
-import nl.adaptivity.util.xml.SimpleNamespaceContext;
-
 import java.net.URI;
 
 import javax.xml.namespace.QName;

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
+import nl.adaptivity.xml.Namespace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

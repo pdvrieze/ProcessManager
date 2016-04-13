@@ -29,9 +29,8 @@ import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.util.xml.SimpleNamespaceContext;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.Namespace;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DocumentFragment;
@@ -67,7 +66,7 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
   public XmlResultType() {}
 
   @Deprecated
-  public XmlResultType(final String name, final String path, @Nullable final DocumentFragment content, final Iterable<Namespace> namespaceContext) {
+  public XmlResultType(final String name, final String path, @Nullable final DocumentFragment content, final Iterable<nl.adaptivity.xml.Namespace> namespaceContext) {
     this(name, path, content==null ? null : XmlUtil.toString(content).toCharArray(), namespaceContext);
   }
 

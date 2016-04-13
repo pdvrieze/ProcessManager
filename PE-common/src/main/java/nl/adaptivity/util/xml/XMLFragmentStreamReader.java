@@ -18,9 +18,7 @@ package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,7 +104,7 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
   private static final String WRAPPERNAMESPACE = "http://wrapperns";
   @Nullable private FragmentNamespaceContext localNamespaceContext;
 
-  public XMLFragmentStreamReader(final Reader in, @NotNull final Iterable<Namespace> wrapperNamespaceContext) throws XmlException {
+  public XMLFragmentStreamReader(final Reader in, @NotNull final Iterable<nl.adaptivity.xml.Namespace> wrapperNamespaceContext) throws XmlException {
     super(getDelegate(in, wrapperNamespaceContext));
     localNamespaceContext = new FragmentNamespaceContext(null, new String[0], new String[0]);
     if (mDelegate.getEventType()==EventType.START_ELEMENT) {
@@ -114,11 +112,11 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
     }
   }
 
-  private static XmlReader getDelegate(final Reader in, final @NotNull Iterable<Namespace> wrapperNamespaceContext) throws
+  private static XmlReader getDelegate(final Reader in, final @NotNull Iterable<nl.adaptivity.xml.Namespace> wrapperNamespaceContext) throws
           XmlException {
     final StringBuilder wrapperBuilder = new StringBuilder();
     wrapperBuilder.append("<" + WRAPPERPPREFIX + ":wrapper xmlns:" + WRAPPERPPREFIX + "=\"" + WRAPPERNAMESPACE+'"');
-    for(final Namespace ns:wrapperNamespaceContext) {
+    for(final nl.adaptivity.xml.Namespace ns:wrapperNamespaceContext) {
       final String prefix = ns.getPrefix();
       final String uri = ns.getNamespaceURI();
       if (prefix==null || XMLConstants.DEFAULT_NS_PREFIX.equals(prefix)) {
@@ -136,7 +134,7 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
   }
 
   @NotNull
-  public static XMLFragmentStreamReader from(final Reader in, @NotNull final Iterable<Namespace> namespaceContext) throws
+  public static XMLFragmentStreamReader from(final Reader in, @NotNull final Iterable<nl.adaptivity.xml.Namespace> namespaceContext) throws
           XmlException {
     return new XMLFragmentStreamReader(in, namespaceContext);
   }
@@ -144,7 +142,7 @@ public class XMLFragmentStreamReader extends XmlDelegatingReader {
   @NotNull
   public static XMLFragmentStreamReader from(final Reader in) throws
           XmlException {
-    return new XMLFragmentStreamReader(in, Collections.<Namespace>emptyList());
+    return new XMLFragmentStreamReader(in, Collections.<nl.adaptivity.xml.Namespace>emptyList());
   }
 
   @NotNull

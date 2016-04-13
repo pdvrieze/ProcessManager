@@ -146,8 +146,8 @@ public class PETransformer {
             newAttrs.add(attr);
           }
         }
-        final List<nl.adaptivity.util.xml.Namespace> newNamespaces = new ArrayList<>();
-        for(final nl.adaptivity.util.xml.Namespace ns :element.namespaceDecls) {
+        final List<Namespace> newNamespaces = new ArrayList<>();
+        for(final Namespace ns :element.namespaceDecls) {
           if (Constants.MODIFY_NS_STR.equals(ns.getNamespaceURI())) {
             filterAttributes=true;
           } else {
@@ -160,7 +160,7 @@ public class PETransformer {
                                     element.localName,
                                     element.prefix,
                                     newAttrs.toArray(new XmlEvent.Attribute[newAttrs.size()]),
-                                    newNamespaces.toArray(new nl.adaptivity.util.xml.Namespace[newNamespaces.size()])));
+                                    newNamespaces.toArray(new Namespace[newNamespaces.size()])));
         } else {
           results.add(element);
         }

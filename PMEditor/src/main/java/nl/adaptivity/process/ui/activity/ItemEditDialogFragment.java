@@ -43,7 +43,7 @@ import nl.adaptivity.process.util.CharSequenceDecorator;
 import nl.adaptivity.process.util.ModifySequence;
 import nl.adaptivity.process.util.VariableReference;
 import nl.adaptivity.process.util.VariableReference.ResultReference;
-import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

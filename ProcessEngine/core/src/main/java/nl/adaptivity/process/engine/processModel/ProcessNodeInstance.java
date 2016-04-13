@@ -31,6 +31,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.Namespace;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Node;
 

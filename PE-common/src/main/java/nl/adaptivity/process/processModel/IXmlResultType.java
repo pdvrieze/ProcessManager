@@ -17,7 +17,7 @@
 package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.process.engine.ProcessData;
-import nl.adaptivity.util.xml.Namespace;
+import nl.adaptivity.xml.Namespace;
 import nl.adaptivity.util.xml.XmlSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

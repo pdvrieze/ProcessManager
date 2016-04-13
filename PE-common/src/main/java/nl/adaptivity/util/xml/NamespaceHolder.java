@@ -56,7 +56,7 @@ public class NamespaceHolder {
     mDepth = 0;
   }
 
-  public void addPrefixToContext(final Namespace ns) {
+  public void addPrefixToContext(final nl.adaptivity.xml.Namespace ns) {
     addPrefixToContext(ns.getPrefix(), ns.getNamespaceURI());
   }
 
