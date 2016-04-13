@@ -21,10 +21,14 @@ import nl.adaptivity.xml.XmlReader;
 
 
 /**
+ * Interface that factories need to implement to handle be deserialization in a "shared"
+ * non-reflective approach.
+ *
  * Created by pdvrieze on 27/08/15.
  */
 public interface XmlDeserializerFactory<T> {
 
+  /** Deserialize the*/
   T deserialize(XmlReader in) throws XmlException;
 
 }
