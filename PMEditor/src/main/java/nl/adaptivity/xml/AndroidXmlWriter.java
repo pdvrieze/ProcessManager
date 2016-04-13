@@ -20,7 +20,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.editor.android.BuildConfig;
-import nl.adaptivity.util.xml.NamespaceHolder;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
