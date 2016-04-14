@@ -16,6 +16,7 @@
 
 package nl.adaptivity.xml;
 
+import net.devrieze.util.kotlin.CharSequenceUtil;
 import nl.adaptivity.xml.XmlEvent.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
@@ -204,12 +205,12 @@ public class XmlBufferedReader extends AbstractXmlReader {
   }
 
   @Override
-  public int getDepth() throws XmlException {
+  public int getDepth() {
     return mNamespaceHolder.getDepth();
   }
 
   @Override
-  public CharSequence getText() throws XmlException {
+  public CharSequence getText() {
     if (mCurrent.getEventType()==EventType.ATTRIBUTE) {
         return ((Attribute) mCurrent).getValue();
     }
@@ -217,7 +218,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
   }
 
   @Override
-  public int getAttributeCount() throws XmlException {
+  public int getAttributeCount() {
     return ((StartElementEvent) mCurrent).getAttributes().length;
   }
 
@@ -251,7 +252,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
     StartElementEvent current = (StartElementEvent) mCurrent;
     for(Attribute attr: current.getAttributes()) {
       if ((nsUri==null || nsUri.toString().equals(attr.getNamespaceUri())) &&
-          StringUtil.INSTANCE.isEqual(localName, attr.getLocalName())) {
+          CharSequenceUtil.matches(localName, attr.getLocalName())) {
         return attr.getValue();
       }
     }

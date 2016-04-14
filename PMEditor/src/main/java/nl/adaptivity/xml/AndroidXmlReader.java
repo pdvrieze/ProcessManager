@@ -19,6 +19,7 @@ package nl.adaptivity.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -138,7 +139,7 @@ public class AndroidXmlReader extends AbstractXmlReader {
   }
 
   @Override
-  public void require(final EventType type, final CharSequence namespace, final CharSequence name) throws XmlException {
+  public void require(@NotNull final EventType type, @Nullable final CharSequence namespace, @Nullable final CharSequence name) throws XmlException {
     try {
       mReader.require(LOCAL_TO_DELEGATE[type.ordinal()], StringUtil.toString(namespace), StringUtil.toString(name));
     } catch (XmlPullParserException | IOException e) {

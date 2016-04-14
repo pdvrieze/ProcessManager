@@ -141,7 +141,7 @@ public class PETransformer {
         boolean filterAttributes = false;
         final List<XmlEvent.Attribute> newAttrs = new ArrayList<>();
         for(final XmlEvent.Attribute attr : element.getAttributes()) {
-          if (attr.getNamespaceUri() && StringUtil.isEqual(Constants.MODIFY_NS_STR, attr.getValue())) {
+          if (attr.hasNamespaceUri() && StringUtil.isEqual(Constants.MODIFY_NS_STR, attr.getValue())) {
             filterAttributes=true;
           } else {
             newAttrs.add(attr);

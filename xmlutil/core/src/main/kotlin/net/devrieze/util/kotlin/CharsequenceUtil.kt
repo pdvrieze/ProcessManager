@@ -36,3 +36,6 @@ fun CharSequence.equals(other:CharSequence):Boolean {
 
 fun CharSequence?.equals(other:Object) =
       if (other is CharSequence) (this?.equals(other) ?: false) else this==null
+
+
+fun CharSequence?.asString() = this?.toString()

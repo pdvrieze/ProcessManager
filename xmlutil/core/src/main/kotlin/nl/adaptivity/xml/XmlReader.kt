@@ -37,20 +37,20 @@ interface XmlReader {
   @Throws(XmlException::class)
   operator fun next(): EventType?
 
-  @get:Throws(XmlException::class)
-  val namespaceUri: CharSequence
+  @Throws(XmlException::class)
+  fun getNamespaceUri(): CharSequence
 
-  @get:Throws(XmlException::class)
-  val localName: CharSequence
+  @Throws(XmlException::class)
+  fun getLocalName(): CharSequence
 
-  @get:Throws(XmlException::class)
-  val prefix: CharSequence
+  @Throws(XmlException::class)
+  fun getPrefix(): CharSequence
 
   @Throws(XmlException::class)
   fun getName(): QName
 
   @Throws(XmlException::class)
-  fun require(type: EventType, namespace: CharSequence, name: CharSequence)
+  fun require(type: EventType, namespace: CharSequence?, name: CharSequence?)
 
   val depth: Int
 
@@ -113,7 +113,6 @@ interface XmlReader {
   fun getNamespaceUri(prefix: CharSequence): String?
 
   /** Get some information on the current location in the file. This is implementation dependent.  */
-  @Throws(XmlException::class)
   fun getLocationInfo(): String
 
   @Throws(XmlException::class)

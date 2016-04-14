@@ -21,10 +21,8 @@ package nl.adaptivity.xml
  */
 internal object StringUtil {
 
-  @Deprecated("Use asString", ReplaceWith("seq.asString()","nl.adaptivity.xml.asString"), DeprecationLevel.ERROR)
+  @Deprecated("Use asString", ReplaceWith("seq.asString()","net.devrieze.util.kotlin.asString"), DeprecationLevel.ERROR)
   fun toString(seq: CharSequence?) = seq?.toString()
-
-  fun CharSequence?.asString() = this?.toString()
 
   @Deprecated("Use CharsequenceUtil", ReplaceWith("left matches right", "net.devrieze.util.kotlin.matches"), DeprecationLevel.ERROR)
   fun isEqual(left: CharSequence?, right: CharSequence?): Boolean {

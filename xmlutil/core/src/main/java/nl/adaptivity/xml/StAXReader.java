@@ -17,6 +17,7 @@
 package nl.adaptivity.xml;
 
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
@@ -148,7 +149,7 @@ public class StAXReader extends AbstractXmlReader {
   }
 
   @Override
-  public void require(final EventType type, final CharSequence namespace, final CharSequence name) throws XmlException {
+  public void require(@NotNull final EventType type, @Nullable final CharSequence namespace, @Nullable final CharSequence name) throws XmlException {
     try {
       mDelegate.require(LOCAL_TO_DELEGATE[type.ordinal()], toString(namespace), toString(name));
     } catch (XMLStreamException e) {

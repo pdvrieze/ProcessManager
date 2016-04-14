@@ -19,6 +19,8 @@ package nl.adaptivity.util.xml;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -80,22 +82,22 @@ public class XmlDelegatingReader implements XmlReader {
   }
 
   @Override
-  public void require(final EventType type, final CharSequence namespace, final CharSequence name) throws XmlException {
+  public void require(@NotNull final EventType type, @Nullable final CharSequence namespace, @Nullable final CharSequence name) throws XmlException {
     mDelegate.require(type, namespace, name);
   }
 
   @Override
-  public int getDepth() throws XmlException {
+  public int getDepth() {
     return mDelegate.getDepth();
   }
 
   @Override
-  public CharSequence getText() throws XmlException {
+  public CharSequence getText() {
     return mDelegate.getText();
   }
 
   @Override
-  public int getAttributeCount() throws XmlException {
+  public int getAttributeCount() {
     return mDelegate.getAttributeCount();
   }
 

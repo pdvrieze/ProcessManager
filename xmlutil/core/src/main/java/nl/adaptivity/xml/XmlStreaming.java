@@ -123,14 +123,14 @@ public final class XmlStreaming {
     },
     START_ELEMENT {
       @Override
-      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+      public XmlEvent createEvent(@NotNull final XmlReader reader) throws XmlException {
         return new StartElementEvent(reader.getLocationInfo(), reader.getNamespaceUri(), reader.getLocalName(),
                                      reader.getPrefix(), XmlEvent.getAttributes(reader), XmlEvent.getNamespaceDecls(reader));
       }
     },
     END_ELEMENT {
       @Override
-      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+      public XmlEvent createEvent(@NotNull final XmlReader reader) throws XmlException {
         return new EndElementEvent(reader.getLocationInfo(), reader.getNamespaceUri(), reader.getLocalName(), reader.getPrefix());
       }
     },
@@ -208,7 +208,7 @@ public final class XmlStreaming {
     },
     ATTRIBUTE {
       @Override
-      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+      public XmlEvent createEvent(@NotNull final XmlReader reader) throws XmlException {
         return new Attribute(reader.getLocationInfo(), reader.getNamespaceUri(), reader.getLocalName(), reader.getPrefix(), reader.getText());
       }
     },
@@ -228,7 +228,7 @@ public final class XmlStreaming {
       throw new UnsupportedOperationException("This is not generally supported, only by text types");
     }
 
-  public abstract XmlEvent createEvent(@NotNull final XmlReader reader);
+  public abstract XmlEvent createEvent(@NotNull final XmlReader reader) throws XmlException;
 }
 
   public static final EventType START_DOCUMENT = EventType.START_DOCUMENT;

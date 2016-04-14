@@ -20,6 +20,10 @@
 
 package nl.adaptivity.xml
 
+import javax.xml.XMLConstants
+import javax.xml.namespace.QName
+import net.devrieze.util.kotlin.asString
+
 /** Determine whether the character is xml whitespace. */
 fun isXmlWhitespace(char:Char) =
       char == '\u000A' || char =='\u0009' || char =='\u000d' || char == ' '
@@ -27,3 +31,8 @@ fun isXmlWhitespace(char:Char) =
 fun isXmlWhitespace(data: CharArray) = data.all { isXmlWhitespace(it) }
 
 fun isXmlWhitespace(data: CharSequence) = data.all { isXmlWhitespace(it) }
+
+fun qname(namespaceUri:CharSequence?, localname:CharSequence, prefix:CharSequence? = XMLConstants.DEFAULT_NS_PREFIX) =
+      QName(namespaceUri.asString()?:XMLConstants.NULL_NS_URI,
+            localname.asString(),
+            prefix.asString()?:XMLConstants.DEFAULT_NS_PREFIX)
