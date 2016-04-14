@@ -16,7 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +33,10 @@ import java.io.Reader;
  * @author Created by pdvrieze on 16/11/15.
  */
 public class StAXReader extends AbstractXmlReader {
+
+  static String toString(CharSequence charSequence) {
+    return charSequence==null ? null : charSequence.toString();
+  }
 
   private static final EventType[] DELEGATE_TO_LOCAL;
 
@@ -147,7 +150,7 @@ public class StAXReader extends AbstractXmlReader {
   @Override
   public void require(final EventType type, final CharSequence namespace, final CharSequence name) throws XmlException {
     try {
-      mDelegate.require(LOCAL_TO_DELEGATE[type.ordinal()], StringUtil.toString(namespace), StringUtil.toString(name));
+      mDelegate.require(LOCAL_TO_DELEGATE[type.ordinal()], toString(namespace), toString(name));
     } catch (XMLStreamException e) {
 
       throw new XmlException(e);
@@ -181,7 +184,7 @@ public class StAXReader extends AbstractXmlReader {
 
   @Override
   public String getNamespaceUri(final CharSequence prefix) {
-    return mDelegate.getNamespaceURI(StringUtil.toString(prefix));
+    return mDelegate.getNamespaceURI(toString(prefix));
   }
 
   public String getNamespaceURI(final String prefix) {
@@ -190,7 +193,7 @@ public class StAXReader extends AbstractXmlReader {
 
   @Override
   public String getNamespacePrefix(final CharSequence namespaceUri) throws XmlException {
-    return mDelegate.getNamespaceContext().getPrefix(StringUtil.toString(namespaceUri));
+    return mDelegate.getNamespaceContext().getPrefix(toString(namespaceUri));
   }
 
   @Override
@@ -206,7 +209,7 @@ public class StAXReader extends AbstractXmlReader {
 
   @Override
   public String getAttributeValue(final CharSequence namespaceURI, final CharSequence localName) {
-    return mDelegate.getAttributeValue(StringUtil.toString(namespaceURI), StringUtil.toString(localName));
+    return mDelegate.getAttributeValue(toString(namespaceURI), toString(localName));
   }
 
   @Deprecated
@@ -244,7 +247,7 @@ public class StAXReader extends AbstractXmlReader {
 
   private EventType fixWhitespace(final EventType eventType) {
     if (eventType==EventType.TEXT) {
-      if (XmlUtil.isXmlWhitespace(mDelegate.getText())) {
+      if (XmlUtilKt.isXmlWhitespace(mDelegate.getText())) {
         mFixWhitespace = true;
         return EventType.IGNORABLE_WHITESPACE;
       }

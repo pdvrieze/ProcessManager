@@ -16,8 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import net.devrieze.util.StringUtil;
-
 import javax.xml.namespace.QName;
 
 import static nl.adaptivity.xml.XmlStreaming.*;
@@ -62,7 +60,7 @@ public abstract class AbstractXmlReader implements XmlReader {
 
   @Override
   public boolean isWhitespace() throws XmlException {
-    return (getEventType() == IGNORABLE_WHITESPACE) || ((getEventType() == TEXT) && XmlUtil.isXmlWhitespace(getText()));
+    return (getEventType() == IGNORABLE_WHITESPACE) || ((getEventType() == TEXT) && XmlUtilKt.isXmlWhitespace(getText()));
   }
 
   @Override

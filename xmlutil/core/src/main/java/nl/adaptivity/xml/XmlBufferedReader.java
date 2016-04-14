@@ -16,7 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.XmlEvent.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +99,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   protected void stripWhiteSpaceFromPeekBuffer() {
     XmlEvent peekLast;
-    while(mPeekBuffer.size()>0 && (peekLast = mPeekBuffer.peekLast()) instanceof TextEvent && XmlUtil.isXmlWhitespace(((TextEvent)peekLast).text)) {
+    while(mPeekBuffer.size()>0 && (peekLast = mPeekBuffer.peekLast()) instanceof TextEvent && XmlUtilKt.isXmlWhitespace(((TextEvent)peekLast).text)) {
       mPeekBuffer.removeLast();
     }
   }
@@ -142,7 +141,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
     EventType type = current.getEventType();
     switch (type) {
       case TEXT:
-      if (XmlUtil.isXmlWhitespace(((TextEvent)current).text)) {
+      if (XmlUtilKt.isXmlWhitespace(((TextEvent)current).text)) {
         return nextTagEvent();
       }
       case COMMENT: // ignore
@@ -250,7 +249,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
   public CharSequence getAttributeValue(final CharSequence nsUri, final CharSequence localName) throws XmlException {
     StartElementEvent current = (StartElementEvent) mCurrent;
     for(Attribute attr: current.attributes) {
-      if ((nsUri==null || StringUtil.isEqual(nsUri, attr.namespaceUri)) &&
+      if ((nsUri==null || nsUri.toString().equals(attr.namespaceUri)) &&
               StringUtil.isEqual(localName, attr.localName)) {
         return attr.value;
       }

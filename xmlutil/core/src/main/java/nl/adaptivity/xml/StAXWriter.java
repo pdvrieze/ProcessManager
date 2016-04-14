@@ -16,7 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import net.devrieze.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.XMLConstants;
@@ -161,7 +160,7 @@ public class StAXWriter extends AbstractXmlWriter {
           XmlException {
     try {
       if (namespace==null || prefix==null || prefix.length()==0 ||namespace.length()==0) {
-        mDelegate.writeAttribute(StringUtil.toString(name), StringUtil.toString(value));
+        mDelegate.writeAttribute(StAXReader.toString(name), StAXReader.toString(value));
       } else {
         mDelegate.writeAttribute(toString(namespace), toString(name), toString(value));
       }
@@ -223,10 +222,11 @@ public class StAXWriter extends AbstractXmlWriter {
 
   @Override
   public void processingInstruction(final CharSequence text) throws XmlException {
-    int split = StringUtil.indexOf(text, ' ');
+    final String textStr = text.toString();
+    final int    split   = textStr.indexOf(' ');
     try {
       if (split>0) {
-        mDelegate.writeProcessingInstruction(text.subSequence(0,split).toString(), text.subSequence(split, text.length()).toString());
+        mDelegate.writeProcessingInstruction(textStr.substring(0,split), textStr.substring(split, text.length()));
       } else {
         mDelegate.writeProcessingInstruction(toString(text));
       }

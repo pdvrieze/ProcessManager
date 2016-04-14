@@ -16,7 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import net.devrieze.util.StringUtil;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 
 import javax.xml.XMLConstants;

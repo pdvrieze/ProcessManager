@@ -14,16 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+package nl.adaptivity.xml;
+
 /**
- * Created by pdvrieze on 13/04/16.
+ * Created by pdvrieze on 14/04/16.
  */
+class StringUtil {
 
-package nl.adaptivity.xml
+  public static String toString(final CharSequence seq) {
+    return seq == null ? null : seq.toString();
+  }
 
-/** Determine whether the character is xml whitespace. */
-fun isXmlWhitespace(char:Char) =
-      char == '\u000A' || char =='\u0009' || char =='\u000d' || char == ' '
-
-fun isXmlWhitespace(data: CharArray) = data.all { isXmlWhitespace(it) }
-
-fun isXmlWhitespace(data: CharSequence) = data.all { isXmlWhitespace(it) }
+  static boolean isEqual(final CharSequence left, final CharSequence right) {
+    return left == null ? right == null : (right != null && left.toString().equals(right.toString()));
+  }
+}
