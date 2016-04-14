@@ -19,7 +19,6 @@ package nl.adaptivity.util.xml;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
 import nl.adaptivity.xml.*;
-import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.XmlEvent.TextEvent;
 import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.Contract;
@@ -457,7 +456,7 @@ public final class XmlUtil {
     result.onBeforeDeserializeChildren(in);
     EventType event = null;
     if (result instanceof SimpleXmlDeserializable) {
-      loop: while (in.hasNext() && event != XmlStreaming.END_ELEMENT) {
+      loop: while (in.hasNext() && event != XmlStreamingKt.END_ELEMENT) {
         switch ((event = in.next())) {
           case START_ELEMENT:
             if (((SimpleXmlDeserializable)result).deserializeChild(in)) {
@@ -478,7 +477,7 @@ public final class XmlUtil {
     } else if (result instanceof ExtXmlDeserializable){
       ((ExtXmlDeserializable)result).deserializeChildren(in);
       if (XmlUtil.class.desiredAssertionStatus()) {
-        in.require(XmlStreaming.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
+        in.require(XmlStreamingKt.END_ELEMENT, elementName.getNamespaceURI(), elementName.getLocalPart());
       }
     } else {// Neither, means ignore children
       if(! isXmlWhitespace(siblingsToFragment(in).getContent())) {
@@ -814,14 +813,14 @@ public final class XmlUtil {
       final GatheringNamespaceContext gatheringContext = null;
       // If we are at a start tag, the depth will already have been increased. So in that case, reduce one.
       final int initialDepth = in.getDepth() - (in.getEventType() == EventType.START_ELEMENT ? 1 : 0);
-      for(EventType type = in.getEventType(); type!=XmlStreaming.END_DOCUMENT && type!=XmlStreaming.END_ELEMENT && in.getDepth()>=initialDepth; type = (in.hasNext()? in.next(): null)) {
-        if (type==XmlStreaming.START_ELEMENT) {
+      for(EventType type = in.getEventType(); type!=XmlStreamingKt.END_DOCUMENT && type!=XmlStreamingKt.END_ELEMENT && in.getDepth()>=initialDepth; type = (in.hasNext()? in.next(): null)) {
+        if (type==XmlStreamingKt.START_ELEMENT) {
           final XmlWriter out = XmlStreaming.newWriter(caw);
           writeCurrentEvent(in, out); // writes the start tag
           addUndeclaredNamespaces(in, out, missingNamespaces);
           writeElementContent(missingNamespaces, in, out); // writes the children and end tag
           out.close();
-        } else if (type==XmlStreaming.TEXT || type==XmlStreaming.IGNORABLE_WHITESPACE || type==XmlStreaming.CDATA) {
+        } else if (type==XmlStreamingKt.TEXT || type==XmlStreamingKt.IGNORABLE_WHITESPACE || type==XmlStreamingKt.CDATA) {
           caw.append(xmlEncode(in.getText().toString()));
         }
       }
@@ -837,7 +836,7 @@ public final class XmlUtil {
   }
 
   private static void undeclaredPrefixes(final XmlReader in, final XmlWriter reference, final Map<String, String> missingNamespaces) throws XmlException {
-    assert in.getEventType()==XmlStreaming.START_ELEMENT;
+    assert in.getEventType()==XmlStreamingKt.START_ELEMENT;
     final String prefix = StringUtil.toString(in.getPrefix());
     if (prefix!=null) {
       if (!missingNamespaces.containsKey(prefix)) {

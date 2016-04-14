@@ -18,7 +18,6 @@ package nl.adaptivity.xml
 
 import nl.adaptivity.xml.XmlEvent.NamespaceImpl
 import nl.adaptivity.xml.XmlStreaming.EventType
-
 import javax.xml.namespace.NamespaceContext
 import javax.xml.namespace.QName
 

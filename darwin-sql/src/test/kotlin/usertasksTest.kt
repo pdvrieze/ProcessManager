@@ -24,6 +24,7 @@ import org.testng.Assert.*
 import org.testng.annotations.Test
 import uk.ac.bournemouth.kotlinsql.*
 import uk.ac.bournemouth.kotlinsql.ColumnType.*
+import uk.ac.bournemouth.kotlinsql.ColumnType.NumericColumnType.*
 
 class UserTasksTest {
 

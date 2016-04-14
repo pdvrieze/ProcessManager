@@ -16,7 +16,6 @@
 
 package nl.adaptivity.xml;
 
-import nl.adaptivity.xml.XmlStreaming.EventType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +26,7 @@ import javax.xml.transform.Source;
 
 import java.io.InputStream;
 import java.io.Reader;
+import nl.adaptivity.xml.XmlStreaming.EventType;
 
 
 /**

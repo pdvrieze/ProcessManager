@@ -22,6 +22,7 @@ import uk.ac.bournemouth.kotlinsql.*
 import uk.ac.bournemouth.util.kotlin.sql.*
 import uk.ac.bournemouth.util.kotlin.sql.impl.gen.DatabaseMethods
 import uk.ac.bournemouth.util.kotlin.sql.impl.gen._Statement3
+import uk.ac.bournemouth.util.kotlin.sql.old.appendWarnings
 import java.math.BigInteger
 import java.net.HttpURLConnection
 import java.security.KeyFactory
@@ -56,7 +57,7 @@ private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).
  * A class that abstracts the interaction with the account database.
  */
 @Deprecated("Old class that is generally subsumed", ReplaceWith("AccountDB", "uk.ac.bournemouth.darwin.accounts.AccountDB"))
-open class OldAccountDb constructor(private val connection: ConnectionHelper) {
+open class OldAccountDb constructor(private val connection: DBConnection) {
 
   val now: Long by lazy { System.currentTimeMillis() / 1000 } // Current time in seconds since epoch (1-1-1970 UTC)
 
@@ -65,9 +66,9 @@ open class OldAccountDb constructor(private val connection: ConnectionHelper) {
   }
 
   fun updateCredentials(username: String, password: String): Boolean {
-    connection.prepareStatement("UPDATE users SET `password` = ? WHERE `user` = ?") {
+    return connection.prepareStatement("UPDATE users SET `password` = ? WHERE `user` = ?") {
       params(password) + username
-      return execute()
+      execute()
     }
   }
 
@@ -85,10 +86,10 @@ open class OldAccountDb constructor(private val connection: ConnectionHelper) {
 
   fun newChallenge(keyid: Int, requestIp: String): String {
     val challenge = Base64.encoder().encodeToString(random.nextBytes(32))
-    connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
+    return connection.prepareStatement("INSERT INTO challenges ( `keyid`, `requestip`, `challenge`, `epoch` ) VALUES ( ?, ?, ?, ? )  ON DUPLICATE KEY UPDATE `challenge`=?, `epoch`=?") {
       params(keyid) + requestIp + challenge + now + challenge + now
       if (executeHasRows()) {
-        return challenge
+        challenge
       } else {
         throw AuthException("Could not store challenge".appendWarnings(warningsIt))
       }
@@ -98,11 +99,11 @@ open class OldAccountDb constructor(private val connection: ConnectionHelper) {
   fun registerkey(user: String, pubkey: String, appname: String?, keyid: Long? = null) {
 
     // Helper function for the shared code that determines the application name to use
-    fun realAppname(sql:String, setparams: StatementHelper.(String) -> Unit) : String? {
+    fun realAppname(sql:String, setparamsFun: StatementHelper.(String) -> Unit) : String? {
       var result= appname ?: return null
 
       var idx =1
-      while (connection.prepareStatement(sql) { setparams(result); executeHasRows() }) {
+      while (connection.prepareStatement(sql) { this.setparamsFun(result); executeHasRows() }) {
         result="${appname} ${idx}"
         idx++
       }
@@ -150,7 +151,7 @@ open class OldAccountDb constructor(private val connection: ConnectionHelper) {
 
 }
 
-open class AccountDb(private val connection:DBConnection, connectionHelper: ConnectionHelper):
+open class AccountDb(private val connection:DBConnection, connectionHelper: DBConnection):
       OldAccountDb(connectionHelper) {
 
   private val u: WebAuthDB.users get() = WebAuthDB.users
@@ -281,6 +282,6 @@ inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() 
 
 inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
   WebAuthDB.connect(dataSource) {
-    return AccountDb(this, ConnectionHelper(__getConnection())).block()
+    return AccountDb(this, DBConnection(__getConnection())).block()
   }
 }

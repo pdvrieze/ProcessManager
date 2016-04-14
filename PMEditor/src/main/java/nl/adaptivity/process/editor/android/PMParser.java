@@ -27,6 +27,8 @@ import nl.adaptivity.xml.*;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
+import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.XmlStreaming;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -137,7 +139,7 @@ public class PMParser {
   }
 
   private static void parseUnknownTag(final XmlReader in) throws XmlException {
-    for(EventType type = in.next(); type!= END_ELEMENT; type = in.next()) {
+    for(XmlStreaming.EventType type = in.next(); type!= END_ELEMENT; type = in.next()) {
       switch (type) {
       case START_ELEMENT:
         parseUnknownTag(in);

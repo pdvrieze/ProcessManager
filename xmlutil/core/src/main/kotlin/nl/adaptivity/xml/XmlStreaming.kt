@@ -17,6 +17,7 @@
 package nl.adaptivity.xml
 
 import nl.adaptivity.xml.XmlEvent.*
+import nl.adaptivity.xml.XmlStreaming.EventType
 
 import javax.xml.stream.XMLStreamException
 import javax.xml.transform.Result
@@ -95,6 +96,82 @@ object XmlStreaming {
     }
   }
 
+
+  enum class EventType {
+    START_DOCUMENT {
+      override fun createEvent(reader:XmlReader) = reader.run {
+        StartDocumentEvent(locationInfo, version, encoding, standalone) }
+    },
+    START_ELEMENT {
+      @Throws(XmlException::class)
+      override fun createEvent(reader:XmlReader) = reader.run {
+        StartElementEvent(locationInfo, namespaceUri, localName, prefix, attributes, namespaceDecls)}
+    },
+    END_ELEMENT {
+      @Throws(XmlException::class)
+      override fun createEvent(reader:XmlReader) = reader.run {
+        EndElementEvent(locationInfo, namespaceUri, localName, prefix)}
+    },
+    COMMENT {
+      override fun createEvent(reader:XmlReader) = reader.run {
+        TextEvent(locationInfo, COMMENT, text)}
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.comment(textEvent.text)
+    },
+    TEXT {
+      override fun createEvent(reader:XmlReader) = reader.run {
+        TextEvent(locationInfo, TEXT, text)}
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.text(textEvent.text)
+    },
+    CDSECT {
+      override fun createEvent(reader:XmlReader) =  reader.run {TextEvent(locationInfo, CDSECT, text)}
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.cdsect(textEvent.text)
+    },
+    DOCDECL {
+      override fun createEvent(reader:XmlReader) =  reader.run {TextEvent(locationInfo, DOCDECL, text)}
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.docdecl(textEvent.text)
+    },
+    END_DOCUMENT {
+      override fun createEvent(reader:XmlReader) = reader.run { EndDocumentEvent(locationInfo) }
+    },
+    ENTITY_REF {
+      override fun createEvent(reader:XmlReader) = reader.run { TextEvent(locationInfo, ENTITY_REF, text) }
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.entityRef(textEvent.text)
+    },
+    IGNORABLE_WHITESPACE {
+      override fun createEvent(reader:XmlReader) =  reader.run { TextEvent(locationInfo, IGNORABLE_WHITESPACE, text) }
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.ignorableWhitespace(textEvent.text)
+    },
+    ATTRIBUTE {
+      @Throws(XmlException::class)
+      override fun createEvent(reader:XmlReader) = reader.run { Attribute(locationInfo, namespaceUri, localName, prefix, text) }
+    },
+    PROCESSING_INSTRUCTION {
+      override fun createEvent(reader:XmlReader) = TextEvent(reader.locationInfo, PROCESSING_INSTRUCTION, reader.text)
+
+      @Throws(XmlException::class)
+      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.processingInstruction(textEvent.text)
+    };
+
+    @Throws(XmlException::class)
+    open fun writeEvent(writer: XmlWriter, textEvent: TextEvent): Unit = throw UnsupportedOperationException("This is not generally supported, only by text types")
+
+    @Throws(XmlException::class)
+    abstract fun createEvent(reader:XmlReader): XmlEvent
+  }
+
+
   interface XmlStreamingFactory {
 
     @Throws(XmlException::class)
@@ -116,134 +193,116 @@ object XmlStreaming {
     fun newReader(inputStream: InputStream, encoding: String): XmlReader
   }
 
-  enum class EventType {
-    START_DOCUMENT {
-      override fun XmlReader.createEvent() =
-            StartDocumentEvent(locationInfo, version, encoding, standalone)
-    },
-    START_ELEMENT {
-      @Throws(XmlException::class)
-      override fun XmlReader.createEvent() =
-            StartElementEvent(locationInfo, namespaceUri, localName, prefix, attributes, namespaceDecls)
-    },
-    END_ELEMENT {
-      @Throws(XmlException::class)
-      override fun XmlReader.createEvent() =
-            EndElementEvent(locationInfo, namespaceUri, localName, prefix)
-    },
-    COMMENT {
-      override fun XmlReader.createEvent() =
-            TextEvent(locationInfo, COMMENT, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.comment(textEvent.text)
-    },
-    TEXT {
-      override fun XmlReader.createEvent() =
-            TextEvent(locationInfo, TEXT, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.text(textEvent.text)
-    },
-    CDSECT {
-      override fun XmlReader.createEvent() = TextEvent(locationInfo, CDSECT, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.cdsect(textEvent.text)
-    },
-    DOCDECL {
-      override fun XmlReader.createEvent() = TextEvent(locationInfo, DOCDECL, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.docdecl(textEvent.text)
-    },
-    END_DOCUMENT {
-      override fun XmlReader.createEvent() = EndDocumentEvent(locationInfo)
-    },
-    ENTITY_REF {
-      override fun XmlReader.createEvent() = TextEvent(locationInfo, ENTITY_REF, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.entityRef(textEvent.text)
-    },
-    IGNORABLE_WHITESPACE {
-      override fun XmlReader.createEvent() = TextEvent(locationInfo, IGNORABLE_WHITESPACE, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.ignorableWhitespace(textEvent.text)
-    },
-    ATTRIBUTE {
-      @Throws(XmlException::class)
-      override fun XmlReader.createEvent() = Attribute(locationInfo, namespaceUri, localName, prefix, text)
-    },
-    PROCESSING_INSTRUCTION {
-      override fun XmlReader.createEvent() = TextEvent(locationInfo, PROCESSING_INSTRUCTION, text)
-
-      @Throws(XmlException::class)
-      override fun writeEvent(writer: XmlWriter, textEvent: TextEvent) = writer.processingInstruction(textEvent.text)
-    };
-
-    @Throws(XmlException::class)
-    open fun writeEvent(writer: XmlWriter, textEvent: TextEvent): Unit = throw UnsupportedOperationException("This is not generally supported, only by text types")
-
-    @Throws(XmlException::class)
-    abstract fun XmlReader.createEvent(): XmlEvent
-  }
-
-  val START_DOCUMENT = EventType.START_DOCUMENT
-  val START_ELEMENT = EventType.START_ELEMENT
-  val END_ELEMENT = EventType.END_ELEMENT
-  val COMMENT = EventType.COMMENT
-  val TEXT = EventType.TEXT
-  val CDSECT = EventType.CDSECT
-  val DOCDECL = EventType.DOCDECL
-  val ATTRIBUTE = EventType.ATTRIBUTE
-  val END_DOCUMENT = EventType.END_DOCUMENT
-  val ENTITY_REF = EventType.ENTITY_REF
-  val IGNORABLE_WHITESPACE = EventType.IGNORABLE_WHITESPACE
-  val PROCESSING_INSTRUCTION = EventType.PROCESSING_INSTRUCTION
-
-  val CDATA = CDSECT
-  val CHARACTERS = TEXT
-
   private var _factory: XmlStreamingFactory? = null
 
   private val factory: XmlStreamingFactory
     get() = _factory?:DefaultFactory.DEFAULTFACTORY
 
   @Throws(XmlException::class)
+  @JvmStatic
   @JvmOverloads fun newWriter(result: Result, repairNamespaces: Boolean = false): XmlWriter {
     return factory.newWriter(result, repairNamespaces)
   }
 
   @Throws(XmlException::class)
   @JvmOverloads
+  @JvmStatic
   fun newWriter(outputStream: OutputStream, encoding: String, repairNamespaces: Boolean = false): XmlWriter {
     return factory.newWriter(outputStream, encoding, repairNamespaces)
   }
 
   @Throws(XmlException::class)
   @JvmOverloads
+  @JvmStatic
   fun newWriter(writer: Writer, repairNamespaces: Boolean = false): XmlWriter {
     return factory.newWriter(writer, repairNamespaces)
   }
 
   @Throws(XmlException::class)
+  @JvmStatic
   fun newReader(inputStream: InputStream, encoding: String): XmlReader {
     return factory.newReader(inputStream, encoding)
   }
 
   @Throws(XmlException::class)
+  @JvmStatic
   fun newReader(reader: Reader): XmlReader {
     return factory.newReader(reader)
   }
 
   @Throws(XmlException::class)
+  @JvmStatic
   fun newReader(source: Source): XmlReader {
     return factory.newReader(source)
   }
 
+  @JvmStatic
   fun setFactory(factory: XmlStreamingFactory) {
     _factory = factory
   }
+
+
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.START_DOCUMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val START_DOCUMENT: EventType = EventType.START_DOCUMENT
+  @JvmField@Deprecated("Don't use it", ReplaceWith("EventType.START_ELEMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val START_ELEMENT : EventType = EventType.START_ELEMENT
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.END_ELEMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val END_ELEMENT :EventType = EventType.END_ELEMENT
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.COMMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val COMMENT :EventType = EventType.COMMENT
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.CDSECT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val CDSECT :EventType = EventType.CDSECT
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.DOCDECL", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val DOCDECL :EventType = EventType.DOCDECL
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.ATTRIBUTE", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val ATTRIBUTE :EventType = EventType.ATTRIBUTE
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.END_DOCUMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val END_DOCUMENT :EventType = EventType.END_DOCUMENT
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.ENTITY_REF", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val ENTITY_REF :EventType = EventType.ENTITY_REF
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.IGNORABLE_WHITESPACE", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val IGNORABLE_WHITESPACE :EventType = EventType.IGNORABLE_WHITESPACE
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.PROCESSING_INSTRUCTION", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val PROCESSING_INSTRUCTION :EventType = EventType.PROCESSING_INSTRUCTION
+
+  @JvmField @Deprecated("Don't use it", ReplaceWith("EventType.CDSECT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  val CDATA = CDSECT
+
+  @Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  @JvmField val TEXT = EventType.TEXT
+  @Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+  @JvmField val CHARACTERS = EventType.TEXT
+
 }
+
+
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.START_DOCUMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val START_DOCUMENT: EventType = EventType.START_DOCUMENT
+@JvmField@Deprecated("Don't use it", ReplaceWith("EventType.START_ELEMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val START_ELEMENT : EventType = EventType.START_ELEMENT
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.END_ELEMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val END_ELEMENT :EventType = EventType.END_ELEMENT
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.COMMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val COMMENT :EventType = EventType.COMMENT
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.CDSECT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val CDSECT :EventType = EventType.CDSECT
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.DOCDECL", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val DOCDECL :EventType = EventType.DOCDECL
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.ATTRIBUTE", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val ATTRIBUTE :EventType = EventType.ATTRIBUTE
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.END_DOCUMENT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val END_DOCUMENT :EventType = EventType.END_DOCUMENT
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.ENTITY_REF", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val ENTITY_REF :EventType = EventType.ENTITY_REF
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.IGNORABLE_WHITESPACE", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val IGNORABLE_WHITESPACE :EventType = EventType.IGNORABLE_WHITESPACE
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.PROCESSING_INSTRUCTION", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val PROCESSING_INSTRUCTION :EventType = EventType.PROCESSING_INSTRUCTION
+
+@JvmField @Deprecated("Don't use it", ReplaceWith("EventType.CDSECT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+val CDATA = CDSECT
+
+@Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+@JvmField val TEXT = EventType.TEXT
+@Deprecated("Don't use it", ReplaceWith("EventType.TEXT", "nl.adaptivity.xml.XmlStreaming.EventType"))
+@JvmField val CHARACTERS = EventType.TEXT

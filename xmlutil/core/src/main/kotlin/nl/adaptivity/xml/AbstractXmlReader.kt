@@ -17,8 +17,8 @@
 package nl.adaptivity.xml
 
 import net.devrieze.util.kotlin.matches
-import nl.adaptivity.xml.XmlStreaming.*
 import javax.xml.namespace.QName
+import nl.adaptivity.xml.XmlStreaming.EventType
 
 
 /**
@@ -44,16 +44,16 @@ abstract class AbstractXmlReader : XmlReader {
   }
 
   @Throws(XmlException::class)
-  override fun isEndElement() = eventType === END_ELEMENT
+  override fun isEndElement() = eventType === EventType.END_ELEMENT
 
   @Throws(XmlException::class)
-  override fun isCharacters() = eventType === CHARACTERS
+  override fun isCharacters() = eventType === EventType.TEXT
 
   @Throws(XmlException::class)
-  override fun isStartElement(): Boolean = eventType === CHARACTERS
+  override fun isStartElement(): Boolean = eventType === EventType.START_ELEMENT
 
   @Throws(XmlException::class)
-  override fun isWhitespace() = eventType === IGNORABLE_WHITESPACE || eventType === TEXT && isXmlWhitespace(text)
+  override fun isWhitespace() = eventType === EventType.IGNORABLE_WHITESPACE || eventType === EventType.TEXT && isXmlWhitespace(text)
 
   override val name:QName
     @Throws(XmlException::class)
