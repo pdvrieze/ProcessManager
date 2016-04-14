@@ -303,7 +303,7 @@ public class StAXReader extends AbstractXmlReader {
   }
 
   @Override
-  public int getNamespaceStart() throws XmlException {
+  public int getNamespaceStart() {
     return 0;
   }
 
@@ -385,7 +385,7 @@ public class StAXReader extends AbstractXmlReader {
   }
 
   @Override
-  public int getDepth() throws XmlException {
+  public int getDepth() {
     return mDepth;
   }
 }

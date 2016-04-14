@@ -37,13 +37,17 @@ interface XmlReader {
   @Throws(XmlException::class)
   operator fun next(): EventType?
 
+  @get:Throws(XmlException::class)
   val namespaceUri: CharSequence
 
+  @get:Throws(XmlException::class)
   val localName: CharSequence
 
+  @get:Throws(XmlException::class)
   val prefix: CharSequence
 
-  val name: QName
+  @Throws(XmlException::class)
+  fun getName(): QName
 
   @Throws(XmlException::class)
   fun require(type: EventType, namespace: CharSequence, name: CharSequence)
@@ -69,14 +73,17 @@ interface XmlReader {
   @Throws(XmlException::class)
   fun getAttributeValue(i: Int): CharSequence
 
-  val eventType: EventType
+  @Throws(XmlException::class)
+  fun getEventType(): EventType
 
   @Throws(XmlException::class)
   fun getAttributeValue(nsUri: CharSequence, localName: CharSequence): CharSequence?
 
-  val namespaceStart: Int
+  @Throws(XmlException::class)
+  fun getNamespaceStart(): Int
 
-  val namespaceEnd: Int
+  @Throws(XmlException::class)
+  fun getNamespaceEnd(): Int
 
   @Throws(XmlException::class)
   fun getNamespacePrefix(i: Int): CharSequence
@@ -90,21 +97,27 @@ interface XmlReader {
   @Throws(XmlException::class)
   fun getNamespacePrefix(namespaceUri: CharSequence): CharSequence?
 
-  val isWhitespace: Boolean
+  @Throws(XmlException::class)
+  fun isWhitespace(): Boolean
 
-  val isEndElement: Boolean
+  @Throws(XmlException::class)
+  fun isEndElement(): Boolean
 
-  val isCharacters: Boolean
+  @Throws(XmlException::class)
+  fun isCharacters(): Boolean
 
-  val isStartElement: Boolean
+  @Throws(XmlException::class)
+  fun isStartElement(): Boolean
 
   @Throws(XmlException::class)
   fun getNamespaceUri(prefix: CharSequence): String?
 
   /** Get some information on the current location in the file. This is implementation dependent.  */
-  val locationInfo: String
+  @Throws(XmlException::class)
+  fun getLocationInfo(): String
 
-  val namespaceContext: NamespaceContext
+  @Throws(XmlException::class)
+  fun getNamespaceContext(): NamespaceContext
 
   val encoding: CharSequence
 
