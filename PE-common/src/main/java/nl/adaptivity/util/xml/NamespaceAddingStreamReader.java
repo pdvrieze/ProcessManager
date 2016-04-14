@@ -27,6 +27,9 @@ import javax.xml.namespace.NamespaceContext;
 
 
 /**
+ * A streamreader that adds a namespace context as source for looking up namespace information for prefixes present
+ * in the original, but do not have attached namespace information.
+ *
  * Created by pdvrieze on 31/10/15.
  */
 public class NamespaceAddingStreamReader extends XmlDelegatingReader {
