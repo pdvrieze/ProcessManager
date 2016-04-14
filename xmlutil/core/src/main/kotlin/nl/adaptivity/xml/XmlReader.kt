@@ -16,6 +16,7 @@
 
 package nl.adaptivity.xml
 
+import nl.adaptivity.xml.XmlEvent.NamespaceImpl
 import nl.adaptivity.xml.XmlStreaming.EventType
 
 import javax.xml.namespace.NamespaceContext
@@ -129,3 +130,18 @@ interface XmlReader {
 
   val version: CharSequence
 }
+
+val XmlReader.attributes: Array<out XmlEvent.Attribute> get() =
+      Array<XmlEvent.Attribute>(attributeCount) { i ->
+        XmlEvent.Attribute(locationInfo,
+                           getAttributeNamespace(i),
+                           getAttributeLocalName(i),
+                           getAttributePrefix(i),
+                           getAttributeValue(i))
+      }
+
+val XmlReader.namespaceDecls: Array<out Namespace> get() =
+      Array<Namespace>(namespaceEnd - namespaceStart) { i ->
+        val nsIndex = namespaceStart + i
+        NamespaceImpl(getNamespacePrefix(nsIndex), getNamespaceUri(nsIndex))
+      }
