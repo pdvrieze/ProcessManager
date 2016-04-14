@@ -6,7 +6,7 @@
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>
-    <module name="ProcessEngine" />
+    <module name="ProcessEngine-core_test" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <option name="SUITE_NAME" value="" />
@@ -30,6 +30,9 @@
     <envs />
     <properties />
     <listeners />
-    <method />
+    <method>
+      <option name="Make" enabled="false" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="testClasses" externalProjectPath="$PROJECT_DIR$/ProcessEngine/core" vmOptions="" scriptParameters="" />
+    </method>
   </configuration>
 </component>

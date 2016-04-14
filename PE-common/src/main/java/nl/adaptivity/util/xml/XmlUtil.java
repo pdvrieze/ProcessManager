@@ -803,7 +803,9 @@ public final class XmlUtil {
   @NotNull
   public static CompactFragment siblingsToFragment(final XmlReader in) throws XmlException {
     final CharArrayWriter caw = new CharArrayWriter();
-    if (in.getEventType()==null && in.hasNext()) { in.next(); }
+    if (!in.isStarted()) {
+      if (in.hasNext()) { in.next(); } else { return new CompactFragment(""); }
+    }
 
     final String startLocation = in.getLocationInfo();
     try {
@@ -1170,7 +1172,7 @@ public final class XmlUtil {
    * @param elementName The local name to check against
    * @param elementPrefix The mPrefix to fall back on if the namespace can't be determined    @return <code>true</code> if it matches, otherwise <code>false</code>
    */
-  public static boolean isElement(@NotNull final XmlReader in, final EventType type, final CharSequence elementNamespace, final CharSequence elementName, @NotNull final CharSequence elementPrefix) throws
+  public static boolean isElement(@NotNull final XmlReader in, final EventType type, final CharSequence elementNamespace, final CharSequence elementName, @Nullable final CharSequence elementPrefix) throws
           XmlException {
     if (in.getEventType()!= type) { return false; }
     CharSequence expNs =  elementNamespace;

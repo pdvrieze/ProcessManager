@@ -39,6 +39,7 @@ public class AndroidXmlReader extends AbstractXmlReader {
   private static final EventType[] DELEGATE_TO_LOCAL;
 
   private static final int[] LOCAL_TO_DELEGATE;
+  private boolean mStarted = false;
 
   static {
     DELEGATE_TO_LOCAL = new EventType[11];
@@ -101,7 +102,13 @@ public class AndroidXmlReader extends AbstractXmlReader {
   }
 
   @Override
-  public String getAttributeValue(final CharSequence namespace, final CharSequence name) {
+  public boolean isStarted() {
+    return mStarted;
+  }
+
+  @Nullable
+  @Override
+  public String getAttributeValue(@Nullable final CharSequence namespace, @NotNull final CharSequence name) {
     return mReader.getAttributeValue(StringUtil.toString(namespace), StringUtil.toString(name));
   }
 
@@ -122,6 +129,7 @@ public class AndroidXmlReader extends AbstractXmlReader {
 
   @Override
   public EventType next() throws XmlException {
+    mStarted = true;
     try {
       return DELEGATE_TO_LOCAL[mReader.nextToken()];
     } catch (XmlPullParserException | IOException e) {
@@ -131,6 +139,7 @@ public class AndroidXmlReader extends AbstractXmlReader {
 
   @Override
   public EventType nextTag() throws XmlException {
+    mStarted = true;
     try {
       return DELEGATE_TO_LOCAL[mReader.nextTag()];
     } catch (XmlPullParserException | IOException e) {

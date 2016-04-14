@@ -32,6 +32,7 @@ import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.NamespaceContext;
@@ -269,7 +270,7 @@ public class PETransformer {
           paramName = mContext.resolveAttributeName(valueName);
         }
         final String value = mContext.resolveAttributeValue(valueName, StringUtil.toString(xpath));
-        return new XmlEvent.Attribute(null, null, paramName, null, value);
+        return new XmlEvent.Attribute(null, XMLConstants.NULL_NS_URI, paramName, XMLConstants.DEFAULT_NS_PREFIX, value);
       } else {
         throw new MessagingFormatException("Missing parameter name");
       }

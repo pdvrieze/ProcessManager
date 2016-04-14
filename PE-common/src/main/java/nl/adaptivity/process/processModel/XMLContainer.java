@@ -58,7 +58,9 @@ public abstract class XMLContainer implements ExtXmlDeserializable, XmlSerializa
 
   @Deprecated
   public XMLContainer(final Source source) throws XmlException {
-    setContent(XmlUtil.siblingsToFragment(XmlStreaming.newReader(source)));
+    XmlReader reader = XmlStreaming.newReader(source);
+    if (reader.hasNext()) reader.next(); // Initialise the reader
+    setContent(XmlUtil.siblingsToFragment(reader));
   }
 
   public void deserializeChildren(@NotNull final XmlReader in) throws XmlException {

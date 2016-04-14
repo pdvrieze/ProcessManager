@@ -61,8 +61,7 @@ public class NamespaceAddingStreamReader extends XmlDelegatingReader {
 
   @Nullable
   @Override
-  public CharSequence getAttributeValue(@Nullable final CharSequence namespaceURI, @NotNull final CharSequence localName) throws
-          XmlException {
+  public CharSequence getAttributeValue(@Nullable final CharSequence namespaceURI, @NotNull final CharSequence localName) throws XmlException {
 
     for(int i=getAttributeCount()-1; i>=0; --i) {
       if ((namespaceURI==null || namespaceURI.equals(getAttributeNamespace(i))) && localName.equals(getAttributeLocalName(i))) {

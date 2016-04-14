@@ -37,17 +37,20 @@ interface XmlReader {
   @Throws(XmlException::class)
   operator fun next(): EventType?
 
-  @Throws(XmlException::class)
-  fun getNamespaceUri(): CharSequence
+  val namespaceUri: CharSequence
+    @Throws(XmlException::class) get
 
-  @Throws(XmlException::class)
-  fun getLocalName(): CharSequence
+  val localName: CharSequence
+    @Throws(XmlException::class) get
 
-  @Throws(XmlException::class)
-  fun getPrefix(): CharSequence
+  val prefix: CharSequence
+    @Throws(XmlException::class) get
 
-  @Throws(XmlException::class)
-  fun getName(): QName
+  open val name: QName
+    @Throws(XmlException::class)
+    get
+
+  open val isStarted:Boolean
 
   @Throws(XmlException::class)
   fun require(type: EventType, namespace: CharSequence?, name: CharSequence?)
@@ -57,12 +60,14 @@ interface XmlReader {
   val text: CharSequence
 
   val attributeCount: Int
+    @Throws(XmlException::class)
+    get
 
   @Throws(XmlException::class)
-  fun getAttributeNamespace(i: Int): CharSequence?
+  fun getAttributeNamespace(i: Int): CharSequence
 
   @Throws(XmlException::class)
-  fun getAttributePrefix(i: Int): CharSequence?
+  fun getAttributePrefix(i: Int): CharSequence
 
   @Throws(XmlException::class)
   fun getAttributeLocalName(i: Int): CharSequence
@@ -73,17 +78,17 @@ interface XmlReader {
   @Throws(XmlException::class)
   fun getAttributeValue(i: Int): CharSequence
 
-  @Throws(XmlException::class)
-  fun getEventType(): EventType
+  val eventType: EventType
+    @Throws(XmlException::class) get
 
   @Throws(XmlException::class)
-  fun getAttributeValue(nsUri: CharSequence, localName: CharSequence): CharSequence?
+  fun getAttributeValue(nsUri: CharSequence?, localName: CharSequence): CharSequence?
 
-  @Throws(XmlException::class)
-  fun getNamespaceStart(): Int
+  val namespaceStart: Int
+    @Throws(XmlException::class) get
 
-  @Throws(XmlException::class)
-  fun getNamespaceEnd(): Int
+  val namespaceEnd: Int
+    @Throws(XmlException::class) get
 
   @Throws(XmlException::class)
   fun getNamespacePrefix(i: Int): CharSequence
@@ -113,10 +118,10 @@ interface XmlReader {
   fun getNamespaceUri(prefix: CharSequence): String?
 
   /** Get some information on the current location in the file. This is implementation dependent.  */
-  fun getLocationInfo(): String
+  val locationInfo: String?
 
-  @Throws(XmlException::class)
-  fun getNamespaceContext(): NamespaceContext
+  val namespaceContext: NamespaceContext
+    @Throws(XmlException::class) get
 
   val encoding: CharSequence
 

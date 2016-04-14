@@ -35,6 +35,8 @@ import java.io.Reader;
  */
 public class StAXReader extends AbstractXmlReader {
 
+  private boolean mStarted = false;
+
   static String toString(CharSequence charSequence) {
     return charSequence==null ? null : charSequence.toString();
   }
@@ -208,8 +210,9 @@ public class StAXReader extends AbstractXmlReader {
     return mDelegate.getLocation();
   }
 
+  @Nullable
   @Override
-  public String getAttributeValue(final CharSequence namespaceURI, final CharSequence localName) {
+  public String getAttributeValue(@Nullable final CharSequence namespaceURI, @NotNull final CharSequence localName) {
     return mDelegate.getAttributeValue(toString(namespaceURI), toString(localName));
   }
 
@@ -226,6 +229,7 @@ public class StAXReader extends AbstractXmlReader {
   @Override
   @Nullable
   public EventType next() throws XmlException {
+    mStarted = true;
     try {
       if (mDelegate.hasNext()) {
         return updateDepth(fixWhitespace(DELEGATE_TO_LOCAL[mDelegate.next()]));
@@ -239,6 +243,7 @@ public class StAXReader extends AbstractXmlReader {
 
   @Override
   public EventType nextTag() throws XmlException {
+    mStarted = true;
     try {
       return updateDepth(fixWhitespace(DELEGATE_TO_LOCAL[mDelegate.nextTag()]));
     } catch (XMLStreamException e) {
@@ -336,6 +341,11 @@ public class StAXReader extends AbstractXmlReader {
   @Override
   public EventType getEventType() {
     return mFixWhitespace ? EventType.IGNORABLE_WHITESPACE : DELEGATE_TO_LOCAL[mDelegate.getEventType()];
+  }
+
+  @Override
+  public boolean isStarted() {
+    return mStarted;
   }
 
   @Override

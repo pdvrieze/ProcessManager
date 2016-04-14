@@ -181,6 +181,7 @@ public class XmlDefineType extends XPathHolder implements IXmlDefineType {
         final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.Companion.from(getOriginalNSContext()), processData);
 
         XmlReader reader = transformer.createFilter(getBodyStreamReader());
+        if (reader.hasNext()) reader.next(); // Initialise the reader
         final CompactFragment transformed = XmlUtil.siblingsToFragment(reader);
         return new ProcessData(getName(), transformed);
 

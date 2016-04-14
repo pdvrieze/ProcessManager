@@ -28,35 +28,36 @@ abstract class AbstractXmlReader : XmlReader {
 
   @Throws(XmlException::class)
   override fun require(type: EventType, namespace: CharSequence?, name: CharSequence?) {
-    if (getEventType() !== type) {
-      throw XmlException("Unexpected event type Found:" + getEventType() + " expected " + type)
+    if (eventType !== type) {
+      throw XmlException("Unexpected event type Found: $eventType expected $type")
     }
     if (namespace != null) {
-      if (!(namespace matches getNamespaceUri())) {
-        throw XmlException("Namespace uri's don't match: expected=$namespace found=${getNamespaceUri()}")
+      if (!(namespace matches namespaceUri)) {
+        throw XmlException("Namespace uri's don't match: expected=$namespace found=$namespaceUri")
       }
     }
     if (name != null) {
-      if (!(name matches getLocalName())) {
-        throw XmlException("Local names don't match: expected=$name found=${getLocalName()}")
+      if (!(name matches localName)) {
+        throw XmlException("Local names don't match: expected=$name found=$localName")
       }
     }
   }
 
   @Throws(XmlException::class)
-  override fun isEndElement() = getEventType() === END_ELEMENT
+  override fun isEndElement() = eventType === END_ELEMENT
 
   @Throws(XmlException::class)
-  override fun isCharacters() = getEventType() === CHARACTERS
+  override fun isCharacters() = eventType === CHARACTERS
 
   @Throws(XmlException::class)
-  override fun isStartElement(): Boolean = getEventType() === CHARACTERS
+  override fun isStartElement(): Boolean = eventType === CHARACTERS
 
   @Throws(XmlException::class)
-  override fun isWhitespace() = getEventType() === IGNORABLE_WHITESPACE || getEventType() === TEXT && isXmlWhitespace(text)
+  override fun isWhitespace() = eventType === IGNORABLE_WHITESPACE || eventType === TEXT && isXmlWhitespace(text)
 
-  @Throws(XmlException::class)
-  override fun getName() = qname(getNamespaceUri(), getLocalName(), getPrefix())
+  override val name:QName
+    @Throws(XmlException::class)
+    get() = qname(namespaceUri, localName, prefix)
 
   @Throws(XmlException::class)
   override fun getAttributeName(i: Int): QName =

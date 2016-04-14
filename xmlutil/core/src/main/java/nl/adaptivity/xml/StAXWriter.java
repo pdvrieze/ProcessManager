@@ -50,7 +50,7 @@ public class StAXWriter extends AbstractXmlWriter {
       clazz = null;
     }
     //noinspection unchecked
-    _XMLStreamWriter2 = clazz.asSubclass(XMLStreamWriter.class);
+    _XMLStreamWriter2 = clazz == null ? null : clazz.asSubclass(XMLStreamWriter.class);
     _writeStartDocument = m;
   }
 

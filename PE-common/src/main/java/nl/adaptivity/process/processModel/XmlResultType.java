@@ -114,8 +114,12 @@ public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSer
       }
       final char[] content = getContent();
       if (content!=null && content.length>0) {
-        final PETransformer transformer = PETransformer.create(SimpleNamespaceContext.Companion.from(getOriginalNSContext()), processData);
-        final CompactFragment transformed = XmlUtil.siblingsToFragment(transformer.createFilter(getBodyStreamReader()));
+        final PETransformer   transformer = PETransformer.create(SimpleNamespaceContext.Companion.from(getOriginalNSContext()), processData);
+        XmlReader             reader      = transformer.createFilter(getBodyStreamReader());
+
+        if (reader.hasNext()) reader.next(); // Initialise the reader
+
+        final CompactFragment transformed = XmlUtil.siblingsToFragment(reader);
         return new ProcessData(getName(), transformed);
       } else {
         return processData;

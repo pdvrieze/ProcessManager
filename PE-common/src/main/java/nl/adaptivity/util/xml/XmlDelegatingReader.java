@@ -62,6 +62,11 @@ public class XmlDelegatingReader implements XmlReader {
   }
 
   @Override
+  public boolean isStarted() {
+    return mDelegate.isStarted();
+  }
+
+  @Override
   public CharSequence getNamespaceUri() throws XmlException {
     return mDelegate.getNamespaceUri();
   }
@@ -97,7 +102,7 @@ public class XmlDelegatingReader implements XmlReader {
   }
 
   @Override
-  public int getAttributeCount() {
+  public int getAttributeCount() throws XmlException {
     return mDelegate.getAttributeCount();
   }
 
@@ -131,9 +136,12 @@ public class XmlDelegatingReader implements XmlReader {
     return mDelegate.getEventType();
   }
 
+  @Nullable
   @Override
-  public CharSequence getAttributeValue(final CharSequence nsUri, final CharSequence localName) throws XmlException {
-    return mDelegate.getAttributeValue(nsUri, localName);
+  public CharSequence getAttributeValue(@Nullable final CharSequence nsUri, @NotNull final CharSequence localName) throws XmlException{
+    try {return mDelegate.getAttributeValue(nsUri, localName);} catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
