@@ -108,14 +108,15 @@ public class PETransformer {
 
     private static void stripWhiteSpaceFromPeekBuffer(final List<XmlEvent> results) {
       XmlEvent peekLast;
-      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtil.isXmlWhitespace(((TextEvent)peekLast).text)) {
+      while(results.size()>0 && (peekLast = results.get(results.size()-1)) instanceof TextEvent && XmlUtil.isXmlWhitespace(((TextEvent) peekLast)
+                                                                                                                                   .getText())) {
         results.remove(results.size()-1);
       }
     }
 
     private void peekStartElement(final List<XmlEvent> results, @NotNull final StartElementEvent element) throws XmlException {
-      if (Constants.MODIFY_NS_STR.equals(element.namespaceUri)) {
-        final String localname = StringUtil.toString(element.localName);
+      if (Constants.MODIFY_NS_STR.equals(element.getNamespaceUri())) {
+        final String localname = StringUtil.toString(element.getLocalName());
 
         final Map<String, CharSequence> attributes = parseAttributes(element);
 
@@ -134,20 +135,20 @@ public class PETransformer {
             readEndTag(element);
             return;
           default:
-            throw new XmlException("Unsupported element: {"+element.namespaceUri+'}'+element.localName);
+            throw new XmlException("Unsupported element: {" + element.getNamespaceUri() + '}' + element.getLocalName());
         }
       } else {
         boolean filterAttributes = false;
         final List<XmlEvent.Attribute> newAttrs = new ArrayList<>();
-        for(final XmlEvent.Attribute attr : element.attributes) {
-          if (attr.getNamespaceUri() && StringUtil.isEqual(Constants.MODIFY_NS_STR, attr.value)) {
+        for(final XmlEvent.Attribute attr : element.getAttributes()) {
+          if (attr.getNamespaceUri() && StringUtil.isEqual(Constants.MODIFY_NS_STR, attr.getValue())) {
             filterAttributes=true;
           } else {
             newAttrs.add(attr);
           }
         }
         final List<Namespace> newNamespaces = new ArrayList<>();
-        for(final Namespace ns :element.namespaceDecls) {
+        for(final Namespace ns : element.getNamespaceDecls()) {
           if (Constants.MODIFY_NS_STR.equals(ns.getNamespaceURI())) {
             filterAttributes=true;
           } else {
@@ -155,10 +156,7 @@ public class PETransformer {
           }
         }
         if (filterAttributes) {
-          results.add(new StartElementEvent(element.getLocationInfo(),
-                                    element.namespaceUri,
-                                    element.localName,
-                                    element.prefix,
+          results.add(new StartElementEvent(element.getLocationInfo(), element.getNamespaceUri(), element.getLocalName(), element.getPrefix(),
                                     newAttrs.toArray(new XmlEvent.Attribute[newAttrs.size()]),
                                     newNamespaces.toArray(new Namespace[newNamespaces.size()])));
         } else {
@@ -176,7 +174,7 @@ public class PETransformer {
             case COMMENT:
               break;
             case TEXT:
-              if (XmlUtil.isXmlWhitespace(((TextEvent) elem).text)) {
+              if (XmlUtil.isXmlWhitespace(((TextEvent) elem).getText())) {
                 break;
               }
             default:
@@ -255,8 +253,8 @@ public class PETransformer {
     private static Map<String,CharSequence> parseAttributes(@NotNull final StartElementEvent startElement) {
       final TreeMap<String, CharSequence> result = new TreeMap<>();
 
-      for(XmlEvent.Attribute attribute: startElement.attributes) {
-        result.put(StringUtil.toString(attribute.localName), attribute.value);
+      for(XmlEvent.Attribute attribute: startElement.getAttributes()) {
+        result.put(StringUtil.toString(attribute.getLocalName()), attribute.getValue());
       }
       return result;
     }
@@ -526,16 +524,16 @@ public class PETransformer {
     final XmlReader frag = data.getContentStream();
     while (frag.hasNext()) {
       frag.next();
-      result.add(XmlEvent.from(frag));
+      result.add(XmlEvent.Companion.from(frag));
     }
     return result;
   }
 
   static boolean isIgnorableWhiteSpace(@NotNull final TextEvent characters) {
-    if (characters.eventType== EventType.IGNORABLE_WHITESPACE) {
+    if (characters.getEventType() == EventType.IGNORABLE_WHITESPACE) {
       return true;
     }
-    return XmlUtil.isXmlWhitespace(characters.text);
+    return XmlUtil.isXmlWhitespace(characters.getText());
   }
 
   static boolean isIgnorableWhiteSpace(@NotNull final XmlReader characters) throws XmlException {

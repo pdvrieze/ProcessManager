@@ -982,7 +982,7 @@ public final class XmlUtil {
       case IGNORABLE_WHITESPACE:
         return true;
       case TEXT:
-        return isXmlWhitespace(((TextEvent) event).text);
+        return isXmlWhitespace(((TextEvent) event).getText());
       default:
         return false;
     }

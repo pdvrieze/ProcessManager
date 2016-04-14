@@ -54,7 +54,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
       case START_ELEMENT: {
         mNamespaceHolder.incDepth();
         StartElementEvent start = (StartElementEvent) mCurrent;
-        for(Namespace ns:start.namespaceDecls) {
+        for(Namespace ns: start.getNamespaceDecls()) {
           mNamespaceHolder.addPrefixToContext(ns);
         }
       } break;
@@ -79,7 +79,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
   protected List<XmlEvent> doPeek() throws XmlException {
     if (mDelegate.hasNext()) {
       mDelegate.next(); // Don't forget to actually read the next element
-      XmlEvent event = XmlEvent.from(mDelegate);
+      XmlEvent event = XmlEvent.Companion.from(mDelegate);
       ArrayList<XmlEvent> result = new ArrayList<>(1);
       result.add(event);
       return result;
@@ -99,7 +99,8 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   protected void stripWhiteSpaceFromPeekBuffer() {
     XmlEvent peekLast;
-    while(mPeekBuffer.size()>0 && (peekLast = mPeekBuffer.peekLast()) instanceof TextEvent && XmlUtilKt.isXmlWhitespace(((TextEvent)peekLast).text)) {
+    while(mPeekBuffer.size()>0 && (peekLast = mPeekBuffer.peekLast()) instanceof TextEvent && XmlUtilKt.isXmlWhitespace(((TextEvent) peekLast)
+                                                                                                                                .getText())) {
       mPeekBuffer.removeLast();
     }
   }
@@ -141,7 +142,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
     EventType type = current.getEventType();
     switch (type) {
       case TEXT:
-      if (XmlUtilKt.isXmlWhitespace(((TextEvent)current).text)) {
+      if (XmlUtilKt.isXmlWhitespace(((TextEvent) current).getText())) {
         return nextTagEvent();
       }
       case COMMENT: // ignore
@@ -164,11 +165,11 @@ public class XmlBufferedReader extends AbstractXmlReader {
   public CharSequence getNamespaceUri() throws XmlException {
     switch (mCurrent.getEventType()) {
       case ATTRIBUTE:
-        return ((Attribute) mCurrent).namespaceUri;
+        return ((Attribute) mCurrent).getNamespaceUri();
       case START_ELEMENT:
-        return ((StartElementEvent) mCurrent).namespaceUri;
+        return ((StartElementEvent) mCurrent).getNamespaceUri();
       case END_ELEMENT:
-        return ((EndElementEvent) mCurrent).namespaceUri;
+        return ((EndElementEvent) mCurrent).getNamespaceUri();
       default:
         throw new XmlException("Attribute not defined here: namespaceUri");
     }
@@ -178,11 +179,11 @@ public class XmlBufferedReader extends AbstractXmlReader {
   public CharSequence getLocalName() throws XmlException {
     switch (mCurrent.getEventType()) {
       case ATTRIBUTE:
-        return ((Attribute) mCurrent).localName;
+        return ((Attribute) mCurrent).getLocalName();
       case START_ELEMENT:
-        return ((StartElementEvent) mCurrent).localName;
+        return ((StartElementEvent) mCurrent).getLocalName();
       case END_ELEMENT:
-        return ((EndElementEvent) mCurrent).localName;
+        return ((EndElementEvent) mCurrent).getLocalName();
       default:
         throw new XmlException("Attribute not defined here: namespaceUri");
     }
@@ -192,11 +193,11 @@ public class XmlBufferedReader extends AbstractXmlReader {
   public CharSequence getPrefix() throws XmlException {
     switch (mCurrent.getEventType()) {
       case ATTRIBUTE:
-        return ((Attribute) mCurrent).prefix;
+        return ((Attribute) mCurrent).getPrefix();
       case START_ELEMENT:
-        return ((StartElementEvent) mCurrent).prefix;
+        return ((StartElementEvent) mCurrent).getPrefix();
       case END_ELEMENT:
-        return ((EndElementEvent) mCurrent).prefix;
+        return ((EndElementEvent) mCurrent).getPrefix();
       default:
         throw new XmlException("Attribute not defined here: namespaceUri");
     }
@@ -210,34 +211,34 @@ public class XmlBufferedReader extends AbstractXmlReader {
   @Override
   public CharSequence getText() throws XmlException {
     if (mCurrent.getEventType()==EventType.ATTRIBUTE) {
-        return ((Attribute) mCurrent).value;
+        return ((Attribute) mCurrent).getValue();
     }
-    return ((TextEvent) mCurrent).text;
+    return ((TextEvent) mCurrent).getText();
   }
 
   @Override
   public int getAttributeCount() throws XmlException {
-    return ((StartElementEvent) mCurrent).attributes.length;
+    return ((StartElementEvent) mCurrent).getAttributes().length;
   }
 
   @Override
   public CharSequence getAttributeNamespace(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).attributes[i].namespaceUri;
+    return ((StartElementEvent) mCurrent).getAttributes()[i].getNamespaceUri();
   }
 
   @Override
   public CharSequence getAttributePrefix(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).attributes[i].prefix;
+    return ((StartElementEvent) mCurrent).getAttributes()[i].getPrefix();
   }
 
   @Override
   public CharSequence getAttributeLocalName(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).attributes[i].localName;
+    return ((StartElementEvent) mCurrent).getAttributes()[i].getLocalName();
   }
 
   @Override
   public CharSequence getAttributeValue(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).attributes[i].value;
+    return ((StartElementEvent) mCurrent).getAttributes()[i].getValue();
   }
 
   @Override
@@ -248,10 +249,10 @@ public class XmlBufferedReader extends AbstractXmlReader {
   @Override
   public CharSequence getAttributeValue(final CharSequence nsUri, final CharSequence localName) throws XmlException {
     StartElementEvent current = (StartElementEvent) mCurrent;
-    for(Attribute attr: current.attributes) {
-      if ((nsUri==null || nsUri.toString().equals(attr.namespaceUri)) &&
-              StringUtil.isEqual(localName, attr.localName)) {
-        return attr.value;
+    for(Attribute attr: current.getAttributes()) {
+      if ((nsUri==null || nsUri.toString().equals(attr.getNamespaceUri())) &&
+          StringUtil.isEqual(localName, attr.getLocalName())) {
+        return attr.getValue();
       }
     }
     return null;
@@ -264,17 +265,17 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   @Override
   public int getNamespaceEnd() throws XmlException {
-    return ((StartElementEvent) mCurrent).namespaceDecls.length;
+    return ((StartElementEvent) mCurrent).getNamespaceDecls().length;
   }
 
   @Override
   public CharSequence getNamespacePrefix(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).namespaceDecls[i].getPrefix();
+    return ((StartElementEvent) mCurrent).getNamespaceDecls()[i].getPrefix();
   }
 
   @Override
   public CharSequence getNamespaceUri(final int i) throws XmlException {
-    return ((StartElementEvent) mCurrent).namespaceDecls[i].getNamespaceURI();
+    return ((StartElementEvent) mCurrent).getNamespaceDecls()[i].getNamespaceURI();
   }
 
   @Override
@@ -299,16 +300,16 @@ public class XmlBufferedReader extends AbstractXmlReader {
 
   @Override
   public CharSequence getEncoding() {
-    return ((StartDocumentEvent) mCurrent).encoding;
+    return ((StartDocumentEvent) mCurrent).getEncoding();
   }
 
   @Override
   public Boolean getStandalone() {
-    return ((StartDocumentEvent) mCurrent).standalone;
+    return ((StartDocumentEvent) mCurrent).getStandalone();
   }
 
   @Override
   public CharSequence getVersion() {
-    return ((StartDocumentEvent) mCurrent).version;
+    return ((StartDocumentEvent) mCurrent).getVersion();
   }
 }
