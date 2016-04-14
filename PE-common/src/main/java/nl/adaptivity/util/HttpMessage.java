@@ -21,8 +21,12 @@ import net.devrieze.util.Streams;
 import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import net.devrieze.util.webServer.HttpRequest;
+import nl.adaptivity.util.HttpMessage.Post;
+import nl.adaptivity.util.HttpMessage.Query;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.schema.annotations.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -49,6 +53,13 @@ import java.util.Map.Entry;
 @XmlRootElement(name = "httpMessage", namespace = HttpMessage.NAMESPACE)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "HttpMessage", namespace = HttpMessage.NAMESPACE)
+@Element(name=HttpMessage.ELEMENTLOCALNAME,
+         nsUri = HttpMessage.NAMESPACE,
+         attributes = {@Attribute("user")},
+         children = {@Child(property="queries", type= Query.class),
+                     @Child(property = "posts", type = Post.class),
+                     @Child(name=HttpMessage.BODYELEMENTLOCALNAME, property = "body", type= AnyType.class)
+         })
 @XmlDeserializer(HttpMessage.Factory.class)
 public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
@@ -64,7 +75,8 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   public static final String ELEMENTLOCALNAME = "httpMessage";
   public static final QName ELEMENTNAME=new QName(NAMESPACE, ELEMENTLOCALNAME, "http");
-  private static final QName BODYELEMENTNAME =new QName(NAMESPACE, "Body", "http");
+  static final String BODYELEMENTLOCALNAME = "Body";
+  static final QName BODYELEMENTNAME =new QName(NAMESPACE, BODYELEMENTLOCALNAME, "http");
 
   @XmlAccessorType(XmlAccessType.NONE)
   public static class ByteContentDataSource implements DataSource {
@@ -826,6 +838,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     return XMLFragmentStreamReader.from(mBody);
   }
 
+  @XmlName("user")
   @XmlAttribute(name = "user")
   String getUser() {
     return mUserPrincipal.getName();
