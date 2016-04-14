@@ -14,30 +14,25 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.xml;
+package nl.adaptivity.xml
 
 /**
  * Created by pdvrieze on 15/11/15.
  */
-public class XmlException extends Exception {
+class XmlException : Exception {
 
-  public XmlException() {
+  constructor() {
   }
 
-  public XmlException(final String message) {
-    super(message);
+  constructor(message: String) : super(message) {
   }
 
-  public XmlException(final String message, final Throwable cause) {
-    super(message, cause);
+  constructor(message: String, cause: Throwable) : super(message, cause) {
   }
 
-  public XmlException(final Throwable cause) {
-    super(cause);
+  constructor(cause: Throwable) : super(cause) {
   }
 
-  public XmlException(final String message, final XmlReader in, final Throwable cause) {
-    // TODO do something witht the reader state
-    super(message, cause);
-  }
+  constructor(message: String, `in`: XmlReader, cause: Throwable) : super(message, cause) {
+  }// TODO do something witht the reader state
 }
