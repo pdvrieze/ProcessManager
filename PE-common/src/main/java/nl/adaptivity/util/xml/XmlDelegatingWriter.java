@@ -18,6 +18,8 @@ package nl.adaptivity.util.xml;
 
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.NamespaceContext;
 
@@ -46,9 +48,10 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     mDelegate.startDocument(version, encoding, standalone);
   }
 
-  public void attribute(final CharSequence namespace, final CharSequence name, final CharSequence prefix, final CharSequence value) throws
-          XmlException {
-    mDelegate.attribute(namespace, name, prefix, value);
+  public void attribute(@Nullable final CharSequence namespace, @NotNull final CharSequence name, @Nullable final CharSequence prefix, @NotNull final CharSequence value) {
+    try {mDelegate.attribute(namespace, name, prefix, value);} catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void text(final CharSequence text) throws XmlException {
@@ -104,9 +107,10 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     mDelegate.ignorableWhitespace(text);
   }
 
-  public void startTag(final CharSequence namespace, final CharSequence localName, final CharSequence prefix) throws
-          XmlException {
-    mDelegate.startTag(namespace, localName, prefix);
+  public void startTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) {
+    try {mDelegate.startTag(namespace, localName, prefix);} catch (XmlException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public CharSequence getNamespaceUri(final CharSequence prefix) throws XmlException {

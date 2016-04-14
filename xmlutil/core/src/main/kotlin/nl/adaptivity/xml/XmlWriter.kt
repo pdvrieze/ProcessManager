@@ -50,7 +50,7 @@ interface XmlWriter {
    * @param prefix The prefix to use, or `null` for the namespace to be assigned automatically
    */
   @Throws(XmlException::class)
-  fun startTag(namespace: CharSequence, localName: CharSequence, prefix: CharSequence? = null)
+  fun startTag(namespace: CharSequence?, localName: CharSequence, prefix: CharSequence? = null)
 
   /**
    * Write a comment.
@@ -83,7 +83,7 @@ interface XmlWriter {
   fun ignorableWhitespace(text: CharSequence)
 
   @Throws(XmlException::class)
-  fun attribute(namespace: CharSequence, name: CharSequence, prefix: CharSequence, value: CharSequence)
+  fun attribute(namespace: CharSequence?, name: CharSequence, prefix: CharSequence?, value: CharSequence)
 
   @Throws(XmlException::class)
   fun docdecl(text: CharSequence)

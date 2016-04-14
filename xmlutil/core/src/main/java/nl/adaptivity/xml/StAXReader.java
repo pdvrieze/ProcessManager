@@ -37,6 +37,7 @@ public class StAXReader extends AbstractXmlReader {
 
   private boolean mStarted = false;
 
+  @Deprecated
   static String toString(CharSequence charSequence) {
     return charSequence==null ? null : charSequence.toString();
   }
@@ -48,32 +49,32 @@ public class StAXReader extends AbstractXmlReader {
 
   static {
     DELEGATE_TO_LOCAL = new EventType[16];
-    DELEGATE_TO_LOCAL[XMLStreamConstants.CDATA] = XmlStreaming.CDSECT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.COMMENT] = XmlStreaming.COMMENT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.DTD] = XmlStreaming.DOCDECL;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.END_DOCUMENT] = XmlStreaming.END_DOCUMENT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.END_ELEMENT] = XmlStreaming.END_ELEMENT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.ENTITY_REFERENCE] = XmlStreaming.ENTITY_REF;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.SPACE] = XmlStreaming.IGNORABLE_WHITESPACE;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.PROCESSING_INSTRUCTION] = XmlStreaming.PROCESSING_INSTRUCTION;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.START_DOCUMENT] = XmlStreaming.START_DOCUMENT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.START_ELEMENT] = XmlStreaming.START_ELEMENT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.CHARACTERS] = XmlStreaming.TEXT;
-    DELEGATE_TO_LOCAL[XMLStreamConstants.ATTRIBUTE] = XmlStreaming.ATTRIBUTE;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.CDATA] = EventType.CDSECT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.COMMENT] = EventType.COMMENT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.DTD] = EventType.DOCDECL;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.END_DOCUMENT] = EventType.END_DOCUMENT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.END_ELEMENT] = EventType.END_ELEMENT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.ENTITY_REFERENCE] = EventType.ENTITY_REF;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.SPACE] = EventType.IGNORABLE_WHITESPACE;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.PROCESSING_INSTRUCTION] = EventType.PROCESSING_INSTRUCTION;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.START_DOCUMENT] = EventType.START_DOCUMENT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.START_ELEMENT] = EventType.START_ELEMENT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.CHARACTERS] = EventType.TEXT;
+    DELEGATE_TO_LOCAL[XMLStreamConstants.ATTRIBUTE] = EventType.ATTRIBUTE;
 
     LOCAL_TO_DELEGATE = new int[12];
-    LOCAL_TO_DELEGATE[XmlStreaming.CDSECT.ordinal()] = XMLStreamConstants.CDATA;
-    LOCAL_TO_DELEGATE[XmlStreaming.COMMENT.ordinal()] = XMLStreamConstants.COMMENT;
-    LOCAL_TO_DELEGATE[XmlStreaming.DOCDECL.ordinal()] = XMLStreamConstants.DTD;
-    LOCAL_TO_DELEGATE[XmlStreaming.END_DOCUMENT.ordinal()] = XMLStreamConstants.END_DOCUMENT;
-    LOCAL_TO_DELEGATE[XmlStreaming.END_ELEMENT.ordinal()] = XMLStreamConstants.END_ELEMENT;
-    LOCAL_TO_DELEGATE[XmlStreaming.ENTITY_REF.ordinal()] = XMLStreamConstants.ENTITY_REFERENCE;
-    LOCAL_TO_DELEGATE[XmlStreaming.IGNORABLE_WHITESPACE.ordinal()] = XMLStreamConstants.SPACE;
-    LOCAL_TO_DELEGATE[XmlStreaming.PROCESSING_INSTRUCTION.ordinal()] = XMLStreamConstants.PROCESSING_INSTRUCTION;
-    LOCAL_TO_DELEGATE[XmlStreaming.START_DOCUMENT.ordinal()] = XMLStreamConstants.START_DOCUMENT;
-    LOCAL_TO_DELEGATE[XmlStreaming.START_ELEMENT.ordinal()] = XMLStreamConstants.START_ELEMENT;
-    LOCAL_TO_DELEGATE[XmlStreaming.TEXT.ordinal()] = XMLStreamConstants.CHARACTERS;
-    LOCAL_TO_DELEGATE[XmlStreaming.ATTRIBUTE.ordinal()] = XMLStreamConstants.ATTRIBUTE;
+    LOCAL_TO_DELEGATE[EventType.CDSECT.ordinal()] = XMLStreamConstants.CDATA;
+    LOCAL_TO_DELEGATE[EventType.COMMENT.ordinal()] = XMLStreamConstants.COMMENT;
+    LOCAL_TO_DELEGATE[EventType.DOCDECL.ordinal()] = XMLStreamConstants.DTD;
+    LOCAL_TO_DELEGATE[EventType.END_DOCUMENT.ordinal()] = XMLStreamConstants.END_DOCUMENT;
+    LOCAL_TO_DELEGATE[EventType.END_ELEMENT.ordinal()] = XMLStreamConstants.END_ELEMENT;
+    LOCAL_TO_DELEGATE[EventType.ENTITY_REF.ordinal()] = XMLStreamConstants.ENTITY_REFERENCE;
+    LOCAL_TO_DELEGATE[EventType.IGNORABLE_WHITESPACE.ordinal()] = XMLStreamConstants.SPACE;
+    LOCAL_TO_DELEGATE[EventType.PROCESSING_INSTRUCTION.ordinal()] = XMLStreamConstants.PROCESSING_INSTRUCTION;
+    LOCAL_TO_DELEGATE[EventType.START_DOCUMENT.ordinal()] = XMLStreamConstants.START_DOCUMENT;
+    LOCAL_TO_DELEGATE[EventType.START_ELEMENT.ordinal()] = XMLStreamConstants.START_ELEMENT;
+    LOCAL_TO_DELEGATE[EventType.TEXT.ordinal()] = XMLStreamConstants.CHARACTERS;
+    LOCAL_TO_DELEGATE[EventType.ATTRIBUTE.ordinal()] = XMLStreamConstants.ATTRIBUTE;
   }
 
   private final XMLStreamReader mDelegate;

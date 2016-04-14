@@ -17,6 +17,8 @@
 package nl.adaptivity.xml;
 
 import nl.adaptivity.util.xml.XmlDelegatingWriter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -32,7 +34,7 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void startTag(final CharSequence namespace, final CharSequence localName, final CharSequence prefix) throws XmlException {
+  public void startTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) {
     System.out.println(TAG + "startTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
     super.startTag(namespace, localName, prefix);
   }
@@ -44,7 +46,7 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void attribute(final CharSequence namespace, final CharSequence name, final CharSequence prefix, final CharSequence value) throws XmlException {
+  public void attribute(@Nullable final CharSequence namespace, @NotNull final CharSequence name, @Nullable final CharSequence prefix, @NotNull final CharSequence value) {
     System.out.println(TAG + "  attribute(namespace='"+namespace+"', name='"+name+"', prefix='"+prefix+"', value='"+value+"')");
     super.attribute(namespace, name, prefix, value);
   }
