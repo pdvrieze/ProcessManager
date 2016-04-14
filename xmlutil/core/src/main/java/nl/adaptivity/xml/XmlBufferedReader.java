@@ -251,7 +251,7 @@ public class XmlBufferedReader extends AbstractXmlReader {
     StartElementEvent current = (StartElementEvent) mCurrent;
     for(Attribute attr: current.getAttributes()) {
       if ((nsUri==null || nsUri.toString().equals(attr.getNamespaceUri())) &&
-          StringUtil.isEqual(localName, attr.getLocalName())) {
+          StringUtil.INSTANCE.isEqual(localName, attr.getLocalName())) {
         return attr.getValue();
       }
     }

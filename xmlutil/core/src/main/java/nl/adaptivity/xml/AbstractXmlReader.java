@@ -32,12 +32,12 @@ public abstract class AbstractXmlReader implements XmlReader {
       throw new XmlException("Unexpected event type Found:"+getEventType()+" expected "+type);
     }
     if (namespace!=null) {
-      if (! StringUtil.isEqual(namespace, getNamespaceUri())) {
+      if (! StringUtil.INSTANCE.isEqual(namespace, getNamespaceUri())) {
         throw new XmlException("Namespace uri's don't match: expected="+namespace+" found="+getNamespaceUri());
       }
     }
     if (name!=null) {
-      if (! StringUtil.isEqual(name, getLocalName())) {
+      if (! StringUtil.INSTANCE.isEqual(name, getLocalName())) {
         throw new XmlException("Local names don't match: expected="+name+" found="+getLocalName());
       }
     }
@@ -66,14 +66,14 @@ public abstract class AbstractXmlReader implements XmlReader {
   @Override
   public QName getName() throws XmlException {
     CharSequence prefix = getPrefix();
-    return new QName(StringUtil.toString(getNamespaceUri()), getLocalName().toString(), prefix ==null ? "" : prefix
+    return new QName(StringUtil.INSTANCE.toString(getNamespaceUri()), getLocalName().toString(), prefix == null ? "" : prefix
             .toString());
   }
 
   @Override
   public QName getAttributeName(final int i) throws XmlException {
     CharSequence attributePrefix = getAttributePrefix(i);
-    return new QName(StringUtil.toString(getAttributeNamespace(i)), getAttributeLocalName(i).toString(), attributePrefix ==null ? "" : attributePrefix
+    return new QName(StringUtil.INSTANCE.toString(getAttributeNamespace(i)), getAttributeLocalName(i).toString(), attributePrefix == null ? "" : attributePrefix
             .toString());
   }
 }

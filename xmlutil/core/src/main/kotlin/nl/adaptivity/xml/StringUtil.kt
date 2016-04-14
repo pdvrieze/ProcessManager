@@ -14,18 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.xml;
+package nl.adaptivity.xml
 
 /**
  * Created by pdvrieze on 14/04/16.
  */
-class StringUtil {
+internal object StringUtil {
 
-  public static String toString(final CharSequence seq) {
-    return seq == null ? null : seq.toString();
-  }
+  @Deprecated("Use asString", ReplaceWith("seq.asString()","nl.adaptivity.xml.asString"), DeprecationLevel.ERROR)
+  fun toString(seq: CharSequence?) = seq?.toString()
 
-  static boolean isEqual(final CharSequence left, final CharSequence right) {
-    return left == null ? right == null : (right != null && left.toString().equals(right.toString()));
+  fun CharSequence?.asString() = this?.toString()
+
+  @Deprecated("Use CharsequenceUtil", ReplaceWith("left matches right", "net.devrieze.util.kotlin.matches"), DeprecationLevel.ERROR)
+  fun isEqual(left: CharSequence?, right: CharSequence?): Boolean {
+    return if (left == null) right == null else right != null && left.toString() == right.toString()
   }
 }

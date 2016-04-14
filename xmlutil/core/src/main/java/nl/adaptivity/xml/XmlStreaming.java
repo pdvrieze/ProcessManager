@@ -16,6 +16,9 @@
 
 package nl.adaptivity.xml;
 
+import nl.adaptivity.xml.XmlEvent.*;
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -102,36 +105,132 @@ public final class XmlStreaming {
     XmlReader newReader(InputStream inputStream, String encoding) throws XmlException;
   }
 
-  public enum EventType {
-    START_DOCUMENT,
-    START_ELEMENT,
-    END_ELEMENT,
-    COMMENT,
-    TEXT,
-    CDSECT,
-    DOCDECL,
-    END_DOCUMENT,
-    ENTITY_REF,
-    IGNORABLE_WHITESPACE,
-    ATTRIBUTE,
-    PROCESSING_INSTRUCTION
-  }
-/* XXX this is for initial correctness
-  public static final int START_DOCUMENT = 0;
-  public static final int START_ELEMENT = 1;
-  public static final int END_TAG = 2;
-  public static final int COMMENT = 3;
-  public static final int TEXT = 4;
-  public static final int CDSECT = 5;
-  public static final int DOCDECL = 6;
-  public static final int END_DOCUMENT = 7;
-  public static final int ENTITY_REF = 8;
-  public static final int IGNORABLE_WHITESPACE = 9;
-  public static final int PROCESSING_INSTRUCTION = 10;
-
-  public static final int CDATA = CDSECT;
-  public static final int CHARACTERS = TEXT;
+/*
+        CDSECT                 -> writer.cdsect(text)
+        COMMENT                -> writer.comment(text)
+        DOCDECL                -> writer.docdecl(text)
+        ENTITY_REF             -> writer.entityRef(text)
+        IGNORABLE_WHITESPACE   -> writer.ignorableWhitespace(text)
+        PROCESSING_INSTRUCTION -> writer.processingInstruction(text)
+        TEXT                   -> writer.text(text)
 */
+  public enum EventType {
+    START_DOCUMENT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new StartDocumentEvent(reader.getLocationInfo(), reader.getVersion(), reader.getEncoding(), reader.getStandalone());
+      }
+    },
+    START_ELEMENT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new StartElementEvent(reader.getLocationInfo(), reader.getNamespaceUri(), reader.getLocalName(),
+                                     reader.getPrefix(), XmlEvent.getAttributes(reader), XmlEvent.getNamespaceDecls(reader));
+      }
+    },
+    END_ELEMENT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new EndElementEvent(reader.getLocationInfo(), reader.getNamespaceUri(), reader.getLocalName(), reader.getPrefix());
+      }
+    },
+    COMMENT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.comment(textEvent.getText());
+      }
+    },
+    TEXT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.text(textEvent.getText());
+      }
+    },
+    CDSECT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.cdsect(textEvent.getText());
+      }
+    },
+    DOCDECL {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.docdecl(textEvent.getText());
+      }
+    },
+    END_DOCUMENT {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new EndDocumentEvent(reader.getLocationInfo());
+      }
+    },
+    ENTITY_REF {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.entityRef(textEvent.getText());
+      }
+    },
+    IGNORABLE_WHITESPACE{
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.ignorableWhitespace(textEvent.getText());
+      }
+    },
+    ATTRIBUTE {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new Attribute(reader.getLocationInfo(), reader.getNamespaceUri(), reader.getLocalName(), reader.getPrefix(), reader.getText());
+      }
+    },
+    PROCESSING_INSTRUCTION {
+      @Override
+      public XmlEvent createEvent(@NotNull final XmlReader reader) {
+        return new TextEvent(reader.getLocationInfo(), this, reader.getText());
+      }
+
+      @Override
+      public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+        writer.processingInstruction(textEvent.getText());
+      }
+    };
+
+  public void writeEvent(@NotNull final XmlWriter writer, @NotNull final TextEvent textEvent) throws XmlException {
+      throw new UnsupportedOperationException("This is not generally supported, only by text types");
+    }
+
+  public abstract XmlEvent createEvent(@NotNull final XmlReader reader);
+}
+
   public static final EventType START_DOCUMENT = EventType.START_DOCUMENT;
   public static final EventType START_ELEMENT = EventType.START_ELEMENT;
   public static final EventType END_ELEMENT = EventType.END_ELEMENT;
