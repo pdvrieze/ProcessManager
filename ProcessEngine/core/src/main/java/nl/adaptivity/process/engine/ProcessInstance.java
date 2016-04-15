@@ -35,7 +35,7 @@ import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.Node;

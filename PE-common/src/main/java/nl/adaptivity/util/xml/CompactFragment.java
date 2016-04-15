@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import org.jetbrains.annotations.NotNull;

@@ -20,7 +20,7 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.XmlDeserializable;
+import nl.adaptivity.xml.XmlDeserializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

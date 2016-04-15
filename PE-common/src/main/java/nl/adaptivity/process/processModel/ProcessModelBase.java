@@ -24,7 +24,7 @@ import nl.adaptivity.process.processModel.engine.EndNodeImpl;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelRef;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
@@ -34,7 +34,6 @@ import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.namespace.QName;
 
 import java.security.Principal;

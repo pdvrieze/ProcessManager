@@ -27,6 +27,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.PETransformer;
 import nl.adaptivity.process.engine.ProcessData;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.*;

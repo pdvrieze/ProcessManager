@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;

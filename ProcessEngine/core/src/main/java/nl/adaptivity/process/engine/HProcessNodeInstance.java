@@ -18,8 +18,8 @@ package nl.adaptivity.process.engine;
 
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.util.xml.XmlDeserializer;
-import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.xml.XmlDeserializer;
+import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

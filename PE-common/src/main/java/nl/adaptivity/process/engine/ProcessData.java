@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine;
 import net.devrieze.util.Named;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.ProcessConsts.Engine;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

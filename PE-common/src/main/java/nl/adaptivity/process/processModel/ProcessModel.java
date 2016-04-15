@@ -19,7 +19,7 @@ package nl.adaptivity.process.processModel;
 import nl.adaptivity.process.processModel.engine.IProcessModelRef;
 import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.XmlDeserializer;
+import nl.adaptivity.xml.XmlDeserializer;
 import org.jetbrains.annotations.Nullable;
 
 import java.security.Principal;

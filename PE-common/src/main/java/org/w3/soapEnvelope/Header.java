@@ -28,7 +28,7 @@ import net.devrieze.util.StringUtil;
 import net.devrieze.util.security.SimplePrincipal;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

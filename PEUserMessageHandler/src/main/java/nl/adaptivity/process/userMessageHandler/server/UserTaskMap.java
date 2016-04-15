@@ -30,6 +30,7 @@ import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
 import nl.adaptivity.util.xml.XmlUtil;
+import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming.EventType;
@@ -62,7 +63,7 @@ public class UserTaskMap extends CachingDBHandleMap<XmlTask> implements Transact
 
 
 
-  private static class PostTaskFactory implements nl.adaptivity.util.xml.XmlDeserializerFactory<XmlTask> {
+  private static class PostTaskFactory implements XmlDeserializerFactory<XmlTask> {
 
     @Override
     public XmlTask deserialize(final XmlReader in) throws XmlException {

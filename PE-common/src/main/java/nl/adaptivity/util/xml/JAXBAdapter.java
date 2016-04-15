@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.StAXWriter;
 import nl.adaptivity.xml.XmlStreaming;
 import org.jetbrains.annotations.NotNull;

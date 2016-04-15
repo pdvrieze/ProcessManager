@@ -27,10 +27,8 @@ package nl.adaptivity.process.engine.processModel;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.annotation.XmlAttribute;

@@ -23,7 +23,7 @@ import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.ProcessNode.Visitor;
 import nl.adaptivity.process.util.Identifiable;
 import nl.adaptivity.process.util.Identifier;
-import nl.adaptivity.util.xml.XmlDeserializerFactory;
+import nl.adaptivity.xml.XmlDeserializerFactory;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;

@@ -18,6 +18,7 @@ package nl.adaptivity.util.xml;
 
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.util.CombiningReader;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlEvent.TextEvent;
 import nl.adaptivity.xml.XmlStreaming.EventType;

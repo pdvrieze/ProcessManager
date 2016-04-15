@@ -19,7 +19,7 @@ package nl.adaptivity.process.util;
 import android.os.Parcel;
 import android.os.Parcelable;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlWriter;

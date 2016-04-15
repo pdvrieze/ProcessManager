@@ -16,6 +16,7 @@
 
 package nl.adaptivity.util.xml;
 
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;

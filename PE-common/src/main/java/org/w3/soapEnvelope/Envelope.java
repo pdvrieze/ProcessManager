@@ -25,12 +25,10 @@
 package org.w3.soapEnvelope;
 
 import net.devrieze.util.StringUtil;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlStreaming;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import nl.adaptivity.xml.XmlWriter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;

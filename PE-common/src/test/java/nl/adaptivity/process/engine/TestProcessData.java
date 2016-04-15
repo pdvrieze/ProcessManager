@@ -20,6 +20,7 @@ import net.devrieze.util.Streams;
 import nl.adaptivity.process.processModel.*;
 import nl.adaptivity.process.processModel.engine.*;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.SimpleNamespaceContext;
 import nl.adaptivity.xml.*;

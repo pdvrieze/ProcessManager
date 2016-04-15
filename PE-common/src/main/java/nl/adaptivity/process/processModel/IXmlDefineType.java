@@ -20,7 +20,7 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.engine.ProcessData;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.xml.Namespace;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;

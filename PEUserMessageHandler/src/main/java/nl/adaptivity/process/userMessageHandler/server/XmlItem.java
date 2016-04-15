@@ -19,10 +19,8 @@ package nl.adaptivity.process.userMessageHandler.server;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem;
 import nl.adaptivity.process.util.Constants;
+import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;

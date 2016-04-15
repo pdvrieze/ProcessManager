@@ -21,7 +21,7 @@ import android.support.annotation.CallSuper;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
 import nl.adaptivity.util.xml.SimpleXmlDeserializable;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

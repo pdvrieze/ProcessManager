@@ -29,12 +29,11 @@ import nl.adaptivity.process.editor.android.BR;
 import nl.adaptivity.process.editor.android.R;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.util.Util;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
-import org.xml.sax.XMLReader;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;

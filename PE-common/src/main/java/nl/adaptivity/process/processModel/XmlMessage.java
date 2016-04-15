@@ -28,16 +28,10 @@ import nl.adaptivity.messaging.EndpointDescriptor;
 import nl.adaptivity.messaging.EndpointDescriptorImpl;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.util.xml.*;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import java.net.URI;

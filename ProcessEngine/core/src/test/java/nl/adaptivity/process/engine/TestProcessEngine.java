@@ -37,7 +37,7 @@ import nl.adaptivity.process.processModel.engine.StartNodeImpl;
 import nl.adaptivity.util.activation.Sources;
 import nl.adaptivity.util.xml.CompactFragment;
 import nl.adaptivity.util.xml.XMLFragmentStreamReader;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlStreaming;

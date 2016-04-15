@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel;
 
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.Namespace;

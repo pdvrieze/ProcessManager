@@ -21,7 +21,7 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.process.ProcessConsts.Engine;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
 import nl.adaptivity.process.processModel.Condition;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;

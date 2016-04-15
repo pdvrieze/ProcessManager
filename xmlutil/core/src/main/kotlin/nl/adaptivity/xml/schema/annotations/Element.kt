@@ -16,7 +16,7 @@
 
 package nl.adaptivity.xml.schema.annotations
 
-import nl.adaptivity.util.xml.XmlSerializable
+import nl.adaptivity.xml.XmlSerializable
 import kotlin.reflect.KClass
 
 /**

@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel;
 
 import nl.adaptivity.diagram.Positioned;
 import nl.adaptivity.process.util.Identifiable;
-import nl.adaptivity.util.xml.XmlSerializable;
+import nl.adaptivity.xml.XmlSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -34,14 +34,9 @@ import nl.adaptivity.util.Util;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import org.w3.soapEnvelope.Envelope;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import javax.xml.namespace.QName;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.List;
 
