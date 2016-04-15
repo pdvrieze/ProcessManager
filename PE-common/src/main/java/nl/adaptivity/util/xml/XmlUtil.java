@@ -512,9 +512,10 @@ public final class XmlUtil {
     ArrayList<T> result = (in instanceof Collection) ? new ArrayList<T>(((Collection) in).size()): new ArrayList<T>();
     final XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
     if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
-    @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory;
+    final XmlDeserializerFactory<T> factory;
     try {
-      factory = deserializer.value().newInstance();
+      //noinspection unchecked
+      factory = (XmlDeserializerFactory<T>) deserializer.value().newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);
     }
@@ -532,7 +533,7 @@ public final class XmlUtil {
     final XmlDeserializer deserializer = type.getAnnotation(XmlDeserializer.class);
     if (deserializer==null) { throw new IllegalArgumentException("Types must be annotated with "+XmlDeserializer.class.getName()+" to be deserialized automatically"); }
     try {
-      @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = deserializer.value().newInstance();
+      @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = (XmlDeserializerFactory<T>) deserializer.value().newInstance();
       return factory.deserialize(in);
     } catch (@NotNull InstantiationException | IllegalAccessException e) {
       throw new RuntimeException(e);

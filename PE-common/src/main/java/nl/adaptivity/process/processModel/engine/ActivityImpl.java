@@ -51,7 +51,7 @@ import java.sql.SQLException;
 @XmlType(name = Activity.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
 public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<ActivityImpl> {
 
     @NotNull
     @Override

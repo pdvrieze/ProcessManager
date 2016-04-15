@@ -54,7 +54,7 @@ public class ProcessModelImpl extends ProcessModelBase<ExecutableProcessNode, Pr
     INSTANTIATE
   }
 
-  public static class Factory implements XmlDeserializerFactory, DeserializationFactory<ExecutableProcessNode, ProcessModelImpl> {
+  public static class Factory implements XmlDeserializerFactory<ProcessModelImpl>, DeserializationFactory<ExecutableProcessNode, ProcessModelImpl> {
 
     @NotNull
     @Override

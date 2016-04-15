@@ -41,7 +41,7 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.NONE)
 public class StartNodeImpl extends StartNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<StartNodeImpl> {
 
     @NotNull
     @Override

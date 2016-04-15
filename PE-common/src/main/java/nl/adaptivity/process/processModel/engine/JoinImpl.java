@@ -45,7 +45,7 @@ import java.util.Set;
 @XmlType(name = "Join")
 public class JoinImpl extends JoinBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<JoinImpl> {
 
     @NotNull
     @Override

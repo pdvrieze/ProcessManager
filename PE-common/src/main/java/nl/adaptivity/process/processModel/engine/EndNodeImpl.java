@@ -40,7 +40,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "EndNode")
 public class EndNodeImpl extends EndNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<EndNodeImpl> {
 
     @NotNull
     @Override

@@ -34,7 +34,7 @@ import java.util.Collections;
 @XmlDeserializer(SplitImpl.Factory.class)
 public class SplitImpl extends SplitBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<SplitImpl> {
 
     @NotNull
     @Override

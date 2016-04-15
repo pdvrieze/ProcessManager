@@ -46,7 +46,7 @@ public class JAXBUnmarshallingAdapter<T extends XmlSerializable> extends JAXBAda
                                                                                                                                                        .getName() + " annotation");
     }
     try {
-      @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = factoryTypeAnn.value().newInstance();
+      @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = (XmlDeserializerFactory<T>) factoryTypeAnn.value().newInstance();
       mFactory = factory;
     } catch (@NotNull InstantiationException | IllegalAccessException e) {
       throw new IllegalArgumentException("The factory must have a visible no-arg constructor", e);

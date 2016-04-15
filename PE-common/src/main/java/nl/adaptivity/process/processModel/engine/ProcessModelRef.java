@@ -38,10 +38,10 @@ import java.util.UUID;
 @XmlDeserializer(ProcessModelRef.Factory.class)
 public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> implements IProcessModelRef<T, M>, XmlSerializable, SimpleXmlDeserializable {
 
-  public static class Factory<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> implements XmlDeserializerFactory<ProcessModelRef<T,M>> {
+  public static class Factory implements XmlDeserializerFactory<ProcessModelRef<?,?>> {
 
     @Override
-    public ProcessModelRef<T, M> deserialize(final XmlReader in) throws XmlException {
+    public ProcessModelRef<?, ?> deserialize(final XmlReader in) throws XmlException {
       return ProcessModelRef.deserialize(in);
     }
   }

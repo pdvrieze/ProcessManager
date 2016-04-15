@@ -46,7 +46,7 @@ import javax.xml.xpath.XPathExpressionException;
 @XmlDeserializer(XmlResultType.Factory.class)
 public class XmlResultType extends XPathHolder implements IXmlResultType, XmlSerializable {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<XmlResultType> {
 
     @NotNull
     @Override

@@ -65,11 +65,11 @@ import java.net.URI;
 @XmlDeserializer(XmlMessage.Factory.class)
 public class XmlMessage extends BaseMessage implements IXmlMessage, ExtXmlDeserializable {
 
-  public static class Factory implements XmlDeserializerFactory {
+  public static class Factory implements XmlDeserializerFactory<XmlMessage> {
 
     @NotNull
     @Override
-    public Object deserialize(@NotNull final XmlReader in) throws XmlException {
+    public XmlMessage deserialize(@NotNull final XmlReader in) throws XmlException {
       return XmlMessage.deserialize(in);
     }
   }
