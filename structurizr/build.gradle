@@ -21,6 +21,12 @@ apply plugin: 'application'
 
 ext {
     structurizrVer='0.6.0'
+    if (!hasProperty('structurizrWs1ApikeyProp')) {
+        structurizrWs1ApikeyProp="dummy"
+    }
+    if (!hasProperty('structurizrWs1ApisecretProp')) {
+        structurizrWs1ApisecretProp="dummy"
+    }
 }
 
 
