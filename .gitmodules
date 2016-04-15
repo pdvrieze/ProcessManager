@@ -9,7 +9,7 @@
 	url = https://github.com/pdvrieze/kotlinsql.git
 [submodule "gh-pages"]
 	path = gh-pages
-	url = https://github.com/pdvrieze/ProcessManager.git
+	url = ./
 	branch = gh-pages
 [submodule "wiki"]
 	path = wiki
