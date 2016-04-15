@@ -14,21 +14,22 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.xml;
+package nl.adaptivity.xml
 
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
+import nl.adaptivity.xml.XmlException
+import nl.adaptivity.xml.XmlReader
 
 
 /**
  * Interface that factories need to implement to handle be deserialization in a "shared"
  * non-reflective approach.
- *
+
  * Created by pdvrieze on 27/08/15.
  */
-public interface XmlDeserializerFactory<T> {
+interface XmlDeserializerFactory<T> {
 
-  /** Deserialize the*/
-  T deserialize(XmlReader in) throws XmlException;
+  /** Deserialize the */
+  @Throws(XmlException::class)
+  fun deserialize(`in`: XmlReader): T
 
 }
