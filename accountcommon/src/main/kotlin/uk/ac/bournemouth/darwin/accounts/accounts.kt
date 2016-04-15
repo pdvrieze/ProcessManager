@@ -18,11 +18,10 @@ package uk.ac.bournemouth.darwin.accounts
 
 import net.sourceforge.migbase64.Base64
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
-import uk.ac.bournemouth.kotlinsql.*
-import uk.ac.bournemouth.util.kotlin.sql.*
-import uk.ac.bournemouth.util.kotlin.sql.impl.gen.DatabaseMethods
-import uk.ac.bournemouth.util.kotlin.sql.impl.gen._Statement3
-import uk.ac.bournemouth.util.kotlin.sql.old.appendWarnings
+import uk.ac.bournemouth.kotlinsql.Column
+import uk.ac.bournemouth.kotlinsql.IColumnType
+import uk.ac.bournemouth.util.kotlin.sql.DBConnection
+import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
 import java.math.BigInteger
 import java.net.HttpURLConnection
 import java.security.KeyFactory
@@ -30,7 +29,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.RSAPublicKeySpec
-import java.sql.Connection
+import java.sql.SQLWarning
 import java.sql.Timestamp
 import javax.crypto.Cipher
 import javax.naming.InitialContext
@@ -147,6 +146,12 @@ open class OldAccountDb constructor(private val connection: DBConnection) {
       if (executeUpdate() == 0) throw AuthException("Failure to update the authentication token".appendWarnings(warningsIt))
     }
     return token
+  }
+
+  fun String.appendWarnings(warnings: Iterator<SQLWarning>): String {
+    val result = StringBuilder().append(this).append(" - \n    ")
+    warnings.asSequence().map { "${it.errorCode}: ${it.message}" }.joinTo(result, ",\n    ")
+    return result.toString()
   }
 
 }

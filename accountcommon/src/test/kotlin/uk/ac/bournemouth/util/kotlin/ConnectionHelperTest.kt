@@ -20,8 +20,7 @@ import org.testng.Assert.*
 import org.testng.annotations.AfterMethod
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
-import uk.ac.bournemouth.util.kotlin.sql.old.ConnectionHelper
-import uk.ac.bournemouth.util.kotlin.sql.old.connection
+import uk.ac.bournemouth.util.kotlin.sql.DBConnection
 import uk.ac.bournemouth.util.kotlin.sql.use
 import java.sql.Connection
 import java.sql.DriverManager
@@ -30,7 +29,7 @@ import java.sql.DriverManager
 /**
  * Created by pdvrieze on 24/03/16.
  */
-class ConnectionHelperTest {
+class DBConnectionTest {
 
   companion object {
     const val JDBCURL = "jdbc:mysql://localhost/test"
@@ -46,8 +45,8 @@ class ConnectionHelperTest {
     val c = makeConnection()
     conn = c
     System.err.println("Creating temporary table")
-    c.prepareStatement("DROP TEMPORARY TABLE IF EXISTS ${TABLENAME}").use { it.execute() }
-    conn!!.prepareStatement("CREATE TEMPORARY TABLE ${TABLENAME} ( col1 INT AUTO_INCREMENT PRIMARY KEY, col2 VARCHAR(10), col3 VARCHAR(10), col4 BOOLEAN ) ENGINE = InnoDB").use {
+    c.prepareStatement("DROP TABLE IF EXISTS ${TABLENAME}").use { it.execute() }
+    conn!!.prepareStatement("CREATE TABLE ${TABLENAME} ( col1 INT AUTO_INCREMENT PRIMARY KEY, col2 VARCHAR(10), col3 VARCHAR(10), col4 BOOLEAN ) ENGINE = InnoDB").use {
       it.execute()
     }
   }
@@ -73,9 +72,9 @@ class ConnectionHelperTest {
 
   @Test
   fun testUse() {
-    ConnectionHelper(conn!!).use {
+    DBConnection(conn!!).use {
       simpleInsert(it)
-      verifyRows(ConnectionHelper(conn!!))
+      verifyRows(DBConnection(conn!!))
     }
     assertTrue(conn!!.isClosed)
   }
@@ -83,21 +82,21 @@ class ConnectionHelperTest {
   @Test
   fun testUseThrow() {
     try {
-      ConnectionHelper(conn!!).transaction {
+      DBConnection(conn!!).transaction {
         simpleInsert(it)
         throw UnsupportedOperationException("test")
       }
     } catch(e:UnsupportedOperationException) {
       assertEquals(e.message,"test")
     }
-    verifyNoRows(ConnectionHelper(conn!!))
+    verifyNoRows(DBConnection(conn!!))
     assertFalse(conn!!.isClosed)
   }
 
   @Test
   fun testOuterUse() {
     conn!!.use {
-      simpleInsert(ConnectionHelper(it))
+      simpleInsert(DBConnection(it))
       it.prepareStatement("DROP TABLE ${TABLENAME}").use { it.execute() }
     }
     assertTrue(conn!!.isClosed)
@@ -106,7 +105,7 @@ class ConnectionHelperTest {
   @Test
   fun testCommit() {
     val c = conn!!
-    connection(c) {
+    DBConnection(c).use {
       simpleInsert(it)
       it.commit()
       verifyRows(it)
@@ -116,7 +115,7 @@ class ConnectionHelperTest {
   @Test
   fun testRollback() {
     val c = conn!!
-    connection(c) {
+    DBConnection(c).use {
       simpleInsert(it)
       it.rollback()
       verifyNoRows(it)
@@ -124,25 +123,46 @@ class ConnectionHelperTest {
 
   }
 
+
   @Test
   fun testAutoRollback() {
     val c = conn!!
     try {
-      connection(c) {
+      DBConnection(c).use { it ->
         simpleInsert(it)
         throw UnsupportedOperationException("Test")
         fail("unreachable")
+
       }
     } catch (e:UnsupportedOperationException) {
       assertEquals(e.message,"Test")
     }
-    connection(c) {
+    DBConnection(makeConnection()).use {
       verifyNoRows(it)
+    }
+  }
+
+
+  @Test
+  fun testAutoRollbackTransaction() {
+    val c = conn!!
+    DBConnection(c).use { it ->
+      try {
+        it.transaction {
+          simpleInsert(it)
+          throw UnsupportedOperationException("Test")
+          fail("unreachable")
+        }
+      } catch (e:UnsupportedOperationException) {
+        assertEquals(e.message,"Test")
+      }
+      verifyNoRows(it)
+
     }
 
   }
 
-  private fun verifyNoRows(connectionHelper: ConnectionHelper) {
+  private fun verifyNoRows(connectionHelper: DBConnection) {
     connectionHelper.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
       execute {
         assertFalse(it.next())
@@ -150,7 +170,7 @@ class ConnectionHelperTest {
     }
   }
 
-  private fun verifyRows(connectionHelper: ConnectionHelper) {
+  private fun verifyRows(connectionHelper: DBConnection) {
     connectionHelper.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
       execute {
         assertTrue(it.next())
@@ -170,7 +190,7 @@ class ConnectionHelperTest {
     }
   }
 
-  private fun simpleInsert(connectionHelper: ConnectionHelper) {
+  private fun simpleInsert(connectionHelper: DBConnection) {
     connectionHelper.prepareStatement("INSERT INTO $TABLENAME (col1, col2, col3, col4) VALUES ( ?, ?, ?, ? ), (?, ?, ? ,?)") {
       params(1 as Int) + "r1c2" + "r1c3" + true + 2 as Int + "r2c2" + "r2c3" + false
       assertEquals(executeUpdate(), 2)
