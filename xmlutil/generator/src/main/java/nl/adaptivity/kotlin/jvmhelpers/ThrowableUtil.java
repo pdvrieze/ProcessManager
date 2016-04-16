@@ -14,31 +14,17 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin'
-apply plugin: 'idea'
+package nl.adaptivity.kotlin.jvmhelpers;
 
-version = '0.5.0'
-description = 'Code generator library to support the xmlutil'
+/**
+ * Created by pdvrieze on 16/04/16.
+ */
+public final class ThrowableUtil {
+  private ThrowableUtil(){};
 
+  public static final <T extends Throwable> T addSuppressed(T left, Throwable right) {
+    left.addSuppressed(right);
+    return left;
+  }
 
-dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile project(':xmlutil:core')
-}
-
-test {
-    useTestNG()
-}
-
-jar {
-    baseName = "${project.parent.name}-${project.name}"
-}
-
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
-
-idea {
-    module {
-        name = "${parent.name}-${project.name}"
-    }
 }

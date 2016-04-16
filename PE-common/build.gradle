@@ -14,16 +14,67 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+buildscript {
+
+    dependencies {
+        classpath "net.devrieze:gradle-codegen:${codegen_version}"
+    }
+
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+}
+
+//plugins {
+//    id "net.devrieze.gradlecodegen" version "0.5.6"
+//}
+
 apply plugin: 'java'
 apply plugin: 'idea'
+apply plugin: 'net.devrieze.gradlecodegen'
+
+configurations {
+    generateXml
+    testJarConfig {
+        extendsFrom testRuntime
+    }
+}
+
+dependencies {
+    generateXml project(':xmlutil:generator')
+    compile project(':xmlutil:core')
+    compile project(':java-common')
+    compile 'org.codehaus.woodstox:stax2-api:3.1.4'
+    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
+    testCompile 'org.testng:testng:6.9.9'
+    testCompile 'xmlunit:xmlunit:1.6'
+    testCompile 'org.mockito:mockito-core:1.9.5'
+    testCompile project(':DarwinJavaApi')
+    compileOnly project(':DarwinJavaApi')
+    generateXml project(':DarwinJavaApi')
+    generateXml "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+}
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
-configurations {
-    testJarConfig {
-        extendsFrom testRuntime
+sourceSets {
+    xml {
+        generate {
+            info {
+                input = { main.runtimeClasspath }
+                generator = 'nl.adaptivity.xml.generators.Info'
+                output = new File(buildDir, "/xmlinfo/xmlinfo.txt")
+            }
+        }
     }
+}
+
+generateXml {
+    dependsOn classes
+    outputs.file("${buildDir}/xmlinfo/xmlinfo.txt")
 }
 
 version = '1.0.0'
@@ -43,17 +94,4 @@ artifacts {
 
 test {
     useTestNG()
-}
-
-dependencies {
-    compile project(':xmlutil:core')
-    compile project(':java-common')
-    compile 'org.codehaus.woodstox:stax2-api:3.1.4'
-    runtime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
-    testCompile 'org.testng:testng:6.9.9'
-    testCompile 'xmlunit:xmlunit:1.6'
-    testCompile 'org.mockito:mockito-core:1.9.5'
-    testCompile project(':DarwinJavaApi')
-    compileOnly project(':DarwinJavaApi')
-    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 }
