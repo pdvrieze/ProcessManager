@@ -192,6 +192,16 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   }
 
+  /*
+        XmlUtil.writeAttribute(out, "name", mKey);
+      if (mValue!=null) { out.text(mValue); }
+   */
+
+  @Element(name = "query",
+           nsUri = NAMESPACE,
+           nsPrefix = "http",
+           attributes = {@Attribute(value = "name", optional = false)},
+           content = "value")
   public static class Query extends PairBase {
     private static final QName ELEMENTNAME =new QName(NAMESPACE, "query", "http");
 
@@ -213,6 +223,11 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
   }
 
+  @Element(name = "post",
+           nsUri = NAMESPACE,
+           nsPrefix = "http",
+           attributes = {@Attribute(value = "name", optional = false)},
+           content = "value")
   public static class Post extends PairBase {
     private static final QName ELEMENTNAME =new QName(NAMESPACE, "post", "http");
 
@@ -281,6 +296,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
       mKey = key;
     }
 
+    @XmlName("name")
     public String getKey() {
       return mKey;
     }

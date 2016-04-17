@@ -16,6 +16,7 @@
 
 package nl.adaptivity.xml
 
+import nl.adaptivity.xml.AbstractXmlReader.Companion.toQname
 import nl.adaptivity.xml.XmlEvent.NamespaceImpl
 import nl.adaptivity.xml.XmlStreaming.EventType
 import javax.xml.namespace.NamespaceContext
@@ -144,3 +145,5 @@ val XmlReader.namespaceDecls: Array<out Namespace> get() =
         val nsIndex = namespaceStart + i
         NamespaceImpl(getNamespacePrefix(nsIndex), getNamespaceUri(nsIndex))
       }
+
+val XmlReader.qname:QName get() = text.toQname()

@@ -24,7 +24,7 @@ import kotlin.reflect.KClass
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class Element(val name:String, val nsUri:String, val nsPrefix:String="", val attributes:Array<Attribute> = arrayOf(), val children:Array<Child>)
+annotation class Element(val name:String, val nsUri:String, val nsPrefix:String="", val attributes:Array<Attribute> = arrayOf(), val children:Array<Child> = arrayOf(), val content:String="", val typeName: String = "")
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)

@@ -75,6 +75,10 @@ sourceSets {
 generateXml {
     dependsOn classes
     outputs.file("${buildDir}/xmlinfo/xmlinfo.txt")
+    dirGenerator {
+        input = { sourceSets.main.runtimeClasspath }
+        generator = "nl.adaptivity.xml.generators.Factory"
+    }
 }
 
 version = '1.0.0'

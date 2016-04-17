@@ -16,7 +16,9 @@
 
 package nl.adaptivity.xml
 
+import net.devrieze.util.kotlin.asString
 import net.devrieze.util.kotlin.matches
+import nl.adaptivity.xml.AbstractXmlReader.Companion.toQname
 import javax.xml.namespace.QName
 import nl.adaptivity.xml.XmlStreaming.EventType
 
@@ -24,7 +26,27 @@ import nl.adaptivity.xml.XmlStreaming.EventType
 /**
  * Created by pdvrieze on 16/11/15.
  */
+
 abstract class AbstractXmlReader : XmlReader {
+
+  companion object {
+    @JvmStatic
+
+    fun CharSequence.toQname(): QName {
+      val split = indexOf('}')
+      val localname: String
+      val nsUri: String?
+      if (split >= 0) {
+        if (this[0] != '{') throw IllegalArgumentException("Not a valid qname literal")
+        nsUri = substring(1, split)
+        localname = substring(split + 1)
+      } else {
+        nsUri = null
+        localname = toString()
+      }
+      return QName(nsUri, localname)
+    }
+  }
 
   @Throws(XmlException::class)
   override fun require(type: EventType, namespace: CharSequence?, name: CharSequence?) {
