@@ -40,7 +40,7 @@ public class DebugWriter extends XmlDelegatingWriter {
   }
 
   @Override
-  public void endTag(final CharSequence namespace, final CharSequence localName, final CharSequence prefix) throws XmlException {
+  public void endTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) throws XmlException {
     System.out.println(TAG + "endTag(namespace='"+namespace+"', localName='"+localName+"', prefix='"+prefix+"')");
     super.endTag(namespace, localName, prefix);
   }

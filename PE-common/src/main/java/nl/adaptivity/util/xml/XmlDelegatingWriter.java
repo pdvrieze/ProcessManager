@@ -70,8 +70,7 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     mDelegate.namespaceAttr(namespacePrefix, namespaceUri);
   }
 
-  public void endTag(final CharSequence namespace, final CharSequence localName, final CharSequence prefix) throws
-          XmlException {
+  public void endTag(@Nullable final CharSequence namespace, @NotNull final CharSequence localName, @Nullable final CharSequence prefix) throws XmlException {
     mDelegate.endTag(namespace, localName, prefix);
   }
 

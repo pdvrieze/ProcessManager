@@ -95,7 +95,7 @@ interface XmlWriter {
   fun endDocument()
 
   @Throws(XmlException::class)
-  fun endTag(namespace: CharSequence, localName: CharSequence, prefix: CharSequence)
+  fun endTag(namespace: CharSequence?, localName: CharSequence, prefix: CharSequence?=null)
 
   val namespaceContext: NamespaceContext
 
