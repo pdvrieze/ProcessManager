@@ -28,16 +28,8 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
 
 @XmlDeserializer(EndNodeImpl.Factory.class)
-@XmlRootElement(name = EndNode.ELEMENTLOCALNAME)
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "EndNode")
 public class EndNodeImpl extends EndNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory<EndNodeImpl> {

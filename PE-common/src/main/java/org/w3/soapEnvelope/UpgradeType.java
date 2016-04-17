@@ -24,13 +24,10 @@
 
 package org.w3.soapEnvelope;
 
+import nl.adaptivity.xml.schema.annotations.XmlName;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -52,11 +49,9 @@ import javax.xml.bind.annotation.XmlType;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "UpgradeType", propOrder = { "supportedEnvelope" })
 public class UpgradeType {
 
-  @XmlElement(name = "SupportedEnvelope", required = true)
+  @XmlName("SupportedEnvelope")
   protected List<SupportedEnvType> supportedEnvelope;
 
   /**

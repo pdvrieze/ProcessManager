@@ -25,9 +25,9 @@ import net.devrieze.util.Transaction;
 import net.devrieze.util.security.SecureObject;
 import net.devrieze.util.security.SecurityProvider;
 import nl.adaptivity.process.IMessageService;
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.engine.processModel.JoinInstance;
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance;
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.process.processModel.EndNode;
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
 import nl.adaptivity.process.processModel.engine.JoinImpl;
@@ -41,10 +41,6 @@ import nl.adaptivity.xml.XmlWriter;
 import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import java.security.Principal;
 import java.sql.SQLException;
@@ -64,8 +60,6 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     CANCELLED;
   }
 
-  @XmlRootElement(name = "processInstance", namespace = Constants.PROCESS_ENGINE_NS)
-  @XmlAccessorType(XmlAccessType.NONE)
   public static class ProcessInstanceRef implements Handle<ProcessInstance> {
 
     private long mHandle;
@@ -95,7 +89,6 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
     }
 
     @Override
-    @XmlAttribute(name = "handle")
     public long getHandle() {
       return mHandle;
     }
@@ -104,12 +97,10 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
       mProcessModel = processModel;
     }
 
-    @XmlAttribute(name = "processModel")
     public long getProcessModel() {
       return mProcessModel;
     }
 
-    @XmlAttribute(name = "name")
     public String getName() {
       return mName;
     }
@@ -118,7 +109,6 @@ public class ProcessInstance implements HandleAware<ProcessInstance>, SecureObje
       mName = name;
     }
 
-    @XmlAttribute(name="uuid")
     public String getUUID() {
       return mUUID;
     }

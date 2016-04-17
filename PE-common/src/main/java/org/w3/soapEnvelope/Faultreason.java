@@ -24,13 +24,11 @@
 
 package org.w3.soapEnvelope;
 
+import nl.adaptivity.xml.schema.annotations.Child;
+import nl.adaptivity.xml.schema.annotations.Element;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
 
 
 /**
@@ -52,11 +50,12 @@ import javax.xml.bind.annotation.XmlType;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "faultreason", propOrder = { "text" })
+@Element(name="Reason",
+         nsUri = Envelope.NAMESPACE,
+         nsPrefix = Envelope.NAMESPACE,
+         children = {@Child(name="Text", type=Reasontext.class)})
 public class Faultreason {
 
-  @XmlElement(name = "Text", required = true)
   protected List<Reasontext> text;
 
   /**

@@ -20,17 +20,14 @@ import net.devrieze.util.Transaction;
 import nl.adaptivity.messaging.MessagingException;
 import nl.adaptivity.process.IMessageService;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance;
-import nl.adaptivity.process.processModel.*;
-import nl.adaptivity.xml.XmlDeserializer;
-import nl.adaptivity.xml.XmlDeserializerFactory;
+import nl.adaptivity.process.processModel.Activity;
+import nl.adaptivity.process.processModel.ActivityBase;
+import nl.adaptivity.process.processModel.Condition;
 import nl.adaptivity.util.xml.XmlUtil;
-import nl.adaptivity.xml.XmlException;
-import nl.adaptivity.xml.XmlReader;
-import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.*;
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.xml.bind.annotation.*;
 
 import java.sql.SQLException;
 
@@ -46,9 +43,6 @@ import java.sql.SQLException;
  * @author Paul de Vrieze
  */
 @XmlDeserializer(ActivityImpl.Factory.class)
-@XmlRootElement(name = Activity.ELEMENTLOCALNAME)
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = Activity.ELEMENTLOCALNAME + "Type", propOrder = { "defines", "results", "condition", XmlMessage.ELEMENTLOCALNAME})
 public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory<ActivityImpl> {
@@ -99,7 +93,7 @@ public class ActivityImpl extends ActivityBase<ExecutableProcessNode, ProcessMod
          */
   @Nullable
   @Override
-  @XmlElement(name = Condition.ELEMENTLOCALNAME)
+  @XmlName(Condition.ELEMENTLOCALNAME)
   public String getCondition() {
     return mCondition == null ? null : mCondition.toString();
   }

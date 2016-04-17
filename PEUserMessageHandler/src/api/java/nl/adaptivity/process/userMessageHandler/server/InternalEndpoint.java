@@ -25,12 +25,9 @@ import nl.adaptivity.process.messaging.GenericEndpoint;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 
 
 /*@XmlSeeAlso(XmlTask.class)*/
-@XmlAccessorType(XmlAccessType.NONE)
 @Descriptor(UserTaskServiceDescriptor.class)
 public interface InternalEndpoint extends GenericEndpoint {
 

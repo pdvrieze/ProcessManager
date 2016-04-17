@@ -24,20 +24,18 @@
 
 package org.w3.soapEnvelope;
 
+import nl.adaptivity.process.ProcessConsts.Soap;
+import nl.adaptivity.xml.schema.annotations.AnyType;
+import nl.adaptivity.xml.schema.annotations.Child;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
+
+import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyAttribute;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
 
 
 /**
@@ -60,14 +58,15 @@ import org.w3c.dom.Element;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "detail", propOrder = { "any" })
+@nl.adaptivity.xml.schema.annotations.Element(name="detail",
+                                              nsUri = Envelope.NAMESPACE,
+                                              nsPrefix = Envelope.PREFIX,
+                                              children = {@Child(type=AnyType.class)}
+)
 public class Detail {
 
-  @XmlAnyElement(lax = true)
   protected List<Object> any;
 
-  @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
   /**

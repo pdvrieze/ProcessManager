@@ -31,14 +31,12 @@ import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
 
 import java.util.List;
 
 
 /** Class to represent data attached to process instances. */
-@XmlJavaTypeAdapter(JAXBAdapter.class)
 public class ProcessData implements Named, ExtXmlDeserializable, XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "value";

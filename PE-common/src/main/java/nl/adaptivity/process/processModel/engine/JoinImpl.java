@@ -31,8 +31,6 @@ import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.*;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -40,9 +38,6 @@ import java.util.Set;
 
 
 @XmlDeserializer(JoinImpl.Factory.class)
-@XmlRootElement(name = Join.ELEMENTLOCALNAME)
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "Join")
 public class JoinImpl extends JoinBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory<JoinImpl> {

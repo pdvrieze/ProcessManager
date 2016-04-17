@@ -24,10 +24,6 @@
 
 package org.w3.soapEnvelope;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 
@@ -48,11 +44,8 @@ import javax.xml.namespace.QName;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "SupportedEnvType")
 public class SupportedEnvType {
 
-  @XmlAttribute(required = true)
   protected QName qname;
 
   /**

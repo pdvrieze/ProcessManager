@@ -29,9 +29,6 @@ import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebParam.Mode;
 import javax.servlet.ServletConfig;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
 import java.net.URI;
@@ -42,8 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-@XmlSeeAlso(XmlTask.class)
-@XmlAccessorType(XmlAccessType.NONE)
 public class InternalEndpointImpl extends UserTaskServiceDescriptor implements GenericEndpoint, InternalEndpoint {
 
   public class TaskUpdateCompletionListener implements CompletionListener<NodeInstanceState> {

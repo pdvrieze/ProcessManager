@@ -27,9 +27,8 @@ package nl.adaptivity.process.messaging;
 import nl.adaptivity.process.ProcessConsts;
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstanceState;
 import nl.adaptivity.ws.soap.SoapHelper;
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.bind.annotation.*;
 
 
 /**
@@ -72,9 +71,6 @@ import javax.xml.bind.annotation.*;
  * @param <T> The type of the actual return value returned in the result of the
  *          SOAP message.
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = ActivityResponse.ELEMENTNAME + "Type")
-@XmlRootElement(name = ActivityResponse.ELEMENTNAME, namespace = ActivityResponse.NAMESPACE)
 public class ActivityResponse<T> {
 
   public static final String NAMESPACE = ProcessConsts.Engine.NAMESPACE;
@@ -87,8 +83,6 @@ public class ActivityResponse<T> {
 
   private Class<T> mReturnType;
 
-
-  @XmlTransient
   private NodeInstanceState mNodeInstanceState;
 
   /** Default constructor for jaxb use */
@@ -125,7 +119,7 @@ public class ActivityResponse<T> {
    *
    * @return the name of the {@link NodeInstanceState}
    */
-  @XmlAttribute(name = ATTRTASKSTATE)
+  @XmlName(ATTRTASKSTATE)
   public String getTaskStateString() {
     return mNodeInstanceState.name();
   }

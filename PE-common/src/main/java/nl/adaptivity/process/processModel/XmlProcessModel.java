@@ -26,12 +26,16 @@ package nl.adaptivity.process.processModel;
 
 import net.devrieze.util.CollectionUtil;
 import net.devrieze.util.StringUtil;
-import nl.adaptivity.process.processModel.engine.*;
+import nl.adaptivity.process.processModel.engine.ActivityImpl;
+import nl.adaptivity.process.processModel.engine.EndNodeImpl;
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode;
+import nl.adaptivity.process.processModel.engine.ProcessModelImpl;
 import nl.adaptivity.util.ListFilter;
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAttribute;
 
 import java.util.*;
 
@@ -58,9 +62,6 @@ import java.util.*;
  * &lt;/complexType&gt;
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = ProcessModelBase.ELEMENTLOCALNAME + "Type", propOrder = { "nodes" })
-@XmlRootElement(name = ProcessModelBase.ELEMENTLOCALNAME)
 public class XmlProcessModel {
 
   public XmlProcessModel() {
@@ -110,12 +111,6 @@ public class XmlProcessModel {
     return this.nodes;
   }
 
-  @XmlMixed
-  @XmlElementRefs({ @XmlElementRef(name = EndNode.ELEMENTLOCALNAME, type = EndNodeImpl.class),
-                   @XmlElementRef(name = Activity.ELEMENTLOCALNAME, type = ActivityImpl.class),
-                   @XmlElementRef(name = StartNode.ELEMENTLOCALNAME, type = StartNodeImpl.class),
-                   @XmlElementRef(name = Join.ELEMENTLOCALNAME, type = JoinImpl.class),
-                   @XmlElementRef(name = Split.ELEMENTLOCALNAME, type = SplitImpl.class)})
   public void setNodes(@NotNull final List<? extends ExecutableProcessNode> nodes) {
     this.nodes.clear();
     this.nodes.addAll(nodes);
@@ -137,7 +132,6 @@ public class XmlProcessModel {
   }
 
   @Nullable
-  @XmlAttribute(name = "owner")
   public String getOwner() {
     return owner;
   }
@@ -154,7 +148,7 @@ public class XmlProcessModel {
   }
 
   @Nullable
-  @XmlAttribute(name = ProcessModelBase.ATTR_ROLES)
+  @XmlName(ProcessModelBase.ATTR_ROLES)
   public String getRolesString() {
     if ((roles == null) || (roles.size() == 0)) {
       return null;
@@ -163,7 +157,7 @@ public class XmlProcessModel {
   }
 
   @Nullable
-  @XmlAttribute(name="uuid")
+  @XmlName("uuid")
   String getUuidString() {
     return uuid==null ? null : uuid.toString();
   }

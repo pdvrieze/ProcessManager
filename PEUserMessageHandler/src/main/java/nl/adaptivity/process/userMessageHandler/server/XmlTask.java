@@ -24,13 +24,13 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance.NodeInstan
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -43,8 +43,6 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@XmlRootElement(name = XmlTask.ELEMENTLOCALNAME)
-@XmlAccessorType(XmlAccessType.NONE)
 @XmlDeserializer(XmlTask.Factory.class)
 public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
 
@@ -149,7 +147,6 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     XmlUtil.writeEndElement(out, ELEMENTNAME);
   }
 
-  @XmlAttribute
   @Override
   public NodeInstanceState getState() {
     return mState;
@@ -217,7 +214,6 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     return fragment;
   }
 
-  @XmlAttribute(name = "handle")
   @Override
   public void setHandle(final long handle) {
     mHandle = handle;
@@ -228,7 +224,6 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     return mHandle;
   }
 
-  @XmlAttribute(name = "remotehandle")
   public void setRemoteHandle(final long handle) {
     mRemoteHandle = handle;
   }
@@ -238,7 +233,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     return mRemoteHandle;
   }
 
-  @XmlAttribute(name = "instancehandle")
+  @XmlName("instancehandle")
   public void setInstanceHandle(final long handle) {
     mInstanceHandle = handle;
   }
@@ -249,7 +244,6 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
   }
 
   @Override
-  @XmlAttribute(name = "summary")
   public String getSummary() {
     return mSummary;
   }
@@ -273,7 +267,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     mOwner = owner;
   }
 
-  @XmlAttribute(name = "owner")
+  @XmlName("owner")
   String getOwnerString() {
     return mOwner==null ? null : mOwner.getName();
   }
@@ -282,7 +276,7 @@ public class XmlTask implements UserTask<XmlTask>, XmlSerializable, SimpleXmlDes
     mOwner = owner==null ? null : new SimplePrincipal(owner);
   }
 
-  @XmlElement(name ="item", namespace=Constants.USER_MESSAGE_HANDLER_NS)
+  @XmlName(value ="item"/*, namespace=Constants.USER_MESSAGE_HANDLER_NS*/)
   @Override
   public List<XmlItem> getItems() {
     if (mItems==null) { mItems = new ArrayList<>(); }

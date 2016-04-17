@@ -29,16 +29,10 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import java.util.List;
 
 
 @XmlDeserializer(StartNodeImpl.Factory.class)
-@XmlRootElement(name = StartNode.ELEMENTLOCALNAME)
-@XmlAccessorType(XmlAccessType.NONE)
 public class StartNodeImpl extends StartNodeBase<ExecutableProcessNode, ProcessModelImpl> implements ExecutableProcessNode {
 
   public static class Factory implements XmlDeserializerFactory<StartNodeImpl> {

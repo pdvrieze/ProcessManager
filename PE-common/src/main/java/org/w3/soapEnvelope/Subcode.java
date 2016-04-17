@@ -24,11 +24,11 @@
 
 package org.w3.soapEnvelope;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import nl.adaptivity.xml.schema.annotations.Child;
+import nl.adaptivity.xml.schema.annotations.Element;
+
 import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPEnvelope;
 
 
 /**
@@ -51,14 +51,16 @@ import javax.xml.namespace.QName;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "subcode", propOrder = { "value", "subcode" })
+@Element(name="Subcode",
+         nsUri = Envelope.NAMESPACE,
+         nsPrefix = Envelope.PREFIX,
+         children = {@Child(name="Value", type=QName.class),
+                     @Child(name="Subcode", type=Subcode.class)
+         })
 public class Subcode {
 
-  @XmlElement(name = "Value", required = true)
   protected QName value;
 
-  @XmlElement(name = "Subcode")
   protected Subcode subcode;
 
   /**

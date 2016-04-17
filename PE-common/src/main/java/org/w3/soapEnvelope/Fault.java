@@ -24,7 +24,12 @@
 
 package org.w3.soapEnvelope;
 
-import javax.xml.bind.annotation.*;
+import nl.adaptivity.xml.schema.annotations.AnyType;
+import nl.adaptivity.xml.schema.annotations.Child;
+import nl.adaptivity.xml.schema.annotations.Element;
+import nl.adaptivity.xml.schema.annotations.XmlName;
+
+import java.net.URI;
 
 
 /**
@@ -51,25 +56,33 @@ import javax.xml.bind.annotation.*;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Fault", propOrder = { "code", "reason", "node", "role", "detail" })
+@Element(name="Fault",
+         nsUri = Envelope.NAMESPACE,
+         nsPrefix = Envelope.PREFIX,
+         children = {
+              @Child(name="Code",type=Faultcode.class),
+              @Child(name="Reason", type=Faultreason.class),
+              @Child(name="Node", type= AnyType.class),
+              @Child(name="Role", type=URI.class),
+              @Child(name="Detail", type=Detail.class)
+         })
 public class Fault {
 
-  @XmlElement(name = "Code", required = true)
+  //required
+  @XmlName("Code")
   protected Faultcode code;
 
-  @XmlElement(name = "Reason", required = true)
+  //required
+  @XmlName("Reason")
   protected Faultreason reason;
 
-  @XmlElement(name = "Node")
-  @XmlSchemaType(name = "anyURI")
-  protected String node;
+  @XmlName("Node")
+  protected URI node;
 
-  @XmlElement(name = "Role")
-  @XmlSchemaType(name = "anyURI")
-  protected String role;
+  @XmlName("Role")
+  protected URI role;
 
-  @XmlElement(name = "Detail")
+  @XmlName("Detail")
   protected Detail detail;
 
   /**
@@ -113,7 +126,7 @@ public class Fault {
    * 
    * @return possible object is {@link String }
    */
-  public String getNode() {
+  public URI getNode() {
     return node;
   }
 
@@ -122,7 +135,7 @@ public class Fault {
    * 
    * @param value allowed object is {@link String }
    */
-  public void setNode(final String value) {
+  public void setNode(final URI value) {
     this.node = value;
   }
 
@@ -131,7 +144,7 @@ public class Fault {
    * 
    * @return possible object is {@link String }
    */
-  public String getRole() {
+  public URI getRole() {
     return role;
   }
 
@@ -140,7 +153,7 @@ public class Fault {
    * 
    * @param value allowed object is {@link String }
    */
-  public void setRole(final String value) {
+  public void setRole(final URI value) {
     this.role = value;
   }
 

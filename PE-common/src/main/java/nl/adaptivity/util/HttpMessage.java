@@ -50,9 +50,6 @@ import java.util.Map.Entry;
 
 
 // TODO change this to handle regular request bodies.
-@XmlRootElement(name = "httpMessage", namespace = HttpMessage.NAMESPACE)
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(name = "HttpMessage", namespace = HttpMessage.NAMESPACE)
 @Element(name=HttpMessage.ELEMENTLOCALNAME,
          nsUri = HttpMessage.NAMESPACE,
          attributes = {@Attribute("user")},
@@ -78,7 +75,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
   static final String BODYELEMENTLOCALNAME = "Body";
   static final QName BODYELEMENTNAME =new QName(NAMESPACE, BODYELEMENTLOCALNAME, "http");
 
-  @XmlAccessorType(XmlAccessType.NONE)
   public static class ByteContentDataSource implements DataSource {
 
     private String contentType;
@@ -98,7 +94,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     }
 
     @Override
-    @XmlAttribute
     public String getContentType() {
       return contentType;
     }
@@ -107,7 +102,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
       this.byteContent = byteContent;
     }
 
-    @XmlValue
     public byte[] getByteContent() {
       return byteContent;
     }
@@ -122,7 +116,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     }
 
     @Override
-    @XmlAttribute
     public String getName() {
       return name;
     }
@@ -288,7 +281,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
       mKey = key;
     }
 
-    @XmlAttribute(name = "key", required = true)
     public String getKey() {
       return mKey;
     }
@@ -297,7 +289,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
       mValue = value;
     }
 
-    @XmlValue
     public String getValue() {
       return mValue;
     }
@@ -542,7 +533,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
             buffer.get(chars);
           }
 
-          mBody = new CompactFragment(Collections.<nl.adaptivity.xml.Namespace>emptyList(), chars);
+          mBody = new CompactFragment(Collections.<Namespace>emptyList(), chars);
         }
 
       }
@@ -747,7 +738,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
 
 
   @NotNull
-  @XmlElement(name = "query", namespace = HttpMessage.NAMESPACE)
+  @XmlName("query")
   public Collection<Query> getQueries() {
     if (mQueries == null) {
       mQueries = new HashMap<>();
@@ -756,7 +747,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
   }
 
   @NotNull
-  @XmlElement(name = "post", namespace = HttpMessage.NAMESPACE)
+  @XmlName("post")
   public Collection<Post> getPosts() {
     if (mPost == null) {
       mPost = new HashMap<>();
@@ -764,7 +755,7 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     return new PostCollection(mPost);
   }
 
-  @XmlElement(name = "body", namespace = HttpMessage.NAMESPACE)
+  @XmlName("body")
   public CompactFragment getBody() {
     return mBody;
   }
@@ -810,7 +801,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     return mMethod;
   }
 
-  @XmlAttribute
   public void setMethod(final String method) {
     mMethod = method;
   }
@@ -819,7 +809,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
     mContextPath = contextPath;
   }
 
-  @XmlAttribute
   public String getContextPath() {
     return mContextPath;
   }
@@ -839,7 +828,6 @@ public class HttpMessage implements XmlSerializable, SimpleXmlDeserializable{
   }
 
   @XmlName("user")
-  @XmlAttribute(name = "user")
   String getUser() {
     return mUserPrincipal.getName();
   }

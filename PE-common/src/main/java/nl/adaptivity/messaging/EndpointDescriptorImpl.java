@@ -16,11 +16,11 @@
 
 package nl.adaptivity.messaging;
 
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 import java.net.URI;
@@ -32,9 +32,6 @@ import java.net.URI;
  *
  * @author Paul de Vrieze
  */
-@XmlRootElement(name = "endpointDescriptor", namespace = EndpointDescriptorImpl.MY_JBI_NS)
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlType(propOrder = { "serviceNamespace", "serviceLocalName", "endpointName" })
 public class EndpointDescriptorImpl implements EndpointDescriptor {
 
   public static final String MY_JBI_NS = "http://adaptivity.nl/jbi";
@@ -57,7 +54,6 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
   }
 
   @Override
-  @XmlAttribute(name = "endpointName")
   public String getEndpointName() {
     return mEndpointName;
   }
@@ -66,7 +62,7 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
     mEndpointName = endpointName;
   }
 
-  @XmlAttribute(name = "endpointLocation")
+  @XmlName("endpointLocation")
   String getEndpointLocationString() {
     return mEndpointLocation.toString();
   }
@@ -84,7 +80,6 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
     mEndpointLocation = location;
   }
 
-  @XmlAttribute(name = "serviceLocalName")
   String getServiceLocalName() {
     return mServiceLocalName;
   }
@@ -93,7 +88,7 @@ public class EndpointDescriptorImpl implements EndpointDescriptor {
     mServiceLocalName = localName;
   }
 
-  @XmlAttribute(name = "serviceNS")
+  @XmlName("serviceNS")
   String getServiceNamespace() {
     return mServiceNamespace;
   }

@@ -22,7 +22,6 @@ import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
 
-import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
@@ -31,9 +30,6 @@ import java.util.Collections;
 import java.util.List;
 
 
-@XmlRootElement(name= XmlItem.ELEMENTLOCALNAME)
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlDeserializer(XmlItem.Factory.class)
 public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializable {
 
   public class Factory implements XmlDeserializerFactory<XmlItem> {
@@ -113,7 +109,6 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   }
 
   @Override
-  @XmlAttribute(name="name")
   public String getName() {
     return mName;
   }
@@ -123,7 +118,6 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   }
 
   @Override
-  @XmlAttribute(name="label")
   public String getLabel() {
     return mLabel;
   }
@@ -133,7 +127,6 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   }
 
   @Override
-  @XmlAttribute(name="params")
   public String getParams() {
     return mParams;
   }
@@ -143,7 +136,6 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   }
 
   @Override
-  @XmlAttribute(name="type")
   public String getType() {
     return mType;
   }
@@ -153,7 +145,6 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
   }
 
   @Override
-  @XmlAttribute(name="value")
   public String getValue() {
     return mValue;
   }
@@ -168,7 +159,6 @@ public class XmlItem implements TaskItem, XmlSerializable, SimpleXmlDeserializab
     return mOptions;
   }
 
-  @XmlElement(name="option", namespace=Constants.USER_MESSAGE_HANDLER_NS)
   public void setOptions(List<String> options) {
     mOptions = options;
   }

@@ -33,12 +33,14 @@ import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
+import nl.adaptivity.xml.schema.annotations.AnyType;
+import nl.adaptivity.xml.schema.annotations.Child;
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -72,8 +74,12 @@ import java.util.Map.Entry;
  * &lt;/complexType>
  * </pre>
  */
-@XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = Header.ELEMENTLOCALNAME, propOrder = { "any" })
+@nl.adaptivity.xml.schema.annotations.Element(
+    name=Header.ELEMENTLOCALNAME,
+    nsUri = Envelope.NAMESPACE,
+    nsPrefix = Envelope.PREFIX,
+    children = @Child(name="any", type= AnyType.class)
+)
 public class Header implements SimpleXmlDeserializable, XmlSerializable {
 
   public static final String ELEMENTLOCALNAME = "Header";
@@ -81,11 +87,8 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
   public static final String PRINCIPALLOCALNAME = "principal";
   public static final QName PRINCIPALQNAME = new QName(Engine.NAMESPACE, "principal", Engine.NSPREFIX);
 
-
-  @XmlAnyElement(lax = false)
   protected List<Node> any;
 
-  @XmlAnyAttribute
   private final Map<QName, String> otherAttributes = new HashMap<>();
 
   private SimplePrincipal mPrincipal = null;
@@ -167,6 +170,7 @@ public class Header implements SimpleXmlDeserializable, XmlSerializable {
    * Objects of the following type(s) are allowed in the list {@link Object }
    * {@link Element }
    */
+  @XmlName("any")
   public List<Node> getAny() {
     if (any == null) {
       any = new ArrayList<>();

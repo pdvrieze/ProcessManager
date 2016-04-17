@@ -21,21 +21,15 @@ import nl.adaptivity.process.processModel.ProcessModel;
 import nl.adaptivity.process.processModel.ProcessNode;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.util.xml.*;
+import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 
 import java.util.UUID;
 
 
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlRootElement(name = ProcessModelRef.ELEMENTLOCALNAME)
-@XmlDeserializer(ProcessModelRef.Factory.class)
 public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel<T, M>> implements IProcessModelRef<T, M>, XmlSerializable, SimpleXmlDeserializable {
 
   public static class Factory implements XmlDeserializerFactory<ProcessModelRef<?,?>> {
@@ -123,7 +117,6 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @Override
-  @XmlAttribute(required = true)
   public String getName() {
     return mName;
   }
@@ -133,7 +126,6 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @Override
-  @XmlAttribute(required = true)
   public long getHandle() {
     return mHandle;
   }
@@ -145,7 +137,7 @@ public class ProcessModelRef<T extends ProcessNode<T, M>, M extends ProcessModel
   }
 
   @Nullable
-  @XmlAttribute(name="uuid")
+  @XmlName("uuid")
   String getXmlUuid() {
     return mUuid==null ? null : mUuid.toString();
   }
