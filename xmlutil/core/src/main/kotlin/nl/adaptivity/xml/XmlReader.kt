@@ -140,6 +140,10 @@ val XmlReader.attributes: Array<out XmlEvent.Attribute> get() =
                            getAttributeValue(i))
       }
 
+val XmlReader.namespaceIndices: IntRange get() = namespaceStart..(namespaceEnd-1)
+
+val XmlReader.attributeIndices: IntRange get() = 0..(attributeCount-1)
+
 val XmlReader.namespaceDecls: Array<out Namespace> get() =
       Array<Namespace>(namespaceEnd - namespaceStart) { i ->
         val nsIndex = namespaceStart + i

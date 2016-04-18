@@ -43,8 +43,7 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     mDelegate.setPrefix(prefix, namespaceUri);
   }
 
-  public void startDocument(final CharSequence version, final CharSequence encoding, final Boolean standalone) throws
-          XmlException {
+  public void startDocument(@Nullable final CharSequence version, @Nullable final CharSequence encoding, @Nullable final Boolean standalone) throws XmlException {
     mDelegate.startDocument(version, encoding, standalone);
   }
 

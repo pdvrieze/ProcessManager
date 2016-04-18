@@ -204,7 +204,7 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
    * @param version Unfortunately the serializer is forced to version 1.0
    */
   @Override
-  public void startDocument(final CharSequence version, final CharSequence encoding, final Boolean standalone) throws XmlException {
+  public void startDocument(@org.jetbrains.annotations.Nullable final CharSequence version, @org.jetbrains.annotations.Nullable final CharSequence encoding, @org.jetbrains.annotations.Nullable final Boolean standalone) throws XmlException {
     try {
       mWriter.startDocument(StringUtil.toString(encoding), standalone);
     } catch (IOException e) {

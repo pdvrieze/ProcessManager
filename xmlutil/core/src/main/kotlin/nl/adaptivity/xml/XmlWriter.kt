@@ -89,7 +89,7 @@ interface XmlWriter {
   fun docdecl(text: CharSequence)
 
   @Throws(XmlException::class)
-  fun startDocument(version: CharSequence, encoding: CharSequence, standalone: Boolean?)
+  fun startDocument(version: CharSequence?, encoding: CharSequence?, standalone: Boolean?)
 
   @Throws(XmlException::class)
   fun endDocument()
