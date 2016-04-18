@@ -29,6 +29,9 @@ import nl.adaptivity.xml.XmlSerializable;
 import nl.adaptivity.util.xml.*;
 import nl.adaptivity.xml.*;
 import nl.adaptivity.xml.XmlStreaming.EventType;
+import nl.adaptivity.xml.schema.annotations.AnyType;
+import nl.adaptivity.xml.schema.annotations.Attribute;
+import nl.adaptivity.xml.schema.annotations.Child;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -60,6 +63,13 @@ import java.util.Map.Entry;
  * &lt;/complexType>
  * </pre>
  */
+@nl.adaptivity.xml.schema.annotations.Element(
+        name=Envelope.ELEMENTLOCALNAME,
+        nsUri = Envelope.NAMESPACE,
+        nsPrefix = Envelope.PREFIX,
+        attributes = @Attribute("otherAttributes"),
+        children = {@Child(type=Header.class), @Child(type=Body.class)})
+
 @XmlDeserializer(Envelope.Factory.class)
 public class Envelope<T extends XmlSerializable> implements XmlSerializable{
 
