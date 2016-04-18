@@ -156,7 +156,8 @@ private class JavaFile(val packageName:String, val className:String) {
   val Type.ref:String get() {
     return when (this) {
       is Class<*> -> {
-        if (this.`package`.name!="java.lang") imports.add(this)
+        val pkgName = this.`package`.name
+        if (pkgName !="java.lang" && (pkgName!=packageName || this.declaringClass!=null)) imports.add(this)
         this.simpleName
       }
       is ParameterizedType -> this.actualTypeArguments.joinToString(", ", "${this.rawType.ref}<", ">") { it.ref }
