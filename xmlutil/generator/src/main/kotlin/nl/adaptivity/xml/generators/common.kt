@@ -189,9 +189,29 @@ class AttributeInfo:MemberInfo {
 
 }
 
+/**
+ * Function to determine the property name for a child/attribute.
+ */
+private fun Child.propertyName(lookup: TypeInfoProvider):String {
+  return if (!property.isBlank()) {
+    property
+  } else if (!name.isBlank()) {
+    name
+  } else {
+    lookup.getTypeInfo(this.type.java).let { info ->
+      if (info is FullTypeInfo) {
+        info.elementName.toString()
+      } else {
+        val base = info.javaType.toClass().simpleName
+        "${base[0].toLowerCase()}${base.substring(1)}"
+      }
+    }
+  }
+}
+
 class ChildInfo:MemberInfo {
 
-  constructor(child: Child, ownerType: Type, lookup: TypeInfoProvider):super(child.name, if (child.property.isBlank()) child.name else child.property, ownerType, lookup, lookup.getTypeInfo(child.type.java))
+  constructor(child: Child, ownerType: Type, lookup: TypeInfoProvider):super(child.name, child.propertyName(lookup), ownerType, lookup, lookup.getTypeInfo(child.type.java))
 
   override fun toString(): String{
     return "ChildInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$readJava)"
@@ -250,9 +270,7 @@ abstract class TypeInfo(clazz: Type) {
       if (XmlSerializable::class.java.isAssignableFrom(c)) {
         javaType
       } else if (Map::class.java.isAssignableFrom(c)) {
-        val typeParams = ReflectionUtil.typeParams(javaType, Map::class.java)
-        System.err.println("Type parameters for type ${c.typeName} are: ${Arrays.toString(typeParams)}")
-        typeParams?.get(1) ?: javaType
+        ReflectionUtil.typeParams(javaType, Map::class.java)?.get(1) ?: javaType
       } else {
         javaType.iterableTypeParam ?: javaType
       }

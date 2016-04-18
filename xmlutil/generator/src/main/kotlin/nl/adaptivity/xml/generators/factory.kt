@@ -157,26 +157,18 @@ private class JavaFile(val packageName:String, val className:String) {
     return when (this) {
       is Class<*> -> {
         val pkgName = this.`package`.name
-        if (pkgName !="java.lang" && (pkgName!=packageName || this.declaringClass!=null)) imports.add(this)
-        this.simpleName
+        val declaringClass = this.declaringClass
+        if (pkgName !="java.lang" && declaringClass==null && pkgName!=packageName) imports.add(this)
+        declaringClass?.let{ it.ref }
+        this.canonicalName.removePrefix(pkgName+'.')
       }
       is ParameterizedType -> this.actualTypeArguments.joinToString(", ", "${this.rawType.ref}<", ">") { it.ref }
       is GenericArrayType -> "${this.genericComponentType.ref}[]"
       is TypeVariable<*> -> {
         (this.bounds.firstOrNull()?.ref  ?: "Object")
-//        if (this.genericDeclaration is Method) { // If it is on a method, we can't use it directly
-//        } else {
-//          this.name
-//        }
       }
       is WildcardType -> { this.upperBounds.firstOrNull()?.ref ?: "Object" }
       else -> throw UnsupportedOperationException("Cannot display type: ${this.typeName}")
-    }
-
-    toClass().let { c ->
-      if (c.isPrimitive) { return c.name }
-      if (c.`package`.name!="java.lang") imports.add(c)
-      return c.simpleName
     }
   }
 
