@@ -34,6 +34,7 @@ import nl.adaptivity.xml.XmlException;
 import nl.adaptivity.xml.XmlReader;
 import nl.adaptivity.xml.XmlWriter;
 import nl.adaptivity.xml.schema.annotations.AnyType;
+import nl.adaptivity.xml.schema.annotations.Attribute;
 import nl.adaptivity.xml.schema.annotations.Child;
 import nl.adaptivity.xml.schema.annotations.XmlName;
 import org.jetbrains.annotations.NotNull;
@@ -78,6 +79,7 @@ import java.util.Map.Entry;
     name=Header.ELEMENTLOCALNAME,
     nsUri = Envelope.NAMESPACE,
     nsPrefix = Envelope.PREFIX,
+    attributes = @Attribute("otherAttributes"),
     children = @Child(name="any", type= AnyType.class)
 )
 public class Header implements SimpleXmlDeserializable, XmlSerializable {

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.xml.generators
 
+import net.devrieze.util.ReflectionUtil
 import nl.adaptivity.xml.*
 import nl.adaptivity.xml.schema.annotations.AnyType
 import nl.adaptivity.xml.schema.annotations.Element
@@ -24,6 +25,7 @@ import java.io.File
 import java.io.StringWriter
 import java.io.Writer
 import java.lang.reflect.*
+import javax.xml.namespace.QName
 
 /*
  * Simple information creating package that just lists the possible, and the available classes.
@@ -64,19 +66,42 @@ class Factory {
 
           typeInfo.attributes.forEach { attr ->
             appendln()
-            appendln("    {")
-            appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.readJava};")
-            if (attr.isOptional && !attr.accessorType.isPrimitive) {
-              appendln("      if (attrValue!=null) writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue);")
+            if (attr.accessorType.isMap) {
+              val keyType = ReflectionUtil.typeParams(attr.accessorType.javaType, Map::class.java)?.get(0) ?: CharSequence::class.java
+              appendln("    for(${Map.Entry::class.java.ref}<${keyType.ref}, ${attr.accessorType.elemType.ref}> attr: value.${attr.readJava}.entrySet()) {")
+              val keyClass = keyType.toClass()
+              if (QName::class.java.isAssignableFrom(keyClass)) {
+                appendln("      QName key = attr.getKey(); writer.attribute(key.getNamespaceURI(), key.getLocalPart(), key.getPrefix(), ${attr.readJava("attr.getValue()")});")
+              } else {
+                val getKey= if(String::class.java==keyClass) "attr.getKey()" else "attr.getKey().toString()"
+                appendln("      writer.attribute(null, ${getKey}, null, ${attr.readJava("attr.getValue()")});")
+              }
+              appendln("    }")
             } else {
-              appendln("      writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue==null ? ${toLiteral(attr.default)} : attrValue);")
+              appendln("    {")
+              appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.readJava};")
+              if (attr.isOptional && !attr.accessorType.isPrimitive) {
+                appendln("      if (attrValue!=null) writer.attribute(null, ${toLiteral(attr.name)}, null, ${attr.readJava(
+                      "attrValue")});")
+              } else {
+                appendln("      writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue==null ? ${toLiteral(attr.default)} : ${attr.readJava(
+                      "attrValue")});")
+              }
+              appendln("    }")
             }
+          }
+
+          typeInfo.textContent?.let { content ->
+            appendln()
+            appendln("    {")
+            appendln("      final ${content.accessorType.javaType.ref} contentValue = value.${content.readJava};")
+            appendln("      if (contentValue!=null) writer.text(${content.readJava("contentValue")});")
             appendln("    }")
           }
 
           typeInfo.children.forEach { childInfo ->
             val accessor = childInfo.accessorType
-
+            appendln()
             appendln("    {")
             val attrname = if (accessor.isCollection) "childValues" else "childValue"
             appendln("      final ${accessor.javaType.ref} $attrname = value.${childInfo.readJava};")

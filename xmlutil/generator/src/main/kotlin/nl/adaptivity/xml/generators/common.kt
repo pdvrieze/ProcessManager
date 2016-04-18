@@ -92,6 +92,12 @@ abstract class MemberInfo {
   val xmlType: QName get()= declaredType.xmlType
   val readJava: String
 
+  fun readJava(valueRef:String):String {
+    BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
+      return builtin.serializeJava(valueRef)
+    } ?: throw ProcessingException("Unable to convert type to string content: ${declaredType.elemType}")
+  }
+
   constructor(memberName:String, propertyName:String, ownerType: Type, lookup: TypeInfoProvider, declaredMemberType: TypeInfo?=null):
         this(memberName, propertyName, ownerType.toClass(), lookup, declaredMemberType)
 
@@ -162,6 +168,10 @@ class TypeInfoProvider {
   }
 }
 
+class ContentInfo: MemberInfo {
+  constructor(propertyName:String, ownerType: Type, lookup: TypeInfoProvider):super(propertyName, propertyName, ownerType, lookup)
+}
+
 class AttributeInfo:MemberInfo {
   val isOptional: Boolean
 
@@ -181,15 +191,7 @@ class AttributeInfo:MemberInfo {
 
 class ChildInfo:MemberInfo {
 
-  fun readJava(valueRef:String):String {
-    BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
-      return builtin.serializeJava(valueRef)
-    } ?: throw ProcessingException("Unable to convert type to string content: ${declaredType.elemType}")
-  }
-
-  constructor(child: Child, ownerType: Type, lookup: TypeInfoProvider):super(child.name, if (child.property.isBlank()) child.name else child.property, ownerType, lookup, lookup.getTypeInfo(child.type.java)) {
-    System.err.println("Getting child information($child, $ownerType, $declaredType)")
-  }
+  constructor(child: Child, ownerType: Type, lookup: TypeInfoProvider):super(child.name, if (child.property.isBlank()) child.name else child.property, ownerType, lookup, lookup.getTypeInfo(child.type.java))
 
   override fun toString(): String{
     return "ChildInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$readJava)"
@@ -230,6 +232,16 @@ abstract class TypeInfo(clazz: Type) {
     }
   }
 
+  val isMap: Boolean by lazy {
+    javaType.toClass(). let { c ->
+      (! XmlSerializable::class.java.isAssignableFrom(c)) &&
+      Map::class.java.isAssignableFrom(c) &&
+            (ReflectionUtil.concreteTypeParams(javaType, Map::class.java)?.let{(CharSequence::class.java.isAssignableFrom(it[0])||
+                  QName::class.java.isAssignableFrom(it[0])
+                  )} ?: false)
+    }
+  }
+
   val elemType:Type by lazy {
     if (javaType is Class<*>&& javaType.isArray) {
       javaType.componentType
@@ -237,6 +249,10 @@ abstract class TypeInfo(clazz: Type) {
       val c = javaType.toClass()
       if (XmlSerializable::class.java.isAssignableFrom(c)) {
         javaType
+      } else if (Map::class.java.isAssignableFrom(c)) {
+        val typeParams = ReflectionUtil.typeParams(javaType, Map::class.java)
+        System.err.println("Type parameters for type ${c.typeName} are: ${Arrays.toString(typeParams)}")
+        typeParams?.get(1) ?: javaType
       } else {
         javaType.iterableTypeParam ?: javaType
       }
@@ -278,6 +294,8 @@ internal class Builtin(val typeName:QName, val serializeJava: (String)->String, 
 internal val BUILTINS = mapOf<Class<out Any>,Builtin>(
       Int::class.java to Builtin("int", { it -> "Integer.toString(${it})"}, {it -> "Integer.valueOf($it)"}),
       String::class.java to Builtin("string", { it -> it}, {it -> it}),
+      CharSequence::class.java to Builtin("string", { it -> "$it.toString"}, {it -> it}),
+      Boolean::class.java to Builtin("boolean", { it -> "$it ? \"true\" : \"false\""}, {it -> "Boolean.valueOf($it)"}),
       UUID::class.java to Builtin("string", { it -> "$it.toString()"}, { it -> "UUID.fromString($it)"}),
       QName::class.java to Builtin("string", { it -> "{$it.namespaceUri}$it.localName"}, { it -> "${AbstractXmlReader::class.java.canonicalName}.toQname($it)"}),
       Long::class.java to Builtin("long", { it -> "Long.toString(${it})"}, {it -> "Long.valueOf($it)"})
@@ -309,6 +327,9 @@ class FullTypeInfo:TypeInfo {
   val factoryClassName: String get() =
     "${elemType.toClass().canonicalName.substring(elemType.toClass().`package`.name.length+1).replace('.','_')}Factory"
 
+  val textContent: ContentInfo?
+
+
   @Deprecated("Use the 3 argument version")
   constructor(type: Type, element: Element):this(type, element, TypeInfoProvider())
 
@@ -318,6 +339,10 @@ class FullTypeInfo:TypeInfo {
     elementName = element.name
     val elemClass = elemType.toClass()
     attributes = Array(element.attributes.size) { AttributeInfo(element.attributes[it], elemClass, typeMap) }
+
+    textContent = if (element.content.isBlank()) { null} else {
+      ContentInfo(element.content, type, typeMap)
+    }
 
     typeMap.register(type, this) // register the type to enable cyclic type graphs
     children = Array<ChildInfo>(element.children.size) { idx ->
