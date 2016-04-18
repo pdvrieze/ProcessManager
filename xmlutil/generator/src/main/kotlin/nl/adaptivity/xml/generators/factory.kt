@@ -16,17 +16,14 @@
 
 package nl.adaptivity.xml.generators
 
-import nl.adaptivity.xml.XmlException
-import nl.adaptivity.xml.XmlSerializable
-import nl.adaptivity.xml.XmlStreaming
-import nl.adaptivity.xml.XmlWriter
+import nl.adaptivity.xml.*
 import nl.adaptivity.xml.schema.annotations.AnyType
 import nl.adaptivity.xml.schema.annotations.Element
 import java.io.CharArrayWriter
 import java.io.File
 import java.io.StringWriter
 import java.io.Writer
-import java.lang.reflect.Type
+import java.lang.reflect.*
 
 /*
  * Simple information creating package that just lists the possible, and the available classes.
@@ -68,8 +65,8 @@ class Factory {
           typeInfo.attributes.forEach { attr ->
             appendln()
             appendln("    {")
-            appendln("      ${attr.type.ref} attrValue = value.${attr.readJava};")
-            if (attr.isOptional && !attr.type.isPrimitive) {
+            appendln("      final ${attr.accessorType.javaType.ref} attrValue = value.${attr.readJava};")
+            if (attr.isOptional && !attr.accessorType.isPrimitive) {
               appendln("      if (attrValue!=null) writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue);")
             } else {
               appendln("      writer.attribute(null, ${toLiteral(attr.name)}, null, attrValue==null ? ${toLiteral(attr.default)} : attrValue);")
@@ -78,20 +75,20 @@ class Factory {
           }
 
           typeInfo.children.forEach { childInfo ->
-            val childType = childInfo.typeInfo
+            val accessor = childInfo.accessorType
 
             appendln("    {")
-            val attrname = if (childType.isCollection) "childValues" else "childValue"
-            appendln("      ${childType.accessorType.ref} $attrname = value.${childInfo.readJava};")
+            val attrname = if (accessor.isCollection) "childValues" else "childValue"
+            appendln("      final ${accessor.javaType.ref} $attrname = value.${childInfo.readJava};")
             var indent:String
-            if (childType.isCollection) {
+            if (accessor.isCollection) {
               indent = " ".repeat(8)
-              appendln("      for(${childInfo.elemType.ref} childValue: childValues)")
+              appendln("      for(final ${accessor.elemType.ref} childValue: childValues) {")
             } else indent = " ".repeat(6)
 
             writeSerializeChild(indent, typeInfo, childInfo, "childValue")
 
-            if (childType.isCollection) {
+            if (accessor.isCollection) {
               appendln("      }")
             }
             appendln("    }")
@@ -107,26 +104,6 @@ class Factory {
       val outputFile = getFactorySourceFile(outDir, packageName, factoryClassName)
       outputFile.writer().use {
         fileCreator.appendTo(it)
-      }
-    }
-
-    private fun Appendable.writeSerializeChild(indent: String, owner: FullTypeInfo, childInfo: ChildInfo, valueRef: String) {
-      append(indent).append("if (").append(valueRef).append("!=null) ")
-      if (childInfo.typeInfo.isSerializable) {
-        append(valueRef).appendln("serialize(writer);")
-      } else if (childInfo.typeInfo.isSimpleType) {
-        val childType = childInfo.typeInfo
-        appendln(" {")
-        append(indent).appendln("  writer.startTag(${toLiteral(owner.nsUri)}, ${toLiteral(childInfo.name)}, ${toLiteral(
-              owner.nsPrefix)});")
-        append(indent).appendln("  writer.text(${childInfo.readJava});")
-        append(indent).appendln("  writer.endTag(${toLiteral(owner.nsUri)}, ${toLiteral(childInfo.name)}, ${toLiteral(
-              owner.nsPrefix)});")
-        append(indent).appendln("}")
-      } else /*if (childInfo.elemType==AnyType::class.java)*/ {
-        append(indent).appendln("AbstractXmlWriter.serialize(writer, ${childInfo.readJava})")
-//      } else {
-//        throw ProcessingException("Don't know how to serialize child ${childInfo.name} type ${childInfo.elemType.typeName}")
       }
     }
 
@@ -152,11 +129,28 @@ private class JavaFile(val packageName:String, val className:String) {
   }
 
   val Type.ref:String get() {
+    return when (this) {
+      is Class<*> -> {
+        if (this.`package`.name!="java.lang") imports.add(this)
+        this.simpleName
+      }
+      is ParameterizedType -> this.actualTypeArguments.joinToString(", ", "${this.rawType.ref}<", ">") { it.ref }
+      is GenericArrayType -> "${this.genericComponentType.ref}[]"
+      is TypeVariable<*> -> {
+        (this.bounds.firstOrNull()?.ref  ?: "Object")
+//        if (this.genericDeclaration is Method) { // If it is on a method, we can't use it directly
+//        } else {
+//          this.name
+//        }
+      }
+      is WildcardType -> { this.upperBounds.firstOrNull()?.ref ?: "Object" }
+      else -> throw UnsupportedOperationException("Cannot display type: ${this.typeName}")
+    }
 
     toClass().let { c ->
       if (c.isPrimitive) { return c.name }
       if (c.`package`.name!="java.lang") imports.add(c)
-      return c.canonicalName
+      return c.simpleName
     }
   }
 
@@ -207,6 +201,26 @@ private class JavaFile(val packageName:String, val className:String) {
     }
   }
 
+
+  fun Appendable.writeSerializeChild(indent: String, owner: FullTypeInfo, childInfo: ChildInfo, valueRef: String) {
+    append(indent).append("if (").append(valueRef).append("!=null) ")
+    if (childInfo.accessorType.isXmlSerializable) {
+      append(valueRef).appendln(".serialize(writer);")
+    } else if (childInfo.accessorType.isSimpleType) {
+      val childType = childInfo.accessorType
+      appendln(" {")
+      append(indent).appendln("  writer.startTag(${toLiteral(owner.nsUri)}, ${toLiteral(childInfo.name)}, ${toLiteral(
+            owner.nsPrefix)});")
+      append(indent).appendln("  writer.text(${childInfo.readJava(valueRef)});")
+      append(indent).appendln("  writer.endTag(${toLiteral(owner.nsUri)}, ${toLiteral(childInfo.name)}, ${toLiteral(
+            owner.nsPrefix)});")
+      append(indent).appendln("}")
+    } else /*if (childInfo.elemType==AnyType::class.java)*/ {
+      appendln("${AbstractXmlWriter::class.java.ref}.serialize(writer, ${valueRef});")
+//      } else {
+//        throw ProcessingException("Don't know how to serialize child ${childInfo.name} type ${childInfo.elemType.typeName}")
+    }
+  }
 
 }
 

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.xml.generators
 
+import net.devrieze.util.ReflectionUtil
 import nl.adaptivity.kotlin.jvmhelpers.ThrowableUtil
 import nl.adaptivity.xml.AbstractXmlReader
 import nl.adaptivity.xml.XmlSerializable
@@ -85,25 +86,28 @@ inline fun <T> Iterable<T>.reduceOrNull(block: (T, T)->T) =
 
 abstract class MemberInfo {
   val name:String
-  val type: Class<*>
-  val xmlType: QName
+  private val _declaredType: TypeInfo?
+  val declaredType:TypeInfo get() = _declaredType?: accessorType
+  val accessorType: TypeInfo
+  val xmlType: QName get()= declaredType.xmlType
   val readJava: String
 
-  constructor(memberName:String, propertyName:String, ownerType: Class<*>, declaredMemberType: Class<*>?=null) {
-    this.name = memberName
+  constructor(memberName:String, propertyName:String, ownerType: Type, lookup: TypeInfoProvider, declaredMemberType: TypeInfo?=null):
+        this(memberName, propertyName, ownerType.toClass(), lookup, declaredMemberType)
 
+  constructor(memberName:String, propertyName:String, ownerType: Class<*>, lookup: TypeInfoProvider, declaredMemberType: TypeInfo?=null) {
+    this.name = memberName
+    _declaredType = declaredMemberType
 
     val m: Method? = ownerType.getGetterForName(propertyName)
     if (m!=null) {
-      type = declaredMemberType?: m.returnType
+      accessorType = lookup.getTypeInfo(m.genericReturnType)
       readJava = m.name+"()"
     } else {
       val f: Field = ownerType.getFieldForName(propertyName) ?: throw ProcessingException("No accessor for member \"${memberName}\" found on type ${ownerType.canonicalName}")
-      type = declaredMemberType?:f.type
+      accessorType = lookup.getTypeInfo(f.genericType)
       readJava = f.name
     }
-    xmlType = type.xmlType
-
   }
 
 
@@ -142,30 +146,56 @@ abstract class MemberInfo {
 
 }
 
+class TypeInfoProvider {
+  private val map = mutableMapOf<Type, TypeInfo>()
+
+  fun getTypeInfo(type:Type):TypeInfo {
+    return (map[type] ?: let {
+      (type.toClass().getAnnotation(Element::class.java)
+            ?.let { FullTypeInfo(type, it, this)} // this will add the type info itself
+            ?: SimpleTypeInfo(type).apply { map[type]= this } )
+    })
+  }
+
+  fun register(type: Type, typeInfo: TypeInfo) {
+    map[type]=typeInfo
+  }
+}
+
 class AttributeInfo:MemberInfo {
   val isOptional: Boolean
 
   var default: String
 
-  constructor(attribute: Attribute, ownerType: Class<*>):super(attribute.value, attribute.value, ownerType) {
+  constructor(attribute: Attribute, ownerType: Type, lookup: TypeInfoProvider):super(attribute.value, attribute.value, ownerType, lookup) {
     isOptional = attribute.optional
     default = attribute.default
+  }
+
+  override fun toString(): String{
+    return "AttributeInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$readJava, isOptional=$isOptional, default='$default')"
   }
 
 
 }
 
 class ChildInfo:MemberInfo {
-  private var declaredElemType: KClass<out Any>
-  val typeInfo:TypeInfo
 
-  val elemType:Type get() =declaredElemType.java
-
-
-  constructor(child: Child, ownerType: Class<*>, typeInfo: TypeInfo):super(child.name, if (child.property.isBlank()) child.name else child.property, ownerType, child.type.java) {
-    declaredElemType = child.type
-    this.typeInfo = typeInfo
+  fun readJava(valueRef:String):String {
+    BUILTINS.get(declaredType.elemType)?.let { builtin:Builtin ->
+      return builtin.serializeJava(valueRef)
+    } ?: throw ProcessingException("Unable to convert type to string content: ${declaredType.elemType}")
   }
+
+  constructor(child: Child, ownerType: Type, lookup: TypeInfoProvider):super(child.name, if (child.property.isBlank()) child.name else child.property, ownerType, lookup, lookup.getTypeInfo(child.type.java)) {
+    System.err.println("Getting child information($child, $ownerType, $declaredType)")
+  }
+
+  override fun toString(): String{
+    return "ChildInfo(name=$name, accessorType=${accessorType}, declaredType=${declaredType}, readJava=$readJava)"
+  }
+
+
 }
 
 
@@ -180,21 +210,41 @@ fun Method.isGetter(name: String): Boolean {
 }
 
 abstract class TypeInfo(clazz: Type) {
-  val accessorType:Type = clazz
+  init {
+    if (clazz==Class::class.java) { throw IllegalArgumentException("Java classes can not be serialized") }
+  }
+
+  val javaType:Type = clazz
 
   abstract val isSimpleType: Boolean
 
-  val isSerializable: Boolean
-    get() = XmlSerializable::class.java.isAssignableFrom(elemType.toClass())
-  val isCollection: Boolean
-    get()= accessorType is Class<*> && (accessorType.isArray || Iterable::class.java.isAssignableFrom(accessorType))
-  val elemType:Type by lazy {
-    if (accessorType is Class<*>&& accessorType.isArray) {
-      accessorType.componentType
-    } else {
-      accessorType.iterableTypeParam?: accessorType
+  val isXmlSerializable: Boolean by lazy {
+    XmlSerializable::class.java.isAssignableFrom(javaType.toClass()) ||
+    XmlSerializable::class.java.isAssignableFrom(elemType.toClass())
+  }
+
+  val isCollection: Boolean by lazy {
+    javaType.toClass(). let { c ->
+      (! XmlSerializable::class.java.isAssignableFrom(c)) &&
+      (c.isArray || Iterable::class.java.isAssignableFrom(c))
     }
   }
+
+  val elemType:Type by lazy {
+    if (javaType is Class<*>&& javaType.isArray) {
+      javaType.componentType
+    } else {
+      val c = javaType.toClass()
+      if (XmlSerializable::class.java.isAssignableFrom(c)) {
+        javaType
+      } else {
+        javaType.iterableTypeParam ?: javaType
+      }
+    }
+  }
+
+  val xmlType: QName by lazy { if (javaType==AnyType::class.java) Object::class.java.xmlType else javaType.toClass().xmlType }
+  val isPrimitive: Boolean by lazy { elemType.toClass().isPrimitive }
 }
 
 
@@ -217,23 +267,7 @@ fun Type.toClass(): Class<*> {
 val Type.isIterable:Boolean get() = Iterable::class.java.isAssignableFrom(this.toClass())
 
 val Type.iterableTypeParam:Type? get() {
-  when(this) {
-    is ParameterizedType -> {
-      if(this.rawType.toClass() == Iterable::class.java) {
-        return this.actualTypeArguments[0]
-      }
-      return this.rawType.iterableTypeParam
-    }
-    is TypeVariable<*> -> return this.bounds.asSequence().map { it.iterableTypeParam }.firstOrNull()
-    is GenericArrayType -> return null // Arrays are not iterables ever
-    is WildcardType -> return upperBounds.asSequence().map { it.iterableTypeParam }.firstOrNull()
-    is Class<*> -> {
-      if (this==Iterable::class.java) { return this.typeParameters[0] }
-      this.genericInterfaces.asSequence().map { it.iterableTypeParam }?.firstOrNull()?.let{ return it }
-      return this.genericSuperclass?.iterableTypeParam
-    }
-    else ->  throw ClassCastException("Not an expected subtype of class ${javaClass.typeName}")
-  }
+  return ReflectionUtil.typeParams(this, Iterable::class.java)?.get(0)
 }
 
 internal class Builtin(val typeName:QName, val serializeJava: (String)->String, val deserializeJava: (String)->String) {
@@ -241,7 +275,7 @@ internal class Builtin(val typeName:QName, val serializeJava: (String)->String, 
       this(QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, typeName, "xs"), serializeJava, deserializeJava)
 }
 
-internal val BUILTINS = mapOf(
+internal val BUILTINS = mapOf<Class<out Any>,Builtin>(
       Int::class.java to Builtin("int", { it -> "Integer.toString(${it})"}, {it -> "Integer.valueOf($it)"}),
       String::class.java to Builtin("string", { it -> it}, {it -> it}),
       UUID::class.java to Builtin("string", { it -> "$it.toString()"}, { it -> "UUID.fromString($it)"}),
@@ -250,9 +284,14 @@ internal val BUILTINS = mapOf(
 )
 
 
-class SimpleTypeInfo(clazz:Type) :TypeInfo(clazz) {
+class SimpleTypeInfo(clazz:Type) :TypeInfo(if (clazz==AnyType::class.java) Object::class.java else clazz) {
   override val isSimpleType: Boolean
     get() = (elemType is Class<*> && (elemType as Class<*>).isPrimitive) || BUILTINS.containsKey(elemType)
+
+  override fun toString(): String{
+    return "SimpleTypeInfo(javaType=${javaType})"
+  }
+
 }
 
 class FullTypeInfo:TypeInfo {
@@ -263,8 +302,6 @@ class FullTypeInfo:TypeInfo {
 
   val children: Array<ChildInfo>
 
-  val xmlType: QName
-
   override val isSimpleType: Boolean get() = false
 
   val packageName: String get() =elemType.toClass().`package`.name
@@ -272,32 +309,24 @@ class FullTypeInfo:TypeInfo {
   val factoryClassName: String get() =
     "${elemType.toClass().canonicalName.substring(elemType.toClass().`package`.name.length+1).replace('.','_')}Factory"
 
-  constructor(clazz: Class<*>, element: Element):this(clazz, element, mutableMapOf())
+  @Deprecated("Use the 3 argument version")
+  constructor(type: Type, element: Element):this(type, element, TypeInfoProvider())
 
-  constructor(clazz: Class<*>, element: Element, typeMap: MutableMap<Class<*>,TypeInfo>):super(clazz) {
+  constructor(type: Type, element: Element, typeMap: TypeInfoProvider):super(type) {
     nsPrefix = if (element.nsPrefix.isEmpty()) null else element.nsPrefix
     nsUri = if (element.nsUri.isBlank()) null else element.nsUri
     elementName = element.name
     val elemClass = elemType.toClass()
-    attributes = Array(element.attributes.size) { AttributeInfo(element.attributes[it], elemClass) }
+    attributes = Array(element.attributes.size) { AttributeInfo(element.attributes[it], elemClass, typeMap) }
 
-    typeMap[clazz] = this
+    typeMap.register(type, this) // register the type to enable cyclic type graphs
     children = Array<ChildInfo>(element.children.size) { idx ->
-      val childInfo = element.children[idx]
-      val childType = childInfo.type.java
-
-      (typeMap[childType] ?: let {
-        (childType.getAnnotation(Element::class.java)
-              ?.let { FullTypeInfo(childType.javaClass, it, typeMap)}
-              ?: SimpleTypeInfo(childType.javaClass).apply { typeMap[childType.javaClass]= this })
-      }).let { ChildInfo(childInfo,clazz, it ) }
-
+      ChildInfo(element.children[idx], type, typeMap)
     }
-    try {
-      xmlType = clazz.xmlType
-    } catch (e:ProcessingException) {
-      throw ProcessingException("Failure attempting to get type information for element ${element.name}: ${e.message}", e)
-    }
+  }
+
+  override fun toString(): String{
+    return "FullTypeInfo(javaType=$javaType, nsPrefix=$nsPrefix, nsUri=$nsUri, elementName=$elementName, attributes=${Arrays.toString(attributes)}, children=${Arrays.toString(children)}, xmlType=$xmlType)"
   }
 
 }
