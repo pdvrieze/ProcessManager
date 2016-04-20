@@ -85,7 +85,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
         val authresult = lazy { authenticateHelper(dataSource, request, response) }
         request.setNote("response", response)
         run {
-            if (container is Context && container.preemptiveAuthentication) { authresult.value }
+            if ((container is Context && container.preemptiveAuthentication) || request.cookies.any { c -> c.name==DARWINCOOKIENAME }) { authresult.value }
             // If the context wants us to do preemptive authentication, make sure to get the authentication result.
             // That has side-effects that will register the principal.
         }
