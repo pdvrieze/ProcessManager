@@ -118,7 +118,7 @@ abstract class MemberInfo {
 
 
   protected fun <T> Class<T>.getGetterForName(name: String): Method? {
-    val possibleGetters = allMethods.filter { m -> !( Modifier.isPrivate(m.modifiers) || Modifier.isStatic(m.modifiers) || m.isSynthetic || m.isBridge) && m.parameterCount == 0 }.toList()
+    val possibleGetters = allMethods.filter { m -> !( Modifier.isPrivate(m.modifiers) || Modifier.isStatic(m.modifiers) || m.isSynthetic || m.isBridge) && m.parameterTypes.size == 0 }.toList()
 
     // First find annotated methods
     possibleGetters.asSequence()
@@ -291,7 +291,7 @@ fun Type.toClass(): Class<*> {
       is WildcardType      -> this.upperBounds.firstOrNull()?.helper()
       is GenericArrayType  -> this.genericComponentType?.helper()?.let { java.lang.reflect.Array.newInstance(it,0).javaClass }
       is ParameterizedType -> this.rawType.helper()
-      else                 -> throw ClassCastException("Not an expected subtype of class ${javaClass.typeName}")
+      else                 -> throw ClassCastException("Not an expected subtype of class ${javaClass.canonicalName}")
     }
 
   }
@@ -451,4 +451,147 @@ get() {
     }
 
   } .asSequence()
+}
+
+internal data class SimpleTypeVar(val name:String, val bounds:Array<Type>) {
+  override fun equals(other: Any?): Boolean{
+    if (this === other) return true
+    if (other?.javaClass != javaClass) return false
+
+    other as SimpleTypeVar
+
+    if (name != other.name) return false
+    if (!Arrays.equals(bounds, other.bounds)) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int{
+    var result = name.hashCode()
+    result = 31 * result + Arrays.hashCode(bounds)
+    return result
+  }
+
+}
+
+
+internal fun getTypeVars(source: List<Type>): List<SimpleTypeVar> {
+  val usedNames = mutableSetOf<String>()
+  val result = mutableListOf<SimpleTypeVar>()
+
+  fun getName(n:String):String {
+    if (n !in usedNames) { return n }
+    return (1..Int.MAX_VALUE).asSequence().map { "$n$it" }.first { it !in usedNames }
+  }
+
+  fun getBounds(type: Type):Array<Type> {
+    return when (type) {
+      is TypeVariable<*> -> type.bounds
+      is GenericArrayType -> arrayOf<Type>(Array<Any>::class.java)
+      is ParameterizedType -> getBounds(type.rawType)
+      is WildcardType -> type.upperBounds
+      is Class<*> -> arrayOf<Type>(type)
+      else -> emptyArray()
+    }
+  }
+
+  fun addTypeVar(type: Type) {
+    when (type) {
+      is TypeVariable<*> -> result.add(SimpleTypeVar(getName(type.name), type.bounds))
+      is GenericArrayType -> addTypeVar(type.genericComponentType)
+      is ParameterizedType -> {
+        val params = (type.rawType as Class<*>).typeParameters
+        type.actualTypeArguments.forEachIndexed { i, type ->
+          val name = getName(params[i].name)
+          result.add(SimpleTypeVar(name, getBounds(type)))
+        }
+      }
+//        is WildcardType -> {}
+//        is Class<*> -> {}
+      else -> {}
+    }
+  }
+
+  for(type in source) {
+    addTypeVar(type)
+  }
+  return result
+}
+
+fun resolveMethodType(m:Method, t:Type, newType: (Class<*>)->Unit = {}): String {
+  val owner = m.declaringClass
+
+  fun doActualLookup(tv:TypeVariable<*>, candidateDeclaration:Type): TypeVariable<*>? {
+    if (tv.genericDeclaration==candidateDeclaration) {
+      return tv
+    } else {
+      if (candidateDeclaration is Class<*>) {
+        val allAncestors = sequenceOf(candidateDeclaration.genericInterfaces.asSequence(),
+                                      sequenceOf(candidateDeclaration.genericSuperclass)).flatten()
+        allAncestors.map { ancestor ->
+          val lookup = doActualLookup(tv, ancestor)
+          if (ancestor is GenericDeclaration) {
+            lookup?.let {
+              ancestor.typeParameters.mapIndexed { i, typeVariable ->  }
+            }
+          } else { lookup }
+        }
+//      candidateDeclaration.
+      }
+
+      return null
+    }
+  }
+
+  val variableLookup :(TypeVariable<*>)->String? = { tv: TypeVariable<*> ->
+    val l = doActualLookup(tv, owner)
+    (l?: tv).bounds.asSequence().firstOrNull()?.let {resolveMethodType(m, it, newType)}
+  }
+
+  return resolveType(t, variableLookup, newType)
+}
+
+fun resolveType(type: Type, variableLookup:(TypeVariable<*>)->String?={null}, newType: (Class<*>)->Unit = {}): String {
+  fun doResolve(t:Type):String {
+    return when (t) {
+      is TypeVariable<*> -> {
+
+        val lookupResults = variableLookup(t)
+        if (lookupResults!=null){
+          lookupResults
+        } else {
+          val resolve = doResolve((t.genericDeclaration.typeParameters.firstOrNull { it.name == t.name } ?: t).bounds[0])
+
+          "? extends $resolve"
+        }
+      }
+      is GenericArrayType -> "${doResolve(t.genericComponentType)}"
+      is ParameterizedType -> "${doResolve(t.rawType)}"
+      is WildcardType -> {
+        if(t.lowerBounds.size>0) {
+          "? super ${t.lowerBounds.joinToString{doResolve(it)}}"
+        } else if (t.upperBounds.filter { t==Object::class.java }.size>0) {
+          "? extends ${t.upperBounds.joinToString{doResolve(it)}}"
+        } else {
+          "?"
+        }
+      }
+      is Class<*> -> {
+        val typeString = t.declaringClass?.let {
+          val pkgName = t.`package`.name
+          it.canonicalName.removePrefix(pkgName).removePrefix(".")
+        } ?: t.let { newType(t); t.simpleName }
+        buildString {
+          append(typeString)
+          t.typeParameters.joinTo(this, ", ", "<", ">") {doResolve(it)}
+        }
+      }
+      else -> t.toString()
+
+    }
+
+  }
+
+  return doResolve(type)
+
 }

@@ -39,6 +39,12 @@ configurations {
     testJarConfig {
         extendsFrom testRuntime
     }
+    compileXmlJava {
+        extendsFrom runtime
+    }
+    compileXmlOnly {
+        extendsFrom compileOnly
+    }
 }
 
 dependencies {
@@ -73,13 +79,14 @@ sourceSets {
 }
 
 generateXml {
-    dependsOn classes
+//    dependsOn classes
     outputs.file("${buildDir}/xmlinfo/xmlinfo.txt")
     dirGenerator {
         input = { sourceSets.main.runtimeClasspath }
         generator = "nl.adaptivity.xml.generators.Factory"
     }
 }
+
 
 version = '1.0.0'
 description = 'A library with process engine support classes'
@@ -90,6 +97,16 @@ description = 'A library with process engine support classes'
 task testJar(type: Jar) {
     from sourceSets.test.output
     classifier = 'test'
+}
+
+compileXmlJava {
+    classpath+=sourceSets.main.runtimeClasspath
+    doFirst {
+        System.err.println("compileXml classpath")
+        classpath.forEach { e ->
+            System.err.println("  $e")
+        }
+    }
 }
 
 artifacts {

@@ -25,6 +25,7 @@ import java.io.File
 import java.io.StringWriter
 import java.io.Writer
 import java.lang.reflect.*
+import java.util.*
 import javax.xml.namespace.QName
 
 /*
@@ -168,7 +169,7 @@ private class JavaFile(val packageName:String, val className:String) {
         (this.bounds.firstOrNull()?.ref  ?: "Object")
       }
       is WildcardType -> { this.upperBounds.firstOrNull()?.ref ?: "Object" }
-      else -> throw UnsupportedOperationException("Cannot display type: ${this.typeName}")
+      else -> throw UnsupportedOperationException("Cannot display type: ${this}")
     }
   }
 
@@ -178,6 +179,7 @@ private class JavaFile(val packageName:String, val className:String) {
 
   inline fun method(name:String, returnType:Type?, throws: Array<out Class<out Throwable>>, vararg parameters:Pair<Type,String>, crossinline body:Appendable.()->Unit) {
     classBody.add {
+      val typeVars : List<SimpleTypeVar> = getTypeVars(parameters.map { it.first })
       append("  public static final ${returnType?.ref?:"void"} ${name}(")
       parameters.joinTo(this) { val (type, name) = it; "${type.ref} ${name}" }
       append(")")

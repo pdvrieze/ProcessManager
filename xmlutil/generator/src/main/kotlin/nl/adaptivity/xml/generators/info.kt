@@ -36,7 +36,7 @@ class Info {
     fun doGenerate(output: Writer, input: Iterable<File>) {
       visitClasses(input) { clazz ->
         if (XmlSerializable::class.java.isAssignableFrom(clazz)) {
-          val elementAnnot = clazz.getAnnotationsByType(Element::class.java).apply { if (size > 1) throw ProcessingException("Unexpected multiple annotations")}.firstOrNull()
+          val elementAnnot = clazz.getAnnotation(Element::class.java)
           if (elementAnnot!=null) {
             output.append("Found annotated serializable: ")
           } else {
