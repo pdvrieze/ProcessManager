@@ -91,7 +91,7 @@
     </ConfigurationWrapper>
     <method>
       <option name="Make" enabled="false" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":PE-Server:assembleExtraBootCp :ProcessEngine:war :DarwinServices:war accountmgr:war PEUserMessageHandler:draftWar darwin:jvm:war" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":PE-Server:assembleExtraBootCp :ProcessEngine:servlet:war :DarwinServices:war accountmgr:war PEUserMessageHandler:draftWar darwin:jvm:war" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>
