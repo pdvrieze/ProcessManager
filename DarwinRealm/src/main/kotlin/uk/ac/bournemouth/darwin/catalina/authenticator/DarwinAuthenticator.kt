@@ -75,7 +75,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
     private inline fun invokeNext(request: Request, response: Response) {
         next.invoke(request, response)
-        (request.getNote(DARWINCOOKIENAME) as? String)?.let { token -> response.addCookie(createAuthCookie(token))}
+        (request.getNote(DARWINCOOKIENAME) as? String)?.let { token -> response.addCookie(createAuthCookie(token, request.isSecure))}
     }
 
     @Throws(IOException::class, ServletException::class)
@@ -176,7 +176,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
             val response = request.getNote("response") as? Response
             if (response!=null) {
-                response.addCookie(createAuthCookie(authtoken))
+                response.addCookie(createAuthCookie(authtoken, request.isSecure))
             } else {
                 request.setNote(DARWINCOOKIENAME, authtoken)
             }
@@ -245,7 +245,11 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             return DarwinUserPrincipalImpl(dataSource, principal.name)
         }
 
-        private fun createAuthCookie(authtoken: String) = Cookie(DARWINCOOKIENAME, authtoken).apply { maxAge = MAXTOKENLIFETIME; path="/" }
+        private fun createAuthCookie(authtoken: String, secureCookie:Boolean) = Cookie(DARWINCOOKIENAME, authtoken).apply {
+            maxAge = MAXTOKENLIFETIME;
+            path="/"
+            secure = secureCookie
+        }
 
         private fun authenticateHelper(dataSource: DataSource, request: Request, response: HttpServletResponse): AuthResult {
             val origPrincipal: Principal? = request.userPrincipal
@@ -260,7 +264,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                     request.authType = AUTHTYPE
                     request.userPrincipal = origPrincipal.asDarwinPrincipal(dataSource)
                 }
-                if (authToken!= null) response.addCookie(createAuthCookie(authToken))
+                if (authToken!= null) response.addCookie(createAuthCookie(authToken, request.isSecure))
 
                 return AuthResult.AUTHENTICATED
             }
@@ -271,7 +275,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                     val user = userFromToken(authToken, request.remoteAddr)
                     if (user != null) {
                         request.userPrincipal = DarwinUserPrincipalImpl(dataSource, user, getUserRoles(user))
-                        response.addCookie(createAuthCookie(authToken))
+                        response.addCookie(createAuthCookie(authToken, request.isSecure))
 
                         return AuthResult.AUTHENTICATED
                     }
