@@ -24,6 +24,9 @@ def outDir = "${buildDir}/kotlin2js/main/"
 
 configurations {
     shared
+    'default' {
+        extendsFrom shared
+    }
 }
 
 dependencies {
