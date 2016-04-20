@@ -64,7 +64,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
     }
 
     val dataSource by lazy {
-        val context = ContextBindings.getClassLoader().lookup("comp/env/") as NamingContext
+        val context = ContextBindings.getClassLoader().lookup(if (container_ is Context) "comp/env/" else "") as NamingContext
 
         context.lookup(resourceName) as DataSource
     }
