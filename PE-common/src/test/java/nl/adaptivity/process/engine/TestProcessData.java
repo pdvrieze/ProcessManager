@@ -518,7 +518,7 @@ public class TestProcessData {
   private static <T extends XmlSerializable> String testRoundTrip(final String expected, final XmlReader actual, @NotNull final Class<T> target, final boolean ignoreNs) throws
           InstantiationException, IllegalAccessException, XmlException {
     assertNotNull(actual);
-    @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = target.getAnnotation(XmlDeserializer.class).value().newInstance();
+    @SuppressWarnings("unchecked") final XmlDeserializerFactory<T> factory = (XmlDeserializerFactory) target.getAnnotation(XmlDeserializer.class).value().newInstance();
     final T obj = factory.deserialize(actual);
     final CharArrayWriter caw = new CharArrayWriter();
     final XmlWriter xsw = XmlStreaming.newWriter(caw);
