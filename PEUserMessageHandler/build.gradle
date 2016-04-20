@@ -43,8 +43,8 @@ configurations {
     }
 }
 
-def genImageDir = "$buildDir/generated-images"
-def genResourceDir = "$buildDir/genResources"
+def genImageDir = "$projectDir/gen/generated-images"
+def genResourceDir = "$projectDir/gen/genResources"
 
 sourceSets {
     api {
@@ -105,6 +105,15 @@ task generateSplitPanel(type: PngGenerator) {
 
 processResources.dependsOn(generateSplitPanel)
 
+task generateAll {
+    group 'codegen'
+    dependsOn generateSplitPanel
+    dependsOn project.tasks['generateArrow']
+    dependsOn project.tasks['generateDiagramBackground']
+    dependsOn project.tasks['generateEndNode']
+    dependsOn project.tasks['generateStartNode']
+}
+
 task tomcatRun(dependsOn: ["war"]) {
     group = 'web application'
     description = "Do everything needed to be able to run as embedded tomcat"
@@ -124,11 +133,7 @@ artifacts {
 }
 
 draftWar {
-    dependsOn generateSplitPanel
-    dependsOn project.tasks['generateArrow']
-    dependsOn project.tasks['generateDiagramBackground']
-    dependsOn project.tasks['generateEndNode']
-    dependsOn project.tasks['generateStartNode']
+//    dependsOn generateAll
     classpath sourceSets.api.output
     from fileTree(genImageDir)
 //    dependsOn(project.task('apiCompile'))
@@ -139,11 +144,7 @@ draftWar {
 
 
 war {
-    dependsOn generateSplitPanel
-    dependsOn project.tasks['generateArrow']
-    dependsOn project.tasks['generateDiagramBackground']
-    dependsOn project.tasks['generateEndNode']
-    dependsOn project.tasks['generateStartNode']
+//    dependsOn generateAll
     classpath sourceSets.api.output
     from fileTree(genImageDir)
 //    dependsOn(project.task('apiCompile'))
