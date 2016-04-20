@@ -47,8 +47,8 @@ dependencies {
 
     compile project(':ProcessEngine:core')
 
-    providedCompile project(path: ':ProcessEngine:core', configuration: "compileOnly")
-    providedCompile "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    compileOnly project(path: ':ProcessEngine:core', configuration: "compileOnly")
+    compileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
 
     wsDoc project(":PE-common:endpointDoclet")
 
@@ -74,7 +74,7 @@ artifacts {
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-webAppDirName = 'src/main/webapp'
+//webAppDirName = 'src/main/webapp'
 
 
 task wsDoc(type:Javadoc) {
