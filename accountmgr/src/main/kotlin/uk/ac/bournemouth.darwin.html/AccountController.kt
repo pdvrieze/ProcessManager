@@ -402,7 +402,7 @@ class AccountController : HttpServlet() {
 
     private fun loginScreen(req: HttpServletRequest, resp: HttpServletResponse, errorMsg:String? = null) {
         resp.darwinResponse(req, "Please log in") {
-            this.darwinDialog("Log in") {
+            this.darwinDialog("Log in", positiveButton = null) {
                 if (errorMsg!=null) {
                     div("errorMsg") { +errorMsg }
                 }
