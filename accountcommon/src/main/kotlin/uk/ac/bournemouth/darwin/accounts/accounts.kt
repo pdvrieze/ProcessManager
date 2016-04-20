@@ -287,6 +287,8 @@ inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() 
 
 inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
   WebAuthDB.connect(dataSource) {
-    return AccountDb(this, DBConnection(__getConnection())).block()
+    val result = AccountDb(this, DBConnection(__getConnection())).block()
+    commit()
+    return result
   }
 }
