@@ -120,14 +120,14 @@ fun DIV.loginPanelContent(context: ServiceContext, username: String?) {
 
 fun <T, C: TagConsumer<out T>> C.loginPanelContent(context: ServiceContext, username: String?) {
   if (username == null) {
-    a(href = context.accountMgrPath + "/login") {
+    a(href = context.accountMgrPath + "login") {
       id = "logout"
       +"login"
     }
   } else {
-    a(href = context.accountMgrPath + "/myaccount") { id = "username"; +username }
+    a(href = context.accountMgrPath + "myaccount") { id = "username"; +username }
     span("hide")
-    a(href = context.accountMgrPath + "/logout") { id = "logout"; +"logout" }
+    a(href = context.accountMgrPath + "logout") { id = "logout"; +"logout" }
   }
 }
 
@@ -137,8 +137,8 @@ interface ServiceContext {
   val cssPath:String
   val jsPath:String
 
-  fun cssRef(filename: String): String = "${cssPath}/${filename}"
-  fun jsRef(filename: String): String = "${jsPath}/${filename}"
+  fun cssRef(filename: String): String = "${cssPath}${filename}"
+  fun jsRef(filename: String): String = "${jsPath}${filename}"
 }
 
 
@@ -151,7 +151,7 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
     }
     if (errorMsg!=null) {
     }
-    form(action = "${context.accountMgrPath}/login", method = FormMethod.post, encType = FormEncType.applicationXWwwFormUrlEncoded) {
+    form(action = "${context.accountMgrPath}login", method = FormMethod.post, encType = FormEncType.applicationXWwwFormUrlEncoded) {
       acceptCharset="utf8"
       if(redirect!=null) {
         input(name=FIELD_REDIRECT, type = InputType.hidden) { value = redirect }
@@ -184,7 +184,7 @@ fun <T, C : ContextTagConsumer<out T>> C.loginDialog(context: ServiceContext, er
         }
       } // table
       div { id="forgotpasswd"
-        a(href="/accounts/resetpasswd") { +"Forgot password" }
+        a(href="${context.accountMgrPath}resetpasswd") { +"Forgot password" }
       }
     }
   }
