@@ -16,11 +16,15 @@
 
 package uk.ac.bournemouth.darwin.catalina.authenticator
 
+import org.apache.catalina.Authenticator
+import org.apache.catalina.Container
+import org.apache.catalina.Context
 import org.apache.catalina.Lifecycle
 import org.apache.catalina.authenticator.AuthenticatorBase
 import org.apache.catalina.connector.Request
 import org.apache.catalina.connector.Response
 import org.apache.catalina.deploy.LoginConfig
+import org.apache.catalina.valves.ValveBase
 import org.apache.juli.logging.LogFactory
 import org.apache.naming.ContextBindings
 import uk.ac.bournemouth.darwin.accounts.DARWINCOOKIENAME
@@ -32,7 +36,7 @@ import uk.ac.bournemouth.darwin.catalina.realm.DarwinUserPrincipalImpl
 import java.io.IOException
 import java.net.URLEncoder
 import java.security.Principal
-import javax.naming.Context
+import javax.naming.Context as NamingContext
 import javax.naming.NamingException
 import javax.servlet.ServletException
 import javax.servlet.http.Cookie
@@ -40,7 +44,7 @@ import javax.servlet.http.HttpServletResponse
 import javax.sql.DataSource
 
 
-class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
+class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
     private enum class AuthResult {
         AUTHENTICATED,
@@ -52,8 +56,15 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
 
     var resourceName:String = DEFAULTDBRESOURCE
 
+    private var container_:Container? = null
+
+    override fun getContainer() = container_
+    override fun setContainer(container:Container?) {
+        container_ = container
+    }
+
     val dataSource by lazy {
-        val context: Context = /*if (globalResource) container. else */ContextBindings.getClassLoader().lookup("comp/env/") as Context
+        val context = ContextBindings.getClassLoader().lookup("comp/env/") as NamingContext
 
         context.lookup(resourceName) as DataSource
     }
@@ -69,15 +80,20 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
 
     @Throws(IOException::class, ServletException::class)
     override fun invoke(request: Request, response: Response) {
+        val container = container_!!
 
         val authresult = lazy { authenticateHelper(dataSource, request, response) }
         request.setNote("response", response)
-        if (context.preemptiveAuthentication) { authresult.value }
+        run {
+            if (container is Context && container.preemptiveAuthentication) { authresult.value }
+            // If the context wants us to do preemptive authentication, make sure to get the authentication result.
+            // That has side-effects that will register the principal.
+        }
 
-        val realm = context.realm
+        val realm = container.realm
         if (realm != null) {
             log.trace("This context has an authentication realm, enforce the constraints")
-            val constraints = realm.findSecurityConstraints(request, context)
+            val constraints = (container as? Context)?.let { realm.findSecurityConstraints(request, it) }
             if (constraints == null) {
                 log.trace("Realm has no constraints, calling next in chain")
                 // Unconstrained
@@ -116,7 +132,7 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
 
             if (authRequired) {
                 when (authresult.value) {
-                    AuthResult.AUTHENTICATED -> if (realm.hasResourcePermission(request, response, constraints, context)) {
+                    AuthResult.AUTHENTICATED -> if (container is Context && realm.hasResourcePermission(request, response, constraints, container)) {
                             invokeNext(request, response)
                         } else {
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, "User " + request.userPrincipal + " does not have permission for " + realm.info + " class:" + realm.javaClass.name)
@@ -137,7 +153,7 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
     }
 
     private fun requestLogin(request: Request, response: Response) {
-        val loginPage = context.loginConfig.loginPage ?: this.loginPage
+        val loginPage = this.loginPage
         val decodedRequestURI: String? = request.decodedRequestURI
         if (loginPage != null && decodedRequestURI!=null) {
             response.sendRedirect("${loginPage}?redirect=${URLEncoder.encode(decodedRequestURI, "utf-8")}")
@@ -146,15 +162,14 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
         }
     }
 
-    override fun getAuthMethod() = AUTHTYPE
+    val authMethod: String get() = AUTHTYPE
 
     /**
      * Overridden version of login that does not use register. We don't need tomcat session cookies, and we certainly
      * don't carry passwords around.
      */
     override fun login(userName: String, password: String, request: Request) {
-        val principal = doLogin(request, userName, password)
-        //        val principal = realm.authenticate(userName, password) ?: throw ServletException("Invalid credentials")
+        val principal = container_!!.realm.authenticate(userName, password) ?: throw ServletException("Invalid credentials")
 
         accountDb(dataSource) {
             val authtoken = this.createAuthtoken(userName, request.remoteAddr)
@@ -169,7 +184,7 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
 
         if (log.isDebugEnabled) {
             val name = if (principal == null) "none" else principal.name
-            log.debug("Authenticated '$name' with type '$authMethod'")
+            log.debug("Authenticated '$name' with type '${AUTHTYPE}'")
         }
 
         // Set the user into the request
@@ -192,8 +207,7 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
         request.userPrincipal = null
     }
 
-    @Throws(IOException::class)
-    override fun authenticate(request: Request, response: HttpServletResponse, config: LoginConfig): Boolean {
+    override fun authenticate(request: Request, response: HttpServletResponse): Boolean {
         val authResult = authenticateHelper(dataSource, request, response)
         when (authResult) {
             AuthResult.AUTHENTICATED -> return true
@@ -201,11 +215,16 @@ class DarwinAuthenticator : AuthenticatorBase(), Lifecycle {
         }
     }
 
+    @Throws(IOException::class)
+    override fun authenticate(request: Request, response: HttpServletResponse, config: LoginConfig): Boolean {
+        return authenticate(request, response)
+    }
+
     companion object {
 
         private val AUTHTYPE = "DARWIN"
 
-        val DEFAULTDBRESOURCE = "webauthAdm"
+        val DEFAULTDBRESOURCE = "webauthadm"
 
         private val log = LogFactory.getLog(DarwinAuthenticator::class.java)
 
