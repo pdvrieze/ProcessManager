@@ -20,6 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.editor.android.BuildConfig;
+import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
@@ -263,13 +264,15 @@ public class AndroidXmlWriter extends AbstractXmlWriter {
     return mNamespaceHolder.getNamespaceContext();
   }
 
+  @org.jetbrains.annotations.Nullable
   @Override
-  public CharSequence getNamespaceUri(final CharSequence prefix) throws XmlException {
+  public CharSequence getNamespaceUri(@NotNull final CharSequence prefix) {
     return mNamespaceHolder.getNamespaceUri(prefix);
   }
 
+  @org.jetbrains.annotations.Nullable
   @Override
-  public CharSequence getPrefix(final CharSequence namespaceUri) throws XmlException {
+  public CharSequence getPrefix(@org.jetbrains.annotations.Nullable final CharSequence namespaceUri) {
     return mNamespaceHolder.getPrefix(namespaceUri);
   }
 

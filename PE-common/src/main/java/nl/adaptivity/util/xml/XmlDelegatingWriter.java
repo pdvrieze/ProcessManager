@@ -113,7 +113,8 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     }
   }
 
-  public CharSequence getNamespaceUri(final CharSequence prefix) throws XmlException {
+  @Nullable
+  public CharSequence getNamespaceUri(@NotNull final CharSequence prefix) throws XmlException {
     return mDelegate.getNamespaceUri(prefix);
   }
 
@@ -121,7 +122,8 @@ public abstract class XmlDelegatingWriter implements XmlWriter{
     mDelegate.endDocument();
   }
 
-  public CharSequence getPrefix(final CharSequence namespaceUri) throws XmlException {
+  @Nullable
+  public CharSequence getPrefix(@Nullable final CharSequence namespaceUri) throws XmlException {
     return mDelegate.getPrefix(namespaceUri);
   }
 }
