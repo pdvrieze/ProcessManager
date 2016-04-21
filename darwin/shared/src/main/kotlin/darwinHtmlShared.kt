@@ -18,6 +18,7 @@ package uk.ac.bournemouth.darwin.html.shared
 
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
+import org.w3c.dom.events.Event
 
 
 const val FIELD_USERNAME = "username"
@@ -52,9 +53,25 @@ class XMLBody(initialAttributes: Map<String, String>, override val consumer: Tag
 //inline fun ContextHtmlInlineTag.withContext(context:ServiceContext) = ContextHtmlInlineTag(context, this)
 
 
-class ContextTagConsumer<out T>(val context:ServiceContext, private val delegate: TagConsumer<out T>): TagConsumer<T> by delegate {
+class ContextTagConsumer<out T>(val context:ServiceContext, val delegate: TagConsumer<out T>): TagConsumer<T> {
   @Suppress("NOTHING_TO_INLINE")
   inline final operator fun CharSequence.unaryPlus() = onTagContent(this)
+
+  override fun finalize() = delegate.finalize()
+
+  override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) = delegate.onTagAttributeChange(tag, attribute, value)
+
+  override fun onTagContent(content: CharSequence) = delegate.onTagContent(content)
+
+  override fun onTagContentEntity(entity: Entities) = delegate.onTagContentEntity(entity)
+
+  override fun onTagContentUnsafe(block: Unsafe.() -> Unit) = delegate.onTagContentUnsafe(block)
+
+  override fun onTagEnd(tag: Tag) = delegate.onTagEnd(tag)
+
+  override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) = delegate.onTagEvent(tag, event, value)
+
+  override fun onTagStart(tag: Tag) = delegate.onTagStart(tag)
 }
 
 @Suppress("NOTHING_TO_INLINE")
