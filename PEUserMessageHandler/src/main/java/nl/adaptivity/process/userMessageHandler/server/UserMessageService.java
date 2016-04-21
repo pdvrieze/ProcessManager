@@ -121,7 +121,7 @@ public class UserMessageService<T extends Transaction> implements CompletionList
     return getTasks().put(task) >= 0;
   }
 
-  public Collection<XmlTask> getPendingTasks(T transaction) {
+  public Collection<XmlTask> getPendingTasks(T transaction, final Principal user) {
     final Iterable<XmlTask> tasks = getTasks().iterable(transaction);
     ArrayList<XmlTask> result = new ArrayList<>();
     for(XmlTask task:tasks) {

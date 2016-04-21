@@ -43,6 +43,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
+/**
+ * The external interface to the user task management system. This is for interacting with tasks, not for the process
+ * engine to use. The process engine uses the {@link InternalEndpoint internal endpoint}.
+ *
+ * Note that task states are ordered and ultimately determined by the process engine. Task states may not always be
+ * downgraded.
+ */
 @XmlSeeAlso(XmlTask.class)
 public class ExternalEndpoint implements GenericEndpoint {
 
@@ -97,24 +104,57 @@ public class ExternalEndpoint implements GenericEndpoint {
     MessagingRegistry.getMessenger().registerEndpoint(this);
   }
 
+  /**
+   * Get a list of pending tasks.
+   * @return All tasks available
+   * @throws SQLException
+   * @deprecated The version that takes the user should be used.
+   */
+  @Deprecated
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
   public Collection<XmlTask> getPendingTasks() throws SQLException {
-    return getPendingTasks(mService);
+    return getPendingTasks(mService, null);
+  }
+
+
+  /**
+   * Get a list of pending tasks.
+   * @param user The user whose tasks to display.
+   * @return All tasks available
+   * @throws SQLException
+   */
+  @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
+  @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
+  public Collection<XmlTask> getPendingTasks(Principal user) throws SQLException{
+    return getPendingTasks(mService, user);
   }
 
   /**
    * Helper method that is generic that can record the "right" transaction type.
    */
-  private static <T extends Transaction> Collection<XmlTask> getPendingTasks(UserMessageService<T> service) throws SQLException {
+  private static <T extends Transaction> Collection<XmlTask> getPendingTasks(UserMessageService<T> service, Principal user) throws SQLException {
     try (T transaction = service.newTransaction()) {
-      return transaction.commit(service.getPendingTasks(transaction));
+      return transaction.commit(service.getPendingTasks(transaction, user));
     } catch (Exception e) {
       Logger.getAnonymousLogger().log(Level.WARNING, "Error retrieving tasks", e);
       throw e;
     }
   }
 
+  /**
+   * Update a task. This takes an xml task whose values will be used to update this one. Task items get
+   * overwritten with their new values, as well as the state. Missing items in the update will be ignored (the old value
+   * used. The item state is a draft state, not the final version that the process engine gets until it has a
+   * completed state.
+   *
+   * @param handle The handle/id of the task
+   * @param partialNewTask The partial task to use for updating.
+   * @param user The user whose task state to update.
+   * @return The Updated, complete, task.
+   * @throws SQLException When something went wrong with the query.
+   * @throws FileNotFoundException When the task handle is not valid. This will be translated into a 404 error.
+   */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}")
   public XmlTask updateTask(
       @RestParam(name="handle", type=ParamType.VAR) final String handle,
@@ -136,21 +176,47 @@ public class ExternalEndpoint implements GenericEndpoint {
     }
   }
 
+  /**
+   * Retrieve the current pending task for the given handle.
+   * @param handle The task handle (as recorded in the task handler, not the process engine handle).
+   * @param user The user whose task to retrieve.
+   * @return The task.
+   */
   @RestMethod(method = HttpMethod.GET, path = "/pendingTasks/${handle}")
   public XmlTask getPendingTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.getPendingTask(Long.parseLong(handle), user);
   }
 
+  /**
+   * Mark a task as started.
+   * @param handle The task handle.
+   * @param user The owner.
+   * @return The new state of the task after completion of the request.
+   */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Started" })
   public NodeInstanceState startTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.startTask(Long.parseLong(handle), user);
   }
 
+  /**
+   * Mark a task as Taken.
+   * @param handle The task handle.
+   * @param user The owner.
+   * @return The new state of the task after completion of the request.
+   */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Taken" })
   public NodeInstanceState takeTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.takeTask(Long.parseLong(handle), user);
   }
 
+
+  /**
+   * Mark a task as Finished. This will allow the process engine to take the data, and transition it to completed once
+   * it has fully handled the finishing of the task.
+   * @param handle The task handle.
+   * @param user The owner.
+   * @return The new state of the task after completion of the request.
+   */
   @RestMethod(method = HttpMethod.POST, path = "/pendingTasks/${handle}", post = { "state=Finished" })
   public NodeInstanceState finishTask(@RestParam(name = "handle", type = ParamType.VAR) final String handle, @RestParam(type = ParamType.PRINCIPAL) final Principal user) {
     return mService.finishTask(Long.parseLong(handle), user);

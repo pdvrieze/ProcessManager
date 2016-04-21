@@ -312,6 +312,7 @@ public final class StringUtil {
 
   /**
    * @deprecated In favour of {@link #isEqual(CharSequence, CharSequence)}.
+   * @return <code>true</code> if eq<code>false</code> if not.
    */
   @Deprecated
   public static boolean sequencesEqual(final CharSequence pSeq1, final CharSequence pSeq2) {
@@ -321,7 +322,7 @@ public final class StringUtil {
   /**
    * Compare the two sequences for equality. This can return <code>true</code>
    * for objects of different classes as long as the sequences are equal.
-   * Besides allowing arbitrary CharSequences, this also differs from {@Link
+   * Besides allowing arbitrary CharSequences, this also differs from {@link
    *  String#equals(Object)} in that either value may be <code>null</code>
    * and it will return <code>true</code> when both sequences are
    * <code>null</code>.
