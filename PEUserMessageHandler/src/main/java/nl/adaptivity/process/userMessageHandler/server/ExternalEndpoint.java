@@ -112,7 +112,7 @@ public class ExternalEndpoint implements GenericEndpoint {
    */
   @Deprecated
   @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
-  @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
+  @RestMethod(method = HttpMethod.GET, path = "/allPendingTasks")
   public Collection<XmlTask> getPendingTasks() throws SQLException {
     return getPendingTasks(mService, null);
   }
