@@ -160,7 +160,7 @@ public class DiagramNode<T extends Positioned> implements Positioned {
 
   @Override
   public boolean hasPos() {
-    return Double.isFinite(mX) && Double.isFinite(mY);
+    return !(Double.isInfinite(mX) || Double.isInfinite(mY));
   }
 
   public List<DiagramNode<T>> getLeftNodes() {
