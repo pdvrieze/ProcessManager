@@ -50,6 +50,8 @@
               driverClassName="com.mysql.jdbc.Driver"
               factory="org.apache.naming.factory.BeanFactory"
               password="QfWEsNjJeM"
+              leakDetectionThreshold="5000"
+              autoCommit="false"
               type="com.zaxxer.hikari.HikariDataSource"
               jdbcUrl="jdbc:mysql://localhost/webauth"
               username="webauthadm"/>

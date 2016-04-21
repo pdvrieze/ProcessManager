@@ -30,10 +30,11 @@
     <!--
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
-    <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator" loginPage="/accounts2/login" resourceName="jdbc/webauthadm"/>
 
+    <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator" loginPage="/accounts/login" resourceName="jdbc/webauthadm"/>
+<!--
     <ResourceLink name="jdbc/webauth" global="jdbc/webauth" type="javax.sql.DataSource" />
-
+-->
     <Resource name="jdbc/webauthadm"
               auth="Container"
               driverClassName="com.mysql.jdbc.Driver"

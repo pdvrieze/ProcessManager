@@ -26,10 +26,10 @@
               jdbcUrl="jdbc:mysql://localhost/webauth"
               username="webauthadm"
               password="QfWEsNjJeM"
-              connectionTimeout="10000"
-              idleTimeout="180000"
-              maxLifetime="180000"
-              leakDetectionThreshold="10000"
+              leakDetectionThreshold="5000"
               registerMbeans="true"
               autoCommit="false"/>
+    <!--connectionTimeout="10000"-->
+    <!--idleTimeout="180000"-->
+    <!--maxLifetime="180000"-->
 </Context>
