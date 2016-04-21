@@ -82,7 +82,7 @@ task wsDoc(type:Javadoc) {
     dependsOn configurations.compile
     group = "documentation"
     classpath = sourceSets.main.compileClasspath
-    source = sourceSets.main.allJava
+    source = files(sourceSets.main.allJava, project(":PE-common").sourceSets.main.allJava)
     destinationDir = file("${buildDir}/docs/wsDoc")
     options.docletpath = configurations.wsDoc.files.asType(List)
     options.doclet = "nl.adaptivity.ws.doclet.WsDoclet"
