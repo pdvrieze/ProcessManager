@@ -103,5 +103,5 @@ interface XmlWriter {
   fun getNamespaceUri(prefix: CharSequence): CharSequence
 
   @Throws(XmlException::class)
-  fun getPrefix(namespaceUri: CharSequence): CharSequence
+  fun getPrefix(namespaceUri: CharSequence?): CharSequence
 }
