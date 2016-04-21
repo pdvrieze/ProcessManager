@@ -41,6 +41,9 @@ configurations {
     main {
         extendsFrom apiCompile
     }
+    wsDoc {
+        description "Dependencies needed to run the custom web service doclet."
+    }
 }
 
 def genImageDir = "$projectDir/gen/generated-images"
@@ -184,9 +187,24 @@ dependencies {
     testCompile project(path: ':PE-common', configuration:'compileOnly')
     testRuntime 'com.fasterxml.woodstox:woodstox-core:5.0.1'
 
+    wsDoc project(":PE-common:endpointDoclet")
+
 }
 
 test {
     useTestNG()
 }
 
+
+task wsDoc(type:Javadoc) {
+    dependsOn configurations.wsDoc
+    dependsOn configurations.compile
+    group = "documentation"
+    classpath = sourceSets.main.compileClasspath.filter{f -> !f.path.contains("gwt-user")}
+    source = sourceSets.main.allJava
+    destinationDir = file("${buildDir}/docs/wsDoc")
+    options.docletpath = configurations.wsDoc.files.asType(List)
+    options.doclet = "nl.adaptivity.ws.doclet.WsDoclet"
+}
+
+assemble.dependsOn tasks.wsDoc
