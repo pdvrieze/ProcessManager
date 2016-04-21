@@ -100,8 +100,8 @@ interface XmlWriter {
   val namespaceContext: NamespaceContext
 
   @Throws(XmlException::class)
-  fun getNamespaceUri(prefix: CharSequence): CharSequence
+  fun getNamespaceUri(prefix: CharSequence): CharSequence?
 
   @Throws(XmlException::class)
-  fun getPrefix(namespaceUri: CharSequence?): CharSequence
+  fun getPrefix(namespaceUri: CharSequence?): CharSequence?
 }
