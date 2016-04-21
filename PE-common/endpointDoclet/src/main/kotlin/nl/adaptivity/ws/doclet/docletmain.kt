@@ -28,6 +28,8 @@ import javax.jws.WebMethod
  * Created by pdvrieze on 10/04/16.
  */
 
+internal const val WORDWRAP:Int = 80
+
 data class Options(var destDir: File?=File("wsDoc"))
 
 class WsDoclet {
@@ -37,13 +39,17 @@ class WsDoclet {
       val genericEndpoint = root.classNamed(GenericEndpoint::class.java.name)
       val options = readOptions(root.options())
 
+      root.classes().toList().forEach { root.printNotice("Available class: ${it.name()}")}
+      val paramType = root.classes().asSequence().firstOrNull { classDoc -> classDoc.name()?.contains("ParamType") ?:false }
+      root.printNotice("ParamType is: $paramType")
+
       val targetClasses=root.classes().filter { classDoc -> classDoc.subclassOf(genericEndpoint) }.toList()
 
       targetClasses.forEach { root.printNotice("Found endpoint ${it.name()}") }
 
       targetClasses.forEach { processSoap(options, it, root) }
 
-      targetClasses.forEach { processRest(options, it, root) }
+      targetClasses.forEach { processRest(options, it, root, paramType) }
 
 
       return true
@@ -84,19 +90,31 @@ data class RestMethodInfo(val method:MethodDoc, val annotation:AnnotationDesc) {
   val httpMethod: String
     get () = annotation["method"]?.toString()?.substringAfter('.') ?: "NULL"
 
-  val query: Array<String>?
-    get () = annotation["query"]?.let { it as Array<String> }
+  val query: Array<String>? by lazy {
+    annotation["query"]?.let { (it as Array<AnnotationValue>).map { it.value() as String }.toTypedArray() }
+  }
 
-  val post: Array<String>?
-    get () = annotation["post"]?.let { it as Array<String> }
+  val post: Array<String>? by lazy {
+    annotation["post"]?.let { (it as Array<AnnotationValue>).map { it.value() as String }.toTypedArray() }
+  }
 
-  val get: Array<String>?
-    get () = annotation["get"]?.let { it as Array<String> }
+  val get: Array<String>? by lazy {
+    annotation["get"]?.let { (it as Array<AnnotationValue>).map { it.value() as String }.toTypedArray() }
+  }
 
   val contentType: String
     get () = annotation["get"]?.toString() ?: ""
 
   fun parameters(): Sequence<RestParamInfo> = method.parameters().asSequence().map { RestParamInfo(it, method.paramTag(it)) }
+
+  val pathWithQueries: CharSequence
+    get () {
+      val allParams = mutableSetOf<String>().apply {
+        query?.let{addAll(it)}
+        get?.let{addAll(it)}
+      }.toList().sorted()
+      return allParams.joinToString("&","${path}?") { "$it" }
+    }
 }
 
 fun ExecutableMemberDoc.paramTag(param: Parameter): ParamTag? =
@@ -187,7 +205,7 @@ private fun processSoap(options: Options, classDoc: ClassDoc, root: RootDoc) {
 
 }
 
-private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc) {
+private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc, paramType:ClassDoc?) {
   fun restMethodAnot(method:MethodDoc) = method.annotations().find { a->a.annotationType().qualifiedTypeName()== RestMethod::class.java.canonicalName}
 
   fun isRestMethod(method:MethodDoc):Boolean = restMethodAnot(method)!=null
@@ -203,6 +221,10 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc) {
             .filterNotNull().toList()
 
       heading1("REST methods for ${classDoc.qualifiedTypeName()}")
+      if (!classDoc.commentText().isNullOrBlank()) {
+        appendln()
+        text(classDoc.commentText())
+      }
       appendln()
       table("Method", "HTTP", "Path", "Description") {
         restMethods.forEach { it ->
@@ -211,7 +233,7 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc) {
           row {
             col { link("#${it.anchor}", it.method.name()) }
             col { text(it.httpMethod) }
-            col { text(it.path) }
+            col { text(it.pathWithQueries) }
             col { text(method.commentText().let{it -> it.substring(0,it.indexOf('.')+1)}) }
           }
         }
@@ -221,10 +243,31 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc) {
       restMethods.forEach { m ->
         appendln()
         heading2("<a name=\"${m.anchor}\">${m.method.name()}</a>")
-        m.method.commentText().wordWrap(80).forEach{appendln(it)}
+        text(m.method.commentText())
 
         appendln()
         appendln("**Path**: ${m.path}")
+        if (((m.query?.size ?:0)+(m.post?.size ?:0)+(m.get?.size ?:0))>0) {
+          appendln()
+          heading3("Mandatory parameters")
+          text("These will determine the actual method invoked, more specific over less specific.")
+          appendln()
+          table("Kind", "content", "Explanation") {
+            m.get?.forEach {
+              row{ col { text("GET") }; col { text(it) }; col { text("Must be set on the GET url") } }
+            }
+            m.post?.forEach {
+              row{ col { text("POST") }; col { text(it) }; col { text("Must be set in the POST body") } }
+            }
+            m.query?.forEach {
+              row{ col { text("query") }; col { text(it) }; col { text("Must be set on the GET url or POST body") } }
+            }
+          }
+
+        }
+        appendln()
+        heading3("Actual parameters")
+        text("Parameters that will be translated to actual changes in method invocation.")
         appendln()
         table("Parameter", "Param type", "Data Type", "Description") {
           m.parameters().forEach { param ->
@@ -237,7 +280,7 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc) {
             }
           }
           row {
-            col { text("return") }
+            col("return")
             col { m.contentType }
             col { text(m.method.returnType().typeName()) }
             col { m.method.tags("return").firstOrNull()?.let { text(it.text()) } }
@@ -246,6 +289,21 @@ private fun processRest(options: Options, classDoc: ClassDoc, root: RootDoc) {
         }
       }
 
+      val paramTypes = paramType?.fields()?.filter { it.isStatic && it.isFinal }
+      if (paramTypes!=null) {
+        appendln()
+        heading2("Legend")
+        text("There are various parameter types available ${paramType!!.name()}:")
+        appendln() // new line to trigger table
+        table("Type", "Description") {
+          paramTypes.forEach {
+            row {
+              col(it.name())
+              col(it.commentText())
+            }
+          }
+        }
+      }
 
     }
 

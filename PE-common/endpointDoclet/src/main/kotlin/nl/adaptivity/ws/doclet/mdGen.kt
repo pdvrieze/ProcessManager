@@ -27,6 +27,10 @@ interface Table {
   fun row(block: Row.()->Unit)
 }
 
+inline fun Row.col(c: CharSequence) {
+  col {text(c)}
+}
+
 interface Row {
   /** Create a simple column */
   fun col(block: Cell.()->Unit)
@@ -47,6 +51,7 @@ interface FlowContent {
 interface OutputGenerator: FlowContent {
   fun heading1(s:CharSequence)
   fun heading2(s:CharSequence)
+  fun heading3(s:CharSequence)
   fun appendln(s:CharSequence)
   fun appendln()
   fun table(vararg columns:String, block: Table.()->Unit)
@@ -243,11 +248,26 @@ private class StripNewLines(val orig:CharSequence):CharSequence {
   }
 }
 
-fun CharSequence.normalize():CharSequence = StringBuilder(this.length).apply {
-  this@normalize.forEach { c ->
+fun CharSequence?.normalize():CharSequence = StringBuilder(this?.length?:0).apply {
+  this@normalize?.forEach { c ->
     when(c) {
       in '\u0000'..'\u001f', ' ', '\u00a0' -> if (length>0 && last()!=' ') append(' ')
       else -> append(c)
+    }
+  }
+}
+
+fun CharSequence.tidy():CharSequence = StringBuilder(this.length).apply {
+  var addNewLines:Int=0
+  this@tidy.forEach { c ->
+    when(c) {
+      '\u000a', '\u000d' -> addNewLines ++
+      in '\u0000'..'\u0009', '\u000b', '\u000c', in '\u000e'..'\u001f', ' ', '\u00a0' -> if (length>0 && last()!=' ') append(' ')
+      else -> {
+        if (addNewLines>1){ appendln(); appendln() };
+        addNewLines=0;
+        append(c)
+      }
     }
   }
 }
@@ -263,10 +283,11 @@ private fun Appendable._link(target:CharSequence, label: CharSequence?) {
 }
 
 private class MdGen(val out: Appendable): OutputGenerator {
-  override fun heading1(s: CharSequence) { out.append("# $s") }
-  override fun heading2(s: CharSequence) { out.append("## $s") }
+  override fun heading1(s: CharSequence) { out.appendln("# $s") }
+  override fun heading2(s: CharSequence) { out.appendln("## $s") }
+  override fun heading3(s: CharSequence) { out.appendln("### $s") }
 
-  override fun text(s: CharSequence) { out.append(s) }
+  override fun text(s: CharSequence) { out.appendln(s.tidy().wordWrap(WORDWRAP)) }
 
   override fun appendln(s: CharSequence) { out.appendln(s) }
 
@@ -279,3 +300,11 @@ private class MdGen(val out: Appendable): OutputGenerator {
   }
 }
 
+/**
+ * Append each of the charSequences in the parameters as a new line.
+ *
+ * @param seq The sequence of items to append.
+ */
+fun Appendable.appendln(seq: Sequence<CharSequence>) {
+  seq.forEach { appendln(it) }
+}
