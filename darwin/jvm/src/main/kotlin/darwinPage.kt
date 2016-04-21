@@ -91,7 +91,7 @@ fun HttpServletResponse.darwinResponse(request: HttpServletRequest, windowTitle:
         }
         if (includeLogin) {
           // A mini form that we use to get username/password out of the account manager
-          form(action = "${context.accountMgrPath}/login", method = FormMethod.post) {
+          form(action = "${context.accountMgrPath}login", method = FormMethod.post) {
             id = "xloginform"; style = "display:none";
             input(type = InputType.text, name = "username")
             input(type = InputType.password, name = "password")
