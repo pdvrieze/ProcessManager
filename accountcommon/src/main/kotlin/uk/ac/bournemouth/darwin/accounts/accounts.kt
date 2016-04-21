@@ -156,8 +156,14 @@ open class OldAccountDb constructor(private val connection: DBConnection) {
 
 }
 
-open class AccountDb(private val connection:DBConnection, connectionHelper: DBConnection):
-      OldAccountDb(connectionHelper) {
+open class AccountDb(private val connection:DBConnection): OldAccountDb(connection) {
+
+  companion object {
+    @Volatile
+    private var lastTokenClean:Long = 0
+
+
+  }
 
   private val u: WebAuthDB.users get() = WebAuthDB.users
   private val c: WebAuthDB.challenges get() = WebAuthDB.challenges
@@ -249,7 +255,10 @@ open class AccountDb(private val connection:DBConnection, connectionHelper: DBCo
   }
 
   fun cleanAuthTokens() {
-    WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (now - MAXTOKENLIFETIME) }.execute(connection)
+    if (now-lastTokenClean>60000) {
+      WebAuthDB.DELETE_FROM(t).WHERE { t.epoch lt (now - MAXTOKENLIFETIME) }.execute(connection)
+      lastTokenClean=now
+    }
   }
 
   fun cleanChallenges() {
@@ -287,8 +296,6 @@ inline fun <R> accountDb(resourceName: String = DBRESOURCE, block: AccountDb.() 
 
 inline fun <R> accountDb(dataSource: DataSource, block: AccountDb.() -> R): R {
   WebAuthDB.connect(dataSource) {
-    val result = AccountDb(this, DBConnection(__getConnection())).block()
-    commit()
-    return result
+    return AccountDb(this).block()
   }
 }
