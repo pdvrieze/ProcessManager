@@ -48,7 +48,8 @@ class JSServiceContext: ServiceContext {
 }
 
 class LoginDialog private constructor (val element: HTMLElement) {
-  constructor(context:ServiceContext, errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: (HTMLElement) -> Unit, visitCancel: ((HTMLElement) -> Unit)?): this(document.create.withContext(context).loginDialog(context=context, errorMsg=errorMsg, username=username, password =password, redirect=redirect, cancelEnabled = visitCancel!=null)) {
+  constructor(context:ServiceContext, errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: (HTMLElement) -> Unit, visitCancel: ((HTMLElement) -> Unit)?):
+    this(document.create.withContext(context).loginDialog(context=context, errorMsg=errorMsg, username=username, password =password, redirect=redirect, cancelEnabled = visitCancel!=null)) {
     element.visitDescendants { descendant ->
       if (descendant is HTMLElement) {
         if (descendant.hasClass("dialogconfirm")) visitConfirm(descendant)
