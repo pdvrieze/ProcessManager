@@ -53,25 +53,25 @@ class XMLBody(initialAttributes: Map<String, String>, override val consumer: Tag
 //inline fun ContextHtmlInlineTag.withContext(context:ServiceContext) = ContextHtmlInlineTag(context, this)
 
 
-class ContextTagConsumer<out T>(val context:ServiceContext, val delegate: TagConsumer<out T>): TagConsumer<T> {
+class ContextTagConsumer<out T>(val context:ServiceContext, val myDelegate: TagConsumer<out T>): TagConsumer<T> {
   @Suppress("NOTHING_TO_INLINE")
   inline final operator fun CharSequence.unaryPlus() = onTagContent(this)
 
-  override fun finalize() = delegate.finalize()
+  override fun finalize() = myDelegate.finalize()
 
-  override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) = delegate.onTagAttributeChange(tag, attribute, value)
+  override fun onTagAttributeChange(tag: Tag, attribute: String, value: String?) = myDelegate.onTagAttributeChange(tag, attribute, value)
 
-  override fun onTagContent(content: CharSequence) = delegate.onTagContent(content)
+  override fun onTagContent(content: CharSequence) = myDelegate.onTagContent(content)
 
-  override fun onTagContentEntity(entity: Entities) = delegate.onTagContentEntity(entity)
+  override fun onTagContentEntity(entity: Entities) = myDelegate.onTagContentEntity(entity)
 
-  override fun onTagContentUnsafe(block: Unsafe.() -> Unit) = delegate.onTagContentUnsafe(block)
+  override fun onTagContentUnsafe(block: Unsafe.() -> Unit) = myDelegate.onTagContentUnsafe(block)
 
-  override fun onTagEnd(tag: Tag) = delegate.onTagEnd(tag)
+  override fun onTagEnd(tag: Tag) = myDelegate.onTagEnd(tag)
 
-  override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) = delegate.onTagEvent(tag, event, value)
+  override fun onTagEvent(tag: Tag, event: String, value: (Event) -> Unit) = myDelegate.onTagEvent(tag, event, value)
 
-  override fun onTagStart(tag: Tag) = delegate.onTagStart(tag)
+  override fun onTagStart(tag: Tag) = myDelegate.onTagStart(tag)
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -107,21 +107,23 @@ fun <T, C : ContextTagConsumer<T>> C.darwinDialog(title: String, id: String? = n
         div(classes = "dlgContent") {
           withContext(context).bodyContent()
         }
-        div(classes = "dlgButtons") {
-          style="margin-top: 1em; float: right;"
-          if (negativeButton!=null && negativeButton.isNotEmpty()) {
-            input(type = InputType.button, classes = "dialogcancel") {
-              value = negativeButton
+        div {
+          div(classes = "dlgButtons") {
+            style = "margin-top: 1em; float: right;"
+            if (negativeButton != null && negativeButton.isNotEmpty()) {
+              input(type = InputType.button, classes = "dialogcancel") {
+                value = negativeButton
+              }
             }
-          }
-          for(otherButton in otherButtons) {
-            input(type= InputType.button, classes = "dialogother") {
-              value = otherButton
+            for (otherButton in otherButtons) {
+              input(type = InputType.button, classes = "dialogother") {
+                value = otherButton
+              }
             }
-          }
-          if (positiveButton!=null && positiveButton.isNotEmpty()) {
-            input(type = InputType.submit, classes = "dialogconfirm") {
-              value = positiveButton
+            if (positiveButton != null && positiveButton.isNotEmpty()) {
+              input(type = InputType.submit, classes = "dialogconfirm") {
+                value = positiveButton
+              }
             }
           }
         }
