@@ -10,11 +10,6 @@
 	path = kotlinsql
 	url = https://github.com/pdvrieze/kotlinsql.git
 	ignore = dirty
-[submodule "gh-pages"]
-	path = gh-pages
-	url = ./
-	branch = gh-pages
-	ignore = dirty
 [submodule "wiki"]
 	path = wiki
 	url = https://github.com/pdvrieze/ProcessManager.wiki.git
