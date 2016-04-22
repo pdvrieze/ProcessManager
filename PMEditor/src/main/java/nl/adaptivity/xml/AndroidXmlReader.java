@@ -173,12 +173,14 @@ public class AndroidXmlReader extends AbstractXmlReader {
 
   @Override
   public String getNamespaceUri() {
-    return mReader.getNamespace();
+    String namespace = mReader.getNamespace();
+    return namespace == null ? XMLConstants.NULL_NS_URI :namespace;
   }
 
   @Override
   public String getPrefix() {
-    return mReader.getPrefix();
+    String prefix = mReader.getPrefix();
+    return prefix==null ? XMLConstants.DEFAULT_NS_PREFIX : prefix;
   }
 
   @Override
@@ -192,8 +194,10 @@ public class AndroidXmlReader extends AbstractXmlReader {
   }
 
   @Override
+  @NotNull
   public String getAttributePrefix(final int index) {
-    return mReader.getAttributePrefix(index);
+    String attributePrefix = mReader.getAttributePrefix(index);
+    return attributePrefix ==null ? XMLConstants.DEFAULT_NS_PREFIX : attributePrefix;
   }
 
   @Override
@@ -203,7 +207,8 @@ public class AndroidXmlReader extends AbstractXmlReader {
 
   @Override
   public String getAttributeNamespace(final int index) {
-    return mReader.getAttributeNamespace(index);
+    String attributeNamespace = mReader.getAttributeNamespace(index);
+    return attributeNamespace==null ? XMLConstants.NULL_NS_URI: attributeNamespace;
   }
 
   @Override
