@@ -237,7 +237,7 @@ object XmlStreaming {
   }
 
   @JvmStatic
-  fun setFactory(factory: XmlStreamingFactory) {
+  fun setFactory(factory: XmlStreamingFactory?) {
     _factory = factory
   }
 
