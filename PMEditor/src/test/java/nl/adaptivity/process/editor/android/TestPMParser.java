@@ -7,7 +7,6 @@ import nl.adaptivity.process.engine.TestProcessData;
 import nl.adaptivity.process.processModel.ProcessNodeBase;
 import nl.adaptivity.process.processModel.XmlMessage;
 import nl.adaptivity.process.tasks.PostTask;
-import nl.adaptivity.util.HttpMessage.Post;
 import nl.adaptivity.util.xml.XmlUtil;
 import nl.adaptivity.xml.*;
 import org.custommonkey.xmlunit.XMLAssert;
@@ -19,9 +18,9 @@ import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.CharArrayWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
