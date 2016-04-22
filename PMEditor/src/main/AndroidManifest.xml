@@ -68,6 +68,7 @@
 
         <service
                 android:name="nl.adaptivity.process.models.ProcessModelSyncService"
+                android:process=":sync"
                 android:exported="true"
                 tools:ignore="ExportedService">
             <intent-filter>
@@ -80,6 +81,7 @@
         </service>
         <service
                 android:name="nl.adaptivity.process.tasks.data.TaskSyncService"
+                android:process=":sync"
                 android:exported="true"
                 tools:ignore="ExportedService">
             <intent-filter>
