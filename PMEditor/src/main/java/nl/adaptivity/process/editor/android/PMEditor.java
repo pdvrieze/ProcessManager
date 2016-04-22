@@ -69,7 +69,7 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
 
   private static final String KEY_PROCESSMODEL = "processmodel";
   private static final String KEY_PROCESSMODEL_URI = "processmodeluri";
-  private static final int ITEM_MARGIN = 8/*dp*/;
+
   private static final int STATE_ACTIVE=STATE_CUSTOM1;
   private static final int STATE_GROUP=STATE_CUSTOM2;
   private static final int STATE_XMOST=STATE_CUSTOM3;
@@ -762,10 +762,10 @@ public class PMEditor extends ProcessBaseActivity implements OnNodeClickListener
     lp.gravity=Gravity.CENTER;
     lp.weight=1f;
     if (elementsView.getOrientation()==LinearLayout.HORIZONTAL) {
-      lp.leftMargin=(int) Math.round(DiagramView.DENSITY*ITEM_MARGIN);
+      lp.leftMargin=getResources().getDimensionPixelSize(R.dimen.dragnodemargin);
       lp.rightMargin=lp.leftMargin;
     } else {
-      lp.topMargin=(int) Math.round(DiagramView.DENSITY*ITEM_MARGIN/*dp*/);
+      lp.topMargin=getResources().getDimensionPixelSize(R.dimen.dragnodemargin);
       lp.bottomMargin=lp.topMargin;
     }
 
