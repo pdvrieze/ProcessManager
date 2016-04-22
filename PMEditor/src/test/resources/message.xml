@@ -22,6 +22,9 @@
                 </umh:repliesParam>
                 <umh:taskParam>
                     <umh:task>
+                        <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="instancehandle" name="instancehandle" />
+                        <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="handle" name="remotehandle" />
+                        <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="owner" name="owner" />
                         <umh:item type="label" />
                         <umh:item label="text" type="text" />
                     </umh:task>
