@@ -1,0 +1,104 @@
+<!--
+  ~ Copyright (c) 2016.
+  ~
+  ~ This file is part of ProcessManager.
+  ~
+  ~ ProcessManager is free software: you can redistribute it and/or modify it under the terms of version 3 of the
+  ~ GNU Lesser General Public License as published by the Free Software Foundation.
+  ~
+  ~ ProcessManager is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+  ~ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public License along with Foobar.  If not,
+  ~ see <http://www.gnu.org/licenses/>.
+  -->
+
+<pe:processModel xmlns:pe="http://adaptivity.nl/ProcessEngine/"
+                 name="testModel2"
+                 owner="pdvrieze"
+                 uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
+    <pe:start id="start" x="15.5" y="21.5" />
+    <pe:activity id="ac1" x="82.5" y="21.5" predecessor="start" name="ac1">
+        <pe:result xpath="/umh:result/umh:value[@name='user']/text()" name="name" />
+        <pe:result name="user">
+            <user>
+                <fullname>
+                    <value xpath="/umh:result/umh:value[@name='user']/text()" />
+                </fullname>
+            </user>
+        </pe:result>
+        <pe:message type="application/soap+xml"
+                    serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask"
+                    url="/PEUserMessageHandler/internal">
+            <Envelope:Envelope xmlns:Envelope="http://www.w3.org/2003/05/soap-envelope"
+                               encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <Body xmlns="http://www.w3.org/2003/05/soap-envelope">
+                    <umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler"  xmlns="http://adaptivity.nl/userMessageHandler">
+                        <repliesParam>
+                            <jbi:element xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="endpoint" />
+                        </repliesParam>
+                        <taskParam>
+                            <task summary="Task Foo">
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                               name="remotehandle"
+                                               value="handle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                               name="instancehandle"
+                                               value="instancehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                               name="owner"
+                                               value="owner" />
+                                <item name="lbl1" type="label" value="Please enter some info for task foo" />
+                                <item label="Your name" name="user" type="text" />
+                            </task>
+                        </taskParam>
+                    </umh:postTask>
+                </Body>
+            </Envelope:Envelope>
+        </pe:message>
+    </pe:activity>
+    <pe:activity id="ac2" label="ac2" x="155.5" y="21.5" predecessor="ac1" name="ac2">
+        <pe:define name="mylabel" refnode="ac1" refname="name">Hi
+            <jbi:value xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xpath="." />. Welcome!
+        </pe:define>
+        <pe:message type="application/soap+xml"
+                    serviceNS="http://adaptivity.nl/userMessageHandler"
+                    serviceName="userMessageHandler"
+                    endpoint="internal"
+                    operation="postTask">
+            <env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"
+                          encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+                <env:Body>
+                    <umh:postTask xmlns:umh="http://adaptivity.nl/userMessageHandler">
+                        <umh:repliesParam>
+                            <jbi:element xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" value="endpoint" />
+                        </umh:repliesParam>
+                        <umh:taskParam>
+                            <umh:task summary="Task Bar">
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                               value="instancehandle"
+                                               name="instancehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                               value="handle"
+                                               name="remotehandle" />
+                                <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                               value="owner"
+                                               name="owner" />
+                                <umh:item type="label">
+                                    <jbi:attribute xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity"
+                                                   value="mylabel"
+                                                   name="value" />
+                                </umh:item>
+                            </umh:task>
+                        </umh:taskParam>
+                    </umh:postTask>
+                </env:Body>
+            </env:Envelope>
+        </pe:message>
+    </pe:activity>
+    <pe:end id="end" x="232.0" y="32.0" predecessor="ac2" />
+</pe:processModel>

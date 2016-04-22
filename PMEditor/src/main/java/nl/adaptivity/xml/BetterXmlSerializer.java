@@ -415,6 +415,8 @@ public class BetterXmlSerializer implements XmlSerializer{
       namespace = "";
     } else if (XMLConstants.XMLNS_ATTRIBUTE_NS_URI.equals(namespace)) {
       return namespace(name, value); // If it is a namespace attribute, just go there.
+    } else if (XMLConstants.NULL_NS_URI.equals(namespace) && XMLConstants.XMLNS_ATTRIBUTE.equals(name)) {
+      return namespace("", value); // If it is a namespace attribute, just go there.
     }
 
     //		depth--;
@@ -492,11 +494,11 @@ public class BetterXmlSerializer implements XmlSerializer{
       namespace = "";
 
     writer.write(' ');
+    writer.write(XMLConstants.XMLNS_ATTRIBUTE);
     if (prefix.length()>0) {
-      writer.write(XMLConstants.XMLNS_ATTRIBUTE);
       writer.write(':');
+      writer.write(prefix);
     }
-    writer.write(prefix);
     writer.write('=');
     char q = namespace.indexOf('"') == -1 ? '"' : '\'';
     writer.write(q);

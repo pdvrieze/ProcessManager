@@ -15,11 +15,13 @@ import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3.soapEnvelope.Envelope;
+import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.CharArrayWriter;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +54,21 @@ public class TestPMParser {
     DrawableProcessModel model = PMParser.parseProcessModel(parser, LayoutAlgorithm.<DrawableProcessNode>nullalgorithm(), LayoutAlgorithm.<DrawableProcessNode>nullalgorithm());
     checkModel1(model);
 
+  }
+
+  @Test
+  public void testNsIsue()  throws XmlPullParserException, XmlException, IOException, SAXException {
+    InputStream inputStream = getClass().getResourceAsStream("/namespaceIssueModel.xml");
+    String expected = Streams.toString(getClass().getResourceAsStream("/namespaceIssueModel_expected.xml"), Charset.defaultCharset());
+    XmlReader parser = new AndroidXmlReader(inputStream, "UTF-8");
+    CharArrayWriter out = new CharArrayWriter();
+    XmlWriter writer = new AndroidXmlWriter(out);
+    XmlUtil.serialize(parser, writer);
+    try {
+      XMLAssert.assertXMLEqual(expected, out.toString());
+    } catch (AssertionError e) {
+      assertEquals(expected, out.toString());
+    }
   }
 
   @Test
