@@ -21,7 +21,7 @@ import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
+import nl.adaptivity.android.recyclerview.CursorRecyclerViewAdapter;
 
 
 /**

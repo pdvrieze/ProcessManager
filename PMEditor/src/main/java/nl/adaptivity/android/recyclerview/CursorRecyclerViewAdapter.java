@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.android.util;/*
+package nl.adaptivity.android.recyclerview;/*
  * Copyright (C) 2014 skyfish.jy@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

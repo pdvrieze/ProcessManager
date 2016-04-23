@@ -18,7 +18,6 @@ package nl.adaptivity.android.recyclerview;
 
 import android.content.Context;
 import android.database.Cursor;
-import nl.adaptivity.android.util.CursorRecyclerViewAdapter;
 
 
 /**
