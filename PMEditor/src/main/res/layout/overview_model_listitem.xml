@@ -46,7 +46,7 @@
                        android:paddingLeft="8dp"
                        android:paddingRight="8dp"
                        android:layout_gravity="center_horizontal"
-                       android:src="@{thumbnail==null ? @drawable/process_mipmap_default : thumbnail}"
+                       android:src="@{thumbnail==null ? @drawable/process_thumbnail_default : thumbnail}"
                        tools:src="@mipmap/ic_launcher"
                        tools:ignore="ContentDescription" />
 
